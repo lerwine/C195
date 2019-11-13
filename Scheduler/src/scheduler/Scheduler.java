@@ -10,17 +10,17 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import utils.DbConnection;
 
 /**
- *
- * @author webmaster
+ * Application class for Scheduler
+ * 
+ * @author Leonard T. Erwine
  */
 public class Scheduler extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/view/LoginScreen.fxml"));
         
         Scene scene = new Scene(root);
         
