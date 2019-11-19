@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox id="VBox" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171" fx:controller="controller.LoginScreenController">
+<VBox id="VBox" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginScreenController">
     <stylesheets>
         <URL value="@defaultStyles.css" />
     </stylesheets>
@@ -34,8 +34,8 @@
         </GridPane>
       <ButtonBar>
         <buttons>
-            <Button mnemonicParsing="false" text="Log In" />
-            <Button mnemonicParsing="false" text="Exit" />
+            <Button mnemonicParsing="false" onAction="#loginButtonClick" text="Log In" />
+            <Button mnemonicParsing="false" onAction="#exitButtonClick" text="Exit" />
         </buttons>
       </ButtonBar>
     </children>
