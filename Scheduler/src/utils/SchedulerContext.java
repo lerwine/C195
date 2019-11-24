@@ -6,6 +6,7 @@
 package utils;
 
 import entity.User;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,13 +32,19 @@ public class SchedulerContext {
     @PersistenceUnit
     private EntityManagerFactory emf;
     
-    private User CURRENT_USER = null;
+    private Locale currentLocale = Locale.ENGLISH;
+    
+    public Locale getCurrentLocale() { return currentLocale; }
+    
+    public void setCurrentLocale(Locale locale) { currentLocale = locale; }
+    
+    private User currentUser = null;
     
     /**
      * Gets the currently logged in user.
      * @return The currently logged in user.
      */
-    public User getCurrentUser() { return CURRENT_USER; }
+    public User getCurrentUser() { return currentUser; }
     
     private Optional<EmDependency> latestEmDependency = Optional.empty();
     
@@ -107,7 +114,7 @@ public class SchedulerContext {
             try {
                 // Check if we got a user from the DB and if the password hash matches.
                 if ((new PwHash(u.getPassword(), false)).test(password)) {
-                    CURRENT_USER = u;
+                    currentUser = u;
                     return true;
                 }
             } catch (InvalidArgumentException ex) {

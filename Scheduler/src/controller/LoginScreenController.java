@@ -55,8 +55,6 @@ public class LoginScreenController implements Initializable {
     @FXML
     private TextField passwordTextField;
 
-    private ObservableList<String> languages;
-    
     private HashMap<String, Locale> locales;
     
     /**
@@ -65,8 +63,8 @@ public class LoginScreenController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         locales = new HashMap<>();
-        languages = FXCollections.observableArrayList();
-        Stream.of(new Locale("en"), new Locale("es"), new Locale("de")).forEach((l) -> {
+        ObservableList<String> languages = FXCollections.observableArrayList();
+        Stream.of(new Locale("en"), new Locale("es"), new Locale("de")).forEach((Locale l) -> {
             String key = l.getDisplayName(l);
             locales.put(key, l);
             languages.add(key);
@@ -74,7 +72,9 @@ public class LoginScreenController implements Initializable {
         languageComboBox.setItems(languages);
         String n = languages.get(0);
         languageComboBox.setValue(n);
-        setFromResource(ResourceBundle.getBundle("Messages", locales.get(n)));
+        Locale c = locales.get(n);
+        setFromResource(ResourceBundle.getBundle("Messages", c));
+        SchedulerContext.DEFAULT_CONTEXT.setCurrentLocale(c);
     }
     
     void setFromResource(ResourceBundle rb) {
@@ -86,7 +86,9 @@ public class LoginScreenController implements Initializable {
     
     @FXML
     void languageChanged(ActionEvent event) {
-        setFromResource(ResourceBundle.getBundle("Messages", locales.get((String)languageComboBox.getValue())));
+        Locale c = locales.get((String)languageComboBox.getValue());
+        setFromResource(ResourceBundle.getBundle("Messages", c));
+        SchedulerContext.DEFAULT_CONTEXT.setCurrentLocale(c);
     }
     
     @FXML
