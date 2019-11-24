@@ -7,7 +7,7 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Date;
+import java.sql.Timestamp;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -17,8 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -29,17 +28,22 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "User.findAll", query = "SELECT u FROM User u")
-    , @NamedQuery(name = "User.findByUserId", query = "SELECT u FROM User u WHERE u.userId = :userId")
-    , @NamedQuery(name = "User.findByUserName", query = "SELECT u FROM User u WHERE u.userName = :userName")
-    , @NamedQuery(name = "User.findByPassword", query = "SELECT u FROM User u WHERE u.password = :password")
-    , @NamedQuery(name = "User.findByActive", query = "SELECT u FROM User u WHERE u.active = :active")
-    , @NamedQuery(name = "User.findByCreateDate", query = "SELECT u FROM User u WHERE u.createDate = :createDate")
-    , @NamedQuery(name = "User.findByCreatedBy", query = "SELECT u FROM User u WHERE u.createdBy = :createdBy")
-    , @NamedQuery(name = "User.findByLastUpdate", query = "SELECT u FROM User u WHERE u.lastUpdate = :lastUpdate")
-    , @NamedQuery(name = "User.findByLastUpdateBy", query = "SELECT u FROM User u WHERE u.lastUpdateBy = :lastUpdateBy")})
-public class User implements Serializable {
-
+    @NamedQuery(name = "DbUser.findAll", query = "SELECT u FROM DbUser u")
+    , @NamedQuery(name = DbUser.NAMED_QUERY_BY_USERID, query = "SELECT u FROM DbUser u WHERE u.userId = :userId")
+    , @NamedQuery(name = "DbUser.findByUserName", query = "SELECT u FROM DbUser u WHERE u.userName = :userName")
+    , @NamedQuery(name = "DbUser.findByPassword", query = "SELECT u FROM DbUser u WHERE u.password = :password")
+    , @NamedQuery(name = "DbUser.findByActive", query = "SELECT u FROM DbUser u WHERE u.active = :active")
+    , @NamedQuery(name = "DbUser.findByCreateDate", query = "SELECT u FROM DbUser u WHERE u.createDate = :createDate")
+    , @NamedQuery(name = "DbUser.findByCreatedBy", query = "SELECT u FROM DbUser u WHERE u.createdBy = :createdBy")
+    , @NamedQuery(name = "DbUser.findByLastUpdate", query = "SELECT u FROM DbUser u WHERE u.lastUpdate = :lastUpdate")
+    , @NamedQuery(name = "DbUser.findByLastUpdateBy", query = "SELECT u FROM DbUser u WHERE u.lastUpdateBy = :lastUpdateBy")})
+@Table(name = "user")
+public class DbUser implements Serializable {
+    public static final String NAMED_QUERY_BY_USERID = "DbUser.findByUserId";
+    public static final String NAMED_QUERY_BY_USERNAME = "DbUser.findByUserName";
+    public static final String PARAMETER_NAME_USERID = "userId";
+    public static final String PARAMETER_NAME_USERNAME = "userName";
+    
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,26 +56,26 @@ public class User implements Serializable {
     @Basic(optional = false)
     private short active;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp createDate;
     @Basic(optional = false)
     private String createdBy;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastUpdate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp lastUpdate;
     @Basic(optional = false)
     private String lastUpdateBy;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
     private Collection<Appointment> appointmentCollection;
 
-    public User() {
+    public DbUser() {
     }
 
-    public User(Integer userId) {
+    public DbUser(Integer userId) {
         this.userId = userId;
     }
 
-    public User(Integer userId, String userName, String password, short active, Date createDate, String createdBy, Date lastUpdate, String lastUpdateBy) {
+    public DbUser(Integer userId, String userName, String password, short active, Timestamp createDate, String createdBy, Timestamp lastUpdate, String lastUpdateBy) {
         this.userId = userId;
         this.userName = userName;
         this.password = password;
@@ -114,11 +118,11 @@ public class User implements Serializable {
         this.active = active;
     }
 
-    public Date getCreateDate() {
+    public Timestamp getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Timestamp createDate) {
         this.createDate = createDate;
     }
 
@@ -130,11 +134,11 @@ public class User implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
+    public void setLastUpdate(Timestamp lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
 
@@ -165,10 +169,10 @@ public class User implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof User)) {
+        if (!(object instanceof DbUser)) {
             return false;
         }
-        User other = (User) object;
+        DbUser other = (DbUser) object;
         if ((this.userId == null && other.userId != null) || (this.userId != null && !this.userId.equals(other.userId))) {
             return false;
         }

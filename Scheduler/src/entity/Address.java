@@ -7,7 +7,7 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Date;
+import java.sql.Timestamp;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -19,8 +19,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -42,7 +40,6 @@ import javax.xml.bind.annotation.XmlTransient;
     , @NamedQuery(name = "Address.findByLastUpdate", query = "SELECT a FROM Address a WHERE a.lastUpdate = :lastUpdate")
     , @NamedQuery(name = "Address.findByLastUpdateBy", query = "SELECT a FROM Address a WHERE a.lastUpdateBy = :lastUpdateBy")})
 public class Address implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,13 +54,13 @@ public class Address implements Serializable {
     @Basic(optional = false)
     private String phone;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp createDate;
     @Basic(optional = false)
     private String createdBy;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastUpdate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp lastUpdate;
     @Basic(optional = false)
     private String lastUpdateBy;
     @JoinColumn(name = "cityId", referencedColumnName = "cityId")
@@ -79,7 +76,7 @@ public class Address implements Serializable {
         this.addressId = addressId;
     }
 
-    public Address(Integer addressId, String address, String address2, String postalCode, String phone, Date createDate, String createdBy, Date lastUpdate, String lastUpdateBy) {
+    public Address(Integer addressId, String address, String address2, String postalCode, String phone, Timestamp createDate, String createdBy, Timestamp lastUpdate, String lastUpdateBy) {
         this.addressId = addressId;
         this.address = address;
         this.address2 = address2;
@@ -131,11 +128,11 @@ public class Address implements Serializable {
         this.phone = phone;
     }
 
-    public Date getCreateDate() {
+    public Timestamp getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Timestamp createDate) {
         this.createDate = createDate;
     }
 
@@ -147,11 +144,11 @@ public class Address implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
+    public void setLastUpdate(Timestamp lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
 

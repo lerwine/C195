@@ -7,7 +7,7 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Date;
+import java.sql.Timestamp;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -19,8 +19,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -48,13 +46,13 @@ public class City implements Serializable {
     @Basic(optional = false)
     private String city;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp createDate;
     @Basic(optional = false)
     private String createdBy;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastUpdate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp lastUpdate;
     @Basic(optional = false)
     private String lastUpdateBy;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cityId")
@@ -70,7 +68,7 @@ public class City implements Serializable {
         this.cityId = cityId;
     }
 
-    public City(Integer cityId, String city, Date createDate, String createdBy, Date lastUpdate, String lastUpdateBy) {
+    public City(Integer cityId, String city, Timestamp createDate, String createdBy, Timestamp lastUpdate, String lastUpdateBy) {
         this.cityId = cityId;
         this.city = city;
         this.createDate = createDate;
@@ -95,11 +93,11 @@ public class City implements Serializable {
         this.city = city;
     }
 
-    public Date getCreateDate() {
+    public Timestamp getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Timestamp createDate) {
         this.createDate = createDate;
     }
 
@@ -111,11 +109,11 @@ public class City implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
+    public void setLastUpdate(Timestamp lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
 

@@ -7,10 +7,12 @@ package entity;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Date;
+import java.sql.Timestamp;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -19,8 +21,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.PersistenceContext;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -40,7 +41,6 @@ import javax.xml.bind.annotation.XmlTransient;
     , @NamedQuery(name = "Customer.findByLastUpdate", query = "SELECT c FROM Customer c WHERE c.lastUpdate = :lastUpdate")
     , @NamedQuery(name = "Customer.findByLastUpdateBy", query = "SELECT c FROM Customer c WHERE c.lastUpdateBy = :lastUpdateBy")})
 public class Customer implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,13 +51,13 @@ public class Customer implements Serializable {
     @Basic(optional = false)
     private boolean active;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp createDate;
     @Basic(optional = false)
     private String createdBy;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastUpdate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp lastUpdate;
     @Basic(optional = false)
     private String lastUpdateBy;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId")
@@ -73,7 +73,7 @@ public class Customer implements Serializable {
         this.customerId = customerId;
     }
 
-    public Customer(Integer customerId, String customerName, boolean active, Date createDate, String createdBy, Date lastUpdate, String lastUpdateBy) {
+    public Customer(Integer customerId, String customerName, boolean active, Timestamp createDate, String createdBy, Timestamp lastUpdate, String lastUpdateBy) {
         this.customerId = customerId;
         this.customerName = customerName;
         this.active = active;
@@ -107,11 +107,11 @@ public class Customer implements Serializable {
         this.active = active;
     }
 
-    public Date getCreateDate() {
+    public Timestamp getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Timestamp createDate) {
         this.createDate = createDate;
     }
 
@@ -123,11 +123,11 @@ public class Customer implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
+    public void setLastUpdate(Timestamp lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
 

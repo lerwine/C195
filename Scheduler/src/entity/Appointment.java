@@ -6,7 +6,7 @@
 package entity;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.sql.Timestamp;
 import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,8 +17,6 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -62,19 +60,19 @@ public class Appointment implements Serializable {
     @Basic(optional = false)
     private String url;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date start;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp start;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date end;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp end;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp createDate;
     @Basic(optional = false)
     private String createdBy;
     @Basic(optional = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastUpdate;
+    //@Temporal(TemporalType.TIMESTAMP)
+    private Timestamp lastUpdate;
     @Basic(optional = false)
     private String lastUpdateBy;
     @JoinColumn(name = "customerId", referencedColumnName = "customerId")
@@ -82,7 +80,7 @@ public class Appointment implements Serializable {
     private Customer customerId;
     @JoinColumn(name = "userId", referencedColumnName = "userId")
     @ManyToOne(optional = false)
-    private User userId;
+    private DbUser userId;
 
     public Appointment() {
     }
@@ -91,7 +89,7 @@ public class Appointment implements Serializable {
         this.appointmentId = appointmentId;
     }
 
-    public Appointment(Integer appointmentId, String title, String description, String location, String contact, String type, String url, Date start, Date end, Date createDate, String createdBy, Date lastUpdate, String lastUpdateBy) {
+    public Appointment(Integer appointmentId, String title, String description, String location, String contact, String type, String url, Timestamp start, Timestamp end, Timestamp createDate, String createdBy, Timestamp lastUpdate, String lastUpdateBy) {
         this.appointmentId = appointmentId;
         this.title = title;
         this.description = description;
@@ -163,27 +161,27 @@ public class Appointment implements Serializable {
         this.url = url;
     }
 
-    public Date getStart() {
+    public Timestamp getStart() {
         return start;
     }
 
-    public void setStart(Date start) {
+    public void setStart(Timestamp start) {
         this.start = start;
     }
 
-    public Date getEnd() {
+    public Timestamp getEnd() {
         return end;
     }
 
-    public void setEnd(Date end) {
+    public void setEnd(Timestamp end) {
         this.end = end;
     }
 
-    public Date getCreateDate() {
+    public Timestamp getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Timestamp createDate) {
         this.createDate = createDate;
     }
 
@@ -195,11 +193,11 @@ public class Appointment implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public Date getLastUpdate() {
+    public Timestamp getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(Date lastUpdate) {
+    public void setLastUpdate(Timestamp lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
 
@@ -219,11 +217,11 @@ public class Appointment implements Serializable {
         this.customerId = customerId;
     }
 
-    public User getUserId() {
+    public DbUser getUserId() {
         return userId;
     }
 
-    public void setUserId(User userId) {
+    public void setUserId(DbUser userId) {
         this.userId = userId;
     }
 

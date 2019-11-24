@@ -19,7 +19,17 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import entity.User;
+import entity.DbUser;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.QueryTimeoutException;
+import utils.AppContext;
+import static utils.AppContext.getUserByUserName;
+import utils.InvalidArgumentException;
+import utils.InvalidOperationException;
+import utils.PwHash;
 
 /**
  * FXML Controller class
@@ -49,37 +59,19 @@ public class LoginScreenController implements Initializable {
     
     @FXML
     void loginButtonClick(ActionEvent event) {
-        /*Logger log = Logger.getLogger(LoginScreenController.class.getName());
-        log.info("Login button click");
         try {
-        ArrayList<User> users = User.GetAll();
-        String s = "";
-        for (int i = 0; i < users.size(); i++) {
-        if (s.length() > 0)
-        s += "\n";
-        User u = users.get(i);
-        s += u.getUserName() + "," + u.getPassword() + "," + u.getCreateDate().toString() + "," + u.getCreatedBy() + "," + u.getLastUpdate().toString() + "," + u.getLastUpdateBy();
+            AppContext.EmDependency dependency = new AppContext.EmDependency();
+            EntityManager em = dependency.open(AppContext.DEFAULT_CONTEXT);
+            try {
+                if (AppContext.DEFAULT_CONTEXT.trySetCurrentUser(em, userNameTextField.getText(), passwordTextField.getText()))
+                    HomeScreenController.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
+            } finally { dependency.close(); }
+        } catch (InvalidOperationException ex) {
+            utils.NotificationHelper.showNotificationDialog("Login", "Login Error", "Database access error", Alert.AlertType.ERROR);
+            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RuntimeException ex) {
+            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        utils.NotificationHelper.showNotificationDialog("Debug", "All users", s, Alert.AlertType.ERROR);
-        } catch (Exception ex) {
-        log.log(Level.SEVERE, null, ex);
-        }
-        String userName = this.userNameTextField.getText();
-        if (userName.trim().length() == 0)
-        utils.NotificationHelper.showNotificationDialog("Error", "Invalid User Name", "User name cannot be empty", Alert.AlertType.WARNING);
-        else {
-        String password = this.passwordTextField.getText();
-        if (password.length() == 0)
-        utils.NotificationHelper.showNotificationDialog("Error", "Invalid Password", "Password cannot be empty", Alert.AlertType.WARNING);
-        else {
-        try {
-        if (User.TryLoadCurrentUser(userName, password))
-        HomeScreenController.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
-        } catch (Exception e) {
-        utils.NotificationHelper.showNotificationDialog("Login Error", "Error validating user login", e.getMessage(), Alert.AlertType.ERROR);
-        }
-        }
-        }*/
     }
     
     @FXML
