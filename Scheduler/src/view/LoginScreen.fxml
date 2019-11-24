@@ -3,6 +3,7 @@
 <?import java.net.URL?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -18,24 +19,27 @@
     <children>
         <HBox styleClass="header-section">
         </HBox>
-        <GridPane>
+        <GridPane alignment="CENTER_LEFT">
             <columnConstraints>
-              <ColumnConstraints hgrow="SOMETIMES" maxWidth="93.0" minWidth="70.0" prefWidth="81.0" />
-              <ColumnConstraints hgrow="ALWAYS" maxWidth="530.0" minWidth="507.0" prefWidth="519.0" />
+              <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="70.0" prefWidth="199.0" />
+              <ColumnConstraints hgrow="ALWAYS" maxWidth="530.0" minWidth="390.0" prefWidth="401.0" />
             </columnConstraints>
             <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints />
             </rowConstraints>
-            <Label fx:id="userNameLabel" text="User Name:" GridPane.halignment="RIGHT" GridPane.valignment="TOP" />
-            <TextField fx:id="userNameTextField" accessibleText="User Login Name" promptText="(auto-generated)" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" />
-            <Label fx:id="passwordLabel" text="Password:" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-            <TextField fx:id="passwordTextField" accessibleText="Login Password Credentials" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+            <Label text="Language / Lengua / Sprache:" GridPane.halignment="RIGHT" GridPane.valignment="TOP" />
+            <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache" onAction="#languageChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" />
+            <Label fx:id="userNameLabel" text="User Name:" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+            <TextField fx:id="userNameTextField" accessibleText="User Login Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+            <Label fx:id="passwordLabel" text="Password:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+            <TextField fx:id="passwordTextField" accessibleText="Login Password Credentials" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="TOP" />
         </GridPane>
       <ButtonBar>
         <buttons>
-            <Button mnemonicParsing="false" onAction="#loginButtonClick" text="Log In" />
-            <Button mnemonicParsing="false" onAction="#exitButtonClick" text="Exit" />
+            <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#loginButtonClick" prefWidth="100.0" text="Log In" />
+            <Button fx:id="exitButton" minWidth="100.0" mnemonicParsing="false" onAction="#exitButtonClick" prefWidth="100.0" text="Exit" />
         </buttons>
       </ButtonBar>
     </children>
