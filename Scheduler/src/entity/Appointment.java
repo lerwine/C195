@@ -17,6 +17,7 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -26,17 +27,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Appointment.findAll", query = "SELECT a FROM Appointment a")
-    , @NamedQuery(name = "Appointment.findByAppointmentId", query = "SELECT a FROM Appointment a WHERE a.appointmentId = :appointmentId")
-    , @NamedQuery(name = "Appointment.findByTitle", query = "SELECT a FROM Appointment a WHERE a.title = :title")
-    , @NamedQuery(name = "Appointment.findByUrl", query = "SELECT a FROM Appointment a WHERE a.url = :url")
-    , @NamedQuery(name = "Appointment.findByStart", query = "SELECT a FROM Appointment a WHERE a.start = :start")
-    , @NamedQuery(name = "Appointment.findByEnd", query = "SELECT a FROM Appointment a WHERE a.end = :end")
-    , @NamedQuery(name = "Appointment.findByCreateDate", query = "SELECT a FROM Appointment a WHERE a.createDate = :createDate")
-    , @NamedQuery(name = "Appointment.findByCreatedBy", query = "SELECT a FROM Appointment a WHERE a.createdBy = :createdBy")
-    , @NamedQuery(name = "Appointment.findByLastUpdate", query = "SELECT a FROM Appointment a WHERE a.lastUpdate = :lastUpdate")
-    , @NamedQuery(name = "Appointment.findByLastUpdateBy", query = "SELECT a FROM Appointment a WHERE a.lastUpdateBy = :lastUpdateBy")})
+    @NamedQuery(name = Appointment.NAMED_QUERY_ALL, query = "SELECT a FROM Appointment a"),
+    @NamedQuery(name = Appointment.NAMED_QUERY_BY_ID, query = "SELECT a FROM Appointment a WHERE a.appointmentId = :appointmentId"),
+    @NamedQuery(name = Appointment.NAMED_QUERY_BY_CUSTOMER, query = "SELECT a FROM Appointment a WHERE a.customerId = :customerId"),
+    @NamedQuery(name = Appointment.NAMED_QUERY_BY_USER, query = "SELECT a FROM Appointment a WHERE a.userId = :userId")
+})
+@Table(name = "appointment")
 public class Appointment implements Serializable {
+    public static final String NAMED_QUERY_ALL = "Appointment.findAll";
+    public static final String NAMED_QUERY_BY_ID = "Appointment.findByAppointmentId";
+    public static final String NAMED_QUERY_BY_CUSTOMER = "Appointment.findByCustomerId";
+    public static final String NAMED_QUERY_BY_USER = "Appointment.findByUserId";
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -80,7 +81,7 @@ public class Appointment implements Serializable {
     private Customer customerId;
     @JoinColumn(name = "userId", referencedColumnName = "userId")
     @ManyToOne(optional = false)
-    private DbUser userId;
+    private User userId;
 
     public Appointment() {
     }
@@ -217,11 +218,11 @@ public class Appointment implements Serializable {
         this.customerId = customerId;
     }
 
-    public DbUser getUserId() {
+    public User getUserId() {
         return userId;
     }
 
-    public void setUserId(DbUser userId) {
+    public void setUserId(User userId) {
         this.userId = userId;
     }
 

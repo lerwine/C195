@@ -27,14 +27,13 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Country.findAll", query = "SELECT c FROM Country c")
-    , @NamedQuery(name = "Country.findByCountryId", query = "SELECT c FROM Country c WHERE c.countryId = :countryId")
-    , @NamedQuery(name = "Country.findByCountry", query = "SELECT c FROM Country c WHERE c.country = :country")
-    , @NamedQuery(name = "Country.findByCreateDate", query = "SELECT c FROM Country c WHERE c.createDate = :createDate")
-    , @NamedQuery(name = "Country.findByCreatedBy", query = "SELECT c FROM Country c WHERE c.createdBy = :createdBy")
-    , @NamedQuery(name = "Country.findByLastUpdate", query = "SELECT c FROM Country c WHERE c.lastUpdate = :lastUpdate")
-    , @NamedQuery(name = "Country.findByLastUpdateBy", query = "SELECT c FROM Country c WHERE c.lastUpdateBy = :lastUpdateBy")})
+    @NamedQuery(name = Country.NAMED_QUERY_ALL, query = "SELECT c FROM Country c"),
+    @NamedQuery(name = Country.NAMED_QUERY_BY_ID, query = "SELECT c FROM Country c WHERE c.countryId = :" + Country.PARAMETER_NAME_COUNTRYID)
+})
 public class Country implements Serializable {
+    public static final String NAMED_QUERY_ALL = "Country.findAll";
+    public static final String NAMED_QUERY_BY_ID = "Country.findByCountryId";
+    public static final String PARAMETER_NAME_COUNTRYID = "countryId";
 
     private static final long serialVersionUID = 1L;
     @Id

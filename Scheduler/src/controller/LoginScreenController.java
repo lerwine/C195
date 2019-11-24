@@ -6,8 +6,6 @@
 package controller;
 
 import java.net.URL;
-import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,17 +17,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import entity.DbUser;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.QueryTimeoutException;
-import utils.AppContext;
-import static utils.AppContext.getUserByUserName;
-import utils.InvalidArgumentException;
+import utils.SchedulerContext;
 import utils.InvalidOperationException;
-import utils.PwHash;
 
 /**
  * FXML Controller class
@@ -60,14 +50,19 @@ public class LoginScreenController implements Initializable {
     @FXML
     void loginButtonClick(ActionEvent event) {
         try {
-            AppContext.EmDependency dependency = new AppContext.EmDependency();
-            EntityManager em = dependency.open(AppContext.DEFAULT_CONTEXT);
+            // Open a new SQL connection dependency
+            SchedulerContext.EmDependency dependency = new SchedulerContext.EmDependency();
+            EntityManager em = dependency.open(SchedulerContext.DEFAULT_CONTEXT);
             try {
-                if (AppContext.DEFAULT_CONTEXT.trySetCurrentUser(em, userNameTextField.getText(), passwordTextField.getText()))
+                // Attempt to set current user according to login and password.
+                if (SchedulerContext.DEFAULT_CONTEXT.trySetCurrentUser(em, userNameTextField.getText(),
+                        passwordTextField.getText()))
+                    // If true, change to the home screen.
                     HomeScreenController.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
             } finally { dependency.close(); }
         } catch (InvalidOperationException ex) {
-            utils.NotificationHelper.showNotificationDialog("Login", "Login Error", "Database access error", Alert.AlertType.ERROR);
+            utils.NotificationHelper.showNotificationDialog("Login", "Login Error", "Database access error",
+                    Alert.AlertType.ERROR);
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (RuntimeException ex) {
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);

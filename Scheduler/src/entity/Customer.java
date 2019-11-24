@@ -32,15 +32,20 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Customer.findAll", query = "SELECT c FROM Customer c")
-    , @NamedQuery(name = "Customer.findByCustomerId", query = "SELECT c FROM Customer c WHERE c.customerId = :customerId")
-    , @NamedQuery(name = "Customer.findByCustomerName", query = "SELECT c FROM Customer c WHERE c.customerName = :customerName")
-    , @NamedQuery(name = "Customer.findByActive", query = "SELECT c FROM Customer c WHERE c.active = :active")
-    , @NamedQuery(name = "Customer.findByCreateDate", query = "SELECT c FROM Customer c WHERE c.createDate = :createDate")
-    , @NamedQuery(name = "Customer.findByCreatedBy", query = "SELECT c FROM Customer c WHERE c.createdBy = :createdBy")
-    , @NamedQuery(name = "Customer.findByLastUpdate", query = "SELECT c FROM Customer c WHERE c.lastUpdate = :lastUpdate")
-    , @NamedQuery(name = "Customer.findByLastUpdateBy", query = "SELECT c FROM Customer c WHERE c.lastUpdateBy = :lastUpdateBy")})
+    @NamedQuery(name = "Customer.findAll", query = "SELECT c FROM Customer c"),
+    @NamedQuery(name = "Customer.findByCustomerId", query = "SELECT c FROM Customer c WHERE c.customerId = :" + Customer.PARAMETER_NAME_CUSTOMERID),
+    @NamedQuery(name = "Customer.findByActive", query = "SELECT c FROM Customer c WHERE c.active = :" + Customer.PARAMETER_NAME_ACTIVE),
+    @NamedQuery(name = "Customer.findByAddressId", query = "SELECT c FROM Customer c WHERE c.addressId = :" + Customer.PARAMETER_NAME_ADDRESSID)
+})
 public class Customer implements Serializable {
+    public static final String NAMED_QUERY_ALL = "Customer.findAll";
+    public static final String NAMED_QUERY_BY_ID = "Customer.findByCountryId";
+    public static final String NAMED_QUERY_BY_ACTIVE = "Customer.findByActive";
+    public static final String NAMED_QUERY_BY_ADDRESS = "Customer.findByAddressId";
+    public static final String PARAMETER_NAME_ACTIVE = "active";
+    public static final String PARAMETER_NAME_CUSTOMERID = "customerId";
+    public static final String PARAMETER_NAME_ADDRESSID = "addressId";
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

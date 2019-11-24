@@ -13,7 +13,7 @@
     <class>entity.Address</class>
     <class>entity.Country</class>
     <class>entity.City</class>
-    <class>entity.DbUser</class>
+    <class>entity.User</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://3.227.166.251:3306/U03vHM?zeroDateTimeBehavior=convertToNull"/>
       <property name="javax.persistence.jdbc.user" value="U03vHM"/>

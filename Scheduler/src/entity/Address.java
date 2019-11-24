@@ -19,6 +19,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -29,17 +30,20 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Address.findAll", query = "SELECT a FROM Address a")
-    , @NamedQuery(name = "Address.findByAddressId", query = "SELECT a FROM Address a WHERE a.addressId = :addressId")
-    , @NamedQuery(name = "Address.findByAddress", query = "SELECT a FROM Address a WHERE a.address = :address")
-    , @NamedQuery(name = "Address.findByAddress2", query = "SELECT a FROM Address a WHERE a.address2 = :address2")
-    , @NamedQuery(name = "Address.findByPostalCode", query = "SELECT a FROM Address a WHERE a.postalCode = :postalCode")
-    , @NamedQuery(name = "Address.findByPhone", query = "SELECT a FROM Address a WHERE a.phone = :phone")
-    , @NamedQuery(name = "Address.findByCreateDate", query = "SELECT a FROM Address a WHERE a.createDate = :createDate")
-    , @NamedQuery(name = "Address.findByCreatedBy", query = "SELECT a FROM Address a WHERE a.createdBy = :createdBy")
-    , @NamedQuery(name = "Address.findByLastUpdate", query = "SELECT a FROM Address a WHERE a.lastUpdate = :lastUpdate")
-    , @NamedQuery(name = "Address.findByLastUpdateBy", query = "SELECT a FROM Address a WHERE a.lastUpdateBy = :lastUpdateBy")})
+    @NamedQuery(name = Address.NAMED_QUERY_ALL, query = "SELECT a FROM Address a"),
+    @NamedQuery(name = Address.NAMED_QUERY_BY_ID,
+            query = "SELECT a FROM Address a WHERE a.addressId = :" + Address.PARAMETER_NAME_ADDRESSID),
+    @NamedQuery(name = Address.NAMED_QUERY_BY_CITY,
+            query = "SELECT a FROM Address a WHERE a.cityId = :" + Address.PARAMETER_NAME_CITYID)
+})
+@Table(name = "address")
 public class Address implements Serializable {
+    public static final String NAMED_QUERY_ALL = "Address.findAll";
+    public static final String NAMED_QUERY_BY_ID = "Address.findByAddressId";
+    public static final String NAMED_QUERY_BY_CITY = "Address.findByCityId";
+    public static final String PARAMETER_NAME_ADDRESSID = "addressId";
+    public static final String PARAMETER_NAME_CITYID = "cityId";
+    
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -29,14 +29,16 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "City.findAll", query = "SELECT c FROM City c")
-    , @NamedQuery(name = "City.findByCityId", query = "SELECT c FROM City c WHERE c.cityId = :cityId")
-    , @NamedQuery(name = "City.findByCity", query = "SELECT c FROM City c WHERE c.city = :city")
-    , @NamedQuery(name = "City.findByCreateDate", query = "SELECT c FROM City c WHERE c.createDate = :createDate")
-    , @NamedQuery(name = "City.findByCreatedBy", query = "SELECT c FROM City c WHERE c.createdBy = :createdBy")
-    , @NamedQuery(name = "City.findByLastUpdate", query = "SELECT c FROM City c WHERE c.lastUpdate = :lastUpdate")
-    , @NamedQuery(name = "City.findByLastUpdateBy", query = "SELECT c FROM City c WHERE c.lastUpdateBy = :lastUpdateBy")})
+    @NamedQuery(name = City.NAMED_QUERY_ALL, query = "SELECT c FROM City c"),
+    @NamedQuery(name = City.NAMED_QUERY_BY_ID, query = "SELECT c FROM City c WHERE c.cityId = :" + City.PARAMETER_NAME_CITYID),
+    @NamedQuery(name = City.NAMED_QUERY_BY_COUNTRY, query = "SELECT c FROM City c WHERE c.countryId = :" + City.PARAMETER_NAME_COUNTRYID)
+})
 public class City implements Serializable {
+    public static final String NAMED_QUERY_ALL = "City.findAll";
+    public static final String NAMED_QUERY_BY_ID = "City.findByCityId";
+    public static final String NAMED_QUERY_BY_COUNTRY = "City.findByCountryId";
+    public static final String PARAMETER_NAME_CITYID = "cityId";
+    public static final String PARAMETER_NAME_COUNTRYID = "countryId";
 
     private static final long serialVersionUID = 1L;
     @Id
