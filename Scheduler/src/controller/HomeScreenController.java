@@ -4,17 +4,15 @@
  * and open the template in the editor.
  */
 package controller;
-
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.fxml.FXMLLoader;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javafx.scene.control.Button;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 
 /**
  * FXML Controller class
@@ -23,50 +21,87 @@ import javafx.stage.Stage;
  */
 public class HomeScreenController implements Initializable {
     /**
-     * The path of the View for Modify Part and Add Part.
+     * The path of the View associated with this controller.
      */
     public static final String VIEW_PATH = "/view/HomeScreen.fxml";
 
+    @FXML
+    private MenuItem newAppointmentMenuItem;
+
+    @FXML
+    private MenuItem newCityMenuItem;
+
+    @FXML
+    private MenuItem newAddressMenuItem;
+
+    @FXML
+    private Menu usersMenu;
+    
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        scheduler.Context.setWindowTitle(scheduler.Context.getMessage("appointmentScheduler"));
         // TODO
     }    
     
-    /**
-     * Utility method to initialize the controller and switch scenes.
-     * 
-     * @param <T> The type of controller to initialize.
-     * @param eventSource The source Node for the event.
-     * @param path The path of the FXML file to load.
-     * @param initializeController Function for initializing the controller.
-     */
-    public static <T> void changeScene(Node eventSource, String path, java.util.function.Consumer<T> initializeController) {
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(HomeScreenController.class.getResource(path));
-        Stage stage = (Stage)eventSource.getScene().getWindow();
-        try {
-            stage.setScene(new Scene(loader.load()));
-            T controller = loader.getController();
-            if (initializeController != null)
-                initializeController.accept(controller);
-        } catch (IOException ex) {
-            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        stage.show();
+    @FXML
+    void newAppointmentMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
+            controller.applyModel(scheduler.Context.getCurrentUser());
+        });
     }
     
-    /**
-     * Utility method to change switch to another scene.
-     * 
-     * @param eventSource The source node for the event.
-     * @param path The path of the FXML file to load.
-     */
-    public static void changeScene(Node eventSource, String path) {
-        changeScene(eventSource, path, null);
+    @FXML
+    void myAppointmentsMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
+            controller.applyModel(scheduler.Context.getCurrentUser());
+        });
     }
     
+    @FXML
+    void newCustomerMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
+    }
+    
+    @FXML
+    void allCustomersMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
+    }
+    
+    @FXML
+    void newCountryMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+    }
+    
+    @FXML
+    void newCityMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+    }
+    
+    @FXML
+    void newAddressMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+    }
+    
+    @FXML
+    void allCountriesMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+    }
+    
+    @FXML
+    void newUserMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
+    }
+    
+    @FXML
+    void allUsersMenuItemClick(ActionEvent event) {
+        scheduler.Context.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
+    }
+    
+    @FXML
+    void exitButtonClick(ActionEvent event) {
+        ((Button)event.getSource()).getScene().getWindow().hide();
+    }
 }

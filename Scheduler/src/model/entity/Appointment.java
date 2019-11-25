@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package model.entity;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = Appointment.NAMED_QUERY_BY_USER, query = "SELECT a FROM Appointment a WHERE a.userId = :userId")
 })
 @Table(name = "appointment")
-public class Appointment implements Serializable {
+public class Appointment implements DbEntity {
     public static final String NAMED_QUERY_ALL = "Appointment.findAll";
     public static final String NAMED_QUERY_BY_ID = "Appointment.findByAppointmentId";
     public static final String NAMED_QUERY_BY_CUSTOMER = "Appointment.findByCustomerId";
@@ -106,132 +106,82 @@ public class Appointment implements Serializable {
         this.lastUpdateBy = lastUpdateBy;
     }
 
-    public Integer getAppointmentId() {
-        return appointmentId;
-    }
+    @Override
+    public Integer getPrimaryKey() { return appointmentId; }
+    
+    @Override
+    public void setPrimaryKey(Integer value) { appointmentId = value; }
+    
+    public Integer getAppointmentId() { return appointmentId; }
 
-    public void setAppointmentId(Integer appointmentId) {
-        this.appointmentId = appointmentId;
-    }
+    public void setAppointmentId(Integer appointmentId) { this.appointmentId = appointmentId; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getDescription() { return description; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public void setDescription(String description) { this.description = description; }
 
-    public String getLocation() {
-        return location;
-    }
+    public String getLocation() { return location; }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+    public void setLocation(String location) { this.location = location; }
 
-    public String getContact() {
-        return contact;
-    }
+    public String getContact() { return contact; }
 
-    public void setContact(String contact) {
-        this.contact = contact;
-    }
+    public void setContact(String contact) { this.contact = contact; }
 
-    public String getType() {
-        return type;
-    }
+    public String getType() { return type; }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    public void setType(String type) { this.type = type; }
 
-    public String getUrl() {
-        return url;
-    }
+    public String getUrl() { return url; }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    public void setUrl(String url) { this.url = url; }
 
-    public Timestamp getStart() {
-        return start;
-    }
+    public Timestamp getStart() { return start; }
 
-    public void setStart(Timestamp start) {
-        this.start = start;
-    }
+    public void setStart(Timestamp start) { this.start = start; }
 
-    public Timestamp getEnd() {
-        return end;
-    }
+    public Timestamp getEnd() { return end; }
 
-    public void setEnd(Timestamp end) {
-        this.end = end;
-    }
-
-    public Timestamp getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Timestamp createDate) {
-        this.createDate = createDate;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
-    }
-
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
-
-    public Customer getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Customer customerId) {
-        this.customerId = customerId;
-    }
-
-    public User getUserId() {
-        return userId;
-    }
-
-    public void setUserId(User userId) {
-        this.userId = userId;
-    }
+    public void setEnd(Timestamp end) { this.end = end; }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (appointmentId != null ? appointmentId.hashCode() : 0);
-        return hash;
-    }
+    public Timestamp getCreateDate() { return createDate; }
+
+    @Override
+    public void setCreateDate(Timestamp createDate) { this.createDate = createDate; }
+
+    @Override
+    public String getCreatedBy() { return createdBy; }
+
+    @Override
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    @Override
+    public Timestamp getLastUpdate() { return lastUpdate; }
+
+    @Override
+    public void setLastUpdate(Timestamp lastUpdate) { this.lastUpdate = lastUpdate; }
+
+    @Override
+    public String getLastUpdateBy() { return lastUpdateBy; }
+
+    @Override
+    public void setLastUpdateBy(String lastUpdateBy) { this.lastUpdateBy = lastUpdateBy; }
+
+    public Customer getCustomerId() { return customerId; }
+
+    public void setCustomerId(Customer customerId) { this.customerId = customerId; }
+
+    public User getUserId() { return userId; }
+
+    public void setUserId(User userId) { this.userId = userId; }
+
+    @Override
+    public int hashCode() { return (appointmentId == null) ? 0 : appointmentId.hashCode();  }
 
     @Override
     public boolean equals(Object object) {

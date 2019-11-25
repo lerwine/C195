@@ -26,6 +26,12 @@ Label.header-section {
     -fx-padding: 0px 32px 0px 0px;
 }
 
+.error Label {
+    -fx-padding: 0px 0px 0px 0px;
+    -fx-text-fill: #7f0000;
+    -fx-font-weight: bold;
+}
+
 .content-section {
     -fx-padding: 16px;
 }

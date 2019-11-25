@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package model.entity;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.sql.Timestamp;
 import javax.persistence.Basic;
@@ -33,7 +32,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = City.NAMED_QUERY_BY_ID, query = "SELECT c FROM City c WHERE c.cityId = :" + City.PARAMETER_NAME_CITYID),
     @NamedQuery(name = City.NAMED_QUERY_BY_COUNTRY, query = "SELECT c FROM City c WHERE c.countryId = :" + City.PARAMETER_NAME_COUNTRYID)
 })
-public class City implements Serializable {
+public class City implements DbEntity {
     public static final String NAMED_QUERY_ALL = "City.findAll";
     public static final String NAMED_QUERY_BY_ID = "City.findByCityId";
     public static final String NAMED_QUERY_BY_COUNTRY = "City.findByCountryId";
@@ -58,7 +57,7 @@ public class City implements Serializable {
     @Basic(optional = false)
     private String lastUpdateBy;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "cityId")
-    private Collection<Address> addressCollection;
+    private Collection<Address> addresses;
     @JoinColumn(name = "countryId", referencedColumnName = "countryId")
     @ManyToOne(optional = false)
     private Country countryId;
@@ -79,77 +78,57 @@ public class City implements Serializable {
         this.lastUpdateBy = lastUpdateBy;
     }
 
-    public Integer getCityId() {
-        return cityId;
-    }
+    @Override
+    public Integer getPrimaryKey() { return cityId; }
+    
+    @Override
+    public void setPrimaryKey(Integer value) { cityId = value; }
+    
+    public Integer getCityId() { return cityId; }
 
-    public void setCityId(Integer cityId) {
-        this.cityId = cityId;
-    }
+    public void setCityId(Integer cityId) { this.cityId = cityId; }
 
-    public String getCity() {
-        return city;
-    }
+    public String getCity() { return city; }
 
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public Timestamp getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Timestamp createDate) {
-        this.createDate = createDate;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
-    }
-
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
-
-    @XmlTransient
-    public Collection<Address> getAddressCollection() {
-        return addressCollection;
-    }
-
-    public void setAddressCollection(Collection<Address> addressCollection) {
-        this.addressCollection = addressCollection;
-    }
-
-    public Country getCountryId() {
-        return countryId;
-    }
-
-    public void setCountryId(Country countryId) {
-        this.countryId = countryId;
-    }
+    public void setCity(String city) { this.city = city; }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (cityId != null ? cityId.hashCode() : 0);
-        return hash;
+    public Timestamp getCreateDate() { return createDate; }
+
+    @Override
+    public void setCreateDate(Timestamp createDate) { this.createDate = createDate; }
+
+    @Override
+    public String getCreatedBy() { return createdBy; }
+
+    @Override
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    @Override
+    public Timestamp getLastUpdate() { return lastUpdate; }
+
+    @Override
+    public void setLastUpdate(Timestamp lastUpdate) { this.lastUpdate = lastUpdate; }
+
+    @Override
+    public String getLastUpdateBy() { return lastUpdateBy; }
+
+    @Override
+    public void setLastUpdateBy(String lastUpdateBy) { this.lastUpdateBy = lastUpdateBy; }
+
+    @XmlTransient
+    public Collection<Address> getAddresses() { return addresses; }
+
+    public void setAddresses(Collection<Address> addressCollection) {
+        addresses = addressCollection;
     }
+
+    public Country getCountryId() { return countryId; }
+
+    public void setCountryId(Country countryId) { this.countryId = countryId; }
+
+    @Override
+    public int hashCode() { return (cityId == null) ? 0 : cityId.hashCode();  }
 
     @Override
     public boolean equals(Object object) {

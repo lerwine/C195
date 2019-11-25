@@ -3,16 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package model.entity;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.sql.Timestamp;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -21,7 +18,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.PersistenceContext;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -37,7 +33,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Customer.findByActive", query = "SELECT c FROM Customer c WHERE c.active = :" + Customer.PARAMETER_NAME_ACTIVE),
     @NamedQuery(name = "Customer.findByAddressId", query = "SELECT c FROM Customer c WHERE c.addressId = :" + Customer.PARAMETER_NAME_ADDRESSID)
 })
-public class Customer implements Serializable {
+public class Customer implements DbEntity {
     public static final String NAMED_QUERY_ALL = "Customer.findAll";
     public static final String NAMED_QUERY_BY_ID = "Customer.findByCountryId";
     public static final String NAMED_QUERY_BY_ACTIVE = "Customer.findByActive";
@@ -56,17 +52,15 @@ public class Customer implements Serializable {
     @Basic(optional = false)
     private boolean active;
     @Basic(optional = false)
-    //@Temporal(TemporalType.TIMESTAMP)
     private Timestamp createDate;
     @Basic(optional = false)
     private String createdBy;
     @Basic(optional = false)
-    //@Temporal(TemporalType.TIMESTAMP)
     private Timestamp lastUpdate;
     @Basic(optional = false)
     private String lastUpdateBy;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customerId")
-    private Collection<Appointment> appointmentCollection;
+    private Collection<Appointment> appointments;
     @JoinColumn(name = "addressId", referencedColumnName = "addressId")
     @ManyToOne(optional = false)
     private Address addressId;
@@ -88,85 +82,63 @@ public class Customer implements Serializable {
         this.lastUpdateBy = lastUpdateBy;
     }
 
-    public Integer getCustomerId() {
-        return customerId;
-    }
+    @Override
+    public Integer getPrimaryKey() { return customerId; }
+    
+    @Override
+    public void setPrimaryKey(Integer value) { customerId = value; }
+    
+    public Integer getCustomerId() { return customerId; }
 
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
-    }
+    public void setCustomerId(Integer customerId) { this.customerId = customerId; }
 
-    public String getCustomerName() {
-        return customerName;
-    }
+    public String getCustomerName() { return customerName; }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
 
-    public boolean getActive() {
-        return active;
-    }
+    public boolean getActive() { return active; }
 
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public Timestamp getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Timestamp createDate) {
-        this.createDate = createDate;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
-    }
-
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
-
-    @XmlTransient
-    public Collection<Appointment> getAppointmentCollection() {
-        return appointmentCollection;
-    }
-
-    public void setAppointmentCollection(Collection<Appointment> appointmentCollection) {
-        this.appointmentCollection = appointmentCollection;
-    }
-
-    public Address getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(Address addressId) {
-        this.addressId = addressId;
-    }
+    public void setActive(boolean active) { this.active = active; }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (customerId != null ? customerId.hashCode() : 0);
-        return hash;
+    public Timestamp getCreateDate() { return createDate; }
+
+    @Override
+    public void setCreateDate(Timestamp createDate) { this.createDate = createDate; }
+
+    @Override
+    public String getCreatedBy() { return createdBy; }
+
+    @Override
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    @Override
+    public Timestamp getLastUpdate() { return lastUpdate; }
+
+    @Override
+    public void setLastUpdate(Timestamp lastUpdate) { this.lastUpdate = lastUpdate; }
+
+    @Override
+    public String getLastUpdateBy() { return lastUpdateBy; }
+
+    @Override
+    public void setLastUpdateBy(String lastUpdateBy) { this.lastUpdateBy = lastUpdateBy; }
+
+    @XmlTransient
+    public Collection<Appointment> getAppointments() {
+        return appointments;
     }
+
+    public void setAppointments(Collection<Appointment> appointmentCollection) {
+        appointments = appointmentCollection;
+    }
+
+    public Address getAddressId() { return addressId; }
+
+    public void setAddressId(Address addressId) { this.addressId = addressId; }
+
+    @Override
+    public int hashCode() { return (customerId == null) ? 0 : customerId.hashCode();  }
 
     @Override
     public boolean equals(Object object) {

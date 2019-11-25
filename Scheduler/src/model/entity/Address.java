@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package model.entity;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.sql.Timestamp;
 import javax.persistence.Basic;
@@ -37,7 +36,7 @@ import javax.xml.bind.annotation.XmlTransient;
             query = "SELECT a FROM Address a WHERE a.cityId = :" + Address.PARAMETER_NAME_CITYID)
 })
 @Table(name = "address")
-public class Address implements Serializable {
+public class Address implements DbEntity {
     public static final String NAMED_QUERY_ALL = "Address.findAll";
     public static final String NAMED_QUERY_BY_ID = "Address.findByAddressId";
     public static final String NAMED_QUERY_BY_CITY = "Address.findByCityId";
@@ -71,7 +70,7 @@ public class Address implements Serializable {
     @ManyToOne(optional = false)
     private City cityId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "addressId")
-    private Collection<Customer> customerCollection;
+    private Collection<Customer> customers;
 
     public Address() {
     }
@@ -92,101 +91,69 @@ public class Address implements Serializable {
         this.lastUpdateBy = lastUpdateBy;
     }
 
-    public Integer getAddressId() {
-        return addressId;
-    }
+    @Override
+    public Integer getPrimaryKey() { return addressId; }
+    
+    @Override
+    public void setPrimaryKey(Integer value) { addressId = value; }
+    
+    public Integer getAddressId() { return addressId; }
 
-    public void setAddressId(Integer addressId) {
-        this.addressId = addressId;
-    }
+    public void setAddressId(Integer addressId) { this.addressId = addressId; }
 
-    public String getAddress() {
-        return address;
-    }
+    public String getAddress() { return address; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public void setAddress(String address) { this.address = address; }
 
-    public String getAddress2() {
-        return address2;
-    }
+    public String getAddress2() { return address2; }
 
-    public void setAddress2(String address2) {
-        this.address2 = address2;
-    }
+    public void setAddress2(String address2) { this.address2 = address2; }
 
-    public String getPostalCode() {
-        return postalCode;
-    }
+    public String getPostalCode() { return postalCode; }
 
-    public void setPostalCode(String postalCode) {
-        this.postalCode = postalCode;
-    }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
 
-    public String getPhone() {
-        return phone;
-    }
+    public String getPhone() { return phone; }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public Timestamp getCreateDate() {
-        return createDate;
-    }
+    @Override
+    public Timestamp getCreateDate() { return createDate; }
 
-    public void setCreateDate(Timestamp createDate) {
-        this.createDate = createDate;
-    }
+    @Override
+    public void setCreateDate(Timestamp createDate) { this.createDate = createDate; }
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
+    @Override
+    public String getCreatedBy() { return createdBy; }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
+    @Override
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
+    @Override
+    public Timestamp getLastUpdate() { return lastUpdate; }
 
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
+    @Override
+    public void setLastUpdate(Timestamp lastUpdate) { this.lastUpdate = lastUpdate; }
 
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
-    }
+    @Override
+    public String getLastUpdateBy() { return lastUpdateBy; }
 
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
+    @Override
+    public void setLastUpdateBy(String lastUpdateBy) { this.lastUpdateBy = lastUpdateBy; }
 
-    public City getCityId() {
-        return cityId;
-    }
+    public City getCityId() { return cityId; }
 
-    public void setCityId(City cityId) {
-        this.cityId = cityId;
-    }
+    public void setCityId(City cityId) { this.cityId = cityId; }
 
     @XmlTransient
-    public Collection<Customer> getCustomerCollection() {
-        return customerCollection;
-    }
+    public Collection<Customer> getCustomers() { return customers; }
 
-    public void setCustomerCollection(Collection<Customer> customerCollection) {
-        this.customerCollection = customerCollection;
+    public void setCustomers(Collection<Customer> customerCollection) {
+        customers = customerCollection;
     }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (addressId != null ? addressId.hashCode() : 0);
-        return hash;
-    }
+    public int hashCode() { return (addressId == null) ? 0 : addressId.hashCode();  }
 
     @Override
     public boolean equals(Object object) {

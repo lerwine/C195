@@ -5,6 +5,8 @@
  */
 package scheduler;
 
+import controller.LoginScreenController;
+import java.util.Locale;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,15 +19,24 @@ import javafx.stage.Stage;
  * @author Leonard T. Erwine
  */
 public class Scheduler extends Application {
-    
+    private Locale originalDisplayLocale;
+    private Locale originalFormatLocale;
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/view/LoginScreen.fxml"));
-        
+        Context.setCurrentStage(stage);
+        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
+        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+        Parent root = FXMLLoader.load(getClass().getResource(LoginScreenController.VIEW_PATH));
         Scene scene = new Scene(root);
-        
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale);
+        Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
+        super.stop(); //To change body of generated methods, choose Tools | Templates.
     }
 
     /**

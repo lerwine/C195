@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package model.entity;
 
+import model.entity.City;
 import java.io.Serializable;
 import java.util.Collection;
 import java.sql.Timestamp;
@@ -30,7 +31,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = Country.NAMED_QUERY_ALL, query = "SELECT c FROM Country c"),
     @NamedQuery(name = Country.NAMED_QUERY_BY_ID, query = "SELECT c FROM Country c WHERE c.countryId = :" + Country.PARAMETER_NAME_COUNTRYID)
 })
-public class Country implements Serializable {
+public class Country implements DbEntity {
     public static final String NAMED_QUERY_ALL = "Country.findAll";
     public static final String NAMED_QUERY_BY_ID = "Country.findByCountryId";
     public static final String PARAMETER_NAME_COUNTRYID = "countryId";
@@ -53,7 +54,7 @@ public class Country implements Serializable {
     @Basic(optional = false)
     private String lastUpdateBy;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "countryId")
-    private Collection<City> cityCollection;
+    private Collection<City> cities;
 
     public Country() {
     }
@@ -71,69 +72,55 @@ public class Country implements Serializable {
         this.lastUpdateBy = lastUpdateBy;
     }
 
-    public Integer getCountryId() {
-        return countryId;
-    }
+    @Override
+    public Integer getPrimaryKey() { return countryId; }
+    
+    @Override
+    public void setPrimaryKey(Integer value) { countryId = value; }
+    
+    public Integer getCountryId() { return countryId; }
 
-    public void setCountryId(Integer countryId) {
-        this.countryId = countryId;
-    }
+    public void setCountryId(Integer countryId) { this.countryId = countryId; }
 
-    public String getCountry() {
-        return country;
-    }
+    public String getCountry() { return country; }
 
-    public void setCountry(String country) {
-        this.country = country;
-    }
+    public void setCountry(String country) { this.country = country; }
 
-    public Timestamp getCreateDate() {
-        return createDate;
-    }
+    @Override
+    public Timestamp getCreateDate() { return createDate; }
 
-    public void setCreateDate(Timestamp createDate) {
-        this.createDate = createDate;
-    }
+    @Override
+    public void setCreateDate(Timestamp createDate) { this.createDate = createDate; }
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
+    @Override
+    public String getCreatedBy() { return createdBy; }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
+    @Override
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 
-    public Timestamp getLastUpdate() {
-        return lastUpdate;
-    }
+    @Override
+    public Timestamp getLastUpdate() { return lastUpdate; }
 
-    public void setLastUpdate(Timestamp lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
+    @Override
+    public void setLastUpdate(Timestamp lastUpdate) { this.lastUpdate = lastUpdate; }
 
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
-    }
+    @Override
+    public String getLastUpdateBy() { return lastUpdateBy; }
 
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
-    }
+    @Override
+    public void setLastUpdateBy(String lastUpdateBy) { this.lastUpdateBy = lastUpdateBy; }
 
     @XmlTransient
-    public Collection<City> getCityCollection() {
-        return cityCollection;
+    public Collection<City> getCities() {
+        return cities;
     }
 
-    public void setCityCollection(Collection<City> cityCollection) {
-        this.cityCollection = cityCollection;
+    public void setCities(Collection<City> cityCollection) {
+        this.cities = cityCollection;
     }
 
     @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (countryId != null ? countryId.hashCode() : 0);
-        return hash;
-    }
+    public int hashCode() { return (countryId == null) ? 0 : countryId.hashCode();  }
 
     @Override
     public boolean equals(Object object) {

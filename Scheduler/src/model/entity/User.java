@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package model.entity;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -21,7 +20,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import utils.SchedulerContext;
 
 /**
  * Represents data from a row in the user data table.
@@ -41,6 +39,10 @@ import utils.SchedulerContext;
     /**
      * Selects user by user name.
      */
+    @NamedQuery(name = User.NAMED_QUERY_BY_USERNAME_AVAIL, query = "SELECT u FROM User u WHERE u.userName = :" + User.PARAMETER_NAME_USERNAME + " AND u.userId <> :" + User.PARAMETER_NAME_USERID),
+    /**
+     * Selects user by user name.
+     */
     @NamedQuery(name = User.NAMED_QUERY_BY_USERNAME, query = "SELECT u FROM User u WHERE u.userName = :" + User.PARAMETER_NAME_USERNAME),
     /**
      * Selects users by active state value.
@@ -53,7 +55,11 @@ import utils.SchedulerContext;
 })
 @Table(name = "user")
 @SuppressWarnings("ValidPrimaryTableName")
-public class User implements Serializable {
+public class User implements DbEntity {
+    public static final short STATE_INACTIVE = 0;
+    public static final short STATE_USER = 1;
+    public static final short STATE_ADMIN = 2;
+    
     //<editor-fold defaultstate="collapsed" desc="Query names">
     
     /**
@@ -77,6 +83,10 @@ public class User implements Serializable {
      */
     public static final String NAMED_QUERY_BY_USERNAME = "User.findByUserName";
     /**
+     * Name of query that selects selects user by user name and not matching a specified userId.
+     */
+    public static final String NAMED_QUERY_BY_USERNAME_AVAIL = "User.findByUserNameAvailability";
+    /**
      * Name of the single parameter for query that selects user by primary key.
      */
     public static final String PARAMETER_NAME_USERID = "userId";
@@ -90,6 +100,7 @@ public class User implements Serializable {
     public static final String PARAMETER_NAME_ACTIVE = "active";
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="userId">
     
     @Id
@@ -103,10 +114,14 @@ public class User implements Serializable {
      */
     public Integer getUserId() { return userId; }
 
-    /*public void setUserId(Integer userId) {
-    this.userId = userId;
-    }*/
+    public void setUserId(Integer userId) { this.userId = userId; }
 
+    @Override
+    public Integer getPrimaryKey() { return userId; }
+    
+    @Override
+    public void setPrimaryKey(Integer value) { userId = value; }
+    
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="userName">
     
@@ -123,9 +138,7 @@ public class User implements Serializable {
      * Sets the user's login name.
      * @param userName 
      */
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
+    public void setUserName(String userName) { this.userName = userName; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="password">
@@ -143,9 +156,7 @@ public class User implements Serializable {
      * Sets the hash for the user's password.
      * @param password 
      */
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public void setPassword(String password) { this.password = password; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="active">
@@ -157,10 +168,16 @@ public class User implements Serializable {
      * Gets the active status value for the user.
      * @return The active status value for the user.
      */
-    public short getActive() { return active; }
+    public short getActive() { return (active < STATE_INACTIVE || active > STATE_ADMIN) ? STATE_INACTIVE : active; }
+    
+    public boolean isActive() { return getActive() != STATE_INACTIVE; }
+    
+    public boolean isUser() { return getActive() == STATE_USER; }
+    
+    public boolean isAdmin() { return getActive() == STATE_ADMIN; }
     
     public void setActive(short active) {
-        this.active = active;
+        this.active = (active < STATE_INACTIVE || active > STATE_ADMIN) ? STATE_INACTIVE : active;
     }
     
     //</editor-fold>
@@ -169,11 +186,11 @@ public class User implements Serializable {
     @Basic(optional = false)
     private Timestamp createDate;
     
+    @Override
     public Timestamp getCreateDate() { return createDate; }
     
-    /*public void setCreateDate(Timestamp createDate) {
-    this.createDate = createDate;
-    }*/
+    @Override
+    public void setCreateDate(Timestamp createDate) { this.createDate = createDate; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="createdBy">
@@ -181,11 +198,11 @@ public class User implements Serializable {
     @Basic(optional = false)
     private String createdBy;
     
+    @Override
     public String getCreatedBy() { return createdBy; }
     
-    /*public void setCreatedBy(String createdBy) {
-    this.createdBy = createdBy;
-    }*/
+    @Override
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastUpdate">
@@ -193,11 +210,11 @@ public class User implements Serializable {
     @Basic(optional = false)
     private Timestamp lastUpdate;
     
+    @Override
     public Timestamp getLastUpdate() { return lastUpdate; }
     
-    /*public void setLastUpdate(Timestamp lastUpdate) {
-    this.lastUpdate = lastUpdate;
-    }*/
+    @Override
+    public void setLastUpdate(Timestamp lastUpdate) { this.lastUpdate = lastUpdate; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastUpdateBy">
@@ -205,11 +222,11 @@ public class User implements Serializable {
     @Basic(optional = false)
     private String lastUpdateBy;
     
+    @Override
     public String getLastUpdateBy() { return lastUpdateBy; }
     
-    /*public void setLastUpdateBy(String lastUpdateBy) {
-    this.lastUpdateBy = lastUpdateBy;
-    }*/
+    @Override
+    public void setLastUpdateBy(String lastUpdateBy) { this.lastUpdateBy = lastUpdateBy; }
     
     //</editor-fold>
     
@@ -227,18 +244,18 @@ public class User implements Serializable {
     
     public User() {
         userName = password = "";
-        active = 1;
+        active = STATE_USER;
         createDate = lastUpdate = Timestamp.valueOf(LocalDateTime.now());
-        User u = SchedulerContext.DEFAULT_CONTEXT.getCurrentUser();
+        User u = scheduler.Context.getCurrentUser();
         createdBy = lastUpdateBy = (u == null) ? "" : u.userName;
     }
     
     public User(int userId) {
         this.userId = userId;
         password = "";
-        active = 1;
+        active = STATE_USER;
         createDate = lastUpdate = Timestamp.valueOf(LocalDateTime.now());
-        User u = SchedulerContext.DEFAULT_CONTEXT.getCurrentUser();
+        User u = scheduler.Context.getCurrentUser();
         createdBy = lastUpdateBy = (u == null) ? "" : u.userName;
     }
     
@@ -246,7 +263,7 @@ public class User implements Serializable {
         this.userId = userId;
         this.userName = userName;
         this.password = password;
-        this.active = active;
+        this.active = (active < STATE_INACTIVE || active > STATE_ADMIN) ? STATE_INACTIVE : active;
         this.createDate = createDate;
         this.createdBy = createdBy;
         this.lastUpdate = lastUpdate;

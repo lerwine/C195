@@ -6,10 +6,10 @@
 package controller;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -23,9 +23,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javax.persistence.EntityManager;
-import utils.SchedulerContext;
 import utils.InvalidOperationException;
 
 /**
@@ -34,6 +37,11 @@ import utils.InvalidOperationException;
  * @author webmaster
  */
 public class LoginScreenController implements Initializable {
+    /**
+     * The path of the View associated with this controller.
+     */
+    public static final String VIEW_PATH = "/view/LoginScreen.fxml";
+    
     @FXML
     private ComboBox languageComboBox;
     
@@ -47,37 +55,58 @@ public class LoginScreenController implements Initializable {
     private Label passwordLabel;
 
     @FXML
+    private PasswordField passwordTextField;
+    
+    @FXML
     private Button loginButton;
 
     @FXML
     private Button exitButton;
-
-    @FXML
-    private TextField passwordTextField;
-
-    private HashMap<String, Locale> locales;
+    
+    private ObservableList<Locale> locales;
     
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        locales = new HashMap<>();
-        ObservableList<String> languages = FXCollections.observableArrayList();
-        Stream.of(new Locale("en"), new Locale("es"), new Locale("de")).forEach((Locale l) -> {
-            String key = l.getDisplayName(l);
-            locales.put(key, l);
-            languages.add(key);
+        locales = FXCollections.observableArrayList(new Locale("en"), new Locale("es"), new Locale("de"), new Locale("hi"));
+        
+        languageComboBox.setCellFactory((p) -> new ListCell<Locale>() {
+            @Override
+            protected void updateItem(Locale t, boolean bln) {
+                super.updateItem(t, bln);
+                setText((t == null) ? "" : t.getDisplayName(t));
+            }
         });
-        languageComboBox.setItems(languages);
-        String n = languages.get(0);
-        languageComboBox.setValue(n);
-        Locale c = locales.get(n);
-        setFromResource(ResourceBundle.getBundle("Messages", c));
-        SchedulerContext.DEFAULT_CONTEXT.setCurrentLocale(c);
+        languageComboBox.setItems(locales);
+        int index = -1;
+        String d = Locale.getDefault().toString();
+        for (int i = 0; i < locales.size(); i++) {
+            if (locales.get(i).toString().equals(d)) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) {
+            d = Locale.getDefault().getISO3Language();
+            for (int i = 0; i < locales.size(); i++) {
+                if (locales.get(i).getISO3Language().equals(d)) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0)
+                index = 0;
+        }
+        languageComboBox.getSelectionModel().select(index);
+        scheduler.Context.setCurrentLocale(locales.get(index));
+        refreshCultureSensitive();
     }
     
-    void setFromResource(ResourceBundle rb) {
+    void refreshCultureSensitive() {
+        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        scheduler.Context.setWindowTitle(rb.getString("appointmentSchedulerLogin"));
         userNameLabel.setText(rb.getString("userName") + ":");
         passwordLabel.setText(rb.getString("password") + ":");
         loginButton.setText(rb.getString("login"));
@@ -86,26 +115,28 @@ public class LoginScreenController implements Initializable {
     
     @FXML
     void languageChanged(ActionEvent event) {
-        Locale c = locales.get((String)languageComboBox.getValue());
-        setFromResource(ResourceBundle.getBundle("Messages", c));
-        SchedulerContext.DEFAULT_CONTEXT.setCurrentLocale(c);
+        Object item = languageComboBox.getSelectionModel().getSelectedItem();
+        if (item == null || !(item instanceof Locale))
+            return;
+        scheduler.Context.setCurrentLocale((Locale)item);
+        refreshCultureSensitive();
     }
     
     @FXML
     void loginButtonClick(ActionEvent event) {
         try {
             // Open a new SQL connection dependency
-            SchedulerContext.EmDependency dependency = new SchedulerContext.EmDependency();
-            EntityManager em = dependency.open(SchedulerContext.DEFAULT_CONTEXT);
+            scheduler.Context.EmDependency dependency = new scheduler.Context.EmDependency();
+            EntityManager em = dependency.open();
             try {
                 // Attempt to set current user according to login and password.
-                if (SchedulerContext.DEFAULT_CONTEXT.trySetCurrentUser(em, userNameTextField.getText(),
+                if (scheduler.Context.trySetCurrentUser(em, userNameTextField.getText(),
                         passwordTextField.getText()))
                     // If true, change to the home screen.
-                    HomeScreenController.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
+                    scheduler.Context.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
             } finally { dependency.close(); }
         } catch (InvalidOperationException ex) {
-            utils.NotificationHelper.showNotificationDialog("Login", "Login Error", "Database access error",
+            utils.NotificationHelper.showNotificationDialog("authentication", "authError", "dbAccessError",
                     Alert.AlertType.ERROR);
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (RuntimeException ex) {

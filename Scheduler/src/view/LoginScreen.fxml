@@ -1,46 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.URL?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
 
-<VBox id="VBox" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginScreenController">
-    <stylesheets>
-        <URL value="@defaultStyles.css" />
-    </stylesheets>
-    <children>
-        <HBox styleClass="header-section">
-        </HBox>
+<TitledPane fx:id="mainTitledPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginScreenController">
+   <content>
         <GridPane alignment="CENTER_LEFT">
             <columnConstraints>
-              <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="70.0" prefWidth="199.0" />
-              <ColumnConstraints hgrow="ALWAYS" maxWidth="530.0" minWidth="390.0" prefWidth="401.0" />
+              <ColumnConstraints hgrow="SOMETIMES" />
+              <ColumnConstraints hgrow="ALWAYS" />
             </columnConstraints>
             <rowConstraints>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
             </rowConstraints>
-            <Label text="Language / Lengua / Sprache:" GridPane.halignment="RIGHT" GridPane.valignment="TOP" />
-            <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache" onAction="#languageChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" />
+            <Label text="Language / Lengua / Sprache / भाषा:" wrapText="true" GridPane.halignment="RIGHT" GridPane.valignment="TOP" />
+            <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache / भाषा" maxWidth="1.7976931348623157E308" onAction="#languageChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" />
             <Label fx:id="userNameLabel" text="User Name:" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
             <TextField fx:id="userNameTextField" accessibleText="User Login Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" />
             <Label fx:id="passwordLabel" text="Password:" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-            <TextField fx:id="passwordTextField" accessibleText="Login Password Credentials" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+         <PasswordField fx:id="passwordTextField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+         <ButtonBar GridPane.columnSpan="2" GridPane.rowIndex="3">
+           <buttons>
+               <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#loginButtonClick" prefWidth="100.0" text="Log In" />
+               <Button fx:id="exitButton" minWidth="100.0" mnemonicParsing="false" onAction="#exitButtonClick" prefWidth="100.0" text="Exit" />
+           </buttons>
+         </ButtonBar>
         </GridPane>
-      <ButtonBar>
-        <buttons>
-            <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#loginButtonClick" prefWidth="100.0" text="Log In" />
-            <Button fx:id="exitButton" minWidth="100.0" mnemonicParsing="false" onAction="#exitButtonClick" prefWidth="100.0" text="Exit" />
-        </buttons>
-      </ButtonBar>
-    </children>
-</VBox>
+   </content>
+</TitledPane>
