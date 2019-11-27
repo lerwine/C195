@@ -196,7 +196,7 @@ public class EditUserController extends ItemControllerBase<User> {
                             userNameErrorMessage.setVisible(false);
                             return true;
                         }
-                    } else if (!scheduler.Context.getUserByUserName(em, s).isPresent()) {
+                    } else if (!scheduler.Context.getUserByUserName_entity(em, s).isPresent()) {
                         userNameErrorMessage.setText("");
                         userNameErrorMessage.setVisible(false);
                         return true;

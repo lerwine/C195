@@ -246,7 +246,7 @@ public class User implements DbEntity {
         userName = password = "";
         active = STATE_USER;
         createDate = lastUpdate = Timestamp.valueOf(LocalDateTime.now());
-        User u = scheduler.Context.getCurrentUser();
+        User u = scheduler.Context.getCurrentUser_entity();
         createdBy = lastUpdateBy = (u == null) ? "" : u.userName;
     }
     
@@ -255,7 +255,7 @@ public class User implements DbEntity {
         password = "";
         active = STATE_USER;
         createDate = lastUpdate = Timestamp.valueOf(LocalDateTime.now());
-        User u = scheduler.Context.getCurrentUser();
+        User u = scheduler.Context.getCurrentUser_entity();
         createdBy = lastUpdateBy = (u == null) ? "" : u.userName;
     }
     

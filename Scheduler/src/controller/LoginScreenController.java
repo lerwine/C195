@@ -130,7 +130,7 @@ public class LoginScreenController implements Initializable {
             EntityManager em = dependency.open();
             try {
                 // Attempt to set current user according to login and password.
-                if (scheduler.Context.trySetCurrentUser(em, userNameTextField.getText(),
+                if (scheduler.Context.trySetCurrentUser_entity(em, userNameTextField.getText(),
                         passwordTextField.getText()))
                     // If true, change to the home screen.
                     scheduler.Context.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);

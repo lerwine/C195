@@ -1,14 +1,22 @@
 ﻿<#
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 #>
-(Get-ChildItem -Path ($PSScriptRoot | Join-Path -ChildPath 'Scheduler\src') -Filter '*.properties' -ErrorAction Stop) | ForEach-Object {
+
+Function Optimize-PropertiesFile {
+    [CmdletBinding()]
+    [OutputType([System.Collections.Generic.Dictionary[System.String,System.Collections.ObjectModel.Collection[System.String]]])]
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
     $Properties = New-Object -TypeName 'System.Collections.Generic.Dictionary[System.String,System.Collections.ObjectModel.Collection[System.String]]';
     $LineNumber = 0;
     $ErrorCount = 0;
     $HasContinuation = $false;
     $OriginalPropertyOrder = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.String]';
     $Collection = $null;
-    (((Get-Content -LiteralPath $_.FullName -Encoding UTF8 -ErrorAction Stop) | Out-String) -split '\r\n?|\n') | ForEach-Object {
+    (((Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop) | Out-String) -split '\r\n?|\n') | ForEach-Object {
         $LineNumber++;
         if ($HasContinuation) {
             if ($_.EndsWith('\')) {
@@ -63,23 +71,23 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
         $ncMatch | ForEach-Object { Write-Information -MessageData "Keys differing only in case: $($_.Group -join ', ')" -InformationAction Continue };
     }
     if ($ErrorCount -gt 0) {
-        Write-Warning -Message "$ErrorCount error(s) encountered. File $($_.FullName) not modified.";
+        Write-Warning -Message "$ErrorCount error(s) encountered. File $Path not modified.";
     } else {
         if ($Properties.Count -eq 0) {
-            Write-Warning -Message "No properties found. File $($_.FullName) not modified.";
+            Write-Warning -Message "No properties found. File $Path not modified.";
         } else {
             if ($Properties.Count -eq 1) {
-                Write-Information -MessageData "Only 1 property found. File $($_.FullName) does not need to be modified." -InformationAction Continue;
+                Write-Information -MessageData "Only 1 property found. File $Path does not need to be modified." -InformationAction Continue;
             } else {
                 $SortedProperyNames = @($Properties.Keys | Sort-Object);
                 if (($SortedProperyNames -join ',') -ceq ($OriginalPropertyOrder -join ',')) {
-                    Write-Information -MessageData "Properties were already sorted. File $($_.FullName) does not need to be modified." -InformationAction Continue;
+                    Write-Information -MessageData "Properties were already sorted. File $Path does not need to be modified." -InformationAction Continue;
                 } else {
-                    $Destination = $PSScriptRoot | Join-Path -ChildPath "$($_.Name).bak";
-                    Copy-Item -LiteralPath $_.FullName -Destination $Destination -ErrorAction Stop;
-                    Write-Information -MessageData "$($_.FullName) backed up to $Destination" -InformationAction Continue;
+                    $Destination = $PSScriptRoot | Join-Path -ChildPath "$($Path | Split-Path -Leaf).bak";
+                    Copy-Item -LiteralPath $Path -Destination $Destination -ErrorAction Stop -Force;
+                    Write-Information -MessageData "$Path backed up to $Destination" -InformationAction Continue;
                     $LineCount = 0;
-                    Set-Content -Value ($SortedProperyNames | ForEach-Object {
+                    [System.IO.File]::WriteAllLines($Path, ($SortedProperyNames | ForEach-Object {
                         $Collection = $Properties[$_];
                         $LineCount += $Collection.Count;
                         if ($Collection.Count -gt 1) {
@@ -91,8 +99,51 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
                         } else {
                             "$_=$($Collection[0])";
                         }
-                    }) -LiteralPath $_.FullName -Encoding UTF8 -ErrorAction Stop -Force;
-                    "Sorted $($Properties.Count) properties ($LineCount lines) to $($_.FullName)" | Write-Host;
+                    }), (New-Object -TypeName 'System.Text.UTF8Encoding' -ArgumentList $false, $false));
+                    "Sorted $($Properties.Count) properties ($LineCount lines) to $Path" | Write-Host;
+                }
+            }
+        }
+        return $Properties;
+    }
+}
+
+$ResourceBundles = New-Object -TypeName 'System.Collections.Generic.Dictionary[System.String,System.Collections.ObjectModel.Collection[System.Management.Automation.PSObject]]' -ArgumentList ([System.StringComparer]::InvariantCultureIgnoreCase);
+(Get-ChildItem -Path ($PSScriptRoot | Join-Path -ChildPath 'Scheduler\src') -Filter '*.properties' -ErrorAction Stop) | ForEach-Object {
+    $i = $_.BaseName.LastIndexOf('_');
+    if ($i -gt 0 -and $i -lt $_.BaseName.Length - 1) {
+        $RbColl = $null;
+        $BundleName = $_.BaseName.Substring(0, $i);
+        if ($ResourceBundles.ContainsKey($BundleName)) {
+            $RbColl = $ResourceBundles[$BundleName];
+        } else {
+            $RbColl = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.Management.Automation.PSObject]';
+            $ResourceBundles.Add($BundleName, $RbColl);
+        }
+        $RbColl.Add((New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
+            Path = $_.FullName;
+            Locale = $_.BaseName.Substring($i + 1);
+        }));
+    } else {
+        Write-Warning -Message "Skipping $(), which does seem to have locale encoded into the name";
+    }
+}
+$ResourceBundles.Keys | ForEach-Object {
+    $Dictionaries = @($ResourceBundles[$_] | ForEach-Object {
+        $d = Optimize-PropertiesFile -Path $_.Path;
+        if ($null -ne $d) {
+            New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
+                Source = $_;
+                Dictionary = $d;
+            };
+        }
+    });
+    if ($Dictionaries.Count -gt 0) {
+        $AllKeys = @($Dictionaries | ForEach-Object { $_.Dictionary.Keys } | Select-Object -Unique);
+        foreach ($key in $AllKeys) {
+            $Dictionaries | ForEach-Object {
+                if (-not $_.Dictionary.ContainsKey($Key)) {
+                    Write-Warning -Message "$($_.Source.Path) does not contain property name $Key";
                 }
             }
         }

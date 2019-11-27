@@ -5,7 +5,10 @@
  */
 package scheduler;
 
+import com.mysql.jdbc.Connection;
 import java.io.IOException;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -27,7 +30,7 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.QueryTimeoutException;
-import model.entity.User;
+import model.db.User;
 import utils.InvalidArgumentException;
 import utils.InvalidOperationException;
 import utils.PwHash;
@@ -37,22 +40,33 @@ import utils.PwHash;
  * @author Leonard T. Erwine
  */
 public class Context {
-    private static final Context INSTANCE = new Context();
+    private static final String SERVER_NAME = "3.227.166.251";
+    private static final String DB_NAME = "U03vHM";
+    private static final String DB_URL = "jdbc:mysql://" + SERVER_NAME + "/" + DB_NAME;
+    private static final String DB_USER_NAME = "U03vHM";
+    private static final String DB_PASSWORD = "53688096290";
+    private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
     
+    private static final Context INSTANCE = new Context();
+
     private Locale currentLocale;
     private Formatters formatters;
     private Optional<ResourceBundle> messagesRB;
-    private User currentUser;
+    private model.entity.User currentUser_entity;
+    private Optional<User> currentUser;
     @PersistenceUnit
     private EntityManagerFactory emf;
+    private Connection connection;
     private Stage currentStage;
     
+    private Optional<SqlConnectionDependency> latestConnectionDependency = Optional.empty();
     private Optional<EmDependency> latestEmDependency = Optional.empty();
     
     private Context() {
         currentLocale = Locale.getDefault();
         formatters = new Formatters();
         messagesRB = Optional.empty();
+        currentUser = Optional.empty();
     }
     
     static void setCurrentStage(Stage stage) { INSTANCE.currentStage = stage; }
@@ -202,24 +216,57 @@ public class Context {
         return result;
     }
     
+    public static Optional<User> getCurrentUser() { return INSTANCE.currentUser; }
+    
     /**
      * Gets the currently logged in user.
      * @return The currently logged in user.
      */
-    public static User getCurrentUser() { return INSTANCE.currentUser; }
+    public static model.entity.User getCurrentUser_entity() { return INSTANCE.currentUser_entity; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="User Lookup Methods">
     
     /**
      * Finds a user by the user name.
+     * @param connection    A {@link Connection} object used to retrieve data from the database.
+     * @param userName      The user's login name.
+     * @return The user that was found or empty if no user was found.
+     */
+    public static Optional<User> getUserByUserName(Connection connection, String userName) {
+        throw new RuntimeException("Method not implemented");
+    }
+    
+    /**
+     * Finds a user by the primary key value.
+     * @param connection    A {@link Connection} object used to retrieve data from the database.
+     * @param userId        The database primary key value.
+     * @return The user that was found or empty if no user was found.
+     */
+    public static Optional<User> getUserByUserId(Connection connection, int userId) {
+        throw new RuntimeException("Method not implemented");
+    }
+
+    /**
+     * Sets the currently logged in user if a user name and password match.
+     * @param connection    A {@link Connection} object used to retrieve data from the database.
+     * @param userName      The user's login name.
+     * @param password      The user's actual password (not password hash).
+     * @return {@code true} if the user was logged in; otherwise {@code false}.
+     */
+    public static boolean trySetCurrentUser(Connection connection, String userName, String password) {
+        throw new RuntimeException("Method not implemented");
+    }
+
+    /**
+     * Finds a user by the user name.
      * @param em        An {@link EntityManager} object used to retrieve data from the database.
      * @param userName  The user's login name.
      * @return The user that was found or empty if no user was found.
      */
-    public static Optional<User> getUserByUserName(EntityManager em, String userName) {
-        List<User> user = (List<User>)em.createNamedQuery(User.NAMED_QUERY_BY_USERNAME)
-                    .setParameter(User.PARAMETER_NAME_USERNAME, userName).getResultList();
+    public static Optional<model.entity.User> getUserByUserName_entity(EntityManager em, String userName) {
+        List<model.entity.User> user = (List<model.entity.User>)em.createNamedQuery(model.entity.User.NAMED_QUERY_BY_USERNAME)
+                    .setParameter(model.entity.User.PARAMETER_NAME_USERNAME, userName).getResultList();
         if (!user.isEmpty()) {
             if (user.size() == 1)
                 return Optional.of(user.get(0));
@@ -237,9 +284,9 @@ public class Context {
      * @param userId    The database primary key value.
      * @return The user that was found or empty if no user was found.
      */
-    public static Optional<User> getUserByUserId(EntityManager em, int userId) {
-        List<User> user = (List<User>)em.createNamedQuery(User.NAMED_QUERY_BY_ID)
-                    .setParameter(User.PARAMETER_NAME_USERID, userId).getResultList();
+    public static Optional<model.entity.User> getUserByUserId_entity(EntityManager em, int userId) {
+        List<model.entity.User> user = (List<model.entity.User>)em.createNamedQuery(model.entity.User.NAMED_QUERY_BY_ID)
+                    .setParameter(model.entity.User.PARAMETER_NAME_USERID, userId).getResultList();
         if (user.isEmpty())
             return Optional.empty();
         return Optional.of(user.get(0));
@@ -252,10 +299,10 @@ public class Context {
      * @param password  The user's actual password (not password hash).
      * @return {@code true} if the user was logged in; otherwise {@code false}.
      */
-    public static boolean trySetCurrentUser(EntityManager em, String userName, String password) {
-        Optional<User> user;
+    public static boolean trySetCurrentUser_entity(EntityManager em, String userName, String password) {
+        Optional<model.entity.User> user;
         try {
-            user = getUserByUserName(em, userName);
+            user = getUserByUserName_entity(em, userName);
         } catch (QueryTimeoutException | NonUniqueResultException ex) {
             utils.NotificationHelper.showNotificationDialog("authentication", "authError", "dbAccessError",
                     Alert.AlertType.ERROR);
@@ -264,11 +311,11 @@ public class Context {
         }
         
         if (user.isPresent()) {
-            User u = user.get();
+            model.entity.User u = user.get();
             try {
                 // Check if we got a user from the DB and if the password hash matches.
                 if ((new PwHash(u.getPassword(), false)).test(password)) {
-                    INSTANCE.currentUser = u;
+                    INSTANCE.currentUser_entity = u;
                     return true;
                 }
             } catch (InvalidArgumentException ex) {
@@ -299,6 +346,68 @@ public class Context {
         private Optional<DateTimeFormatter> date = Optional.empty();
         private Optional<DateTimeFormatter> dateTime = Optional.empty();
         private Optional<DateTimeFormatter> time = Optional.empty();
+    }
+    
+    /**
+     * Class used to open an SQL connection dependency.
+     * An SQL connection will only be open while there is an active dependency.
+     */
+    public static class SqlConnectionDependency {
+        private Connection connection;
+        private Optional<SqlConnectionDependency> previous;
+        private Optional<SqlConnectionDependency> next;
+        
+        /**
+         * Creates a new unopened SqlConnectionDependency instance.
+         */
+        public SqlConnectionDependency() {
+            previous = Optional.empty();
+            next = Optional.empty();
+        }
+        
+        /**
+         * Opens a new SQL connection dependency and returns the {@link Connection}.
+         * @return An open {@link Connection}.
+         * @throws InvalidOperationException
+         * @throws java.lang.ClassNotFoundException
+         * @throws java.sql.SQLException
+         */
+        public Connection open() throws InvalidOperationException, ClassNotFoundException, SQLException {
+            if (previous.isPresent() || next.isPresent())
+                throw new InvalidOperationException("SQL Connection dependency is already open.");
+            if ((previous = INSTANCE.latestConnectionDependency).isPresent()) {
+                SqlConnectionDependency d = previous.get();
+                if (d == this)
+                    throw new InvalidOperationException("SQL Connection dependency is already open.");
+                INSTANCE.latestConnectionDependency = d.next = Optional.of(this);
+            } else {
+                Class.forName(DB_DRIVER);
+                INSTANCE.connection = (Connection)DriverManager.getConnection(DB_URL, DB_USER_NAME, DB_PASSWORD);
+                System.out.println("Connection Successful");
+                INSTANCE.latestConnectionDependency = Optional.of(this);
+            }
+            connection = INSTANCE.connection;
+            return connection;
+        }
+        
+        /**
+         * Closes the SQL dependency, indicating that an SQL connection is no longer needed by the caller.
+         * If this was the last remaining dependency, then the associated {@link Connection} will be closed as well.
+         * @throws java.sql.SQLException
+         */
+        public void close() throws SQLException {
+            connection = null;
+            if (next.isPresent()) {
+                if ((next.get().previous = previous).isPresent()) {
+                    previous.get().next = next;
+                    previous = Optional.empty();
+                }
+                next = Optional.empty();
+            } else if ((INSTANCE.latestConnectionDependency = previous).isPresent())
+                previous = previous.get().next = Optional.empty();
+            else
+                INSTANCE.connection.close();
+        }
     }
     
     /**
