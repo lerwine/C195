@@ -11,7 +11,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import model.entity.Country;
+import model.db.Country;
 
 /**
  * FXML Controller class
@@ -24,6 +24,8 @@ public class EditCountryController extends ItemControllerBase<Country> {
      */
     public static final String VIEW_PATH = "/view/EditCountry.fxml";
 
+    private String name;
+    
     @FXML
     private Label nameLabel;
     

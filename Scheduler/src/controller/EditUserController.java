@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,7 +26,8 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javax.persistence.EntityManager;
-import model.entity.User;
+import model.db.DataRow;
+import model.db.User;
 import utils.InvalidOperationException;
 
 /**
@@ -38,6 +41,20 @@ public class EditUserController extends ItemControllerBase<User> {
      */
     public static final String VIEW_PATH = "/view/EditUser.fxml";
     
+    private final StringProperty asdf = new SimpleStringProperty();
+
+    public String getAsdf() {
+        return asdf.get();
+    }
+
+    public void setAsdf(String value) {
+        asdf.set(value);
+    }
+
+    public StringProperty asdfProperty() {
+        return asdf;
+    }
+
     @FXML
     private TitledPane mainTitledPane;
 
@@ -130,7 +147,7 @@ public class EditUserController extends ItemControllerBase<User> {
     
     @FXML
     void changePasswordCheckChanged(ActionEvent event) {
-        if (getModel().getPrimaryKey() == null)
+        if (getModel().getRowState() == DataRow.ROWSTATE_NEW)
             return;
         
         boolean value = changePasswordCheckBox.isSelected();
@@ -181,39 +198,14 @@ public class EditUserController extends ItemControllerBase<User> {
         if (s.trim().isEmpty())
             userNameErrorMessage.setText(scheduler.Context.getMessage("emptyUserName"));
         else {
-            scheduler.Context.EmDependency dep = new scheduler.Context.EmDependency();
-            EntityManager em;
-            try {
-                em = dep.open();
-                try {
-                    Integer id = getModel().getUserId();
-                    if (id != null) {
-                        List<User> user = (List<User>)em.createNamedQuery(User.NAMED_QUERY_BY_USERNAME_AVAIL)
-                                    .setParameter(User.PARAMETER_NAME_USERNAME, s)
-                                    .setParameter(User.PARAMETER_NAME_USERID, id).getResultList();
-                        if (user.isEmpty()) {
-                            userNameErrorMessage.setText("");
-                            userNameErrorMessage.setVisible(false);
-                            return true;
-                        }
-                    } else if (!scheduler.Context.getUserByUserName_entity(em, s).isPresent()) {
-                        userNameErrorMessage.setText("");
-                        userNameErrorMessage.setVisible(false);
-                        return true;
-                    }
-                } finally { dep.close(); }
-                userNameErrorMessage.setText(scheduler.Context.getMessage("userNameNotAvailable"));
-            } catch (InvalidOperationException ex) {
-                Logger.getLogger(EditUserController.class.getName()).log(Level.SEVERE, null, ex);
-                userNameErrorMessage.setText(scheduler.Context.getMessage("dbAccessError"));
-            }
+            throw new RuntimeException("Method not impelmented");
         }
         userNameErrorMessage.setVisible(true);
         return false;
     }
     
     private boolean validatePassword() {
-        if (getModel().getPrimaryKey() != null && !changePasswordCheckBox.isSelected()) {
+        if (getModel().getRowState() != DataRow.ROWSTATE_NEW && !changePasswordCheckBox.isSelected()) {
             passwordErrorMessage.setText("");
             passwordErrorMessage.setVisible(false);
             return true;

@@ -8,7 +8,7 @@ package controller;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.Initializable;
-import model.entity.User;
+import model.db.User;
 
 /**
  * FXML Controller class

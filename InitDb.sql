@@ -1,16 +1,4 @@
 INSERT INTO `U03vHM`.`user`
-(`userName`,
-`password`,
-`active`,
-`createDate`,
-`createdBy`,
-`lastUpdate`,
-`lastUpdateBy`)
-VALUES
-('admin',
-'r+ydPsnNbUa+y/Ma1MqfetoWzXv8ilb8pvfGIOOPbdA7vitjvQ',
-1,
-CURRENT_TIMESTAMP,
-'admin',
-CURRENT_TIMESTAMP,
-'admin');
+	(`userName`, `password`, `active`, `createDate`, `createdBy`, `lastUpdate`, `lastUpdateBy`)
+	VALUES ('test', 'MZFrVPiO381l+/ZsPSZRuR+JP+PUUFjMR/eIoX38MT/3VUiQxQ', 2, CURRENT_TIMESTAMP,
+		'test', CURRENT_TIMESTAMP, 'test');

@@ -13,7 +13,6 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -22,14 +21,7 @@ import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.stage.Stage;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceUnit;
-import javax.persistence.QueryTimeoutException;
 import model.db.User;
 import utils.InvalidArgumentException;
 import utils.InvalidOperationException;
@@ -40,28 +32,8 @@ import utils.PwHash;
  * @author Leonard T. Erwine
  */
 public class Context {
-    private static final String SERVER_NAME = "3.227.166.251";
-    private static final String DB_NAME = "U03vHM";
-    private static final String DB_URL = "jdbc:mysql://" + SERVER_NAME + "/" + DB_NAME;
-    private static final String DB_USER_NAME = "U03vHM";
-    private static final String DB_PASSWORD = "53688096290";
-    private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
-    
     private static final Context INSTANCE = new Context();
 
-    private Locale currentLocale;
-    private Formatters formatters;
-    private Optional<ResourceBundle> messagesRB;
-    private model.entity.User currentUser_entity;
-    private Optional<User> currentUser;
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-    private Connection connection;
-    private Stage currentStage;
-    
-    private Optional<SqlConnectionDependency> latestConnectionDependency = Optional.empty();
-    private Optional<EmDependency> latestEmDependency = Optional.empty();
-    
     private Context() {
         currentLocale = Locale.getDefault();
         formatters = new Formatters();
@@ -69,13 +41,17 @@ public class Context {
         currentUser = Optional.empty();
     }
     
+    //<editor-fold defaultstate="collapsed" desc="FXML View">
+    
+    private Stage currentStage;
+    
     static void setCurrentStage(Stage stage) { INSTANCE.currentStage = stage; }
     
     public static void setWindowTitle(String title) { INSTANCE.currentStage.setTitle(title); }
     
     /**
      * Utility method to initialize the controller and switch scenes.
-     * 
+     *
      * @param <T> The type of controller to initialize.
      * @param eventSource The source Node for the event.
      * @param path The path of the FXML file to load.
@@ -99,13 +75,20 @@ public class Context {
     
     /**
      * Utility method to change switch to another scene.
-     * 
+     *
      * @param eventSource The source node for the event.
      * @param path The path of the FXML file to load.
      */
     public static void changeScene(Node eventSource, String path) {
         changeScene(eventSource, path, null);
     }
+    
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="Globalization">
+    
+    private Locale currentLocale;
+    private Formatters formatters;
+    private Optional<ResourceBundle> messagesRB;
     
     public static Locale getCurrentLocale() { return INSTANCE.currentLocale; }
     
@@ -216,123 +199,6 @@ public class Context {
         return result;
     }
     
-    public static Optional<User> getCurrentUser() { return INSTANCE.currentUser; }
-    
-    /**
-     * Gets the currently logged in user.
-     * @return The currently logged in user.
-     */
-    public static model.entity.User getCurrentUser_entity() { return INSTANCE.currentUser_entity; }
-    
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="User Lookup Methods">
-    
-    /**
-     * Finds a user by the user name.
-     * @param connection    A {@link Connection} object used to retrieve data from the database.
-     * @param userName      The user's login name.
-     * @return The user that was found or empty if no user was found.
-     */
-    public static Optional<User> getUserByUserName(Connection connection, String userName) {
-        throw new RuntimeException("Method not implemented");
-    }
-    
-    /**
-     * Finds a user by the primary key value.
-     * @param connection    A {@link Connection} object used to retrieve data from the database.
-     * @param userId        The database primary key value.
-     * @return The user that was found or empty if no user was found.
-     */
-    public static Optional<User> getUserByUserId(Connection connection, int userId) {
-        throw new RuntimeException("Method not implemented");
-    }
-
-    /**
-     * Sets the currently logged in user if a user name and password match.
-     * @param connection    A {@link Connection} object used to retrieve data from the database.
-     * @param userName      The user's login name.
-     * @param password      The user's actual password (not password hash).
-     * @return {@code true} if the user was logged in; otherwise {@code false}.
-     */
-    public static boolean trySetCurrentUser(Connection connection, String userName, String password) {
-        throw new RuntimeException("Method not implemented");
-    }
-
-    /**
-     * Finds a user by the user name.
-     * @param em        An {@link EntityManager} object used to retrieve data from the database.
-     * @param userName  The user's login name.
-     * @return The user that was found or empty if no user was found.
-     */
-    public static Optional<model.entity.User> getUserByUserName_entity(EntityManager em, String userName) {
-        List<model.entity.User> user = (List<model.entity.User>)em.createNamedQuery(model.entity.User.NAMED_QUERY_BY_USERNAME)
-                    .setParameter(model.entity.User.PARAMETER_NAME_USERNAME, userName).getResultList();
-        if (!user.isEmpty()) {
-            if (user.size() == 1)
-                return Optional.of(user.get(0));
-            Logger.getLogger(Context.class.getName()).log(Level.SEVERE,
-                    "The following records share the same login {0}: {1}", new Object[] { userName,
-                        user.stream().map((u) -> u.getUserId().toString()).reduce((p, n) -> p + ", " + n) });
-        }
-        
-        return Optional.empty();
-    }
-    
-    /**
-     * Finds a user by the primary key value.
-     * @param em        An {@link EntityManager} object used to retrieve data from the database.
-     * @param userId    The database primary key value.
-     * @return The user that was found or empty if no user was found.
-     */
-    public static Optional<model.entity.User> getUserByUserId_entity(EntityManager em, int userId) {
-        List<model.entity.User> user = (List<model.entity.User>)em.createNamedQuery(model.entity.User.NAMED_QUERY_BY_ID)
-                    .setParameter(model.entity.User.PARAMETER_NAME_USERID, userId).getResultList();
-        if (user.isEmpty())
-            return Optional.empty();
-        return Optional.of(user.get(0));
-    }
-    
-    /**
-     * Sets the currently logged in user if a user name and password match.
-     * @param em        An {@link EntityManager} object used to retrieve data from the database.
-     * @param userName  The user's login name.
-     * @param password  The user's actual password (not password hash).
-     * @return {@code true} if the user was logged in; otherwise {@code false}.
-     */
-    public static boolean trySetCurrentUser_entity(EntityManager em, String userName, String password) {
-        Optional<model.entity.User> user;
-        try {
-            user = getUserByUserName_entity(em, userName);
-        } catch (QueryTimeoutException | NonUniqueResultException ex) {
-            utils.NotificationHelper.showNotificationDialog("authentication", "authError", "dbAccessError",
-                    Alert.AlertType.ERROR);
-            Logger.getLogger(Context.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
-        
-        if (user.isPresent()) {
-            model.entity.User u = user.get();
-            try {
-                // Check if we got a user from the DB and if the password hash matches.
-                if ((new PwHash(u.getPassword(), false)).test(password)) {
-                    INSTANCE.currentUser_entity = u;
-                    return true;
-                }
-            } catch (InvalidArgumentException ex) {
-                Logger.getLogger(Context.class.getName()).log(Level.WARNING, null, ex);
-            }
-        } else {
-            try {
-                Logger.getLogger(Context.class.getName()).log(Level.SEVERE, "Hash: {0}", (new PwHash(password, true)).toString());
-            } catch (InvalidArgumentException ex) {
-                Logger.getLogger(Context.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        utils.NotificationHelper.showNotificationDialog("authentication", "authError", "invalidCredentials",
-                Alert.AlertType.WARNING);
-        return false;
-    }
-    
     static class Formatters {
         private HashMap<FormatStyle, TemporalFormatters> temporal = new HashMap<>();
         private Optional<NumberFormat> value = Optional.empty();
@@ -342,15 +208,73 @@ public class Context {
         private Optional<NumberFormat> percentage = Optional.empty();
         
     }
+    
     static class TemporalFormatters {
         private Optional<DateTimeFormatter> date = Optional.empty();
         private Optional<DateTimeFormatter> dateTime = Optional.empty();
         private Optional<DateTimeFormatter> time = Optional.empty();
     }
     
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="Current User">
+    
+    private Optional<User> currentUser;
+    
     /**
-     * Class used to open an SQL connection dependency.
-     * An SQL connection will only be open while there is an active dependency.
+     * Gets the currently logged in user.
+     * @return The currently logged in user.
+     */
+    public static Optional<User> getCurrentUser() { return INSTANCE.currentUser; }
+    
+    /**
+     * Sets the currently logged in user if a user name and password match.
+     * @param userName      The user's login name.
+     * @param password      The user's actual password (not password hash).
+     * @return {@code true} if the user was logged in; otherwise {@code false}.
+     * @throws utils.InvalidOperationException
+     * @throws java.lang.ClassNotFoundException
+     * @throws java.sql.SQLException
+     */
+    public static boolean trySetCurrentUser(String userName, String password) throws InvalidOperationException, ClassNotFoundException, SQLException {
+        SqlConnectionDependency dep = new SqlConnectionDependency();
+        Connection connection = dep.start();
+        try {
+            Optional<User> user = User.getByUserName(connection, userName, false);
+            if (user.isPresent()) {
+                try {
+                    PwHash pwHash = new PwHash(user.get().getPassword(), false);
+                    if (pwHash.test(password)) {
+                        INSTANCE.currentUser = user;
+                        return true;
+                    }
+                    pwHash = new PwHash(password, true);
+                    Logger.getLogger(Context.class.getName()).log(Level.WARNING, pwHash.toString());
+                } catch (InvalidArgumentException ex) {
+                    Logger.getLogger(Context.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        } finally { dep.end(); }
+        return false;
+    }
+    
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="SQL Connection">
+    
+    private static final String SERVER_NAME = "3.227.166.251";
+    private static final String DB_NAME = "U03vHM";
+    private static final String DB_URL = "jdbc:mysql://" + SERVER_NAME + "/" + DB_NAME;
+    private static final String DB_USER_NAME = "U03vHM";
+    private static final String DB_PASSWORD = "53688096290";
+    private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
+    
+    private Connection connection;
+    
+    private Optional<SqlConnectionDependency> latestConnectionDependency = Optional.empty();
+    
+    /**
+     * Class for managing an SQL connection dependency.
+     * An SQL connection will be opened when the first dependency is started,
+     * and the connection will end when the last dependency is ended.
      */
     public static class SqlConnectionDependency {
         private Connection connection;
@@ -366,13 +290,13 @@ public class Context {
         }
         
         /**
-         * Opens a new SQL connection dependency and returns the {@link Connection}.
+         * Starts a new SQL connection dependency and returns the {@link Connection}.
          * @return An open {@link Connection}.
          * @throws InvalidOperationException
          * @throws java.lang.ClassNotFoundException
          * @throws java.sql.SQLException
          */
-        public Connection open() throws InvalidOperationException, ClassNotFoundException, SQLException {
+        public Connection start() throws InvalidOperationException, ClassNotFoundException, SQLException {
             if (previous.isPresent() || next.isPresent())
                 throw new InvalidOperationException("SQL Connection dependency is already open.");
             if ((previous = INSTANCE.latestConnectionDependency).isPresent()) {
@@ -391,11 +315,11 @@ public class Context {
         }
         
         /**
-         * Closes the SQL dependency, indicating that an SQL connection is no longer needed by the caller.
+         * Ends the SQL dependency, indicating that an SQL connection is no longer needed.
          * If this was the last remaining dependency, then the associated {@link Connection} will be closed as well.
          * @throws java.sql.SQLException
          */
-        public void close() throws SQLException {
+        public void end() throws SQLException {
             connection = null;
             if (next.isPresent()) {
                 if ((next.get().previous = previous).isPresent()) {
@@ -410,62 +334,5 @@ public class Context {
         }
     }
     
-    /**
-     * Class used to open an SQL connection dependency through an {@link EntityManagerFactory}
-     * which will only be open while there is an active dependency.
-     */
-    public static class EmDependency {
-        private EntityManager em;
-        private Optional<EmDependency> previous;
-        private Optional<EmDependency> next;
-        
-        /**
-         * Creates a new unopened EmDependency instance.
-         */
-        public EmDependency() {
-            previous = Optional.empty();
-            next = Optional.empty();
-        }
-        
-        /**
-         * Opens a new SQL connection dependency and returns an {@link EntityManager}.
-         * @return An {@link EntityManager}.
-         * @throws InvalidOperationException
-         */
-        public EntityManager open() throws InvalidOperationException {
-            if (previous.isPresent() || next.isPresent())
-                throw new InvalidOperationException("Entity manager dependency is already open.");
-            if ((previous = INSTANCE.latestEmDependency).isPresent()) {
-                EmDependency d = previous.get();
-                if (d == this)
-                    throw new InvalidOperationException("Entity manager dependency is already open.");
-                INSTANCE.latestEmDependency = d.next = Optional.of(this);
-            } else {
-                INSTANCE.emf = Persistence.createEntityManagerFactory("SchedulerPU");
-                INSTANCE.latestEmDependency = Optional.of(this);
-            }
-            em = INSTANCE.emf.createEntityManager();
-            return em;
-        }
-        
-        /**
-         * Closes the SQL dependency and closes the {@link EntityManager} that was returned by the
-         * {@link #open(utils.SchedulerContext)} method.
-         * If this was the last remaining dependency, then the associated {@link EntityManagerFactory} will be closed as well.
-         */
-        public void close() {
-            em.close();
-            em = null;
-            if (next.isPresent()) {
-                if ((next.get().previous = previous).isPresent()) {
-                    previous.get().next = next;
-                    previous = Optional.empty();
-                }
-                next = Optional.empty();
-            } else if ((INSTANCE.latestEmDependency = previous).isPresent())
-                previous = previous.get().next = Optional.empty();
-            else
-                INSTANCE.emf.close();
-        }
-    }
+    //</editor-fold>
 }

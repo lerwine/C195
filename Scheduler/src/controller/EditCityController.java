@@ -12,7 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import model.entity.City;
+import model.db.City;
 
 /**
  * FXML Controller class
@@ -25,6 +25,8 @@ public class EditCityController extends ItemControllerBase<City> {
      */
     public static final String VIEW_PATH = "/view/EditCity.fxml";
 
+    private int countryId;
+    
     @FXML
     private Label nameLabel;
     

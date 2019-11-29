@@ -12,7 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import model.entity.Customer;
+import model.db.Customer;
 
 /**
  * FXML Controller class

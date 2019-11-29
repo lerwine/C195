@@ -14,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import model.db.DataRow;
 import utils.InvalidArgumentException;
 
 /**
@@ -21,7 +22,7 @@ import utils.InvalidArgumentException;
  * @author Leonard T. Erwine
  * @param <T>
  */
-public abstract class ItemControllerBase<T extends model.entity.DbEntity> implements Initializable {
+public abstract class ItemControllerBase<T extends DataRow> implements Initializable {
     private T model;
     
     public T getModel() { return model; }
@@ -31,11 +32,11 @@ public abstract class ItemControllerBase<T extends model.entity.DbEntity> implem
             throw new InvalidArgumentException("model");
         this.model = model;
         DateTimeFormatter dtf = scheduler.Context.getDateTimeFormatter(FormatStyle.FULL);
-        createDateValue.setText(dtf.format(model.getCreateDate().toLocalDateTime()));
-        lastUpdateValue.setText(dtf.format(model.getLastUpdate().toLocalDateTime()));
+        createDateValue.setText(dtf.format(model.getCreateDate()));
+        lastUpdateValue.setText(dtf.format(model.getLastUpdate()));
         createdByValue.setText(model.getCreatedBy());
         lastUpdateByValue.setText(model.getLastUpdateBy());
-        if (model.getPrimaryKey() == null) {
+        if (model.getRowState() == DataRow.ROWSTATE_NEW) {
             saveChangesButton.setText(scheduler.Context.getMessage("addNew"));
             createDateLabel.setVisible(false);
             createDateValue.setVisible(false);

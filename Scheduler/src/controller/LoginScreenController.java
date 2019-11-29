@@ -6,6 +6,7 @@
 package controller;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -30,6 +31,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javax.persistence.EntityManager;
 import utils.InvalidOperationException;
+import utils.NotificationHelper;
 
 /**
  * FXML Controller class
@@ -125,22 +127,21 @@ public class LoginScreenController implements Initializable {
     @FXML
     void loginButtonClick(ActionEvent event) {
         try {
-            // Open a new SQL connection dependency
-            scheduler.Context.EmDependency dependency = new scheduler.Context.EmDependency();
-            EntityManager em = dependency.open();
-            try {
-                // Attempt to set current user according to login and password.
-                if (scheduler.Context.trySetCurrentUser_entity(em, userNameTextField.getText(),
-                        passwordTextField.getText()))
-                    // If true, change to the home screen.
-                    scheduler.Context.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
-            } finally { dependency.close(); }
-        } catch (InvalidOperationException ex) {
-            utils.NotificationHelper.showNotificationDialog("authentication", "authError", "dbAccessError",
+            if (scheduler.Context.trySetCurrentUser(userNameTextField.getText(), passwordTextField.getText()))
+                scheduler.Context.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
+            else
+                NotificationHelper.showNotificationDialog(scheduler.Context.getMessage("authentication"),
+                        scheduler.Context.getMessage("authError"), scheduler.Context.getMessage("invalidCredentials"),
+                        Alert.AlertType.WARNING);
+        } catch (InvalidOperationException | ClassNotFoundException ex) {
+            NotificationHelper.showNotificationDialog(scheduler.Context.getMessage("authentication"),
+                    scheduler.Context.getMessage("authError"), "", Alert.AlertType.ERROR);
+            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
+        } catch (SQLException ex) {
+            NotificationHelper.showNotificationDialog(scheduler.Context.getMessage("authentication"),
+                    scheduler.Context.getMessage("authError"), scheduler.Context.getMessage("dbCredentialAccessError"),
                     Alert.AlertType.ERROR);
-            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RuntimeException ex) {
-            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
     }
     

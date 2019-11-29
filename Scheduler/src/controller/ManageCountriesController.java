@@ -6,8 +6,19 @@
 package controller;
 
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
+import javafx.beans.value.ObservableValue;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Callback;
+import model.db.Country;
 
 /**
  * FXML Controller class
@@ -20,12 +31,58 @@ public class ManageCountriesController implements Initializable {
      */
     public static final String VIEW_PATH = "/view/ManageCountries.fxml";
 
+    @FXML
+    private TableView<Country> countriesTableView;
+
+    @FXML
+    private TableColumn<Country, Integer> countryIdTableColumn;
+
+    @FXML
+    private TableColumn<Country, String> nameTableColumn;
+
+    @FXML
+    private TableColumn<Country, LocalDateTime> createDateTableColumn;
+
+    @FXML
+    private TableColumn<Country, String> createdByTableColumn;
+
+    @FXML
+    private TableColumn<Country, LocalDateTime> lastUpdateTableColumn;
+
+    @FXML
+    private TableColumn<Country, String> lastUpdateByTableColumn;
+
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        countryIdTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_PRIMARYKEY));
+        nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_NAME));
+        createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_CREATEDATE));
+        createDateTableColumn.setCellFactory(col -> new TableCell<Country, LocalDateTime>() {
+            @Override
+            protected void updateItem(LocalDateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty)
+                    setText(null);
+                else
+                    setText(item.format(scheduler.Context.getDateTimeFormatter(FormatStyle.SHORT)));
+            }
+        });
+        createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_CREATEDBY));
+        lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_LASTUPDATE));
+        lastUpdateTableColumn.setCellFactory(col -> new TableCell<Country, LocalDateTime>() {
+            @Override
+            protected void updateItem(LocalDateTime item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty)
+                    setText(null);
+                else
+                    setText(item.format(scheduler.Context.getDateTimeFormatter(FormatStyle.SHORT)));
+            }
+        });
+        lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_LASTUPDATEBY));
     }    
     
 }

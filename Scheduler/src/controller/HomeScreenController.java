@@ -49,14 +49,14 @@ public class HomeScreenController implements Initializable {
     @FXML
     void newAppointmentMenuItemClick(ActionEvent event) {
         scheduler.Context.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
-            controller.applyModel(scheduler.Context.getCurrentUser_entity());
+            controller.applyModel(scheduler.Context.getCurrentUser().get());
         });
     }
     
     @FXML
     void myAppointmentsMenuItemClick(ActionEvent event) {
         scheduler.Context.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
-            controller.applyModel(scheduler.Context.getCurrentUser_entity());
+            controller.applyModel(scheduler.Context.getCurrentUser().get());
         });
     }
     
