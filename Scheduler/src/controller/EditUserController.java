@@ -29,6 +29,7 @@ import javax.persistence.EntityManager;
 import model.db.DataRow;
 import model.db.User;
 import scheduler.InvalidOperationException;
+import scheduler.Messages;
 
 /**
  * FXML Controller class
@@ -95,11 +96,10 @@ public class EditUserController extends ItemControllerBase<User> {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
-        rb = scheduler.App.getMessagesRB();
-        userNameLabel.setText(rb.getString("userName") + ":");
-        activeLabel.setText(rb.getString("activeState") + ":");
-        changePasswordCheckBox.setText(rb.getString("password") + ":");
-        confirmLabel.setText(rb.getString("confirmPassword") + ":");
+        userNameLabel.setText(Messages.current().getUserName() + ":");
+        activeLabel.setText(Messages.current().getActiveState() + ":");
+        changePasswordCheckBox.setText(Messages.current().getPassword() + ":");
+        confirmLabel.setText(Messages.current().getConfirmPassword() + ":");
         userActiveStateOptions = FXCollections.observableArrayList(User.STATE_USER, User.STATE_ADMIN, User.STATE_INACTIVE);
         activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
             @Override
@@ -107,13 +107,13 @@ public class EditUserController extends ItemControllerBase<User> {
                 super.updateItem(a, bln);
                 switch (a) {
                     case 1:
-                        setText(scheduler.App.getMessage("normalUser"));
+                        setText(Messages.current().getNormalUser());
                         break;
                     case 2:
-                        setText(scheduler.App.getMessage("adminstrativeUser"));
+                        setText(Messages.current().getAdminstrativeUser());
                         break;
                     default:
-                        setText(scheduler.App.getMessage("inactive"));
+                        setText(Messages.current().getInactive());
                         break;
                 }
             }
@@ -128,13 +128,11 @@ public class EditUserController extends ItemControllerBase<User> {
     void saveChangesButtonClick(ActionEvent event) {
         if (validateUserName()) {
             if (!validatePassword()) {
-                scheduler.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
-                        new Object[] { scheduler.App.getMessage("password") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
+                Messages.current().notifyFieldValidationFailed(Messages.current().getPassword());
                 return;
             }
         } else {
-            scheduler.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
-                    new Object[] { scheduler.App.getMessage("userName") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
+                Messages.current().notifyFieldValidationFailed(Messages.current().getUserName());
             return;
         }
         (new Alert(Alert.AlertType.INFORMATION, "saveChangesButtonClick not implemented", ButtonType.OK)).showAndWait();
@@ -165,7 +163,7 @@ public class EditUserController extends ItemControllerBase<User> {
     @Override
     protected void applyModelAsNew(User model) {
         String s = model.getUserName();
-        mainTitledPane.setText(scheduler.App.getMessage("addNewUser") + ":");
+        mainTitledPane.setText(Messages.current().getAddNewUser() + ":");
         userNameTextField.setText((s == null) ? "" : s);
         changePasswordCheckBox.setSelected(true);
         changePasswordCheckBox.setDisable(true);
@@ -177,14 +175,13 @@ public class EditUserController extends ItemControllerBase<User> {
 
     @Override
     protected void applyModelAsEdit(User model) {
-        ResourceBundle rb = scheduler.App.getMessagesRB();
         String s = model.getUserName();
         if (s == null)
             s = "";
-        mainTitledPane.setText(String.format(rb.getString("editUser") + ":", s));
+        mainTitledPane.setText(Messages.current().getEditUser(s) + ":");
         userNameTextField.setText(s);
         changePasswordCheckBox.setDisable(false);
-        changePasswordCheckBox.setText(rb.getString("changePassword") + ":");
+        changePasswordCheckBox.setText(Messages.current().getChangePassword() + ":");
         changePasswordCheckBox.setSelected(false);
         passwordTextField.setVisible(false);
         passwordErrorMessage.setVisible(false);
@@ -196,7 +193,7 @@ public class EditUserController extends ItemControllerBase<User> {
     private boolean validateUserName() {
         String s = userNameLabel.getText();
         if (s.trim().isEmpty())
-            userNameErrorMessage.setText(scheduler.App.getMessage("emptyUserName"));
+            userNameErrorMessage.setText(Messages.current().getEmptyUserName());
         else {
             throw new RuntimeException("Method not impelmented");
         }
@@ -212,14 +209,14 @@ public class EditUserController extends ItemControllerBase<User> {
         }
         String s = passwordTextField.getText();
         if (s.trim().isEmpty())
-            passwordErrorMessage.setText(scheduler.App.getMessage("emptyPassword"));
+            passwordErrorMessage.setText(Messages.current().getEmptyPassword());
         else {
             if (confirmTextField.getText().equals(s)) {
                 passwordErrorMessage.setText("");
                 passwordErrorMessage.setVisible(false);
                 return true;
             }
-            passwordErrorMessage.setText(scheduler.App.getMessage("passwordMismatch"));
+            passwordErrorMessage.setText(Messages.current().getPasswordMismatch());
         }
         passwordErrorMessage.setVisible(true);
         return false;

@@ -34,7 +34,7 @@ import javafx.stage.Stage;
 import javax.persistence.EntityManager;
 import scheduler.App;
 import scheduler.InvalidOperationException;
-import scheduler.NotificationHelper;
+import scheduler.Messages;
 
 /**
  * FXML Controller class
@@ -118,13 +118,12 @@ public class LoginScreenController implements Initializable {
     }
     
     void refreshCultureSensitive() {
-        ResourceBundle rb = App.getMessagesRB();
         if (currentStage != null)
-            currentStage.setTitle(rb.getString("appointmentSchedulerLogin"));
-        userNameLabel.setText(rb.getString("userName") + ":");
-        passwordLabel.setText(rb.getString("password") + ":");
-        loginButton.setText(rb.getString("login"));
-        exitButton.setText(rb.getString("exit"));
+            currentStage.setTitle(Messages.current().getAppointmentSchedulerLogin());
+        userNameLabel.setText(Messages.current().getUserName() + ":");
+        passwordLabel.setText(Messages.current().getPassword() + ":");
+        loginButton.setText(Messages.current().getLogin());
+        exitButton.setText(Messages.current().getExit());
     }
     
     @FXML
@@ -141,20 +140,15 @@ public class LoginScreenController implements Initializable {
         try {
             if (App.trySetCurrentUser(userNameTextField.getText(), passwordTextField.getText()))
                 App.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH, (Stage stage, HomeScreenController controller) -> {
-                    stage.setTitle(App.getMessage("appointmentScheduler"));
+                    stage.setTitle(Messages.current().getAppointmentScheduler());
                 });
             else
-                NotificationHelper.showNotificationDialog(App.getMessage("authentication"),
-                        App.getMessage("authError"), App.getMessage("invalidCredentials"),
-                        Alert.AlertType.WARNING);
+                Messages.current().notifyInvalidCredentials();
         } catch (InvalidOperationException | ClassNotFoundException ex) {
-            NotificationHelper.showNotificationDialog(App.getMessage("authentication"),
-                    App.getMessage("authError"), "", Alert.AlertType.ERROR);
+                Messages.current().notifyCredentialValidationError();
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         } catch (SQLException ex) {
-            NotificationHelper.showNotificationDialog(App.getMessage("authentication"),
-                    App.getMessage("authError"), App.getMessage("dbCredentialAccessError"),
-                    Alert.AlertType.ERROR);
+            Messages.current().notifyDbCredentialAccessError();
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
     }

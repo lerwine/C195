@@ -16,6 +16,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import model.db.DataRow;
 import scheduler.InvalidArgumentException;
+import scheduler.Messages;
 
 /**
  *
@@ -37,7 +38,7 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
         createdByValue.setText(model.getCreatedBy());
         lastUpdateByValue.setText(model.getLastUpdateBy());
         if (model.getRowState() == DataRow.ROWSTATE_NEW) {
-            saveChangesButton.setText(scheduler.App.getMessage("addNew"));
+            saveChangesButton.setText(Messages.current().getActiveState());
             createDateLabel.setVisible(false);
             createDateValue.setVisible(false);
             createdByLabel.setVisible(false);
@@ -48,7 +49,7 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
             lastUpdateByValue.setVisible(false);
             applyModelAsNew(model);
         } else {
-            saveChangesButton.setText(scheduler.App.getMessage("saveChanges"));
+            saveChangesButton.setText(Messages.current().getSaveChanges());
             createDateLabel.setVisible(true);
             createDateValue.setVisible(true);
             createdByLabel.setVisible(true);
@@ -93,12 +94,11 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        ResourceBundle rb = scheduler.App.getMessagesRB();
-        createDateLabel.setText(rb.getString("createdOn"));
-        createdByLabel.setText(rb.getString("createdBy"));
-        lastUpdateLabel.setText(rb.getString("updatedOn"));
-        lastUpdateByLabel.setText(rb.getString("updatedBy"));
-        cancelButton.setText(rb.getString("cancel"));
+        createDateLabel.setText(Messages.current().getCreatedOn());
+        createdByLabel.setText(Messages.current().getCreatedBy());
+        lastUpdateLabel.setText(Messages.current().getUpdatedOn());
+        lastUpdateByLabel.setText(Messages.current().getUpdatedBy());
+        cancelButton.setText(Messages.current().getCancel());
     }
 
     protected abstract void applyModelAsNew(T model);
