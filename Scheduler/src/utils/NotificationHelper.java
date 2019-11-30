@@ -15,7 +15,7 @@ import javafx.stage.StageStyle;
  * Helper class for displaying notification and confirmation popups.
  * @author webmaster
  */
-public class NotificationHelper { 
+public class NotificationHelper {
     /**
      * Displays a notification dialog box.
      * @param title         Resource key for title of dialog box.
@@ -25,7 +25,7 @@ public class NotificationHelper {
      */
     public static void showNotificationDialog(String title, String headerText,
             String contentText, Alert.AlertType type) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().isEmpty())
             alert = new Alert(type,
@@ -54,7 +54,7 @@ public class NotificationHelper {
      */
     public static void showNotificationDialog(String title, String headerText, Object[] args,
             String contentText, Alert.AlertType type) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().isEmpty())
             alert = new Alert(type, String.format(rb.getString(headerText), args), ButtonType.OK);
@@ -80,7 +80,7 @@ public class NotificationHelper {
      */
     public static void showNotificationDialog(String title, String headerText,
             String contentText, Object[] args, Alert.AlertType type) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().isEmpty())
             alert = new Alert(type,
@@ -110,7 +110,7 @@ public class NotificationHelper {
      */
     public static void showNotificationDialog(String title, String headerText, Object[] headerArgs,
             String contentText, Object[] contentArgs, Alert.AlertType type) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().isEmpty())
             alert = new Alert(type, String.format(rb.getString(headerText), headerArgs), ButtonType.OK);
@@ -136,7 +136,7 @@ public class NotificationHelper {
      */
     public static Optional<ButtonType> showConfirmationDialog(String title, String headerText,
             String contentText, Alert.AlertType type, boolean showCancel) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().isEmpty()) {
             if (headerText == null || headerText.trim().isEmpty())
@@ -170,7 +170,7 @@ public class NotificationHelper {
      */
     public static Optional<ButtonType> showConfirmationDialog(String title, String headerText, Object[] args,
             String contentText, Alert.AlertType type, boolean showCancel) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().trim().isEmpty()) {
             alert = (showCancel) ? new Alert(type, String.format(rb.getString(headerText), args), ButtonType.YES, ButtonType.NO, ButtonType.CANCEL) : 
@@ -199,7 +199,7 @@ public class NotificationHelper {
      */
     public static Optional<ButtonType> showConfirmationDialog(String title, String headerText,
             String contentText, Object[] args, Alert.AlertType type, boolean showCancel) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().isEmpty()) {
             if (headerText == null || headerText.trim().isEmpty())
@@ -234,7 +234,7 @@ public class NotificationHelper {
      */
     public static Optional<ButtonType> showConfirmationDialog(String title, String headerText, Object[] headerArgs,
             String contentText, Object[] contentArgs, Alert.AlertType type, boolean showCancel) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         Alert alert;
         if (contentText == null || contentText.trim().trim().isEmpty()) {
             alert = (showCancel) ? new Alert(type, String.format(rb.getString(headerText), headerArgs), ButtonType.YES, ButtonType.NO, ButtonType.CANCEL) : 

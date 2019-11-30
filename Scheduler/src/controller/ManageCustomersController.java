@@ -56,7 +56,6 @@ public class ManageCustomersController implements Initializable {
     private TableColumn<Customer, String> lastUpdateByTableColumn;
 
     /**
-    /**
      * Initializes the controller class.
      */
     @Override
@@ -74,7 +73,7 @@ public class ManageCustomersController implements Initializable {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.Context.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_CREATEDBY));
@@ -86,7 +85,7 @@ public class ManageCustomersController implements Initializable {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.Context.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_LASTUPDATEBY));

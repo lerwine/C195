@@ -166,7 +166,7 @@ public abstract class DataRow {
     protected DataRow() {
         primaryKey = 0;
         createDate = lastUpdate = LocalDateTime.now();
-        Optional<User> user = scheduler.Context.getCurrentUser();
+        Optional<User> user = scheduler.App.getCurrentUser();
         if (user.isPresent())
             createdBy = lastUpdateBy = user.get().getUserName();
         else
@@ -283,7 +283,7 @@ public abstract class DataRow {
                     tableName));
         String[] fieldNames = getColumnNames();
         int index = fieldNames.length + 1;
-        String userName = scheduler.Context.getCurrentUser().get().getUserName();
+        String userName = scheduler.App.getCurrentUser().get().getUserName();
         PreparedStatement ps;
         if (rowState == ROWSTATE_NEW) {
             ps = connection.prepareStatement("INSERT INTO `" + tableName +

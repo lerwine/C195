@@ -6,6 +6,7 @@
 package scheduler;
 
 import com.mysql.jdbc.Connection;
+import controller.LoginScreenController;
 import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -18,8 +19,10 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.db.User;
@@ -28,76 +31,117 @@ import utils.InvalidOperationException;
 import utils.PwHash;
 
 /**
- * Contains contextual application information such as the current user, culture and database connection management.
+ * Application class for Scheduler
  * @author Leonard T. Erwine
  */
-public class Context {
-    private static final Context INSTANCE = new Context();
-
-    private Context() {
-        currentLocale = Locale.getDefault();
-        formatters = new Formatters();
-        messagesRB = Optional.empty();
-        currentUser = Optional.empty();
+public class App extends Application {
+    //<editor-fold defaultstate="collapsed" desc="changeScene">
+    
+    public static <T> void changeScene(Node eventSource, String path, java.util.function.BiConsumer<Stage, T> setupController) {
+        changeScene((Stage)eventSource.getScene().getWindow(), path, setupController);
     }
     
-    //<editor-fold defaultstate="collapsed" desc="FXML View">
+    public static <T> void changeScene(Node eventSource, String path, java.util.function.Consumer<T> setupController) {
+        changeScene((Stage)eventSource.getScene().getWindow(), path, setupController);
+    }
     
-    private Stage currentStage;
+    public static void changeScene(Node eventSource, String path) {
+        changeScene((Stage)eventSource.getScene().getWindow(), path);
+    }
     
-    static void setCurrentStage(Stage stage) { INSTANCE.currentStage = stage; }
-    
-    public static void setWindowTitle(String title) { INSTANCE.currentStage.setTitle(title); }
-    
-    /**
-     * Utility method to initialize the controller and switch scenes.
-     *
-     * @param <T> The type of controller to initialize.
-     * @param eventSource The source Node for the event.
-     * @param path The path of the FXML file to load.
-     * @param initializeController Function for initializing the controller.
-     */
-    public static <T> void changeScene(Node eventSource, String path, java.util.function.Consumer<T> initializeController) {
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(Context.class.getResource(path));
-        Stage stage = (Stage)eventSource.getScene().getWindow();
+    public static <T> void changeScene(Stage stage, String path, java.util.function.BiConsumer<Stage, T> setupController) {
+        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), currentResourceBundle);
+        
         try {
             stage.setScene(new Scene(loader.load()));
-            T controller = loader.getController();
-            if (initializeController != null)
-                initializeController.accept(controller);
         } catch (IOException ex) {
-            Logger.getLogger(Context.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
+        
+        // Call the consumer to for controller setup.
+        setupController.accept(stage, loader.getController());
+        
         stage.show();
     }
     
-    /**
-     * Utility method to change switch to another scene.
-     *
-     * @param eventSource The source node for the event.
-     * @param path The path of the FXML file to load.
-     */
-    public static void changeScene(Node eventSource, String path) {
-        changeScene(eventSource, path, null);
+    public static <T> void changeScene(Stage stage, String path, java.util.function.Consumer<T> setupController) {
+        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), currentResourceBundle);
+        
+        try {
+            stage.setScene(new Scene(loader.load()));
+        } catch (IOException ex) {
+            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        
+        // Call the consumer to for controller setup.
+        setupController.accept(loader.getController());
+        
+        stage.show();
+    }
+    
+    public static void changeScene(Stage stage, String path) {
+        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), currentResourceBundle);
+        
+        try {
+            stage.setScene(new Scene(loader.load()));
+        } catch (IOException ex) {
+            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        
+        stage.show();
     }
     
     //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="App Lifecycle">
+    
+    private Locale originalDisplayLocale;
+    private Locale originalFormatLocale;
+    
+    @Override
+    public void start(Stage stage) throws Exception {
+        currentLocale = originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
+        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+        changeScene(stage, LoginScreenController.VIEW_PATH, (LoginScreenController controller) -> {
+            controller.setCurrentStage(stage);
+        });
+    }
+    
+    @Override
+    public void stop() throws Exception {
+        Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale);
+        Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
+        super.stop();
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
+    
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Globalization">
     
-    private Locale currentLocale;
-    private Formatters formatters;
-    private Optional<ResourceBundle> messagesRB;
+    private static ResourceBundle currentResourceBundle;
+    private static Locale currentLocale;
+    private static Formatters formatters = new Formatters();
     
-    public static Locale getCurrentLocale() { return INSTANCE.currentLocale; }
+    public static Locale getCurrentLocale() { return currentLocale; }
     
     public static void setCurrentLocale(Locale locale) {
         Locale.setDefault(Locale.Category.DISPLAY, locale);
         Locale.setDefault(Locale.Category.FORMAT, locale);
-        INSTANCE.currentLocale = locale;
-        INSTANCE.messagesRB = Optional.empty();
-        INSTANCE.formatters = new Formatters();
+        currentLocale = locale;
+        currentResourceBundle = ResourceBundle.getBundle("Messages", currentLocale);
+        formatters = new Formatters();
     }
     
     public static String getMessage(String key){ return getMessagesRB().getString(key); }
@@ -106,96 +150,90 @@ public class Context {
     
     public static Object getMessageResourceObject(String key){ return getMessagesRB().getObject(key); }
     
-    public static ResourceBundle getMessagesRB() {
-        if (INSTANCE.messagesRB.isPresent())
-            return INSTANCE.messagesRB.get();
-        ResourceBundle rb = ResourceBundle.getBundle("Messages", INSTANCE.currentLocale);
-        INSTANCE.messagesRB = Optional.of(rb);
-        return rb;
-    }
+    public static ResourceBundle getMessagesRB() { return currentResourceBundle; }
     
     public static DateTimeFormatter getDateFormatter(FormatStyle style) {
         TemporalFormatters fmt;
-        if (INSTANCE.formatters.temporal.containsKey(style)) {
-            fmt = INSTANCE.formatters.temporal.get(style);
+        if (formatters.temporal.containsKey(style)) {
+            fmt = formatters.temporal.get(style);
             if (fmt.date.isPresent())
                 return fmt.date.get();
         } else {
             fmt = new TemporalFormatters();
-            INSTANCE.formatters.temporal.put(style, fmt);
+            formatters.temporal.put(style, fmt);
         }
-        DateTimeFormatter result = DateTimeFormatter.ofLocalizedDate(style).withLocale(INSTANCE.currentLocale);
+        DateTimeFormatter result = DateTimeFormatter.ofLocalizedDate(style).withLocale(currentLocale);
         fmt.date = Optional.of(result);
         return result;
     }
     
     public static DateTimeFormatter getTimeFormatter(FormatStyle style) {
         TemporalFormatters fmt;
-        if (INSTANCE.formatters.temporal.containsKey(style)) {
-            fmt = INSTANCE.formatters.temporal.get(style);
+        if (formatters.temporal.containsKey(style)) {
+            fmt = formatters.temporal.get(style);
             if (fmt.time.isPresent())
                 return fmt.time.get();
         } else {
             fmt = new TemporalFormatters();
-            INSTANCE.formatters.temporal.put(style, fmt);
+            formatters.temporal.put(style, fmt);
         }
-        DateTimeFormatter result = DateTimeFormatter.ofLocalizedTime(style).withLocale(INSTANCE.currentLocale);
+        DateTimeFormatter result = DateTimeFormatter.ofLocalizedTime(style).withLocale(currentLocale);
         fmt.time = Optional.of(result);
         return result;
     }
     
     public static DateTimeFormatter getDateTimeFormatter(FormatStyle style) {
         TemporalFormatters fmt;
-        if (INSTANCE.formatters.temporal.containsKey(style)) {
-            fmt = INSTANCE.formatters.temporal.get(style);
+        if (formatters.temporal.containsKey(style)) {
+            fmt = formatters.temporal.get(style);
             if (fmt.dateTime.isPresent())
                 return fmt.dateTime.get();
         } else {
             fmt = new TemporalFormatters();
-            INSTANCE.formatters.temporal.put(style, fmt);
+            formatters.temporal.put(style, fmt);
         }
-        DateTimeFormatter result = DateTimeFormatter.ofLocalizedDateTime(style).withLocale(INSTANCE.currentLocale);
+        DateTimeFormatter result = DateTimeFormatter.ofLocalizedDateTime(style).withLocale(currentLocale);
         fmt.dateTime = Optional.of(result);
         return result;
     }
     
     public static NumberFormat getNumericFormatter() {
-        if (INSTANCE.formatters.value.isPresent())
-            return INSTANCE.formatters.value.get();
-        NumberFormat result = NumberFormat.getInstance(INSTANCE.currentLocale);
-        INSTANCE.formatters.value = Optional.of(result);
+        if (formatters.value.isPresent())
+            return formatters.value.get();
+        NumberFormat result = NumberFormat.getInstance(currentLocale);
+        formatters.value = Optional.of(result);
         return result;
     }
     
     public static NumberFormat getNumberFormatter() {
-        if (INSTANCE.formatters.number.isPresent())
-            return INSTANCE.formatters.number.get();
-        NumberFormat result = NumberFormat.getNumberInstance(INSTANCE.currentLocale);
-        INSTANCE.formatters.number = Optional.of(result);
+        if (formatters.number.isPresent())
+            return formatters.number.get();
+        NumberFormat result = NumberFormat.getNumberInstance(currentLocale);
+        formatters.number = Optional.of(result);
         return result;
     }
     
     public static NumberFormat getCurrencyFormatter() {
-        if (INSTANCE.formatters.currency.isPresent())
-            return INSTANCE.formatters.currency.get();
-        NumberFormat result = NumberFormat.getCurrencyInstance(INSTANCE.currentLocale);
-        INSTANCE.formatters.currency = Optional.of(result);
+        if (formatters.currency.isPresent())
+            return formatters.currency.get();
+        NumberFormat result = NumberFormat.getCurrencyInstance(currentLocale);
+        formatters.currency = Optional.of(result);
         return result;
     }
     
     public static NumberFormat getIntegerFormatter() {
-        if (INSTANCE.formatters.integer.isPresent())
-            return INSTANCE.formatters.integer.get();
-        NumberFormat result = NumberFormat.getIntegerInstance(INSTANCE.currentLocale);
-        INSTANCE.formatters.integer = Optional.of(result);
+        if (formatters.integer.isPresent())
+            return formatters.integer.get();
+        NumberFormat result = NumberFormat.getIntegerInstance(currentLocale);
+        formatters.integer = Optional.of(result);
         return result;
     }
     
     public static NumberFormat getPercentageFormatter() {
-        if (INSTANCE.formatters.percentage.isPresent())
-            return INSTANCE.formatters.percentage.get();
-        NumberFormat result = NumberFormat.getPercentInstance(INSTANCE.currentLocale);
-        INSTANCE.formatters.percentage = Optional.of(result);
+        if (formatters.percentage.isPresent())
+            return formatters.percentage.get();
+        NumberFormat result = NumberFormat.getPercentInstance(currentLocale);
+        formatters.percentage = Optional.of(result);
         return result;
     }
     
@@ -218,13 +256,13 @@ public class Context {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Current User">
     
-    private Optional<User> currentUser;
+    private static Optional<User> currentUser = Optional.empty();
     
     /**
      * Gets the currently logged in user.
      * @return The currently logged in user.
      */
-    public static Optional<User> getCurrentUser() { return INSTANCE.currentUser; }
+    public static Optional<User> getCurrentUser() { return currentUser; }
     
     /**
      * Sets the currently logged in user if a user name and password match.
@@ -244,13 +282,13 @@ public class Context {
                 try {
                     PwHash pwHash = new PwHash(user.get().getPassword(), false);
                     if (pwHash.test(password)) {
-                        INSTANCE.currentUser = user;
+                        currentUser = user;
                         return true;
                     }
                     pwHash = new PwHash(password, true);
-                    Logger.getLogger(Context.class.getName()).log(Level.WARNING, pwHash.toString());
+                    Logger.getLogger(App.class.getName()).log(Level.WARNING, pwHash.toString());
                 } catch (InvalidArgumentException ex) {
-                    Logger.getLogger(Context.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         } finally { dep.end(); }
@@ -267,9 +305,9 @@ public class Context {
     private static final String DB_PASSWORD = "53688096290";
     private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
     
-    private Connection connection;
+    private static Connection connection;
     
-    private Optional<SqlConnectionDependency> latestConnectionDependency = Optional.empty();
+    private static Optional<SqlConnectionDependency> latestConnectionDependency = Optional.empty();
     
     /**
      * Class for managing an SQL connection dependency.
@@ -299,18 +337,18 @@ public class Context {
         public Connection start() throws InvalidOperationException, ClassNotFoundException, SQLException {
             if (previous.isPresent() || next.isPresent())
                 throw new InvalidOperationException("SQL Connection dependency is already open.");
-            if ((previous = INSTANCE.latestConnectionDependency).isPresent()) {
+            if ((previous = latestConnectionDependency).isPresent()) {
                 SqlConnectionDependency d = previous.get();
                 if (d == this)
                     throw new InvalidOperationException("SQL Connection dependency is already open.");
-                INSTANCE.latestConnectionDependency = d.next = Optional.of(this);
+                latestConnectionDependency = d.next = Optional.of(this);
             } else {
                 Class.forName(DB_DRIVER);
-                INSTANCE.connection = (Connection)DriverManager.getConnection(DB_URL, DB_USER_NAME, DB_PASSWORD);
+                connection = (Connection)DriverManager.getConnection(DB_URL, DB_USER_NAME, DB_PASSWORD);
                 System.out.println("Connection Successful");
-                INSTANCE.latestConnectionDependency = Optional.of(this);
+                latestConnectionDependency = Optional.of(this);
             }
-            connection = INSTANCE.connection;
+            connection = connection;
             return connection;
         }
         
@@ -327,10 +365,10 @@ public class Context {
                     previous = Optional.empty();
                 }
                 next = Optional.empty();
-            } else if ((INSTANCE.latestConnectionDependency = previous).isPresent())
+            } else if ((latestConnectionDependency = previous).isPresent())
                 previous = previous.get().next = Optional.empty();
             else
-                INSTANCE.connection.close();
+                connection.close();
         }
     }
     

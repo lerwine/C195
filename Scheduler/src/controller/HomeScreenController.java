@@ -42,62 +42,61 @@ public class HomeScreenController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        scheduler.Context.setWindowTitle(scheduler.Context.getMessage("appointmentScheduler"));
         // TODO
     }    
     
     @FXML
     void newAppointmentMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
-            controller.applyModel(scheduler.Context.getCurrentUser().get());
+        scheduler.App.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
+            controller.applyModel(scheduler.App.getCurrentUser().get());
         });
     }
     
     @FXML
     void myAppointmentsMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
-            controller.applyModel(scheduler.Context.getCurrentUser().get());
+        scheduler.App.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
+            controller.applyModel(scheduler.App.getCurrentUser().get());
         });
     }
     
     @FXML
     void newCustomerMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
     }
     
     @FXML
     void allCustomersMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
     }
     
     @FXML
     void newCountryMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
     }
     
     @FXML
     void newCityMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
     }
     
     @FXML
     void newAddressMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
     }
     
     @FXML
     void allCountriesMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
     }
     
     @FXML
     void newUserMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
     }
     
     @FXML
     void allUsersMenuItemClick(ActionEvent event) {
-        scheduler.Context.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
+        scheduler.App.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
     }
     
     @FXML

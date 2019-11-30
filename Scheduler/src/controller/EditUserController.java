@@ -95,7 +95,7 @@ public class EditUserController extends ItemControllerBase<User> {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
-        rb = scheduler.Context.getMessagesRB();
+        rb = scheduler.App.getMessagesRB();
         userNameLabel.setText(rb.getString("userName") + ":");
         activeLabel.setText(rb.getString("activeState") + ":");
         changePasswordCheckBox.setText(rb.getString("password") + ":");
@@ -107,13 +107,13 @@ public class EditUserController extends ItemControllerBase<User> {
                 super.updateItem(a, bln);
                 switch (a) {
                     case 1:
-                        setText(scheduler.Context.getMessage("normalUser"));
+                        setText(scheduler.App.getMessage("normalUser"));
                         break;
                     case 2:
-                        setText(scheduler.Context.getMessage("adminstrativeUser"));
+                        setText(scheduler.App.getMessage("adminstrativeUser"));
                         break;
                     default:
-                        setText(scheduler.Context.getMessage("inactive"));
+                        setText(scheduler.App.getMessage("inactive"));
                         break;
                 }
             }
@@ -129,12 +129,12 @@ public class EditUserController extends ItemControllerBase<User> {
         if (validateUserName()) {
             if (!validatePassword()) {
                 utils.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
-                        new Object[] { scheduler.Context.getMessage("password") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
+                        new Object[] { scheduler.App.getMessage("password") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
                 return;
             }
         } else {
             utils.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
-                    new Object[] { scheduler.Context.getMessage("userName") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
+                    new Object[] { scheduler.App.getMessage("userName") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
             return;
         }
         (new Alert(Alert.AlertType.INFORMATION, "saveChangesButtonClick not implemented", ButtonType.OK)).showAndWait();
@@ -165,7 +165,7 @@ public class EditUserController extends ItemControllerBase<User> {
     @Override
     protected void applyModelAsNew(User model) {
         String s = model.getUserName();
-        mainTitledPane.setText(scheduler.Context.getMessage("addNewUser") + ":");
+        mainTitledPane.setText(scheduler.App.getMessage("addNewUser") + ":");
         userNameTextField.setText((s == null) ? "" : s);
         changePasswordCheckBox.setSelected(true);
         changePasswordCheckBox.setDisable(true);
@@ -177,7 +177,7 @@ public class EditUserController extends ItemControllerBase<User> {
 
     @Override
     protected void applyModelAsEdit(User model) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         String s = model.getUserName();
         if (s == null)
             s = "";
@@ -196,7 +196,7 @@ public class EditUserController extends ItemControllerBase<User> {
     private boolean validateUserName() {
         String s = userNameLabel.getText();
         if (s.trim().isEmpty())
-            userNameErrorMessage.setText(scheduler.Context.getMessage("emptyUserName"));
+            userNameErrorMessage.setText(scheduler.App.getMessage("emptyUserName"));
         else {
             throw new RuntimeException("Method not impelmented");
         }
@@ -212,14 +212,14 @@ public class EditUserController extends ItemControllerBase<User> {
         }
         String s = passwordTextField.getText();
         if (s.trim().isEmpty())
-            passwordErrorMessage.setText(scheduler.Context.getMessage("emptyPassword"));
+            passwordErrorMessage.setText(scheduler.App.getMessage("emptyPassword"));
         else {
             if (confirmTextField.getText().equals(s)) {
                 passwordErrorMessage.setText("");
                 passwordErrorMessage.setVisible(false);
                 return true;
             }
-            passwordErrorMessage.setText(scheduler.Context.getMessage("passwordMismatch"));
+            passwordErrorMessage.setText(scheduler.App.getMessage("passwordMismatch"));
         }
         passwordErrorMessage.setVisible(true);
         return false;

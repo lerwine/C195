@@ -7,6 +7,7 @@ package controller;
 
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -29,7 +30,9 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.stage.Stage;
 import javax.persistence.EntityManager;
+import scheduler.App;
 import utils.InvalidOperationException;
 import utils.NotificationHelper;
 
@@ -73,6 +76,28 @@ public class LoginScreenController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         locales = FXCollections.observableArrayList(new Locale("en"), new Locale("es"), new Locale("de"), new Locale("hi"));
+        int index = -1;
+        
+        String d = App.getCurrentLocale().toString();
+        for (int i = 0; i < locales.size(); i++) {
+            if (locales.get(i).toString().equals(d)) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) {
+            d = App.getCurrentLocale().getISO3Language();
+            for (int i = 0; i < locales.size(); i++) {
+                if (locales.get(i).getISO3Language().equals(d)) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0) {
+                locales.add(0, App.getCurrentLocale());
+                index = 0;
+            }
+        }
         
         languageComboBox.setCellFactory((p) -> new ListCell<Locale>() {
             @Override
@@ -82,33 +107,20 @@ public class LoginScreenController implements Initializable {
             }
         });
         languageComboBox.setItems(locales);
-        int index = -1;
-        String d = Locale.getDefault().toString();
-        for (int i = 0; i < locales.size(); i++) {
-            if (locales.get(i).toString().equals(d)) {
-                index = i;
-                break;
-            }
-        }
-        if (index < 0) {
-            d = Locale.getDefault().getISO3Language();
-            for (int i = 0; i < locales.size(); i++) {
-                if (locales.get(i).getISO3Language().equals(d)) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index < 0)
-                index = 0;
-        }
         languageComboBox.getSelectionModel().select(index);
-        scheduler.Context.setCurrentLocale(locales.get(index));
+    }
+    
+    private Stage currentStage;
+    
+    public void setCurrentStage(Stage stage) {
+        currentStage = stage;
         refreshCultureSensitive();
     }
     
     void refreshCultureSensitive() {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
-        scheduler.Context.setWindowTitle(rb.getString("appointmentSchedulerLogin"));
+        ResourceBundle rb = App.getMessagesRB();
+        if (currentStage != null)
+            currentStage.setTitle(rb.getString("appointmentSchedulerLogin"));
         userNameLabel.setText(rb.getString("userName") + ":");
         passwordLabel.setText(rb.getString("password") + ":");
         loginButton.setText(rb.getString("login"));
@@ -120,26 +132,28 @@ public class LoginScreenController implements Initializable {
         Object item = languageComboBox.getSelectionModel().getSelectedItem();
         if (item == null || !(item instanceof Locale))
             return;
-        scheduler.Context.setCurrentLocale((Locale)item);
+        App.setCurrentLocale((Locale)item);
         refreshCultureSensitive();
     }
     
     @FXML
     void loginButtonClick(ActionEvent event) {
         try {
-            if (scheduler.Context.trySetCurrentUser(userNameTextField.getText(), passwordTextField.getText()))
-                scheduler.Context.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH);
+            if (App.trySetCurrentUser(userNameTextField.getText(), passwordTextField.getText()))
+                App.changeScene((Node)event.getSource(), HomeScreenController.VIEW_PATH, (Stage stage, HomeScreenController controller) -> {
+                    stage.setTitle(App.getMessage("appointmentScheduler"));
+                });
             else
-                NotificationHelper.showNotificationDialog(scheduler.Context.getMessage("authentication"),
-                        scheduler.Context.getMessage("authError"), scheduler.Context.getMessage("invalidCredentials"),
+                NotificationHelper.showNotificationDialog(App.getMessage("authentication"),
+                        App.getMessage("authError"), App.getMessage("invalidCredentials"),
                         Alert.AlertType.WARNING);
         } catch (InvalidOperationException | ClassNotFoundException ex) {
-            NotificationHelper.showNotificationDialog(scheduler.Context.getMessage("authentication"),
-                    scheduler.Context.getMessage("authError"), "", Alert.AlertType.ERROR);
+            NotificationHelper.showNotificationDialog(App.getMessage("authentication"),
+                    App.getMessage("authError"), "", Alert.AlertType.ERROR);
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         } catch (SQLException ex) {
-            NotificationHelper.showNotificationDialog(scheduler.Context.getMessage("authentication"),
-                    scheduler.Context.getMessage("authError"), scheduler.Context.getMessage("dbCredentialAccessError"),
+            NotificationHelper.showNotificationDialog(App.getMessage("authentication"),
+                    App.getMessage("authError"), App.getMessage("dbCredentialAccessError"),
                     Alert.AlertType.ERROR);
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
@@ -149,4 +163,5 @@ public class LoginScreenController implements Initializable {
     void exitButtonClick(ActionEvent event) {
         ((Button)event.getSource()).getScene().getWindow().hide();
     }
+
 }

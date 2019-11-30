@@ -67,7 +67,7 @@ public class ManageCountriesController implements Initializable {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.Context.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_CREATEDBY));
@@ -79,7 +79,7 @@ public class ManageCountriesController implements Initializable {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.Context.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_LASTUPDATEBY));

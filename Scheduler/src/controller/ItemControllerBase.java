@@ -31,13 +31,13 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
         if (model == null)
             throw new InvalidArgumentException("model");
         this.model = model;
-        DateTimeFormatter dtf = scheduler.Context.getDateTimeFormatter(FormatStyle.FULL);
+        DateTimeFormatter dtf = scheduler.App.getDateTimeFormatter(FormatStyle.FULL);
         createDateValue.setText(dtf.format(model.getCreateDate()));
         lastUpdateValue.setText(dtf.format(model.getLastUpdate()));
         createdByValue.setText(model.getCreatedBy());
         lastUpdateByValue.setText(model.getLastUpdateBy());
         if (model.getRowState() == DataRow.ROWSTATE_NEW) {
-            saveChangesButton.setText(scheduler.Context.getMessage("addNew"));
+            saveChangesButton.setText(scheduler.App.getMessage("addNew"));
             createDateLabel.setVisible(false);
             createDateValue.setVisible(false);
             createdByLabel.setVisible(false);
@@ -48,7 +48,7 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
             lastUpdateByValue.setVisible(false);
             applyModelAsNew(model);
         } else {
-            saveChangesButton.setText(scheduler.Context.getMessage("saveChanges"));
+            saveChangesButton.setText(scheduler.App.getMessage("saveChanges"));
             createDateLabel.setVisible(true);
             createDateValue.setVisible(true);
             createdByLabel.setVisible(true);
@@ -93,7 +93,7 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        ResourceBundle rb = scheduler.Context.getMessagesRB();
+        ResourceBundle rb = scheduler.App.getMessagesRB();
         createDateLabel.setText(rb.getString("createdOn"));
         createdByLabel.setText(rb.getString("createdBy"));
         lastUpdateLabel.setText(rb.getString("updatedOn"));
