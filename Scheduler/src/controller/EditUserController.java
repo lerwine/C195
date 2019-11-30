@@ -28,7 +28,7 @@ import javafx.scene.control.TitledPane;
 import javax.persistence.EntityManager;
 import model.db.DataRow;
 import model.db.User;
-import utils.InvalidOperationException;
+import scheduler.InvalidOperationException;
 
 /**
  * FXML Controller class
@@ -128,12 +128,12 @@ public class EditUserController extends ItemControllerBase<User> {
     void saveChangesButtonClick(ActionEvent event) {
         if (validateUserName()) {
             if (!validatePassword()) {
-                utils.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
+                scheduler.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
                         new Object[] { scheduler.App.getMessage("password") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
                 return;
             }
         } else {
-            utils.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
+            scheduler.NotificationHelper.showNotificationDialog("validationWarning", "fieldValidationFailed",
                     new Object[] { scheduler.App.getMessage("userName") }, "fieldValidationInstruct", Alert.AlertType.ERROR);
             return;
         }

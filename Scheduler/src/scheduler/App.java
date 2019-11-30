@@ -26,9 +26,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.db.User;
-import utils.InvalidArgumentException;
-import utils.InvalidOperationException;
-import utils.PwHash;
 
 /**
  * Application class for Scheduler

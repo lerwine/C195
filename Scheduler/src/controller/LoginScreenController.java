@@ -33,8 +33,8 @@ import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
 import javax.persistence.EntityManager;
 import scheduler.App;
-import utils.InvalidOperationException;
-import utils.NotificationHelper;
+import scheduler.InvalidOperationException;
+import scheduler.NotificationHelper;
 
 /**
  * FXML Controller class

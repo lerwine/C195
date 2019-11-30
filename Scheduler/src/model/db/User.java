@@ -18,8 +18,8 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
-import utils.InternalException;
-import utils.InvalidOperationException;
+import scheduler.InternalException;
+import scheduler.InvalidOperationException;
 
 /**
  * Represents a user account data row in the database.

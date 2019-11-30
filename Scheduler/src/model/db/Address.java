@@ -18,7 +18,7 @@ import javafx.collections.ObservableList;
 import static model.db.DataRow.selectFromDbById;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
-import utils.InternalException;
+import scheduler.InternalException;
 
 /**
  *

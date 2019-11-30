@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package scheduler;
 
 /**
  * An exception which indicates an internal error, usually for an exception that should never occur.

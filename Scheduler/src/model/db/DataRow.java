@@ -22,8 +22,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
-import utils.InternalException;
-import utils.InvalidOperationException;
+import scheduler.InternalException;
+import scheduler.InvalidOperationException;
 
 /**
  * Base class for data rows from the database.

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package scheduler;
 
 /**
  * An operation was attempted on an object in a state not performed by the method.

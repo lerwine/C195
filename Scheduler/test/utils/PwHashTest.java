@@ -5,6 +5,8 @@
  */
 package utils;
 
+import scheduler.PwHash;
+import scheduler.InvalidArgumentException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
