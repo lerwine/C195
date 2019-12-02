@@ -1,21 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package model.db;
 
 import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import static model.db.DataRow.selectFromDbById;
+
+import model.Address;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
@@ -24,14 +20,18 @@ import scheduler.InternalException;
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(Customer.COLNAME_CUSTOMERID)
+@PrimaryKey(CustomerRow.COLNAME_CUSTOMERID)
 @TableName("customer")
-public class Customer extends DataRow {
+public class CustomerRow extends DataRow {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
     public static final String COLNAME_CUSTOMERID = "customerId";
     
-    private final static HashMap<Integer, Customer> LOOKUP_CACHE = new HashMap<>();
+    public static final String SQL_SELECT = "SELECT customer.*, address.address, address.address2," +
+        " address.cityId, city.city, address.postalCode, address.phone, city.countryId, country.country FROM customer" +
+        " LEFT OUTER JOIN address ON customer.addressId = address.addressId" +
+        " LEFT OUTER JOIN city ON address.cityId = city.cityId" +
+        " LEFT OUTER JOIN country ON city.countryId = country.countryId";
     
     //<editor-fold defaultstate="collapsed" desc="customerName">
     
@@ -77,13 +77,58 @@ public class Customer extends DataRow {
      * @param value new value of addressId
      */
     public final void setAddressId(int value) {
-        int oldValue = addressId;
+        if (value == addressId && address != null)
+            return;
+        int oldId = addressId;
+        model.Address oldAddress = address;
+        SqlConnectionDependency dep = new SqlConnectionDependency(true);
+        try {
+            Optional<AddressRow> r = AddressRow.getById(dep.getconnection(), value);
+            if (r.isPresent())
+            address = r.get();
+            else
+                throw new InvalidArgumentException("value", "No address found that matches that ID");
+        } finally { dep.close(); }
         addressId = value;
-        firePropertyChange(PROP_ADDRESSID, oldValue, addressId);
+        try { firePropertyChange(PROP_ADDRESSID, oldId, addressId); }
+        finally { firePropertyChange(PROP_ADDRESS, oldAddress, address); }
+        
     }
     
-    public Optional<Address> lookupCurrentAddress(Connection connection) throws SQLException {
-        return Address.getById(connection, addressId, true);
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="addressId">
+    
+    private model.Address address;
+    
+    public static final String PROP_ADDRESS = "address";
+    
+    /**
+     * Get the value of address
+     *
+     * @return the value of address
+     */
+    public final model.Address getAddress() { return address; }
+    
+    /**
+     * Set the value of address
+     *
+     * @param value new value of address
+     */
+    public final void setAddress(model.Address value) {
+        if (value == null)
+            throw new InvalidArgumentException("value", "Address cannot be null");
+        if (value instanceof AddressRow) {
+            int rowState = ((AddressRow)value).getRowState();
+            if (rowState == ROWSTATE_DELETED)
+                throw new InvalidArgumentException("value", "Address was deleted");
+            if (rowState == ROWSTATE_NEW)
+                throw new InvalidArgumentException("value", "Address was not added to the database");
+        }
+        int oldId = addressId;
+        model.Address oldAddress = address;
+        addressId = (address = value).getPrimaryKey();
+        try { firePropertyChange(PROP_ADDRESS, oldAddress, address); }
+        finally { firePropertyChange(PROP_ADDRESSID, oldId, addressId); }
     }
     
     //</editor-fold>
@@ -116,21 +161,27 @@ public class Customer extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
-    public Customer() {
+    public CustomerRow() {
         super();
         customerName = "";
         addressId = 0;
         active = true;
     }
     
-    public Customer(String customerName, int addressId, boolean active) {
+    public CustomerRow(String customerName, AddressRow address, boolean active) {
         super();
+        if (address == null)
+            throw new InvalidArgumentException("address", "Address cannot be null");
+        if (address.getRowState() == ROWSTATE_DELETED)
+            throw new InvalidArgumentException("address", "Address was deleted");
+        if (address.getRowState() == ROWSTATE_NEW)
+            throw new InvalidArgumentException("address", "Address was not added to the database");
         this.customerName = (customerName == null) ? "" : customerName;
-        this.addressId = addressId;
+        addressId = (this.address = address).getPrimaryKey();
         this.active = active;
     }
     
-    public Customer (ResultSet rs) throws SQLException {
+    public CustomerRow (ResultSet rs) throws SQLException {
         super(rs);
         customerName = rs.getString(PROP_CUSTOMERNAME);
         if (rs.wasNull())
@@ -142,48 +193,47 @@ public class Customer extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
     
-    public static final Optional<Customer> getById(Connection connection, int id, boolean includeCache) throws SQLException {
-        if (includeCache && LOOKUP_CACHE.containsKey(id))
-            return Optional.of(LOOKUP_CACHE.get(id));
-        
-        return selectFromDbById(connection, (Class<Customer>)Customer.class, (Function<ResultSet, Customer>)(ResultSet rs) -> {
-            Customer r;
+    public static final Optional<CustomerRow> getById(Connection connection, int id, boolean includeCache) throws SQLException {
+        return selectFirstFromDb(connection, SQL_SELECT + " WHERE customerId = ?", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
+            CustomerRow u;
             try {
-                r = new Customer(rs);
-                if (LOOKUP_CACHE.containsKey(id))
-                    LOOKUP_CACHE.remove(id);
-                LOOKUP_CACHE.put(id, r);
+                u = new CustomerRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(Customer.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
+                Logger.getLogger(CustomerRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing CustomerRow object from result set.");
             }
-            return r;
-        }, id);
+            return u;
+        },
+        (PreparedStatement ps) -> {
+            try {
+                ps.setInt(1, id);
+            } catch (SQLException ex) {
+                Logger.getLogger(CustomerRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
     }
     
-    public static final ObservableList<Customer> getByAddress(Connection connection, int addressId) throws SQLException {
-        return selectFromDb(connection, (Class<Customer>)Customer.class, (Function<ResultSet, Customer>)(ResultSet rs) -> {
-            Customer r;
+    
+    public static final ObservableList<CustomerRow> getByAddress(Connection connection, int addressId) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT + " WHERE addressId = ?", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
+            CustomerRow u;
             try {
-                r = new Customer(rs);
-                int id = r.getPrimaryKey();
-                if (LOOKUP_CACHE.containsKey(id))
-                    LOOKUP_CACHE.remove(id);
-                LOOKUP_CACHE.put(id, r);
+                u = new CustomerRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(Address.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
+                Logger.getLogger(CustomerRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing CustomerRow object from result set.");
             }
-            return r;
-        }, "`" + PROP_ADDRESSID + "` = ?",
+            return u;
+        },
         (PreparedStatement ps) -> {
             try {
                 ps.setInt(1, addressId);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(CustomerRow.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
+    
     
     @Override
     protected String[] getColumnNames() {
@@ -194,20 +244,23 @@ public class Customer extends DataRow {
     protected void refreshFromDb(ResultSet rs) throws SQLException {
         String oldCustomerName = customerName;
         int oldAddressId = addressId;
+        model.Address oldAddress = address;
         boolean oldActive = active;
         customerName = rs.getString(PROP_CUSTOMERNAME);
         if (rs.wasNull())
             customerName = "";
         addressId = rs.getInt(PROP_ADDRESSID);
         active = rs.getBoolean(PROP_ACTIVE);
-        if (!LOOKUP_CACHE.containsKey(getPrimaryKey()))
-            LOOKUP_CACHE.put(getPrimaryKey(), this);
+        addressId = (address = value).getPrimaryKey();
         // Execute property change events in nested try/finally statements to ensure that all
         // events get fired, even if one of the property change listeners throws an exception.
         try { firePropertyChange(PROP_CUSTOMERNAME, oldCustomerName, customerName); }
         finally {
             try { firePropertyChange(PROP_ADDRESSID, oldAddressId, addressId); }
-            finally { firePropertyChange(PROP_ACTIVE, oldActive, active); }
+            finally {
+                try { firePropertyChange(PROP_ACTIVE, oldActive, active); }
+                finally { firePropertyChange(PROP_ADDRESS, oldAddress, address); }
+            }
         }
     }
 
@@ -229,4 +282,40 @@ public class Customer extends DataRow {
     }
     
     //</editor-fold>
+    
+    static class Address implements model.Address {
+        private final int id;
+        private final String address1;
+        private final String address2;
+        private final model.City city;
+        private final String postalCode;
+        private final String phone;
+
+        Address(int id, String address1, String address2, model.City city, String postalCode, String phone) {
+            this.id = id;
+            this.address1 = address1;
+            this.address2 = address2;
+            this.city = city;
+            this.postalCode = postalCode;
+            this.phone = phone;
+        }
+
+        @Override
+        public String getAddress1() { return address1; }
+        
+        @Override
+        public String getAddress2() { return address2; }
+        
+        @Override
+        public model.City getCity() { return city; }
+        
+        @Override
+        public String getPostalCode() { return postalCode; }
+        
+        @Override
+        public String getPhone() { return phones; }
+
+        @Override
+        public int getPrimaryKey() { return id; }
+    }
 }

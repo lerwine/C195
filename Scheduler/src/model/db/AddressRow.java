@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package model.db;
 
 import com.mysql.jdbc.Connection;
@@ -264,11 +259,6 @@ public class AddressRow extends DataRow implements model.Address {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
 
-    @Override
-    protected String getSelectQuery() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     public static final Optional<AddressRow> getById(Connection connection, int id) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE address.addressId = ?", (Function<ResultSet, AddressRow>)(ResultSet rs) -> {
             AddressRow u;
@@ -290,7 +280,7 @@ public class AddressRow extends DataRow implements model.Address {
     }
     
     public static final ObservableList<AddressRow> getByCity(Connection connection, int cityId) throws SQLException {
-        return selectFromDb(connection, SQL_SELECT + " WHERE `address`.`cityId` = ?", (Function<ResultSet, AddressRow>)(ResultSet rs) -> {
+        return selectFromDb(connection, SQL_SELECT + " WHERE address.cityId = ?", (Function<ResultSet, AddressRow>)(ResultSet rs) -> {
             AddressRow u;
             try {
                 u = new AddressRow(rs);
@@ -390,9 +380,9 @@ public class AddressRow extends DataRow implements model.Address {
         }
     }
 
-    //</editor-fold>
+    @Override
+    protected String getSelectQuery() { return SQL_SELECT; }
     
-
     //</editor-fold>
     
     static class City implements model.City {

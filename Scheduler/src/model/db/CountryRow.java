@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package model.db;
 
 import com.mysql.jdbc.Connection;
@@ -27,7 +22,7 @@ import scheduler.InternalException;
 public class CountryRow extends DataRow implements model.Country {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
-    public static final String SQL_SELECT = "SELECT * FROM `country`";
+    public static final String SQL_SELECT = "SELECT * FROM country";
     
     public static final String COLNAME_COUNTRYID = "countryId";
     
@@ -87,7 +82,7 @@ public class CountryRow extends DataRow implements model.Country {
     protected String getSelectQuery() { return SQL_SELECT; }
     
     public static final Optional<CountryRow> getById(Connection connection, int id) throws SQLException {
-        return selectFirstFromDb(connection, SQL_SELECT + " WHERE `country`.`countryId` = ?", (Function<ResultSet, CountryRow>)(ResultSet rs) -> {
+        return selectFirstFromDb(connection, SQL_SELECT + " WHERE countryId = ?", (Function<ResultSet, CountryRow>)(ResultSet rs) -> {
             CountryRow u;
             try {
                 u = new CountryRow(rs);
