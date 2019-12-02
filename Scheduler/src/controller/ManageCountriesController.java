@@ -9,15 +9,12 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.util.Callback;
 import model.db.Country;
 
 /**
@@ -54,6 +51,8 @@ public class ManageCountriesController implements Initializable {
 
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {

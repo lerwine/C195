@@ -8,7 +8,6 @@ package controller;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Locale;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -92,8 +91,13 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
     @FXML
     private Button cancelButton;
     
+    /**
+     * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
+     */
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initialize(URL url, ResourceBundle rb) {
         createDateLabel.setText(Messages.current().getCreatedOn());
         createdByLabel.setText(Messages.current().getCreatedBy());
         lastUpdateLabel.setText(Messages.current().getUpdatedOn());

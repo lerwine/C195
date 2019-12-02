@@ -7,38 +7,29 @@ package controller;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.stage.Stage;
-import javax.persistence.EntityManager;
 import scheduler.App;
 import scheduler.InvalidOperationException;
 import scheduler.Messages;
 
 /**
- * FXML Controller class
- *
+ * FXML Controller class for the application login screen.
  * @author webmaster
  */
 public class LoginScreenController implements Initializable {
@@ -47,24 +38,45 @@ public class LoginScreenController implements Initializable {
      */
     public static final String VIEW_PATH = "/view/LoginScreen.fxml";
     
+    /**
+     * The {@link ComboBox} that lets the user select their preferred language.
+     */
     @FXML
     private ComboBox languageComboBox;
     
+    /**
+     * The {@link Label} for the User Name {@link TextField}.
+     */
     @FXML
     private Label userNameLabel;
 
+    /**
+     * The {@link TextField} where the user provides the User Name.
+     */
     @FXML
     private TextField userNameTextField;
 
+    /**
+     * The {@link Label} for the {@link PasswordField}.
+     */
     @FXML
     private Label passwordLabel;
 
+    /**
+     * The {@link PasswordField} where the user provides the password.
+     */
     @FXML
     private PasswordField passwordTextField;
     
+    /**
+     * The {@link Button} which begins the login attempt.
+     */
     @FXML
     private Button loginButton;
 
+    /**
+     * The {@link Button} which cancels login and closes the application.
+     */
     @FXML
     private Button exitButton;
     
@@ -72,6 +84,8 @@ public class LoginScreenController implements Initializable {
     
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {

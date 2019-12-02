@@ -100,7 +100,6 @@ public class App extends Application {
     // Tracks the original locale settings at the time the app is started, so it can be restored when the app ends
     private Locale originalDisplayLocale;
     private Locale originalFormatLocale;
-    private static Properties properties;
     
     private static Logger getLogger() { return Logger.getLogger(App.class.getName()); }
     
@@ -110,15 +109,7 @@ public class App extends Application {
         currentLocale = originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
         originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
         Messages.setCurrent(new Messages(currentLocale));
-        properties = new Properties();
-        // Loading properties file from the classpath
-        InputStream iStream = this.getClass().getClassLoader().getResourceAsStream("app.properties");
-        if(iStream == null) {
-            Messages.current().notifyPropertyLoadError("app.properties");
-            throw new InternalException("File \"app.properties\" not found.");
-        }
-        try { properties.load(iStream); }
-        finally { iStream.close(); }
+        AppConfig.refresh();
         // Set initial scene to the login screen
         changeScene(stage, LoginScreenController.VIEW_PATH, (LoginScreenController controller) -> {
             controller.setCurrentStage(stage);
@@ -364,116 +355,33 @@ public class App extends Application {
      * @throws java.sql.SQLException
      */
     public static boolean trySetCurrentUser(String userName, String password) throws InvalidOperationException, ClassNotFoundException, SQLException {
-        // Start a new SQL database connection dependency.
-        SqlConnectionDependency dep = new SqlConnectionDependency();
-        Connection connection = dep.start();
-        try {
-            // Look up user by user name
-            Optional<User> user = User.getByUserName(connection, userName, false);
-            if (user.isPresent()) {
-                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
-                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
-                // as the stored password. If the password is correct, then the hash values will match.
-                try {
-                    // Create a password hash object for password hash comparison.
-                    PwHash pwHash = new PwHash(user.get().getPassword(), false);
-                    // See if the provided password, when hashed using the same seed as the stored hash is a match.
-                    if (pwHash.test(password)) {
-                        currentUser = user;
-                        return true;
-                    }
-                    getLogger().log(Level.WARNING, "Password hash check failed");
-                } catch (InvalidArgumentException ex) {
-                    getLogger().log(Level.SEVERE, null, ex);
+        Optional<User> user = SqlConnectionDependency.get((Connection connection) -> {
+            try {
+                return User.getByUserName(connection, userName, false);
+            } catch (SQLException ex) {
+                Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+                throw new RuntimeException("Error getting user by username", ex);
+            }
+        });
+        if (user.isPresent()) {
+            // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
+            // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
+            // as the stored password. If the password is correct, then the hash values will match.
+            try {
+                // Create a password hash object for password hash comparison.
+                PwHash pwHash = new PwHash(user.get().getPassword(), false);
+                // See if the provided password, when hashed using the same seed as the stored hash is a match.
+                if (pwHash.test(password)) {
+                    currentUser = user;
+                    return true;
                 }
-            } else
-                getLogger().log(Level.WARNING, "No matching userName found");
-        } finally {
-            // Release the SQL database connection dependency.
-            dep.end();
-        }
+                getLogger().log(Level.WARNING, "Password hash check failed");
+            } catch (InvalidArgumentException ex) {
+                getLogger().log(Level.SEVERE, null, ex);
+            }
+        } else
+            getLogger().log(Level.WARNING, "No matching userName found");
         return false;
-    }
-    
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="SQL Connection">
-    
-    private static Connection currentConnection;
-    
-    private static Optional<SqlConnectionDependency> latestConnectionDependency = Optional.empty();
-    
-    /**
-     * Class for managing an SQL connection dependency.
-     * An SQL connection will be opened when the first dependency is started,
-     * and the connection will end when the last dependency is ended.
-     */
-    public static class SqlConnectionDependency {
-        private Connection connection;
-        private Optional<SqlConnectionDependency> previous;
-        private Optional<SqlConnectionDependency> next;
-        
-        /**
-         * Creates a new unopened SqlConnectionDependency instance.
-         */
-        public SqlConnectionDependency() {
-            previous = Optional.empty();
-            next = Optional.empty();
-        }
-        
-        private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
-        private static final String DEFAULT_SERVER_NAME = "3.227.166.251";
-        private static final String DEFAULT_DATABASE_NAME = "U03vHM";
-        private static final String DEFAULT_DATABASE_PASSWORD = "53688096290";
-        
-        /**
-         * Starts a new SQL connection dependency and returns the {@link Connection}.
-         * @return An open {@link Connection}.
-         * @throws InvalidOperationException
-         * @throws java.lang.ClassNotFoundException
-         * @throws java.sql.SQLException
-         */
-        public Connection start() throws InvalidOperationException, ClassNotFoundException, SQLException {
-            if (previous.isPresent() || next.isPresent())
-                throw new InvalidOperationException("SQL Connection dependency is already open.");
-            if ((previous = latestConnectionDependency).isPresent()) {
-                SqlConnectionDependency d = previous.get();
-                if (d == this)
-                    throw new InvalidOperationException("SQL Connection dependency is already open.");
-                latestConnectionDependency = d.next = Optional.of(this);
-            } else {
-                Class.forName(DB_DRIVER);
-                String url = String.format("jdbc:mysql://{0}/{1}", properties.getProperty("dbServerName", DEFAULT_SERVER_NAME),
-                        properties.getProperty("dbName", DEFAULT_DATABASE_NAME));
-                currentConnection = (Connection)DriverManager.getConnection(url, properties.getProperty("dbLogin", DEFAULT_DATABASE_NAME),
-                        properties.getProperty("dbPassword", DEFAULT_DATABASE_PASSWORD));
-                getLogger().log(Level.INFO, String.format("Connected to {0}", url));
-                latestConnectionDependency = Optional.of(this);
-            }
-            connection = currentConnection;
-            return connection;
-        }
-        
-        /**
-         * Ends the SQL dependency, indicating that an SQL connection is no longer needed.
-         * If this was the last remaining dependency, then the associated {@link Connection} will be closed as well.
-         * @throws java.sql.SQLException
-         */
-        public void end() throws SQLException {
-            connection = null;
-            if (next.isPresent()) {
-                if ((next.get().previous = previous).isPresent()) {
-                    previous.get().next = next;
-                    previous = Optional.empty();
-                }
-                next = Optional.empty();
-            } else if ((latestConnectionDependency = previous).isPresent())
-                previous = previous.get().next = Optional.empty();
-            else {
-                String host = currentConnection.getHost();
-                currentConnection.close();
-                getLogger().log(Level.INFO, String.format("Connected from {0}", host));
-            }
-        }
     }
     
     //</editor-fold>

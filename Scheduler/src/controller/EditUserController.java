@@ -6,10 +6,7 @@
 package controller;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -25,10 +22,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javax.persistence.EntityManager;
 import model.db.DataRow;
 import model.db.User;
-import scheduler.InvalidOperationException;
 import scheduler.Messages;
 
 /**
@@ -90,8 +85,11 @@ public class EditUserController extends ItemControllerBase<User> {
     private ComboBox activeComboBox;
     
     private ObservableList<Short> userActiveStateOptions;
+    
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
