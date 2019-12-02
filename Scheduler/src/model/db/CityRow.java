@@ -9,30 +9,30 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import static model.db.DataRow.selectFromDbById;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
-import scheduler.InvalidArgumentException;
-import scheduler.SqlConnectionDependency;
 
 /**
- * 
+ *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(CityRow.COLNAME_CITYID)
+@PrimaryKey(City.COLNAME_CITYID)
 @TableName("city")
-public class CityRow extends DataRow implements model.City {
+public class City extends DataRow {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
-    public static final String SQL_SELECT = "SELECT city.*, country.country FROM city LEFT OUTER JOIN country ON city.countryId = country.countryId";
-    
     public static final String COLNAME_CITYID = "cityId";
-
+    
+    private final static HashMap<Integer, City> LOOKUP_CACHE = new HashMap<>();
+    
     //<editor-fold defaultstate="collapsed" desc="name">
     
     private String name;
@@ -46,7 +46,6 @@ public class CityRow extends DataRow implements model.City {
      *
      * @return the value of name
      */
-    @Override
     public final String getName() { return name; }
     
     /**
@@ -78,64 +77,15 @@ public class CityRow extends DataRow implements model.City {
      * Set the value of countryId
      *
      * @param value new value of countryId
-     * @throws java.sql.SQLException
-     * @throws scheduler.InvalidArgumentException
      */
-    public final void setCountryId(int value) throws SQLException, InvalidArgumentException {
-        if (value == countryId && country != null)
-            return;
-        int oldId = countryId;
-        model.Country oldCountry = country;
+    public final void setCountryId(int value) {
+        int oldValue = countryId;
         countryId = value;
-        SqlConnectionDependency dep = new SqlConnectionDependency(true);
-        try {
-            Optional<CountryRow> r = CountryRow.getById(dep.getconnection(), value);
-            if (r.isPresent())
-                country = r.get();
-            else
-                throw new InvalidArgumentException("value", "No Country found that matches that ID");
-        } finally { dep.close(); }
-        try { firePropertyChange(PROP_COUNTRYID, oldId, countryId); }
-        finally { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
+        firePropertyChange(PROP_COUNTRYID, oldValue, countryId);
     }
     
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="country">
-    
-    private model.Country country;
-    
-    public static final String PROP_COUNTRY = "country";
-    
-    /**
-     * Get the value of country
-     *
-     * @return the value of country
-     */
-    @Override
-    public final model.Country getCountry() { return country; }
-    
-    /**
-     * Set the value of countryId
-     *
-     * @param value new value of countryId
-     * @throws scheduler.InvalidArgumentException
-     */
-    public final void setCountry(model.Country value) throws InvalidArgumentException {
-        if (value == null)
-            throw new InvalidArgumentException("value", "Country cannot be null");
-        if (value instanceof CountryRow) {
-            int rowState = ((CountryRow)value).getRowState();
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidArgumentException("value", "Country was deleted");
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidArgumentException("value", "Country was not added to the database");
-        }
-        int oldId = countryId;
-        model.Country oldCountry = country;
-        countryId = value.getPrimaryKey();
-        country = value;
-        try { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
-        finally { firePropertyChange(PROP_COUNTRYID, oldId, countryId); }
+    public Optional<Country> lookupCurrentCountry(Connection connection) throws SQLException {
+        return Country.getById(connection, countryId, true);
     }
     
     //</editor-fold>
@@ -143,109 +93,86 @@ public class CityRow extends DataRow implements model.City {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
-    public CityRow() {
+    public City() {
         super();
         name = "";
         countryId = 0;
     }
     
-    public CityRow(String name, CountryRow country) throws InvalidArgumentException {
+    public City(String name, int countryId) {
         super();
-        if (country == null)
-            throw new InvalidArgumentException("country", "Country cannot be null");
-        if (country.getRowState() == ROWSTATE_DELETED)
-            throw new InvalidArgumentException("country", "Country was deleted");
-        if (country.getRowState() == ROWSTATE_NEW)
-            throw new InvalidArgumentException("country", "Country was not added to the database");
         this.name = (name == null) ? "" : name;
-        countryId = (this.country = country).getPrimaryKey();
+        this.countryId = countryId;
     }
     
-    public CityRow (ResultSet rs) throws SQLException {
+    public City (ResultSet rs) throws SQLException {
         super(rs);
         name = rs.getString(COLNAME_CITY);
         if (rs.wasNull())
             name = "";
         countryId = rs.getInt(PROP_COUNTRYID);
-        country = new Country(countryId, rs.getString(PROP_COUNTRY));
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
     
-    @Override
-    protected String getSelectQuery() { return SQL_SELECT; }
-    
-    public static final Optional<CityRow> getById(Connection connection, int id) throws SQLException {
-        return selectFirstFromDb(connection, SQL_SELECT + " WHERE `city`.`cityId` = ?", (Function<ResultSet, CityRow>)(ResultSet rs) -> {
-            CityRow u;
+    public static final Optional<City> getById(Connection connection, int id, boolean includeCache) throws SQLException {
+        if (includeCache && LOOKUP_CACHE.containsKey(id))
+            return Optional.of(LOOKUP_CACHE.get(id));
+        
+        return selectFromDbById(connection, (Class<City>)City.class, (Function<ResultSet, City>)(ResultSet rs) -> {
+            City r;
             try {
-                u = new CityRow(rs);
+                r = new City(rs);
+                if (LOOKUP_CACHE.containsKey(id))
+                    LOOKUP_CACHE.remove(id);
+                LOOKUP_CACHE.put(id, r);
             } catch (SQLException ex) {
-                Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing CityRow object from result set.");
+                Logger.getLogger(City.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing user object from result set.");
             }
-            return u;
-        },
-        (PreparedStatement ps) -> {
-            try {
-                ps.setInt(1, id);
-            } catch (SQLException ex) {
-                Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        });
+            return r;
+        }, id);
     }
     
-    public static final ObservableList<CityRow> getByCountry(Connection connection, int countryId) throws SQLException {
-        return selectFromDb(connection, SQL_SELECT + " WHERE `city`.`countryId` = ?", (Function<ResultSet, CityRow>)(ResultSet rs) -> {
-            CityRow u;
+    public static final ObservableList<City> getByCountry(Connection connection, int countryId) throws SQLException {
+        return selectFromDb(connection, (Class<City>)City.class, (Function<ResultSet, City>)(ResultSet rs) -> {
+            City r;
             try {
-                u = new CityRow(rs);
+                r = new City(rs);
+                int id = r.getPrimaryKey();
+                if (LOOKUP_CACHE.containsKey(id))
+                    LOOKUP_CACHE.remove(id);
+                LOOKUP_CACHE.put(id, r);
             } catch (SQLException ex) {
-                Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing CityRow object from result set.");
+                Logger.getLogger(Address.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing user object from result set.");
             }
-            return u;
-        },
+            return r;
+        }, "`" + PROP_COUNTRYID + "` = ?",
         (PreparedStatement ps) -> {
             try {
                 ps.setInt(1, countryId);
             } catch (SQLException ex) {
-                Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-    }
-    
-    public static final ObservableList<CityRow> getAll(Connection connection) throws SQLException {
-        return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, CityRow>)(ResultSet rs) -> {
-            CityRow u;
-            try {
-                u = new CityRow(rs);
-            } catch (SQLException ex) {
-                Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing CityRow object from result set.");
-            }
-            return u;
-        }, null);
     }
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
         String oldName = name;
         int oldCountryId = countryId;
-        model.Country oldCountry = country;
         name = rs.getString(COLNAME_CITY);
         if (rs.wasNull())
             name = "";
         countryId = rs.getInt(PROP_COUNTRYID);
-        country = new Country(countryId, rs.getString(PROP_COUNTRY));
+        if (!LOOKUP_CACHE.containsKey(getPrimaryKey()))
+            LOOKUP_CACHE.put(getPrimaryKey(), this);
         // Execute property change events in nested try/finally statements to ensure that all
         // events get fired, even if one of the property change listeners throws an exception.
         try { firePropertyChange(PROP_NAME, oldName, name); }
-        finally {
-            try { firePropertyChange(PROP_COUNTRYID, oldCountryId, countryId); }
-            finally { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
-        }
+        finally { firePropertyChange(PROP_COUNTRYID, oldCountryId, countryId); }
     }
 
     @Override
@@ -268,19 +195,4 @@ public class CityRow extends DataRow implements model.City {
     }
     
     //</editor-fold>
-    
-    static class Country implements model.Country {
-        private final int id;
-        private final String name;
-        Country(int id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-
-        @Override
-        public String getName() { return name; }
-
-        @Override
-        public int getPrimaryKey() { return id; }
-    }
 }
