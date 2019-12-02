@@ -6,10 +6,7 @@
 package controller;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -25,10 +22,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javax.persistence.EntityManager;
 import model.db.DataRow;
-import model.db.User;
-import scheduler.InvalidOperationException;
+import model.db.UserRow;
 import scheduler.Messages;
 
 /**
@@ -36,7 +31,7 @@ import scheduler.Messages;
  *
  * @author Leonard T. Erwine
  */
-public class EditUserController extends ItemControllerBase<User> {
+public class EditUserController extends ItemControllerBase<UserRow> {
     /**
      * The path of the View associated with this controller.
      */
@@ -90,8 +85,11 @@ public class EditUserController extends ItemControllerBase<User> {
     private ComboBox activeComboBox;
     
     private ObservableList<Short> userActiveStateOptions;
+    
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -100,7 +98,7 @@ public class EditUserController extends ItemControllerBase<User> {
         activeLabel.setText(Messages.current().getActiveState() + ":");
         changePasswordCheckBox.setText(Messages.current().getPassword() + ":");
         confirmLabel.setText(Messages.current().getConfirmPassword() + ":");
-        userActiveStateOptions = FXCollections.observableArrayList(User.STATE_USER, User.STATE_ADMIN, User.STATE_INACTIVE);
+        userActiveStateOptions = FXCollections.observableArrayList(UserRow.STATE_USER, UserRow.STATE_ADMIN, UserRow.STATE_INACTIVE);
         activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
             @Override
             protected void updateItem(Short a, boolean bln) {
@@ -161,7 +159,7 @@ public class EditUserController extends ItemControllerBase<User> {
     }
     
     @Override
-    protected void applyModelAsNew(User model) {
+    protected void applyModelAsNew(UserRow model) {
         String s = model.getUserName();
         mainTitledPane.setText(Messages.current().getAddNewUser() + ":");
         userNameTextField.setText((s == null) ? "" : s);
@@ -174,7 +172,7 @@ public class EditUserController extends ItemControllerBase<User> {
     }
 
     @Override
-    protected void applyModelAsEdit(User model) {
+    protected void applyModelAsEdit(UserRow model) {
         String s = model.getUserName();
         if (s == null)
             s = "";

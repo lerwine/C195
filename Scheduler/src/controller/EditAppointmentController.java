@@ -6,24 +6,21 @@
 package controller;
 
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.ResourceBundle;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import model.db.Appointment;
+import model.db.AppointmentRow;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditAppointmentController extends ItemControllerBase<Appointment> {
+public class EditAppointmentController extends ItemControllerBase<AppointmentRow> {
     /**
      * The path of the View associated with this controller.
      */
@@ -142,6 +139,8 @@ public class EditAppointmentController extends ItemControllerBase<Appointment> {
     
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -149,12 +148,12 @@ public class EditAppointmentController extends ItemControllerBase<Appointment> {
     }    
 
     @Override
-    protected void applyModelAsNew(Appointment model) {
+    protected void applyModelAsNew(AppointmentRow model) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void applyModelAsEdit(Appointment model) {
+    protected void applyModelAsEdit(AppointmentRow model) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

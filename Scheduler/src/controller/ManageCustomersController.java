@@ -15,7 +15,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import model.db.Customer;
+import model.db.CustomerRow;
 
 /**
  * FXML Controller class
@@ -29,44 +29,46 @@ public class ManageCustomersController implements Initializable {
     public static final String VIEW_PATH = "/view/ManageCustomers.fxml";
 
     @FXML
-    private TableView<Customer> customersTableView;
+    private TableView<CustomerRow> customersTableView;
 
     @FXML
-    private TableColumn<Customer, Integer> customerIdTableColumn;
+    private TableColumn<CustomerRow, Integer> customerIdTableColumn;
 
     @FXML
-    private TableColumn<Customer, String> customerNameTableColumn;
+    private TableColumn<CustomerRow, String> customerNameTableColumn;
 
     @FXML
-    private TableColumn<Customer, Integer> addressTableColumn;
+    private TableColumn<CustomerRow, Integer> addressTableColumn;
 
     @FXML
-    private TableColumn<Customer, Boolean> activeTableColumn;
+    private TableColumn<CustomerRow, Boolean> activeTableColumn;
 
     @FXML
-    private TableColumn<Customer, LocalDateTime> createDateTableColumn;
+    private TableColumn<CustomerRow, LocalDateTime> createDateTableColumn;
 
     @FXML
-    private TableColumn<Customer, String> createdByTableColumn;
+    private TableColumn<CustomerRow, String> createdByTableColumn;
 
     @FXML
-    private TableColumn<Customer, LocalDateTime> lastUpdateTableColumn;
+    private TableColumn<CustomerRow, LocalDateTime> lastUpdateTableColumn;
 
     @FXML
-    private TableColumn<Customer, String> lastUpdateByTableColumn;
+    private TableColumn<CustomerRow, String> lastUpdateByTableColumn;
 
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        customerIdTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_PRIMARYKEY));
-        customerNameTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_CUSTOMERNAME));
-        activeTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_ACTIVE));
-        addressTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_ADDRESSID));
+        customerIdTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_PRIMARYKEY));
+        customerNameTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_CUSTOMERNAME));
+        activeTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_ACTIVE));
+        addressTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_ADDRESSID));
         // TODO: Format address
-        createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_CREATEDATE));
-        createDateTableColumn.setCellFactory(col -> new TableCell<Customer, LocalDateTime>() {
+        createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_CREATEDATE));
+        createDateTableColumn.setCellFactory(col -> new TableCell<CustomerRow, LocalDateTime>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
@@ -76,9 +78,9 @@ public class ManageCustomersController implements Initializable {
                     setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
-        createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_CREATEDBY));
-        lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_LASTUPDATE));
-        lastUpdateTableColumn.setCellFactory(col -> new TableCell<Customer, LocalDateTime>() {
+        createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_CREATEDBY));
+        lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_LASTUPDATE));
+        lastUpdateTableColumn.setCellFactory(col -> new TableCell<CustomerRow, LocalDateTime>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
@@ -88,7 +90,7 @@ public class ManageCustomersController implements Initializable {
                     setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
-        lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Customer.PROP_LASTUPDATEBY));
+        lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_LASTUPDATEBY));
     }    
     
 }

@@ -3,40 +3,50 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox styleClass="mainFxmlClass" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.HomeScreenController">
    <children>
       <MenuBar>
         <menus>
-          <Menu mnemonicParsing="false" text="Appointments">
+          <Menu fx:id="appointmentsMenu" mnemonicParsing="false" text="Appointments">
             <items>
-              <MenuItem fx:id="newAppointmentMenuItem" mnemonicParsing="false" onAction="newAppointmentMenuItemClick" text="New" />
-              <MenuItem mnemonicParsing="false" onAction="myAppointmentsMenuItemClick" text="My Appointments" />
+              <MenuItem fx:id="newAppointmentMenuItem" mnemonicParsing="false" onAction="#newAppointmentMenuItemClick" text="New" />
+              <MenuItem fx:id="allAppointmentsMenuItem" mnemonicParsing="false" onAction="#allAppointmentsMenuItemClick" text="All Appointments" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Customers">
+          <Menu fx:id="customersMenu" mnemonicParsing="false" text="Customers">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="newCustomerMenuItemClick" text="New" />
-              <MenuItem mnemonicParsing="false" onAction="allCustomersMenuItemClick" text="All Customers" />
+              <MenuItem fx:id="newCustomerMenuItem" mnemonicParsing="false" onAction="#newCustomerMenuItemClick" text="New" />
+              <MenuItem fx:id="allCustomersMenuItem" mnemonicParsing="false" onAction="#allCustomersMenuItemClick" text="All Customers" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Address">
+          <Menu fx:id="addressMenu" mnemonicParsing="false" text="Address">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="newCountryMenuItemClick" text="New" />
-              <MenuItem fx:id="newCityMenuItem" mnemonicParsing="false" onAction="newCityMenuItemClick" text="New" />
-              <MenuItem fx:id="newAddressMenuItem" mnemonicParsing="false" onAction="newAddressMenuItemClick" text="New" />
-              <MenuItem mnemonicParsing="false" onAction="allCountriesMenuItemClick" text="New" />
+              <MenuItem fx:id="newCountryMenuItem" mnemonicParsing="false" onAction="#newCountryMenuItemClick" text="New Country" />
+              <MenuItem fx:id="newCityMenuItem" mnemonicParsing="false" onAction="#newCityMenuItemClick" text="New City" />
+              <MenuItem fx:id="newAddressMenuItem" mnemonicParsing="false" onAction="#newAddressMenuItemClick" text="New Address" />
+              <MenuItem fx:id="allCountriesMenuItem" mnemonicParsing="false" onAction="#allCountriesMenuItemClick" text="All Countries" />
             </items>
           </Menu>
           <Menu fx:id="usersMenu" mnemonicParsing="false" text="Users">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="newUserMenuItemClick" text="New" />
-              <MenuItem mnemonicParsing="false" onAction="allUsersMenuItemClick" text="New" />
+              <MenuItem fx:id="newUserMenuItem" mnemonicParsing="false" onAction="#newUserMenuItemClick" text="New" />
+              <MenuItem fx:id="allUsersMenuItem" mnemonicParsing="false" onAction="#allUsersMenuItemClick" text="All Users" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" onAction="#exitButtonClick" text="Exit" />
         </menus>
       </MenuBar>
+    <TableView fx:id="todayAndFutureAppointmenstTableView">
+      <columns>
+        <TableColumn fx:id="titleTableColumn" editable="false" prefWidth="62.0" text="Title" />
+        <TableColumn fx:id="startTableColumn" editable="false" prefWidth="264.0" text="Start" />
+        <TableColumn fx:id="endTableColumn" editable="false" prefWidth="123.0" text="End" />
+        <TableColumn fx:id="typeTableColumn" editable="false" prefWidth="121.0" text="Type" />
+        <TableColumn fx:id="customerTableColumn" editable="false" prefWidth="121.0" text="Customer" />
+      </columns>
+    </TableView>
    </children>
 </VBox>

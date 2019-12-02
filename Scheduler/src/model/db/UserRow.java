@@ -9,7 +9,6 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,12 +24,14 @@ import scheduler.InvalidOperationException;
  * Represents a user account data row in the database.
  * @author Leonard T. Erwine
  */
-@PrimaryKey(User.COLNAME_USERID)
+@PrimaryKey(UserRow.COLNAME_USERID)
 @TableName("user")
-public class User extends DataRow {
+public class UserRow extends DataRow implements model.User {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
-    public static final String COLNAME_USERID = "userId";
+    public static final String SQL_SELECT = "SELECT * FROM `user`";
+    
+    //<editor-fold defaultstate="collapsed" desc="Active status constants">
     
     /**
      * Value of {@link #getActive()} when the current user is inactive.
@@ -47,9 +48,12 @@ public class User extends DataRow {
      */
     public static final short STATE_ADMIN = 2;
     
-    private final static HashMap<String, User> BY_NAME_CACHE = new HashMap<>();
+    //</editor-fold>
     
-    private final static HashMap<Integer, User> LOOKUP_CACHE = new HashMap<>();
+    /**
+     * The name of the primary key column for the user data table.
+     */
+    public static final String COLNAME_USERID = "userId";
     
     //<editor-fold defaultstate="collapsed" desc="userName">
     
@@ -61,6 +65,7 @@ public class User extends DataRow {
      * Gets the user name for the current data row.
      * @return The user name for the current data row.
      */
+    @Override
     public final String getUserName() { return userName; }
     
     //</editor-fold>
@@ -97,6 +102,7 @@ public class User extends DataRow {
      * Gets the value of active state for the current row.
      * @return The value of active state for the current row.
      */
+    @Override
     public final short getActive() { return active; }
     
     /**
@@ -114,27 +120,27 @@ public class User extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
-    public User() {
+    public UserRow() {
         super();
         userName = password = "";
         active = STATE_USER;
     }
     
-    public User(String userName, String password, short active) {
+    public UserRow(String userName, String password, short active) {
         super();
         this.userName = (userName == null) ? "" : userName;
         this.password = (password == null) ? "" : password;
         this.active = (active < STATE_INACTIVE) ? STATE_INACTIVE : ((active > STATE_ADMIN) ? STATE_ADMIN : active);
     }
     
-    protected User(User user) throws InvalidOperationException {
+    protected UserRow(UserRow user) throws InvalidOperationException {
         super(user);
         userName = user.userName;
         password = user.password;
         active = user.active;
     }
     
-    private User(ResultSet rs) throws SQLException {
+    private UserRow(ResultSet rs) throws SQLException {
         super(rs);
         userName = rs.getString(PROP_USERNAME);
         if (rs.wasNull())
@@ -149,112 +155,82 @@ public class User extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
     
-    public static final Optional<User> getById(Connection connection, int id, boolean includeCache) throws SQLException {
-        if (includeCache && LOOKUP_CACHE.containsKey(id))
-            return Optional.of(LOOKUP_CACHE.get(id));
-        
-        return selectFromDbById(connection, (Class<User>)User.class, (Function<ResultSet, User>)(ResultSet rs) -> {
-            User u;
-            try {
-                u = new User(rs);
-                if (LOOKUP_CACHE.containsKey(id)) {
-                    BY_NAME_CACHE.remove(u.userName);
-                    LOOKUP_CACHE.remove(id);
-                }
-                BY_NAME_CACHE.put(u.userName, u);
-                LOOKUP_CACHE.put(id, u);
-            } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
-            }
-            return u;
-        }, id);
-    }
+    @Override
+    protected String getSelectQuery() { return SQL_SELECT; }
     
-    public static final Optional<User> getByUserName(Connection connection, String userName,
-            boolean includeCache) throws SQLException {
-        if (includeCache && BY_NAME_CACHE.containsKey(userName))
-            return Optional.of(BY_NAME_CACHE.get(userName));
-        
-        return selectFirstFromDb(connection, (Class<User>)User.class, (Function<ResultSet, User>)(ResultSet rs) -> {
-            User u;
+    public static final Optional<UserRow> getById(Connection connection, int id) throws SQLException {
+        return selectFirstFromDb(connection, SQL_SELECT + " WHERE `user`.`userId` = ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
+            UserRow u;
             try {
-                u = new User(rs);
-                if (BY_NAME_CACHE.containsKey(userName)) {
-                    BY_NAME_CACHE.remove(userName);
-                    LOOKUP_CACHE.remove(u.getPrimaryKey());
-                }
-                BY_NAME_CACHE.put(userName, u);
-                LOOKUP_CACHE.put(u.getPrimaryKey(), u);
+                u = new UserRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
                 throw new InternalException("Error initializing user object from result set.");
             }
             return u;
-        }, "`" + PROP_USERNAME + "` = ?",
-        (Consumer<PreparedStatement>)(PreparedStatement ps) -> {
+        },
+        (PreparedStatement ps) -> {
             try {
-                ps.setString(1, userName);
+                ps.setInt(1, id);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
     
-    public static final ObservableList<User> getActive(Connection connection, String userName) throws SQLException {
-        return selectFromDb(connection, (Class<User>)User.class, (Function<ResultSet, User>)(ResultSet rs) -> {
-            User u;
+    public static final Optional<UserRow> getByUserName(Connection connection, String userName) throws SQLException {
+        return selectFirstFromDb(connection, SQL_SELECT + " WHERE `user`.`userName` = ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
+            UserRow u;
             try {
-                u = new User(rs);
-                if (BY_NAME_CACHE.containsKey(u.userName)) {
-                    BY_NAME_CACHE.remove(u.userName);
-                    LOOKUP_CACHE.remove(u.getPrimaryKey());
-                }
-                BY_NAME_CACHE.put(u.userName, u);
-                LOOKUP_CACHE.put(u.getPrimaryKey(), u);
+                u = new UserRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
                 throw new InternalException("Error initializing user object from result set.");
             }
             return u;
-        }, "`" + PROP_ACTIVE + "` > ?",
+        },
+        (PreparedStatement ps) -> {
+            try {
+                ps.setString(1, userName);
+            } catch (SQLException ex) {
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+    
+    public static final ObservableList<UserRow> getActive(Connection connection, String userName) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT + " WHERE `user`.`" + PROP_ACTIVE + "` > ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
+            UserRow u;
+            try {
+                u = new UserRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing user object from result set.");
+            }
+            return u;
+        },
         (PreparedStatement ps) -> {
             try {
                 ps.setShort(1, STATE_INACTIVE);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
     
-    public static final ObservableList<User> getAll(Connection connection, String userName) throws SQLException {
-        return selectAllFromDb(connection, (Class<User>)User.class, (Function<ResultSet, User>)(ResultSet rs) -> {
-            User u;
+    public static final ObservableList<UserRow> getAll(Connection connection) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, UserRow>)(ResultSet rs) -> {
+            UserRow u;
             try {
-                u = new User(rs);
-                if (BY_NAME_CACHE.containsKey(u.userName)) {
-                    BY_NAME_CACHE.remove(u.userName);
-                    LOOKUP_CACHE.remove(u.getPrimaryKey());
-                }
-                BY_NAME_CACHE.put(u.userName, u);
-                LOOKUP_CACHE.put(u.getPrimaryKey(), u);
+                u = new UserRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
+                Logger.getLogger(UserRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing UserRow object from result set.");
             }
             return u;
-        });
+        }, null);
     }
 
-    @Override
-    public void delete(Connection connection) throws SQLException, InvalidOperationException {
-        super.delete(connection);
-        if (getRowState() == ROWSTATE_DELETED && BY_NAME_CACHE.containsKey(userName)) {
-            BY_NAME_CACHE.remove(userName);
-            LOOKUP_CACHE.remove(getPrimaryKey());
-        }
-    }
-    
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
         String oldUserName = userName;
@@ -268,10 +244,6 @@ public class User extends DataRow {
             password = "";
         short a = rs.getShort(PROP_ACTIVE);
         active = (rs.wasNull()) ? STATE_INACTIVE : (a < STATE_INACTIVE) ? STATE_INACTIVE : ((a > STATE_ADMIN) ? STATE_ADMIN : a);
-        if (!BY_NAME_CACHE.containsKey(userName)) {
-            BY_NAME_CACHE.put(userName, this);
-            LOOKUP_CACHE.put(getPrimaryKey(), this);
-        }
         // Execute property change events in nested try/finally statements to ensure that all
         // events get fired, even if one of the property change listeners throws an exception.
         try { firePropertyChange(PROP_USERNAME, oldUserName, userName); }

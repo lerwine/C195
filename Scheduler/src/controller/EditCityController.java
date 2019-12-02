@@ -8,18 +8,17 @@ package controller;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import model.db.City;
+import model.db.CityRow;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditCityController extends ItemControllerBase<City> {
+public class EditCityController extends ItemControllerBase<CityRow> {
     /**
      * The path of the View associated with this controller.
      */
@@ -44,6 +43,8 @@ public class EditCityController extends ItemControllerBase<City> {
     
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -51,12 +52,12 @@ public class EditCityController extends ItemControllerBase<City> {
     }    
 
     @Override
-    protected void applyModelAsNew(City model) {
+    protected void applyModelAsNew(CityRow model) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void applyModelAsEdit(City model) {
+    protected void applyModelAsEdit(CityRow model) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

@@ -22,6 +22,8 @@ public class ManageUsersController implements Initializable {
 
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {

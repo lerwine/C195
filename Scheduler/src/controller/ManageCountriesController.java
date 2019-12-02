@@ -9,16 +9,14 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.util.Callback;
-import model.db.Country;
+import model.db.CountryRow;
+import scheduler.Messages;
 
 /**
  * FXML Controller class
@@ -32,35 +30,39 @@ public class ManageCountriesController implements Initializable {
     public static final String VIEW_PATH = "/view/ManageCountries.fxml";
 
     @FXML
-    private TableView<Country> countriesTableView;
+    private TableView<CountryRow> countriesTableView;
 
     @FXML
-    private TableColumn<Country, Integer> countryIdTableColumn;
+    private TableColumn<CountryRow, String> nameTableColumn;
 
     @FXML
-    private TableColumn<Country, String> nameTableColumn;
+    private TableColumn<CountryRow, LocalDateTime> createDateTableColumn;
 
     @FXML
-    private TableColumn<Country, LocalDateTime> createDateTableColumn;
+    private TableColumn<CountryRow, String> createdByTableColumn;
 
     @FXML
-    private TableColumn<Country, String> createdByTableColumn;
+    private TableColumn<CountryRow, LocalDateTime> lastUpdateTableColumn;
 
     @FXML
-    private TableColumn<Country, LocalDateTime> lastUpdateTableColumn;
-
-    @FXML
-    private TableColumn<Country, String> lastUpdateByTableColumn;
+    private TableColumn<CountryRow, String> lastUpdateByTableColumn;
 
     /**
      * Initializes the controller class.
+     * @param url The URL of the associated view.
+     * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        countryIdTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_PRIMARYKEY));
-        nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_NAME));
-        createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_CREATEDATE));
-        createDateTableColumn.setCellFactory(col -> new TableCell<Country, LocalDateTime>() {
+        Messages messages = Messages.current();
+        nameTableColumn.setText(messages.getName());
+        createDateTableColumn.setText(messages.getCreatedOn());
+        createdByTableColumn.setText(messages.getCreatedBy());
+        lastUpdateTableColumn.setText(messages.getUpdatedOn());
+        lastUpdateByTableColumn.setText(messages.getUpdatedBy());
+        nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_NAME));
+        createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDATE));
+        createDateTableColumn.setCellFactory(col -> new TableCell<CountryRow, LocalDateTime>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
@@ -70,9 +72,9 @@ public class ManageCountriesController implements Initializable {
                     setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
-        createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_CREATEDBY));
-        lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_LASTUPDATE));
-        lastUpdateTableColumn.setCellFactory(col -> new TableCell<Country, LocalDateTime>() {
+        createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDBY));
+        lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATE));
+        lastUpdateTableColumn.setCellFactory(col -> new TableCell<CountryRow, LocalDateTime>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
@@ -82,7 +84,7 @@ public class ManageCountriesController implements Initializable {
                     setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
             }
         });
-        lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_LASTUPDATEBY));
+        lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }    
     
 }

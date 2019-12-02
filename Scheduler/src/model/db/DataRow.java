@@ -29,7 +29,9 @@ import scheduler.InvalidOperationException;
  * Base class for data rows from the database.
  * @author Leonard T. Erwine
  */
-public abstract class DataRow {
+public abstract class DataRow implements model.Record {
+    private final Object syncRoot;
+    
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
     /**
@@ -65,6 +67,7 @@ public abstract class DataRow {
      * Gets the primary key value for the data row.
      * @return The primary key value for the data row. This value will be zero if the data row hasn't been inserted into the database.
      */
+    @Override
     public final int getPrimaryKey() { return primaryKey; }
     
     //</editor-fold>
@@ -87,21 +90,17 @@ public abstract class DataRow {
     //<editor-fold defaultstate="collapsed" desc="createdBy">
     
     /**
-     * The name of the property that contains the {@link User} who inserted the row into the database.
+     * The name of the property that contains the {@link UserRow} who inserted the row into the database.
      */
     public static final String PROP_CREATEDBY = "createdBy";
     
     private String createdBy;
     
     /**
-     * Gets the {@link User#userName} of the {@link User} who inserted the row into the database.
-     * @return The {@link User#userName} of the {@link User} who inserted the row into the database.
+     * Gets the {@link UserRow#userName} of the {@link UserRow} who inserted the row into the database.
+     * @return The {@link UserRow#userName} of the {@link UserRow} who inserted the row into the database.
      */
     public String getCreatedBy() { return createdBy; }
-    
-    public Optional<User> lookupCreatedBy(Connection connection) throws SQLException {
-        return User.getByUserName(connection, createdBy, true);
-    }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastUpdate">
@@ -123,21 +122,33 @@ public abstract class DataRow {
     //<editor-fold defaultstate="collapsed" desc="lastUpdateBy">
     
     /**
-     * The name of the property that contains the {@link User#userName} of the {@link User} who last updated the row in the database.
+     * The name of the property that contains the {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
      */
     public static final String PROP_LASTUPDATEBY = "lastUpdateBy";
     
     private String lastUpdateBy;
     
     /**
-     * Gets the {@link User#userName} of the {@link User} who last updated the row in the database.
-     * @return The {@link User#userName} of the {@link User} who last updated the row in the database.
+     * Gets the {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
+     * @return The {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
      */
     public final String getLastUpdateBy() { return lastUpdateBy; }
     
-    public Optional<User> lookupLastUpdateBy(Connection connection) throws SQLException {
-        return User.getByUserName(connection, lastUpdateBy, true);
-    }
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="lastUpdate">
+    
+    /**
+     * The name of the property that contains the date and time when the row was last updated.
+     */
+    public static final String PROP_LASTDBSYNC = "lastDbSync";
+    
+    private LocalDateTime lastDbSync;
+    
+    /**
+     * Gets the date and time when the row was last loaded from the database.
+     * @return The date and time when the row was last loaded from the database.
+     */
+    public final LocalDateTime getLastDbSync() { return lastDbSync; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="rowState">
@@ -164,25 +175,29 @@ public abstract class DataRow {
      * Creates a new data row object for a row that hasn't been inserted into the database.
      */
     protected DataRow() {
+        syncRoot = new Object();
         primaryKey = 0;
         createDate = lastUpdate = LocalDateTime.now();
-        Optional<User> user = scheduler.App.getCurrentUser();
+        Optional<UserRow> user = scheduler.App.getCurrentUser();
         if (user.isPresent())
             createdBy = lastUpdateBy = user.get().getUserName();
         else
             createdBy = lastUpdateBy = "";
         rowState = ROWSTATE_NEW;
+        lastDbSync = LocalDateTime.MIN;
     }
     
     protected DataRow(DataRow row) throws InvalidOperationException {
         if (row == null || row.rowState != ROWSTATE_UNMODIFIED)
             throw new InvalidOperationException("Can only clone unmodified rows");
+        syncRoot = new Object();
         primaryKey = row.primaryKey;
         createDate = row.createDate;
         createdBy = row.createdBy;
         lastUpdate = row.lastUpdate;
         lastUpdateBy = row.lastUpdateBy;
         rowState = row.rowState;
+        lastDbSync = row.lastDbSync;
     }
     
     /**
@@ -191,12 +206,14 @@ public abstract class DataRow {
      * @throws java.sql.SQLException
      */
     protected DataRow(ResultSet rs) throws SQLException {
+        syncRoot = new Object();
         primaryKey = rs.getInt(getPrimaryKeyColName(getClass()));
         createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
         createdBy = rs.getString(PROP_CREATEDBY);
         lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
         lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
         rowState = ROWSTATE_UNMODIFIED;
+        lastDbSync = LocalDateTime.now();
     }
     
     //</editor-fold>
@@ -222,59 +239,71 @@ public abstract class DataRow {
         throw new InternalException("Primary key column name not defined");
     }
 
+    protected abstract String getSelectQuery();
+    
     protected abstract String[] getColumnNames();
     
     protected abstract void setColumnValues(PreparedStatement ps, String[] fieldNames) throws SQLException;
     
     protected abstract void refreshFromDb(ResultSet rs) throws SQLException;
     
-    public final void refreshFromDb(Connection connection) throws SQLException, InvalidOperationException {
+    public final synchronized void refreshFromDb(Connection connection) throws SQLException, InvalidOperationException {
         Class<? extends DataRow> rowClass = getClass();
         String tableName = getTableName(rowClass);
-        // Refresh from database is not applicable to rows that have not been retrieved from the database.
-        if (rowState == ROWSTATE_DELETED)
-            throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
-                    tableName));
-        if (rowState == ROWSTATE_NEW)
-            throw new InvalidOperationException(String.format("{0} row has not been added the database",
-                    tableName));
-        // Get row from database matching the current primary key value.
-        PreparedStatement ps = connection.prepareStatement("SELECT * FROM `" + tableName + "` WHERE `" +
-                getPrimaryKeyColName(rowClass) + "` = ?");
-        ps.setInt(1, primaryKey);
-        ResultSet rs = ps.getResultSet();
-        if (rs.next()) {
-            LocalDateTime oldCreateDate = createDate;
-            String oldCreatedBy = createdBy;
-            LocalDateTime oldLastUpdate = lastUpdate;
-            String oldLastUpdateBy = lastUpdateBy;
-            createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
-            createdBy = rs.getString(PROP_CREATEDBY);
-            lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
-            lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
-            // Let extended class update its properites before firing property change events.
-            try { refreshFromDb(rs); }
-            finally {
-                // Execute property change events in nested try/finally statements to ensure that all
-                // events get fired, even if one of the property change listeners throws an exception.
-                try { firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate); }
+        synchronized(syncRoot) {
+            // Refresh from database is not applicable to rows that have not been retrieved from the database.
+            if (rowState == ROWSTATE_DELETED)
+                throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
+                        tableName));
+            if (rowState == ROWSTATE_NEW)
+                throw new InvalidOperationException(String.format("{0} row has not been added the database",
+                        tableName));
+            StringBuilder sql = new StringBuilder();
+            sql.append(getSelectQuery()).append(" WHERE `").append(getPrimaryKeyColName(rowClass)).append("` = ?");
+            // Get row from database matching the current primary key value.
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setInt(1, primaryKey);
+            ResultSet rs = ps.getResultSet();
+            if (rs.next()) {
+                LocalDateTime oldCreateDate = createDate;
+                String oldCreatedBy = createdBy;
+                LocalDateTime oldLastUpdate = lastUpdate;
+                String oldLastUpdateBy = lastUpdateBy;
+                LocalDateTime oldLastDbSync = lastDbSync;
+                createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
+                createdBy = rs.getString(PROP_CREATEDBY);
+                lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
+                lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
+                // Let extended class update its properites before firing property change events.
+                try {
+                    refreshFromDb(rs);
+                    lastDbSync = LocalDateTime.now();
+                }
                 finally {
-                    try { firePropertyChange(PROP_CREATEDBY, oldCreatedBy, createdBy); }
+                    // Execute property change events in nested try/finally statements to ensure that all
+                    // events get fired, even if one of the property change listeners throws an exception.
+                    try { firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate); }
                     finally {
-                        try { firePropertyChange(PROP_LASTUPDATE, oldLastUpdate, lastUpdate); }
-                        finally { firePropertyChange(PROP_LASTUPDATEBY, oldLastUpdateBy, lastUpdateBy); }
+                        try { firePropertyChange(PROP_CREATEDBY, oldCreatedBy, createdBy); }
+                        finally {
+                            try { firePropertyChange(PROP_LASTUPDATE, oldLastUpdate, lastUpdate); }
+                            finally {
+                                try { firePropertyChange(PROP_LASTUPDATEBY, oldLastUpdateBy, lastUpdateBy); }
+                                finally { firePropertyChange(PROP_LASTDBSYNC, oldLastDbSync, lastDbSync); }
+                            }
+                        }
                     }
                 }
+
+                // Row state only gets changed if no exeptions were thrown.
+                byte oldRowState = rowState;
+                rowState = ROWSTATE_UNMODIFIED;
+                firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
             }
-            
-            // Row state only gets changed if no exeptions were thrown.
-            byte oldRowState = rowState;
-            rowState = ROWSTATE_UNMODIFIED;
-            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
         }
     }
     
-    public void saveChanges(Connection connection) throws SQLException, InvalidOperationException {
+    public final void saveChanges(Connection connection) throws SQLException, InvalidOperationException {
         Class<? extends DataRow> rowClass = getClass();
         String tableName = getTableName(rowClass);
         // Saving changes to database is not applicable to rows that have been deleted from the database.
@@ -328,7 +357,7 @@ public abstract class DataRow {
         }
     }
     
-    public void delete(Connection connection) throws SQLException, InvalidOperationException {
+    public final void delete(Connection connection) throws SQLException, InvalidOperationException {
         Class<? extends DataRow> rowClass = getClass();
         String tableName = getTableName(rowClass);
         // Saving changes to database is not applicable to rows that are new or have been deleted from the database.
@@ -347,20 +376,10 @@ public abstract class DataRow {
         firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
     }
     
-    public static final <R extends DataRow> ObservableList<R> selectAllFromDb(Connection connection, Class<R> rowClass,
-            Function<ResultSet, R> create) throws SQLException {
+    protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
+            Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
-        PreparedStatement ps = connection.prepareStatement("SELECT * FROM `" + getTableName(rowClass) + "`");
-        ResultSet rs = ps.executeQuery();
-        while (rs.next())
-            result.add(create.apply(rs));
-        return result;
-    }
-    
-    public static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, Class<R> rowClass,
-            Function<ResultSet, R> create, String whereClause, Consumer<PreparedStatement> setValues) throws SQLException {
-        ObservableList<R> result = FXCollections.observableArrayList();
-        PreparedStatement ps = connection.prepareStatement("SELECT * FROM `" + getTableName(rowClass) + "` WHERE " + whereClause);
+        PreparedStatement ps = connection.prepareStatement(sql);
         if (setValues != null)
             setValues.accept(ps);
         ResultSet rs = ps.executeQuery();
@@ -369,22 +388,11 @@ public abstract class DataRow {
         return result;
     }
     
-    public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, Class<R> rowClass,
-            Function<ResultSet, R> create, String whereClause, Consumer<PreparedStatement> setValues) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement("SELECT * FROM `" + getTableName(rowClass) + "` WHERE " + whereClause);
+    public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
+            Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(sql);
         if (setValues != null)
             setValues.accept(ps);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next())
-            return Optional.of(create.apply(rs));
-        return Optional.empty();
-    }
-    
-    public static final <R extends DataRow> Optional<R> selectFromDbById(Connection connection, Class<R> rowClass,
-            Function<ResultSet, R> create, int id) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement("SELECT * FROM `" + getTableName(rowClass) + "` WHERE `" + 
-                getPrimaryKeyColName(rowClass) + "` = ?");
-        ps.setInt(1, id);
         ResultSet rs = ps.executeQuery();
         if (rs.next())
             return Optional.of(create.apply(rs));
@@ -396,7 +404,7 @@ public abstract class DataRow {
     
     /**
      * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  the programmatic name of the property that was changed
+     * @param propertyName  The programmatic name of the property that was changed
      * @param oldValue      The old value of the property.
      * @param newValue      The new value of the property.
      */
@@ -406,7 +414,7 @@ public abstract class DataRow {
     
     /**
      * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  the programmatic name of the property that was changed
+     * @param propertyName  The programmatic name of the property that was changed
      * @param oldValue      The old value of the property.
      * @param newValue      The new value of the property.
      */
@@ -416,7 +424,7 @@ public abstract class DataRow {
     
     /**
      * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  the programmatic name of the property that was changed
+     * @param propertyName  The programmatic name of the property that was changed
      * @param oldValue      The old value of the property.
      * @param newValue      The new value of the property.
      */
@@ -426,7 +434,7 @@ public abstract class DataRow {
     
     /**
      * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  the programmatic name of the property that was changed
+     * @param propertyName  The programmatic name of the property that was changed
      * @param oldValue      The old value of the property.
      * @param newValue      The new value of the property.
      */
@@ -436,11 +444,22 @@ public abstract class DataRow {
     
     /**
      * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  the programmatic name of the property that was changed
+     * @param propertyName  The programmatic name of the property that was changed
      * @param oldValue      The old value of the property.
      * @param newValue      The new value of the property.
      */
     protected final void firePropertyChange(String propertyName, String oldValue, String newValue) {
+        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+    }
+    
+    /**
+     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
+     * @param <R>           The type of value that was changed.
+     * @param propertyName  The programmatic name of the property that was changed
+     * @param oldValue      The old value of the property.
+     * @param newValue      The new value of the property.
+     */
+    protected final <R extends model.Record> void firePropertyChange(String propertyName, R oldValue, R newValue) {
         propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
     

@@ -2,6 +2,67 @@
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 #>
 
+Function Open-PropertiesFile {
+    [CmdletBinding()]
+    [OutputType([System.Collections.Generic.Dictionary[System.String,System.Collections.ObjectModel.Collection[System.String]]])]
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $Properties = New-Object -TypeName 'System.Collections.Generic.Dictionary[System.String,System.Collections.ObjectModel.Collection[System.String]]';
+    $LineNumber = 0;
+    $HasContinuation = $false;
+    $OriginalPropertyOrder = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.String]';
+    $Collection = $null;
+    (((Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop) | Out-String) -split '\r\n?|\n') | ForEach-Object {
+        $LineNumber++;
+        if ($HasContinuation) {
+            if ($_.EndsWith('\')) {
+                $Collection.Add($_.Substring($_.Length - 1));
+            } else {
+                $Collection.Add($_);
+                $IsContinuation = $false;
+            }
+        } else {
+            $kvp = $_.Split('=', 2);
+            if ($kvp.Length -eq 2) {
+                $key = $kvp[0].Trim();
+                if ($key.Trim().Length -eq 0) {
+                    Write-Error -Category SyntaxError -Message "Empty key on line $LineNumber";
+                } else {
+                    if ($Properties.ContainsKey($key)) {
+                        Write-Error -Category SyntaxError -Message "Duplicate key `"$Key`" on line $LineNumber";
+                    } else {
+                        if ($kvp[0] -imatch '^[a-z][a-z\d_]+$') {
+                            $OriginalPropertyOrder.Add($kvp[0]);
+                            $Collection = New-Object -TypeName 'System.Collections.ObjectModel.Collection[System.String]';
+                            if ($kvp[1].EndsWith('\')) {
+                                $Collection.Add($kvp[1].Substring($kvp[1].Length - 1));
+                                $HasContinuation = $true;
+                            } else {
+                                $Collection.Add($kvp[1]);
+                            }
+                            $Properties[$key] = $Collection;
+                        } else {
+                            Write-Error -Category SyntaxError -Message "Suspicious key format `"$Key`" on line $LineNumber";
+                        }
+                    }
+                }
+            } else {
+                if ($_.Trim().Length -gt 0) {
+                    Write-Error -Category SyntaxError -Message "Empty key on line $LineNumber";
+                }
+            }
+        }
+    }
+    if ($HasContinuation) {
+        $Collection[$Collection.Count - 1] += "\";
+        Write-Error -Category SyntaxError -Message 'Last line ends with \, but is not followed by another line.';
+    }
+    return $Properties;
+}
+
 Function Optimize-PropertiesFile {
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.Dictionary[System.String,System.Collections.ObjectModel.Collection[System.String]]])]

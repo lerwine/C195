@@ -9,30 +9,32 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import static model.db.DataRow.selectFromDbById;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import scheduler.InvalidArgumentException;
+import scheduler.SqlConnectionDependency;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(Address.COLNAME_ADDRESSID)
+@PrimaryKey(AddressRow.COLNAME_ADDRESSID)
 @TableName("address")
-public class Address extends DataRow {
+public class AddressRow extends DataRow implements model.Address {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
+    
+    public static final String SQL_SELECT = "SELECT address.*, city.city, city.countryId, country.country FROM address" +
+        " LEFT OUTER JOIN city ON address.cityId = city.cityId" +
+        " LEFT OUTER JOIN country ON city.countryId = country.countryId";
     
     public static final String COLNAME_ADDRESSID = "addressId";
 
-    private final static HashMap<Integer, Address> LOOKUP_CACHE = new HashMap<>();
-    
     //<editor-fold defaultstate="collapsed" desc="address1">
     
     private String address1;
@@ -46,6 +48,7 @@ public class Address extends DataRow {
      *
      * @return the value of address1
      */
+    @Override
     public final String getAddress1() { return address1; }
     
     /**
@@ -71,6 +74,7 @@ public class Address extends DataRow {
      *
      * @return the value of address2
      */
+    @Override
     public final String getAddress2() { return address2; }
     
     /**
@@ -102,15 +106,63 @@ public class Address extends DataRow {
      * Set the value of cityId
      *
      * @param value new value of cityId
+     * @throws java.sql.SQLException
+     * @throws scheduler.InvalidArgumentException
      */
-    public final void setCityId(int value) {
-        int oldValue = cityId;
+    public final void setCityId(int value) throws SQLException, InvalidArgumentException {
+        if (cityId == value && city != null)
+            return;
+        int oldId = cityId;
+        model.City oldCity = city;
+        SqlConnectionDependency dep = new SqlConnectionDependency(true);
+        try {
+            Optional<CityRow> r = CityRow.getById(dep.getconnection(), value);
+            if (r.isPresent())
+                city = r.get();
+            else
+                throw new InvalidArgumentException("value", "No city found that matches that ID");
+        } finally { dep.close(); }
         cityId = value;
-        firePropertyChange(PROP_CITYID, oldValue, cityId);
+        try { firePropertyChange(PROP_CITYID, oldId, cityId); }
+        finally { firePropertyChange(PROP_CITY, oldCity, city); }
     }
     
-    public Optional<City> lookupCurrentCity(Connection connection) throws SQLException {
-        return City.getById(connection, cityId, true);
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="city">
+    
+    private model.City city;
+    
+    public static final String PROP_CITY = "city";
+    
+    /**
+     * Get the value of city
+     *
+     * @return the value of city
+     */
+    @Override
+    public final model.City getCity() { return city; }
+    
+    /**
+     * Set the value of cityId
+     *
+     * @param value new value of cityId
+     * @throws scheduler.InvalidArgumentException
+     */
+    public final void setCity(model.City value) throws InvalidArgumentException {
+        if (value == null)
+            throw new InvalidArgumentException("value", "City cannot be null");
+        if (value instanceof CityRow) {
+            int rowState = ((CityRow)value).getRowState();
+            if (rowState == ROWSTATE_DELETED)
+                throw new InvalidArgumentException("value", "City was deleted");
+            if (rowState == ROWSTATE_NEW)
+                throw new InvalidArgumentException("value", "City was not added to the database");
+        }
+        int oldId = cityId;
+        model.City oldCity = city;
+        cityId = (city = value).getPrimaryKey();
+        try { firePropertyChange(PROP_CITY, oldCity, city); }
+        finally { firePropertyChange(PROP_CITY, oldId, cityId); }
     }
     
     //</editor-fold>
@@ -125,6 +177,7 @@ public class Address extends DataRow {
      *
      * @return the value of postalCode
      */
+    @Override
     public final String getPostalCode() { return postalCode; }
     
     /**
@@ -150,6 +203,7 @@ public class Address extends DataRow {
      *
      * @return the value of phone
      */
+    @Override
     public final String getPhone() { return phone; }
     
     /**
@@ -168,22 +222,28 @@ public class Address extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
-    public Address() {
+    public AddressRow() {
         super();
         address1 = address2 = postalCode = phone = "";
         cityId = 0;
     }
     
-    public Address(String address1, String address2, int cityId, String postalCode, String phone) {
+    public AddressRow(String address1, String address2, CityRow city, String postalCode, String phone) throws InvalidArgumentException {
         super();
+        if (city == null)
+            throw new InvalidArgumentException("city", "City cannot be null");
+        if (city.getRowState() == ROWSTATE_DELETED)
+            throw new InvalidArgumentException("city", "City was deleted");
+        if (city.getRowState() == ROWSTATE_NEW)
+            throw new InvalidArgumentException("city", "City was not added to the database");
         this.address1 = (address1 == null) ? "" : address1;
         this.address2 = (address2 == null) ? "" : address2;
-        this.cityId = cityId;
+        cityId = (this.city = city).getPrimaryKey();
         this.postalCode = (postalCode == null) ? "" : postalCode;
         this.phone = (phone == null) ? "" : phone;
     }
     
-    public Address(ResultSet rs) throws SQLException {
+    public AddressRow(ResultSet rs) throws SQLException {
         super(rs);
         address1 = rs.getString(COLNAME_ADDRESS);
         if (rs.wasNull())
@@ -192,6 +252,7 @@ public class Address extends DataRow {
         if (rs.wasNull())
             address2 = "";
         cityId = rs.getInt(PROP_CITYID);
+        city = new City(cityId, rs.getString(PROP_CITY), new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY)));
         postalCode = rs.getString(PROP_POSTALCODE);
         if (rs.wasNull())
             postalCode = "";
@@ -202,48 +263,63 @@ public class Address extends DataRow {
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
-    
-    public static final Optional<Address> getById(Connection connection, int id, boolean includeCache) throws SQLException {
-        if (includeCache && LOOKUP_CACHE.containsKey(id))
-            return Optional.of(LOOKUP_CACHE.get(id));
-        
-        return selectFromDbById(connection, (Class<Address>)Address.class, (Function<ResultSet, Address>)(ResultSet rs) -> {
-            Address r;
-            try {
-                r = new Address(rs);
-                if (LOOKUP_CACHE.containsKey(id))
-                    LOOKUP_CACHE.remove(id);
-                LOOKUP_CACHE.put(id, r);
-            } catch (SQLException ex) {
-                Logger.getLogger(Address.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
-            }
-            return r;
-        }, id);
+
+    @Override
+    protected String getSelectQuery() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public static final ObservableList<Address> getByCity(Connection connection, int cityId) throws SQLException {
-        return selectFromDb(connection, (Class<Address>)Address.class, (Function<ResultSet, Address>)(ResultSet rs) -> {
-            Address r;
+    public static final Optional<AddressRow> getById(Connection connection, int id) throws SQLException {
+        return selectFirstFromDb(connection, SQL_SELECT + " WHERE address.addressId = ?", (Function<ResultSet, AddressRow>)(ResultSet rs) -> {
+            AddressRow u;
             try {
-                r = new Address(rs);
-                int id = r.getPrimaryKey();
-                if (LOOKUP_CACHE.containsKey(id))
-                    LOOKUP_CACHE.remove(id);
-                LOOKUP_CACHE.put(id, r);
+                u = new AddressRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(Address.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
+                Logger.getLogger(AddressRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing AddressRow object from result set.");
             }
-            return r;
-        }, "`" + PROP_CITYID + "` = ?",
+            return u;
+        },
+        (PreparedStatement ps) -> {
+            try {
+                ps.setInt(1, id);
+            } catch (SQLException ex) {
+                Logger.getLogger(AddressRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+    
+    public static final ObservableList<AddressRow> getByCity(Connection connection, int cityId) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT + " WHERE `address`.`cityId` = ?", (Function<ResultSet, AddressRow>)(ResultSet rs) -> {
+            AddressRow u;
+            try {
+                u = new AddressRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(AddressRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing AddressRow object from result set.");
+            }
+            return u;
+        },
         (PreparedStatement ps) -> {
             try {
                 ps.setInt(1, cityId);
             } catch (SQLException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AddressRow.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
+    }
+    
+    public static final ObservableList<AddressRow> getAll(Connection connection) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, AddressRow>)(ResultSet rs) -> {
+            AddressRow u;
+            try {
+                u = new AddressRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(AddressRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing AddressRow object from result set.");
+            }
+            return u;
+        }, null);
     }
     
     @Override
@@ -279,6 +355,7 @@ public class Address extends DataRow {
         String oldAddress1 = address1;
         String oldAddress2 = address2;
         int oldCityId = cityId;
+        model.City oldCity = city;
         String oldPostalCode = postalCode;
         String oldPhone = phone;
         address1 = rs.getString(COLNAME_ADDRESS);
@@ -288,14 +365,13 @@ public class Address extends DataRow {
         if (rs.wasNull())
             address2 = "";
         cityId = rs.getInt(PROP_CITYID);
+        city = new City(cityId, rs.getString(PROP_CITY), new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY)));
         postalCode = rs.getString(PROP_POSTALCODE);
         if (rs.wasNull())
             postalCode = "";
         phone = rs.getString(PROP_PHONE);
         if (rs.wasNull())
             phone = "";
-        if (!LOOKUP_CACHE.containsKey(getPrimaryKey()))
-            LOOKUP_CACHE.put(getPrimaryKey(), this);
         // Execute property change events in nested try/finally statements to ensure that all
         // events get fired, even if one of the property change listeners throws an exception.
         try { firePropertyChange(PROP_ADDRESS1, oldAddress1, address1); }
@@ -305,11 +381,37 @@ public class Address extends DataRow {
                 try { firePropertyChange(PROP_CITYID, oldCityId, cityId); }
                 finally {
                     try { firePropertyChange(PROP_POSTALCODE, oldPostalCode, postalCode); }
-                    finally { firePropertyChange(PROP_PHONE, oldPhone, phone); }
+                    finally {
+                        try { firePropertyChange(PROP_PHONE, oldPhone, phone); }
+                        finally { firePropertyChange(PROP_CITY, oldCity, city); }
+                    }
                 }
             }
         }
     }
 
     //</editor-fold>
+    
+
+    //</editor-fold>
+    
+    static class City implements model.City {
+        private final int id;
+        private final String name;
+        private final CityRow.Country country;
+        City(int id, String name, CityRow.Country country) {
+            this.id = id;
+            this.name = name;
+            this.country = country;
+        }
+
+        @Override
+        public String getName() { return name; }
+
+        @Override
+        public int getPrimaryKey() { return id; }
+
+        @Override
+        public model.Country getCountry() { return country; }
+    }
 }

@@ -56,10 +56,46 @@ public class Messages {
     public final String getAddNewUser() { return _resourceBundle.getString("addNewUser"); }
     
     /**
+     * Gets the message "Address" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "address" key.
+     */
+    public final String getAddress() { return _resourceBundle.getString("address"); }
+      
+    /**
      * Gets the message "Administrative user" translated for the current {@link Locale}.
      * @return The {@link Locale}-specific message associated with the "adminstrativeUser" key.
      */
     public final String getAdminstrativeUser() { return _resourceBundle.getString("adminstrativeUser"); }
+    
+    /**
+     * Gets the message "All Appointments" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "allAppointments" key.
+     */
+    public final String getAllAppointments() { return _resourceBundle.getString("allAppointments"); }
+    
+    /**
+     * Gets the message "All Countries" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "allCountries" key.
+     */
+    public final String getAllCountries() { return _resourceBundle.getString("allCountries"); }
+    
+    /**
+     * Gets the message "All Customers" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "allCustomers" key.
+     */
+    public final String getAllCustomers() { return _resourceBundle.getString("allCustomers"); }
+    
+    /**
+     * Gets the message "All Users" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "allUsers" key.
+     */
+    public final String getAllUsers() { return _resourceBundle.getString("allUsers"); }
+    
+    /**
+     * Gets the message "Appointments" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "appointments" key.
+     */
+    public final String getAppointments() { return _resourceBundle.getString("appointments"); }
     
     /**
      * Gets the message "Appointment Scheduler" translated for the current {@link Locale}.
@@ -116,6 +152,18 @@ public class Messages {
     public final String getCreatedOn() { return _resourceBundle.getString("createdOn"); }
     
     /**
+     * Gets the message "Customer" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "customer" key.
+     */
+    public final String getCustomer() { return _resourceBundle.getString("customer"); }
+    
+    /**
+     * Gets the message "Customers" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "customers" key.
+     */
+    public final String getCustomers() { return _resourceBundle.getString("customers"); }
+    
+    /**
      * Gets the message "Database access error" translated for the current {@link Locale}.
      * @return The {@link Locale}-specific message associated with the "dbAccessError" key.
      */
@@ -128,7 +176,7 @@ public class Messages {
     public final String getDbCredentialAccessError() { return _resourceBundle.getString("dbCredentialAccessError"); }
     
     /**
-     * Gets the message "Edit User {0}" translated for the current {@link Locale}.
+     * Gets the message "Edit User %s" translated for the current {@link Locale}.
      * @param userName The user name to be incorporated into the message.
      * @return The {@link Locale}-specific message associated with the "editUser" key.
      */
@@ -147,13 +195,19 @@ public class Messages {
     public final String getEmptyUserName() { return _resourceBundle.getString("emptyUserName"); }
     
     /**
+     * Gets the message "End" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "end" key.
+     */
+    public final String getEnd() { return _resourceBundle.getString("end"); }
+    
+    /**
      * Gets the message "Exit" translated for the current {@link Locale}.
      * @return The {@link Locale}-specific message associated with the "exit" key.
      */
     public final String getExit() { return _resourceBundle.getString("exit"); }
     
     /**
-     * Gets the message "Validation for field {0} failed" translated for the current {@link Locale}.
+     * Gets the message "Validation for field %s failed" translated for the current {@link Locale}.
      * @param fieldName The name of the field to be incorporated into the message.
      * @return The {@link Locale}-specific message associated with the "fieldValidationFailed" key.
      */
@@ -166,7 +220,7 @@ public class Messages {
     public final String getFieldValidationInstruct() { return _resourceBundle.getString("fieldValidationInstruct"); }
     
     /**
-     * Gets the message "File "{0}" not found." translated for the current {@link Locale}.
+     * Gets the message "File "%s" not found." translated for the current {@link Locale}.
      * @param fileName The name of the file to be incorporated into the message.
      * @return The {@link Locale}-specific message associated with the "fileNotFound" key.
      */
@@ -203,6 +257,36 @@ public class Messages {
     public final String getLogin() { return _resourceBundle.getString("login"); }
     
     /**
+     * Gets the message "Name" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "name" key.
+     */
+    public final String getName() { return _resourceBundle.getString("name"); }
+    
+    /**
+     * Gets the message "New" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "new" key.
+     */
+    public final String getNew() { return _resourceBundle.getString("new"); }
+    
+    /**
+     * Gets the message "New Address" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "newAddress" key.
+     */
+    public final String getNewAddress() { return _resourceBundle.getString("newAddress"); }
+    
+    /**
+     * Gets the message "New City" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "newCity" key.
+     */
+    public final String getNewCity() { return _resourceBundle.getString("newCity"); }
+    
+    /**
+     * Gets the message "New Country" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "newCountry" key.
+     */
+    public final String getNewCountry() { return _resourceBundle.getString("newCountry"); }
+    
+    /**
      * Gets the message "Normal user" translated for the current {@link Locale}.
      * @return The {@link Locale}-specific message associated with the "normalUser" key.
      */
@@ -233,6 +317,24 @@ public class Messages {
     public final String getSaveChanges() { return _resourceBundle.getString("saveChanges"); }
     
     /**
+     * Gets the message "Start" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "end" key.
+     */
+    public final String getStart() { return _resourceBundle.getString("start"); }
+    
+    /**
+     * Gets the message "Title" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "end" key.
+     */
+    public final String getTitle() { return _resourceBundle.getString("title"); }
+    
+    /**
+     * Gets the message "Type" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "end" key.
+     */
+    public final String getType() { return _resourceBundle.getString("type"); }
+    
+    /**
      * Gets the message "Updated By" translated for the current {@link Locale}.
      * @return The {@link Locale}-specific message associated with the "updatedBy" key.
      */
@@ -256,6 +358,12 @@ public class Messages {
      */
     public final String getUserNameNotAvailable() { return _resourceBundle.getString("userNameNotAvailable"); }
     
+    /**
+     * Gets the message "Users" translated for the current {@link Locale}.
+     * @return The {@link Locale}-specific message associated with the "users" key.
+     */
+    public final String getUsers() { return _resourceBundle.getString("users"); }
+       
     /**
      * Gets the message "Validation Warning" translated for the current {@link Locale}.
      * @return The {@link Locale}-specific message associated with the "validationWarning" key.

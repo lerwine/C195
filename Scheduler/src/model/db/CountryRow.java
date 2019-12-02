@@ -9,12 +9,11 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static model.db.DataRow.selectFromDbById;
+import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
@@ -23,14 +22,14 @@ import scheduler.InternalException;
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(Country.COLNAME_COUNTRYID)
+@PrimaryKey(CountryRow.COLNAME_COUNTRYID)
 @TableName("country")
-public class Country extends DataRow {
+public class CountryRow extends DataRow implements model.Country {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
-    public static final String COLNAME_COUNTRYID = "countryId";
+    public static final String SQL_SELECT = "SELECT * FROM `country`";
     
-    private final static HashMap<Integer, Country> LOOKUP_CACHE = new HashMap<>();
+    public static final String COLNAME_COUNTRYID = "countryId";
     
     //<editor-fold defaultstate="collapsed" desc="name">
     
@@ -45,6 +44,7 @@ public class Country extends DataRow {
      *
      * @return the value of name
      */
+    @Override
     public final String getName() { return name; }
     
     /**
@@ -63,17 +63,17 @@ public class Country extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
-    public Country() {
+    public CountryRow() {
         super();
         name = "";
     }
     
-    public Country(String name) {
+    public CountryRow(String name) {
         super();
         this.name = (name == null) ? "" : name;
     }
     
-    public Country (ResultSet rs) throws SQLException {
+    public CountryRow (ResultSet rs) throws SQLException {
         super(rs);
         name = rs.getString(COLNAME_COUNTRY);
         if (rs.wasNull())
@@ -82,24 +82,41 @@ public class Country extends DataRow {
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
+
+    @Override
+    protected String getSelectQuery() { return SQL_SELECT; }
     
-    public static final Optional<Country> getById(Connection connection, int id, boolean includeCache) throws SQLException {
-        if (includeCache && LOOKUP_CACHE.containsKey(id))
-            return Optional.of(LOOKUP_CACHE.get(id));
-        
-        return selectFromDbById(connection, (Class<Country>)Country.class, (Function<ResultSet, Country>)(ResultSet rs) -> {
-            Country r;
+    public static final Optional<CountryRow> getById(Connection connection, int id) throws SQLException {
+        return selectFirstFromDb(connection, SQL_SELECT + " WHERE `country`.`countryId` = ?", (Function<ResultSet, CountryRow>)(ResultSet rs) -> {
+            CountryRow u;
             try {
-                r = new Country(rs);
-                if (LOOKUP_CACHE.containsKey(id))
-                    LOOKUP_CACHE.remove(id);
-                LOOKUP_CACHE.put(id, r);
+                u = new CountryRow(rs);
             } catch (SQLException ex) {
-                Logger.getLogger(Country.class.getName()).log(Level.SEVERE, null, ex);
-                throw new InternalException("Error initializing user object from result set.");
+                Logger.getLogger(CountryRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing CountryRow object from result set.");
             }
-            return r;
-        }, id);
+            return u;
+        },
+        (PreparedStatement ps) -> {
+            try {
+                ps.setInt(1, id);
+            } catch (SQLException ex) {
+                Logger.getLogger(CountryRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+    
+    public static final ObservableList<CountryRow> getAll(Connection connection) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, CountryRow>)(ResultSet rs) -> {
+            CountryRow u;
+            try {
+                u = new CountryRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(CountryRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing CountryRow object from result set.");
+            }
+            return u;
+        }, null);
     }
     
     @Override
@@ -108,8 +125,6 @@ public class Country extends DataRow {
         name = rs.getString(COLNAME_COUNTRY);
         if (rs.wasNull())
             name = "";
-        if (!LOOKUP_CACHE.containsKey(getPrimaryKey()))
-            LOOKUP_CACHE.put(getPrimaryKey(), this);
         firePropertyChange(PROP_NAME, oldName, name);
     }
 
