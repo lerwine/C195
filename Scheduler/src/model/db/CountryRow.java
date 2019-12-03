@@ -116,11 +116,14 @@ public class CountryRow extends DataRow implements model.Country {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        String oldName = name;
+        try {
+            deferPropertyChangeEvent(PROP_NAME);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
+        }
         name = rs.getString(COLNAME_COUNTRY);
         if (rs.wasNull())
             name = "";
-        firePropertyChange(PROP_NAME, oldName, name);
     }
 
     @Override

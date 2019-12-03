@@ -24,7 +24,7 @@ import scheduler.SqlConnectionDependency;
  */
 @PrimaryKey(AppointmentRow.COLNAME_APPOINTMENTID)
 @TableName("appointment")
-public class AppointmentRow extends DataRow {
+public class AppointmentRow extends DataRow implements model.Appointment {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
     public static final String SQL_SELECT = "SELECT appointment.*, `user`.userName, `user`.`active`, customer.customerName," +
@@ -88,6 +88,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of customer
      */
+    @Override
     public final model.Customer getCustomer() { return customer; }
     
     /**
@@ -168,6 +169,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of userId
      */
+    @Override
     public final model.User getUser() { return user; }
     
     /**
@@ -208,6 +210,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of title
      */
+    @Override
     public final String getTitle() { return title; }
     
     /**
@@ -233,6 +236,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of description
      */
+    @Override
     public final String getDescription() { return description; }
     
     /**
@@ -258,6 +262,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of location
      */
+    @Override
     public final String getLocation() { return location; }
     
     /**
@@ -283,6 +288,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of contact
      */
+    @Override
     public final String getContact() { return contact; }
     
     /**
@@ -308,6 +314,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of v
      */
+    @Override
     public final String getType() { return type; }
     
     /**
@@ -333,6 +340,7 @@ public class AppointmentRow extends DataRow {
      *
      * @return the value of url
      */
+    @Override
     public final String getUrl() { return url; }
     
     /**
@@ -357,6 +365,7 @@ public class AppointmentRow extends DataRow {
      * Gets the value of start.
      * @return The value of start.
      */
+    @Override
     public final LocalDateTime getStart() { return start; }
     
     /**
@@ -381,6 +390,7 @@ public class AppointmentRow extends DataRow {
      * Gets the value of end.
      * @return The value of end.
      */
+    @Override
     public final LocalDateTime getEnd() { return end; }
     
     /**
@@ -571,18 +581,22 @@ public class AppointmentRow extends DataRow {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        int oldCustomerId = customerId;
-        int oldUserId = userId;
-        String oldTitle = title;
-        String oldDescription = description;
-        String oldLocation = location;
-        String oldContact = contact;
-        String oldType = type;
-        String oldUrl = url;
-        model.User oldUser = user;
-        model.Customer oldCustomer = customer;
-        LocalDateTime oldStart = start;
-        LocalDateTime oldEnd = end;
+        try {
+            deferPropertyChangeEvent(PROP_CUSTOMERID);
+            deferPropertyChangeEvent(PROP_USERID);
+            deferPropertyChangeEvent(PROP_TITLE);
+            deferPropertyChangeEvent(PROP_DESCRIPTION);
+            deferPropertyChangeEvent(PROP_LOCATION);
+            deferPropertyChangeEvent(PROP_CONTACT);
+            deferPropertyChangeEvent(PROP_TYPE);
+            deferPropertyChangeEvent(PROP_URL);
+            deferPropertyChangeEvent(PROP_START);
+            deferPropertyChangeEvent(PROP_END);
+            deferPropertyChangeEvent(PROP_CUSTOMER);
+            deferPropertyChangeEvent(PROP_USER);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(AppointmentRow.class.getName()).log(Level.SEVERE, null, ex);
+        }
         customerId = rs.getInt(PROP_CUSTOMERID);
         customer = new Customer(customerId, rs.getString(CustomerRow.PROP_CUSTOMERNAME),
                 new CustomerRow.Address(rs.getInt(CustomerRow.PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
@@ -614,40 +628,6 @@ public class AppointmentRow extends DataRow {
         start = (rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime();
         t = rs.getTimestamp(PROP_END);
         end = (rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime();
-        // Execute property change events in nested try/finally statements to ensure that all
-        // events get fired, even if one of the property change listeners throws an exception.
-        try { firePropertyChange(PROP_CUSTOMERID, oldCustomerId, customerId); }
-        finally {
-            try { firePropertyChange(PROP_USERID, oldUserId, userId); }
-            finally {
-                try { firePropertyChange(PROP_TITLE, oldTitle, title); }
-                finally {
-                    try { firePropertyChange(PROP_DESCRIPTION, oldDescription, description); }
-                    finally {
-                        try { firePropertyChange(PROP_LOCATION, oldLocation, location); }
-                        finally {
-                            try { firePropertyChange(PROP_CONTACT, oldContact, contact); }
-                            finally {
-                                try { firePropertyChange(PROP_TYPE, oldType, type); }
-                                finally {
-                                    try { firePropertyChange(PROP_URL, oldUrl, url); }
-                                    finally {
-                                        try { firePropertyChange(PROP_START, oldStart, start); }
-                                        finally {
-                                            try { firePropertyChange(PROP_END, oldEnd, end); }
-                                            finally {
-                                                try { firePropertyChange(PROP_CUSTOMER, oldCustomer, customer); }
-                                                finally { firePropertyChange(PROP_USER, oldUser, user); }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     @Override

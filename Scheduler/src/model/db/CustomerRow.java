@@ -9,12 +9,11 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import static model.db.DataRow.selectFromDbById;
-
-import model.Address;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import scheduler.InvalidArgumentException;
+import scheduler.SqlConnectionDependency;
 
 /**
  *
@@ -22,7 +21,7 @@ import scheduler.InternalException;
  */
 @PrimaryKey(CustomerRow.COLNAME_CUSTOMERID)
 @TableName("customer")
-public class CustomerRow extends DataRow {
+public class CustomerRow extends DataRow implements model.Customer {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
     public static final String COLNAME_CUSTOMERID = "customerId";
@@ -44,6 +43,7 @@ public class CustomerRow extends DataRow {
      *
      * @return the value of customerName
      */
+    @Override
     public final String getCustomerName() { return customerName; }
     
     /**
@@ -75,8 +75,10 @@ public class CustomerRow extends DataRow {
      * Set the value of addressId
      *
      * @param value new value of addressId
+     * @throws java.sql.SQLException
+     * @throws scheduler.InvalidArgumentException
      */
-    public final void setAddressId(int value) {
+    public final void setAddressId(int value) throws SQLException, InvalidArgumentException {
         if (value == addressId && address != null)
             return;
         int oldId = addressId;
@@ -107,14 +109,16 @@ public class CustomerRow extends DataRow {
      *
      * @return the value of address
      */
+    @Override
     public final model.Address getAddress() { return address; }
     
     /**
      * Set the value of address
      *
      * @param value new value of address
+     * @throws scheduler.InvalidArgumentException
      */
-    public final void setAddress(model.Address value) {
+    public final void setAddress(model.Address value) throws InvalidArgumentException {
         if (value == null)
             throw new InvalidArgumentException("value", "Address cannot be null");
         if (value instanceof AddressRow) {
@@ -143,6 +147,7 @@ public class CustomerRow extends DataRow {
      *
      * @return the value of active
      */
+    @Override
     public boolean isActive() { return active; }
 
     /**
@@ -168,7 +173,7 @@ public class CustomerRow extends DataRow {
         active = true;
     }
     
-    public CustomerRow(String customerName, AddressRow address, boolean active) {
+    public CustomerRow(String customerName, AddressRow address, boolean active) throws InvalidArgumentException {
         super();
         if (address == null)
             throw new InvalidArgumentException("address", "Address cannot be null");
@@ -193,7 +198,7 @@ public class CustomerRow extends DataRow {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
     
-    public static final Optional<CustomerRow> getById(Connection connection, int id, boolean includeCache) throws SQLException {
+    public static final Optional<CustomerRow> getById(Connection connection, int id) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE customerId = ?", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
             CustomerRow u;
             try {
@@ -242,26 +247,23 @@ public class CustomerRow extends DataRow {
 
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        String oldCustomerName = customerName;
-        int oldAddressId = addressId;
-        model.Address oldAddress = address;
-        boolean oldActive = active;
+        try {
+            deferPropertyChangeEvent(PROP_CUSTOMERNAME);
+            deferPropertyChangeEvent(PROP_ADDRESSID);
+            deferPropertyChangeEvent(PROP_ADDRESS);
+            deferPropertyChangeEvent(PROP_ACTIVE);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
+        }
         customerName = rs.getString(PROP_CUSTOMERNAME);
         if (rs.wasNull())
             customerName = "";
         addressId = rs.getInt(PROP_ADDRESSID);
+        address = new Address(addressId, rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
+                new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
+                new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
+                rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE));
         active = rs.getBoolean(PROP_ACTIVE);
-        addressId = (address = value).getPrimaryKey();
-        // Execute property change events in nested try/finally statements to ensure that all
-        // events get fired, even if one of the property change listeners throws an exception.
-        try { firePropertyChange(PROP_CUSTOMERNAME, oldCustomerName, customerName); }
-        finally {
-            try { firePropertyChange(PROP_ADDRESSID, oldAddressId, addressId); }
-            finally {
-                try { firePropertyChange(PROP_ACTIVE, oldActive, active); }
-                finally { firePropertyChange(PROP_ADDRESS, oldAddress, address); }
-            }
-        }
     }
 
     @Override
@@ -280,6 +282,9 @@ public class CustomerRow extends DataRow {
             }
         }
     }
+
+    @Override
+    protected String getSelectQuery() { return SQL_SELECT; }
     
     //</editor-fold>
     
@@ -313,7 +318,7 @@ public class CustomerRow extends DataRow {
         public String getPostalCode() { return postalCode; }
         
         @Override
-        public String getPhone() { return phones; }
+        public String getPhone() { return phone; }
 
         @Override
         public int getPrimaryKey() { return id; }

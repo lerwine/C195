@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -228,9 +227,13 @@ public class UserRow extends DataRow implements model.User {
 
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        String oldUserName = userName;
-        String oldPassword = password;
-        short oldActive = active;
+        try {
+            deferPropertyChangeEvent(PROP_USERNAME);
+            deferPropertyChangeEvent(PROP_PASSWORD);
+            deferPropertyChangeEvent(PROP_ACTIVE);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
+        }
         userName = rs.getString(PROP_USERNAME);
         if (rs.wasNull())
             userName = "";
@@ -239,13 +242,6 @@ public class UserRow extends DataRow implements model.User {
             password = "";
         short a = rs.getShort(PROP_ACTIVE);
         active = (rs.wasNull()) ? STATE_INACTIVE : (a < STATE_INACTIVE) ? STATE_INACTIVE : ((a > STATE_ADMIN) ? STATE_ADMIN : a);
-        // Execute property change events in nested try/finally statements to ensure that all
-        // events get fired, even if one of the property change listeners throws an exception.
-        try { firePropertyChange(PROP_USERNAME, oldUserName, userName); }
-        finally {
-            try { firePropertyChange(PROP_PASSWORD, oldPassword, password); }
-            finally { firePropertyChange(PROP_ACTIVE, oldActive, active); }
-        }
     }
 
     @Override

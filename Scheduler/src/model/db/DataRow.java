@@ -2,7 +2,6 @@ package model.db;
 
 import com.mysql.jdbc.Connection;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,7 +24,7 @@ import scheduler.InvalidOperationException;
  * @author Leonard T. Erwine
  */
 public abstract class DataRow implements model.Record {
-    private final Object syncRoot;
+    protected final Object syncRoot;
     
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
@@ -260,11 +259,14 @@ public abstract class DataRow implements model.Record {
             ps.setInt(1, primaryKey);
             ResultSet rs = ps.getResultSet();
             if (rs.next()) {
-                LocalDateTime oldCreateDate = createDate;
-                String oldCreatedBy = createdBy;
-                LocalDateTime oldLastUpdate = lastUpdate;
-                String oldLastUpdateBy = lastUpdateBy;
-                LocalDateTime oldLastDbSync = lastDbSync;
+                try {
+                    deferPropertyChangeEvent(PROP_CREATEDATE);
+                    deferPropertyChangeEvent(PROP_CREATEDBY);
+                    deferPropertyChangeEvent(PROP_LASTUPDATE);
+                    deferPropertyChangeEvent(PROP_LASTUPDATEBY);
+                } catch (NoSuchFieldException ex) {
+                    Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
                 createdBy = rs.getString(PROP_CREATEDBY);
                 lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
@@ -273,27 +275,11 @@ public abstract class DataRow implements model.Record {
                 try {
                     refreshFromDb(rs);
                     lastDbSync = LocalDateTime.now();
-                }
-                finally {
-                    // Execute property change events in nested try/finally statements to ensure that all
-                    // events get fired, even if one of the property change listeners throws an exception.
-                    try { firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate); }
-                    finally {
-                        try { firePropertyChange(PROP_CREATEDBY, oldCreatedBy, createdBy); }
-                        finally {
-                            try { firePropertyChange(PROP_LASTUPDATE, oldLastUpdate, lastUpdate); }
-                            finally {
-                                try { firePropertyChange(PROP_LASTUPDATEBY, oldLastUpdateBy, lastUpdateBy); }
-                                finally { firePropertyChange(PROP_LASTDBSYNC, oldLastDbSync, lastDbSync); }
-                            }
-                        }
-                    }
-                }
-
-                // Row state only gets changed if no exeptions were thrown.
-                byte oldRowState = rowState;
-                rowState = ROWSTATE_UNMODIFIED;
-                firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+                    deferPropertyChangeEvent(PROP_ROWSTATE);
+                    rowState = ROWSTATE_UNMODIFIED;
+                } catch (NoSuchFieldException ex) {
+                    Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
+                } finally { fireDeferredPropertyChanges(); }
             }
         }
     }
@@ -458,7 +444,21 @@ public abstract class DataRow implements model.Record {
         propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
     
-    private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    protected void deferPropertyChangeEvent(String propertyName, String fieldName) throws NoSuchFieldException {
+        propertyChangeSupport.deferPropertyChangeEvent(propertyName, fieldName);
+    }
+
+    protected void deferPropertyChangeEvent(String propertyName) throws NoSuchFieldException {
+        propertyChangeSupport.deferPropertyChangeEvent(propertyName);
+    }
+
+    protected void deferPropertyChangeEvent(String propertyName, Function<DataRow, Object> getValue) {
+        propertyChangeSupport.deferPropertyChangeEvent(propertyName, getValue);
+    }
+    
+    protected void fireDeferredPropertyChanges() { propertyChangeSupport.fireDeferredPropertyChanges(); }
+    
+    private transient final model.DeferrablePropertyChangeSupport<DataRow> propertyChangeSupport = new model.DeferrablePropertyChangeSupport<>(this);
     
     /**
      * Add a {@link PropertyChangeListener} to the listener list.

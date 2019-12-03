@@ -12,6 +12,8 @@ import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import scheduler.InvalidArgumentException;
+import scheduler.SqlConnectionDependency;
 
 /**
  *
@@ -19,7 +21,7 @@ import scheduler.InternalException;
  */
 @PrimaryKey(CityRow.COLNAME_CITYID)
 @TableName("city")
-public class CityRow extends DataRow {
+public class CityRow extends DataRow implements model.City {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
     public static final String SQL_SELECT = "SELECT city.*, country.country FROM city" +
@@ -40,6 +42,7 @@ public class CityRow extends DataRow {
      *
      * @return the value of name
      */
+    @Override
     public final String getName() { return name; }
     
     /**
@@ -71,12 +74,14 @@ public class CityRow extends DataRow {
      * Set the value of countryId
      *
      * @param value new value of countryId
+     * @throws java.sql.SQLException
+     * @throws scheduler.InvalidArgumentException
      */
-    public final void setCountryId(int value) {
+    public final void setCountryId(int value) throws SQLException, InvalidArgumentException {
         if (value == countryId && country != null)
             return;
         int oldId = countryId;
-        Country oldCountry = country;
+        model.Country oldCountry = country;
         SqlConnectionDependency dep = new SqlConnectionDependency(true);
         try {
             Optional<CountryRow> r = CountryRow.getById(dep.getconnection(), value);
@@ -102,14 +107,16 @@ public class CityRow extends DataRow {
      *
      * @return the value of country
      */
+    @Override
     public final model.Country getCountry() { return country; }
     
     /**
      * Set the value of country
      *
      * @param value new value of country
+     * @throws scheduler.InvalidArgumentException
      */
-    public final void setCountry(model.Country value) {
+    public final void setCountry(model.Country value) throws InvalidArgumentException {
         if (value == null)
             throw new InvalidArgumentException("value", "Country cannot be null");
         if (value instanceof UserRow) {
@@ -121,8 +128,7 @@ public class CityRow extends DataRow {
         }
         
         int oldId = countryId;
-        Country oldCountry = country;
-        model.Country oldValue = country;
+        model.Country oldCountry = country;
         countryId = (country = value).getPrimaryKey();
         try { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
         finally { firePropertyChange(PROP_COUNTRYID, oldId, countryId); }
@@ -139,7 +145,7 @@ public class CityRow extends DataRow {
         countryId = 0;
     }
     
-    public CityRow(String name, CountryRow country) {
+    public CityRow(String name, CountryRow country) throws InvalidArgumentException {
         super();
         if (country == null)
             throw new InvalidArgumentException("country", "Country cannot be null");
@@ -218,21 +224,18 @@ public class CityRow extends DataRow {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        String oldName = name;
-        Country oldCountry = country;
-        int oldCountryId = countryId;
+        try {
+            deferPropertyChangeEvent(PROP_NAME);
+            deferPropertyChangeEvent(PROP_COUNTRYID);
+            deferPropertyChangeEvent(PROP_COUNTRY);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
+        }
         name = rs.getString(COLNAME_CITY);
         if (rs.wasNull())
             name = "";
         countryId = rs.getInt(PROP_COUNTRYID);
         country = new Country(countryId, rs.getString(CountryRow.COLNAME_COUNTRY));
-        // Execute property change events in nested try/finally statements to ensure that all
-        // events get fired, even if one of the property change listeners throws an exception.
-        try { firePropertyChange(PROP_NAME, oldName, name); }
-        finally {
-            try { firePropertyChange(PROP_COUNTRYID, oldCountryId, countryId); }
-            finally { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
-        }
     }
 
     @Override

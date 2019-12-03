@@ -342,12 +342,18 @@ public class AddressRow extends DataRow implements model.Address {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        String oldAddress1 = address1;
-        String oldAddress2 = address2;
-        int oldCityId = cityId;
-        model.City oldCity = city;
-        String oldPostalCode = postalCode;
-        String oldPhone = phone;
+        try {
+            deferPropertyChangeEvent(PROP_ADDRESS1);
+            deferPropertyChangeEvent(PROP_ADDRESS2);
+            deferPropertyChangeEvent(PROP_CITYID);
+            deferPropertyChangeEvent(PROP_CITY);
+            deferPropertyChangeEvent(PROP_POSTALCODE);
+            deferPropertyChangeEvent(PROP_PHONE);
+            deferPropertyChangeEvent(CityRow.PROP_COUNTRYID);
+            deferPropertyChangeEvent(CityRow.PROP_COUNTRY);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(AddressRow.class.getName()).log(Level.SEVERE, null, ex);
+        }
         address1 = rs.getString(COLNAME_ADDRESS);
         if (rs.wasNull())
             address1 = "";
@@ -362,22 +368,6 @@ public class AddressRow extends DataRow implements model.Address {
         phone = rs.getString(PROP_PHONE);
         if (rs.wasNull())
             phone = "";
-        // Execute property change events in nested try/finally statements to ensure that all
-        // events get fired, even if one of the property change listeners throws an exception.
-        try { firePropertyChange(PROP_ADDRESS1, oldAddress1, address1); }
-        finally {
-            try { firePropertyChange(PROP_ADDRESS2, oldAddress2, address2); }
-            finally {
-                try { firePropertyChange(PROP_CITYID, oldCityId, cityId); }
-                finally {
-                    try { firePropertyChange(PROP_POSTALCODE, oldPostalCode, postalCode); }
-                    finally {
-                        try { firePropertyChange(PROP_PHONE, oldPhone, phone); }
-                        finally { firePropertyChange(PROP_CITY, oldCity, city); }
-                    }
-                }
-            }
-        }
     }
 
     @Override
