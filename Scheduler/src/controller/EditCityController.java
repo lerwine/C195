@@ -3,17 +3,28 @@ package controller;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import model.db.CityRow;
+import scheduler.InvalidArgumentException;
+import model.annotations.ResourceKey;
+import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
+@ResourceName(EditCityController.RESOURCE_NAME)
 public class EditCityController extends ItemControllerBase<CityRow> {
+    /**
+     * The name of the globalization resource bundle for this controller.
+     */
+    public static final String RESOURCE_NAME = "globalization/editCity";
+
     /**
      * The path of the View associated with this controller.
      */
@@ -22,19 +33,24 @@ public class EditCityController extends ItemControllerBase<CityRow> {
     private int countryId;
     
     @FXML
+    @ResourceKey("name")
     private Label nameLabel;
     
     @FXML
     private TextField nameTextField;
     
     @FXML
+    @ResourceKey("nameCannotBeEmpty")
     private Label nameError;
     
     @FXML
+    @ResourceKey("country")
     private Label countryLabel;
     
     @FXML
     private ComboBox countryComboBox;
+    
+    private String returnViewPath;
     
     /**
      * Initializes the controller class.
@@ -44,16 +60,21 @@ public class EditCityController extends ItemControllerBase<CityRow> {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
-    }    
-
-    @Override
-    protected void applyModelAsNew(CityRow model) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected void applyModelAsEdit(CityRow model) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
+    public static void setCurrentScene(Node sourceNode, CityRow model, String returnViewPath) throws InvalidArgumentException {
+        if (model == null)
+            throw new InvalidArgumentException("model", "Model cannot be null");
+        if (model.getRowState() == CityRow.ROWSTATE_DELETED)
+            throw new InvalidArgumentException("model", "Model was already deleted");
+        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditCityController controller) -> {
+            controller.returnViewPath = returnViewPath;
+            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+            if (controller.setModel(model)) {
+                stage.setTitle(rb.getString("editCity"));
+            } else {
+                stage.setTitle(rb.getString("addNewCity"));
+            }
+        });
+    }
 }

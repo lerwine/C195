@@ -1,11 +1,29 @@
-/*
- * Empty Stylesheet file.
- */
-
-.mainFxmlClass {
-    -fx-font-size: 14px;
+.outerContainer {
+    -fx-font-size: 12px;
     -fx-font-family: sans-serif;
     -fx-background-color: #ffffff;
+}
+
+.formControlLabel {
+    -fx-font-weight: bold;
+}
+.formLeftControlLabel {
+    -fx-font-weight: bold;
+}
+
+.formInnerControlLabel {
+    -fx-font-weight: bold;
+}
+
+.formControlValidationMessage {
+    -fx-text-fill: red;
+    -fx-wrap-text: true;
+}
+
+TextField.formLabeledControl,
+PasswordField.formLabeledControl,
+ComboBox.formLabeledControl {
+    -fx-min-height: 25;
 }
 
 HBox.header-section {
@@ -26,7 +44,7 @@ Label.header-section {
     -fx-padding: 0px 32px 0px 0px;
 }
 
-.error Label {
+.error Label, Label.error {
     -fx-padding: 0px 0px 0px 0px;
     -fx-text-fill: #7f0000;
     -fx-font-weight: bold;
@@ -36,24 +54,31 @@ Label.header-section {
     -fx-padding: 16px;
 }
 
+GridPane.content-section Label.error {
+    -fx-alignment: TOP_LEFT;
+}
+
 GridPane.content-section {
     -fx-hgap: 4px;
-    -fx-vgap: 16px;
+    -fx-vgap: 8px;
 }
 
 GridPane.content-section Label.hLeftFieldLabel,
 GridPane.content-section Label.hInnerFieldLabel {
     -fx-font-weight: bold;
     -fx-text-alignment: right;
-    -fx-alignment: top-right;
+    -fx-alignment: TOP_RIGHT;
 }
 
 GridPane.content-section Label.hInnerFieldLabel {
     -fx-padding: 0px 0px 0px 12px;
 }
 
-GridPane.content-section Label.hFieldControl {
+GridPane.content-section .hFieldControl {
     -fx-padding: 0px 0px 0px 0px;
+    -fx-alignment: bottom-left;
+    -fx-fit-to-width: true;
+    -fx-alignment: TOP_LEFT;
 }
 
 ButtonBar.command-section {

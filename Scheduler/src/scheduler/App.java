@@ -3,8 +3,6 @@ package scheduler;
 import com.mysql.jdbc.Connection;
 import controller.LoginScreenController;
 import java.io.IOException;
-import java.io.InputStream;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
@@ -12,7 +10,7 @@ import java.time.format.FormatStyle;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -28,22 +26,53 @@ import model.db.UserRow;
  */
 public class App extends Application {
     //<editor-fold defaultstate="collapsed" desc="Overloaded changeScene methods">
+
+    /**
+     * Sets the {@link javafx.scene.Scene} for the {@link javafx.stage.Stage} of the specified {@link javafx.scene.Node}
+     * from the FXML resource at a given path and sets up its controller.
+     * @param <T>
+     * @param eventSource The {@link javafx.scene.Node} from the event source that initiated the scene change.
+     * @param path The path of the FXML resource to load.
+     * @param setupController The delegate method that sets up the controller.
+     */
     
     public static <T> void changeScene(Node eventSource, String path, java.util.function.BiConsumer<Stage, T> setupController) {
-        changeScene((Stage)eventSource.getScene().getWindow(), path, setupController);
+        App.setScene((Stage)eventSource.getScene().getWindow(), path, setupController);
     }
     
+    /**
+     * Sets the {@link javafx.scene.Scene} for the {@link javafx.stage.Stage} of the specified {@link javafx.scene.Node}
+     * from the FXML resource at a given path and sets up its controller.
+     * @param <T>
+     * @param eventSource The {@link javafx.scene.Node} from the event source that initiated the scene change.
+     * @param path The path of the FXML resource to load.
+     * @param setupController The delegate method that sets up the controller.
+     */
     public static <T> void changeScene(Node eventSource, String path, java.util.function.Consumer<T> setupController) {
-        changeScene((Stage)eventSource.getScene().getWindow(), path, setupController);
+        App.setScene((Stage)eventSource.getScene().getWindow(), path, setupController);
     }
     
+    /**
+     * Sets the {@link javafx.scene.Scene} for the {@link javafx.stage.Stage} of the specified {@link javafx.scene.Node}
+     * from the FXML resource at a given path.
+     * @param eventSource The {@link javafx.scene.Node} from the event source that initiated the scene change.
+     * @param path The path of the FXML resource to load.
+     */
     public static void changeScene(Node eventSource, String path) {
-        changeScene((Stage)eventSource.getScene().getWindow(), path);
+        setScene((Stage)eventSource.getScene().getWindow(), path);
     }
     
-    public static <T> void changeScene(Stage stage, String path, java.util.function.BiConsumer<Stage, T> setupController) {
+    /**
+     * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
+     * and sets up its controller.
+     * @param <T> The type of controller to set up.
+     * @param stage The target {@link javafx.stage.Stage}.
+     * @param path The path of the FXML resource to load.
+     * @param setupController The delegate method that sets up the controller.
+     */
+    public static <T> void setScene(Stage stage, String path, java.util.function.BiConsumer<Stage, T> setupController) {
         // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), Messages.current().resourceBundle());
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), App.getAppResourceBundle());
         
         try {
             stage.setScene(new Scene(loader.load()));
@@ -58,9 +87,17 @@ public class App extends Application {
         stage.show();
     }
     
-    public static <T> void changeScene(Stage stage, String path, java.util.function.Consumer<T> setupController) {
+    /**
+     * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
+     * and sets up its controller.
+     * @param <T> The type of controller to set up.
+     * @param stage The target {@link javafx.stage.Stage}.
+     * @param path The path of the FXML resource to load.
+     * @param setupController The delegate method that sets up the controller.
+     */
+    public static <T> void setScene(Stage stage, String path, java.util.function.Consumer<T> setupController) {
         // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), Messages.current().resourceBundle());
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), App.getAppResourceBundle());
         
         try {
             stage.setScene(new Scene(loader.load()));
@@ -75,9 +112,14 @@ public class App extends Application {
         stage.show();
     }
     
-    public static void changeScene(Stage stage, String path) {
+    /**
+     * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path.
+     * @param stage The target {@link javafx.stage.Stage}.
+     * @param path The path of the FXML resource to load.
+     */
+    public static void setScene(Stage stage, String path) {
         // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), Messages.current().resourceBundle());
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), App.getAppResourceBundle());
         
         try {
             stage.setScene(new Scene(loader.load()));
@@ -103,12 +145,9 @@ public class App extends Application {
         // Store the original locale settings so they can be restored when app ends
         currentLocale = originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
         originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
-        Messages.setCurrent(new Messages(currentLocale));
         AppConfig.refresh();
         // Set initial scene to the login screen
-        changeScene(stage, LoginScreenController.VIEW_PATH, (LoginScreenController controller) -> {
-            controller.setCurrentStage(stage);
-        });
+        LoginScreenController.setCurrentScene(stage);
     }
     
     @Override
@@ -130,6 +169,19 @@ public class App extends Application {
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Globalization Members">
+    
+    /**
+     * The name of the general application globalization resource bundle.
+     */
+    public static final String RESOURCE_NAME = "globalization/app";
+    
+    private static ResourceBundle appResourceBundle;
+    
+    public static ResourceBundle getAppResourceBundle() {
+        if (appResourceBundle == null)
+            appResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, getCurrentLocale());
+        return appResourceBundle;
+    }
     
     // This contains the current locale.
     private static Locale currentLocale;
@@ -154,8 +206,8 @@ public class App extends Application {
         currentLocale = locale;
         // Create a new, empty formatters cache object.
         formatters = new Formatters();
-        // Set the new messages resource.
-        Messages.setCurrent(new Messages(locale));
+        // Set to null so it gets reloaded.
+        appResourceBundle = null;
     }
     
     /**

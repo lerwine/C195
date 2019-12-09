@@ -3,16 +3,27 @@ package controller;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import model.db.CountryRow;
+import scheduler.InvalidArgumentException;
+import model.annotations.ResourceKey;
+import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
+@ResourceName(EditCountryController.RESOURCE_NAME)
 public class EditCountryController extends ItemControllerBase<CountryRow> {
+    /**
+     * The name of the globalization resource bundle for this controller.
+     */
+    public static final String RESOURCE_NAME = "globalization/editCountry";
+
     /**
      * The path of the View associated with this controller.
      */
@@ -21,13 +32,17 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
     private String name;
     
     @FXML
+    @ResourceKey("name")
     private Label nameLabel;
     
     @FXML
     private TextField nameTextField;
     
     @FXML
+    @ResourceKey("nameCannotBeEmpty")
     private Label nameError;
+    
+    private String returnViewPath;
     
     /**
      * Initializes the controller class.
@@ -37,16 +52,21 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
-    }    
-
-    @Override
-    protected void applyModelAsNew(CountryRow model) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected void applyModelAsEdit(CountryRow model) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
+    public static void setCurrentScene(Node sourceNode, CountryRow model, String returnViewPath) throws InvalidArgumentException {
+        if (model == null)
+            throw new InvalidArgumentException("model", "Model cannot be null");
+        if (model.getRowState() == CountryRow.ROWSTATE_DELETED)
+            throw new InvalidArgumentException("model", "Model was already deleted");
+        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditCountryController controller) -> {
+            controller.returnViewPath = returnViewPath;
+            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+            if (controller.setModel(model)) {
+                stage.setTitle(rb.getString("editCountry"));
+            } else {
+                stage.setTitle(rb.getString("addNewCountry"));
+            }
+        });
+    }
 }

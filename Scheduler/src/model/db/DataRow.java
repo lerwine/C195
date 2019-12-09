@@ -24,6 +24,9 @@ import scheduler.InvalidOperationException;
  * @author Leonard T. Erwine
  */
 public abstract class DataRow implements model.Record {
+    /**
+     * Monitor object for synchronized operations.
+     */
     protected final Object syncRoot;
     
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
@@ -129,7 +132,7 @@ public abstract class DataRow implements model.Record {
     public final String getLastUpdateBy() { return lastUpdateBy; }
     
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="lastUpdate">
+    //<editor-fold defaultstate="collapsed" desc="lastDbSync">
     
     /**
      * The name of the property that contains the date and time when the row was last updated.
@@ -241,10 +244,107 @@ public abstract class DataRow implements model.Record {
     
     protected abstract void refreshFromDb(ResultSet rs) throws SQLException;
     
-    public final synchronized void refreshFromDb(Connection connection) throws SQLException, InvalidOperationException {
-        Class<? extends DataRow> rowClass = getClass();
-        String tableName = getTableName(rowClass);
-        synchronized(syncRoot) {
+    private void refreshFromDb(Connection connection, Class<? extends DataRow> rowClass) throws SQLException, InvalidOperationException {
+        StringBuilder sql = new StringBuilder();
+        sql.append(getSelectQuery()).append(" WHERE `").append(getPrimaryKeyColName(rowClass)).append("` = ?");
+        // Get row from database matching the current primary key value.
+        Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Executing query: %s", sql.toString());
+        PreparedStatement ps = connection.prepareStatement(sql.toString());
+        ps.setInt(1, primaryKey);
+        ResultSet rs = ps.getResultSet();
+        if (rs.next()) {
+            try {
+                if (rowState == ROWSTATE_NEW) {
+                    deferPropertyChangeEvent(PROP_PRIMARYKEY);
+                    deferPropertyChangeEvent(PROP_CREATEDATE);
+                    deferPropertyChangeEvent(PROP_CREATEDBY);
+                }
+                deferPropertyChangeEvent(PROP_LASTUPDATE);
+                deferPropertyChangeEvent(PROP_LASTUPDATEBY);
+            } catch (NoSuchFieldException ex) {
+                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (rowState == ROWSTATE_NEW) {
+                createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
+                createdBy = rs.getString(PROP_CREATEDBY);
+            }
+            lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
+            lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
+            try {
+                refreshFromDb(rs);
+                lastDbSync = LocalDateTime.now();
+                deferPropertyChangeEvent(PROP_ROWSTATE);
+                rowState = ROWSTATE_UNMODIFIED;
+            } catch (NoSuchFieldException ex) {
+                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
+            } finally { fireDeferredPropertyChanges(); }
+        }
+    }
+    
+    private void insert(Connection connection, String tableName) throws SQLException {
+        String[] fieldNames = getColumnNames();
+        String sql = String.format("INSERT INTO `%s` (%s, `%s`, `%s`, `%s`, `%s`) VALUES (%s, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", tableName,
+                Arrays.stream(fieldNames).map((s) -> "`" + s + "`").reduce((p, n) -> p + ", " + n).get(),
+                PROP_CREATEDBY, PROP_LASTUPDATEBY, PROP_CREATEDATE, PROP_LASTUPDATE,
+                Arrays.stream(fieldNames).map((s) -> "?").reduce((p, n) -> p + ", " + n).get());
+        Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
+        PreparedStatement ps = connection.prepareStatement(sql);
+        setColumnValues(ps, fieldNames);
+        String userName = scheduler.App.getCurrentUser().get().getUserName();
+        int index = fieldNames.length + 1;
+        ps.setString(index++, userName);
+        ps.setString(index, userName);
+        ps.executeUpdate();
+
+        try {
+            deferPropertyChangeEvent(PROP_PRIMARYKEY);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Error refreshing from database", ex);
+            throw new RuntimeException("Error refreshing from database", ex);
+        }
+
+        ResultSet rs = ps.getGeneratedKeys();
+        rs.next();
+
+        primaryKey = rs.getInt(1);
+    }
+    
+    private void update(Connection connection, Class<? extends DataRow> rowClass, String tableName) throws SQLException {
+        String[] fieldNames = getColumnNames();
+        String sql = String.format("UPDATE `%s` SET %s, `%s` = ?, `%s` = CURRENT_TIMESTAMP WHERE `%s` = ?",
+                tableName, Arrays.stream(fieldNames).map((s) -> "`" + s + "` = ?").reduce((p, n) -> p + ", " + n).get(),
+                PROP_LASTUPDATEBY, PROP_LASTUPDATE, getPrimaryKeyColName(rowClass));
+        Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
+        PreparedStatement ps = connection.prepareStatement(sql);
+        setColumnValues(ps, fieldNames);
+        String userName = scheduler.App.getCurrentUser().get().getUserName();
+        int index = fieldNames.length + 1;
+        ps.setString(index++, userName);
+        ps.setInt(index, primaryKey);
+        ps.executeUpdate();
+    }
+    
+    public final void saveChanges(Connection connection) throws SQLException, InvalidOperationException {
+        synchronized (syncRoot) {
+            Class<? extends DataRow> rowClass = getClass();
+            String tableName = getTableName(rowClass);
+            // Saving changes to database is not applicable to rows that have been deleted from the database.
+            if (rowState == ROWSTATE_DELETED)
+                throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
+                        tableName));
+            if (rowState == ROWSTATE_NEW)
+                insert(connection, tableName);
+            else
+                update(connection, rowClass, tableName);
+            refreshFromDb(connection, getClass());
+        }
+        fireDeferredPropertyChanges();
+    }
+    
+    public final void refreshFromDb(Connection connection) throws SQLException, InvalidOperationException {
+        synchronized (syncRoot) {
+            Class<? extends DataRow> rowClass = getClass();
+            String tableName = getTableName(rowClass);
             // Refresh from database is not applicable to rows that have not been retrieved from the database.
             if (rowState == ROWSTATE_DELETED)
                 throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
@@ -252,109 +352,34 @@ public abstract class DataRow implements model.Record {
             if (rowState == ROWSTATE_NEW)
                 throw new InvalidOperationException(String.format("{0} row has not been added the database",
                         tableName));
-            StringBuilder sql = new StringBuilder();
-            sql.append(getSelectQuery()).append(" WHERE `").append(getPrimaryKeyColName(rowClass)).append("` = ?");
-            // Get row from database matching the current primary key value.
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
-            ps.setInt(1, primaryKey);
-            ResultSet rs = ps.getResultSet();
-            if (rs.next()) {
-                try {
-                    deferPropertyChangeEvent(PROP_CREATEDATE);
-                    deferPropertyChangeEvent(PROP_CREATEDBY);
-                    deferPropertyChangeEvent(PROP_LASTUPDATE);
-                    deferPropertyChangeEvent(PROP_LASTUPDATEBY);
-                } catch (NoSuchFieldException ex) {
-                    Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
-                createdBy = rs.getString(PROP_CREATEDBY);
-                lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
-                lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
-                // Let extended class update its properites before firing property change events.
-                try {
-                    refreshFromDb(rs);
-                    lastDbSync = LocalDateTime.now();
-                    deferPropertyChangeEvent(PROP_ROWSTATE);
-                    rowState = ROWSTATE_UNMODIFIED;
-                } catch (NoSuchFieldException ex) {
-                    Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
-                } finally { fireDeferredPropertyChanges(); }
-            }
+            refreshFromDb(connection, rowClass);
         }
-    }
-    
-    public final void saveChanges(Connection connection) throws SQLException, InvalidOperationException {
-        Class<? extends DataRow> rowClass = getClass();
-        String tableName = getTableName(rowClass);
-        // Saving changes to database is not applicable to rows that have been deleted from the database.
-        if (rowState == ROWSTATE_DELETED)
-            throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
-                    tableName));
-        String[] fieldNames = getColumnNames();
-        int index = fieldNames.length + 1;
-        String userName = scheduler.App.getCurrentUser().get().getUserName();
-        PreparedStatement ps;
-        if (rowState == ROWSTATE_NEW) {
-            ps = connection.prepareStatement("INSERT INTO `" + tableName +
-                    "` (" + Arrays.stream(fieldNames).map((s) -> "`" + s + "`").reduce((p, n) -> p + ", " + n).get() +
-                    "`" + PROP_CREATEDBY + "`, `" + PROP_LASTUPDATEBY + "`, `" + PROP_CREATEDATE +
-                    "`, `" + PROP_LASTUPDATE + "`) VALUES (" +
-                    Arrays.stream(fieldNames).map((s) -> "?").reduce((p, n) -> p + ", " + n).get() +
-                    ", ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
-            setColumnValues(ps, fieldNames);
-            ps.setString(index++, userName);
-            ps.setString(index, userName);
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
-            rs.next();
-            int oldPk = primaryKey;
-            primaryKey = rs.getInt(1);
-            rowState = ROWSTATE_UNMODIFIED;
-            try {
-                DataRow.this.refreshFromDb(connection);
-            } catch (InvalidOperationException ex) {
-                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Error refreshing from database", ex);
-                throw new RuntimeException("Error refreshing from database", ex);
-            } finally {
-                try { firePropertyChange(PROP_PRIMARYKEY, oldPk, primaryKey); }
-                finally { firePropertyChange(PROP_ROWSTATE, ROWSTATE_NEW, rowState); }
-            }
-        } else {
-            ps = connection.prepareStatement("UPDATE `" + tableName +
-                    "` SET " + Arrays.stream(fieldNames).map((s) -> "`" + s + "` = ?").reduce((p, n) -> p + ", " + n).get() +
-                    ", `" + PROP_LASTUPDATEBY + "` = ?, `" + PROP_LASTUPDATE + "` = CURRENT_TIMESTAMP WHERE `" +
-                    getPrimaryKeyColName(rowClass) + "` = ?");
-            setColumnValues(ps, fieldNames);
-            ps.setString(index++, userName);
-            ps.setInt(index, primaryKey);
-            ps.executeUpdate();
-            try {
-                DataRow.this.refreshFromDb(connection);
-            } catch (InvalidOperationException ex) {
-                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Error refreshing from database", ex);
-                throw new RuntimeException("Error refreshing from database", ex);
-            }
-        }
+        fireDeferredPropertyChanges();
     }
     
     public final void delete(Connection connection) throws SQLException, InvalidOperationException {
-        Class<? extends DataRow> rowClass = getClass();
-        String tableName = getTableName(rowClass);
-        // Saving changes to database is not applicable to rows that are new or have been deleted from the database.
-        if (rowState == ROWSTATE_DELETED)
-            throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
-                    tableName));
-        if (rowState == ROWSTATE_NEW)
-            throw new InvalidOperationException(String.format("{0} row has not been added the database",
-                    tableName));
-        PreparedStatement ps = connection.prepareStatement("DELETE FROM `" + tableName + "`  WHERE `" +
-                getPrimaryKeyColName(rowClass) + "` = ?");
-        ps.setInt(1, primaryKey);
-        ps.executeUpdate();
-        byte oldRowState = rowState;
-        rowState = ROWSTATE_DELETED;
-        firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+        synchronized (syncRoot) {
+            Class<? extends DataRow> rowClass = getClass();
+            String tableName = getTableName(rowClass);
+            // Saving changes to database is not applicable to rows that are new or have been deleted from the database.
+            if (rowState == ROWSTATE_DELETED)
+                throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
+                        tableName));
+            if (rowState == ROWSTATE_NEW)
+                throw new InvalidOperationException(String.format("{0} row has not been added the database",
+                        tableName));
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM `" + tableName + "`  WHERE `" +
+                    getPrimaryKeyColName(rowClass) + "` = ?");
+            ps.setInt(1, primaryKey);
+            ps.executeUpdate();
+            try {
+                deferPropertyChangeEvent(PROP_ROWSTATE);
+            } catch (NoSuchFieldException ex) {
+                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            rowState = ROWSTATE_DELETED;
+        }
+        fireDeferredPropertyChanges();
     }
     
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,

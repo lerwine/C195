@@ -559,7 +559,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     }
     
     private static ObservableList<AppointmentRow> getByUser(Connection connection, String whereAppend, int userId) throws SQLException {
-        return selectFromDb(connection, String.format("%s WHERE `address`.`userId` = ? AND %s ORDER BY `%s`, `%s`",
+        return selectFromDb(connection, String.format("%s WHERE appointment.userId = ? AND %s ORDER BY `%s`, `%s`",
                 SQL_SELECT, whereAppend, PROP_START, PROP_END), (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
             AppointmentRow u;
             try {

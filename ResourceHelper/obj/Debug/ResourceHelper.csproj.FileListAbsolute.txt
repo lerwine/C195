@@ -1,0 +1,9 @@
+C:\Users\webmaster\source\repos\C195\ResourceHelper\bin\Debug\ResourceHelper.exe.config
+C:\Users\webmaster\source\repos\C195\ResourceHelper\bin\Debug\ResourceHelper.exe
+C:\Users\webmaster\source\repos\C195\ResourceHelper\bin\Debug\ResourceHelper.pdb
+C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.csprojAssemblyReference.cache
+C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.Form1.resources
+C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.Properties.Resources.resources
+C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.csproj.GenerateResource.cache
+C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.exe
+C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.pdb

@@ -5,26 +5,23 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import model.db.DataRow;
-import scheduler.InvalidArgumentException;
-import scheduler.Messages;
+import model.annotations.ResourceKey;
+import model.annotations.ResourceName;
 
 /**
  *
  * @author Leonard T. Erwine
  * @param <T>
  */
-public abstract class ItemControllerBase<T extends DataRow> implements Initializable {
+public abstract class ItemControllerBase<T extends DataRow> extends ControllerBase {
     private T model;
     
     public T getModel() { return model; }
     
-    public final void setModel(T model) throws InvalidArgumentException {
-        if (model == null)
-            throw new InvalidArgumentException("model");
+    protected final boolean setModel(T model) {
         this.model = model;
         DateTimeFormatter dtf = scheduler.App.getDateTimeFormatter(FormatStyle.FULL);
         createDateValue.setText(dtf.format(model.getCreateDate()));
@@ -32,7 +29,6 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
         createdByValue.setText(model.getCreatedBy());
         lastUpdateByValue.setText(model.getLastUpdateBy());
         if (model.getRowState() == DataRow.ROWSTATE_NEW) {
-            saveChangesButton.setText(Messages.current().getActiveState());
             createDateLabel.setVisible(false);
             createDateValue.setVisible(false);
             createdByLabel.setVisible(false);
@@ -41,49 +37,59 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
             lastUpdateValue.setVisible(false);
             lastUpdateByLabel.setVisible(false);
             lastUpdateByValue.setVisible(false);
-            applyModelAsNew(model);
-        } else {
-            saveChangesButton.setText(Messages.current().getSaveChanges());
-            createDateLabel.setVisible(true);
-            createDateValue.setVisible(true);
-            createdByLabel.setVisible(true);
-            createdByValue.setVisible(true);
-            lastUpdateLabel.setVisible(true);
-            lastUpdateValue.setVisible(true);
-            lastUpdateByLabel.setVisible(true);
-            lastUpdateByValue.setVisible(true);
-            applyModelAsEdit(model);
+            return false;
         }
+        createDateLabel.setVisible(true);
+        createDateValue.setVisible(true);
+        createdByLabel.setVisible(true);
+        createdByValue.setVisible(true);
+        lastUpdateLabel.setVisible(true);
+        lastUpdateValue.setVisible(true);
+        lastUpdateByLabel.setVisible(true);
+        lastUpdateByValue.setVisible(true);
+        return true;
     }
     
     @FXML
+    @ResourceName("item")
+    @ResourceKey("createdOn")
     private Label createDateLabel;
 
     @FXML
     private Label createDateValue;
 
     @FXML
+    @ResourceName("item")
+    @ResourceKey("createdBy")
     private Label createdByLabel;
 
     @FXML
     private Label createdByValue;
 
     @FXML
+    @ResourceName("item")
+    @ResourceKey("updatedOn")
     private Label lastUpdateLabel;
 
     @FXML
     private Label lastUpdateValue;
 
     @FXML
+    @ResourceName("item")
+    @ResourceKey("updatedBy")
     private Label lastUpdateByLabel;
 
     @FXML
     private Label lastUpdateByValue;
 
     @FXML
+    @ResourceName("item")
+    @ResourceKey("save")
     private Button saveChangesButton;
 
     @FXML
+    @ResourceName("item")
+    @ResourceKey("cancel")
     private Button cancelButton;
     
     /**
@@ -93,14 +99,6 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        createDateLabel.setText(Messages.current().getCreatedOn());
-        createdByLabel.setText(Messages.current().getCreatedBy());
-        lastUpdateLabel.setText(Messages.current().getUpdatedOn());
-        lastUpdateByLabel.setText(Messages.current().getUpdatedBy());
-        cancelButton.setText(Messages.current().getCancel());
+        super.initialize(url, rb);
     }
-
-    protected abstract void applyModelAsNew(T model);
-    protected abstract void applyModelAsEdit(T model);
-    
 }

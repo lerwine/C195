@@ -5,19 +5,29 @@ import java.time.LocalDateTime;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 import model.db.CustomerRow;
+import scheduler.InvalidArgumentException;
+import model.annotations.ResourceKey;
+import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class ManageCustomersController implements Initializable {
+@ResourceName(ManageCustomersController.RESOURCE_NAME)
+public class ManageCustomersController extends ControllerBase {
+    /**
+     * The name of the globalization resource bundle for this controller.
+     */
+    public static final String RESOURCE_NAME = "globalization/manageCustomers";
+
     /**
      * The path of the View associated with this controller.
      */
@@ -27,28 +37,34 @@ public class ManageCustomersController implements Initializable {
     private TableView<CustomerRow> customersTableView;
 
     @FXML
-    private TableColumn<CustomerRow, Integer> customerIdTableColumn;
-
-    @FXML
+    @ResourceKey("customerName")
     private TableColumn<CustomerRow, String> customerNameTableColumn;
 
     @FXML
+    @ResourceKey("address")
     private TableColumn<CustomerRow, Integer> addressTableColumn;
 
     @FXML
+    @ResourceKey("active")
     private TableColumn<CustomerRow, Boolean> activeTableColumn;
 
     @FXML
+    @ResourceKey("createdOn")
     private TableColumn<CustomerRow, LocalDateTime> createDateTableColumn;
 
     @FXML
+    @ResourceKey("createdBy")
     private TableColumn<CustomerRow, String> createdByTableColumn;
 
     @FXML
+    @ResourceKey("updatedOn")
     private TableColumn<CustomerRow, LocalDateTime> lastUpdateTableColumn;
 
     @FXML
+    @ResourceKey("updatedBy")
     private TableColumn<CustomerRow, String> lastUpdateByTableColumn;
+    
+    private String returnViewPath;
 
     /**
      * Initializes the controller class.
@@ -57,7 +73,7 @@ public class ManageCustomersController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        customerIdTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_PRIMARYKEY));
+        super.initialize(url, rb);
         customerNameTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_CUSTOMERNAME));
         activeTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_ACTIVE));
         addressTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_ADDRESSID));
@@ -86,6 +102,12 @@ public class ManageCustomersController implements Initializable {
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_LASTUPDATEBY));
-    }    
-    
+    }
+
+    public static void setCurrentScene(Node sourceNode, String returnViewPath) throws InvalidArgumentException {
+        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, ManageCustomersController controller) -> {
+            stage.setTitle(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale()).getString("manageCustomers"));
+            controller.returnViewPath = returnViewPath;
+        });
+    }
 }

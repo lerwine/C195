@@ -1,95 +1,132 @@
 package controller;
-import com.mysql.jdbc.Connection;
+
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 import model.db.AppointmentRow;
 import scheduler.App;
-import scheduler.Messages;
+import scheduler.InvalidArgumentException;
 import scheduler.SqlConnectionDependency;
+import model.annotations.ResourceKey;
+import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author webmaster
  */
-public class HomeScreenController implements Initializable {
+@ResourceName(HomeScreenController.RESOURCE_NAME)
+public class HomeScreenController extends ControllerBase {
+    /**
+     * The name of the globalization resource bundle for this controller.
+     */
+    public static final String RESOURCE_NAME = "globalization/homeScreen";
+
     /**
      * The path of the View associated with this controller.
      */
     public static final String VIEW_PATH = "/view/HomeScreen.fxml";
 
     @FXML
+    @ResourceKey("appointments")
     private Menu appointmentsMenu;
     
     @FXML
+    @ResourceKey("new")
     private MenuItem newAppointmentMenuItem;
 
     @FXML
+    @ResourceKey("allAppointments")
     private MenuItem allAppointmentsMenuItem;
 
     @FXML
+    @ResourceKey("customers")
     private Menu customersMenu;
     
     @FXML
+    @ResourceKey("new")
     private MenuItem newCustomerMenuItem;
 
     @FXML
+    @ResourceKey("allCustomers")
     private MenuItem allCustomersMenuItem;
 
     @FXML
+    @ResourceKey("address")
     private Menu addressMenu;
     
     @FXML
+    @ResourceKey("newCountry")
     private MenuItem newCountryMenuItem;
 
     @FXML
+    @ResourceKey("newCity")
     private MenuItem newCityMenuItem;
 
     @FXML
+    @ResourceKey("newAddress")
     private MenuItem newAddressMenuItem;
 
     @FXML
+    @ResourceKey("allCountries")
     private MenuItem allCountriesMenuItem;
 
     @FXML
+    @ResourceKey("users")
     private Menu usersMenu;
     
     @FXML
+    @ResourceKey("new")
     private MenuItem newUserMenuItem;
 
     @FXML
+    @ResourceKey("allUsers")
     private MenuItem allUsersMenuItem;
 
+    @FXML
+    @ResourceKey("loadingData")
+    private Label headingLabel;
+    
+    @FXML
     private TableView<AppointmentRow> todayAndFutureAppointmenstTableView;
     
+    @FXML
+    @ResourceKey("editAppointment")
+    private MenuItem editAppointmentMenuItem;
+
+    @FXML
+    @ResourceKey("title")
     private TableColumn<AppointmentRow, String> titleTableColumn;
     
+    @FXML
+    @ResourceKey("start")
     private TableColumn<AppointmentRow, LocalDateTime> startTableColumn;
     
+    @FXML
+    @ResourceKey("end")
     private TableColumn<AppointmentRow, LocalDateTime> endTableColumn;
     
+    @FXML
+    @ResourceKey("type")
     private TableColumn<AppointmentRow, String> typeTableColumn;
     
-    private TableColumn<AppointmentRow, Integer> customerTableColumn;
-    
-    private ObservableList<AppointmentRow> currentUserAppointments;
+    @FXML
+    @ResourceKey("customer")
+    private TableColumn<AppointmentRow, model.Customer> customerTableColumn;
     
     /**
      * Initializes the controller class.
@@ -97,123 +134,128 @@ public class HomeScreenController implements Initializable {
      * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        Messages messages = Messages.current();
-        appointmentsMenu.setText(messages.getAppointments());
-        newAppointmentMenuItem.setText(messages.getNew());
-        allAppointmentsMenuItem.setText(messages.getAllAppointments());
-        customersMenu.setText(messages.getCustomers());
-        newCustomerMenuItem.setText(messages.getNew());
-        allCustomersMenuItem.setText(messages.getAllCustomers());
-        addressMenu.setText(messages.getAddress());
-        newCountryMenuItem.setText(messages.getNewCountry());
-        newCityMenuItem.setText(messages.getNewCity());
-        newAddressMenuItem.setText(messages.getNewAddress());
-        allCountriesMenuItem.setText(messages.getAllCountries());
-        usersMenu.setText(messages.getUsers());
-        newUserMenuItem.setText(messages.getNew());
-        allUsersMenuItem.setText(messages.getAllUsers());
-        titleTableColumn.setText(messages.getTitle());
-        startTableColumn.setText(messages.getStart());
-        endTableColumn.setText(messages.getEnd());
-        typeTableColumn.setText(messages.getType());
-        customerTableColumn.setText(messages.getCustomer());
-        titleTableColumn.setCellValueFactory(new PropertyValueFactory<>(AppointmentRow.PROP_TITLE));
-        startTableColumn.setCellValueFactory(new PropertyValueFactory<>(AppointmentRow.PROP_START));
-        startTableColumn.setCellFactory(col -> new TableCell<AppointmentRow, LocalDateTime>() {
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty)
-                    setText(null);
-                else
-                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
-            }
-        });
-        endTableColumn.setCellValueFactory(new PropertyValueFactory<>(AppointmentRow.PROP_END));
-        endTableColumn.setCellFactory(col -> new TableCell<AppointmentRow, LocalDateTime>() {
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty)
-                    setText(null);
-                else
-                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
-            }
-        });
-        typeTableColumn.setCellValueFactory(new PropertyValueFactory<>(AppointmentRow.PROP_TYPE));
-        customerTableColumn.setCellValueFactory(new PropertyValueFactory<>(AppointmentRow.PROP_CUSTOMERID));
-        customerTableColumn.setCellFactory(col -> new TableCell<AppointmentRow, Integer>() {
-            @Override
-            protected void updateItem(Integer item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty)
-                    setText(null);
-                else
-                    throw new RuntimeException("Get customer name from ID");
-            }
-        });
-        currentUserAppointments = SqlConnectionDependency.get((Connection connection) -> {
+    public void initialize(URL url, ResourceBundle rb) { super.initialize(url, rb); }    
+    
+    /**
+     * 
+     * @param sourceNode
+     */
+    public static void setCurrentScene(Node sourceNode) {
+        App.changeScene(sourceNode, VIEW_PATH, (Stage stage, HomeScreenController controller) -> {
+            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+            stage.setTitle(rb.getString("appointmentScheduler"));
+            // Get current and future appointments for current user
+            ObservableList<AppointmentRow> items;
             try {
-                return AppointmentRow.getTodayAndFutureByUser(connection, App.getCurrentUser().get().getPrimaryKey());
+                // Open a new database connection dependency and close it when finished loading data.
+                SqlConnectionDependency dep = new SqlConnectionDependency(true);
+                try {
+                    items = AppointmentRow.getTodayAndFutureByUser(dep.getconnection(),
+                            App.getCurrentUser().get().getPrimaryKey());
+                } finally { dep.close(); }
             } catch (SQLException ex) {
+                // Set heading text to "Database access error", log error and exit
+                controller.headingLabel.setText(rb.getString("appointmentScheduler"));
                 Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             }
+            // Set table view items
+            controller.todayAndFutureAppointmenstTableView.setItems(items);
+            // Set heading text to "My Current and Upcoming Appointments"
+            controller.headingLabel.setText(rb.getString("myCurrentAndUpcoming"));
+            // Make table view visible and initialize columns
+            controller.todayAndFutureAppointmenstTableView.setVisible(true);
         });
-    }    
+    }
     
     @FXML
     void newAppointmentMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
-            controller.applyModel(scheduler.App.getCurrentUser().get());
-        });
+        try {
+            EditAppointmentController.setCurrentScene((Node)event.getSource(), new AppointmentRow(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void allAppointmentsMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), UserAppointmentsController.VIEW_PATH, (UserAppointmentsController controller) -> {
-            controller.applyModel(scheduler.App.getCurrentUser().get());
-        });
+        try {
+            ManageAppointmentsController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void newCustomerMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
+        try {
+            EditCustomerController.setCurrentScene((Node)event.getSource(), new model.db.CustomerRow(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void allCustomersMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageCustomersController.VIEW_PATH);
+        try {
+            ManageCustomersController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void newCountryMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        try {
+            EditCountryController.setCurrentScene((Node)event.getSource(), new model.db.CountryRow(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void newCityMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        try {
+            EditCityController.setCurrentScene((Node)event.getSource(), new model.db.CityRow(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void newAddressMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        try {
+            EditAddressController.setCurrentScene((Node)event.getSource(), new model.db.AddressRow(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void allCountriesMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageCountriesController.VIEW_PATH);
+        try {
+            ManageCountriesController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void newUserMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
+        try {
+            EditUserController.setCurrentScene((Node)event.getSource(), new model.db.UserRow(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     void allUsersMenuItemClick(ActionEvent event) {
-        scheduler.App.changeScene((Node)event.getSource(), ManageUsersController.VIEW_PATH);
+        try {
+            ManageUsersController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+        } catch (InvalidArgumentException ex) {
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML

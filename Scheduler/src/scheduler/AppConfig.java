@@ -3,6 +3,8 @@ package scheduler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -21,7 +23,8 @@ public class AppConfig {
         // Loading properties file from the classpath
         InputStream iStream = AppConfig.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE_APPCONFIG);
         if(iStream == null) {
-            Messages.current().notifyPropertyLoadError(PROPERTIES_FILE_APPCONFIG);
+            Logger.getLogger(AppConfig.class.getName()).log(Level.WARNING,
+                    App.getAppResourceBundle().getString("fileNotFound"), PROPERTIES_FILE_APPCONFIG);
             throw new InternalException(String.format("File \"{0}\" not found.", PROPERTIES_FILE_APPCONFIG));
         }
         try { properties.load(iStream); }

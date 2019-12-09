@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.cell.*?>
+<?import controller.factory.DateTimeTableCellFactory?>
+<?import controller.factory.CustomerNameTableCellFactory?>
+<?import controller.factory.UserNameTableCellFactory?>
+
+<VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" 
+    xmlns="http://javafx.com/javafx/8.0.171" 
+    xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ManageAppointmentsController">
+    <children>
+        <TableView fx:id="listingTableView" visible="false" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="titleTableColumn" editable="false" text="Title">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="title" />
+                  </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="startTableColumn" editable="false" text="Start">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="start" />
+                  </cellValueFactory>
+                  <cellFactory>
+                      <DateTimeTableCellFactory />
+                  </cellFactory>
+                </TableColumn>
+                <TableColumn fx:id="endTableColumn" editable="false" text="End">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="end" />
+                  </cellValueFactory>
+                  <cellFactory>
+                      <DateTimeTableCellFactory />
+                  </cellFactory>
+                </TableColumn>
+                <TableColumn fx:id="typeTableColumn" editable="false" text="Type">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="type" />
+                  </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="customerTableColumn" editable="false" text="Customer">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="customer" />
+                  </cellValueFactory>
+                  <cellFactory>
+                      <CustomerNameTableCellFactory />
+                  </cellFactory>
+                </TableColumn>
+                <TableColumn fx:id="userTableColumn" editable="false" text="User">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="user" />
+                  </cellValueFactory>
+                  <cellFactory>
+                      <UserNameTableCellFactory />
+                  </cellFactory>
+                </TableColumn>
+            </columns>
+        </TableView>
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="newButton" mnemonicParsing="false" text="New" />
+                <Button fx:id="doneButton" mnemonicParsing="false" text="Done" />
+            </buttons>
+            <padding>
+                <Insets bottom="8.0" right="8.0" />
+            </padding>
+        </ButtonBar>
+    </children>
+</VBox>
