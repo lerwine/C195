@@ -2,6 +2,7 @@ package controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -76,5 +77,15 @@ public class EditCityController extends ItemControllerBase<CityRow> {
                 stage.setTitle(rb.getString("addNewCity"));
             }
         });
+    }
+
+    @Override
+    void saveChangesClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    void cancelClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -218,6 +218,18 @@ public class CustomerRow extends DataRow implements model.Customer {
         });
     }
     
+    public static final ObservableList<CustomerRow> getActive(Connection connection) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT + " WHERE active = true", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
+            CustomerRow u;
+            try {
+                u = new CustomerRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(CustomerRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing CustomerRow object from result set.");
+            }
+            return u;
+        });
+    }
     
     public static final ObservableList<CustomerRow> getByAddress(Connection connection, int addressId) throws SQLException {
         return selectFromDb(connection, SQL_SELECT + " WHERE addressId = ?", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
@@ -238,7 +250,6 @@ public class CustomerRow extends DataRow implements model.Customer {
             }
         });
     }
-    
     
     @Override
     protected String[] getColumnNames() {

@@ -26,7 +26,6 @@ import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
- *
  * @author webmaster
  */
 @ResourceName(HomeScreenController.RESOURCE_NAME)
@@ -159,10 +158,13 @@ public class HomeScreenController extends ControllerBase {
                 Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }
+            
             // Set table view items
             controller.todayAndFutureAppointmenstTableView.setItems(items);
+            
             // Set heading text to "My Current and Upcoming Appointments"
             controller.headingLabel.setText(rb.getString("myCurrentAndUpcoming"));
+            
             // Make table view visible and initialize columns
             controller.todayAndFutureAppointmenstTableView.setVisible(true);
         });

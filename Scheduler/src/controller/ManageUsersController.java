@@ -1,10 +1,16 @@
 package controller;
 
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ResourceBundle;
+import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.stage.Stage;
+import model.annotations.ResourceKey;
 import model.annotations.ResourceName;
+import model.db.UserRow;
 import scheduler.InvalidArgumentException;
 
 /**
@@ -23,6 +29,33 @@ public class ManageUsersController extends ControllerBase {
      * The path of the View associated with this controller.
      */
     public static final String VIEW_PATH = "/view/ManageUsers.fxml";
+    
+    @FXML
+    private TableView<UserRow> usersTableView;
+
+    @FXML
+    @ResourceKey("userName")
+    private TableColumn<UserRow, String> userNameTableColumn;
+
+    @FXML
+    @ResourceKey("status")
+    private TableColumn<UserRow, Short> statusTableColumn;
+
+    @FXML
+    @ResourceKey("createdOn")
+    private TableColumn<UserRow, LocalDateTime> createDateTableColumn;
+
+    @FXML
+    @ResourceKey("createdBy")
+    private TableColumn<UserRow, String> createdByTableColumn;
+
+    @FXML
+    @ResourceKey("updatedOn")
+    private TableColumn<UserRow, LocalDateTime> lastUpdateTableColumn;
+
+    @FXML
+    @ResourceKey("updatedBy")
+    private TableColumn<UserRow, String> lastUpdateByTableColumn;
     
     private String returnViewPath;
 

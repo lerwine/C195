@@ -2,6 +2,7 @@ package controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -95,5 +96,15 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
                 stage.setTitle(rb.getString("addNewCustomer"));
             }
         });
+    }
+
+    @Override
+    void saveChangesClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    void cancelClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

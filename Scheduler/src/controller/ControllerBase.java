@@ -14,6 +14,7 @@ import javafx.scene.control.TableColumnBase;
 import model.annotations.ResourceKey;
 import model.annotations.ResourceName;
 import scheduler.App;
+import model.annotations.ResourceFormatArgs;
 
 /**
  *
@@ -35,6 +36,7 @@ public abstract class ControllerBase implements Initializable {
                 Logger.getLogger(getClass().getName()).log(Level.WARNING, "Resource name annotation is empty");
             else {
                 Class<ResourceKey> resourceKeyClass = ResourceKey.class;
+                Class<ResourceFormatArgs> resourceFormatClass = ResourceFormatArgs.class;
                 final ResourceBundle defaultBundle = ResourceBundle.getBundle(resourceName, App.getCurrentLocale());
                 
                 String bc = ControllerBase.class.getName();
@@ -72,6 +74,17 @@ public abstract class ControllerBase implements Initializable {
                                     Logger.getLogger(getClass().getName()).log(Level.WARNING, "Field \"%s\" is null", field.getName());
                                 else {
                                     String text = currentBundle.getString(key);
+                                    if (field.isAnnotationPresent(resourceFormatClass)) {
+                                        String[] args = ((ResourceFormatArgs)field.getAnnotation(resourceFormatClass)).value();
+                                        if (args != null && args.length > 0) {
+                                            Object[] a = new Object[args.length];
+                                            for (int i = 0; i < args.length; i++) {
+                                                if (currentBundle.containsKey(args[i]))
+                                                    a[i] = currentBundle.getString(args[i]);
+                                            }
+                                            text = String.format(text, a);
+                                        }
+                                    }
                                     if (value instanceof Labeled)
                                         ((Labeled)value).setText(text);
                                     else if (value instanceof MenuItem)

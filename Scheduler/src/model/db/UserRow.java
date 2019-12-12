@@ -192,7 +192,7 @@ public class UserRow extends DataRow implements model.User {
         });
     }
     
-    public static final ObservableList<UserRow> getActive(Connection connection, String userName) throws SQLException {
+    public static final ObservableList<UserRow> getActive(Connection connection) throws SQLException {
         return selectFromDb(connection, SQL_SELECT + " WHERE `user`.`" + PROP_ACTIVE + "` > ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
             UserRow u;
             try {

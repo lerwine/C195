@@ -383,11 +383,20 @@ public abstract class DataRow implements model.Record {
     }
     
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
+            Function<ResultSet, R> create) throws SQLException {
+        ObservableList<R> result = FXCollections.observableArrayList();
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next())
+            result.add(create.apply(rs));
+        return result;
+    }
+    
+    protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
             Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
         PreparedStatement ps = connection.prepareStatement(sql);
-        if (setValues != null)
-            setValues.accept(ps);
+        setValues.accept(ps);
         ResultSet rs = ps.executeQuery();
         while (rs.next())
             result.add(create.apply(rs));
@@ -397,8 +406,16 @@ public abstract class DataRow implements model.Record {
     public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
             Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(sql);
-        if (setValues != null)
-            setValues.accept(ps);
+        setValues.accept(ps);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next())
+            return Optional.of(create.apply(rs));
+        return Optional.empty();
+    }
+    
+    public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
+            Function<ResultSet, R> create) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         if (rs.next())
             return Optional.of(create.apply(rs));

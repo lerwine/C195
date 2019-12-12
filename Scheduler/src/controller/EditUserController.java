@@ -234,4 +234,14 @@ public class EditUserController extends ItemControllerBase<UserRow> {
             controller.validateUserName();
         });
     }
+
+    @Override
+    void saveChangesClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    void cancelClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

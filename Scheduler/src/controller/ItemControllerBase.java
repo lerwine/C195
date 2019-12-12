@@ -4,6 +4,7 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -29,7 +30,7 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
         createdByValue.setText(model.getCreatedBy());
         lastUpdateByValue.setText(model.getLastUpdateBy());
         if (model.getRowState() == DataRow.ROWSTATE_NEW) {
-            createDateLabel.setVisible(false);
+            createdLabel.setVisible(false);
             createDateValue.setVisible(false);
             createdByLabel.setVisible(false);
             createdByValue.setVisible(false);
@@ -39,7 +40,7 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
             lastUpdateByValue.setVisible(false);
             return false;
         }
-        createDateLabel.setVisible(true);
+        createdLabel.setVisible(true);
         createDateValue.setVisible(true);
         createdByLabel.setVisible(true);
         createdByValue.setVisible(true);
@@ -52,15 +53,15 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
     
     @FXML
     @ResourceName("item")
-    @ResourceKey("createdOn")
-    private Label createDateLabel;
+    @ResourceKey("created")
+    private Label createdLabel;
 
     @FXML
     private Label createDateValue;
 
     @FXML
     @ResourceName("item")
-    @ResourceKey("createdBy")
+    @ResourceKey("by")
     private Label createdByLabel;
 
     @FXML
@@ -68,7 +69,7 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
 
     @FXML
     @ResourceName("item")
-    @ResourceKey("updatedOn")
+    @ResourceKey("updated")
     private Label lastUpdateLabel;
 
     @FXML
@@ -76,7 +77,7 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
 
     @FXML
     @ResourceName("item")
-    @ResourceKey("updatedBy")
+    @ResourceKey("by")
     private Label lastUpdateByLabel;
 
     @FXML
@@ -101,4 +102,8 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
     }
+    
+    abstract void saveChangesClick(ActionEvent event);
+    
+    abstract void cancelClick(ActionEvent event);
 }
