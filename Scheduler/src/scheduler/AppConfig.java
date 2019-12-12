@@ -25,7 +25,7 @@ public class AppConfig {
         if(iStream == null) {
             Logger.getLogger(AppConfig.class.getName()).log(Level.WARNING,
                     App.getAppResourceBundle().getString("fileNotFound"), PROPERTIES_FILE_APPCONFIG);
-            throw new InternalException(String.format("File \"{0}\" not found.", PROPERTIES_FILE_APPCONFIG));
+            throw new InternalException(String.format("File \"%s\" not found.", PROPERTIES_FILE_APPCONFIG));
         }
         try { properties.load(iStream); }
         finally { iStream.close(); }
