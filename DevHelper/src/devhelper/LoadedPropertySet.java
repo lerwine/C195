@@ -7,9 +7,13 @@ package devhelper;
 
 import com.sun.javaws.exceptions.InvalidArgumentException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -29,38 +33,45 @@ import javafx.util.Pair;
  * @author Leonard T. Erwine
  */
 public class LoadedPropertySet extends Properties {
-    private static final Pattern PATTERN_BASE_AND_LANG = Pattern.compile("^([^\\\\\\._]+)_([^\\.]+((?=\\.+.[^\\.]+\\.)\\.+[^\\.]+)*)\\.properties",
-            Pattern.CASE_INSENSITIVE);
-    
+    private static final Pattern PATTERN_BASE_AND_LANG = Pattern.compile(
+            "^([^\\\\\\._]+)_([^\\.]+((?=\\.+.[^\\.]+\\.)\\.+[^\\.]+)*)\\.properties", Pattern.CASE_INSENSITIVE);
+
     private static final Pattern PATTERN_IMPORT = Pattern.compile("\\\\((?=\\r)\\r\\n?|.)|\\r\\n?|\\n");
-    
+
     private final Optional<Locale> locale;
     private final File source;
     private final String baseName;
-    
-    public Optional<Locale> getLocale() { return locale; }
-    
-    public File getSource() { return source; }
-    
-    public String getBaseName() { return baseName; }
-    
+
+    public Optional<Locale> getLocale() {
+        return locale;
+    }
+
+    public File getSource() {
+        return source;
+    }
+
+    public String getBaseName() {
+        return baseName;
+    }
+
     public static Pair<String, String> getBaseAndLang(String name) {
         Matcher m = PATTERN_BASE_AND_LANG.matcher(name);
         if (!m.matches())
             return new Pair<>(name, null);
         return new Pair<>(m.group(1), m.group(2));
     }
-    
+
     public static FilenameFilter getPropertiesFileFilter(String baseName) {
         if (baseName == null || baseName.isEmpty())
             return (File dir, String name) -> {
                 int ext = name.lastIndexOf('.');
-                return ext > 0 && ext == name.length() - 11 && name.substring(ext + 1).toLowerCase().equals("properties");
+                return ext > 0 && ext == name.length() - 11
+                        && name.substring(ext + 1).toLowerCase().equals("properties");
             };
-        
+
         return getPropertiesFileFilter(baseName, false);
     }
-    
+
     public static FilenameFilter getPropertiesFileFilter(String baseName, boolean caseSensitive) {
         if (caseSensitive)
             return (File dir, String name) -> {
@@ -78,20 +89,20 @@ public class LoadedPropertySet extends Properties {
             return m.matches() && m.group(1).toLowerCase().equals(baseName);
         };
     }
-    
+
     public Stream<String> getStringPropertyKeys() {
         Stream.Builder<String> builder = Stream.builder();
         Enumeration<Object> e = keys();
         while (e.hasMoreElements()) {
             Object k = e.nextElement();
             if (k instanceof String && get(k) instanceof String)
-                builder.accept((String)k);
+                builder.accept((String) k);
         }
         return builder.build();
     }
-    
+
     public String exportValues() {
-        return getStringPropertyKeys().map((String k) -> (String)get(k)).reduce(null, (String t, String u) -> {
+        return getStringPropertyKeys().map((String k) -> (String) get(k)).reduce(null, (String t, String u) -> {
             if (u.isEmpty())
                 return (t == null) ? "" : t + "\n";
             String[] lines = u.split("\\r\\n?|\\n");
@@ -109,7 +120,7 @@ public class LoadedPropertySet extends Properties {
             return t + "\n" + ((e == 0) ? a[0] : String.join("\r\n", lines));
         });
     }
-    
+
     public void ImportValues(Stream<String> keys, String source) {
         if (source == null) {
             long expected;
@@ -117,9 +128,9 @@ public class LoadedPropertySet extends Properties {
                 throw new IllegalArgumentException(String.format("Expected %d values; actual: 0", expected));
             return;
         }
-        
+
         Iterator<String> iterator;
-        int index = 0;
+        int lineNumber = 1;
         Matcher m;
         String k;
         if (source.isEmpty() || !(m = PATTERN_IMPORT.matcher(source)).matches()) {
@@ -127,18 +138,65 @@ public class LoadedPropertySet extends Properties {
                 throw new IllegalArgumentException("Expected 0 values; actual: 1");
             k = iterator.next();
             while (iterator.hasNext()) {
-                index++;
+                lineNumber++;
                 iterator.next();
             }
-            
-            if (index != 0)
-                throw new IllegalArgumentException(String.format("Expected %d values; actual: 1", index + 1));
+
+            if (lineNumber != 1)
+                throw new IllegalArgumentException(String.format("Expected %d values; actual: 1", lineNumber));
             put(k, source);
             return;
         }
-        
-        HashMap<String, String> map = new HashMap<>();
+
+        ArrayList<String> values = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
+
+        do {
+            int e = m.start();
+            if (e > 0)
+                sb.append(source.substring(0, e));
+            String v = m.group(1);
+            if (v == null) {
+                values.add(sb.toString());
+                sb = new StringBuilder();
+            } else
+                sb = sb.append(v);
+            int index = m.end();
+            if (index == source.length()) {
+                source = "";
+                break;
+            }
+            source = source.substring(index);
+        } while ((m = PATTERN_IMPORT.matcher(source)).matches());
+        if (source.length() > 0)
+            sb.append(source);
+        values.add(sb.toString());
+        if (keys == null || !(iterator = keys.iterator()).hasNext())
+            throw new IllegalArgumentException(String.format("Expected 0 values; actual: %d", values.size()));
+        HashMap<String, String> map = new HashMap<>();
+        map.put(iterator.next(), values.get(0));
+        while (iterator.hasNext()) {
+            if (lineNumber == values.size()) {
+                do {
+                    iterator.next();
+                    lineNumber++;
+                } while (iterator.hasNext());
+                throw new IllegalArgumentException(
+                        String.format("Expected %d values; actual: %d", values.size(), lineNumber));
+            }
+            map.put(iterator.next(), values.get(lineNumber++));
+        }
+        if (lineNumber < values.size())
+            throw new IllegalArgumentException(
+                    String.format("Expected %d values; actual: %d", values.size(), lineNumber));
+        for (String o : map.keySet())
+            put(o, map.get(o));
+    }
+
+    public void store() throws IOException {
+        OutputStream stream = new java.io.FileOutputStream(source);
+        try { store(stream, null); }
+        finally { stream.close(); }
     }
     
     public LoadedPropertySet(File directory, String baseName, Locale locale) throws IOException {
@@ -158,12 +216,7 @@ public class LoadedPropertySet extends Properties {
         if (!source.exists())
             return;
         
-        // Loading properties file from the classpath
-        InputStream iStream = getClass().getClassLoader().getResourceAsStream(source.getAbsolutePath());
-        if(iStream == null) {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error loading %s", source);
-            throw new IllegalArgumentException(String.format("File \"%s\" not loaded.", source));
-        }
+        InputStream iStream = new java.io.FileInputStream(source);
         try { load(iStream); }
         finally { iStream.close(); }
     }
