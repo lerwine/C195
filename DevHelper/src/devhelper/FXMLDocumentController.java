@@ -7,6 +7,7 @@ package devhelper;
 
 import java.io.File;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -19,8 +20,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.StageStyle;
 
@@ -32,7 +38,40 @@ public class FXMLDocumentController implements Initializable {
     private static final Pattern PATTERN_BACKSLASH = Pattern.compile("\\\\");
     
     @FXML
-    private Label label;
+    private TableView<LoadedPropertySet> propertySetsTableView;
+
+    @FXML
+    private TableColumn<LoadedPropertySet, String> languageTableColumn;
+
+    @FXML
+    private TableColumn<LoadedPropertySet, LocalDateTime> updatedTableColumn;
+
+    @FXML
+    private TableColumn<LoadedPropertySet, String> missingKeysTableColumn;
+
+    @FXML
+    private TableView<LoadedPropertySet> currentPropertySetTableView;
+
+    @FXML
+    private TableColumn<LoadedPropertySet, String> keyTableColumn;
+
+    @FXML
+    private TableColumn<LoadedPropertySet, String> valueTableColumn;
+
+    @FXML
+    private TextField keyTextField;
+    
+    @FXML
+    private Label errorMessageLabel;
+    
+    @FXML
+    private TextArea valueTextArea;
+
+    @FXML
+    private Button deletePropertySetButton;
+    
+    @FXML
+    private Button deletePropertyButton;
     
     private ObservableList<LoadedPropertySet> allPropertySets;
     private LoadedPropertySet targetPropertySet;
@@ -41,9 +80,35 @@ public class FXMLDocumentController implements Initializable {
     }
     
     @FXML
-    private void handleButtonAction(ActionEvent event) {
-        System.out.println("You clicked me!");
-        label.setText("Hello World!");
+    private void translateButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void addPropertySetButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void deletePropertySetButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void saveButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void openButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void newButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void addPropertyButtonAction(ActionEvent event) {
+    }
+    
+    @FXML
+    private void deletePropertyButtonAction(ActionEvent event) {
     }
     
     private static ArrayList<LoadedPropertySet> getBundleMatches(LoadedPropertySet target, boolean caseSensitive) throws Exception {

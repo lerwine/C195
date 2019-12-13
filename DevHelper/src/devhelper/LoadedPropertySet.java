@@ -5,17 +5,12 @@
  */
 package devhelper;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -90,19 +85,25 @@ public class LoadedPropertySet extends Properties {
         };
     }
 
-    public Stream<String> getStringPropertyKeys() {
-        Stream.Builder<String> builder = Stream.builder();
-        Enumeration<Object> e = keys();
-        while (e.hasMoreElements()) {
-            Object k = e.nextElement();
-            if (k instanceof String && get(k) instanceof String)
-                builder.accept((String) k);
-        }
-        return builder.build();
+    /*public Stream<String> getStringPropertyKeys() {
+    Stream.Builder<String> builder = Stream.builder();
+    Enumeration<Object> e = keys();
+    while (e.hasMoreElements()) {
+    Object k = e.nextElement();
+    if (k instanceof String && get(k) instanceof String)
+    builder.accept((String) k);
     }
+    return builder.build();
+    }*/
 
+    public Stream<PropertyModel> getStringProperties() {
+        return stringPropertyNames().stream().map((String k) -> new Pair<>(k, get(k)))
+                .filter((Pair<String, Object> p) -> p.getValue() == null || p.getValue() instanceof String)
+                .map((Pair<String, Object> p) -> new PropertyModel(p.getKey(), (String)p.getValue()));
+    }
+    
     public String exportValues() {
-        return getStringPropertyKeys().map((String k) -> (String) get(k)).reduce(null, (String t, String u) -> {
+        return stringPropertyNames().stream().map((String k) -> (String) get(k)).reduce(null, (String t, String u) -> {
             if (u.isEmpty())
                 return (t == null) ? "" : t + "\n";
             String[] lines = u.split("\\r\\n?|\\n");
@@ -181,16 +182,16 @@ public class LoadedPropertySet extends Properties {
                     iterator.next();
                     lineNumber++;
                 } while (iterator.hasNext());
-                throw new IllegalArgumentException(
-                        String.format("Expected %d values; actual: %d", values.size(), lineNumber));
+                throw new IllegalArgumentException(String.format("Expected %d values; actual: %d", values.size(), lineNumber));
             }
             map.put(iterator.next(), values.get(lineNumber++));
         }
         if (lineNumber < values.size())
             throw new IllegalArgumentException(
                     String.format("Expected %d values; actual: %d", values.size(), lineNumber));
-        for (String o : map.keySet())
+        map.keySet().forEach((String o) -> {
             put(o, map.get(o));
+        });
     }
 
     public void store() throws IOException {
