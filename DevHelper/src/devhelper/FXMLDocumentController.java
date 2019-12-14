@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -38,25 +39,31 @@ public class FXMLDocumentController implements Initializable {
     private static final Pattern PATTERN_BACKSLASH = Pattern.compile("\\\\");
     
     @FXML
-    private TableView<LoadedPropertySet> propertySetsTableView;
+    private TableView<PropertiesFile> propertySetsTableView;
 
     @FXML
-    private TableColumn<LoadedPropertySet, String> languageTableColumn;
+    private TableColumn<PropertiesFile, String> languageTableColumn;
 
     @FXML
-    private TableColumn<LoadedPropertySet, LocalDateTime> updatedTableColumn;
+    private TableColumn<PropertiesFile, LocalDateTime> updatedTableColumn;
 
     @FXML
-    private TableColumn<LoadedPropertySet, String> missingKeysTableColumn;
+    private TableColumn<PropertiesFile, String> missingKeysTableColumn;
 
     @FXML
-    private TableView<LoadedPropertySet> currentPropertySetTableView;
+    private TableColumn<PropertyModel, String> validationMessageTableColumn;
 
     @FXML
-    private TableColumn<LoadedPropertySet, String> keyTableColumn;
+    private TableView<PropertyModel> currentPropertySetTableView;
 
     @FXML
-    private TableColumn<LoadedPropertySet, String> valueTableColumn;
+    private TableColumn<PropertyModel, String> keyTableColumn;
+
+    @FXML
+    private TableColumn<PropertyModel, String> valueTableColumn;
+
+    @FXML
+    private TableColumn<PropertyModel, String> currentSetValidationMessageTableColumn;
 
     @FXML
     private TextField keyTextField;
@@ -67,16 +74,25 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private TextArea valueTextArea;
 
+    
+    @FXML
+    private Button addPropertySetButton;
+    
     @FXML
     private Button deletePropertySetButton;
     
     @FXML
     private Button deletePropertyButton;
     
-    private ObservableList<LoadedPropertySet> allPropertySets;
-    private LoadedPropertySet targetPropertySet;
+    private final ObservableList<PropertiesFile> allPropertySets = FXCollections.observableArrayList();
+    private final ObservableList<PropertyModel> currentSetProperties = FXCollections.observableArrayList();;
+    private PropertiesFile targetPropertySet;
     
     public FXMLDocumentController() {
+    }
+    
+    @FXML
+    private void keyTextFieldAction(ActionEvent event) {
     }
     
     @FXML
@@ -97,6 +113,7 @@ public class FXMLDocumentController implements Initializable {
     
     @FXML
     private void openButtonAction(ActionEvent event) {
+        
     }
     
     @FXML
@@ -111,7 +128,7 @@ public class FXMLDocumentController implements Initializable {
     private void deletePropertyButtonAction(ActionEvent event) {
     }
     
-    private static ArrayList<LoadedPropertySet> getBundleMatches(LoadedPropertySet target, boolean caseSensitive) throws Exception {
+    private static ArrayList<PropertiesFile> getBundleMatches(PropertiesFile target, boolean caseSensitive) throws Exception {
         if (!target.getLocale().isPresent())
             return new ArrayList<>();
         File file = target.getSource();
@@ -122,16 +139,17 @@ public class FXMLDocumentController implements Initializable {
         } else if ((path = (new File(path)).getParent()) == null || !(file = new File(path)).exists())
             return new ArrayList<>();
         
-        ArrayList<LoadedPropertySet> result = new ArrayList<>();
-        File[] files = file.listFiles(LoadedPropertySet.getPropertiesFileFilter(target.getBaseName(), caseSensitive));
+        ArrayList<PropertiesFile> result = new ArrayList<>();
+        File[] files = file.listFiles(PropertiesFile.getPropertiesFileFilter(target.getBaseName(), caseSensitive));
         if (files == null || files.length == 0) {
             result.add(target);
             return result;
         }
         final String fileName = target.getSource().getName();
-        final String baseName = target.getBaseName();
-        for (int i = 0; i < files.length; i++)
-            result.add((fileName.equals(files[i].getName())) ? target : new LoadedPropertySet(files[i]));
+        Set<String> expectedKeys = target.getProperties().stringPropertyNames();
+        for (File f : files)
+            result.add((fileName.equals(f.getName())) ? target : PropertiesFile.load(f, expectedKeys, false));
+        
         for (int i = 0; i < result.size(); i++) {
             if (result.get(i).getSource().getName().equals(fileName)){
                 result.set(i, target);
@@ -158,30 +176,37 @@ public class FXMLDocumentController implements Initializable {
             return false;
         }
         
-        LoadedPropertySet newPropertySet;
+        PropertiesFile newPropertySet;
         try {
-            newPropertySet = new LoadedPropertySet(file);
+            newPropertySet = PropertiesFile.load(file, null, false);
         } catch (Exception ex) {
             Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-        if (newPropertySet.getLocale().isPresent()) {
+        if (!allPropertySets.isEmpty())
+            allPropertySets.clear();
+        if (!currentSetProperties.isEmpty())
+            currentSetProperties.clear();
+        if (!newPropertySet.isCritical() && newPropertySet.getLocale().isPresent()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "File name matches a resource bundle pattern\nLoad as a resource bundle?", ButtonType.YES, ButtonType.NO);
             alert.initStyle(StageStyle.UTILITY);
             alert.setTitle("Resource type");
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.YES) {
-                ArrayList<LoadedPropertySet> lps = getBundleMatches(newPropertySet, false);
-                allPropertySets = FXCollections.observableArrayList((lps == null) ? new ArrayList<>() : lps);
-                targetPropertySet = newPropertySet;
-                if (allPropertySets.isEmpty())
+                ArrayList<PropertiesFile> lps = getBundleMatches(newPropertySet, false);
+                if (lps == null || lps.isEmpty())
                     allPropertySets.add(newPropertySet);
+                else
+                    allPropertySets.addAll(lps);
+                targetPropertySet = newPropertySet;
+                onBundleLoaded();
                 return true;
             }
         }
         
+        allPropertySets.add(newPropertySet);
         targetPropertySet = newPropertySet;
-        allPropertySets = FXCollections.observableArrayList();
+        onBundleLoaded();
         return true;
     }
     
@@ -190,12 +215,16 @@ public class FXMLDocumentController implements Initializable {
         try {
             if (!openBundle()) {
                 DevHelper.getInstance().getPrimaryStage().close();
-                return;
             }
         } catch (Exception ex) {
             Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
             DevHelper.getInstance().getPrimaryStage().close();
-            return;
+        }
+    }
+
+    private void onBundleLoaded() {
+        if (targetPropertySet.getLocale().isPresent()) {
+            addPropertySetButton.setVisible(true);
         }
     }
 }

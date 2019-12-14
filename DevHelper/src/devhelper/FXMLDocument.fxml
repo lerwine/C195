@@ -14,16 +14,15 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-
 <SplitPane dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
   <items>
       <VBox>
          <children>
             <TableView fx:id="propertySetsTableView">
               <columns>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="Language" />
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="100.0" text="Last Updated" />
-                  <TableColumn maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Missing Keys" />
+                <TableColumn fx:id="languageTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="Language" />
+                <TableColumn fx:id="updatedTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="100.0" text="Last Updated" />
+                  <TableColumn fx:id="missingKeysTableColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Missing Keys" />
               </columns>
             </TableView>
             <ButtonBar prefHeight="40.0" prefWidth="200.0">
@@ -42,8 +41,8 @@
         <items>
             <TableView fx:id="currentPropertySetTableView">
               <columns>
-                <TableColumn editable="false" prefWidth="75.0" text="Key" />
-                <TableColumn editable="false" prefWidth="75.0" text="Value" />
+                <TableColumn fx:id="keyTableColumn" editable="false" prefWidth="75.0" text="Key" />
+                <TableColumn fx:id="valueTableColumn" editable="false" prefWidth="75.0" text="Value" />
               </columns>
             </TableView>
             <VBox>
@@ -64,7 +63,12 @@
                      </padding>
                      <children>
                         <Label text="Key:" />
-                        <TextField fx:id="keyTextField" GridPane.columnIndex="1" />
+                        <TextField fx:id="keyTextField" onAction="#keyTextFieldAction" GridPane.columnIndex="1" />
+                        <Label fx:id="errorMessageLabel" text="Key cannot be empty." textFill="RED" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <GridPane.margin>
+                              <Insets />
+                           </GridPane.margin>
+                        </Label>
                         <Label text="Value:" GridPane.rowIndex="2">
                            <GridPane.margin>
                               <Insets top="8.0" />
@@ -75,11 +79,6 @@
                               <Insets top="8.0" />
                            </GridPane.margin>
                         </TextArea>
-                        <Label fx:id="errorMessageLabel" text="Key cannot be empty." textFill="RED" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                           <GridPane.margin>
-                              <Insets />
-                           </GridPane.margin>
-                        </Label>
                      </children>
                   </GridPane>
                   <ButtonBar>
