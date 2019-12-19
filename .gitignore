@@ -25,3 +25,5 @@ hs_err_pid*
 /Scheduler/build/
 /Scheduler/dist/
 /DevHelper/nbproject/private/
+/DevHelper/build/
+/DevHelper/dist/

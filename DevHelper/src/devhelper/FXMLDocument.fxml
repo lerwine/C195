@@ -9,87 +9,112 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
 <SplitPane dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
-  <items>
-      <VBox>
-         <children>
-            <TableView fx:id="propertySetsTableView">
-              <columns>
-                <TableColumn fx:id="languageTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="Language" />
-                <TableColumn fx:id="updatedTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="100.0" text="Last Updated" />
-                  <TableColumn fx:id="missingKeysTableColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Missing Keys" />
-              </columns>
-            </TableView>
-            <ButtonBar prefHeight="40.0" prefWidth="200.0">
-              <buttons>
-                  <Button mnemonicParsing="false" onAction="#translateButtonAction" text="Translate" />
-                  <Button mnemonicParsing="false" onAction="#addPropertySetButtonAction" text="Add" />
-                <Button mnemonicParsing="false" onAction="#saveButtonAction" text="Save" />
-                  <Button mnemonicParsing="false" onAction="#openButtonAction" text="Open" />
-                  <Button mnemonicParsing="false" onAction="#newButtonAction" text="New" />
-                  <Button fx:id="deletePropertySetButton" mnemonicParsing="false" onAction="#deletePropertySetButtonAction" text="Delete" />
-              </buttons>
-            </ButtonBar>
-         </children>
-      </VBox>
-      <SplitPane dividerPositions="0.29797979797979796">
-        <items>
-            <TableView fx:id="currentPropertySetTableView">
-              <columns>
-                <TableColumn fx:id="keyTableColumn" editable="false" prefWidth="75.0" text="Key" />
-                <TableColumn fx:id="valueTableColumn" editable="false" prefWidth="75.0" text="Value" />
-              </columns>
-            </TableView>
-            <VBox>
-               <children>
-                  <GridPane>
-                    <columnConstraints>
-                      <ColumnConstraints />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints />
-                      <RowConstraints />
-                        <RowConstraints />
-                        <RowConstraints vgrow="ALWAYS" />
-                    </rowConstraints>
-                     <padding>
-                        <Insets top="8.0" />
-                     </padding>
-                     <children>
-                        <Label text="Key:" />
-                        <TextField fx:id="keyTextField" onAction="#keyTextFieldAction" GridPane.columnIndex="1" />
-                        <Label fx:id="errorMessageLabel" text="Key cannot be empty." textFill="RED" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                           <GridPane.margin>
-                              <Insets />
-                           </GridPane.margin>
-                        </Label>
-                        <Label text="Value:" GridPane.rowIndex="2">
-                           <GridPane.margin>
-                              <Insets top="8.0" />
-                           </GridPane.margin>
-                        </Label>
-                        <TextArea fx:id="valueTextArea" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="2">
-                           <GridPane.margin>
-                              <Insets top="8.0" />
-                           </GridPane.margin>
-                        </TextArea>
-                     </children>
-                  </GridPane>
-                  <ButtonBar>
+    <items>
+        <VBox>
+            <children>
+                <TableView fx:id="propertiesFilesTableView">
+                    <columns>
+                        <TableColumn fx:id="languageTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="Language">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="locale" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="updatedTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="100.0" text="Last Updated">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="file" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="propertiesFileStatusTableColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Status">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="validationMessage" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+                <ButtonBar prefHeight="40.0" prefWidth="200.0">
                     <buttons>
-                      <Button mnemonicParsing="false" onAction="#addPropertyButtonAction" text="Add" />
-                        <Button fx:id="deletePropertyButton" mnemonicParsing="false" onAction="#deletePropertyButtonAction" text="Delete" />
+                        <Button fx:id="translateResourceBundleButton" mnemonicParsing="false" onAction="#translateResourceBundleButtonAction" text="Translate" />
+                        <Button fx:id="addPropertiesFileButton" mnemonicParsing="false" onAction="#addPropertiesFileButtonAction" text="Add" />
+                        <Button fx:id="saveResourceBundleButton" mnemonicParsing="false" onAction="#saveResourceBundleButtonAction" text="Save" />
+                        <Button mnemonicParsing="false" onAction="#openResourceBundleButtonAction" text="Open" />
+                        <Button mnemonicParsing="false" onAction="#newResourceBundleButtonAction" text="New" />
                     </buttons>
-                  </ButtonBar>
-               </children>
-            </VBox>
-        </items>
-      </SplitPane>
-  </items>
+                </ButtonBar>
+            </children>
+        </VBox>
+        <SplitPane dividerPositions="0.29797979797979796">
+            <items>
+                <TableView fx:id="currentPropertiesFileTableView">
+                    <columns>
+                        <TableColumn fx:id="keyTableColumn" editable="false" prefWidth="75.0" text="Key">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="key" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="valueTableColumn" editable="false" prefWidth="75.0" text="Value">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="value" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="propertyStatusTableColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Status">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="validationMessage" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+                <VBox>
+                    <children>
+                        <GridPane>
+                            <columnConstraints>
+                                <ColumnConstraints />
+                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints />
+                                <RowConstraints vgrow="ALWAYS" />
+                            </rowConstraints>
+                            <padding>
+                                <Insets top="8.0" />
+                            </padding>
+                            <children>
+                                <Label text="Key:" />
+                                <TextField fx:id="keyTextField" onAction="#keyTextFieldAction" GridPane.columnIndex="1" />
+                                <Label fx:id="errorMessageLabel" text="Key cannot be empty." textFill="RED" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <GridPane.margin>
+                                        <Insets />
+                                    </GridPane.margin>
+                                </Label>
+                                <Label text="Value:" GridPane.rowIndex="2">
+                                    <GridPane.margin>
+                                        <Insets top="8.0" />
+                                    </GridPane.margin>
+                                </Label>
+                                <TextArea fx:id="valueTextArea" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="2">
+                                    <GridPane.margin>
+                                        <Insets top="8.0" />
+                                    </GridPane.margin>
+                                </TextArea>
+                            </children>
+                        </GridPane>
+                        <ButtonBar>
+                            <buttons>
+                                <Button fx:id="addPropertyButton" mnemonicParsing="false" onAction="#addPropertyButtonAction" text="Add" />
+                                <Button fx:id="deletePropertyButton" mnemonicParsing="false" onAction="#deletePropertyButtonAction" text="Delete" />
+                            </buttons>
+                        </ButtonBar>
+                    </children>
+                </VBox>
+            </items>
+        </SplitPane>
+    </items>
 </SplitPane>
