@@ -129,8 +129,8 @@
                   </VBox>
                   <VBox>
                      <children>
-                        <Label fx:id="currentTimeZoneLabel" styleClass="formControlLabel" text="Current Time Zone" visible="false" />
-                        <Label fx:id="currentTimeZoneValue" visible="false" wrapText="true" />
+                        <Label fx:id="currentTimeZoneLabel" styleClass="formControlLabel" text="Current Time Zone" />
+                        <Label fx:id="currentTimeZoneValue" wrapText="true" text="currentTimeZone" />
                      </children>
                      <padding>
                         <Insets left="8.0" />
@@ -143,15 +143,15 @@
             </HBox>
             <HBox GridPane.columnSpan="2" GridPane.rowIndex="7">
                <children>
-                  <Label fx:id="dateTimeValidationLabel" styleClass="formControlValidationMessage" visible="false" />
-                  <Button mnemonicParsing="false" text="Show" visible="false" />
+                  <Label fx:id="dateTimeValidationLabel" styleClass="formControlValidationMessage" text="One or more appointments conflict with the current appointment" />
+                  <Button mnemonicParsing="false" text="Show" />
                </children>
             </HBox>
             <Label fx:id="locationLabel" styleClass="formControlLabel" text="Location" GridPane.rowIndex="8" />
             <Label fx:id="contactLabel" styleClass="formControlLabel" text="Point of Contact" GridPane.columnIndex="2" GridPane.rowIndex="8" />
             
-            <TextField fx:id="locationTextField" onAction="#locationChanged" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-            <TextField fx:id="contactTextField" onAction="#contactChanged" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9">
+            <TextField fx:id="locationTextField" GridPane.columnSpan="2" GridPane.rowIndex="9" />
+            <TextField fx:id="contactTextField" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9">
                <GridPane.margin>
                   <Insets left="8.0" />
                </GridPane.margin></TextField>
@@ -164,12 +164,13 @@
                <GridPane.margin>
                   <Insets top="8.0" />
                </GridPane.margin></Label>
-            <TextField fx:id="urlTextField" onAction="#urlChanged" GridPane.columnSpan="4" GridPane.rowIndex="12" />
-            <Label fx:id="urlValidationLabel" styleClass="formControlValidationMessage" visible="false" GridPane.columnSpan="4" GridPane.rowIndex="13" />
+            <TextField fx:id="urlTextField" GridPane.columnSpan="4" GridPane.rowIndex="12" />
+            <Label fx:id="urlValidationLabel" styleClass="formControlValidationMessage" text="Invalid URL format" GridPane.columnSpan="4" GridPane.rowIndex="13" />
             <Label fx:id="descriptionLabel" styleClass="formControlLabel" text="Description" GridPane.rowIndex="14">
                <GridPane.margin>
                   <Insets top="8.0" />
-               </GridPane.margin></Label>
+               </GridPane.margin>
+            </Label>
             <TextArea fx:id="descriptionTextArea" prefRowCount="4" GridPane.columnSpan="4" GridPane.rowIndex="15" />
             <Label fx:id="createdLabel" styleClass="formControlLabel" text="Created" GridPane.rowIndex="16">
                <GridPane.margin>

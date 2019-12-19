@@ -7,17 +7,20 @@ import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import model.AppointmentType;
 import model.db.UserRow;
 
 /**
@@ -177,14 +180,43 @@ public class App extends Application {
     
     private static ResourceBundle appResourceBundle;
     
+    /**
+     * Gets the current "app" resource bundle for the current language.
+     * @return The current "app" resource bundle for the current language.
+     */
     public static ResourceBundle getAppResourceBundle() {
         if (appResourceBundle == null)
             appResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, getCurrentLocale());
         return appResourceBundle;
     }
     
+    /**
+     * Gets a 'File "%s" not found' formatted message in the current language.
+     * @param fileName - The name of the file to place into the message.
+     * @return The formatted 'File "%s" not found' message in the current language.
+     */
+    public static String getFileNotFoundMessage(String fileName) {
+        return String.format(getAppResourceBundle().getString("fileNotFound"), fileName);
+    }
+    
+    /**
+     * Reads appointment types from the app resource bundle for the current language.
+     * @return Appointment types from the app resource bundle for the current language.
+     */
+    public static ArrayList<AppointmentType> getAppointmentTypes() {
+        ArrayList<AppointmentType> appointmentTypes = new ArrayList<>();
+            ResourceBundle rb = getAppResourceBundle();
+            Stream.of(AppointmentType.APPOINTMENT_CODE_PHONE, AppointmentType.APPOINTMENT_CODE_VIRTUAL, AppointmentType.APPOINTMENT_CODE_CUSTOMER,
+                    AppointmentType.APPOINTMENT_CODE_HOME, AppointmentType.APPOINTMENT_CODE_GERMANY, AppointmentType.APPOINTMENT_CODE_INDIA,
+                    AppointmentType.APPOINTMENT_CODE_HONDURAS, AppointmentType.APPOINTMENT_CODE_OTHER).forEach((String key) -> {
+                appointmentTypes.add(new AppointmentType(key, rb.getString("appointmentType_" + key)));
+            });
+        return appointmentTypes;
+    }
+    
     // This contains the current locale.
     private static Locale currentLocale;
+    
     // This contains the formatters cache for the current locale.
     private static Formatters formatters = new Formatters();
     
