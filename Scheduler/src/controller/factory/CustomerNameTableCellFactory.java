@@ -5,8 +5,6 @@
  */
 package controller.factory;
 
-import java.time.format.FormatStyle;
-import java.time.temporal.TemporalAccessor;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
@@ -27,7 +25,7 @@ public class CustomerNameTableCellFactory<S, T> implements Callback<TableColumn<
                     super.setText(null);
                     super.setGraphic(null);
                 } else if (item instanceof model.Customer)
-                    super.setText(((model.Customer)item).getCustomerName());
+                    super.setText(((model.Customer)item).getName());
                 else if (item instanceof String)
                     super.setText((String)item);
                 else

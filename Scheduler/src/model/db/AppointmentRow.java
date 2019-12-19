@@ -10,13 +10,15 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import model.Address;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
-import scheduler.InvalidArgumentException;
-import scheduler.SqlConnectionDependency;
 
 /**
  *
@@ -40,94 +42,65 @@ public class AppointmentRow extends DataRow implements model.Appointment {
 
     //<editor-fold defaultstate="collapsed" desc="customerId">
     
-    private int customerId;
-    
     public static final String PROP_CUSTOMERID = "customerId";
     
+    private final ReadOnlyIntegerWrapper customerId;
+
     /**
-     * Get the value of customerId
-     *
-     * @return the value of customerId
-     */
-    public final int getCustomerId() { return customerId; }
-    
-    /**
-     * Set the value of customerId
-     *
-     * @param value new value of customerId
-     * @throws java.sql.SQLException
-     * @throws scheduler.InvalidArgumentException
-     */
-    public final void setCustomerId(int value) throws SQLException, InvalidArgumentException {
-        if (value == customerId)
-            return;
-        int oldId = customerId;
-        model.Customer oldCustomer = customer;
-        SqlConnectionDependency dep = new SqlConnectionDependency(true);
-        try {
-            Optional<CustomerRow> r = CustomerRow.getById(dep.getconnection(), value);
-            if (r.isPresent())
-                customer = r.get();
-            else
-                throw new InvalidArgumentException("value", "No address found that matches that ID");
-        } finally { dep.close(); }
-        customerId = value;
-        try { firePropertyChange(PROP_CUSTOMERID, oldId, customerId); }
-        finally { firePropertyChange(PROP_CUSTOMER, oldCustomer, customer); }
-    }
+    * Get the value of customerId
+    *
+    * @return the value of customerId
+    */
+    public int getCustomerId() { return customerId.get(); }
+
+    public ReadOnlyIntegerProperty customerIdProperty() { return customerId.getReadOnlyProperty(); }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="customer">
     
-    private model.Customer customer;
-    
     public static final String PROP_CUSTOMER = "customer";
     
+    private final ObjectProperty<model.Customer> customer;
+
     /**
      * Get the value of customer
      *
      * @return the value of customer
      */
     @Override
-    public final model.Customer getCustomer() { return customer; }
-    
-    /**
-     * Set the value of customer
-     *
-     * @param value new value of customer
-     * @throws scheduler.InvalidArgumentException
-     */
-    public final void setCustomer(model.Customer value) throws InvalidArgumentException {
-        if (value == null)
-            throw new InvalidArgumentException("value", "Customer cannot be null");
-        if (value instanceof CustomerRow) {
-            int rowState = ((CustomerRow)value).getRowState();
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidArgumentException("value", "Customer was deleted");
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidArgumentException("value", "Customer was not added to the database");
-        }
-        
-        int oldId = customerId;
-        model.Customer oldCustomer = customer;
-        customerId = (customer = value).getPrimaryKey();
-        
-        try { firePropertyChange(PROP_CUSTOMER, oldCustomer, customer); }
-        finally { firePropertyChange(PROP_CUSTOMERID, oldId, customerId); }
+    public model.Customer getCustomer() { return customer.get(); }
+
+    public void setCustomer(model.Customer value) {
+        customer.set(value);
     }
+
+    public ObjectProperty<model.Customer> customerProperty() {
+        return customer;
+    }
+    
+    private final RowIdChangeListener<model.Customer> customerIdChangeListener;
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="userId">
     
-    private int userId;
-    
     public static final String PROP_USERID = "userId";
     
+    private final ReadOnlyIntegerWrapper userId;
+    
+    public int getUserId() { return userId.get(); }
+
+    public ReadOnlyIntegerProperty userIdProperty() { return userId.getReadOnlyProperty(); }
+    
+    private final RowIdChangeListener<model.User> userIdChangeListener;
+    
+    /*
+    private int userId;
+    
     /**
-     * Get the value of userId
-     *
-     * @return the value of userId
-     */
+    * Get the value of userId
+    *
+    * @return the value of userId
+    * /
     public final int getUserId() { return userId; }
     
     /**
@@ -136,7 +109,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
      * @param value new value of userId
      * @throws java.sql.SQLException
      * @throws scheduler.InvalidArgumentException
-     */
+     * /
     public final void setUserId(int value) throws SQLException, InvalidArgumentException {
         if (userId == value)
             return;
@@ -156,202 +129,138 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         try { firePropertyChange(PROP_USERID, oldId, userId); }
         finally { firePropertyChange(PROP_USER, oldUser, user); }
     }
-    
+    */
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="user">
     
-    private model.User user;
-    
     public static final String PROP_USER = "user";
     
-    /**
-     * Get the value of userId
-     *
-     * @return the value of userId
-     */
-    @Override
-    public final model.User getUser() { return user; }
-    
-    /**
-     * Set the value of userId
-     *
-     * @param value new value of userId
-     * @throws java.sql.SQLException
-     * @throws scheduler.InvalidArgumentException
-     */
-    public final void setUser(model.User value) throws SQLException, InvalidArgumentException {
-        if (value == null)
-            throw new InvalidArgumentException("value", "User cannot be null");
-        if (value instanceof UserRow) {
-            int rowState = ((UserRow)value).getRowState();
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidArgumentException("value", "User was deleted");
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidArgumentException("value", "User was not added to the database");
-        }
-        
-        model.User oldUser = user;
-        int oldId = userId;
-        userId = (user = value).getPrimaryKey();
-        
-        try { firePropertyChange(PROP_USER, oldUser, user); }
-        finally { firePropertyChange(PROP_USERID, oldId, userId); }
+    private final ObjectProperty<model.User> user;
+
+    public model.User getUser() {
+        return user.get();
+    }
+
+    public void setUser(model.User value) {
+        user.set(value);
+    }
+
+    public ObjectProperty<model.User> userProperty() {
+        return user;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="title">
     
-    private String title;
-    
     public static final String PROP_TITLE = "title";
     
-    /**
-     * Get the value of title
-     *
-     * @return the value of title
-     */
-    @Override
-    public final String getTitle() { return title; }
-    
-    /**
-     * Set the value of title
-     *
-     * @param value new value of title
-     */
-    public final void setTitle(String value) {
-        String oldValue = title;
-        title = (value == null) ? "" : value;
-        firePropertyChange(PROP_TITLE, oldValue, title);
+    private final NonNullableStringProperty title;
+
+    public String getTitle() {
+        return title.get();
+    }
+
+    public void setTitle(String value) {
+        title.set(value);
+    }
+
+    public NonNullableStringProperty titleProperty() {
+        return title;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="description">
     
-    private String description;
-    
     public static final String PROP_DESCRIPTION = "description";
     
-    /**
-     * Get the value of description
-     *
-     * @return the value of description
-     */
-    @Override
-    public final String getDescription() { return description; }
-    
-    /**
-     * Set the value of description
-     *
-     * @param value new value of description
-     */
-    public final void setDescription(String value) {
-        String oldValue = description;
-        description = (value == null) ? "" : value;
-        firePropertyChange(PROP_DESCRIPTION, oldValue, description);
+    private final NonNullableStringProperty description;
+
+    public String getDescription() {
+        return description.get();
+    }
+
+    public void setDescription(String value) {
+        description.set(value);
+    }
+
+    public NonNullableStringProperty descriptionProperty() {
+        return description;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="location">
     
-    private String location;
-    
     public static final String PROP_LOCATION = "location";
     
-    /**
-     * Get the value of location
-     *
-     * @return the value of location
-     */
-    @Override
-    public final String getLocation() { return location; }
-    
-    /**
-     * Set the value of location
-     *
-     * @param value new value of location
-     */
-    public final void setLocation(String value) {
-        String oldValue = location;
-        location = (value == null) ? "" : value;
-        firePropertyChange(PROP_LOCATION, oldValue, location);
+    private final NonNullableStringProperty location;
+
+    public String getLocation() {
+        return location.get();
+    }
+
+    public void setLocation(String value) {
+        location.set(value);
+    }
+
+    public NonNullableStringProperty locationProperty() {
+        return location;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="contact">
     
-    private String contact;
-    
     public static final String PROP_CONTACT = "contact";
     
-    /**
-     * Get the value of contact
-     *
-     * @return the value of contact
-     */
-    @Override
-    public final String getContact() { return contact; }
-    
-    /**
-     * Set the value of contact
-     *
-     * @param value new value of contact
-     */
-    public final void setContact(String value) {
-        String oldValue = contact;
-        contact = (value == null) ? "" : value;
-        firePropertyChange(PROP_CONTACT, oldValue, contact);
+    private final NonNullableStringProperty contact;
+
+    public String getContact() {
+        return contact.get();
+    }
+
+    public void setContact(String value) {
+        contact.set(value);
+    }
+
+    public NonNullableStringProperty contactProperty() {
+        return contact;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="type">
     
-    private String type;
-    
     public static final String PROP_TYPE = "type";
     
-    /**
-     * Get the value of type
-     *
-     * @return the value of v
-     */
-    @Override
-    public final String getType() { return type; }
-    
-    /**
-     * Set the value of type
-     *
-     * @param value new value of type
-     */
-    public final void setType(String value) {
-        String oldValue = type;
-        type = (value == null) ? "" : value;
-        firePropertyChange(PROP_TYPE, oldValue, type);
+    private final NonNullableStringProperty type;
+
+    public String getType() {
+        return type.get();
+    }
+
+    public void setType(String value) {
+        type.set(value);
+    }
+
+    public NonNullableStringProperty typeProperty() {
+        return type;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="url">
     
-    private String url;
-    
     public static final String PROP_URL = "url";
     
-    /**
-     * Get the value of url
-     *
-     * @return the value of url
-     */
-    @Override
-    public final String getUrl() { return url; }
-    
-    /**
-     * Set the value of url
-     *
-     * @param value new value of url
-     */
-    public final void setUrl(String value) {
-        String oldValue = url;
-        url = (value == null) ? "" : value;
-        firePropertyChange(PROP_URL, oldValue, url);
+    private final NonNullableStringProperty url;
+
+    public String getUrl() {
+        return url.get();
+    }
+
+    public void setUrl(String value) {
+        url.set(value);
+    }
+
+    public NonNullableStringProperty urlProperty() {
+        return url;
     }
     
     //</editor-fold>
@@ -359,49 +268,36 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     public static final String PROP_START = "start";
     
-    private LocalDateTime start;
-    
-    /**
-     * Gets the value of start.
-     * @return The value of start.
-     */
-    @Override
-    public final LocalDateTime getStart() { return start; }
-    
-    /**
-     * Set the value of start
-     *
-     * @param value new value of start
-     */
-    public final void setStart(LocalDateTime value) {
-        LocalDateTime oldValue = start;
-        start = (value == null) ? LocalDateTime.now() : value;
-        firePropertyChange(PROP_START, oldValue, start);
+    private final NonNullableLocalDateTimeProperty start;
+
+    public LocalDateTime getStart() {
+        return start.get();
+    }
+
+    public void setStart(LocalDateTime value) {
+        start.set(value);
+    }
+
+    public ObjectProperty<LocalDateTime> startProperty() {
+        return start;
     }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="end">
     
     public static final String PROP_END = "end";
-    
-    private LocalDateTime end;
-    
-    /**
-     * Gets the value of end.
-     * @return The value of end.
-     */
-    @Override
-    public final LocalDateTime getEnd() { return end; }
-    
-    /**
-     * Set the value of end
-     *
-     * @param value new value of end
-     */
-    public final void setEnd(LocalDateTime value) {
-        LocalDateTime oldValue = end;
-        end = (value == null) ? LocalDateTime.now() : value;
-        firePropertyChange(PROP_END, oldValue, end);
+    private final NonNullableLocalDateTimeProperty end;
+
+    public LocalDateTime getEnd() {
+        return end.get();
+    }
+
+    public void setEnd(LocalDateTime value) {
+        end.set(value);
+    }
+
+    public ObjectProperty<LocalDateTime> endProperty() {
+        return end;
     }
     
     //</editor-fold>
@@ -411,71 +307,76 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     public AppointmentRow() {
         super();
-        customerId = userId = 0;
-        title = description = location = contact = type = url = "";
-        start = end = LocalDateTime.now();
+        customerId = new ReadOnlyIntegerWrapper();
+        customer = new SimpleObjectProperty<>();
+        userId = new ReadOnlyIntegerWrapper();
+        user = new SimpleObjectProperty<>();
+        title = new NonNullableStringProperty();
+        description = new NonNullableStringProperty();
+        location = new NonNullableStringProperty();
+        contact = new NonNullableStringProperty();
+        type = new NonNullableStringProperty();
+        url = new NonNullableStringProperty();
+        start = new NonNullableLocalDateTimeProperty(LocalDateTime.now());
+        end = new NonNullableLocalDateTimeProperty(start.getValue());
+        customerIdChangeListener = new RowIdChangeListener<>(this.customer, customerId);
+        userIdChangeListener = new RowIdChangeListener<>(this.user, userId);
     }
     
     public AppointmentRow(CustomerRow customer, UserRow user, String title, String description, String location, String contact,
-            String type, String url, LocalDateTime start, LocalDateTime end) throws InvalidArgumentException {
+            String type, String url, LocalDateTime start, LocalDateTime end) {
         super();
-        if (customer == null)
-            throw new InvalidArgumentException("address", "Customer cannot be null");
-        if (customer.getRowState() == ROWSTATE_DELETED)
-            throw new InvalidArgumentException("address", "Customer was deleted");
-        if (customer.getRowState() == ROWSTATE_NEW)
-            throw new InvalidArgumentException("address", "Customer was not added to the database");
-        if (user == null)
-            throw new InvalidArgumentException("address", "User cannot be null");
-        if (user.getRowState() == ROWSTATE_DELETED)
-            throw new InvalidArgumentException("address", "User was deleted");
-        if (user.getRowState() == ROWSTATE_NEW)
-            throw new InvalidArgumentException("address", "User was not added to the database");
-        customerId = (this.customer = customer).getPrimaryKey();
-        userId = (this.user = user).getPrimaryKey();
-        this.title = (title == null) ? "" : title;
-        this.description = (description == null) ? "" : description;
-        this.location = (location == null) ? "" : location;
-        this.contact = (contact == null) ? "" : contact;
-        this.type = (type == null) ? "" : type;
-        this.url = (url == null) ? "" : url;
-        this.start = (start == null) ? LocalDateTime.now() : start;
-        this.end = (end == null) ? LocalDateTime.now() : end;
+        customerId = new ReadOnlyIntegerWrapper();
+        this.customer = new SimpleObjectProperty<>(customer);
+        userId = new ReadOnlyIntegerWrapper();
+        this.user = new SimpleObjectProperty<>(user);
+        this.title = new NonNullableStringProperty(title);
+        this.description = new NonNullableStringProperty(description);
+        this.location = new NonNullableStringProperty(location);
+        this.contact = new NonNullableStringProperty(contact);
+        this.type = new NonNullableStringProperty(type);
+        this.url = new NonNullableStringProperty(url);
+        this.start = new NonNullableLocalDateTimeProperty(start);
+        this.end = new NonNullableLocalDateTimeProperty(end);
+        customerIdChangeListener = new RowIdChangeListener<>(this.customer, customerId);
+        userIdChangeListener = new RowIdChangeListener<>(this.user, userId);
     }
     
     public AppointmentRow (ResultSet rs) throws SQLException {
         super(rs);
-        customerId = rs.getInt(PROP_CUSTOMERID);
-        customer = new Customer(customerId, rs.getString(CustomerRow.PROP_CUSTOMERNAME),
+        customerId = new ReadOnlyIntegerWrapper();
+        customer = new SimpleObjectProperty<>(new Customer(rs.getInt(PROP_CUSTOMERID), rs.getString(CustomerRow.PROP_CUSTOMERNAME),
                 new CustomerRow.Address(rs.getInt(CustomerRow.PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)),
-                rs.getBoolean(CustomerRow.PROP_ACTIVE));
-        userId = rs.getInt(PROP_USERID);
-        user = new User(userId, rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE));
-        title = rs.getString(PROP_TITLE);
+                rs.getBoolean(CustomerRow.PROP_ACTIVE)));
+        userId = new ReadOnlyIntegerWrapper();
+        user = new SimpleObjectProperty<>(new User(rs.getInt(PROP_USERID), rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE)));
+        title = new NonNullableStringProperty(rs.getString(PROP_TITLE));
         if (rs.wasNull())
-            title = "";
-        description = rs.getString(PROP_DESCRIPTION);
+            title.setValue("");
+        description = new NonNullableStringProperty(rs.getString(PROP_DESCRIPTION));
         if (rs.wasNull())
-            description = "";
-        location = rs.getString(PROP_LOCATION);
+            description.setValue("");
+        location = new NonNullableStringProperty(rs.getString(PROP_LOCATION));
         if (rs.wasNull())
-            location = "";
-        contact = rs.getString(PROP_CONTACT);
+            location.setValue("");
+        contact = new NonNullableStringProperty(rs.getString(PROP_CONTACT));
         if (rs.wasNull())
-            contact = "";
-        type = rs.getString(PROP_TYPE);
+            contact.setValue("");
+        type = new NonNullableStringProperty(rs.getString(PROP_TYPE));
         if (rs.wasNull())
-            type = "";
-        url = rs.getString(PROP_URL);
+            type.setValue("");
+        url = new NonNullableStringProperty(rs.getString(PROP_URL));
         if (rs.wasNull())
-            url = "";
+            url.setValue("");
         Timestamp t = rs.getTimestamp(PROP_START);
-        start = (rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime();
+        start = new NonNullableLocalDateTimeProperty((rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime());
         t = rs.getTimestamp(PROP_END);
-        end = (rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime();
+        end = new NonNullableLocalDateTimeProperty((rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime());
+        customerIdChangeListener = new RowIdChangeListener<>(this.customer, customerId);
+        userIdChangeListener = new RowIdChangeListener<>(this.user, userId);
     }
     
     //</editor-fold>
@@ -581,53 +482,37 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        try {
-            deferPropertyChangeEvent(PROP_CUSTOMERID);
-            deferPropertyChangeEvent(PROP_USERID);
-            deferPropertyChangeEvent(PROP_TITLE);
-            deferPropertyChangeEvent(PROP_DESCRIPTION);
-            deferPropertyChangeEvent(PROP_LOCATION);
-            deferPropertyChangeEvent(PROP_CONTACT);
-            deferPropertyChangeEvent(PROP_TYPE);
-            deferPropertyChangeEvent(PROP_URL);
-            deferPropertyChangeEvent(PROP_START);
-            deferPropertyChangeEvent(PROP_END);
-            deferPropertyChangeEvent(PROP_CUSTOMER);
-            deferPropertyChangeEvent(PROP_USER);
-        } catch (NoSuchFieldException ex) {
-            Logger.getLogger(AppointmentRow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        customerId = rs.getInt(PROP_CUSTOMERID);
-        customer = new Customer(customerId, rs.getString(CustomerRow.PROP_CUSTOMERNAME),
+        customerId.setValue(rs.getInt(PROP_CUSTOMERID));
+        customer.setValue(new Customer(getCustomerId(), rs.getString(CustomerRow.PROP_CUSTOMERNAME),
                 new CustomerRow.Address(rs.getInt(CustomerRow.PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)),
-                rs.getBoolean(CustomerRow.PROP_ACTIVE));
-        userId = rs.getInt(PROP_USERID);
-        user = new User(userId, rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE));
-        title = rs.getString(PROP_TITLE);
+                rs.getBoolean(CustomerRow.PROP_ACTIVE)));
+        userId.setValue(rs.getInt(PROP_USERID));
+        user.setValue(new User(getUserId(), rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE)));
+        title.setValue(rs.getString(PROP_TITLE));
         if (rs.wasNull())
-            title = "";
-        description = rs.getString(PROP_DESCRIPTION);
+            title.setValue("");
+        description.setValue(rs.getString(PROP_DESCRIPTION));
         if (rs.wasNull())
-            description = "";
-        location = rs.getString(PROP_LOCATION);
+            description.setValue("");
+        location.setValue(rs.getString(PROP_LOCATION));
         if (rs.wasNull())
-            location = "";
-        contact = rs.getString(PROP_CONTACT);
+            location.setValue("");
+        contact.setValue(rs.getString(PROP_CONTACT));
         if (rs.wasNull())
-            contact = "";
-        type = rs.getString(PROP_TYPE);
+            contact.setValue("");
+        type.setValue(rs.getString(PROP_TYPE));
         if (rs.wasNull())
-            type = "";
-        url = rs.getString(PROP_URL);
+            type.setValue("");
+        url.setValue(rs.getString(PROP_URL));
         if (rs.wasNull())
-            url = "";
+            url.setValue("");
         Timestamp t = rs.getTimestamp(PROP_START);
-        start = (rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime();
+        start.setValue((rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime());
         t = rs.getTimestamp(PROP_END);
-        end = (rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime();
+        end.setValue((rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime());
     }
 
     @Override
@@ -641,34 +526,34 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         for (int index = 0; index < fieldNames.length; index++) {
             switch (fieldNames[index]) {
                 case PROP_CUSTOMERID:
-                    ps.setInt(index + 1, customerId);
+                    ps.setInt(index + 1, getCustomerId());
                     break;
                 case PROP_USERID:
-                    ps.setInt(index + 1, userId);
+                    ps.setInt(index + 1, getUserId());
                     break;
                 case PROP_TITLE:
-                    ps.setString(index + 1, title);
+                    ps.setString(index + 1, getTitle());
                     break;
                 case PROP_DESCRIPTION:
-                    ps.setString(index + 1, description);
+                    ps.setString(index + 1, getDescription());
                     break;
                 case PROP_LOCATION:
-                    ps.setString(index + 1, location);
+                    ps.setString(index + 1, getLocation());
                     break;
                 case PROP_CONTACT:
-                    ps.setString(index + 1, contact);
+                    ps.setString(index + 1, getContact());
                     break;
                 case PROP_TYPE:
-                    ps.setString(index + 1, type);
+                    ps.setString(index + 1, getType());
                     break;
                 case PROP_URL:
-                    ps.setString(index + 1, url);
+                    ps.setString(index + 1, getUrl());
                     break;
                 case PROP_START:
-                    ps.setTimestamp(index + 1, Timestamp.valueOf(start));
+                    ps.setTimestamp(index + 1, Timestamp.valueOf(getStart()));
                     break;
                 case PROP_END:
-                    ps.setTimestamp(index + 1, Timestamp.valueOf(end));
+                    ps.setTimestamp(index + 1, Timestamp.valueOf(getEnd()));
                     break;
             }
         }
@@ -682,7 +567,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     static class User implements model.User {
         private final int id;
         private final String userName;
-        private final short active;
+        private final int active;
         User(int id, String userName, short active) {
             this.id = id;
             this.userName = userName;
@@ -693,7 +578,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         public String getUserName() { return userName; }
 
         @Override
-        public short getActive() { return active; }
+        public int getActive() { return active; }
 
         @Override
         public int getPrimaryKey() { return id; }
@@ -701,18 +586,18 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     static class Customer implements model.Customer {
         private final int id;
-        private final String customerName;
+        private final String name;
         private final CustomerRow.Address address;
         private final boolean active;
-        Customer(int id, String customerName, CustomerRow.Address address, boolean active) {
+        Customer(int id, String name, CustomerRow.Address address, boolean active) {
             this.id = id;
-            this.customerName = customerName;
+            this.name = name;
             this.address = address;
             this.active = active;
         }
 
         @Override
-        public String getCustomerName() { return customerName; }
+        public String getName() { return name; }
 
         @Override
         public Address getAddress() { return address; }

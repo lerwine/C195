@@ -8,12 +8,15 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
-import scheduler.InvalidArgumentException;
-import scheduler.SqlConnectionDependency;
 
 /**
  *
@@ -31,108 +34,70 @@ public class CityRow extends DataRow implements model.City {
     
     //<editor-fold defaultstate="collapsed" desc="name">
     
-    private String name;
-    
     public static final String PROP_NAME = "name";
     
     public static final String COLNAME_CITY = "city";
     
+    private final StringProperty name;
+
     /**
-     * Get the value of name
-     *
-     * @return the value of name
-     */
+    * Get the value of name
+    *
+    * @return the value of name
+    */
     @Override
-    public final String getName() { return name; }
-    
+    public String getName() { return name.get(); }
+
     /**
      * Set the value of name
      *
      * @param value new value of name
      */
-    public final void setName(String value) {
-        String oldValue = name;
-        name = (value == null) ? "" : value;
-        firePropertyChange(PROP_NAME, oldValue, name);
-    }
+    public void setName(String value) { name.set(value); }
+
+    public StringProperty nameProperty() { return name; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="countryId">
     
-    private int countryId;
-    
     public static final String PROP_COUNTRYID = "countryId";
+    
+    private ReadOnlyIntegerWrapper countryId;
     
     /**
      * Get the value of countryId
      *
      * @return the value of countryId
      */
-    public final int getCountryId() { return countryId; }
+    public final int getCountryId() { return countryId.get(); }
     
-    /**
-     * Set the value of countryId
-     *
-     * @param value new value of countryId
-     * @throws java.sql.SQLException
-     * @throws scheduler.InvalidArgumentException
-     */
-    public final void setCountryId(int value) throws SQLException, InvalidArgumentException {
-        if (value == countryId && country != null)
-            return;
-        int oldId = countryId;
-        model.Country oldCountry = country;
-        SqlConnectionDependency dep = new SqlConnectionDependency(true);
-        try {
-            Optional<CountryRow> r = CountryRow.getById(dep.getconnection(), value);
-            if (r.isPresent())
-                country = r.get();
-            else
-                throw new InvalidArgumentException("value", "No Country found that matches that ID");
-        } finally { dep.close(); }
-        countryId = value;
-        try { firePropertyChange(PROP_COUNTRYID, oldId, countryId); }
-        finally { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
-    }
+    public ReadOnlyIntegerProperty countryIdProperty() { return countryId.getReadOnlyProperty(); }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="country">
     
-    private model.Country country;
-    
     public static final String PROP_COUNTRY = "country";
     
+    private final ObjectProperty<model.Country> country;
+
     /**
-     * Get the value of country
-     *
-     * @return the value of country
-     */
+    * Get the value of country
+    *
+    * @return the value of country
+    */
     @Override
-    public final model.Country getCountry() { return country; }
-    
+    public model.Country getCountry() { return country.get(); }
+
     /**
      * Set the value of country
      *
      * @param value new value of country
-     * @throws scheduler.InvalidArgumentException
      */
-    public final void setCountry(model.Country value) throws InvalidArgumentException {
-        if (value == null)
-            throw new InvalidArgumentException("value", "Country cannot be null");
-        if (value instanceof UserRow) {
-            int rowState = ((UserRow)value).getRowState();
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidArgumentException("value", "Country was deleted");
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidArgumentException("value", "Country was not added to the database");
-        }
-        
-        int oldId = countryId;
-        model.Country oldCountry = country;
-        countryId = (country = value).getPrimaryKey();
-        try { firePropertyChange(PROP_COUNTRY, oldCountry, country); }
-        finally { firePropertyChange(PROP_COUNTRYID, oldId, countryId); }
-    }
+    public void setCountry(model.Country value) { country.set(value); }
+
+    public ObjectProperty countryProperty() { return country; }
+    
+    private final RowIdChangeListener<model.Country> countryIdChangeListener;
     
     //</editor-fold>
     
@@ -141,29 +106,28 @@ public class CityRow extends DataRow implements model.City {
     
     public CityRow() {
         super();
-        name = "";
-        countryId = 0;
+        name = new NonNullableStringProperty();
+        countryId =  new ReadOnlyIntegerWrapper();
+        country = new SimpleObjectProperty<>();
+        countryIdChangeListener = new RowIdChangeListener<>(country, countryId);
     }
     
-    public CityRow(String name, CountryRow country) throws InvalidArgumentException {
+    public CityRow(String name, CountryRow country) {
         super();
-        if (country == null)
-            throw new InvalidArgumentException("country", "Country cannot be null");
-        if (country.getRowState() == ROWSTATE_DELETED)
-            throw new InvalidArgumentException("country", "Country was deleted");
-        if (country.getRowState() == ROWSTATE_NEW)
-            throw new InvalidArgumentException("country", "Country was not added to the database");
-        this.name = (name == null) ? "" : name;
-        countryId = (this.country = country).getPrimaryKey();
+        this.name = new NonNullableStringProperty(name);
+        countryId =  new ReadOnlyIntegerWrapper();
+        this.country = new SimpleObjectProperty<>(country);
+        countryIdChangeListener = new RowIdChangeListener<>(this.country, countryId);
     }
     
     public CityRow (ResultSet rs) throws SQLException {
         super(rs);
-        name = rs.getString(COLNAME_CITY);
+        name = new NonNullableStringProperty(rs.getString(COLNAME_CITY));
         if (rs.wasNull())
-            name = "";
-        countryId = rs.getInt(PROP_COUNTRYID);
-        country = new Country(countryId, rs.getString(CountryRow.COLNAME_COUNTRY));
+            name.set("");
+        countryId =  new ReadOnlyIntegerWrapper();
+        country = new SimpleObjectProperty<>(new Country(rs.getInt(PROP_COUNTRYID), rs.getString(CountryRow.COLNAME_COUNTRY)));
+        countryIdChangeListener = new RowIdChangeListener<>(country, countryId);
     }
     
     //</editor-fold>
@@ -224,18 +188,10 @@ public class CityRow extends DataRow implements model.City {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        try {
-            deferPropertyChangeEvent(PROP_NAME);
-            deferPropertyChangeEvent(PROP_COUNTRYID);
-            deferPropertyChangeEvent(PROP_COUNTRY);
-        } catch (NoSuchFieldException ex) {
-            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        name = rs.getString(COLNAME_CITY);
+        name.set(rs.getString(COLNAME_CITY));
         if (rs.wasNull())
-            name = "";
-        countryId = rs.getInt(PROP_COUNTRYID);
-        country = new Country(countryId, rs.getString(CountryRow.COLNAME_COUNTRY));
+            name.set("");
+        country.set(new Country(rs.getInt(PROP_COUNTRYID), rs.getString(CountryRow.COLNAME_COUNTRY)));
     }
 
     @Override
@@ -248,10 +204,10 @@ public class CityRow extends DataRow implements model.City {
         for (int index = 0; index < fieldNames.length; index++) {
             switch (fieldNames[index]) {
                 case COLNAME_CITY:
-                    ps.setString(index + 1, name);
+                    ps.setString(index + 1, getName());
                     break;
                 case PROP_COUNTRYID:
-                    ps.setInt(index + 1, countryId);
+                    ps.setInt(index + 1, getCountryId());
                     break;
             }
         }

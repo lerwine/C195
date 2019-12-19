@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
@@ -28,30 +29,28 @@ public class CountryRow extends DataRow implements model.Country {
     
     //<editor-fold defaultstate="collapsed" desc="name">
     
-    private String name;
-    
     public static final String PROP_NAME = "name";
     
     public static final String COLNAME_COUNTRY = "country";
     
+    private final StringProperty name;
+
     /**
-     * Get the value of name
-     *
-     * @return the value of name
-     */
+    * Get the value of name
+    *
+    * @return the value of name
+    */
     @Override
-    public final String getName() { return name; }
-    
+    public String getName() { return name.get(); }
+
     /**
      * Set the value of name
      *
      * @param value new value of name
      */
-    public final void setName(String value) {
-        String oldValue = name;
-        name = (value == null) ? "" : value;
-        firePropertyChange(PROP_NAME, oldValue, name);
-    }
+    public void setName(String value) { name.set(value); }
+
+    public StringProperty nameProperty() { return name; }
     
     //</editor-fold>
     
@@ -60,19 +59,19 @@ public class CountryRow extends DataRow implements model.Country {
     
     public CountryRow() {
         super();
-        name = "";
+        name = new NonNullableStringProperty();
     }
     
     public CountryRow(String name) {
         super();
-        this.name = (name == null) ? "" : name;
+        this.name = new NonNullableStringProperty(name);
     }
     
     public CountryRow (ResultSet rs) throws SQLException {
         super(rs);
-        name = rs.getString(COLNAME_COUNTRY);
+        name = new NonNullableStringProperty(rs.getString(COLNAME_COUNTRY));
         if (rs.wasNull())
-            name = "";
+            name.set("");
     }
     
     //</editor-fold>
@@ -116,14 +115,9 @@ public class CountryRow extends DataRow implements model.Country {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        try {
-            deferPropertyChangeEvent(PROP_NAME);
-        } catch (NoSuchFieldException ex) {
-            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        name = rs.getString(COLNAME_COUNTRY);
+        name.set(rs.getString(COLNAME_COUNTRY));
         if (rs.wasNull())
-            name = "";
+            name.set("");
     }
 
     @Override
@@ -135,7 +129,7 @@ public class CountryRow extends DataRow implements model.Country {
     protected void setColumnValues(PreparedStatement ps, String[] fieldNames) throws SQLException {
         for (int index = 0; index < fieldNames.length; index++) {
             if (fieldNames[index].equals(COLNAME_COUNTRY)) {
-                ps.setString(index + 1, name);
+                ps.setString(index + 1, getName());
                 break;
             }
         }

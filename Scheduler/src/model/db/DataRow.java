@@ -12,6 +12,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
@@ -24,11 +35,6 @@ import scheduler.InvalidOperationException;
  * @author Leonard T. Erwine
  */
 public abstract class DataRow implements model.Record {
-    /**
-     * Monitor object for synchronized operations.
-     */
-    protected final Object syncRoot;
-    
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
     /**
@@ -57,15 +63,21 @@ public abstract class DataRow implements model.Record {
      * The name of the property that contains the database primary key value.
      */
     public static final String PROP_PRIMARYKEY = "primaryKey";
-    
+    /*
     private int primaryKey;
     
-    /**
-     * Gets the primary key value for the data row.
-     * @return The primary key value for the data row. This value will be zero if the data row hasn't been inserted into the database.
-     */
-    @Override
     public final int getPrimaryKey() { return primaryKey; }
+    */
+    private final ReadOnlyIntegerWrapper primaryKey;
+
+    /**
+    * Gets the primary key value for the data row.
+    * @return The primary key value for the data row. This value will be zero if the data row hasn't been inserted into the database.
+    */
+    @Override
+    public int getPrimaryKey() { return primaryKey.get(); }
+
+    public ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="createDate">
@@ -75,13 +87,21 @@ public abstract class DataRow implements model.Record {
      */
     public static final String PROP_CREATEDATE = "createDate";
     
-    private LocalDateTime createDate;
-    
+    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
+
     /**
      * Gets the date and time when the row was inserted into the database.
      * @return The date and time when the row was inserted into the database.
      */
+    public LocalDateTime getCreateDate() { return createDate.get(); }
+
+    public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() { return createDate.getReadOnlyProperty(); }
+    
+    /*
+    private LocalDateTime createDate;
+    
     public final LocalDateTime getCreateDate() { return createDate; }
+    */
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="createdBy">
@@ -91,13 +111,22 @@ public abstract class DataRow implements model.Record {
      */
     public static final String PROP_CREATEDBY = "createdBy";
     
-    private String createdBy;
-    
+    private final ReadOnlyStringWrapper createdBy;
+
     /**
      * Gets the {@link UserRow#userName} of the {@link UserRow} who inserted the row into the database.
      * @return The {@link UserRow#userName} of the {@link UserRow} who inserted the row into the database.
      */
+    public String getCreatedBy() { return createdBy.get(); }
+
+    public ReadOnlyStringProperty createdByProperty() { return createdBy.getReadOnlyProperty(); }
+    
+    /*
+    private String createdBy;
+    
     public String getCreatedBy() { return createdBy; }
+    */
+    
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastUpdate">
@@ -107,13 +136,21 @@ public abstract class DataRow implements model.Record {
      */
     public static final String PROP_LASTUPDATE = "lastUpdate";
     
-    private LocalDateTime lastUpdate;
-    
+    private final ReadOnlyObjectWrapper<LocalDateTime> lastUpdate;
+
     /**
      * Gets the date and time when the row was last updated.
      * @return The date and time when the row was last updated.
      */
+    public LocalDateTime getLastUpdate() { return lastUpdate.get(); }
+
+    public ReadOnlyObjectProperty<LocalDateTime> lastUpdateProperty() { return lastUpdate.getReadOnlyProperty(); }
+    
+    /*
+    private LocalDateTime lastUpdate;
+    
     public final LocalDateTime getLastUpdate() { return lastUpdate; }
+    */
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastUpdateBy">
@@ -123,13 +160,22 @@ public abstract class DataRow implements model.Record {
      */
     public static final String PROP_LASTUPDATEBY = "lastUpdateBy";
     
-    private String lastUpdateBy;
-    
+    private final ReadOnlyStringWrapper lastUpdateBy;
+
     /**
      * Gets the {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
      * @return The {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
      */
+    public String getLastUpdateBy() { return lastUpdateBy.get(); }
+
+    public ReadOnlyStringProperty lastUpdateByProperty() { return lastUpdateBy.getReadOnlyProperty(); }
+    
+    /*
+    private String lastUpdateBy;
+    
     public final String getLastUpdateBy() { return lastUpdateBy; }
+    */
+    
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastDbSync">
@@ -138,63 +184,133 @@ public abstract class DataRow implements model.Record {
      * The name of the property that contains the date and time when the row was last updated.
      */
     public static final String PROP_LASTDBSYNC = "lastDbSync";
-    
-    private LocalDateTime lastDbSync;
-    
+    private final ReadOnlyObjectWrapper<LocalDateTime> lastDbSync;
+
     /**
      * Gets the date and time when the row was last loaded from the database.
      * @return The date and time when the row was last loaded from the database.
      */
+    public LocalDateTime getLastDbSync() {
+        return lastDbSync.get();
+    }
+
+    public ReadOnlyObjectProperty<LocalDateTime> lastDbSyncProperty() { return lastDbSync.getReadOnlyProperty(); }
+    
+    /*
+    private LocalDateTime lastDbSync;
+    
     public final LocalDateTime getLastDbSync() { return lastDbSync; }
+    */
+    
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="rowState">
-    
-    private byte rowState;
     
     /**
      * The name of the property that indicates the current row disposition.
      */
     public static final String PROP_ROWSTATE = "rowState";
     
+    private final ReadOnlyIntegerWrapper rowState;
+
+    public int getRowState() { return rowState.get(); }
+
+    public ReadOnlyIntegerProperty rowStateProperty() { return rowState.getReadOnlyProperty(); }
+    
     /**
      * Gets the database disposition for the current row.
      * @return The database disposition for the current row.
      */
+    /*
+    private byte rowState;
+    
     public final byte getRowState() { return rowState; }
+    */
     
     //</editor-fold>
     
     //</editor-fold>
+    
+    protected static class RowIdChangeListener<R extends model.Record> implements ChangeListener<Number> {
+        private final ObjectProperty<R> recordProperty;
+        private final ReadOnlyIntegerWrapper primaryKeyProperty;
+        private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
+
+        public boolean isValid() { return valid.get(); }
+
+        public ReadOnlyBooleanProperty validProperty() { return valid.getReadOnlyProperty(); }
+        
+        RowIdChangeListener(ObjectProperty<R> recordProperty, ReadOnlyIntegerWrapper primaryKeyProperty) {
+            this.recordProperty = recordProperty;
+            this.primaryKeyProperty = primaryKeyProperty;
+            recordProperty.addListener((ObservableValue<? extends R> observable, R oldValue, R newValue) -> {
+                recordChanged(oldValue, newValue);
+            });
+            recordChanged(null, recordProperty.get());
+        }
+        
+        private void recordChanged(R oldValue, R newValue) {
+            if (oldValue != null && oldValue instanceof DataRow)
+                ((DataRow)oldValue).primaryKeyProperty().removeListener(this);
+            if (newValue != null) {
+                if (newValue instanceof DataRow) {
+                    ((DataRow)newValue).primaryKeyProperty().addListener(this);
+                    int rowState = ((DataRow)newValue).getRowState();
+                    valid.set(rowState == ROWSTATE_UNMODIFIED || rowState == ROWSTATE_MODIFIED);
+                } else
+                    valid.set(true);
+                primaryKeyProperty.set(newValue.getPrimaryKey());
+            } else {
+                valid.set(false);
+                primaryKeyProperty.set(0);
+            }
+        }
+        
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            if (newValue != null && newValue instanceof Integer) {
+                primaryKeyProperty.set((int)newValue);
+                R c = recordProperty.get();
+                if (c != null) {
+                    if (c instanceof DataRow) {
+                        int rowState = ((DataRow)c).getRowState();
+                        valid.set(rowState == ROWSTATE_UNMODIFIED || rowState == ROWSTATE_MODIFIED);
+                    } else
+                        valid.set(true);
+                    return;
+                }
+            } else
+                primaryKeyProperty.set(0);
+            valid.set(false);
+        }
+    }
+    
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
     /**
      * Creates a new data row object for a row that hasn't been inserted into the database.
      */
     protected DataRow() {
-        syncRoot = new Object();
-        primaryKey = 0;
-        createDate = lastUpdate = LocalDateTime.now();
+        primaryKey = new ReadOnlyIntegerWrapper(0);
+        createDate = new ReadOnlyObjectWrapper<>(LocalDateTime.now());
+        lastUpdate = new ReadOnlyObjectWrapper<>(createDate.getValue());
         Optional<UserRow> user = scheduler.App.getCurrentUser();
-        if (user.isPresent())
-            createdBy = lastUpdateBy = user.get().getUserName();
-        else
-            createdBy = lastUpdateBy = "";
-        rowState = ROWSTATE_NEW;
-        lastDbSync = LocalDateTime.MIN;
+        lastUpdateBy = new ReadOnlyStringWrapper((user.isPresent()) ? user.get().getUserName() : "");
+        createdBy = new ReadOnlyStringWrapper(lastUpdateBy.getValue());
+        rowState = new ReadOnlyIntegerWrapper(ROWSTATE_NEW);
+        lastDbSync = new ReadOnlyObjectWrapper<>(LocalDateTime.MIN);
     }
     
     protected DataRow(DataRow row) throws InvalidOperationException {
-        if (row == null || row.rowState != ROWSTATE_UNMODIFIED)
+        if (row == null || row.getRowState() != ROWSTATE_UNMODIFIED)
             throw new InvalidOperationException("Can only clone unmodified rows");
-        syncRoot = new Object();
-        primaryKey = row.primaryKey;
-        createDate = row.createDate;
-        createdBy = row.createdBy;
-        lastUpdate = row.lastUpdate;
-        lastUpdateBy = row.lastUpdateBy;
-        rowState = row.rowState;
-        lastDbSync = row.lastDbSync;
+        primaryKey = new ReadOnlyIntegerWrapper(row.getPrimaryKey());
+        createDate = new ReadOnlyObjectWrapper<>(row.getCreateDate());
+        createdBy = new ReadOnlyStringWrapper(row.getCreatedBy());
+        lastUpdate = new ReadOnlyObjectWrapper<>(row.getLastUpdate());
+        lastUpdateBy = new ReadOnlyStringWrapper(row.getLastUpdateBy());
+        rowState = new ReadOnlyIntegerWrapper(row.getRowState());
+        lastDbSync = new ReadOnlyObjectWrapper<>(row.getLastDbSync());
     }
     
     /**
@@ -203,14 +319,13 @@ public abstract class DataRow implements model.Record {
      * @throws java.sql.SQLException
      */
     protected DataRow(ResultSet rs) throws SQLException {
-        syncRoot = new Object();
-        primaryKey = rs.getInt(getPrimaryKeyColName(getClass()));
-        createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
-        createdBy = rs.getString(PROP_CREATEDBY);
-        lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
-        lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
-        rowState = ROWSTATE_UNMODIFIED;
-        lastDbSync = LocalDateTime.now();
+        primaryKey = new ReadOnlyIntegerWrapper(rs.getInt(getPrimaryKeyColName(getClass())));
+        createDate = new ReadOnlyObjectWrapper<>(rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime());
+        createdBy = new ReadOnlyStringWrapper(rs.getString(PROP_CREATEDBY));
+        lastUpdate = new ReadOnlyObjectWrapper<>(rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime());
+        lastUpdateBy = new ReadOnlyStringWrapper(rs.getString(PROP_LASTUPDATEBY));
+        rowState = new ReadOnlyIntegerWrapper(ROWSTATE_UNMODIFIED);
+        lastDbSync = new ReadOnlyObjectWrapper<>(LocalDateTime.now());
     }
     
     //</editor-fold>
@@ -250,34 +365,18 @@ public abstract class DataRow implements model.Record {
         // Get row from database matching the current primary key value.
         Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Executing query: %s", sql.toString());
         PreparedStatement ps = connection.prepareStatement(sql.toString());
-        ps.setInt(1, primaryKey);
+        ps.setInt(1, getPrimaryKey());
         ResultSet rs = ps.getResultSet();
         if (rs.next()) {
-            try {
-                if (rowState == ROWSTATE_NEW) {
-                    deferPropertyChangeEvent(PROP_PRIMARYKEY);
-                    deferPropertyChangeEvent(PROP_CREATEDATE);
-                    deferPropertyChangeEvent(PROP_CREATEDBY);
-                }
-                deferPropertyChangeEvent(PROP_LASTUPDATE);
-                deferPropertyChangeEvent(PROP_LASTUPDATEBY);
-            } catch (NoSuchFieldException ex) {
-                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
+            if (getRowState() == ROWSTATE_NEW) {
+                createDate.setValue(rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime());
+                createdBy.setValue(rs.getString(PROP_CREATEDBY));
             }
-            if (rowState == ROWSTATE_NEW) {
-                createDate = rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime();
-                createdBy = rs.getString(PROP_CREATEDBY);
-            }
-            lastUpdate = rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime();
-            lastUpdateBy = rs.getString(PROP_LASTUPDATEBY);
-            try {
-                refreshFromDb(rs);
-                lastDbSync = LocalDateTime.now();
-                deferPropertyChangeEvent(PROP_ROWSTATE);
-                rowState = ROWSTATE_UNMODIFIED;
-            } catch (NoSuchFieldException ex) {
-                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
-            } finally { fireDeferredPropertyChanges(); }
+            lastUpdate.setValue(rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime());
+            lastUpdateBy.setValue(rs.getString(PROP_LASTUPDATEBY));
+            refreshFromDb(rs);
+            lastDbSync.setValue(LocalDateTime.now());
+            rowState.setValue(ROWSTATE_UNMODIFIED);
         }
     }
     
@@ -295,18 +394,9 @@ public abstract class DataRow implements model.Record {
         ps.setString(index++, userName);
         ps.setString(index, userName);
         ps.executeUpdate();
-
-        try {
-            deferPropertyChangeEvent(PROP_PRIMARYKEY);
-        } catch (NoSuchFieldException ex) {
-            Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Error refreshing from database", ex);
-            throw new RuntimeException("Error refreshing from database", ex);
-        }
-
         ResultSet rs = ps.getGeneratedKeys();
         rs.next();
-
-        primaryKey = rs.getInt(1);
+        primaryKey.setValue(rs.getInt(1));
     }
     
     private void update(Connection connection, Class<? extends DataRow> rowClass, String tableName) throws SQLException {
@@ -320,66 +410,52 @@ public abstract class DataRow implements model.Record {
         String userName = scheduler.App.getCurrentUser().get().getUserName();
         int index = fieldNames.length + 1;
         ps.setString(index++, userName);
-        ps.setInt(index, primaryKey);
+        ps.setInt(index, getPrimaryKey());
         ps.executeUpdate();
     }
     
     public final void saveChanges(Connection connection) throws SQLException, InvalidOperationException {
-        synchronized (syncRoot) {
-            Class<? extends DataRow> rowClass = getClass();
-            String tableName = getTableName(rowClass);
-            // Saving changes to database is not applicable to rows that have been deleted from the database.
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
-                        tableName));
-            if (rowState == ROWSTATE_NEW)
-                insert(connection, tableName);
-            else
-                update(connection, rowClass, tableName);
-            refreshFromDb(connection, getClass());
-        }
-        fireDeferredPropertyChanges();
+        Class<? extends DataRow> rowClass = getClass();
+        String tableName = getTableName(rowClass);
+        // Saving changes to database is not applicable to rows that have been deleted from the database.
+        if (getRowState() == ROWSTATE_DELETED)
+            throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
+                    tableName));
+        if (getRowState() == ROWSTATE_NEW)
+            insert(connection, tableName);
+        else
+            update(connection, rowClass, tableName);
+        refreshFromDb(connection, getClass());
     }
     
     public final void refreshFromDb(Connection connection) throws SQLException, InvalidOperationException {
-        synchronized (syncRoot) {
-            Class<? extends DataRow> rowClass = getClass();
-            String tableName = getTableName(rowClass);
-            // Refresh from database is not applicable to rows that have not been retrieved from the database.
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
-                        tableName));
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidOperationException(String.format("{0} row has not been added the database",
-                        tableName));
-            refreshFromDb(connection, rowClass);
-        }
-        fireDeferredPropertyChanges();
+        Class<? extends DataRow> rowClass = getClass();
+        String tableName = getTableName(rowClass);
+        // Refresh from database is not applicable to rows that have not been retrieved from the database.
+        if (getRowState() == ROWSTATE_DELETED)
+            throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
+                    tableName));
+        if (getRowState() == ROWSTATE_NEW)
+            throw new InvalidOperationException(String.format("{0} row has not been added the database",
+                    tableName));
+        refreshFromDb(connection, rowClass);
     }
     
     public final void delete(Connection connection) throws SQLException, InvalidOperationException {
-        synchronized (syncRoot) {
-            Class<? extends DataRow> rowClass = getClass();
-            String tableName = getTableName(rowClass);
-            // Saving changes to database is not applicable to rows that are new or have been deleted from the database.
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
-                        tableName));
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidOperationException(String.format("{0} row has not been added the database",
-                        tableName));
-            PreparedStatement ps = connection.prepareStatement("DELETE FROM `" + tableName + "`  WHERE `" +
-                    getPrimaryKeyColName(rowClass) + "` = ?");
-            ps.setInt(1, primaryKey);
-            ps.executeUpdate();
-            try {
-                deferPropertyChangeEvent(PROP_ROWSTATE);
-            } catch (NoSuchFieldException ex) {
-                Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            rowState = ROWSTATE_DELETED;
-        }
-        fireDeferredPropertyChanges();
+        Class<? extends DataRow> rowClass = getClass();
+        String tableName = getTableName(rowClass);
+        // Saving changes to database is not applicable to rows that are new or have been deleted from the database.
+        if (getRowState() == ROWSTATE_DELETED)
+            throw new InvalidOperationException(String.format("{0} row has been deleted from the database",
+                    tableName));
+        if (getRowState() == ROWSTATE_NEW)
+            throw new InvalidOperationException(String.format("{0} row has not been added the database",
+                    tableName));
+        PreparedStatement ps = connection.prepareStatement("DELETE FROM `" + tableName + "`  WHERE `" +
+                getPrimaryKeyColName(rowClass) + "` = ?");
+        ps.setInt(1, getPrimaryKey());
+        ps.executeUpdate();
+        rowState.setValue(ROWSTATE_DELETED);
     }
     
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
@@ -420,102 +496,6 @@ public abstract class DataRow implements model.Record {
         if (rs.next())
             return Optional.of(create.apply(rs));
         return Optional.empty();
-    }
-    
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="PropertyChangeSupport">
-    
-    /**
-     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  The programmatic name of the property that was changed
-     * @param oldValue      The old value of the property.
-     * @param newValue      The new value of the property.
-     */
-    protected final void firePropertyChange(String propertyName, int oldValue, int newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-    }
-    
-    /**
-     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  The programmatic name of the property that was changed
-     * @param oldValue      The old value of the property.
-     * @param newValue      The new value of the property.
-     */
-    protected final void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-    }
-    
-    /**
-     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  The programmatic name of the property that was changed
-     * @param oldValue      The old value of the property.
-     * @param newValue      The new value of the property.
-     */
-    protected final void firePropertyChange(String propertyName, short oldValue, short newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-    }
-    
-    /**
-     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  The programmatic name of the property that was changed
-     * @param oldValue      The old value of the property.
-     * @param newValue      The new value of the property.
-     */
-    protected final void firePropertyChange(String propertyName, LocalDateTime oldValue, LocalDateTime newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-    }
-    
-    /**
-     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param propertyName  The programmatic name of the property that was changed
-     * @param oldValue      The old value of the property.
-     * @param newValue      The new value of the property.
-     */
-    protected final void firePropertyChange(String propertyName, String oldValue, String newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-    }
-    
-    /**
-     * Reports a bound property update to listeners that have been registered to track updates of all properties or a property with the specified name.
-     * @param <R>           The type of value that was changed.
-     * @param propertyName  The programmatic name of the property that was changed
-     * @param oldValue      The old value of the property.
-     * @param newValue      The new value of the property.
-     */
-    protected final <R extends model.Record> void firePropertyChange(String propertyName, R oldValue, R newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
-    }
-    
-    protected void deferPropertyChangeEvent(String propertyName, String fieldName) throws NoSuchFieldException {
-        propertyChangeSupport.deferPropertyChangeEvent(propertyName, fieldName);
-    }
-
-    protected void deferPropertyChangeEvent(String propertyName) throws NoSuchFieldException {
-        propertyChangeSupport.deferPropertyChangeEvent(propertyName);
-    }
-
-    protected void deferPropertyChangeEvent(String propertyName, Function<DataRow, Object> getValue) {
-        propertyChangeSupport.deferPropertyChangeEvent(propertyName, getValue);
-    }
-    
-    protected void fireDeferredPropertyChanges() { propertyChangeSupport.fireDeferredPropertyChanges(); }
-    
-    private transient final model.DeferrablePropertyChangeSupport<DataRow> propertyChangeSupport = new model.DeferrablePropertyChangeSupport<>(this);
-    
-    /**
-     * Add a {@link PropertyChangeListener} to the listener list.
-     * @param listener The {@link PropertyChangeListener} to be added.
-     */
-    public final void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
-    }
-    
-    /**
-     * Removes a {@link PropertyChangeListener} from the listener list.
-     * @param listener The {@link PropertyChangeListener} to be removed.
-     */
-    public final void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
     }
     
     //</editor-fold>

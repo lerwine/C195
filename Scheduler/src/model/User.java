@@ -6,5 +6,5 @@ package model;
  */
 public interface User extends Record {
     String getUserName();
-    short getActive();
+    int getActive();
 }

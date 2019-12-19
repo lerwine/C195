@@ -8,6 +8,10 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
@@ -51,64 +55,69 @@ public class UserRow extends DataRow implements model.User {
     
     //<editor-fold defaultstate="collapsed" desc="userName">
     
-    private String userName;
-    
     public static final String PROP_USERNAME = "userName";
     
+    private final ReadOnlyStringWrapper userName;
+
     /**
      * Gets the user name for the current data row.
      * @return The user name for the current data row.
      */
     @Override
-    public final String getUserName() { return userName; }
+    public String getUserName() { return userName.get(); }
+
+    public ReadOnlyStringProperty userNameProperty() { return userName.getReadOnlyProperty(); }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="password">
     
-    private String password;
-    
     public static final String PROP_PASSWORD = "password";
     
+    private final StringProperty password;
+
     /**
      * Gets the password hash for the current data row.
      * @return The password hash for the current data row.
      */
-    public final String getPassword() { return password; }
-    
+    public String getPassword() { return password.get(); }
+
     /**
      * Sets the new password hash for the current data row.
      * @param value The new password hash for the current data row.
      */
-    public final void setPassword(String value) {
-        String oldValue = password;
-        password = (value == null) ? "" : value;
-        firePropertyChange(PROP_PASSWORD, oldValue, password);
-    }
+    public void setPassword(String value) { password.set(value); }
+
+    public StringProperty passwordProperty() { return password; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="active">
     
-    private short active;
-    
     public static final String PROP_ACTIVE = "active";
     
+    private final ActiveStateProperty active;
+
     /**
      * Gets the value of active state for the current row.
      * @return The value of active state for the current row.
      */
     @Override
-    public final short getActive() { return active; }
-    
+    public int getActive() { return active.get(); }
+
     /**
      * Sets the value of active state for the current row.
      * @param value The new active state value for the current row.
      */
-    public final void setActive(short value) {
-        short oldActive = active;
-        active = (value < STATE_INACTIVE) ? STATE_INACTIVE : ((value > STATE_ADMIN) ? STATE_ADMIN : value);
-        firePropertyChange(PROP_ACTIVE, oldActive, active);
-    }
+    public void setActive(int value) { active.set(value); }
+
+    public IntegerProperty activeProperty() { return active; }
     
+    /*
+    public final void setActive(short value) {
+    short oldActive = active;
+    active = (value < STATE_INACTIVE) ? STATE_INACTIVE : ((value > STATE_ADMIN) ? STATE_ADMIN : value);
+    firePropertyChange(PROP_ACTIVE, oldActive, active);
+    }
+    */
     //</editor-fold>
     
     //</editor-fold>
@@ -116,34 +125,36 @@ public class UserRow extends DataRow implements model.User {
     
     public UserRow() {
         super();
-        userName = password = "";
-        active = STATE_USER;
+        this.userName = new ReadOnlyStringWrapper();
+        this.password = new NonNullableStringProperty();
+        this.active = new ActiveStateProperty(STATE_USER);
     }
     
-    public UserRow(String userName, String password, short active) {
+    public UserRow(String userName, String password, int active) {
         super();
-        this.userName = (userName == null) ? "" : userName;
-        this.password = (password == null) ? "" : password;
-        this.active = (active < STATE_INACTIVE) ? STATE_INACTIVE : ((active > STATE_ADMIN) ? STATE_ADMIN : active);
+        this.userName = new ReadOnlyStringWrapper(userName);
+        this.password = new NonNullableStringProperty(password);
+        this.active = new ActiveStateProperty(active);
     }
     
     protected UserRow(UserRow user) throws InvalidOperationException {
         super(user);
-        userName = user.userName;
-        password = user.password;
-        active = user.active;
+        this.userName = new ReadOnlyStringWrapper(user.getUserName());
+        this.password = new NonNullableStringProperty(user.getPassword());
+        this.active = new ActiveStateProperty(user.getActive());
     }
     
     private UserRow(ResultSet rs) throws SQLException {
         super(rs);
-        userName = rs.getString(PROP_USERNAME);
+        this.userName = new ReadOnlyStringWrapper(rs.getString(PROP_USERNAME));
         if (rs.wasNull())
-            userName = "";
-        password = rs.getString(PROP_PASSWORD);
+            userName.set("");
+        this.password = new NonNullableStringProperty(rs.getString(PROP_PASSWORD));
         if (rs.wasNull())
-            password = "";
-        short a = rs.getShort(PROP_ACTIVE);
-        active = (rs.wasNull()) ? STATE_INACTIVE : (a < STATE_INACTIVE) ? STATE_INACTIVE : ((a > STATE_ADMIN) ? STATE_ADMIN : a);
+            password.set("");
+        this.active = new ActiveStateProperty(rs.getShort(PROP_ACTIVE));
+        if (rs.wasNull())
+            active.set(STATE_INACTIVE);
     }
     
     //</editor-fold>
@@ -227,21 +238,15 @@ public class UserRow extends DataRow implements model.User {
 
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        try {
-            deferPropertyChangeEvent(PROP_USERNAME);
-            deferPropertyChangeEvent(PROP_PASSWORD);
-            deferPropertyChangeEvent(PROP_ACTIVE);
-        } catch (NoSuchFieldException ex) {
-            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        userName = rs.getString(PROP_USERNAME);
+        userName.set(rs.getString(PROP_USERNAME));
         if (rs.wasNull())
-            userName = "";
-        password = rs.getString(PROP_PASSWORD);
+            userName.set("");
+        password.set(rs.getString(PROP_PASSWORD));
         if (rs.wasNull())
-            password = "";
-        short a = rs.getShort(PROP_ACTIVE);
-        active = (rs.wasNull()) ? STATE_INACTIVE : (a < STATE_INACTIVE) ? STATE_INACTIVE : ((a > STATE_ADMIN) ? STATE_ADMIN : a);
+            password.set("");
+        active.set(rs.getShort(PROP_ACTIVE));
+        if (rs.wasNull())
+            active.set(STATE_INACTIVE);
     }
 
     @Override
@@ -254,13 +259,13 @@ public class UserRow extends DataRow implements model.User {
         for (int index = 0; index < fieldNames.length; index++) {
             switch (fieldNames[index]) {
                 case PROP_USERNAME:
-                    ps.setString(index + 1, userName);
+                    ps.setString(index + 1, getUserName());
                     break;
                 case PROP_PASSWORD:
-                    ps.setString(index + 1, password);
+                    ps.setString(index + 1, getPassword());
                     break;
                 case PROP_ACTIVE:
-                    ps.setShort(index + 1, active);
+                    ps.setShort(index + 1, (short)getActive());
                     break;
             }
         }

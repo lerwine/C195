@@ -8,12 +8,17 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
-import scheduler.InvalidArgumentException;
-import scheduler.SqlConnectionDependency;
 
 /**
  *
@@ -34,113 +39,75 @@ public class CustomerRow extends DataRow implements model.Customer {
     
     //<editor-fold defaultstate="collapsed" desc="customerName">
     
-    private String customerName;
-    
     public static final String PROP_CUSTOMERNAME = "customerName";
     
+    private final StringProperty name;
+
     /**
      * Get the value of customerName
      *
      * @return the value of customerName
      */
     @Override
-    public final String getCustomerName() { return customerName; }
-    
+    public String getName() { return name.get(); }
+
     /**
      * Set the value of customerName
      *
      * @param value new value of name
      */
-    public final void setCustomerName(String value) {
-        String oldValue = customerName;
-        customerName = (value == null) ? "" : value;
-        firePropertyChange(PROP_CUSTOMERNAME, oldValue, customerName);
-    }
+    public void setName(String value) { name.set(value); }
+
+    public StringProperty nameProperty() { return name; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="addressId">
     
-    private int addressId;
-    
     public static final String PROP_ADDRESSID = "addressId";
     
+    private final ReadOnlyIntegerWrapper addressId;
+
     /**
      * Get the value of addressId
      *
      * @return the value of addressId
      */
-    public final int getAddressId() { return addressId; }
-    
-    /**
-     * Set the value of addressId
-     *
-     * @param value new value of addressId
-     * @throws java.sql.SQLException
-     * @throws scheduler.InvalidArgumentException
-     */
-    public final void setAddressId(int value) throws SQLException, InvalidArgumentException {
-        if (value == addressId && address != null)
-            return;
-        int oldId = addressId;
-        model.Address oldAddress = address;
-        SqlConnectionDependency dep = new SqlConnectionDependency(true);
-        try {
-            Optional<AddressRow> r = AddressRow.getById(dep.getconnection(), value);
-            if (r.isPresent())
-            address = r.get();
-            else
-                throw new InvalidArgumentException("value", "No address found that matches that ID");
-        } finally { dep.close(); }
-        addressId = value;
-        try { firePropertyChange(PROP_ADDRESSID, oldId, addressId); }
-        finally { firePropertyChange(PROP_ADDRESS, oldAddress, address); }
-        
-    }
+    public int getAddressId() { return addressId.get(); }
+
+    public ReadOnlyIntegerProperty addressIdProperty() { return addressId.getReadOnlyProperty(); }
     
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="addressId">
-    
-    private model.Address address;
+    //<editor-fold defaultstate="collapsed" desc="address">
     
     public static final String PROP_ADDRESS = "address";
     
+    private final ObjectProperty<model.Address> address;
+
     /**
      * Get the value of address
      *
      * @return the value of address
      */
     @Override
-    public final model.Address getAddress() { return address; }
-    
+    public model.Address getAddress() { return address.get(); }
+
     /**
      * Set the value of address
      *
      * @param value new value of address
-     * @throws scheduler.InvalidArgumentException
      */
-    public final void setAddress(model.Address value) throws InvalidArgumentException {
-        if (value == null)
-            throw new InvalidArgumentException("value", "Address cannot be null");
-        if (value instanceof AddressRow) {
-            int rowState = ((AddressRow)value).getRowState();
-            if (rowState == ROWSTATE_DELETED)
-                throw new InvalidArgumentException("value", "Address was deleted");
-            if (rowState == ROWSTATE_NEW)
-                throw new InvalidArgumentException("value", "Address was not added to the database");
-        }
-        int oldId = addressId;
-        model.Address oldAddress = address;
-        addressId = (address = value).getPrimaryKey();
-        try { firePropertyChange(PROP_ADDRESS, oldAddress, address); }
-        finally { firePropertyChange(PROP_ADDRESSID, oldId, addressId); }
-    }
+    public void setAddress(model.Address value) { address.set(value); }
+
+    public ObjectProperty addressProperty() { return address; }
+    
+    private final RowIdChangeListener<model.Address> addressIdChangeListener;
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="active">
     
-    private boolean active;
-
     public static final String PROP_ACTIVE = "active";
+    
+    private final BooleanProperty active;
 
     /**
      * Get the value of active
@@ -148,18 +115,16 @@ public class CustomerRow extends DataRow implements model.Customer {
      * @return the value of active
      */
     @Override
-    public boolean isActive() { return active; }
+    public boolean isActive() { return active.get(); }
 
     /**
      * Set the value of active
      *
      * @param value new value of active
      */
-    public void setActive(boolean value) {
-        boolean oldValue = active;
-        active = value;
-        firePropertyChange(PROP_ACTIVE, oldValue, value);
-    }
+    public void setActive(boolean value) { active.set(value); }
+
+    public BooleanProperty activeProperty() { return active; }
 
     //</editor-fold>
     
@@ -168,31 +133,34 @@ public class CustomerRow extends DataRow implements model.Customer {
     
     public CustomerRow() {
         super();
-        customerName = "";
-        addressId = 0;
-        active = true;
+        this.name = new NonNullableStringProperty();
+        this.addressId = new ReadOnlyIntegerWrapper();
+        this.address = new SimpleObjectProperty<>();
+        this.active = new SimpleBooleanProperty();
+        addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
     }
     
-    public CustomerRow(String customerName, AddressRow address, boolean active) throws InvalidArgumentException {
+    public CustomerRow(String name, AddressRow address, boolean active) {
         super();
-        if (address == null)
-            throw new InvalidArgumentException("address", "Address cannot be null");
-        if (address.getRowState() == ROWSTATE_DELETED)
-            throw new InvalidArgumentException("address", "Address was deleted");
-        if (address.getRowState() == ROWSTATE_NEW)
-            throw new InvalidArgumentException("address", "Address was not added to the database");
-        this.customerName = (customerName == null) ? "" : customerName;
-        addressId = (this.address = address).getPrimaryKey();
-        this.active = active;
+        this.name = new NonNullableStringProperty(name);
+        this.addressId = new ReadOnlyIntegerWrapper();
+        this.address = new SimpleObjectProperty<>(address);
+        this.active = new SimpleBooleanProperty(active);
+        addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
     }
     
     public CustomerRow (ResultSet rs) throws SQLException {
         super(rs);
-        customerName = rs.getString(PROP_CUSTOMERNAME);
+        this.name = new NonNullableStringProperty(rs.getString(PROP_CUSTOMERNAME));
         if (rs.wasNull())
-            customerName = "";
-        addressId = rs.getInt(PROP_ADDRESSID);
-        active = rs.getBoolean(PROP_ACTIVE);
+            name.set("");
+        this.addressId = new ReadOnlyIntegerWrapper();
+        this.address = new SimpleObjectProperty<>(new Address(rs.getInt(PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
+                new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
+                new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
+                rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)));
+        this.active = new SimpleBooleanProperty(rs.getBoolean(PROP_ACTIVE));
+        addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
     }
     
     //</editor-fold>
@@ -258,23 +226,14 @@ public class CustomerRow extends DataRow implements model.Customer {
 
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        try {
-            deferPropertyChangeEvent(PROP_CUSTOMERNAME);
-            deferPropertyChangeEvent(PROP_ADDRESSID);
-            deferPropertyChangeEvent(PROP_ADDRESS);
-            deferPropertyChangeEvent(PROP_ACTIVE);
-        } catch (NoSuchFieldException ex) {
-            Logger.getLogger(CityRow.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        customerName = rs.getString(PROP_CUSTOMERNAME);
+        name.set(rs.getString(PROP_CUSTOMERNAME));
         if (rs.wasNull())
-            customerName = "";
-        addressId = rs.getInt(PROP_ADDRESSID);
-        address = new Address(addressId, rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
+            name.set("");
+        address.set(new Address(rs.getInt(PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
-                rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE));
-        active = rs.getBoolean(PROP_ACTIVE);
+                rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)));
+        active.set(rs.getBoolean(PROP_ACTIVE));
     }
 
     @Override
@@ -282,13 +241,13 @@ public class CustomerRow extends DataRow implements model.Customer {
         for (int index = 0; index < fieldNames.length; index++) {
             switch (fieldNames[index]) {
                 case PROP_CUSTOMERNAME:
-                    ps.setString(index + 1, customerName);
+                    ps.setString(index + 1, getName());
                     break;
                 case PROP_ADDRESSID:
-                    ps.setInt(index + 1, addressId);
+                    ps.setInt(index + 1, getAddressId());
                     break;
                 case PROP_ACTIVE:
-                    ps.setBoolean(index + 1, active);
+                    ps.setBoolean(index + 1, isActive());
                     break;
             }
         }
