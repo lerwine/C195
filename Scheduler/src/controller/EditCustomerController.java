@@ -83,12 +83,12 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(Node sourceNode, CustomerRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(Stage sourceStage, CustomerRow model, String returnViewPath) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == CustomerRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditCustomerController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditCustomerController controller) -> {
             controller.returnViewPath = returnViewPath;
             ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             if (controller.setModel(model)) {

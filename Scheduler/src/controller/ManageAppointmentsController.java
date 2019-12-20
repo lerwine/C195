@@ -82,18 +82,18 @@ public class ManageAppointmentsController extends ControllerBase {
         super.initialize(url, rb);
     }   
 
-    public static void setCurrentScene(Node sourceNode, String returnViewPath) throws InvalidArgumentException {
-        setCurrentScene(sourceNode, returnViewPath, null);
+    public static void setCurrentScene(Stage stage, String returnViewPath) throws InvalidArgumentException {
+        setCurrentScene(stage, returnViewPath, null);
     }
 
-    public static void setCurrentScene(Node sourceNode, String returnViewPath, UserRow user) throws InvalidArgumentException {
+    public static void setCurrentScene(Stage sourceStage, String returnViewPath, UserRow user) throws InvalidArgumentException {
         if (user != null) {
             if (user.getRowState() == UserRow.ROWSTATE_DELETED)
                 throw new InvalidArgumentException("user", "User was already deleted");
             if (user.getRowState() == UserRow.ROWSTATE_NEW)
                 throw new InvalidArgumentException("user", "User has not been saved");
         }
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, ManageAppointmentsController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageAppointmentsController controller) -> {
             controller.currentStage = stage;
             ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             if (user == null) {

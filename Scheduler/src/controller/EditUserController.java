@@ -201,12 +201,12 @@ public class EditUserController extends ItemControllerBase<UserRow> {
         return false;
     }
     
-    public static void setCurrentScene(Node sourceNode, UserRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(Stage sourceStage, UserRow model, String returnViewPath) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == UserRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditUserController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditUserController controller) -> {
             String s = model.getUserName();
             if (s == null)
                 s = "";

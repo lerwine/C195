@@ -93,8 +93,8 @@ public class ManageCountriesController extends ControllerBase {
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }
 
-    public static void setCurrentScene(Node sourceNode, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, ManageCountriesController controller) -> {
+    public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageCountriesController controller) -> {
             stage.setTitle(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale())
                 .getString("manageCountries"));
             controller.returnViewPath = returnViewPath;

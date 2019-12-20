@@ -104,8 +104,8 @@ public class ManageCustomersController extends ControllerBase {
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_LASTUPDATEBY));
     }
 
-    public static void setCurrentScene(Node sourceNode, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, ManageCustomersController controller) -> {
+    public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageCustomersController controller) -> {
             stage.setTitle(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale()).getString("manageCustomers"));
             controller.returnViewPath = returnViewPath;
         });

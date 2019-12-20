@@ -69,8 +69,8 @@ public class ManageUsersController extends ControllerBase {
         super.initialize(url, rb);
     }
 
-    public static void setCurrentScene(Node sourceNode, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, ManageUsersController controller) -> {
+    public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageUsersController controller) -> {
             stage.setTitle(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale()).getString("manageUsers"));
             controller.returnViewPath = returnViewPath;
         });

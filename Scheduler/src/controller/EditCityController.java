@@ -64,12 +64,12 @@ public class EditCityController extends ItemControllerBase<CityRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(Node sourceNode, CityRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(Stage sourceStage, CityRow model, String returnViewPath) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == CityRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditCityController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditCityController controller) -> {
             controller.returnViewPath = returnViewPath;
             ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             if (controller.setModel(model)) {

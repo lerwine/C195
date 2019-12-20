@@ -135,12 +135,15 @@ public class HomeScreenController extends ControllerBase {
     @Override
     public void initialize(URL url, ResourceBundle rb) { super.initialize(url, rb); }    
     
+    private Stage currentStage;
+    
     /**
      * 
      * @param sourceNode
      */
     public static void setCurrentScene(Node sourceNode) {
         App.changeScene(sourceNode, VIEW_PATH, (Stage stage, HomeScreenController controller) -> {
+            controller.currentStage = stage;
             ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             stage.setTitle(rb.getString("appointmentScheduler"));
             // Get current and future appointments for current user
@@ -173,7 +176,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void newAppointmentMenuItemClick(ActionEvent event) {
         try {
-            EditAppointmentController.setCurrentScene((Node)event.getSource(), new AppointmentRow(), VIEW_PATH);
+            EditAppointmentController.setCurrentScene(currentStage, new AppointmentRow(), VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -182,7 +185,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void allAppointmentsMenuItemClick(ActionEvent event) {
         try {
-            ManageAppointmentsController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+            ManageAppointmentsController.setCurrentScene(currentStage, VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -191,7 +194,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void newCustomerMenuItemClick(ActionEvent event) {
         try {
-            EditCustomerController.setCurrentScene((Node)event.getSource(), new model.db.CustomerRow(), VIEW_PATH);
+            EditCustomerController.setCurrentScene(currentStage, new model.db.CustomerRow(), VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -200,7 +203,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void allCustomersMenuItemClick(ActionEvent event) {
         try {
-            ManageCustomersController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+            ManageCustomersController.setCurrentScene(currentStage, VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -209,7 +212,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void newCountryMenuItemClick(ActionEvent event) {
         try {
-            EditCountryController.setCurrentScene((Node)event.getSource(), new model.db.CountryRow(), VIEW_PATH);
+            EditCountryController.setCurrentScene(currentStage, new model.db.CountryRow(), VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -218,7 +221,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void newCityMenuItemClick(ActionEvent event) {
         try {
-            EditCityController.setCurrentScene((Node)event.getSource(), new model.db.CityRow(), VIEW_PATH);
+            EditCityController.setCurrentScene(currentStage, new model.db.CityRow(), VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -227,7 +230,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void newAddressMenuItemClick(ActionEvent event) {
         try {
-            EditAddressController.setCurrentScene((Node)event.getSource(), new model.db.AddressRow(), VIEW_PATH);
+            EditAddressController.setCurrentScene(currentStage, new model.db.AddressRow(), VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -236,7 +239,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void allCountriesMenuItemClick(ActionEvent event) {
         try {
-            ManageCountriesController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+            ManageCountriesController.setCurrentScene(currentStage, VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -245,7 +248,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void newUserMenuItemClick(ActionEvent event) {
         try {
-            EditUserController.setCurrentScene((Node)event.getSource(), new model.db.UserRow(), VIEW_PATH);
+            EditUserController.setCurrentScene(currentStage, new model.db.UserRow(), VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -254,7 +257,7 @@ public class HomeScreenController extends ControllerBase {
     @FXML
     void allUsersMenuItemClick(ActionEvent event) {
         try {
-            ManageUsersController.setCurrentScene((Node)event.getSource(), VIEW_PATH);
+            ManageUsersController.setCurrentScene(currentStage, VIEW_PATH);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }

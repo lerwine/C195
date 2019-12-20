@@ -325,12 +325,12 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         });
     }
 
-    public static void setCurrentScene(Node sourceNode, AppointmentRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(Stage sourceStage, AppointmentRow model, String returnViewPath) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == AppointmentRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditAppointmentController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditAppointmentController controller) -> {
             controller.returnViewPath = returnViewPath;
             controller.applyModel(model, stage);
         });
