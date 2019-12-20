@@ -44,7 +44,7 @@ public class LoginScreenController implements Initializable {
      * The {@link ComboBox} that lets the user select their preferred language.
      */
     @FXML
-    private ComboBox languageComboBox;
+    private ComboBox<Locale> languageComboBox;
     
     /**
      * The {@link Label} for the User Name {@link TextField}.

@@ -79,7 +79,7 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     private Label activeLabel;
 
     @FXML
-    private ComboBox activeComboBox;
+    private ComboBox<Short> activeComboBox;
     
     private ObservableList<Short> userActiveStateOptions;
     

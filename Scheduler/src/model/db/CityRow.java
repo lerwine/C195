@@ -95,7 +95,7 @@ public class CityRow extends DataRow implements model.City {
      */
     public void setCountry(model.Country value) { country.set(value); }
 
-    public ObjectProperty countryProperty() { return country; }
+    public ObjectProperty<model.Country> countryProperty() { return country; }
     
     private final RowIdChangeListener<model.Country> countryIdChangeListener;
     

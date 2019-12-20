@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import model.db.CityRow;
+import model.db.CountryRow;
 import scheduler.InvalidArgumentException;
 import model.annotations.ResourceKey;
 import model.annotations.ResourceName;
@@ -49,7 +50,7 @@ public class EditCityController extends ItemControllerBase<CityRow> {
     private Label countryLabel;
     
     @FXML
-    private ComboBox countryComboBox;
+    private ComboBox<CountryRow> countryComboBox;
     
     private String returnViewPath;
     

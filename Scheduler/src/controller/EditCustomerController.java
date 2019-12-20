@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import model.db.AddressRow;
 import model.db.CustomerRow;
 import scheduler.InvalidArgumentException;
 import model.annotations.ResourceKey;
@@ -60,7 +61,7 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
     private Label addressLabel;
     
     @FXML
-    private ComboBox addressComboBox;
+    private ComboBox<AddressRow> addressComboBox;
     
     @FXML
     @ResourceKey("city")

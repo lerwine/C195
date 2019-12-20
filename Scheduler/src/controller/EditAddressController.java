@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import model.db.AddressRow;
+import model.db.CityRow;
 import scheduler.InvalidArgumentException;
 import model.annotations.ResourceKey;
 import model.annotations.ResourceName;
@@ -65,7 +66,7 @@ public class EditAddressController extends ItemControllerBase<AddressRow> {
     
     @FXML
     @ResourceKey("city")
-    private ComboBox cityComboBox;
+    private ComboBox<CityRow> cityComboBox;
     
     private String returnViewPath;
     

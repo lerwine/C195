@@ -234,7 +234,7 @@ public final class SqlConnectionDependency {
                 // See if we reached the date and time when the connection is supposed to be closed.
                 if (LocalDateTime.now().compareTo(closeAt) > 0) {
                     Connection c = CONNECTION.get();
-                    String host = c.getHost();
+                    String host = c.getMetaData().getURL();
                     CONNECTION = Optional.empty();
                     c.close();
                     Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Disconnected from %s", host));

@@ -120,7 +120,7 @@ public class AddressRow extends DataRow implements model.Address {
      */
     public void setCity(model.City value) { city.set(value); }
 
-    public ObjectProperty cityProperty() { return city; }
+    public ObjectProperty<model.City> cityProperty() { return city; }
     
     private final RowIdChangeListener<model.City> cityIdChangeListener;
     

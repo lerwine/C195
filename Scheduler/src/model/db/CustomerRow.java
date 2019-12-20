@@ -98,7 +98,7 @@ public class CustomerRow extends DataRow implements model.Customer {
      */
     public void setAddress(model.Address value) { address.set(value); }
 
-    public ObjectProperty addressProperty() { return address; }
+    public ObjectProperty<model.Address> addressProperty() { return address; }
     
     private final RowIdChangeListener<model.Address> addressIdChangeListener;
     
