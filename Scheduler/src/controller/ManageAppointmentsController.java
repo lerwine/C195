@@ -93,9 +93,8 @@ public class ManageAppointmentsController extends ControllerBase {
             if (user.getRowState() == UserRow.ROWSTATE_NEW)
                 throw new InvalidArgumentException("user", "User has not been saved");
         }
-        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageAppointmentsController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, ManageAppointmentsController controller) -> {
             controller.currentStage = stage;
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             if (user == null) {
                 stage.setTitle(rb.getString("manageAppointments"));
             } else {

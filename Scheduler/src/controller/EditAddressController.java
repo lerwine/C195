@@ -85,9 +85,8 @@ public class EditAddressController extends ItemControllerBase<AddressRow> {
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == AddressRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(currentStage, VIEW_PATH, (Stage stage, EditAddressController controller) -> {
+        scheduler.App.setScene(currentStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditAddressController controller) -> {
             controller.returnViewPath = returnViewPath;
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             if (controller.setModel(model)) {
                 stage.setTitle(rb.getString("editAddress"));
             } else {

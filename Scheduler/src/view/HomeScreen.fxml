@@ -9,8 +9,9 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.VBox?>
-<?import controller.factory.DateTimeTableCellFactory?>
-<?import controller.factory.CustomerNameTableCellFactory?>
+<?import controller.factory.table.DateTimeCell?>
+<?import controller.factory.table.CustomerCell?>
+<?import controller.factory.table.AppointmentTypeCell?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.HomeScreenController">
     <children>
@@ -57,7 +58,7 @@
                       <PropertyValueFactory property="start" />
                   </cellValueFactory>
                   <cellFactory>
-                      <DateTimeTableCellFactory />
+                      <DateTimeCell />
                   </cellFactory>
                 </TableColumn>
                 <TableColumn fx:id="endTableColumn" editable="false" text="End">
@@ -65,12 +66,12 @@
                       <PropertyValueFactory property="end" />
                   </cellValueFactory>
                   <cellFactory>
-                      <DateTimeTableCellFactory />
+                      <DateTimeCell />
                   </cellFactory>
                 </TableColumn>
                 <TableColumn fx:id="typeTableColumn" editable="false" text="Type">
                   <cellValueFactory>
-                      <PropertyValueFactory property="type" />
+                      <AppointmentTypeCell />
                   </cellValueFactory>
                 </TableColumn>
                 <TableColumn fx:id="customerTableColumn" editable="false" text="Customer">
@@ -78,7 +79,7 @@
                       <PropertyValueFactory property="customer" />
                   </cellValueFactory>
                   <cellFactory>
-                      <CustomerNameTableCellFactory />
+                      <CustomerCell />
                   </cellFactory>
                 </TableColumn>
             </columns>

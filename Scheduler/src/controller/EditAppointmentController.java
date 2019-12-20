@@ -20,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -204,19 +205,12 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     private Button showConflictsButton;
     
     @FXML
-    @ResourceKey("location")
-    private Label locationLabel;
-    
-    @FXML
     @ResourceKey("pointOfContact")
     private Label contactLabel;
     
     @FXML
-    private TextField locationTextField;
-    
-    void locationChanged(String oldValue, String newValue) {
-        
-    }
+    @ResourceKey("location")
+    private Label locationLabel;
     
     @FXML
     private TextField contactTextField;
@@ -226,12 +220,19 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     }
     
     @FXML
-    @ResourceKey("locationRequired")
-    private Label locationValidationLabel;
+    private TextArea locationTextArea;
+    
+    void locationChanged(String oldValue, String newValue) {
+        
+    }
     
     @FXML
     @ResourceKey("required")
     private Label contactValidationLabel;
+    
+    @FXML
+    @ResourceKey("locationRequired")
+    private Label locationValidationLabel;
     
     @FXML
     private Label urlLabel;
@@ -307,7 +308,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         titleTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             titleChanged(oldValue, newValue);
         });
-        locationTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+        locationTextArea.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             locationChanged(oldValue, newValue);
         });
         contactTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
@@ -319,9 +320,9 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     }
     
     static void restore(Node sourceNode, ControllerState state) {
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, (Stage stage, EditAppointmentController controller) -> {
+        scheduler.App.changeScene(sourceNode, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditAppointmentController controller) -> {
             controller.returnViewPath = state.returnViewPath;
-            controller.applyModel(state.model, stage);
+            controller.applyModel(state.model, stage, rb);
         });
     }
 
@@ -330,14 +331,13 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == AppointmentRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditAppointmentController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditAppointmentController controller) -> {
             controller.returnViewPath = returnViewPath;
-            controller.applyModel(model, stage);
+            controller.applyModel(model, stage, rb);
         });
     }
     
-    private void applyModel(AppointmentRow model, Stage stage) {
-        ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+    private void applyModel(AppointmentRow model, Stage stage, ResourceBundle rb) {
         if (setModel(model)) {
             stage.setTitle(rb.getString("editAppointment"));
         } else {

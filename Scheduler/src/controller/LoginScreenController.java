@@ -107,20 +107,12 @@ public class LoginScreenController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, App.getCurrentLocale());
+        currentResourceBundle = rb;
         locales = FXCollections.observableArrayList();
         final Locale initialDefaultLocale = App.getCurrentLocale();
         final String initialDefaultLanguageTag = initialDefaultLocale.toLanguageTag();
         Stream.of("en", "es", "de", "hi").map((String n) -> (n.equalsIgnoreCase(initialDefaultLanguageTag)) ? initialDefaultLocale : new Locale(n))
                 .forEach((Locale l) -> locales.add(l));
-        
-        languageComboBox.setCellFactory((ListView<Locale> p) -> new ListCell<Locale>() {
-            @Override
-            protected void updateItem(Locale t, boolean bln) {
-                super.updateItem(t, bln);
-                setText((t == null) ? "" : t.getDisplayName(t));
-            }
-        });
         
         languageComboBox.setItems(locales);
         Optional<Locale> selectedLocale = locales.stream().filter((Locale l) -> l.toLanguageTag().equalsIgnoreCase(initialDefaultLanguageTag)).findFirst();
@@ -166,14 +158,14 @@ public class LoginScreenController implements Initializable {
     private ResourceBundle currentResourceBundle;
     
     public static void setCurrentScene(Node sourceNode) {
-        App.changeScene(sourceNode, VIEW_PATH, (Stage stage, LoginScreenController controller) -> {
+        App.changeScene(sourceNode, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, LoginScreenController controller) -> {
             controller.currentStage = stage;
             controller.refreshCultureSensitive();
         });
     }
     
     public static void setCurrentScene(Stage stage) {
-        App.setScene(stage, VIEW_PATH, (LoginScreenController controller) -> {
+        App.setScene(stage, VIEW_PATH, RESOURCE_NAME, (ResourceBundle rb, LoginScreenController controller) -> {
             controller.currentStage = stage;
             controller.refreshCultureSensitive();
         });

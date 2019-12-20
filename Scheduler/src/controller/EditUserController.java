@@ -206,11 +206,10 @@ public class EditUserController extends ItemControllerBase<UserRow> {
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == UserRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditUserController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditUserController controller) -> {
             String s = model.getUserName();
             if (s == null)
                 s = "";
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             controller.returnViewPath = returnViewPath;
             if (controller.setModel(model)) {
                 stage.setTitle(String.format(rb.getString("editUser"), s));

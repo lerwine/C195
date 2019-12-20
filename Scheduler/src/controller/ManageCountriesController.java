@@ -97,9 +97,8 @@ public class ManageCountriesController extends ControllerBase {
     }
 
     public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageCountriesController controller) -> {
-            stage.setTitle(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale())
-                .getString("manageCountries"));
+        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, ManageCountriesController controller) -> {
+            stage.setTitle(rb.getString("manageCountries"));
             controller.returnViewPath = returnViewPath;
         });
     }

@@ -60,9 +60,8 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == CountryRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, EditCountryController controller) -> {
+        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditCountryController controller) -> {
             controller.returnViewPath = returnViewPath;
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             if (controller.setModel(model)) {
                 stage.setTitle(rb.getString("editCountry"));
             } else {

@@ -133,7 +133,33 @@ public class HomeScreenController extends ControllerBase {
      * @param rb The resources provided by the {@link javafx.fxml.FXMLLoader}
      */
     @Override
-    public void initialize(URL url, ResourceBundle rb) { super.initialize(url, rb); }    
+    public void initialize(URL url, ResourceBundle rb) {
+        super.initialize(url, rb);
+        // Get current and future appointments for current user
+        ObservableList<AppointmentRow> items;
+        try {
+            // Open a new database connection dependency and close it when finished loading data.
+            SqlConnectionDependency dep = new SqlConnectionDependency(true);
+            try {
+                items = AppointmentRow.getTodayAndFutureByUser(dep.getconnection(),
+                        App.getCurrentUser().get().getPrimaryKey());
+            } finally { dep.close(); }
+        } catch (SQLException ex) {
+            // Set heading text to "Database access error", log error and exit
+            headingLabel.setText(rb.getString("appointmentScheduler"));
+            Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+
+        // Set table view items
+        todayAndFutureAppointmenstTableView.setItems(items);
+
+        // Set heading text to "My Current and Upcoming Appointments"
+        headingLabel.setText(rb.getString("myCurrentAndUpcoming"));
+
+        // Make table view visible and initialize columns
+        todayAndFutureAppointmenstTableView.setVisible(true);
+    }
     
     private Stage currentStage;
     
@@ -142,34 +168,9 @@ public class HomeScreenController extends ControllerBase {
      * @param sourceNode
      */
     public static void setCurrentScene(Node sourceNode) {
-        App.changeScene(sourceNode, VIEW_PATH, (Stage stage, HomeScreenController controller) -> {
+        App.changeScene(sourceNode, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, HomeScreenController controller) -> {
             controller.currentStage = stage;
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
             stage.setTitle(rb.getString("appointmentScheduler"));
-            // Get current and future appointments for current user
-            ObservableList<AppointmentRow> items;
-            try {
-                // Open a new database connection dependency and close it when finished loading data.
-                SqlConnectionDependency dep = new SqlConnectionDependency(true);
-                try {
-                    items = AppointmentRow.getTodayAndFutureByUser(dep.getconnection(),
-                            App.getCurrentUser().get().getPrimaryKey());
-                } finally { dep.close(); }
-            } catch (SQLException ex) {
-                // Set heading text to "Database access error", log error and exit
-                controller.headingLabel.setText(rb.getString("appointmentScheduler"));
-                Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
-                return;
-            }
-            
-            // Set table view items
-            controller.todayAndFutureAppointmenstTableView.setItems(items);
-            
-            // Set heading text to "My Current and Upcoming Appointments"
-            controller.headingLabel.setText(rb.getString("myCurrentAndUpcoming"));
-            
-            // Make table view visible and initialize columns
-            controller.todayAndFutureAppointmenstTableView.setVisible(true);
         });
     }
     

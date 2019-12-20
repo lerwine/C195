@@ -13,6 +13,10 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import controller.factory.list.CustomerCell?>
+<?import controller.factory.list.UserCell?>
+<?import controller.factory.list.TimeZoneCell?>
+<?import controller.factory.list.AppointmentTypeCell?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" spacing="8.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.EditAppointmentController">
     <children>
@@ -39,7 +43,7 @@
             <RowConstraints />
             <RowConstraints />
             <RowConstraints />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
             <RowConstraints />
             <RowConstraints />
         </rowConstraints>
@@ -48,13 +52,22 @@
             <Label fx:id="userLabel" styleClass="formControlLabel" text="User" GridPane.columnIndex="2" GridPane.columnSpan="2">
                <GridPane.margin>
                   <Insets left="8.0" />
-               </GridPane.margin></Label>
-            <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" onAction="#customerChanged" GridPane.rowIndex="1" />
+               </GridPane.margin>
+            </Label>
+            <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" onAction="#customerChanged" GridPane.rowIndex="1">
+                 <cellFactory>
+                     <CustomerCell />
+                 </cellFactory>
+            </ComboBox>
             <Button fx:id="addCustomerButton" maxWidth="-Infinity" mnemonicParsing="false" onAction="#addCustomerClick" prefWidth="38.0" text="Add" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" onAction="#userChanged" GridPane.columnIndex="2" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets left="8.0" />
-               </GridPane.margin></ComboBox>
+               </GridPane.margin>
+                <cellFactory>
+                    <UserCell />
+                </cellFactory>
+            </ComboBox>
             <Button fx:id="addUserButton" maxWidth="-Infinity" mnemonicParsing="false" onAction="#addUserClick" prefWidth="38.0" text="Add" GridPane.columnIndex="3" GridPane.rowIndex="1" />
             <Label fx:id="customerValidationLabel" styleClass="formControlValidationMessage" text="* Required" GridPane.rowIndex="2" />
             <Label fx:id="userValidationLabel" styleClass="formControlValidationMessage" text="* Required" GridPane.columnIndex="2" GridPane.rowIndex="2">
@@ -78,9 +91,9 @@
                            </VBox.margin></DatePicker>
                             <HBox alignment="CENTER">
                                <children>
-                                  <ComboBox fx:id="startHourComboBox" onAction="#startChanged" prefWidth="56.0" />
+                                  <ComboBox fx:id="startHourComboBox" minWidth="64.0" onAction="#startChanged" prefWidth="64.0" />
                                   <Label text=":" />
-                                  <ComboBox fx:id="startMinuteComboBox" editable="true" onAction="#startChanged" prefWidth="56.0" />
+                                  <ComboBox fx:id="startMinuteComboBox" editable="true" minWidth="64.0" onAction="#startChanged" prefWidth="64.0" />
                                </children>
                             </HBox>
                             <Label fx:id="startValidationLabel" styleClass="formControlValidationMessage" text="* Required" />
@@ -98,9 +111,9 @@
                            </VBox.margin></DatePicker>
                             <HBox alignment="CENTER">
                                <children>
-                                  <ComboBox fx:id="endHourComboBox" onAction="#endChanged" prefWidth="56.0" />
+                                  <ComboBox fx:id="endHourComboBox" minWidth="64.0" onAction="#endChanged" prefWidth="64.0" />
                                   <Label text=":" />
-                                  <ComboBox fx:id="endMinuteComboBox" editable="true" onAction="#endChanged" prefWidth="56.0" />
+                                  <ComboBox fx:id="endMinuteComboBox" editable="true" minWidth="64.0" onAction="#endChanged" prefWidth="64.0" />
                                </children>
                             </HBox>
                             <Label fx:id="endValidationLabel" styleClass="formControlValidationMessage" text="* Required" />
@@ -112,7 +125,11 @@
                   <VBox>
                      <children>
                         <Label fx:id="timeZoneLabel" styleClass="formControlLabel" text="Time Zone" />
-                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" />
+                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+                            <cellFactory>
+                                <TimeZoneCell />
+                            </cellFactory>
+                        </ComboBox>
                      </children>
                   </VBox>
                   <VBox>
@@ -121,16 +138,20 @@
                         <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308">
                            <VBox.margin>
                               <Insets />
-                           </VBox.margin></ComboBox>
+                           </VBox.margin>
+                            <cellFactory>
+                                <AppointmentTypeCell />
+                            </cellFactory>
+                        </ComboBox>
                      </children>
                      <HBox.margin>
                         <Insets left="8.0" />
                      </HBox.margin>
                   </VBox>
-                  <VBox>
+                  <VBox HBox.hgrow="ALWAYS">
                      <children>
                         <Label fx:id="currentTimeZoneLabel" styleClass="formControlLabel" text="Current Time Zone" />
-                        <Label fx:id="currentTimeZoneValue" wrapText="true" text="currentTimeZone" />
+                        <Label fx:id="currentTimeZoneValue" text="currentTimeZone" wrapText="true" />
                      </children>
                      <padding>
                         <Insets left="8.0" />
@@ -141,22 +162,21 @@
                   <Insets top="8.0" />
                </GridPane.margin>
             </HBox>
-            <HBox GridPane.columnSpan="2" GridPane.rowIndex="7">
+            <HBox alignment="CENTER_LEFT" GridPane.columnSpan="2" GridPane.rowIndex="7">
                <children>
                   <Label fx:id="dateTimeValidationLabel" styleClass="formControlValidationMessage" text="One or more appointments conflict with the current appointment" />
                   <Button mnemonicParsing="false" text="Show" />
                </children>
             </HBox>
-            <Label fx:id="locationLabel" styleClass="formControlLabel" text="Location" GridPane.rowIndex="8" />
-            <Label fx:id="contactLabel" styleClass="formControlLabel" text="Point of Contact" GridPane.columnIndex="2" GridPane.rowIndex="8" />
-            
-            <TextField fx:id="locationTextField" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-            <TextField fx:id="contactTextField" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9">
+            <Label fx:id="contactLabel" styleClass="formControlLabel" text="Point of Contact" GridPane.rowIndex="8" />
+            <Label fx:id="locationLabel" styleClass="formControlLabel" text="Location" GridPane.columnIndex="2" GridPane.rowIndex="8" />
+            <TextField fx:id="contactTextField" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9" GridPane.valignment="TOP">
                <GridPane.margin>
                   <Insets left="8.0" />
                </GridPane.margin></TextField>
-            <Label fx:id="locationValidationLabel" styleClass="formControlValidationMessage" text="* Required if URL not provided." GridPane.columnSpan="2" GridPane.rowIndex="10" />
-            <Label fx:id="contactValidationLabel" styleClass="formControlValidationMessage" text="* Required" GridPane.columnIndex="2" GridPane.rowIndex="10">
+            <TextArea fx:id="locationTextArea" prefRowCount="4" GridPane.columnSpan="2" GridPane.rowIndex="9" />
+            <Label fx:id="contactValidationLabel" styleClass="formControlValidationMessage" text="* Required" GridPane.columnSpan="2" GridPane.rowIndex="10" />
+            <Label fx:id="locationValidationLabel" styleClass="formControlValidationMessage" text="* Required if URL not provided." GridPane.columnIndex="2" GridPane.rowIndex="10">
                <GridPane.margin>
                   <Insets left="8.0" />
                </GridPane.margin></Label>

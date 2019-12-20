@@ -105,8 +105,8 @@ public class ManageCustomersController extends ControllerBase {
     }
 
     public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.setScene(sourceStage, VIEW_PATH, (Stage stage, ManageCustomersController controller) -> {
-            stage.setTitle(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale()).getString("manageCustomers"));
+        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, ManageCustomersController controller) -> {
+            stage.setTitle(rb.getString("manageCustomers"));
             controller.returnViewPath = returnViewPath;
         });
     }
