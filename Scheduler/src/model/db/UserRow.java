@@ -4,6 +4,7 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -13,7 +14,6 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import model.User;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
@@ -273,4 +273,18 @@ public class UserRow extends DataRow implements model.User {
     }
     
     //</editor-fold>
+    
+    @Override
+    public int hashCode() { return 287 + Objects.hashCode(this.userName.get()); }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        return obj != null && getClass() == obj.getClass() && userName.get().equals(((UserRow)obj).userName.get());
+    }
+
+    @Override
+    public String toString() { return userName.get(); }
+    
 }

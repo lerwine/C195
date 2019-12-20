@@ -8,21 +8,20 @@ package controller.factory.list;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
-import model.AppointmentType;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-public class AppointmentTypeCell implements Callback<ListView<AppointmentType>, ListCell<AppointmentType>> {
+public class Integer2Cell implements Callback<ListView<Integer>, ListCell<Integer>> {
 
     @Override
-    public ListCell<AppointmentType> call(ListView<AppointmentType> param) {
-        return new ListCell<AppointmentType>() {
+    public ListCell<Integer> call(ListView<Integer> param) {
+        return new ListCell<Integer>() {
             @Override
-            protected void updateItem(AppointmentType item, boolean empty) {
+            protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
-                setText((item == null) ? "" : item.getDisplayText());
+                setText((empty || item == null) ? "" : ((item < 10) ? "0" + item.toString() : item.toString()));
             }
         };
     }

@@ -4,6 +4,7 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -37,11 +38,11 @@ public class CustomerRow extends DataRow implements model.Customer {
         " LEFT OUTER JOIN city ON address.cityId = city.cityId" +
         " LEFT OUTER JOIN country ON city.countryId = country.countryId";
     
-    //<editor-fold defaultstate="collapsed" desc="customerName">
+    //<editor-fold defaultstate="collapsed" desc="name">
     
     public static final String PROP_CUSTOMERNAME = "customerName";
     
-    private final StringProperty name;
+    private final NonNullableStringProperty name;
 
     /**
      * Get the value of customerName
@@ -255,8 +256,21 @@ public class CustomerRow extends DataRow implements model.Customer {
 
     @Override
     protected String getSelectQuery() { return SQL_SELECT; }
-    
+
     //</editor-fold>
+    
+    @Override
+    public int hashCode() { return 287 + Objects.hashCode(this.name.get()); }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        return obj != null && getClass() == obj.getClass() && name.get().equals(((CustomerRow)obj).name.get());
+    }
+
+    @Override
+    public String toString() { return name.get(); }
     
     static class Address implements model.Address {
         private final int id;

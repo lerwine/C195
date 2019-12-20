@@ -4,7 +4,6 @@ import com.mysql.jdbc.Connection;
 import controller.LoginScreenController;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;

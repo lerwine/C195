@@ -118,6 +118,7 @@ public class LoginScreenController implements Initializable {
         Optional<Locale> selectedLocale = locales.stream().filter((Locale l) -> l.toLanguageTag().equalsIgnoreCase(initialDefaultLanguageTag)).findFirst();
         languageComboBox.getSelectionModel().select((selectedLocale.isPresent()) ? selectedLocale.get() : locales.get(0));
         
+        
         userNameTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             validateUserName(newValue);
             updateButtonEnable();
@@ -129,6 +130,8 @@ public class LoginScreenController implements Initializable {
         validateUserName(userNameTextField.getText());
         validatePassword(passwordTextField.getText());
         updateButtonEnable();
+        App.setCurrentLocale(languageComboBox.getSelectionModel().getSelectedItem());
+        refreshCultureSensitive();
     }
     
     private void validateUserName(String newValue) {
@@ -185,7 +188,7 @@ public class LoginScreenController implements Initializable {
     
     @FXML
     void languageChanged(ActionEvent event) {
-        Locale item = (Locale)languageComboBox.getSelectionModel().getSelectedItem();
+        Locale item = languageComboBox.getSelectionModel().getSelectedItem();
         if (item == null || !(item instanceof Locale))
             return;
         App.setCurrentLocale(item);

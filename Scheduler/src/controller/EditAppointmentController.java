@@ -4,8 +4,11 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -66,8 +69,14 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     void customerChanged(ActionEvent event) { onCustomerChanged(); }
     
+    private boolean customerNotValid = false;
+    
     private void onCustomerChanged() {
-        CustomerRow customer = customerComboBox.getSelectionModel().getSelectedItem();
+        customerNotValid = customerComboBox.getSelectionModel().getSelectedItem() == null;
+        if (customerNotValid)
+            restoreLabeledVertical(customerValidationLabel, currentResourceBundle.getString("required"));
+        else
+            collapseLabeledVertical(customerValidationLabel);
     }
     
     @FXML
@@ -86,8 +95,14 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     void userChanged(ActionEvent event) { onUserChanged(); }
     
+    private boolean userNotValid = false;
+    
     private void onUserChanged() {
-        UserRow user = userComboBox.getSelectionModel().getSelectedItem();
+        userNotValid = userComboBox.getSelectionModel().getSelectedItem() == null;
+        if (userNotValid)
+            restoreLabeledVertical(userValidationLabel, currentResourceBundle.getString("required"));
+        else
+            collapseLabeledVertical(userValidationLabel);
     }
     
     @FXML
@@ -112,8 +127,14 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private TextField titleTextField;
     
-    void titleChanged(String oldValue, String newValue) {
-        
+    private boolean titleNotValid = false;
+    
+    void titleChanged(String newValue) {
+        titleNotValid = newValue == null || newValue.trim().isEmpty();
+        if (titleNotValid)
+            restoreLabeledVertical(titleValidationLabel, currentResourceBundle.getString("required"));
+        else
+            collapseLabeledVertical(titleValidationLabel);
     }
     
     @FXML
@@ -127,24 +148,44 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private DatePicker startDatePicker;
     
+    private boolean startNotValid = false;
+    
+    private LocalDateTime getStartDateTime() {
+        LocalDate date = startDatePicker.getValue();
+        Integer hour = startHourComboBox.getSelectionModel().getSelectedItem();
+        Integer minutes = startMinuteComboBox.getSelectionModel().getSelectedItem();
+        if (date == null || hour == null || minutes == null)
+            return null;
+        return LocalDateTime.of(date, LocalTime.of(hour, minutes));
+    }
+    
     @FXML
     void startChanged(ActionEvent event) { onStartChanged(); }
     
     private void onStartChanged() {
-        LocalDate date = startDatePicker.getValue();
-        String hour = startHourComboBox.getSelectionModel().getSelectedItem();
-        String minutes = startMinuteComboBox.getSelectionModel().getSelectedItem();
+        LocalDateTime start = getStartDateTime();
+        if (start == null) {
+            startNotValid = true;
+            restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("required"));
+        } else {
+            LocalDateTime end = getEndDateTime();
+            startNotValid = end != null && end.compareTo(start) < 0;
+            if (startNotValid)
+                restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("endCannotBeBeforeStart"));
+            else
+                collapseLabeledVertical(startValidationLabel);
+        }
     }
     
-    private ObservableList<String> hourOptions;
+    private ObservableList<Integer> hourOptions;
     
-    private ObservableList<String> minuteOptions;
-    
-    @FXML
-    private ComboBox<String> startHourComboBox;
+    private ObservableList<Integer> minuteOptions;
     
     @FXML
-    private ComboBox<String> startMinuteComboBox;
+    private ComboBox<Integer> startHourComboBox;
+    
+    @FXML
+    private ComboBox<Integer> startMinuteComboBox;
     
     @FXML
     @ResourceKey("required")
@@ -157,16 +198,44 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private DatePicker endDatePicker;
     
-    @FXML
-    void endChanged(ActionEvent event) {
-        
+    private boolean endNotValid = false;
+    
+    private LocalDateTime getEndDateTime() {
+        LocalDate date = endDatePicker.getValue();
+        Integer hour = endHourComboBox.getSelectionModel().getSelectedItem();
+        Integer minutes = endMinuteComboBox.getSelectionModel().getSelectedItem();
+        if (date == null || hour == null || minutes == null)
+            return null;
+        return LocalDateTime.of(date, LocalTime.of(hour, minutes));
     }
     
     @FXML
-    private ComboBox<String> endHourComboBox;
+    void endChanged(ActionEvent event) { onEndChanged(); }
+    
+    void onEndChanged() {
+        LocalDateTime end = getEndDateTime();
+        if (end == null) {
+            endNotValid = true;
+            restoreLabeledVertical(endValidationLabel, currentResourceBundle.getString("required"));
+        } else {
+            endNotValid = false;
+            collapseLabeledVertical(endValidationLabel);
+            LocalDateTime start = getStartDateTime();
+            if (start != null) {
+                startNotValid = end.compareTo(start) < 0;
+                if (startNotValid)
+                    restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("endCannotBeBeforeStart"));
+                else
+                    collapseLabeledVertical(startValidationLabel);
+            }
+        }
+    }
     
     @FXML
-    private ComboBox<String> endMinuteComboBox;
+    private ComboBox<Integer> endHourComboBox;
+    
+    @FXML
+    private ComboBox<Integer> endMinuteComboBox;
     
     @FXML
     @ResourceKey("required")
@@ -182,6 +251,13 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     private ComboBox<TimeZone> timeZoneComboBox;
     
     @FXML
+    void timeZoneChanged(ActionEvent event) { onTimeZoneChanged(); }
+    
+    void onTimeZoneChanged() {
+        TimeZone selectedTimeZone = timeZoneComboBox.getSelectionModel().getSelectedItem();
+    }
+    
+    @FXML
     @ResourceKey("type")
     private Label typeLabel;
     
@@ -189,6 +265,36 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     
     @FXML
     private ComboBox<AppointmentType> typeComboBox;
+    
+    @FXML
+    void typeChanged(ActionEvent event) { onTypeChanged(); }
+    
+    void onTypeChanged() {
+        AppointmentType selectedType = typeComboBox.getSelectionModel().getSelectedItem();
+        if (selectedType.isLocationRequired()) {
+            restoreControlVertical(endLabel);
+            restoreLabeledVertical(endLabel, "");
+            locationTextArea.setDisable(false);
+            locationChanged(locationTextArea.getText());
+        } else {
+            locationTextArea.setDisable(true);
+            locationTextArea.setText(selectedType.getDisplayText());
+            collapseLabeledVertical(locationValidationLabel);
+        }
+        if (selectedType.isPhoneUrl()) {
+            restoreLabeledVertical(urlLabel, currentResourceBundle.getString("phoneNumber"));
+            restoreControlVertical(urlTextField);
+            urlChanged(urlTextField.getText());
+        } else if (selectedType.isUrlRequired()) {
+            restoreLabeledVertical(urlLabel, currentResourceBundle.getString("meetingUrl"));
+            restoreControlVertical(urlTextField);
+            urlChanged(urlTextField.getText());
+        } else {
+            collapseLabeledVertical(urlLabel);
+            collapseControlVertical(urlTextField);
+            collapseLabeledVertical(urlValidationLabel);
+        }
+    }
     
     @FXML
     @ResourceKey("currentTimeZone")
@@ -215,14 +321,14 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private TextField contactTextField;
     
-    void contactChanged(String oldValue, String newValue) {
+    void contactChanged(String newValue) {
         
     }
     
     @FXML
     private TextArea locationTextArea;
     
-    void locationChanged(String oldValue, String newValue) {
+    void locationChanged(String newValue) {
         
     }
     
@@ -235,12 +341,13 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     private Label locationValidationLabel;
     
     @FXML
+    @ResourceKey("meetingUrl")
     private Label urlLabel;
     
     @FXML
     private TextField urlTextField;
     
-    void urlChanged(String oldValue, String newValue) {
+    void urlChanged(String newValue) {
         
     }
     
@@ -263,6 +370,8 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        currentResourceBundle = rb;
+        
         super.initialize(url, rb);
 
         // Open a new SQL connection dependency.
@@ -282,50 +391,62 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         }
         
         // Initialize options lists for start and end time combo boxes.
-        hourOptions = FXCollections.observableArrayList("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14",
-                "15", "16", "17", "18", "19", "20", "21", "22", "23");
-        minuteOptions = FXCollections.observableArrayList("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
+        hourOptions = FXCollections.observableArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
+        minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
         
         // Initialize options list for time zone combo box.
-        ArrayList<TimeZone> tz = new ArrayList<>();
+        ArrayList<TimeZone> tzArr = new ArrayList<>();
         Arrays.stream(TimeZone.getAvailableIDs()).forEach((String id) -> {
-            tz.add(TimeZone.getTimeZone(id));
+            tzArr.add(TimeZone.getTimeZone(id));
         });
-        timeZones = FXCollections.observableArrayList(tz);
-        
+        timeZones = FXCollections.observableArrayList(tzArr);
         // Get appointment type options.
         types = FXCollections.observableArrayList(scheduler.App.getAppointmentTypes());
 
         customerComboBox.setItems(customers);
         userComboBox.setItems(users);
+        LocalDateTime date = LocalDateTime.now().plusDays(1);
+        startDatePicker.setValue(date.toLocalDate());
         startHourComboBox.setItems(hourOptions);
-        endHourComboBox.setItems(hourOptions);
+        startHourComboBox.getSelectionModel().select(date.getHour());
         startMinuteComboBox.setItems(minuteOptions);
+        startMinuteComboBox.getSelectionModel().select(0);
+        date = date.plusHours(1);
+        endHourComboBox.setItems(hourOptions);
+        endHourComboBox.getSelectionModel().select(date.getHour());
         endMinuteComboBox.setItems(minuteOptions);
+        endMinuteComboBox.getSelectionModel().select(0);
         timeZoneComboBox.setItems(timeZones);
+        String tzId = TimeZone.getDefault().getID();
+        Optional<TimeZone> tz = timeZones.stream().filter((TimeZone t) -> t.getID().equals(tzId)).findFirst();
+        timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
-        
+        typeComboBox.getSelectionModel().select(types.get(0));
         titleTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            titleChanged(oldValue, newValue);
+            titleChanged(newValue);
         });
         locationTextArea.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            locationChanged(oldValue, newValue);
+            locationChanged(newValue);
         });
         contactTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            contactChanged(oldValue, newValue);
+            contactChanged(newValue);
         });
         urlTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            urlChanged(oldValue, newValue);
+            urlChanged(newValue);
         });
+        
+        onCustomerChanged();
+        onUserChanged();
+        contactChanged(contactTextField.getText());
+        titleChanged(titleTextField.getText());
+        onTypeChanged();
+        onEndChanged();
+        onStartChanged();
+        onTimeZoneChanged();
     }
     
-    static void restore(Node sourceNode, ControllerState state) {
-        scheduler.App.changeScene(sourceNode, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditAppointmentController controller) -> {
-            controller.returnViewPath = state.returnViewPath;
-            controller.applyModel(state.model, stage, rb);
-        });
-    }
-
+    ResourceBundle currentResourceBundle;
+    
     public static void setCurrentScene(Stage sourceStage, AppointmentRow model, String returnViewPath) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
@@ -343,6 +464,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         } else {
             stage.setTitle(rb.getString("addNewAppointment"));
         }
+        
     }
 
     @FXML
@@ -355,60 +477,5 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @Override
     void cancelClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    static class ControllerState {
-        private AppointmentRow model;
-        private model.db.CustomerRow customerRow;
-        private model.db.UserRow userRow;
-        private String customerValidation;
-        private String userValidation;
-        private String titleValue;
-        private String titleValidation;
-        private LocalDateTime startDateTime;
-        private LocalDateTime endDateTime;
-        private String startValidation;
-        private String endValidation;
-        private String dateTimeValidation;
-        private boolean showConflictsButton;
-        private TimeZone timeZone;
-        private String type;
-        private String currentTimeZone;
-        private String locationText;
-        private String contactText;
-        private String locationValidation;
-        private String contactValidation;
-        private String urlText;
-        private String urlValidation;
-        private String description;
-        private String returnViewPath;
-        ControllerState(EditAppointmentController controller) {
-            this.model = controller.getModel();
-            /*
-            this.customerRow;
-            this.userRow;
-            this.customerValidation;
-            this.userValidation;
-            this.titleValue;
-            this.titleValidation;
-            this.startDateTime;
-            this.endDateTime;
-            this.startValidation;
-            this.endValidation;
-            this.dateTimeValidation;
-            this.showConflictsButton;
-            this.timeZone;
-            this.type;
-            this.currentTimeZone;
-            this.locationText;
-            this.contactText;
-            this.locationValidation;
-            this.contactValidation;
-            this.urlText;
-            this.urlValidation;
-            this.description;
-            this.returnViewPath;
-            */
-        }
     }
 }

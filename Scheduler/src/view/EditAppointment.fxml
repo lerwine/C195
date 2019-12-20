@@ -17,6 +17,7 @@
 <?import controller.factory.list.UserCell?>
 <?import controller.factory.list.TimeZoneCell?>
 <?import controller.factory.list.AppointmentTypeCell?>
+<?import controller.factory.list.Integer2Cell?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" spacing="8.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.EditAppointmentController">
     <children>
@@ -91,9 +92,17 @@
                            </VBox.margin></DatePicker>
                             <HBox alignment="CENTER">
                                <children>
-                                  <ComboBox fx:id="startHourComboBox" minWidth="64.0" onAction="#startChanged" prefWidth="64.0" />
+                                  <ComboBox fx:id="startHourComboBox" minWidth="64.0" onAction="#startChanged" prefWidth="64.0">
+                                    <cellFactory>
+                                        <Integer2Cell />
+                                    </cellFactory>
+                                  </ComboBox>
                                   <Label text=":" />
-                                  <ComboBox fx:id="startMinuteComboBox" editable="true" minWidth="64.0" onAction="#startChanged" prefWidth="64.0" />
+                                  <ComboBox fx:id="startMinuteComboBox" editable="true" minWidth="64.0" onAction="#startChanged" prefWidth="64.0">
+                                    <cellFactory>
+                                        <Integer2Cell />
+                                    </cellFactory>
+                                  </ComboBox>
                                </children>
                             </HBox>
                             <Label fx:id="startValidationLabel" styleClass="formControlValidationMessage" text="* Required" />
@@ -111,9 +120,17 @@
                            </VBox.margin></DatePicker>
                             <HBox alignment="CENTER">
                                <children>
-                                  <ComboBox fx:id="endHourComboBox" minWidth="64.0" onAction="#endChanged" prefWidth="64.0" />
+                                  <ComboBox fx:id="endHourComboBox" minWidth="64.0" onAction="#endChanged" prefWidth="64.0">
+                                    <cellFactory>
+                                        <Integer2Cell />
+                                    </cellFactory>
+                                  </ComboBox>
                                   <Label text=":" />
-                                  <ComboBox fx:id="endMinuteComboBox" editable="true" minWidth="64.0" onAction="#endChanged" prefWidth="64.0" />
+                                  <ComboBox fx:id="endMinuteComboBox" editable="true" minWidth="64.0" onAction="#endChanged" prefWidth="64.0">
+                                    <cellFactory>
+                                        <Integer2Cell />
+                                    </cellFactory>
+                                  </ComboBox>
                                </children>
                             </HBox>
                             <Label fx:id="endValidationLabel" styleClass="formControlValidationMessage" text="* Required" />
@@ -125,7 +142,7 @@
                   <VBox>
                      <children>
                         <Label fx:id="timeZoneLabel" styleClass="formControlLabel" text="Time Zone" />
-                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+                        <ComboBox fx:id="timeZoneComboBox" onAction="#timeZoneChanged" maxWidth="1.7976931348623157E308">
                             <cellFactory>
                                 <TimeZoneCell />
                             </cellFactory>
@@ -135,7 +152,7 @@
                   <VBox>
                      <children>
                         <Label fx:id="typeLabel" styleClass="formControlLabel" text="Type" />
-                        <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308">
+                        <ComboBox fx:id="typeComboBox" onAction="#typeChanged" maxWidth="1.7976931348623157E308">
                            <VBox.margin>
                               <Insets />
                            </VBox.margin>
