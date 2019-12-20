@@ -8,6 +8,8 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumnBase;
@@ -106,5 +108,47 @@ public abstract class ControllerBase implements Initializable {
             }
         } else
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "No resource name annotation present");
+    }
+    
+    protected static void collapseLabeledVertical(Labeled labeled) {
+        labeled.setText("");
+        collapseControlVertical(labeled);
+    }
+    
+    protected static void collapseControlVertical(Control control) {
+        control.setMinHeight(0);
+        control.setPrefHeight(0);
+        control.setMaxHeight(0);
+        control.setVisible(false);
+    }
+    
+    protected static void restoreLabeledVertical(Labeled labeled, String text) {
+        labeled.setText(text);
+        restoreControlVertical(labeled);
+    }
+    
+    protected static void restoreControlVertical(Control control) {
+        restoreControlVertical(control, Control.USE_COMPUTED_SIZE);
+    }
+    
+    protected static void restoreLabeledVertical(Labeled labeled, String text, double prefHeight) {
+        labeled.setText(text);
+        restoreControlVertical(labeled, prefHeight);
+    }
+    
+    protected static void restoreControlVertical(Control control, double prefHeight) {
+        restoreControlVertical(control, Control.USE_COMPUTED_SIZE, prefHeight, Control.USE_COMPUTED_SIZE);
+    }
+    
+    protected static void restoreLabeledVertical(Labeled labeled, String text, double minHeight, double prefHeight, double maxHeight) {
+        labeled.setText(text);
+        restoreControlVertical(labeled, minHeight, prefHeight, maxHeight);
+    }
+    
+    protected static void restoreControlVertical(Control control, double minHeight, double prefHeight, double maxHeight) {
+        control.setMaxHeight(maxHeight);
+        control.setPrefHeight(prefHeight);
+        control.setMinHeight(minHeight);
+        control.setVisible(true);
     }
 }

@@ -58,8 +58,8 @@
                <Insets top="8.0" />
             </GridPane.margin>
          </PasswordField>
-         <Label styleClass="formControlValidationMessage" text="User Name cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-         <Label styleClass="formControlValidationMessage" text="Password cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.valignment="TOP" />
+         <Label fx:id="userNameValidationLabel" styleClass="formControlValidationMessage" text="User Name cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+         <Label fx:id="passwordValidationLabel" styleClass="formControlValidationMessage" text="Password cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.valignment="TOP" />
          <padding>
             <Insets bottom="8.0" right="8.0" />
          </padding>
