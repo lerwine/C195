@@ -2,6 +2,8 @@ package controller;
 
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -66,6 +68,7 @@ public class ManageCountriesController extends ControllerBase {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
+        
         nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_NAME));
         createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDATE));
         createDateTableColumn.setCellFactory(col -> new TableCell<CountryRow, LocalDateTime>() {
@@ -75,7 +78,7 @@ public class ManageCountriesController extends ControllerBase {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getShortDateTimeFormatter()));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDBY));
@@ -87,7 +90,7 @@ public class ManageCountriesController extends ControllerBase {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getShortDateTimeFormatter()));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));

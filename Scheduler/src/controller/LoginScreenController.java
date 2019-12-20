@@ -21,6 +21,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -113,13 +114,14 @@ public class LoginScreenController implements Initializable {
         Stream.of("en", "es", "de", "hi").map((String n) -> (n.equalsIgnoreCase(initialDefaultLanguageTag)) ? initialDefaultLocale : new Locale(n))
                 .forEach((Locale l) -> locales.add(l));
         
-        languageComboBox.setCellFactory((p) -> new ListCell<Locale>() {
+        languageComboBox.setCellFactory((ListView<Locale> p) -> new ListCell<Locale>() {
             @Override
             protected void updateItem(Locale t, boolean bln) {
                 super.updateItem(t, bln);
                 setText((t == null) ? "" : t.getDisplayName(t));
             }
         });
+        
         languageComboBox.setItems(locales);
         Optional<Locale> selectedLocale = locales.stream().filter((Locale l) -> l.toLanguageTag().equalsIgnoreCase(initialDefaultLanguageTag)).findFirst();
         languageComboBox.getSelectionModel().select((selectedLocale.isPresent()) ? selectedLocale.get() : locales.get(0));

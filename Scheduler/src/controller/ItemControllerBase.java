@@ -1,6 +1,7 @@
 package controller;
 
 import java.net.URL;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
@@ -24,7 +25,7 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
     
     protected final boolean setModel(T model) {
         this.model = model;
-        DateTimeFormatter dtf = scheduler.App.getDateTimeFormatter(FormatStyle.FULL);
+        DateTimeFormatter dtf = scheduler.App.getFullDateTimeFormatter();
         createDateValue.setText(dtf.format(model.getCreateDate()));
         lastUpdateValue.setText(dtf.format(model.getLastUpdate()));
         createdByValue.setText(model.getCreatedBy());

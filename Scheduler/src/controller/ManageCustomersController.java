@@ -86,7 +86,7 @@ public class ManageCustomersController extends ControllerBase {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getShortDateTimeFormatter()));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_CREATEDBY));
@@ -98,7 +98,7 @@ public class ManageCustomersController extends ControllerBase {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT)));
+                    setText(item.format(scheduler.App.getShortDateTimeFormatter()));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CustomerRow.PROP_LASTUPDATEBY));

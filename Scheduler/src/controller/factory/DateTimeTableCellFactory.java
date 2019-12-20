@@ -27,7 +27,7 @@ public class DateTimeTableCellFactory<S, T> implements Callback<TableColumn<S, T
                     super.setText(null);
                     super.setGraphic(null);
                 } else if (item instanceof TemporalAccessor)
-                    super.setText(scheduler.App.getDateTimeFormatter(FormatStyle.SHORT).format((TemporalAccessor)item));
+                    super.setText(scheduler.App.getShortDateTimeFormatter().format((TemporalAccessor)item));
                 else if (item instanceof String)
                     super.setText((String)item);
                 else

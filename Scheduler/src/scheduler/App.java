@@ -5,6 +5,7 @@ import controller.LoginScreenController;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.NumberFormat;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
@@ -216,10 +217,10 @@ public class App extends Application {
     
     // This contains the current locale.
     private static Locale currentLocale;
-    
-    // This contains the formatters cache for the current locale.
-    private static Formatters formatters = new Formatters();
-    
+    private static DateTimeFormatter shortDateTimeFormatter;
+    private static DateTimeFormatter fullDateTimeFormatter;
+    private static DateTimeFormatter fullDateFormatter;
+    private static DateTimeFormatter fullTimeFormatter;
     /**
      * Gets the current {@link Locale}.
      * @return The current {@link Locale}.
@@ -236,180 +237,19 @@ public class App extends Application {
         Locale.setDefault(Locale.Category.FORMAT, locale);
         // Save the new locale.
         currentLocale = locale;
-        // Create a new, empty formatters cache object.
-        formatters = new Formatters();
-        // Set to null so it gets reloaded.
-        appResourceBundle = null;
+        fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+        fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+        shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
+        fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
     }
     
-    /**
-     * Gets the current localized, {@link Locale}-specific Date formatter for the specified {@link FormatStyle}.
-     * @param style The style of Date formatter to return.
-     * @return The current localized, {@link Locale}-specific Date formatter for the specified {@link FormatStyle}.
-     */
-    public static DateTimeFormatter getDateFormatter(FormatStyle style) {
-        TemporalFormatters fmt;
-        if (formatters.temporal.containsKey(style)) {
-            fmt = formatters.temporal.get(style);
-            if (fmt.date.isPresent())
-                return fmt.date.get();
-        } else {
-            fmt = new TemporalFormatters();
-            formatters.temporal.put(style, fmt);
-        }
-        DateTimeFormatter result = DateTimeFormatter.ofLocalizedDate(style).withLocale(currentLocale);
-        fmt.date = Optional.of(result);
-        return result;
-    }
+    public static DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
     
-    /**
-     * Gets the current localized, {@link Locale}-specific time formatter for the specified {@link FormatStyle}.
-     * @param style The style of Time formatter to return.
-     * @return The current {@link Locale}-specific time formatter for the specified {@link FormatStyle}.
-     */
-    public static DateTimeFormatter getTimeFormatter(FormatStyle style) {
-        TemporalFormatters fmt;
-        if (formatters.temporal.containsKey(style)) {
-            fmt = formatters.temporal.get(style);
-            if (fmt.time.isPresent())
-                return fmt.time.get();
-        } else {
-            fmt = new TemporalFormatters();
-            formatters.temporal.put(style, fmt);
-        }
-        DateTimeFormatter result = DateTimeFormatter.ofLocalizedTime(style).withLocale(currentLocale);
-        fmt.time = Optional.of(result);
-        return result;
-    }
+    public static DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
     
-    /**
-     * Gets the current localized, {@link Locale}-specific Date/Time formatter for the specified {@link FormatStyle}.
-     * @param style The style of Date/Time formatter to return.
-     * @return The current localized, {@link Locale}-specific Date/Time formatter for the specified {@link FormatStyle}.
-     */
-    public static DateTimeFormatter getDateTimeFormatter(FormatStyle style) {
-        TemporalFormatters fmt;
-        if (formatters.temporal.containsKey(style)) {
-            fmt = formatters.temporal.get(style);
-            if (fmt.dateTime.isPresent())
-                return fmt.dateTime.get();
-        } else {
-            fmt = new TemporalFormatters();
-            formatters.temporal.put(style, fmt);
-        }
-        DateTimeFormatter result = DateTimeFormatter.ofLocalizedDateTime(style).withLocale(currentLocale);
-        fmt.dateTime = Optional.of(result);
-        return result;
-    }
+    public static DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
     
-    /**
-     * Gets the current {@link Locale}-specific general numeric value formatter.
-     * @return The current {@link Locale}-specific general numeric value formatter.
-     */
-    public static NumberFormat getNumericFormatter() {
-        if (formatters.value.isPresent())
-            return formatters.value.get();
-        NumberFormat result = NumberFormat.getInstance(currentLocale);
-        formatters.value = Optional.of(result);
-        return result;
-    }
-    
-    /**
-     * Gets the current {@link Locale}-specific floating-point number value formatter.
-     * @return The current {@link Locale}-specific floating-point number value formatter.
-     */
-    public static NumberFormat getNumberFormatter() {
-        if (formatters.number.isPresent())
-            return formatters.number.get();
-        NumberFormat result = NumberFormat.getNumberInstance(currentLocale);
-        formatters.number = Optional.of(result);
-        return result;
-    }
-    
-    /**
-     * Gets the current {@link Locale}-specific currency value formatter.
-     * @return The current {@link Locale}-specific currency value formatter.
-     */
-    public static NumberFormat getCurrencyFormatter() {
-        if (formatters.currency.isPresent())
-            return formatters.currency.get();
-        NumberFormat result = NumberFormat.getCurrencyInstance(currentLocale);
-        formatters.currency = Optional.of(result);
-        return result;
-    }
-    
-    /**
-     * Gets the current {@link Locale}-specific integer value formatter.
-     * @return The current {@link Locale}-specific integer value formatter.
-     */
-    public static NumberFormat getIntegerFormatter() {
-        if (formatters.integer.isPresent())
-            return formatters.integer.get();
-        NumberFormat result = NumberFormat.getIntegerInstance(currentLocale);
-        formatters.integer = Optional.of(result);
-        return result;
-    }
-    
-    /**
-     * Gets the current {@link Locale}-specific percentage value formatter.
-     * @return The current {@link Locale}-specific percentage value formatter.
-     */
-    public static NumberFormat getPercentageFormatter() {
-        if (formatters.percentage.isPresent())
-            return formatters.percentage.get();
-        NumberFormat result = NumberFormat.getPercentInstance(currentLocale);
-        formatters.percentage = Optional.of(result);
-        return result;
-    }
-    
-    /**
-     * A class that is used internally by {@link App} methods as a cache of formatters for the current {@link Locale}.
-     */
-    static class Formatters {
-        /**
-         * Cached temporal formatters indexed by their {@link FormatStyle}.
-         */
-        private HashMap<FormatStyle, TemporalFormatters> temporal = new HashMap<>();
-        /**
-         * The cached {@link NumberFormat} for general numeric values.
-         */
-        private Optional<NumberFormat> value = Optional.empty();
-        /**
-         * The cached {@link NumberFormat} for floating-point number values.
-         */
-        private Optional<NumberFormat> number = Optional.empty();
-        /**
-         * The cached {@link NumberFormat} for currency values.
-         */
-        private Optional<NumberFormat> currency = Optional.empty();
-        /**
-         * The cached {@link NumberFormat} for integer values.
-         */
-        private Optional<NumberFormat> integer = Optional.empty();
-        /**
-         * The cached {@link NumberFormat} for percentage values.
-         */
-        private Optional<NumberFormat> percentage = Optional.empty();
-        
-    }
-    
-    /**
-     * A class that is used internally in {@link Formatters} fields as a cache of temporal formatters for the current {@link Locale}.
-     */
-    static class TemporalFormatters {
-        /**
-         * The cached {@link DateTimeFormatter} for formatting date strings.
-         */
-        private Optional<DateTimeFormatter> date = Optional.empty();
-        /**
-         * The cached {@link DateTimeFormatter} for formatting date/time strings.
-         */
-        private Optional<DateTimeFormatter> dateTime = Optional.empty();
-        /**
-         * The cached {@link DateTimeFormatter} for formatting time strings.
-         */
-        private Optional<DateTimeFormatter> time = Optional.empty();
-    }
+    public static DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Members for tracking the current User">
