@@ -184,6 +184,7 @@ public abstract class DataRow implements model.Record {
      * The name of the property that contains the date and time when the row was last updated.
      */
     public static final String PROP_LASTDBSYNC = "lastDbSync";
+
     private final ReadOnlyObjectWrapper<LocalDateTime> lastDbSync;
 
     /**
@@ -196,13 +197,6 @@ public abstract class DataRow implements model.Record {
 
     public ReadOnlyObjectProperty<LocalDateTime> lastDbSyncProperty() { return lastDbSync.getReadOnlyProperty(); }
     
-    /*
-    private LocalDateTime lastDbSync;
-    
-    public final LocalDateTime getLastDbSync() { return lastDbSync; }
-    */
-    
-    
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="rowState">
     
@@ -213,33 +207,40 @@ public abstract class DataRow implements model.Record {
     
     private final ReadOnlyIntegerWrapper rowState;
 
-    public int getRowState() { return rowState.get(); }
-
-    public ReadOnlyIntegerProperty rowStateProperty() { return rowState.getReadOnlyProperty(); }
-    
     /**
      * Gets the database disposition for the current row.
      * @return The database disposition for the current row.
      */
-    /*
-    private byte rowState;
-    
-    public final byte getRowState() { return rowState; }
-    */
+    public int getRowState() { return rowState.get(); }
+
+    public ReadOnlyIntegerProperty rowStateProperty() { return rowState.getReadOnlyProperty(); }
     
     //</editor-fold>
     
     //</editor-fold>
     
+    /**
+     * 
+     * @param <R>
+     */
     protected static class RowIdChangeListener<R extends model.Record> implements ChangeListener<Number> {
         private final ObjectProperty<R> recordProperty;
         private final ReadOnlyIntegerWrapper primaryKeyProperty;
         private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
 
+        /**
+         * 
+         * @return
+         */
         public boolean isValid() { return valid.get(); }
 
         public ReadOnlyBooleanProperty validProperty() { return valid.getReadOnlyProperty(); }
         
+        /**
+         * 
+         * @param recordProperty
+         * @param primaryKeyProperty
+         */
         RowIdChangeListener(ObjectProperty<R> recordProperty, ReadOnlyIntegerWrapper primaryKeyProperty) {
             this.recordProperty = recordProperty;
             this.primaryKeyProperty = primaryKeyProperty;
@@ -301,6 +302,11 @@ public abstract class DataRow implements model.Record {
         lastDbSync = new ReadOnlyObjectWrapper<>(LocalDateTime.MIN);
     }
     
+    /**
+     * 
+     * @param row
+     * @throws InvalidOperationException
+     */
     protected DataRow(DataRow row) throws InvalidOperationException {
         if (row == null || row.getRowState() != ROWSTATE_UNMODIFIED)
             throw new InvalidOperationException("Can only clone unmodified rows");
@@ -331,6 +337,12 @@ public abstract class DataRow implements model.Record {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database Read/Write methods">
     
+    /**
+     * 
+     * @param <R>
+     * @param rowClass
+     * @return
+     */
     public static final <R extends DataRow> String getTableName(Class<R> rowClass) {
         Class<TableName> tableNameClass = TableName.class;
         if (rowClass.isAnnotationPresent(tableNameClass)) {
@@ -341,6 +353,12 @@ public abstract class DataRow implements model.Record {
         throw new InternalException("Table name not defined");
     }
     
+    /**
+     * 
+     * @param <R>
+     * @param rowClass
+     * @return
+     */
     public static final <R extends DataRow> String getPrimaryKeyColName(Class<R> rowClass) {
         Class<PrimaryKey> pkClass = PrimaryKey.class;
         if (rowClass.isAnnotationPresent(pkClass)) {
@@ -351,12 +369,30 @@ public abstract class DataRow implements model.Record {
         throw new InternalException("Primary key column name not defined");
     }
 
+    /**
+     * 
+     * @return
+     */
     protected abstract String getSelectQuery();
     
+    /**
+     * 
+     */
     protected abstract String[] getColumnNames();
     
+    /**
+     * 
+     * @param ps
+     * @param fieldNames
+     * @throws SQLException
+     */
     protected abstract void setColumnValues(PreparedStatement ps, String[] fieldNames) throws SQLException;
     
+    /**
+     * 
+     * @param rs
+     * @throws SQLException
+     */
     protected abstract void refreshFromDb(ResultSet rs) throws SQLException;
     
     private void refreshFromDb(Connection connection, Class<? extends DataRow> rowClass) throws SQLException, InvalidOperationException {
@@ -414,6 +450,12 @@ public abstract class DataRow implements model.Record {
         ps.executeUpdate();
     }
     
+    /**
+     * 
+     * @param connection
+     * @throws SQLException
+     * @throws InvalidOperationException
+     */
     public final void saveChanges(Connection connection) throws SQLException, InvalidOperationException {
         Class<? extends DataRow> rowClass = getClass();
         String tableName = getTableName(rowClass);
@@ -428,6 +470,12 @@ public abstract class DataRow implements model.Record {
         refreshFromDb(connection, getClass());
     }
     
+    /**
+     * 
+     * @param connection
+     * @throws SQLException
+     * @throws InvalidOperationException
+     */
     public final void refreshFromDb(Connection connection) throws SQLException, InvalidOperationException {
         Class<? extends DataRow> rowClass = getClass();
         String tableName = getTableName(rowClass);
@@ -441,6 +489,12 @@ public abstract class DataRow implements model.Record {
         refreshFromDb(connection, rowClass);
     }
     
+    /**
+     * 
+     * @param connection
+     * @throws SQLException
+     * @throws InvalidOperationException
+     */
     public final void delete(Connection connection) throws SQLException, InvalidOperationException {
         Class<? extends DataRow> rowClass = getClass();
         String tableName = getTableName(rowClass);
@@ -458,6 +512,15 @@ public abstract class DataRow implements model.Record {
         rowState.setValue(ROWSTATE_DELETED);
     }
     
+    /**
+     * 
+     * @param <R>
+     * @param connection
+     * @param sql
+     * @param create
+     * @return
+     * @throws SQLException
+     */
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
             Function<ResultSet, R> create) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
@@ -468,6 +531,16 @@ public abstract class DataRow implements model.Record {
         return result;
     }
     
+    /**
+     * 
+     * @param <R>
+     * @param connection
+     * @param sql
+     * @param create
+     * @param setValues
+     * @return
+     * @throws SQLException
+     */
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
             Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
@@ -479,6 +552,16 @@ public abstract class DataRow implements model.Record {
         return result;
     }
     
+    /**
+     * 
+     * @param <R>
+     * @param connection
+     * @param sql
+     * @param create
+     * @param setValues
+     * @return
+     * @throws SQLException
+     */
     public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
             Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(sql);
@@ -489,6 +572,15 @@ public abstract class DataRow implements model.Record {
         return Optional.empty();
     }
     
+    /**
+     * 
+     * @param <R>
+     * @param connection
+     * @param sql
+     * @param create
+     * @return
+     * @throws SQLException
+     */
     public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
             Function<ResultSet, R> create) throws SQLException {
         PreparedStatement ps = connection.prepareStatement(sql);

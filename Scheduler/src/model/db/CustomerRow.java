@@ -30,8 +30,14 @@ import scheduler.InternalException;
 public class CustomerRow extends DataRow implements model.Customer {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
+    /**
+     * 
+     */
     public static final String COLNAME_CUSTOMERID = "customerId";
     
+    /**
+     * 
+     */
     public static final String SQL_SELECT = "SELECT customer.*, address.address, address.address2," +
         " address.cityId, city.city, address.postalCode, address.phone, city.countryId, country.country FROM customer" +
         " LEFT OUTER JOIN address ON customer.addressId = address.addressId" +
@@ -40,6 +46,9 @@ public class CustomerRow extends DataRow implements model.Customer {
     
     //<editor-fold defaultstate="collapsed" desc="name">
     
+    /**
+     * 
+     */
     public static final String PROP_CUSTOMERNAME = "customerName";
     
     private final NonNullableStringProperty name;
@@ -132,6 +141,9 @@ public class CustomerRow extends DataRow implements model.Customer {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
+    /**
+     * 
+     */
     public CustomerRow() {
         super();
         this.name = new NonNullableStringProperty();
@@ -141,6 +153,12 @@ public class CustomerRow extends DataRow implements model.Customer {
         addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
     }
     
+    /**
+     * 
+     * @param name
+     * @param address
+     * @param active
+     */
     public CustomerRow(String name, AddressRow address, boolean active) {
         super();
         this.name = new NonNullableStringProperty(name);
@@ -150,6 +168,11 @@ public class CustomerRow extends DataRow implements model.Customer {
         addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
     }
     
+    /**
+     * 
+     * @param rs
+     * @throws SQLException
+     */
     public CustomerRow (ResultSet rs) throws SQLException {
         super(rs);
         this.name = new NonNullableStringProperty(rs.getString(PROP_CUSTOMERNAME));
@@ -167,6 +190,13 @@ public class CustomerRow extends DataRow implements model.Customer {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
     
+    /**
+     * 
+     * @param connection
+     * @param id
+     * @return
+     * @throws SQLException
+     */
     public static final Optional<CustomerRow> getById(Connection connection, int id) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE customerId = ?", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
             CustomerRow u;
@@ -187,6 +217,12 @@ public class CustomerRow extends DataRow implements model.Customer {
         });
     }
     
+    /**
+     * 
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
     public static final ObservableList<CustomerRow> getActive(Connection connection) throws SQLException {
         return selectFromDb(connection, SQL_SELECT + " WHERE active = true", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
             CustomerRow u;
@@ -200,6 +236,13 @@ public class CustomerRow extends DataRow implements model.Customer {
         });
     }
     
+    /**
+     * 
+     * @param connection
+     * @param addressId
+     * @return
+     * @throws SQLException
+     */
     public static final ObservableList<CustomerRow> getByAddress(Connection connection, int addressId) throws SQLException {
         return selectFromDb(connection, SQL_SELECT + " WHERE addressId = ?", (Function<ResultSet, CustomerRow>)(ResultSet rs) -> {
             CustomerRow u;

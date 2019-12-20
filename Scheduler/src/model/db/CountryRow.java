@@ -80,6 +80,13 @@ public class CountryRow extends DataRow implements model.Country {
     @Override
     protected String getSelectQuery() { return SQL_SELECT; }
     
+    /**
+     * 
+     * @param connection
+     * @param id
+     * @return
+     * @throws SQLException
+     */
     public static final Optional<CountryRow> getById(Connection connection, int id) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE countryId = ?", (Function<ResultSet, CountryRow>)(ResultSet rs) -> {
             CountryRow u;
@@ -100,6 +107,12 @@ public class CountryRow extends DataRow implements model.Country {
         });
     }
     
+    /**
+     * 
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
     public static final ObservableList<CountryRow> getAll(Connection connection) throws SQLException {
         return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, CountryRow>)(ResultSet rs) -> {
             CountryRow u;

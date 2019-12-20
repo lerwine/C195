@@ -175,6 +175,7 @@ public class App extends Application {
     }
     
     /**
+     * The app main entry point.
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -221,10 +222,12 @@ public class App extends Application {
     
     // This contains the current locale.
     private static Locale currentLocale;
+    // These next 4 are locale-specific formatters for date and/or time strings.
     private static DateTimeFormatter shortDateTimeFormatter;
     private static DateTimeFormatter fullDateTimeFormatter;
     private static DateTimeFormatter fullDateFormatter;
     private static DateTimeFormatter fullTimeFormatter;
+
     /**
      * Gets the current {@link Locale}.
      * @return The current {@link Locale}.
@@ -233,12 +236,18 @@ public class App extends Application {
     
     private static HashMap<String, String> appointmentTypes;
     
+    /**
+     * Gets the human-readable, locale-specific dislay text for the specified appointment type code.
+     * @param code The appointment type code that is stored in the database.
+     * @return The current locale-specific formatter for full time strings.
+     */
     public static String getAppointmentTypeDisplay(String code) {
         if (code == null || (code = code.trim()).isEmpty())
             return "";
         String lc = code.toLowerCase();
         return (appointmentTypes.containsKey(lc)) ? appointmentTypes.get(lc) : code;
     }
+
     /**
      * Sets the current {@link Locale}.
      * @param locale The new app {@link Locale}.
@@ -262,12 +271,28 @@ public class App extends Application {
         });
     }
     
+    /**
+     * Gets the current locale-specific formatter for full time strings.
+     * @return  The current locale-specific formatter for full time strings.
+     */
     public static DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
     
+    /**
+     * Gets the current locale-specific formatter for full date strings.
+     * @return The current locale-specific formatter for full date strings.
+     */
     public static DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
     
+    /**
+     * Gets the current locale-specific formatter for short date/time strings.
+     * @return The current locale-specific formatter for short date/time strings.
+     */
     public static DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
     
+    /**
+     * Gets the current locale-specific formatter for full date/time strings.
+     * @return The current locale-specific formatter for full date/time strings.
+     */
     public static DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
     
     //</editor-fold>

@@ -112,18 +112,14 @@ public class UserRow extends DataRow implements model.User {
 
     public IntegerProperty activeProperty() { return active; }
     
-    /*
-    public final void setActive(short value) {
-    short oldActive = active;
-    active = (value < STATE_INACTIVE) ? STATE_INACTIVE : ((value > STATE_ADMIN) ? STATE_ADMIN : value);
-    firePropertyChange(PROP_ACTIVE, oldActive, active);
-    }
-    */
     //</editor-fold>
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
+    /**
+     * 
+     */
     public UserRow() {
         super();
         this.userName = new ReadOnlyStringWrapper();
@@ -131,6 +127,12 @@ public class UserRow extends DataRow implements model.User {
         this.active = new ActiveStateProperty(STATE_USER);
     }
     
+    /**
+     * 
+     * @param userName
+     * @param password
+     * @param active
+     */
     public UserRow(String userName, String password, int active) {
         super();
         this.userName = new ReadOnlyStringWrapper(userName);
@@ -138,6 +140,11 @@ public class UserRow extends DataRow implements model.User {
         this.active = new ActiveStateProperty(active);
     }
     
+    /**
+     * 
+     * @param user
+     * @throws InvalidOperationException
+     */
     protected UserRow(UserRow user) throws InvalidOperationException {
         super(user);
         this.userName = new ReadOnlyStringWrapper(user.getUserName());
@@ -163,7 +170,13 @@ public class UserRow extends DataRow implements model.User {
     
     @Override
     protected String getSelectQuery() { return SQL_SELECT; }
-    
+    /**
+     * 
+     * @param connection
+     * @param id
+     * @return
+     * @throws SQLException
+     */
     public static final Optional<UserRow> getById(Connection connection, int id) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE `user`.`userId` = ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
             UserRow u;
@@ -184,6 +197,13 @@ public class UserRow extends DataRow implements model.User {
         });
     }
     
+    /**
+     * 
+     * @param connection
+     * @param userName
+     * @return
+     * @throws SQLException
+     */
     public static final Optional<UserRow> getByUserName(Connection connection, String userName) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE `user`.`userName` = ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
             UserRow u;
@@ -204,6 +224,12 @@ public class UserRow extends DataRow implements model.User {
         });
     }
     
+    /**
+     * 
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
     public static final ObservableList<UserRow> getActive(Connection connection) throws SQLException {
         return selectFromDb(connection, SQL_SELECT + " WHERE `user`.`" + PROP_ACTIVE + "` > ?", (Function<ResultSet, UserRow>)(ResultSet rs) -> {
             UserRow u;
@@ -224,6 +250,12 @@ public class UserRow extends DataRow implements model.User {
         });
     }
     
+    /**
+     * 
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
     public static final ObservableList<UserRow> getAll(Connection connection) throws SQLException {
         return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, UserRow>)(ResultSet rs) -> {
             UserRow u;
