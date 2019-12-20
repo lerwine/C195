@@ -3,9 +3,11 @@ package controller;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -105,29 +107,11 @@ public class LoginScreenController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, App.getCurrentLocale());
-        locales = FXCollections.observableArrayList(new Locale("en"), new Locale("es"), new Locale("de"), new Locale("hi"));
-        int index = -1;
-        
-        String d = App.getCurrentLocale().toString();
-        for (int i = 0; i < locales.size(); i++) {
-            if (locales.get(i).toString().equals(d)) {
-                index = i;
-                break;
-            }
-        }
-        if (index < 0) {
-            d = App.getCurrentLocale().getLanguage();
-            for (int i = 0; i < locales.size(); i++) {
-                if (locales.get(i).getLanguage().equals(d)) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index < 0) {
-                locales.add(0, App.getCurrentLocale());
-                index = 0;
-            }
-        }
+        locales = FXCollections.observableArrayList();
+        final Locale initialDefaultLocale = App.getCurrentLocale();
+        final String initialDefaultLanguageTag = initialDefaultLocale.toLanguageTag();
+        Stream.of("en", "es", "de", "hi").map((String n) -> (n.equalsIgnoreCase(initialDefaultLanguageTag)) ? initialDefaultLocale : new Locale(n))
+                .forEach((Locale l) -> locales.add(l));
         
         languageComboBox.setCellFactory((p) -> new ListCell<Locale>() {
             @Override
@@ -137,12 +121,16 @@ public class LoginScreenController implements Initializable {
             }
         });
         languageComboBox.setItems(locales);
-        languageComboBox.getSelectionModel().select(index);
+        Optional<Locale> selectedLocale = locales.stream().filter((Locale l) -> l.toLanguageTag().equalsIgnoreCase(initialDefaultLanguageTag)).findFirst();
+        languageComboBox.getSelectionModel().select((selectedLocale.isPresent()) ? selectedLocale.get() : locales.get(0));
+        
         userNameTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             validateUserName(newValue);
+            updateButtonEnable();
         });
         passwordTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             validatePassword(newValue);
+            updateButtonEnable();
         });
         validateUserName(userNameTextField.getText());
         validatePassword(passwordTextField.getText());
@@ -160,7 +148,7 @@ public class LoginScreenController implements Initializable {
     private void validatePassword(String newValue) {
         passwordEmpty = newValue == null || newValue.trim().isEmpty();
         if (passwordEmpty)
-            ControllerBase.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyUserName"));
+            ControllerBase.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
         else
             ControllerBase.collapseLabeledVertical(passwordValidationLabel);
     }
