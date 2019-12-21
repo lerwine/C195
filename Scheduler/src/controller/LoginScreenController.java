@@ -20,8 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -118,7 +116,6 @@ public class LoginScreenController implements Initializable {
         Optional<Locale> selectedLocale = locales.stream().filter((Locale l) -> l.toLanguageTag().equalsIgnoreCase(initialDefaultLanguageTag)).findFirst();
         languageComboBox.getSelectionModel().select((selectedLocale.isPresent()) ? selectedLocale.get() : locales.get(0));
         
-        
         userNameTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             validateUserName(newValue);
             updateButtonEnable();
@@ -137,17 +134,17 @@ public class LoginScreenController implements Initializable {
     private void validateUserName(String newValue) {
         userNameEmpty = newValue == null || newValue.trim().isEmpty();
         if (userNameEmpty)
-            ControllerBase.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
+            util.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
         else
-            ControllerBase.collapseLabeledVertical(userNameValidationLabel);
+            util.collapseLabeledVertical(userNameValidationLabel);
     }
     
     private void validatePassword(String newValue) {
         passwordEmpty = newValue == null || newValue.trim().isEmpty();
         if (passwordEmpty)
-            ControllerBase.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
+            util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
         else
-            ControllerBase.collapseLabeledVertical(passwordValidationLabel);
+            util.collapseLabeledVertical(passwordValidationLabel);
     }
  
     private void updateButtonEnable() {
@@ -189,6 +186,7 @@ public class LoginScreenController implements Initializable {
     @FXML
     void languageChanged(ActionEvent event) {
         Locale item = languageComboBox.getSelectionModel().getSelectedItem();
+        languageComboBox.getButtonCell().setItem(item);
         if (item == null || !(item instanceof Locale))
             return;
         App.setCurrentLocale(item);

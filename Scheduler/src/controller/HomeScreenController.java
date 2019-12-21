@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,15 +22,12 @@ import model.db.AppointmentRow;
 import scheduler.App;
 import scheduler.InvalidArgumentException;
 import scheduler.SqlConnectionDependency;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  * @author webmaster
  */
-@ResourceName(HomeScreenController.RESOURCE_NAME)
-public class HomeScreenController extends ControllerBase {
+public class HomeScreenController implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
@@ -41,90 +39,69 @@ public class HomeScreenController extends ControllerBase {
     public static final String VIEW_PATH = "/view/HomeScreen.fxml";
 
     @FXML
-    @ResourceKey("appointments")
     private Menu appointmentsMenu;
     
     @FXML
-    @ResourceKey("new")
     private MenuItem newAppointmentMenuItem;
 
     @FXML
-    @ResourceKey("allAppointments")
     private MenuItem allAppointmentsMenuItem;
 
     @FXML
-    @ResourceKey("customers")
     private Menu customersMenu;
     
     @FXML
-    @ResourceKey("new")
     private MenuItem newCustomerMenuItem;
 
     @FXML
-    @ResourceKey("allCustomers")
     private MenuItem allCustomersMenuItem;
 
     @FXML
-    @ResourceKey("address")
     private Menu addressMenu;
     
     @FXML
-    @ResourceKey("newCountry")
     private MenuItem newCountryMenuItem;
 
     @FXML
-    @ResourceKey("newCity")
     private MenuItem newCityMenuItem;
 
     @FXML
-    @ResourceKey("newAddress")
     private MenuItem newAddressMenuItem;
 
     @FXML
-    @ResourceKey("allCountries")
     private MenuItem allCountriesMenuItem;
 
     @FXML
-    @ResourceKey("users")
     private Menu usersMenu;
     
     @FXML
-    @ResourceKey("new")
     private MenuItem newUserMenuItem;
 
     @FXML
-    @ResourceKey("allUsers")
     private MenuItem allUsersMenuItem;
 
     @FXML
-    @ResourceKey("loadingData")
     private Label headingLabel;
     
     @FXML
     private TableView<AppointmentRow> todayAndFutureAppointmenstTableView;
     
     @FXML
-    @ResourceKey("editAppointment")
     private MenuItem editAppointmentMenuItem;
 
     @FXML
-    @ResourceKey("title")
     private TableColumn<AppointmentRow, String> titleTableColumn;
     
     @FXML
-    @ResourceKey("start")
     private TableColumn<AppointmentRow, LocalDateTime> startTableColumn;
     
     @FXML
-    @ResourceKey("end")
     private TableColumn<AppointmentRow, LocalDateTime> endTableColumn;
     
     @FXML
-    @ResourceKey("type")
     private TableColumn<AppointmentRow, String> typeTableColumn;
     
     @FXML
-    @ResourceKey("customer")
     private TableColumn<AppointmentRow, model.Customer> customerTableColumn;
     
     /**
@@ -134,7 +111,6 @@ public class HomeScreenController extends ControllerBase {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        super.initialize(url, rb);
         // Get current and future appointments for current user
         ObservableList<AppointmentRow> items;
         try {

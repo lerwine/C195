@@ -3,26 +3,27 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package controller.factory.list;
+package controller.cell;
 
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 
 /**
  *
  * @author Leonard T. Erwine
+ * @param <S>
  * @param <T>
  */
-public class UserCell<T extends model.User> implements Callback<ListView<T>, ListCell<T>> {
+public class CustomerTableCellFactory<S, T extends model.Customer> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
 
     @Override
-    public ListCell<T> call(ListView<T> param) {
-        return new ListCell<T>() {
+    public TableCell<S, T> call(TableColumn<S, T> param) {
+        return new TableCell<S, T>() {
             @Override
             protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
-                setText((item == null) ? "" : item.getUserName());
+                setText((item == null) ? "" : item.getName());
             }
         };
     }

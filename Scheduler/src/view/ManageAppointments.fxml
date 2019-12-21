@@ -8,9 +8,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.cell.*?>
-<?import controller.factory.DateTimeTableCellFactory?>
-<?import controller.factory.CustomerNameTableCellFactory?>
-<?import controller.factory.UserNameTableCellFactory?>
+<?import controller.cell.DateTimeTableCellFactory?>
+<?import controller.cell.CustomerTableCellFactory?>
+<?import controller.cell.UserTableCellFactory?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" 
     xmlns="http://javafx.com/javafx/8.0.171" 
@@ -49,7 +49,7 @@
                       <PropertyValueFactory property="customer" />
                   </cellValueFactory>
                   <cellFactory>
-                      <CustomerNameTableCellFactory />
+                      <CustomerTableCellFactory />
                   </cellFactory>
                 </TableColumn>
                 <TableColumn fx:id="userTableColumn" editable="false" text="User">
@@ -57,7 +57,7 @@
                       <PropertyValueFactory property="user" />
                   </cellValueFactory>
                   <cellFactory>
-                      <UserNameTableCellFactory />
+                      <UserTableCellFactory />
                   </cellFactory>
                 </TableColumn>
             </columns>

@@ -7,8 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.cell.*?>
-<?import controller.factory.DateTimeTableCellFactory?>
-<?import controller.factory.CustomerNameTableCellFactory?>
+<?import controller.cell.DateTimeTableCellFactory?>
 
 <?import javafx.geometry.Insets?>
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" 

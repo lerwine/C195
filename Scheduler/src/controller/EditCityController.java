@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -12,15 +11,12 @@ import javafx.stage.Stage;
 import model.db.CityRow;
 import model.db.CountryRow;
 import scheduler.InvalidArgumentException;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(EditCityController.RESOURCE_NAME)
 public class EditCityController extends ItemControllerBase<CityRow> {
     /**
      * The name of the globalization resource bundle for this controller.
@@ -35,18 +31,15 @@ public class EditCityController extends ItemControllerBase<CityRow> {
     private int countryId;
     
     @FXML
-    @ResourceKey("name")
     private Label nameLabel;
     
     @FXML
     private TextField nameTextField;
     
     @FXML
-    @ResourceKey("nameCannotBeEmpty")
     private Label nameError;
     
     @FXML
-    @ResourceKey("country")
     private Label countryLabel;
     
     @FXML

@@ -9,84 +9,84 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.VBox?>
-<?import controller.factory.table.DateTimeCell?>
-<?import controller.factory.table.CustomerCell?>
-<?import controller.factory.table.AppointmentTypeCell?>
+<?import controller.cell.DateTimeTableCellFactory?>
+<?import controller.cell.CustomerTableCellFactory?>
+<?import controller.cell.AppointmentTypeTableCellFactory?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.HomeScreenController">
     <children>
         <MenuBar>
             <menus>
-                <Menu fx:id="appointmentsMenu" mnemonicParsing="false" text="Appointments">
+                <Menu fx:id="appointmentsMenu" mnemonicParsing="false" text="%appointments">
                     <items>
-                        <MenuItem fx:id="newAppointmentMenuItem" mnemonicParsing="false" onAction="#newAppointmentMenuItemClick" text="New" />
-                        <MenuItem fx:id="allAppointmentsMenuItem" mnemonicParsing="false" onAction="#allAppointmentsMenuItemClick" text="All Appointments" />
+                        <MenuItem fx:id="newAppointmentMenuItem" mnemonicParsing="false" onAction="#newAppointmentMenuItemClick" text="%new" />
+                        <MenuItem fx:id="allAppointmentsMenuItem" mnemonicParsing="false" onAction="#allAppointmentsMenuItemClick" text="%allAppointments" />
                     </items>
                 </Menu>
-                <Menu fx:id="customersMenu" mnemonicParsing="false" text="Customers">
+                <Menu fx:id="customersMenu" mnemonicParsing="false" text="%customers">
                     <items>
-                        <MenuItem fx:id="newCustomerMenuItem" mnemonicParsing="false" onAction="#newCustomerMenuItemClick" text="New" />
-                        <MenuItem fx:id="allCustomersMenuItem" mnemonicParsing="false" onAction="#allCustomersMenuItemClick" text="All Customers" />
+                        <MenuItem fx:id="newCustomerMenuItem" mnemonicParsing="false" onAction="#newCustomerMenuItemClick" text="%new" />
+                        <MenuItem fx:id="allCustomersMenuItem" mnemonicParsing="false" onAction="#allCustomersMenuItemClick" text="%allCustomers" />
                     </items>
                 </Menu>
-                <Menu fx:id="addressMenu" mnemonicParsing="false" text="Address">
+                <Menu fx:id="addressMenu" mnemonicParsing="false" text="%address">
                     <items>
-                        <MenuItem fx:id="newCountryMenuItem" mnemonicParsing="false" onAction="#newCountryMenuItemClick" text="New Country" />
-                        <MenuItem fx:id="newCityMenuItem" mnemonicParsing="false" onAction="#newCityMenuItemClick" text="New City" />
-                        <MenuItem fx:id="newAddressMenuItem" mnemonicParsing="false" onAction="#newAddressMenuItemClick" text="New Address" />
-                        <MenuItem fx:id="allCountriesMenuItem" mnemonicParsing="false" onAction="#allCountriesMenuItemClick" text="All Countries" />
+                        <MenuItem fx:id="newCountryMenuItem" mnemonicParsing="false" onAction="#newCountryMenuItemClick" text="%newCountry" />
+                        <MenuItem fx:id="newCityMenuItem" mnemonicParsing="false" onAction="#newCityMenuItemClick" text="%newCity" />
+                        <MenuItem fx:id="newAddressMenuItem" mnemonicParsing="false" onAction="#newAddressMenuItemClick" text="%newAddress" />
+                        <MenuItem fx:id="allCountriesMenuItem" mnemonicParsing="false" onAction="#allCountriesMenuItemClick" text="%allCountries" />
                     </items>
                 </Menu>
-                <Menu fx:id="usersMenu" mnemonicParsing="false" text="Users">
+                <Menu fx:id="usersMenu" mnemonicParsing="false" text="%users">
                     <items>
-                        <MenuItem fx:id="newUserMenuItem" mnemonicParsing="false" onAction="#newUserMenuItemClick" text="New" />
-                        <MenuItem fx:id="allUsersMenuItem" mnemonicParsing="false" onAction="#allUsersMenuItemClick" text="All Users" />
+                        <MenuItem fx:id="newUserMenuItem" mnemonicParsing="false" onAction="#newUserMenuItemClick" text="%new" />
+                        <MenuItem fx:id="allUsersMenuItem" mnemonicParsing="false" onAction="#allUsersMenuItemClick" text="%allUsers" />
                     </items>
                 </Menu>
             </menus>
         </MenuBar>
-        <Label fx:id="headingLabel" contentDisplay="CENTER" styleClass="header-section" text="Loading data. Please wait." />
+        <Label fx:id="headingLabel" contentDisplay="CENTER" styleClass="header-section" text="%loadingData" />
         <TableView fx:id="todayAndFutureAppointmenstTableView" visible="false" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="titleTableColumn" editable="false" text="Title">
+                <TableColumn fx:id="titleTableColumn" editable="false" text="%title">
                   <cellValueFactory>
                       <PropertyValueFactory property="title" />
                   </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="startTableColumn" editable="false" text="Start">
+                <TableColumn fx:id="startTableColumn" editable="false" text="%start">
                   <cellValueFactory>
                       <PropertyValueFactory property="start" />
                   </cellValueFactory>
                   <cellFactory>
-                      <DateTimeCell />
+                      <DateTimeTableCellFactory />
                   </cellFactory>
                 </TableColumn>
-                <TableColumn fx:id="endTableColumn" editable="false" text="End">
+                <TableColumn fx:id="endTableColumn" editable="false" text="%end">
                   <cellValueFactory>
                       <PropertyValueFactory property="end" />
                   </cellValueFactory>
                   <cellFactory>
-                      <DateTimeCell />
+                      <DateTimeTableCellFactory />
                   </cellFactory>
                 </TableColumn>
-                <TableColumn fx:id="typeTableColumn" editable="false" text="Type">
+                <TableColumn fx:id="typeTableColumn" editable="false" text="%type">
                   <cellValueFactory>
-                      <AppointmentTypeCell />
+                      <AppointmentTypeTableCellFactory />
                   </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="customerTableColumn" editable="false" text="Customer">
+                <TableColumn fx:id="customerTableColumn" editable="false" text="%customer">
                   <cellValueFactory>
                       <PropertyValueFactory property="customer" />
                   </cellValueFactory>
                   <cellFactory>
-                      <CustomerCell />
+                      <CustomerTableCellFactory />
                   </cellFactory>
                 </TableColumn>
             </columns>
          <contextMenu>
             <ContextMenu>
               <items>
-                <MenuItem fx:id="editAppointmentMenuItem" mnemonicParsing="false" text="Edit" />
+                <MenuItem fx:id="editAppointmentMenuItem" mnemonicParsing="false" text="%editAppointment" />
               </items>
             </ContextMenu>
          </contextMenu>

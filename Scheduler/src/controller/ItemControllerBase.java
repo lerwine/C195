@@ -1,24 +1,25 @@
 package controller;
 
 import java.net.URL;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import model.db.DataRow;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  *
  * @author Leonard T. Erwine
  * @param <T>
  */
-public abstract class ItemControllerBase<T extends DataRow> extends ControllerBase {
+public abstract class ItemControllerBase<T extends DataRow> implements Initializable {
     private T model;
     
     public T getModel() { return model; }
@@ -53,46 +54,33 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
     }
     
     @FXML
-    @ResourceName("item")
-    @ResourceKey("created")
     private Label createdLabel;
 
     @FXML
     private Label createDateValue;
 
     @FXML
-    @ResourceName("item")
-    @ResourceKey("by")
     private Label createdByLabel;
 
     @FXML
     private Label createdByValue;
 
     @FXML
-    @ResourceName("item")
-    @ResourceKey("updated")
     private Label lastUpdateLabel;
 
     @FXML
     private Label lastUpdateValue;
 
     @FXML
-    @ResourceName("item")
-    @ResourceKey("by")
     private Label lastUpdateByLabel;
 
     @FXML
     private Label lastUpdateByValue;
 
     @FXML
-    @ResourceName("item")
-    @ResourceKey("save")
     private Button saveChangesButton;
 
-    @FXML
-    @ResourceName("item")
-    @ResourceKey("cancel")
-    private Button cancelButton;
+    protected Button getSaveChangesButton() { return saveChangesButton; }
     
     /**
      * Initializes the controller class.
@@ -101,7 +89,6 @@ public abstract class ItemControllerBase<T extends DataRow> extends ControllerBa
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        super.initialize(url, rb);
     }
     
     abstract void saveChangesClick(ActionEvent event);

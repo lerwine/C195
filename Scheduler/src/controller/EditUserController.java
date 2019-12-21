@@ -6,7 +6,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -21,15 +20,12 @@ import javafx.stage.StageStyle;
 import model.db.DataRow;
 import model.db.UserRow;
 import scheduler.InvalidArgumentException;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(EditUserController.RESOURCE_NAME)
 public class EditUserController extends ItemControllerBase<UserRow> {
     /**
      * The name of the globalization resource bundle for this controller.
@@ -47,14 +43,9 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     private VBox outerPane;
 
     @FXML
-    @ResourceKey("userName")
-    private Label userNameLabel;
-
-    @FXML
     private TextField userNameTextField;
 
     @FXML
-    @ResourceKey("userNameCannotBeEmpty")
     private Label userNameErrorMessage;
 
     @FXML
@@ -64,19 +55,13 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     private PasswordField passwordTextField;
     
     @FXML
-    @ResourceKey("confirmPassword")
     private Label confirmLabel;
 
     @FXML
     private PasswordField confirmTextField;
     
     @FXML
-    @ResourceKey("passwordCannotBeEmpty")
     private Label passwordErrorMessage;
-
-    @FXML
-    @ResourceKey("activeState")
-    private Label activeLabel;
 
     @FXML
     private ComboBox<Short> activeComboBox;
@@ -166,7 +151,7 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     }
 
     private boolean validateUserName() {
-        String s = userNameLabel.getText();
+        String s = userNameTextField.getText();
         if (s.trim().isEmpty())
             userNameErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale())
                     .getString("userNameCannotBeEmpty"));

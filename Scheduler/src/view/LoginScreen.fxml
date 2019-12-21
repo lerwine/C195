@@ -11,7 +11,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import controller.factory.list.LanguageCell?>
+<?import controller.cell.LocaleLanguageListCell?>
+<?import controller.cell.LocaleLanguageListCellFactory?>
 
 <VBox styleClass="outerContainer" stylesheets="@defaultStyles.css" 
    xmlns="http://javafx.com/javafx/8.0.171" 
@@ -39,8 +40,11 @@
                <Insets top="8.0" />
             </GridPane.margin>
             <cellFactory>
-                <LanguageCell />
+                <LocaleLanguageListCellFactory />
             </cellFactory>
+            <buttonCell>
+                <LocaleLanguageListCell />
+            </buttonCell>
          </ComboBox>
          <Label fx:id="userNameLabel" styleClass="formControlLabel" text="User Name:" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
             <GridPane.margin>

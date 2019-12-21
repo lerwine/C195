@@ -4,14 +4,12 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 import model.db.AppointmentRow;
 import model.db.UserRow;
 import scheduler.InvalidArgumentException;
@@ -21,8 +19,7 @@ import scheduler.InvalidArgumentException;
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(ManageAppointmentsController.RESOURCE_NAME)
-public class ManageAppointmentsController extends ControllerBase {
+public class ManageAppointmentsController implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
@@ -34,38 +31,30 @@ public class ManageAppointmentsController extends ControllerBase {
     public static final String VIEW_PATH = "/view/ManageAppointments.fxml";
     
     @FXML
-    @ResourceKey("loadingData")
     private Label headingLabel;
     
     @FXML
     private TableView<AppointmentRow> todayAndFutureAppointmenstTableView;
     
     @FXML
-    @ResourceKey("editAppointment")
     private MenuItem editAppointmentMenuItem;
 
     @FXML
-    @ResourceKey("title")
     private TableColumn<AppointmentRow, String> titleTableColumn;
     
     @FXML
-    @ResourceKey("start")
     private TableColumn<AppointmentRow, LocalDateTime> startTableColumn;
     
     @FXML
-    @ResourceKey("end")
     private TableColumn<AppointmentRow, LocalDateTime> endTableColumn;
     
     @FXML
-    @ResourceKey("type")
     private TableColumn<AppointmentRow, String> typeTableColumn;
     
     @FXML
-    @ResourceKey("customer")
     private TableColumn<AppointmentRow, model.Customer> customerTableColumn;
     
     @FXML
-    @ResourceKey("user")
     private TableColumn<AppointmentRow, model.User> userTableColumn;
     
     private String returnViewPath;
@@ -79,7 +68,6 @@ public class ManageAppointmentsController extends ControllerBase {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        super.initialize(url, rb);
     }   
 
     public static void setCurrentScene(Stage stage, String returnViewPath) throws InvalidArgumentException {

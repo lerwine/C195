@@ -4,21 +4,17 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import model.db.CountryRow;
 import scheduler.InvalidArgumentException;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(EditCountryController.RESOURCE_NAME)
 public class EditCountryController extends ItemControllerBase<CountryRow> {
     /**
      * The name of the globalization resource bundle for this controller.
@@ -33,14 +29,12 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
     private String name;
     
     @FXML
-    @ResourceKey("name")
     private Label nameLabel;
     
     @FXML
     private TextField nameTextField;
     
     @FXML
-    @ResourceKey("nameCannotBeEmpty")
     private Label nameError;
     
     private String returnViewPath;

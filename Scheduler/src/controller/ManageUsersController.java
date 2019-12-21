@@ -4,12 +4,10 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
+import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 import model.db.UserRow;
 import scheduler.InvalidArgumentException;
 
@@ -18,8 +16,7 @@ import scheduler.InvalidArgumentException;
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(ManageUsersController.RESOURCE_NAME)
-public class ManageUsersController extends ControllerBase {
+public class ManageUsersController implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
@@ -34,27 +31,21 @@ public class ManageUsersController extends ControllerBase {
     private TableView<UserRow> usersTableView;
 
     @FXML
-    @ResourceKey("userName")
     private TableColumn<UserRow, String> userNameTableColumn;
 
     @FXML
-    @ResourceKey("status")
     private TableColumn<UserRow, Short> statusTableColumn;
 
     @FXML
-    @ResourceKey("createdOn")
     private TableColumn<UserRow, LocalDateTime> createDateTableColumn;
 
     @FXML
-    @ResourceKey("createdBy")
     private TableColumn<UserRow, String> createdByTableColumn;
 
     @FXML
-    @ResourceKey("updatedOn")
     private TableColumn<UserRow, LocalDateTime> lastUpdateTableColumn;
 
     @FXML
-    @ResourceKey("updatedBy")
     private TableColumn<UserRow, String> lastUpdateByTableColumn;
     
     private String returnViewPath;
@@ -66,7 +57,6 @@ public class ManageUsersController extends ControllerBase {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        super.initialize(url, rb);
     }
 
     public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {

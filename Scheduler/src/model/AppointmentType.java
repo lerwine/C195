@@ -68,25 +68,18 @@ public class AppointmentType {
 
     public ReadOnlyStringProperty displayTextProperty() { return displayText.getReadOnlyProperty(); }
     
-    private final ReadOnlyBooleanWrapper urlRequired;
+    private final ReadOnlyBooleanWrapper explicitUrl;
 
-    /**
-     * Indicates whether the current appointment type requires a URL.
-     * @return True if the current appointment type requires a URL; otherwise, false.
-     */
-    public boolean isUrlRequired() { return urlRequired.get(); }
+    public boolean isExplicitUrl() { return explicitUrl.get(); }
 
-    public ReadOnlyBooleanProperty urlRequiredProperty() { return urlRequired.getReadOnlyProperty(); }
+    public ReadOnlyBooleanProperty explicitUrlProperty() { return explicitUrl.getReadOnlyProperty(); }
     
-    private final ReadOnlyBooleanWrapper locationRequired;
+    
+    private final ReadOnlyBooleanWrapper explicitLocation;
 
-    /**
-     * Indicates whether the current appointment type requires a value in the Location field.
-     * @return True if the current appointment type requires a value in the Location field; otherwise, false.
-     */
-    public boolean isLocationRequired() { return locationRequired.get(); }
+    public boolean isExplicitLocation() { return explicitLocation.get(); }
 
-    public ReadOnlyBooleanProperty locationRequiredProperty() { return locationRequired.getReadOnlyProperty(); }
+    public ReadOnlyBooleanProperty explicitLocationProperty() { return explicitLocation.getReadOnlyProperty(); }
     
     private final ReadOnlyBooleanWrapper phoneUrl;
 
@@ -108,13 +101,13 @@ public class AppointmentType {
         this.code = new ReadOnlyStringWrapper(code);
         switch (code) {
             case APPOINTMENT_CODE_PHONE:
-                locationRequired = new ReadOnlyBooleanWrapper(false);
-                urlRequired = new ReadOnlyBooleanWrapper(true);
+                explicitLocation = new ReadOnlyBooleanWrapper(false);
+                explicitUrl = new ReadOnlyBooleanWrapper(false);
                 phoneUrl = new ReadOnlyBooleanWrapper(true);
                 break;
             case APPOINTMENT_CODE_VIRTUAL:
-                locationRequired = new ReadOnlyBooleanWrapper(false);
-                urlRequired = new ReadOnlyBooleanWrapper(true);
+                explicitLocation = new ReadOnlyBooleanWrapper(false);
+                explicitUrl = new ReadOnlyBooleanWrapper(true);
                 phoneUrl = new ReadOnlyBooleanWrapper(false);
                 break;
             case APPOINTMENT_CODE_CUSTOMER:
@@ -122,13 +115,13 @@ public class AppointmentType {
             case APPOINTMENT_CODE_GERMANY:
             case APPOINTMENT_CODE_INDIA:
             case APPOINTMENT_CODE_HONDURAS:
-                locationRequired = new ReadOnlyBooleanWrapper(false);
-                urlRequired = new ReadOnlyBooleanWrapper(false);
+                explicitLocation = new ReadOnlyBooleanWrapper(false);
+                explicitUrl = new ReadOnlyBooleanWrapper(false);
                 phoneUrl = new ReadOnlyBooleanWrapper(false);
                 break;
             default:
-                locationRequired = new ReadOnlyBooleanWrapper(true);
-                urlRequired = new ReadOnlyBooleanWrapper(false);
+                explicitLocation = new ReadOnlyBooleanWrapper(true);
+                explicitUrl = new ReadOnlyBooleanWrapper(false);
                 phoneUrl = new ReadOnlyBooleanWrapper(false);
                 break;
         }

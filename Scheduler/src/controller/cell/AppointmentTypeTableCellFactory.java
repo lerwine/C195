@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package controller.factory.table;
+package controller.cell;
 
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -12,18 +12,16 @@ import javafx.util.Callback;
 /**
  *
  * @author Leonard T. Erwine
- * @param <S>
- * @param <T>
  */
-public class CustomerCell<S, T extends model.Customer> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
+public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
 
     @Override
-    public TableCell<S, T> call(TableColumn<S, T> param) {
-        return new TableCell<S, T>() {
+    public TableCell<S, String> call(TableColumn<S, String> param) {
+        return new TableCell<S, String>() {
             @Override
-            protected void updateItem(T item, boolean empty) {
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText((item == null) ? "" : item.getName());
+                setText(scheduler.App.getAppointmentTypeDisplay(item));
             }
         };
     }

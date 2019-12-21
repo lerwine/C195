@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -13,15 +12,12 @@ import javafx.stage.Stage;
 import model.db.AddressRow;
 import model.db.CustomerRow;
 import scheduler.InvalidArgumentException;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(EditCustomerController.RESOURCE_NAME)
 public class EditCustomerController extends ItemControllerBase<CustomerRow> {
     /**
      * The name of the globalization resource bundle for this controller.
@@ -34,41 +30,33 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
     public static final String VIEW_PATH = "/view/EditCustomer.fxml";
 
     @FXML
-    @ResourceKey("name")
     private Label nameLabel;
     
     @FXML
     private TextField nameTextField;
     
     @FXML
-    @ResourceKey("nameCannotBeEmpty")
     private Label nameError;
     
     @FXML
-    @ResourceKey("active")
     private Label activeLabel;
     
     @FXML
-    @ResourceKey("yes")
     private RadioButton activeYesRadioButton;
     
     @FXML
-    @ResourceKey("no")
     private RadioButton activeNoRadioButton;
     
     @FXML
-    @ResourceKey("address")
     private Label addressLabel;
     
     @FXML
     private ComboBox<AddressRow> addressComboBox;
     
     @FXML
-    @ResourceKey("city")
     private Label cityLabel;
     
     @FXML
-    @ResourceKey("country")
     private Label countryLabel;
     
     private String returnViewPath;

@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -12,15 +11,12 @@ import javafx.stage.Stage;
 import model.db.AddressRow;
 import model.db.CityRow;
 import scheduler.InvalidArgumentException;
-import model.annotations.ResourceKey;
-import model.annotations.ResourceName;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@ResourceName(EditAddressController.RESOURCE_NAME)
 public class EditAddressController extends ItemControllerBase<AddressRow> {
     /**
      * The name of the globalization resource bundle for this controller.
@@ -33,39 +29,24 @@ public class EditAddressController extends ItemControllerBase<AddressRow> {
     public static final String VIEW_PATH = "/view/EditAddress.fxml";
 
     @FXML
-    @ResourceKey("address")
-    private Label addressLabel;
-    
-    @FXML
     private TextField address1TextField;
     
     @FXML
     private TextField address2TextField;
     
     @FXML
-    @ResourceKey("addressCannotBeEmpty")
     private Label address1Error;
-    
-    @FXML
-    @ResourceKey("postalCode")
-    private Label postalCodeLabel;
     
     @FXML
     private TextField postalCodeTextField;
     
     @FXML
-    @ResourceKey("postalCodeCannotBeEmpty")
     private Label postalCodeError;
-    
-    @FXML
-    @ResourceKey("phoneNumber")
-    private Label phoneLabel;
     
     @FXML
     private TextField phoneTextField;
     
     @FXML
-    @ResourceKey("city")
     private ComboBox<CityRow> cityComboBox;
     
     private String returnViewPath;

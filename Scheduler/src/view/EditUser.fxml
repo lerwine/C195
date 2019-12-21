@@ -27,15 +27,15 @@
             <RowConstraints minHeight="10.0" valignment="BOTTOM" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label fx:id="userNameLabel" styleClass="hLeftFieldLabel" text="User Name:" />
+            <Label styleClass="hLeftFieldLabel" text="%userName" />
             <TextField fx:id="userNameTextField" maxWidth="1.7976931348623157E308" onAction="#userNameChanged" styleClass="hFieldControl" GridPane.columnIndex="1" />
-            <Label fx:id="userNameErrorMessage" styleClass="error" text="Label" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label fx:id="userNameErrorMessage" styleClass="error" text="%userNameCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <CheckBox fx:id="changePasswordCheckBox" mnemonicParsing="false" onAction="#changePasswordCheckChanged" styleClass="hLeftFieldLabel" text="Password:" GridPane.rowIndex="2" />
             <PasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308" onAction="#passwordChanged" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label fx:id="confirmLabel" styleClass="hLeftFieldLabel" text="Confirm Password:" GridPane.rowIndex="3" />
+            <Label fx:id="confirmLabel" styleClass="hLeftFieldLabel" text="%confirmPassword" GridPane.rowIndex="3" />
             <PasswordField fx:id="confirmTextField" maxWidth="1.7976931348623157E308" onAction="#passwordChanged" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Label fx:id="passwordErrorMessage" styleClass="error" text="Label" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <Label fx:id="activeLabel" styleClass="hLeftFieldLabel" text="Label" GridPane.rowIndex="5" />
+            <Label fx:id="passwordErrorMessage" styleClass="error" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <Label styleClass="hLeftFieldLabel" text="%activeState" GridPane.rowIndex="5" />
             <ComboBox fx:id="activeComboBox" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
             <ButtonBar prefHeight="40.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="6">
               <buttons>
