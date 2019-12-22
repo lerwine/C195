@@ -1,6 +1,7 @@
 package scheduler;
 
 import com.mysql.jdbc.Connection;
+import controller.EditAppointmentController;
 import controller.LoginScreenController;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,7 +22,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import model.AppointmentType;
 import model.db.UserRow;
 
 /**
@@ -207,19 +207,6 @@ public class App extends Application {
         return String.format(getAppResourceBundle().getString("fileNotFound"), fileName);
     }
     
-    /**
-     * Reads appointment types from the app resource bundle for the current language.
-     * @return Appointment types from the app resource bundle for the current language.
-     */
-    public static ArrayList<AppointmentType> getAppointmentTypes() {
-        ArrayList<AppointmentType> result = new ArrayList<>();
-            ResourceBundle rb = getAppResourceBundle();
-            appointmentTypes.entrySet().stream().forEach((Map.Entry<String, String> kvp) ->
-                result.add(new AppointmentType(kvp.getKey(), kvp.getValue()))
-            );
-        return result;
-    }
-    
     // This contains the current locale.
     private static Locale currentLocale;
     // These next 4 are locale-specific formatters for date and/or time strings.
@@ -264,9 +251,9 @@ public class App extends Application {
         shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
         fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
         appointmentTypes = new HashMap<>();
-        Stream.of(AppointmentType.APPOINTMENT_CODE_PHONE, AppointmentType.APPOINTMENT_CODE_VIRTUAL, AppointmentType.APPOINTMENT_CODE_CUSTOMER,
-                AppointmentType.APPOINTMENT_CODE_HOME, AppointmentType.APPOINTMENT_CODE_GERMANY, AppointmentType.APPOINTMENT_CODE_INDIA,
-                AppointmentType.APPOINTMENT_CODE_HONDURAS, AppointmentType.APPOINTMENT_CODE_OTHER).forEach((String key) -> {
+        Stream.of(EditAppointmentController.APPOINTMENT_CODE_PHONE, EditAppointmentController.APPOINTMENT_CODE_VIRTUAL, EditAppointmentController.APPOINTMENT_CODE_CUSTOMER,
+                EditAppointmentController.APPOINTMENT_CODE_HOME, EditAppointmentController.APPOINTMENT_CODE_GERMANY, EditAppointmentController.APPOINTMENT_CODE_INDIA,
+                EditAppointmentController.APPOINTMENT_CODE_HONDURAS, EditAppointmentController.APPOINTMENT_CODE_OTHER).forEach((String key) -> {
             appointmentTypes.put(key, appResourceBundle.getString("appointmentType_" + key));
         });
     }
@@ -330,17 +317,9 @@ public class App extends Application {
             // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
             // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
             // as the stored password. If the password is correct, then the hash values will match.
-            try {
-                // Create a password hash object for password hash comparison.
-                PwHash pwHash = new PwHash(user.get().getPassword(), false);
-                // See if the provided password, when hashed using the same seed as the stored hash is a match.
-                if (pwHash.test(password)) {
-                    currentUser = user;
-                    return true;
-                }
-                getLogger().log(Level.WARNING, "Password hash check failed");
-            } catch (InvalidArgumentException ex) {
-                getLogger().log(Level.SEVERE, null, ex);
+            if (user.get().getPasswordHash().test(password)) {
+                currentUser = user;
+                return true;
             }
         } else
             getLogger().log(Level.WARNING, "No matching userName found");

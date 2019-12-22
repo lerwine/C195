@@ -11,4 +11,5 @@ package model;
  */
 public interface Record {
     int getPrimaryKey();
+    default int getRowState() { return model.db.DataRow.ROWSTATE_UNMODIFIED; }
 }

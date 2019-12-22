@@ -10,14 +10,22 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
-import model.Address;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
+import static model.db.DataRow.ROWSTATE_MODIFIED;
+import static model.db.DataRow.ROWSTATE_UNMODIFIED;
 import scheduler.InternalException;
 
 /**
@@ -44,7 +52,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     public static final String PROP_CUSTOMERID = "customerId";
     
-    private final ReadOnlyIntegerWrapper customerId;
+    private final IntegerBinding customerId;
 
     /**
     * Get the value of customerId
@@ -53,7 +61,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     */
     public int getCustomerId() { return customerId.get(); }
 
-    public ReadOnlyIntegerProperty customerIdProperty() { return customerId.getReadOnlyProperty(); }
+    public IntegerBinding customerIdProperty() { return customerId; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="customer">
@@ -70,66 +78,23 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     @Override
     public model.Customer getCustomer() { return customer.get(); }
 
-    public void setCustomer(model.Customer value) {
-        customer.set(value);
-    }
+    public void setCustomer(model.Customer value) { customer.set(value); }
 
-    public ObjectProperty<model.Customer> customerProperty() {
-        return customer;
-    }
+    public ObjectProperty<model.Customer> customerProperty() { return customer; }
     
-    private final RowIdChangeListener<model.Customer> customerIdChangeListener;
+    //private final RowIdChangeListener<model.Customer> customerIdChangeListener;
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="userId">
     
     public static final String PROP_USERID = "userId";
     
-    private final ReadOnlyIntegerWrapper userId;
+    private final IntegerBinding userId;
     
     public int getUserId() { return userId.get(); }
 
-    public ReadOnlyIntegerProperty userIdProperty() { return userId.getReadOnlyProperty(); }
+    public IntegerBinding userIdProperty() { return userId; }
     
-    private final RowIdChangeListener<model.User> userIdChangeListener;
-    
-    /*
-    private int userId;
-    
-    /**
-    * Get the value of userId
-    *
-    * @return the value of userId
-    * /
-    public final int getUserId() { return userId; }
-    
-    /**
-     * Set the value of userId
-     *
-     * @param value new value of userId
-     * @throws java.sql.SQLException
-     * @throws scheduler.InvalidArgumentException
-     * /
-    public final void setUserId(int value) throws SQLException, InvalidArgumentException {
-        if (userId == value)
-            return;
-        model.User oldUser = user;
-        int oldId = userId;
-        SqlConnectionDependency dep = new SqlConnectionDependency(true);
-        try {
-            Optional<UserRow> u = UserRow.getById(dep.getconnection(), value);
-            if (u.isPresent())
-                user = u.get();
-            else
-                throw new InvalidArgumentException("userId", "No user found that matches that ID");
-        } finally { dep.close(); }
-        
-        userId = value;
-        
-        try { firePropertyChange(PROP_USERID, oldId, userId); }
-        finally { firePropertyChange(PROP_USER, oldUser, user); }
-    }
-    */
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="user">
     
@@ -307,10 +272,10 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     public AppointmentRow() {
         super();
-        customerId = new ReadOnlyIntegerWrapper();
         customer = new SimpleObjectProperty<>();
-        userId = new ReadOnlyIntegerWrapper();
+        customerId = scheduler.util.primaryKeyBinding(this.customer);
         user = new SimpleObjectProperty<>();
+        userId = scheduler.util.primaryKeyBinding(this.user);
         title = new NonNullableStringProperty();
         description = new NonNullableStringProperty();
         location = new NonNullableStringProperty();
@@ -319,17 +284,15 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         url = new NonNullableStringProperty();
         start = new NonNullableLocalDateTimeProperty(LocalDateTime.now());
         end = new NonNullableLocalDateTimeProperty(start.getValue());
-        customerIdChangeListener = new RowIdChangeListener<>(this.customer, customerId);
-        userIdChangeListener = new RowIdChangeListener<>(this.user, userId);
     }
     
     public AppointmentRow(CustomerRow customer, UserRow user, String title, String description, String location, String contact,
             String type, String url, LocalDateTime start, LocalDateTime end) {
         super();
-        customerId = new ReadOnlyIntegerWrapper();
         this.customer = new SimpleObjectProperty<>(customer);
-        userId = new ReadOnlyIntegerWrapper();
+        customerId = scheduler.util.primaryKeyBinding(this.customer);
         this.user = new SimpleObjectProperty<>(user);
+        userId = scheduler.util.primaryKeyBinding(this.user);
         this.title = new NonNullableStringProperty(title);
         this.description = new NonNullableStringProperty(description);
         this.location = new NonNullableStringProperty(location);
@@ -338,21 +301,19 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         this.url = new NonNullableStringProperty(url);
         this.start = new NonNullableLocalDateTimeProperty(start);
         this.end = new NonNullableLocalDateTimeProperty(end);
-        customerIdChangeListener = new RowIdChangeListener<>(this.customer, customerId);
-        userIdChangeListener = new RowIdChangeListener<>(this.user, userId);
     }
     
     public AppointmentRow (ResultSet rs) throws SQLException {
         super(rs);
-        customerId = new ReadOnlyIntegerWrapper();
         customer = new SimpleObjectProperty<>(new Customer(rs.getInt(PROP_CUSTOMERID), rs.getString(CustomerRow.PROP_CUSTOMERNAME),
                 new CustomerRow.Address(rs.getInt(CustomerRow.PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)),
                 rs.getBoolean(CustomerRow.PROP_ACTIVE)));
-        userId = new ReadOnlyIntegerWrapper();
+        customerId = scheduler.util.primaryKeyBinding(this.customer);
         user = new SimpleObjectProperty<>(new User(rs.getInt(PROP_USERID), rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE)));
+        userId = scheduler.util.primaryKeyBinding(this.user);
         title = new NonNullableStringProperty(rs.getString(PROP_TITLE));
         if (rs.wasNull())
             title.setValue("");
@@ -375,8 +336,6 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         start = new NonNullableLocalDateTimeProperty((rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime());
         t = rs.getTimestamp(PROP_END);
         end = new NonNullableLocalDateTimeProperty((rs.wasNull()) ? LocalDateTime.now() : t.toLocalDateTime());
-        customerIdChangeListener = new RowIdChangeListener<>(this.customer, customerId);
-        userIdChangeListener = new RowIdChangeListener<>(this.user, userId);
     }
     
     //</editor-fold>
@@ -482,14 +441,12 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     @Override
     protected void refreshFromDb(ResultSet rs) throws SQLException {
-        customerId.setValue(rs.getInt(PROP_CUSTOMERID));
         customer.setValue(new Customer(getCustomerId(), rs.getString(CustomerRow.PROP_CUSTOMERNAME),
                 new CustomerRow.Address(rs.getInt(CustomerRow.PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)),
                 rs.getBoolean(CustomerRow.PROP_ACTIVE)));
-        userId.setValue(rs.getInt(PROP_USERID));
         user.setValue(new User(getUserId(), rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE)));
         title.setValue(rs.getString(PROP_TITLE));
         if (rs.wasNull())
@@ -564,48 +521,115 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     //</editor-fold>
     
+    @Override
+    public int hashCode() { return getPrimaryKey(); }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if ((getRowState() != ROWSTATE_MODIFIED && getRowState() != ROWSTATE_UNMODIFIED) || obj == null || !(obj instanceof model.Appointment))
+            return false;
+        final model.Appointment other = (model.Appointment)obj;
+        return (other.getRowState() == ROWSTATE_MODIFIED || other.getRowState() == ROWSTATE_UNMODIFIED) && getPrimaryKey() == other.getPrimaryKey();
+    }
+    
     static class User implements model.User {
-        private final int id;
-        private final String userName;
-        private final int active;
-        User(int id, String userName, short active) {
-            this.id = id;
-            this.userName = userName;
-            this.active = active;
+        private final ReadOnlyIntegerWrapper primaryKey;
+
+        @Override
+        public int getPrimaryKey() { return primaryKey.get(); }
+
+        public ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper userName;
+
+        @Override
+        public String getUserName() { return userName.get(); }
+
+        public ReadOnlyStringProperty userNameProperty() { return userName.getReadOnlyProperty(); }
+        
+        private final ReadonlyActiveStateProperty active;
+
+        @Override
+        public int getActive() { return active.get(); }
+
+        public ReadOnlyIntegerProperty activeProperty() { return active.getReadOnlyProperty(); }
+        
+        User(int id, String userName, int active) {
+            primaryKey = new ReadOnlyIntegerWrapper(id);
+            this.userName = new ReadOnlyStringWrapper(userName);
+            this.active = new ReadonlyActiveStateProperty(active);
         }
+        
+        @Override
+        public int hashCode() { return primaryKey.get(); }
 
         @Override
-        public String getUserName() { return userName; }
-
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof model.User))
+                return false;
+            
+            model.User record = (model.User)obj;
+            return (record.getRowState() == DataRow.ROWSTATE_MODIFIED || record.getRowState() == DataRow.ROWSTATE_UNMODIFIED) &&
+                    record.getPrimaryKey() == getPrimaryKey();
+        }
+    
         @Override
-        public int getActive() { return active; }
-
-        @Override
-        public int getPrimaryKey() { return id; }
+        public String toString() { return getUserName(); }
     }
     
     static class Customer implements model.Customer {
-        private final int id;
-        private final String name;
-        private final CustomerRow.Address address;
-        private final boolean active;
+        private final ReadOnlyIntegerWrapper primaryKey;
+
+        @Override
+        public int getPrimaryKey() { return primaryKey.get(); }
+
+        public ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper name;
+
+        @Override
+        public String getName() { return name.get(); }
+
+        public ReadOnlyStringProperty nameProperty() { return name.getReadOnlyProperty(); }
+        
+        private final ReadOnlyObjectWrapper<CustomerRow.Address> address;
+
+        @Override
+        public CustomerRow.Address getAddress() { return address.get(); }
+
+        public ReadOnlyObjectProperty<CustomerRow.Address> addressProperty() { return address.getReadOnlyProperty(); }
+        
+        private final ReadOnlyBooleanWrapper active;
+
+        @Override
+        public boolean isActive() { return active.get(); }
+
+        public ReadOnlyBooleanProperty activeProperty() { return active.getReadOnlyProperty(); }
+        
         Customer(int id, String name, CustomerRow.Address address, boolean active) {
-            this.id = id;
-            this.name = name;
-            this.address = address;
-            this.active = active;
+            primaryKey = new ReadOnlyIntegerWrapper(id);
+            this.name = new ReadOnlyStringWrapper(name);
+            this.address = new ReadOnlyObjectWrapper<>(address);
+            this.active = new ReadOnlyBooleanWrapper(active);
         }
+        
+        @Override
+        public int hashCode() { return primaryKey.get(); }
 
         @Override
-        public String getName() { return name; }
-
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof model.Customer))
+                return false;
+            
+            model.Customer record = (model.Customer)obj;
+            return (record.getRowState() == DataRow.ROWSTATE_MODIFIED || record.getRowState() == DataRow.ROWSTATE_UNMODIFIED) &&
+                    record.getPrimaryKey() == getPrimaryKey();
+        }
+    
         @Override
-        public Address getAddress() { return address; }
-
-        @Override
-        public boolean isActive() { return active; }
-
-        @Override
-        public int getPrimaryKey() { return id; }
+        public String toString() { return getName(); }
     }
+    
 }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
@@ -69,9 +70,7 @@ public class CountryRow extends DataRow implements model.Country {
     
     public CountryRow (ResultSet rs) throws SQLException {
         super(rs);
-        name = new NonNullableStringProperty(rs.getString(COLNAME_COUNTRY));
-        if (rs.wasNull())
-            name.set("");
+        name = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, COLNAME_COUNTRY, ""));
     }
     
     //</editor-fold>
@@ -149,4 +148,17 @@ public class CountryRow extends DataRow implements model.Country {
     }
     
     //</editor-fold>
+    
+    @Override
+    public int hashCode() { return getPrimaryKey(); }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if ((getRowState() != ROWSTATE_MODIFIED && getRowState() != ROWSTATE_UNMODIFIED) || obj == null || !(obj instanceof model.Country))
+            return false;
+        final model.Country other = (model.Country)obj;
+        return (other.getRowState() == ROWSTATE_MODIFIED || other.getRowState() == ROWSTATE_UNMODIFIED) && getPrimaryKey() == other.getPrimaryKey();
+    }
 }

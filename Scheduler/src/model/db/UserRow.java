@@ -9,15 +9,22 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import scheduler.InvalidArgumentException;
 import scheduler.InvalidOperationException;
+import scheduler.PwHash;
 
 /**
  * Represents a user account data row in the database.
@@ -89,6 +96,14 @@ public class UserRow extends DataRow implements model.User {
     public void setPassword(String value) { password.set(value); }
 
     public StringProperty passwordProperty() { return password; }
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="passwordHash">
+    
+    private final ReadOnlyObjectWrapper<PwHash> passwordHash;
+
+    public PwHash getPasswordHash() { return passwordHash.get(); }
+
+    public ReadOnlyObjectProperty<PwHash> passwordHashProperty() { return passwordHash.getReadOnlyProperty(); }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="active">
@@ -117,27 +132,33 @@ public class UserRow extends DataRow implements model.User {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
+    private final PasswordChangeManager passwordChangeManager;
     /**
      * 
      */
     public UserRow() {
         super();
-        this.userName = new ReadOnlyStringWrapper();
-        this.password = new NonNullableStringProperty();
-        this.active = new ActiveStateProperty(STATE_USER);
+        userName = new ReadOnlyStringWrapper();
+        password = new NonNullableStringProperty();
+        active = new ActiveStateProperty(STATE_USER);
+        passwordHash = new ReadOnlyObjectWrapper<>(new PwHash("", true));
+        passwordChangeManager = new PasswordChangeManager();
     }
     
     /**
      * 
      * @param userName
      * @param password
+     * @param isRawPassword
      * @param active
      */
-    public UserRow(String userName, String password, int active) {
+    public UserRow(String userName, String password, boolean isRawPassword, int active) {
         super();
-        this.userName = new ReadOnlyStringWrapper(userName);
-        this.password = new NonNullableStringProperty(password);
+        this.userName = new ReadOnlyStringWrapper((userName == null) ? "" : userName);
+        this.password = new NonNullableStringProperty((isRawPassword && password != null) ? password : "");
         this.active = new ActiveStateProperty(active);
+        passwordHash = new ReadOnlyObjectWrapper<>((password == null || password.trim().isEmpty()) ? null : new PwHash(password, false));
+        passwordChangeManager = new PasswordChangeManager();
     }
     
     /**
@@ -147,22 +168,20 @@ public class UserRow extends DataRow implements model.User {
      */
     protected UserRow(UserRow user) throws InvalidOperationException {
         super(user);
-        this.userName = new ReadOnlyStringWrapper(user.getUserName());
-        this.password = new NonNullableStringProperty(user.getPassword());
-        this.active = new ActiveStateProperty(user.getActive());
+        this.passwordHash = new ReadOnlyObjectWrapper<>();
+        userName = new ReadOnlyStringWrapper(user.getUserName());
+        password = new NonNullableStringProperty(user.getPassword());
+        active = new ActiveStateProperty(user.getActive());
+        passwordChangeManager = new PasswordChangeManager();
     }
     
     private UserRow(ResultSet rs) throws SQLException {
         super(rs);
-        this.userName = new ReadOnlyStringWrapper(rs.getString(PROP_USERNAME));
-        if (rs.wasNull())
-            userName.set("");
-        this.password = new NonNullableStringProperty(rs.getString(PROP_PASSWORD));
-        if (rs.wasNull())
-            password.set("");
-        this.active = new ActiveStateProperty(rs.getShort(PROP_ACTIVE));
-        if (rs.wasNull())
-            active.set(STATE_INACTIVE);
+        passwordHash = new ReadOnlyObjectWrapper<>();
+        userName = new ReadOnlyStringWrapper(scheduler.util.resultStringOrDefault(rs, PROP_USERNAME, ""));
+        password = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_PASSWORD, ""));
+        active = new ActiveStateProperty(scheduler.util.resultShortOrDefault(rs, PROP_ACTIVE, STATE_INACTIVE));
+        passwordChangeManager = new PasswordChangeManager();
     }
     
     //</editor-fold>
@@ -307,16 +326,51 @@ public class UserRow extends DataRow implements model.User {
     //</editor-fold>
     
     @Override
-    public int hashCode() { return 287 + Objects.hashCode(this.userName.get()); }
-
+    public int hashCode() { return getPrimaryKey(); }
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        return obj != null && getClass() == obj.getClass() && userName.get().equals(((UserRow)obj).userName.get());
+        if ((getRowState() != ROWSTATE_MODIFIED && getRowState() != ROWSTATE_UNMODIFIED) || obj == null || !(obj instanceof model.User))
+            return false;
+        final model.User other = (model.User)obj;
+        return (other.getRowState() == ROWSTATE_MODIFIED || other.getRowState() == ROWSTATE_UNMODIFIED) && getPrimaryKey() == other.getPrimaryKey();
     }
-
+    
     @Override
     public String toString() { return userName.get(); }
     
+    private class PasswordChangeManager {
+        private String currentPassword;
+        
+        PasswordChangeManager() {
+            currentPassword = null;
+            password.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                if (newValue.equals(currentPassword))
+                    return;
+                
+                currentPassword = newValue;
+                try {
+                    passwordHash.get().setFromRawPassword(newValue);
+                } finally {
+                    if (newValue.equals(currentPassword))
+                        currentPassword = null;
+                }
+            });
+            passwordHash.get().encodedHashProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                if (currentPassword != null) {
+                    String pw = password.get();
+                    if (currentPassword.equals(pw) && passwordHash.get().test(pw))
+                        return;
+                }
+                currentPassword = "";
+                try { password.set(""); }
+                finally {
+                    if (currentPassword != null && currentPassword.isEmpty())
+                        currentPassword = null;
+                }
+            });
+        }
+    }
 }

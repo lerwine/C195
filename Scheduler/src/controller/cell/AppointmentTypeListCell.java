@@ -13,10 +13,10 @@ import javafx.util.Callback;
  *
  * @author Leonard T. Erwine
  */
-public class AppointmentTypeListCell extends ListCell<model.AppointmentType> {
+public class AppointmentTypeListCell extends ListCell<String> {
     @Override
-    protected void updateItem(model.AppointmentType item, boolean empty) {
+    protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
-        setText((item == null) ? "" : item.getDisplayText());
+        setText(scheduler.App.getAppointmentTypeDisplay(item));
     }
 }

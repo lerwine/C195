@@ -8,9 +8,17 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -87,7 +95,7 @@ public class AddressRow extends DataRow implements model.Address {
     
     public static final String PROP_CITYID = "cityId";
     
-    private final ReadOnlyIntegerWrapper cityId;
+    private final IntegerBinding cityId;
 
     /**
     * Get the value of cityId
@@ -96,7 +104,7 @@ public class AddressRow extends DataRow implements model.Address {
     */
     public int getCityId() { return cityId.get(); }
 
-    public ReadOnlyIntegerProperty cityIdProperty() { return cityId.getReadOnlyProperty(); }
+    public IntegerBinding cityIdProperty() { return cityId; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="city">
@@ -121,8 +129,6 @@ public class AddressRow extends DataRow implements model.Address {
     public void setCity(model.City value) { city.set(value); }
 
     public ObjectProperty<model.City> cityProperty() { return city; }
-    
-    private final RowIdChangeListener<model.City> cityIdChangeListener;
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="postalCode">
@@ -173,7 +179,6 @@ public class AddressRow extends DataRow implements model.Address {
     public StringProperty phoneProperty() { return phone; }
     
     //</editor-fold>
-    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Constructors">
@@ -182,41 +187,31 @@ public class AddressRow extends DataRow implements model.Address {
         super();
         address1 = new NonNullableStringProperty();
         address2 = new NonNullableStringProperty();
-        cityId = new ReadOnlyIntegerWrapper(0);
         city = new SimpleObjectProperty<>();
+        cityId = scheduler.util.primaryKeyBinding(city);
         postalCode = new NonNullableStringProperty();
         phone = new NonNullableStringProperty();
-        cityIdChangeListener = new RowIdChangeListener<>(this.city, cityId);
     }
     
     public AddressRow(String address1, String address2, CityRow city, String postalCode, String phone) {
         super();
         this.address1 = new NonNullableStringProperty(address1);
         this.address2 = new NonNullableStringProperty(address2);
-        cityId = new ReadOnlyIntegerWrapper();
         this.city = new SimpleObjectProperty<>(city);
+        cityId = scheduler.util.primaryKeyBinding(this.city);
         this.postalCode = new NonNullableStringProperty(postalCode);
         this.phone = new NonNullableStringProperty(phone);
-        cityIdChangeListener = new RowIdChangeListener<>(this.city, cityId);
     }
     
     public AddressRow(ResultSet rs) throws SQLException {
         super(rs);
-        address1 = new NonNullableStringProperty(rs.getString(COLNAME_ADDRESS));
-        if (rs.wasNull())
-            address1.setValue("");
-        address2 = new NonNullableStringProperty(rs.getString(PROP_ADDRESS2));
-        if (rs.wasNull())
-            address2.setValue("");
-        cityId = new ReadOnlyIntegerWrapper(rs.getInt(PROP_CITYID));
-        city = new SimpleObjectProperty<>(new City(getCityId(), rs.getString(PROP_CITY), new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))));
-        postalCode = new NonNullableStringProperty(rs.getString(PROP_POSTALCODE));
-        if (rs.wasNull())
-            postalCode.setValue("");
-        phone = new NonNullableStringProperty(rs.getString(PROP_PHONE));
-        if (rs.wasNull())
-            phone.setValue("");
-        cityIdChangeListener = new RowIdChangeListener<>(this.city, cityId);
+        address1 = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, COLNAME_ADDRESS, ""));
+        address2 = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_ADDRESS2, ""));
+        city = new SimpleObjectProperty<>(new City(rs.getInt(PROP_CITYID), rs.getString(PROP_CITY),
+                new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))));
+        cityId = scheduler.util.primaryKeyBinding(this.city);
+        postalCode = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_POSTALCODE, ""));
+        phone = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_PHONE, ""));
     }
     
     //</editor-fold>
@@ -326,23 +321,94 @@ public class AddressRow extends DataRow implements model.Address {
     
     //</editor-fold>
     
-    static class City implements model.City {
-        private final int id;
-        private final String name;
-        private final CityRow.Country country;
-        City(int id, String name, CityRow.Country country) {
-            this.id = id;
-            this.name = name;
-            this.country = country;
+    @Override
+    public int hashCode() { return getPrimaryKey(); }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if ((getRowState() != ROWSTATE_MODIFIED && getRowState() != ROWSTATE_UNMODIFIED) || obj == null || !(obj instanceof model.Address))
+            return false;
+        final model.Address other = (model.Address)obj;
+        return (other.getRowState() == ROWSTATE_MODIFIED || other.getRowState() == ROWSTATE_UNMODIFIED) && getPrimaryKey() == other.getPrimaryKey();
+    }
+    
+    @Override
+    public String toString() {
+        model.City t = getCity();
+        String ph = getPhone();
+        Stream<String> lines;
+        if (t == null) {
+            if (ph.trim().isEmpty())
+                lines = Stream.of(getAddress1(), getAddress2(), getPostalCode());
+            else
+                lines = Stream.of(getAddress1(), getAddress2(), getPostalCode(), "ph: " + ph);
+        } else {
+            model.Country c = t.getCountry();
+            String n = getPostalCode();
+            n = (n.trim().isEmpty()) ? t.getName() : t.getName() + " " + n;
+            if (c == null) {
+                if (ph.trim().isEmpty())
+                    lines = Stream.of(getAddress1(), getAddress2(), n);
+                else
+                    lines = Stream.of(getAddress1(), getAddress2(), n, "ph: " + ph);
+            } else if (ph.trim().isEmpty())
+                lines = Stream.of(getAddress1(), getAddress2(), t.getName(), n + ", " + c.getName());
+            else
+                lines = Stream.of(getAddress1(), getAddress2(), t.getName(), n + ", " + c.getName(), "ph: " + ph);
         }
+        Optional<String> result = lines.filter((String s) -> !s.trim().isEmpty()).reduce((s, u) -> {
+            return s + "\n" + u; //To change body of generated lambdas, choose Tools | Templates.
+        });
+        return (result.isPresent()) ? result.get() : "";
+    }
+    
+    static class City implements model.City {
+        private final ReadOnlyIntegerWrapper primaryKey;
 
         @Override
-        public String getName() { return name; }
+        public int getPrimaryKey() { return primaryKey.get(); }
+
+        public ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper name;
 
         @Override
-        public int getPrimaryKey() { return id; }
+        public String getName() { return name.get(); }
+
+        public ReadOnlyStringProperty nameProperty() { return name.getReadOnlyProperty(); }
+        
+        private final ReadOnlyObjectWrapper<CityRow.Country> country;
 
         @Override
-        public model.Country getCountry() { return country; }
+        public CityRow.Country getCountry() { return country.get(); }
+
+        public ReadOnlyObjectProperty<CityRow.Country> countryProperty() { return country.getReadOnlyProperty(); }
+         
+        City(int id, String name, CityRow.Country country) {
+            primaryKey = new ReadOnlyIntegerWrapper(id);
+            this.name = new ReadOnlyStringWrapper(name);
+            this.country = new ReadOnlyObjectWrapper<>(country);
+        }
+        
+        @Override
+        public int hashCode() { return primaryKey.get(); }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof model.City))
+                return false;
+            
+            model.City record = (model.City)obj;
+            return (record.getRowState() == DataRow.ROWSTATE_MODIFIED || record.getRowState() == DataRow.ROWSTATE_UNMODIFIED) &&
+                    record.getPrimaryKey() == getPrimaryKey();
+        }
+    
+        @Override
+        public String toString() {
+            model.Country c = getCountry();
+            return (c == null) ? getName() : String.format("%s, %s", getName(), c.getName());
+        }
     }
 }

@@ -4,13 +4,20 @@ import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -62,7 +69,7 @@ public class CityRow extends DataRow implements model.City {
     
     public static final String PROP_COUNTRYID = "countryId";
     
-    private ReadOnlyIntegerWrapper countryId;
+    private IntegerBinding countryId;
     
     /**
      * Get the value of countryId
@@ -71,7 +78,7 @@ public class CityRow extends DataRow implements model.City {
      */
     public final int getCountryId() { return countryId.get(); }
     
-    public ReadOnlyIntegerProperty countryIdProperty() { return countryId.getReadOnlyProperty(); }
+    public IntegerBinding countryIdProperty() { return countryId; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="country">
@@ -97,8 +104,6 @@ public class CityRow extends DataRow implements model.City {
 
     public ObjectProperty<model.Country> countryProperty() { return country; }
     
-    private final RowIdChangeListener<model.Country> countryIdChangeListener;
-    
     //</editor-fold>
     
     //</editor-fold>
@@ -107,17 +112,15 @@ public class CityRow extends DataRow implements model.City {
     public CityRow() {
         super();
         name = new NonNullableStringProperty();
-        countryId =  new ReadOnlyIntegerWrapper();
         country = new SimpleObjectProperty<>();
-        countryIdChangeListener = new RowIdChangeListener<>(country, countryId);
+        countryId = scheduler.util.primaryKeyBinding(country);
     }
     
     public CityRow(String name, CountryRow country) {
         super();
         this.name = new NonNullableStringProperty(name);
-        countryId =  new ReadOnlyIntegerWrapper();
         this.country = new SimpleObjectProperty<>(country);
-        countryIdChangeListener = new RowIdChangeListener<>(this.country, countryId);
+        countryId = scheduler.util.primaryKeyBinding(this.country);
     }
     
     public CityRow (ResultSet rs) throws SQLException {
@@ -125,9 +128,8 @@ public class CityRow extends DataRow implements model.City {
         name = new NonNullableStringProperty(rs.getString(COLNAME_CITY));
         if (rs.wasNull())
             name.set("");
-        countryId =  new ReadOnlyIntegerWrapper();
         country = new SimpleObjectProperty<>(new Country(rs.getInt(PROP_COUNTRYID), rs.getString(CountryRow.COLNAME_COUNTRY)));
-        countryIdChangeListener = new RowIdChangeListener<>(country, countryId);
+        countryId = scheduler.util.primaryKeyBinding(country);
     }
     
     //</editor-fold>
@@ -215,22 +217,61 @@ public class CityRow extends DataRow implements model.City {
     
     @Override
     protected String getSelectQuery() { return SQL_SELECT; }
+
+    //</editor-fold>
     
     //</editor-fold>
     
+    @Override
+    public int hashCode() { return getPrimaryKey(); }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if ((getRowState() != ROWSTATE_MODIFIED && getRowState() != ROWSTATE_UNMODIFIED) || obj == null || !(obj instanceof model.City))
+            return false;
+        final model.City other = (model.City)obj;
+        return (other.getRowState() == ROWSTATE_MODIFIED || other.getRowState() == ROWSTATE_UNMODIFIED) && getPrimaryKey() == other.getPrimaryKey();
+    }
+    
+    @Override
+    public String toString() {
+        model.Country c = getCountry();
+        return (c == null) ? getName() : String.format("%s, %s", getName(), c.getName());
+    }
+    
     static class Country implements model.Country {
-        private final int id;
-        private final String name;
+        private final ReadOnlyIntegerWrapper primaryKey;
+        
+        @Override
+        public int getPrimaryKey() { return primaryKey.get(); }
 
+        public ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper name;
+
+        @Override
+        public String getName() { return name.get(); }
+
+        public ReadOnlyStringProperty nameProperty() { return name.getReadOnlyProperty(); }
+        
         Country(int id, String name) {
-            this.id = id;
-            this.name = name;
+            primaryKey = new ReadOnlyIntegerWrapper(id);
+            this.name = new ReadOnlyStringWrapper(name);
         }
 
         @Override
-        public String getName() { return name; }
+        public int hashCode() { return primaryKey.get(); }
 
         @Override
-        public int getPrimaryKey() { return id; }
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof model.Country))
+                return false;
+            
+            model.Country record = (model.Country)obj;
+            return (record.getRowState() == DataRow.ROWSTATE_MODIFIED || record.getRowState() == DataRow.ROWSTATE_UNMODIFIED) &&
+                    record.getPrimaryKey() == getPrimaryKey();
+        }
     }
 }

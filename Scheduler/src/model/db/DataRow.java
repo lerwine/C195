@@ -1,7 +1,6 @@
 package model.db;
 
 import com.mysql.jdbc.Connection;
-import java.beans.PropertyChangeListener;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ObjectProperty;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -21,8 +20,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
@@ -216,75 +213,7 @@ public abstract class DataRow implements model.Record {
     public ReadOnlyIntegerProperty rowStateProperty() { return rowState.getReadOnlyProperty(); }
     
     //</editor-fold>
-    
     //</editor-fold>
-    
-    /**
-     * 
-     * @param <R>
-     */
-    protected static class RowIdChangeListener<R extends model.Record> implements ChangeListener<Number> {
-        private final ObjectProperty<R> recordProperty;
-        private final ReadOnlyIntegerWrapper primaryKeyProperty;
-        private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
-
-        /**
-         * 
-         * @return
-         */
-        public boolean isValid() { return valid.get(); }
-
-        public ReadOnlyBooleanProperty validProperty() { return valid.getReadOnlyProperty(); }
-        
-        /**
-         * 
-         * @param recordProperty
-         * @param primaryKeyProperty
-         */
-        RowIdChangeListener(ObjectProperty<R> recordProperty, ReadOnlyIntegerWrapper primaryKeyProperty) {
-            this.recordProperty = recordProperty;
-            this.primaryKeyProperty = primaryKeyProperty;
-            recordProperty.addListener((ObservableValue<? extends R> observable, R oldValue, R newValue) -> {
-                recordChanged(oldValue, newValue);
-            });
-            recordChanged(null, recordProperty.get());
-        }
-        
-        private void recordChanged(R oldValue, R newValue) {
-            if (oldValue != null && oldValue instanceof DataRow)
-                ((DataRow)oldValue).primaryKeyProperty().removeListener(this);
-            if (newValue != null) {
-                if (newValue instanceof DataRow) {
-                    ((DataRow)newValue).primaryKeyProperty().addListener(this);
-                    int rowState = ((DataRow)newValue).getRowState();
-                    valid.set(rowState == ROWSTATE_UNMODIFIED || rowState == ROWSTATE_MODIFIED);
-                } else
-                    valid.set(true);
-                primaryKeyProperty.set(newValue.getPrimaryKey());
-            } else {
-                valid.set(false);
-                primaryKeyProperty.set(0);
-            }
-        }
-        
-        @Override
-        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-            if (newValue != null && newValue instanceof Integer) {
-                primaryKeyProperty.set((int)newValue);
-                R c = recordProperty.get();
-                if (c != null) {
-                    if (c instanceof DataRow) {
-                        int rowState = ((DataRow)c).getRowState();
-                        valid.set(rowState == ROWSTATE_UNMODIFIED || rowState == ROWSTATE_MODIFIED);
-                    } else
-                        valid.set(true);
-                    return;
-                }
-            } else
-                primaryKeyProperty.set(0);
-            valid.set(false);
-        }
-    }
     
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     

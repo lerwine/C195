@@ -13,7 +13,7 @@ import javafx.util.Callback;
  *
  * @author Leonard T. Erwine
  */
-public class AppointmentTypeListCellFactory implements Callback<ListView<model.AppointmentType>, ListCell<model.AppointmentType>> {
+public class AppointmentTypeListCellFactory implements Callback<ListView<String>, ListCell<String>> {
     @Override
-    public ListCell<model.AppointmentType> call(ListView<model.AppointmentType> param) { return new AppointmentTypeListCell(); }
+    public ListCell<String> call(ListView<String> param) { return new AppointmentTypeListCell(); }
 }

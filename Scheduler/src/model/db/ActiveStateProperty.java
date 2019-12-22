@@ -12,29 +12,27 @@ import javafx.beans.property.SimpleIntegerProperty;
  * @author Leonard T. Erwine
  */
 public class ActiveStateProperty extends SimpleIntegerProperty {
+    public static int asValidValue(int value) {
+        return (value < UserRow.STATE_INACTIVE) ? UserRow.STATE_INACTIVE : ((value > UserRow.STATE_ADMIN) ? UserRow.STATE_ADMIN : value);
+    }
+    
     /**
      * 
      */
-    public ActiveStateProperty() {
-        super(UserRow.STATE_USER);
-    }
+    public ActiveStateProperty() { super(UserRow.STATE_USER); }
 
     /**
      * 
      * @param initialValue
      */
-    public ActiveStateProperty(int initialValue) {
-        super((initialValue < UserRow.STATE_INACTIVE) ? UserRow.STATE_INACTIVE : ((initialValue > UserRow.STATE_ADMIN) ? UserRow.STATE_ADMIN : initialValue));
-    }
+    public ActiveStateProperty(int initialValue) { super(asValidValue(initialValue)); }
 
     /**
      * 
      * @param bean
      * @param name
      */
-    public ActiveStateProperty(Object bean, String name) {
-        super(bean, name, UserRow.STATE_USER);
-    }
+    public ActiveStateProperty(Object bean, String name) { super(bean, name, UserRow.STATE_USER); }
 
     /**
      * 
@@ -42,20 +40,24 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
      * @param name
      * @param initialValue
      */
-    public ActiveStateProperty(Object bean, String name, int initialValue) {
-        super(bean, name, (initialValue < UserRow.STATE_INACTIVE) ? UserRow.STATE_INACTIVE : ((initialValue > UserRow.STATE_ADMIN) ? UserRow.STATE_ADMIN : initialValue));
-    }
+    public ActiveStateProperty(Object bean, String name, int initialValue) { super(bean, name, asValidValue(initialValue)); }
 
     
     @Override
-    public void set(int newValue) {
-        super.set((newValue < UserRow.STATE_INACTIVE) ? UserRow.STATE_INACTIVE : ((newValue > UserRow.STATE_ADMIN) ? UserRow.STATE_ADMIN : newValue));
-    }
+    public void set(int newValue) { super.set(asValidValue(newValue)); }
 
     @Override
     public void setValue(Number v) {
-        super.set((v != null && v instanceof Integer) ?
-                (((int)v < UserRow.STATE_INACTIVE) ? UserRow.STATE_INACTIVE : (((int)v > UserRow.STATE_ADMIN) ? UserRow.STATE_ADMIN : (int)v)) :
-                UserRow.STATE_INACTIVE);
+        if (v != null) {
+            if (v instanceof Integer) {
+                super.set(asValidValue((int)v));
+                return;
+            }
+            try {
+                super.set(asValidValue(v.intValue()));
+                return;
+            } catch (Exception ex) { }
+        }
+        super.set(UserRow.STATE_INACTIVE);
     }
 }

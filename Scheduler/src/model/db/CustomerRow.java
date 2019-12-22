@@ -9,10 +9,17 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -75,7 +82,7 @@ public class CustomerRow extends DataRow implements model.Customer {
     
     public static final String PROP_ADDRESSID = "addressId";
     
-    private final ReadOnlyIntegerWrapper addressId;
+    private final IntegerBinding addressId;
 
     /**
      * Get the value of addressId
@@ -84,7 +91,7 @@ public class CustomerRow extends DataRow implements model.Customer {
      */
     public int getAddressId() { return addressId.get(); }
 
-    public ReadOnlyIntegerProperty addressIdProperty() { return addressId.getReadOnlyProperty(); }
+    public IntegerBinding addressIdProperty() { return addressId; }
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="address">
@@ -109,8 +116,6 @@ public class CustomerRow extends DataRow implements model.Customer {
     public void setAddress(model.Address value) { address.set(value); }
 
     public ObjectProperty<model.Address> addressProperty() { return address; }
-    
-    private final RowIdChangeListener<model.Address> addressIdChangeListener;
     
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="active">
@@ -146,11 +151,10 @@ public class CustomerRow extends DataRow implements model.Customer {
      */
     public CustomerRow() {
         super();
-        this.name = new NonNullableStringProperty();
-        this.addressId = new ReadOnlyIntegerWrapper();
-        this.address = new SimpleObjectProperty<>();
-        this.active = new SimpleBooleanProperty();
-        addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
+        name = new NonNullableStringProperty();
+        address = new SimpleObjectProperty<>();
+        addressId = scheduler.util.primaryKeyBinding(address);
+        active = new SimpleBooleanProperty();
     }
     
     /**
@@ -162,10 +166,9 @@ public class CustomerRow extends DataRow implements model.Customer {
     public CustomerRow(String name, AddressRow address, boolean active) {
         super();
         this.name = new NonNullableStringProperty(name);
-        this.addressId = new ReadOnlyIntegerWrapper();
         this.address = new SimpleObjectProperty<>(address);
+        addressId = scheduler.util.primaryKeyBinding(this.address);
         this.active = new SimpleBooleanProperty(active);
-        addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
     }
     
     /**
@@ -175,16 +178,13 @@ public class CustomerRow extends DataRow implements model.Customer {
      */
     public CustomerRow (ResultSet rs) throws SQLException {
         super(rs);
-        this.name = new NonNullableStringProperty(rs.getString(PROP_CUSTOMERNAME));
-        if (rs.wasNull())
-            name.set("");
-        this.addressId = new ReadOnlyIntegerWrapper();
-        this.address = new SimpleObjectProperty<>(new Address(rs.getInt(PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
+        name = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_CUSTOMERNAME, ""));
+        address = new SimpleObjectProperty<>(new Address(rs.getInt(PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)));
-        this.active = new SimpleBooleanProperty(rs.getBoolean(PROP_ACTIVE));
-        addressIdChangeListener = new RowIdChangeListener<>(this.address, addressId);
+        addressId = scheduler.util.primaryKeyBinding(address);
+        active = new SimpleBooleanProperty(rs.getBoolean(PROP_ACTIVE));
     }
     
     //</editor-fold>
@@ -303,51 +303,114 @@ public class CustomerRow extends DataRow implements model.Customer {
     //</editor-fold>
     
     @Override
-    public int hashCode() { return 287 + Objects.hashCode(this.name.get()); }
-
+    public int hashCode() { return getPrimaryKey(); }
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        return obj != null && getClass() == obj.getClass() && name.get().equals(((CustomerRow)obj).name.get());
+        if ((getRowState() != ROWSTATE_MODIFIED && getRowState() != ROWSTATE_UNMODIFIED) || obj == null || !(obj instanceof model.Customer))
+            return false;
+        final model.Customer other = (model.Customer)obj;
+        return (other.getRowState() == ROWSTATE_MODIFIED || other.getRowState() == ROWSTATE_UNMODIFIED) && getPrimaryKey() == other.getPrimaryKey();
     }
-
+    
     @Override
     public String toString() { return name.get(); }
     
     static class Address implements model.Address {
-        private final int id;
-        private final String address1;
-        private final String address2;
-        private final model.City city;
-        private final String postalCode;
-        private final String phone;
+        private final ReadOnlyIntegerWrapper primaryKey;
 
-        Address(int id, String address1, String address2, model.City city, String postalCode, String phone) {
-            this.id = id;
-            this.address1 = address1;
-            this.address2 = address2;
-            this.city = city;
-            this.postalCode = postalCode;
-            this.phone = phone;
+        @Override
+        public int getPrimaryKey() { return primaryKey.get(); }
+
+        public ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper address1;
+
+        @Override
+        public String getAddress1() { return address1.get(); }
+
+        public ReadOnlyStringProperty address1Property() { return address1.getReadOnlyProperty(); }
+           
+        private final ReadOnlyStringWrapper address2;
+
+        @Override
+        public String getAddress2() { return address2.get(); }
+
+        public ReadOnlyStringProperty address2Property() { return address2.getReadOnlyProperty(); }
+     
+        private final ReadOnlyObjectWrapper<AddressRow.City> city;
+
+        @Override
+        public AddressRow.City getCity() { return city.get(); }
+
+        public ReadOnlyObjectProperty<AddressRow.City> cityProperty() { return city.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper postalCode;
+
+        @Override
+        public String getPostalCode() { return postalCode.get(); }
+
+        public ReadOnlyStringProperty postalCodeProperty() { return postalCode.getReadOnlyProperty(); }
+        
+        private final ReadOnlyStringWrapper phone;
+
+        @Override
+        public String getPhone() { return phone.get(); }
+
+        public ReadOnlyStringProperty phoneProperty() { return phone.getReadOnlyProperty(); }
+        
+        Address(int id, String address1, String address2, AddressRow.City city, String postalCode, String phone) {
+            primaryKey = new ReadOnlyIntegerWrapper(id);
+            this.address1 = new ReadOnlyStringWrapper(address1);
+            this.address2 = new ReadOnlyStringWrapper(address2);
+            this.city = new ReadOnlyObjectWrapper<>(city);
+            this.postalCode = new ReadOnlyStringWrapper(postalCode);
+            this.phone = new ReadOnlyStringWrapper(phone);
         }
+        
+        @Override
+        public int hashCode() { return primaryKey.get(); }
 
         @Override
-        public String getAddress1() { return address1; }
-        
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof model.Address))
+                return false;
+            
+            model.Address record = (model.Address)obj;
+            return (record.getRowState() == DataRow.ROWSTATE_MODIFIED || record.getRowState() == DataRow.ROWSTATE_UNMODIFIED) &&
+                    record.getPrimaryKey() == getPrimaryKey();
+        }
+    
         @Override
-        public String getAddress2() { return address2; }
-        
-        @Override
-        public model.City getCity() { return city; }
-        
-        @Override
-        public String getPostalCode() { return postalCode; }
-        
-        @Override
-        public String getPhone() { return phone; }
-
-        @Override
-        public int getPrimaryKey() { return id; }
+        public String toString() {
+            model.City t = getCity();
+            String ph = getPhone();
+            Stream<String> lines;
+            if (t == null) {
+                if (ph.trim().isEmpty())
+                    lines = Stream.of(getAddress1(), getAddress2(), getPostalCode());
+                else
+                    lines = Stream.of(getAddress1(), getAddress2(), getPostalCode(), "ph: " + ph);
+            } else {
+                model.Country c = t.getCountry();
+                String n = getPostalCode();
+                n = (n.trim().isEmpty()) ? t.getName() : t.getName() + " " + n;
+                if (c == null) {
+                    if (ph.trim().isEmpty())
+                        lines = Stream.of(getAddress1(), getAddress2(), n);
+                    else
+                        lines = Stream.of(getAddress1(), getAddress2(), n, "ph: " + ph);
+                } else if (ph.trim().isEmpty())
+                    lines = Stream.of(getAddress1(), getAddress2(), t.getName(), n + ", " + c.getName());
+                else
+                    lines = Stream.of(getAddress1(), getAddress2(), t.getName(), n + ", " + c.getName(), "ph: " + ph);
+            }
+            Optional<String> result = lines.filter((String s) -> !s.trim().isEmpty()).reduce((s, u) -> {
+                return s + "\n" + u; //To change body of generated lambdas, choose Tools | Templates.
+            });
+            return (result.isPresent()) ? result.get() : "";
+        }
     }
 }
