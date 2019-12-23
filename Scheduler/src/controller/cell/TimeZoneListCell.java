@@ -15,6 +15,6 @@ public class TimeZoneListCell extends ListCell<java.util.TimeZone> {
     @Override
     protected void updateItem(java.util.TimeZone item, boolean empty) {
         super.updateItem(item, empty);
-        setText((item == null) ? "" : item.getDisplayName(scheduler.App.getCurrentLocale()));
+        setText((item == null) ? "" : item.getDisplayName(scheduler.App.getCurrent().getCurrentLocale()));
     }
 }

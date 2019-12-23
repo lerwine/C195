@@ -104,6 +104,12 @@ public class HomeScreenController implements Initializable {
     @FXML
     private TableColumn<AppointmentRow, model.Customer> customerTableColumn;
     
+    private final scheduler.App.StageManager stageManager;
+    
+    public HomeScreenController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
+    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -111,6 +117,7 @@ public class HomeScreenController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        stageManager.setWindowTitle(rb.getString("appointmentScheduler"));
         // Get current and future appointments for current user
         ObservableList<AppointmentRow> items;
         try {
@@ -118,7 +125,7 @@ public class HomeScreenController implements Initializable {
             SqlConnectionDependency dep = new SqlConnectionDependency(true);
             try {
                 items = AppointmentRow.getTodayAndFutureByUser(dep.getconnection(),
-                        App.getCurrentUser().get().getPrimaryKey());
+                        App.getCurrent().getCurrentUser().get().getPrimaryKey());
             } finally { dep.close(); }
         } catch (SQLException ex) {
             // Set heading text to "Database access error", log error and exit
@@ -137,23 +144,18 @@ public class HomeScreenController implements Initializable {
         todayAndFutureAppointmenstTableView.setVisible(true);
     }
     
-    private Stage currentStage;
-    
     /**
      * 
-     * @param sourceNode
+     * @param stageManager
      */
-    public static void setCurrentScene(Node sourceNode) {
-        App.changeScene(sourceNode, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, HomeScreenController controller) -> {
-            controller.currentStage = stage;
-            stage.setTitle(rb.getString("appointmentScheduler"));
-        });
+    public static void setCurrentScene(scheduler.App.StageManager stageManager) {
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new HomeScreenController(stageManager));
     }
     
     @FXML
     void newAppointmentMenuItemClick(ActionEvent event) {
         try {
-            EditAppointmentController.setCurrentScene(currentStage, new AppointmentRow(), VIEW_PATH);
+            EditAppointmentController.setCurrentScene(stageManager, new AppointmentRow());
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -162,7 +164,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void allAppointmentsMenuItemClick(ActionEvent event) {
         try {
-            ManageAppointmentsController.setCurrentScene(currentStage, VIEW_PATH);
+            ManageAppointmentsController.setCurrentScene(stageManager);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -171,7 +173,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void newCustomerMenuItemClick(ActionEvent event) {
         try {
-            EditCustomerController.setCurrentScene(currentStage, new model.db.CustomerRow(), VIEW_PATH);
+            EditCustomerController.setCurrentScene(stageManager, new model.db.CustomerRow());
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -180,7 +182,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void allCustomersMenuItemClick(ActionEvent event) {
         try {
-            ManageCustomersController.setCurrentScene(currentStage, VIEW_PATH);
+            ManageCustomersController.setCurrentScene(stageManager);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -189,7 +191,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void newCountryMenuItemClick(ActionEvent event) {
         try {
-            EditCountryController.setCurrentScene(currentStage, new model.db.CountryRow(), VIEW_PATH);
+            EditCountryController.setCurrentScene(stageManager, new model.db.CountryRow());
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -198,7 +200,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void newCityMenuItemClick(ActionEvent event) {
         try {
-            EditCityController.setCurrentScene(currentStage, new model.db.CityRow(), VIEW_PATH);
+            EditCityController.setCurrentScene(stageManager, new model.db.CityRow());
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -207,7 +209,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void newAddressMenuItemClick(ActionEvent event) {
         try {
-            EditAddressController.setCurrentScene(currentStage, new model.db.AddressRow(), VIEW_PATH);
+            EditAddressController.setCurrentScene(stageManager, new model.db.AddressRow());
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -216,7 +218,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void allCountriesMenuItemClick(ActionEvent event) {
         try {
-            ManageCountriesController.setCurrentScene(currentStage, VIEW_PATH);
+            ManageCountriesController.setCurrentScene(stageManager);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -225,7 +227,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void newUserMenuItemClick(ActionEvent event) {
         try {
-            EditUserController.setCurrentScene(currentStage, new model.db.UserRow(), VIEW_PATH);
+            EditUserController.setCurrentScene(stageManager, new model.db.UserRow());
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -234,7 +236,7 @@ public class HomeScreenController implements Initializable {
     @FXML
     void allUsersMenuItemClick(ActionEvent event) {
         try {
-            ManageUsersController.setCurrentScene(currentStage, VIEW_PATH);
+            ManageUsersController.setCurrentScene(stageManager);
         } catch (InvalidArgumentException ex) {
             Logger.getLogger(HomeScreenController.class.getName()).log(Level.SEVERE, null, ex);
         }

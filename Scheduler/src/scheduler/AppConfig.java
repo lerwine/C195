@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Gets settings from the "appconfig.properties" file.
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class AppConfig {
     private static Properties properties;
-    
+    private static final Pattern PATTERN_WHITESPACE = Pattern.compile("[\\r\\n\\s]+", 0);
     private static final String PROPERTIES_FILE_APPCONFIG = "appconfig.properties";
     private static final String DEFAULT_SERVER_NAME = "3.227.166.251";
     private static final String DEFAULT_DATABASE_NAME = "U03vHM";
@@ -25,7 +26,7 @@ public class AppConfig {
         InputStream iStream = AppConfig.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE_APPCONFIG);
         if(iStream == null) {
             Logger.getLogger(AppConfig.class.getName()).log(Level.WARNING,
-                    App.getAppResourceBundle().getString("fileNotFound"), PROPERTIES_FILE_APPCONFIG);
+                    String.format("%s not found", PROPERTIES_FILE_APPCONFIG));
             throw new InternalException(String.format("File \"%s\" not found.", PROPERTIES_FILE_APPCONFIG));
         }
         try { properties.load(iStream); }
@@ -43,4 +44,11 @@ public class AppConfig {
     public static String getDbLoginName() { return properties.getProperty("dbLogin", DEFAULT_DATABASE_NAME); }
     
     public static String getDbLoginPassword() { return properties.getProperty("dbPassword", DEFAULT_DATABASE_PASSWORD); }
+    
+    public static String[] getLanguages() {
+        String s = properties.getProperty("languages");
+        if (s == null || (s = s.trim()).isEmpty())
+            return new String[0];
+        return PATTERN_WHITESPACE.split(s);
+    }
 }

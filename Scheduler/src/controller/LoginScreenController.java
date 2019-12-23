@@ -9,6 +9,10 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,15 +37,23 @@ import scheduler.InvalidOperationException;
  * @author webmaster
  */
 public class LoginScreenController implements Initializable {
+
+    //<editor-fold defaultstate="collapsed" desc="Fields">
+    
+    //<editor-fold defaultstate="collapsed" desc="Constants">
+    
     /**
      * The name of the globalization resource bundle for this controller.
      */
     public static final String RESOURCE_NAME = "globalization/loginScreen";
-
+    
     /**
      * The path of the View associated with this controller.
      */
     public static final String VIEW_PATH = "/view/LoginScreen.fxml";
+//</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
     
     /**
      * The {@link ComboBox} that lets the user select their preferred language.
@@ -54,25 +66,25 @@ public class LoginScreenController implements Initializable {
      */
     @FXML
     private Label userNameLabel;
-
+    
     /**
      * The {@link TextField} where the user provides the User Name.
      */
     @FXML
     private TextField userNameTextField;
-
+    
     /**
      * The {@link Label} for the User Name validation message.
      */
     @FXML
     private Label userNameValidationLabel;
-
+    
     /**
      * The {@link Label} for the {@link PasswordField}.
      */
     @FXML
     private Label passwordLabel;
-
+    
     /**
      * The {@link PasswordField} where the user provides the password.
      */
@@ -84,20 +96,52 @@ public class LoginScreenController implements Initializable {
      */
     @FXML
     private Label passwordValidationLabel;
-
+    
     /**
      * The {@link Button} which begins the login attempt.
      */
     @FXML
     private Button loginButton;
-
+    
     /**
      * The {@link Button} which cancels login and closes the application.
      */
     @FXML
     private Button exitButton;
     
-    private ObservableList<Locale> locales;
+    //</editor-fold>
+    
+    private ResourceBundle currentResourceBundle;
+    
+    private final scheduler.App.StageManager stageManager;
+    
+    //<editor-fold defaultstate="collapsed" desc="Validation Bindings">
+    
+    private LanguageValidation languageValid;
+    
+    private UserNameValidation userNameValid;
+    
+    private PasswordValidation passwordValid;
+    
+    private boolean successful;
+
+    /**
+     * Get the value of successful
+     *
+     * @return the value of successful
+     */
+    public boolean isSuccessful() { return successful; }
+
+    //</editor-fold>
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Initialization">
+    
+    public LoginScreenController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+        successful = false;
+    }
     
     /**
      * Initializes the controller class.
@@ -106,128 +150,150 @@ public class LoginScreenController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        successful = false;
         currentResourceBundle = rb;
-        locales = FXCollections.observableArrayList();
-        final Locale initialDefaultLocale = App.getCurrentLocale();
-        final String initialDefaultLanguageTag = initialDefaultLocale.toLanguageTag();
-        Stream.of("en", "es", "de", "hi").map((String n) -> (n.equalsIgnoreCase(initialDefaultLanguageTag)) ? initialDefaultLocale : new Locale(n))
-                .forEach((Locale l) -> locales.add(l));
-        
-        languageComboBox.setItems(locales);
-        Optional<Locale> selectedLocale = locales.stream().filter((Locale l) -> l.toLanguageTag().equalsIgnoreCase(initialDefaultLanguageTag)).findFirst();
-        languageComboBox.getSelectionModel().select((selectedLocale.isPresent()) ? selectedLocale.get() : locales.get(0));
-        
-        userNameTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            validateUserName(newValue);
-            updateButtonEnable();
-        });
-        passwordTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            validatePassword(newValue);
-            updateButtonEnable();
-        });
-        validateUserName(userNameTextField.getText());
-        validatePassword(passwordTextField.getText());
-        updateButtonEnable();
-        App.setCurrentLocale(languageComboBox.getSelectionModel().getSelectedItem());
-        refreshCultureSensitive();
-    }
-    
-    private void validateUserName(String newValue) {
-        userNameEmpty = newValue == null || newValue.trim().isEmpty();
-        if (userNameEmpty)
-            util.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
-        else
-            util.collapseLabeledVertical(userNameValidationLabel);
-    }
-    
-    private void validatePassword(String newValue) {
-        passwordEmpty = newValue == null || newValue.trim().isEmpty();
-        if (passwordEmpty)
-            util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
-        else
-            util.collapseLabeledVertical(passwordValidationLabel);
-    }
- 
-    private void updateButtonEnable() {
-        loginButton.setDisable(userNameEmpty || passwordEmpty);
-    }
-    
-    private boolean userNameEmpty = true;
-    private boolean passwordEmpty = true;
-    
-    private Stage currentStage;
-    private ResourceBundle currentResourceBundle;
-    
-    public static void setCurrentScene(Node sourceNode) {
-        App.changeScene(sourceNode, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, LoginScreenController controller) -> {
-            controller.currentStage = stage;
-            controller.refreshCultureSensitive();
+        languageComboBox.setItems(scheduler.App.getCurrent().getAllLanguages());
+        languageComboBox.getSelectionModel().select(scheduler.App.getCurrent().getCurrentLocale());
+        languageValid = new LanguageValidation();
+        userNameValid = new UserNameValidation();
+        passwordValid = new PasswordValidation();
+        languageValid.and(userNameValid).and(passwordValid).addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue,
+                Boolean newValue) -> {
+            loginButton.setDisable(!newValue);
         });
     }
     
-    public static void setCurrentScene(Stage stage) {
-        App.setScene(stage, VIEW_PATH, RESOURCE_NAME, (ResourceBundle rb, LoginScreenController controller) -> {
-            controller.currentStage = stage;
-            controller.refreshCultureSensitive();
-        });
+    /**
+     * Changes the scene of the root stage to the login screen.
+     * @param stageManager
+     */
+    public static void setCurrentScene(scheduler.App.StageManager stageManager) {
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new LoginScreenController(stageManager));
     }
     
-    void refreshCultureSensitive() {
-        if (currentStage != null)
-            currentStage.setTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
-        userNameLabel.setText(currentResourceBundle.getString("userName"));
-        passwordLabel.setText(currentResourceBundle.getString("password"));
-        loginButton.setText(currentResourceBundle.getString("login"));
-        exitButton.setText(currentResourceBundle.getString("exit"));
-        validateUserName(userNameTextField.getText());
-        validatePassword(passwordTextField.getText());
-        updateButtonEnable();
-    }
+    //</editor-fold>
     
-    @FXML
-    void languageChanged(ActionEvent event) {
-        Locale item = languageComboBox.getSelectionModel().getSelectedItem();
-        languageComboBox.getButtonCell().setItem(item);
-        if (item == null || !(item instanceof Locale))
-            return;
-        App.setCurrentLocale(item);
-        currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, item);
-        refreshCultureSensitive();
-    }
+    //<editor-fold defaultstate="collapsed" desc="Event Handlers">
     
     @FXML
     void loginButtonClick(ActionEvent event) {
-        ResourceBundle rb;
         try {
-            if (App.trySetCurrentUser(userNameTextField.getText(), passwordTextField.getText()))
-                HomeScreenController.setCurrentScene((Node)event.getSource());
+            // Change to home view if user could be successfully logged in.
+            if (App.getCurrent().tryLoginUser(userNameTextField.getText(), passwordTextField.getText())) {
+                successful = true;
+                if (stageManager.isRoot())
+                    HomeScreenController.setCurrentScene(stageManager);
+                else
+                    ((Button)event.getSource()).getScene().getWindow().hide();
+            }
             else {
-                rb = ResourceBundle.getBundle(RESOURCE_NAME, App.getCurrentLocale());
-                Alert alert = new Alert(Alert.AlertType.ERROR, rb.getString("invalidCredentials"), ButtonType.OK);
+                Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("invalidCredentials"), ButtonType.OK);
                 alert.initStyle(StageStyle.UTILITY);
-                alert.setTitle(rb.getString("loginError"));
+                alert.setTitle(currentResourceBundle.getString("loginError"));
                 alert.showAndWait();
             }
         } catch (InvalidOperationException ex) {
-            rb = ResourceBundle.getBundle(RESOURCE_NAME, App.getCurrentLocale());
-            Alert alert = new Alert(Alert.AlertType.ERROR, rb.getString("validationError"), ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("validationError"), ButtonType.OK);
             alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle(rb.getString("loginError"));
+            alert.setTitle(currentResourceBundle.getString("loginError"));
             alert.showAndWait();
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         } catch (SQLException ex) {
-            rb = ResourceBundle.getBundle(RESOURCE_NAME, App.getCurrentLocale());
-            Alert alert = new Alert(Alert.AlertType.ERROR, rb.getString("dbAccessError"), ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("dbAccessError"), ButtonType.OK);
             alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle(rb.getString("loginError"));
+            alert.setTitle(currentResourceBundle.getString("loginError"));
             alert.showAndWait();
             Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
     }
-    
-    @FXML
-    void exitButtonClick(ActionEvent event) {
-        ((Button)event.getSource()).getScene().getWindow().hide();
-    }
 
+    @FXML
+    void exitButtonClick(ActionEvent event) { ((Button)event.getSource()).getScene().getWindow().hide(); }
+    
+    //<editor-fold defaultstate="collapsed" desc="Validation Binding Classes">
+    
+    /**
+     * Validates that a language is selected.
+     * Also changes culture-specific text to reflect the language selection change.
+     */
+    private class LanguageValidation extends BooleanBinding {
+        private final ReadOnlyObjectProperty<Locale> selectedItemProperty;
+        LanguageValidation() {
+            // Bind to the selectedItem property of the language dropdown.
+            selectedItemProperty = languageComboBox.getSelectionModel().selectedItemProperty();
+            super.bind(selectedItemProperty);
+        }
+        
+        @Override
+        protected boolean computeValue() {
+            Locale value = selectedItemProperty.get();
+            languageComboBox.getButtonCell().setItem(value);
+            if (value == null)
+                return false;
+            // Change the current application language;
+            App.getCurrent().setCurrentLocale(value);
+            // Load resource bundle for new language
+            currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, value);
+            // Set window title
+            stageManager.setWindowTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
+            // Update field labels and button text.
+            userNameLabel.setText(currentResourceBundle.getString("userName"));
+            passwordLabel.setText(currentResourceBundle.getString("password"));
+            loginButton.setText(currentResourceBundle.getString("login"));
+            exitButton.setText(currentResourceBundle.getString("exit"));
+            return true;
+        }
+    }
+    
+    /**
+     * Validates that the user name is not empty.
+     * Also updates visibility of the corresponding validation label.
+     */
+    private class UserNameValidation extends BooleanBinding {
+        private final StringProperty textProperty;
+        UserNameValidation() {
+            textProperty = userNameTextField.textProperty();
+            super.bind(textProperty);
+            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue)
+                    util.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
+                else
+                    util.collapseLabeledVertical(userNameValidationLabel);
+            });
+        }
+        
+        @Override
+        protected boolean computeValue() {
+            String value = textProperty.get();
+            return value != null && !value.trim().isEmpty();
+        }
+    }
+    
+    /**
+     * Validates that the password is not empty.
+     * Also updates visibility of the corresponding validation label.
+     */
+    private class PasswordValidation extends BooleanBinding {
+        private final StringProperty textProperty;
+        PasswordValidation() {
+            textProperty = passwordTextField.textProperty();
+            super.bind(textProperty);
+            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue)
+                    util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
+                else
+                    util.collapseLabeledVertical(passwordValidationLabel);
+            });
+        }
+        
+        @Override
+        protected boolean computeValue() {
+            String value = textProperty.get();
+            return value != null && !value.trim().isEmpty();
+        }
+    }
+    
+    //</editor-fold>
+    
+    //</editor-fold>
 }

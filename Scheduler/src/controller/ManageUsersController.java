@@ -48,7 +48,13 @@ public class ManageUsersController implements Initializable {
     @FXML
     private TableColumn<UserRow, String> lastUpdateByTableColumn;
     
-    private String returnViewPath;
+    private final scheduler.App.StageManager stageManager;
+    
+    public ManageUsersController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
+    
+    //private String returnViewPath;
 
     /**
      * Initializes the controller class.
@@ -57,12 +63,10 @@ public class ManageUsersController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        stageManager.setWindowTitle(rb.getString("manageUsers"));
     }
 
-    public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, ManageUsersController controller) -> {
-            stage.setTitle(rb.getString("manageUsers"));
-            controller.returnViewPath = returnViewPath;
-        });
+    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageUsersController(stageManager));
     }
 }

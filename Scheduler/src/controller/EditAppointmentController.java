@@ -221,11 +221,15 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private TextArea descriptionTextArea;
     
-    private String returnViewPath;
-    
     private TypeBindings typeBindings;
     
     private ValidationBindings validationBindings;
+    
+    private final scheduler.App.StageManager stageManager;
+    
+    public EditAppointmentController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
     
     /**
      * Initializes the controller class.
@@ -295,24 +299,21 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     
     ResourceBundle currentResourceBundle;
     
-    public static void setCurrentScene(Stage sourceStage, AppointmentRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(scheduler.App.StageManager stageManager, AppointmentRow model) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == AppointmentRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditAppointmentController controller) -> {
-            controller.returnViewPath = returnViewPath;
-            controller.applyModel(model, stage, rb);
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditAppointmentController(stageManager), (ResourceBundle rb, EditAppointmentController controller) -> {
+            controller.applyModel(model, rb);
         });
     }
     
-    private void applyModel(AppointmentRow model, Stage stage, ResourceBundle rb) {
-        if (setModel(model)) {
-            stage.setTitle(rb.getString("editAppointment"));
-        } else {
-            stage.setTitle(rb.getString("addNewAppointment"));
-        }
-        
+    private void applyModel(AppointmentRow model, ResourceBundle rb) {
+        if (setModel(model))
+            stageManager.setWindowTitle(rb.getString("editAppointment"));
+        else
+            stageManager.setWindowTitle(rb.getString("addNewAppointment"));
     }
 
     @FXML

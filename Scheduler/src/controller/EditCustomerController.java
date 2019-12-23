@@ -1,4 +1,4 @@
-package controller;
+    package controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -59,7 +59,11 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
     @FXML
     private Label countryLabel;
     
-    private String returnViewPath;
+    private final scheduler.App.StageManager stageManager;
+    
+    public EditCustomerController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
     
     /**
      * Initializes the controller class.
@@ -71,18 +75,16 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(Stage sourceStage, CustomerRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(scheduler.App.StageManager stageManager, CustomerRow model) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == CustomerRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditCustomerController controller) -> {
-            controller.returnViewPath = returnViewPath;
-            if (controller.setModel(model)) {
-                stage.setTitle(rb.getString("editCustomer"));
-            } else {
-                stage.setTitle(rb.getString("addNewCustomer"));
-            }
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditCustomerController(stageManager), (ResourceBundle rb, EditCustomerController controller) -> {
+            if (controller.setModel(model))
+                stageManager.setWindowTitle(rb.getString("editCustomer"));
+            else
+                stageManager.setWindowTitle(rb.getString("addNewCustomer"));
         });
     }
 

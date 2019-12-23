@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -18,10 +19,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.application.Application;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import model.db.UserRow;
 
 /**
@@ -29,140 +39,81 @@ import model.db.UserRow;
  * @author Leonard T. Erwine
  */
 public class App extends Application {
-    //<editor-fold defaultstate="collapsed" desc="Overloaded changeScene methods">
-
-    /**
-     * Sets the {@link javafx.scene.Scene} for the {@link javafx.stage.Stage} of the specified {@link javafx.scene.Node}
-     * from the FXML resource at a given path and sets up its controller.
-     * @param <T>
-     * @param eventSource The {@link javafx.scene.Node} from the event source that initiated the scene change.
-     * @param path The path of the FXML resource to load.
-     * @param bundleName The name of the resource bundle to load.
-     * @param setupController The delegate method that sets up the controller.
-     */
     
-    public static <T> void changeScene(Node eventSource, String path, String bundleName, StageBundleAndControllerCallback<T> setupController) {
-        App.setScene((Stage)eventSource.getScene().getWindow(), path, bundleName, setupController);
+    private static App current;
+    
+    public static App getCurrent() { return current; }
+    
+    private StageManager rootStageManager;
+    
+    public StageManager getRootStageManager() { return rootStageManager; }
+    
+    private final Logger logger;
+    
+    public App() {
+        logger = Logger.getLogger(App.class.getName());
     }
     
-    /**
-     * Sets the {@link javafx.scene.Scene} for the {@link javafx.stage.Stage} of the specified {@link javafx.scene.Node}
-     * from the FXML resource at a given path and sets up its controller.
-     * @param <T>
-     * @param eventSource The {@link javafx.scene.Node} from the event source that initiated the scene change.
-     * @param path The path of the FXML resource to load.
-     * @param bundleName The name of the resource bundle to load.
-     * @param setupController The delegate method that sets up the controller.
-     */
-    public static <T> void changeScene(Node eventSource, String path, String bundleName, java.util.function.BiConsumer<ResourceBundle, T> setupController) {
-        App.setScene((Stage)eventSource.getScene().getWindow(), path, bundleName, setupController);
-    }
-    
-    /**
-     * Sets the {@link javafx.scene.Scene} for the {@link javafx.stage.Stage} of the specified {@link javafx.scene.Node}
-     * from the FXML resource at a given path.
-     * @param eventSource The {@link javafx.scene.Node} from the event source that initiated the scene change.
-     * @param path The path of the FXML resource to load.
-     * @param bundleName The name of the resource bundle to load.
-     */
-    public static void changeScene(Node eventSource, String path, String bundleName) {
-        setScene((Stage)eventSource.getScene().getWindow(), path, bundleName);
-    }
-    
-    /**
-     * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
-     * and sets up its controller.
-     * @param <T> The type of controller to set up.
-     * @param stage The target {@link javafx.stage.Stage}.
-     * @param path The path of the FXML resource to load.
-     * @param bundleName The name of the resource bundle to load.
-     * @param setupController The delegate method that sets up the controller.
-     */
-    public static <T> void setScene(Stage stage, String path, String bundleName, StageBundleAndControllerCallback<T> setupController) {
-        ResourceBundle rb = (bundleName == null || bundleName.trim().isEmpty()) ? App.getAppResourceBundle() :
-            ResourceBundle.getBundle(bundleName, scheduler.App.getCurrentLocale());
-        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), rb);
-        
-        try {
-            stage.setScene(new Scene(loader.load()));
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
-            return;
-        }
-        
-        // Call the consumer to for controller setup.
-        setupController.accept(stage, rb, loader.getController());
-        
-        stage.show();
-    }
-    
-    /**
-     * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
-     * and sets up its controller.
-     * @param <T> The type of controller to set up.
-     * @param stage The target {@link javafx.stage.Stage}.
-     * @param path The path of the FXML resource to load.
-     * @param bundleName The name of the resource bundle to load.
-     * @param setupController The delegate method that sets up the controller.
-     */
-    public static <T> void setScene(Stage stage, String path, String bundleName, java.util.function.BiConsumer<ResourceBundle, T> setupController) {
-        ResourceBundle rb = (bundleName == null || bundleName.trim().isEmpty()) ? App.getAppResourceBundle() :
-            ResourceBundle.getBundle(bundleName, scheduler.App.getCurrentLocale());
-        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), rb);
-        
-        try {
-            stage.setScene(new Scene(loader.load()));
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
-            return;
-        }
-        
-        // Call the consumer to for controller setup.
-        setupController.accept(rb, loader.getController());
-        
-        stage.show();
-    }
-    
-    /**
-     * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path.
-     * @param stage The target {@link javafx.stage.Stage}.
-     * @param path The path of the FXML resource to load.
-     * @param bundleName The name of the resource bundle to load.
-     */
-    public static void setScene(Stage stage, String path, String bundleName) {
-        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(path), (bundleName == null || bundleName.trim().isEmpty()) ? App.getAppResourceBundle() :
-            ResourceBundle.getBundle(bundleName, scheduler.App.getCurrentLocale()));
-        
-        try {
-            stage.setScene(new Scene(loader.load()));
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
-            return;
-        }
-        
-        stage.show();
-    }
-    
-    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="App Lifecycle Members">
     
-    // Tracks the original locale settings at the time the app is started, so it can be restored when the app ends
-    private Locale originalDisplayLocale;
-    private Locale originalFormatLocale;
-    
-    private static Logger getLogger() { return Logger.getLogger(App.class.getName()); }
+    /**
+     * The app main entry point.
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
     
     @Override
     public void start(Stage stage) throws Exception {
+        current = this;
+        rootStageManager = new StageManager(stage);
+        rootStageManager.root.set(true);
         // Store the original locale settings so they can be restored when app ends
-        currentLocale = originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
+        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
         originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+        
+        // Ensure app config is freshly loaded.
         AppConfig.refresh();
+        
+        // Get IDs languages supported by the app
+        String[] languageIds = AppConfig.getLanguages();
+        
+        // Attempt to find a match for the current display language amongst the languages supported by the app.
+        final String lt = originalDisplayLocale.toLanguageTag();
+        // First look for one that is an exact match with the language tag.
+        Optional<String> cl = Arrays.stream(languageIds).filter((String id) -> id.equals(lt)).findFirst();
+        if (!cl.isPresent()) {
+            // Look for one that matches the ISO3 language code.
+            final String iso3 = originalDisplayLocale.getISO3Language();
+            cl = Arrays.stream(languageIds).filter((String id) -> id.equals(iso3)).findFirst();
+            if (!cl.isPresent()) {
+                // Look for one that matches the ISO2 language code.
+                final String ln = originalDisplayLocale.getLanguage();
+                cl = Arrays.stream(languageIds).filter((String id) -> id.equals(ln)).findFirst();
+            }
+        }
+        
+        // Populate list of Locale objects.
+        ObservableList<Locale> languages = FXCollections.observableArrayList();
+        Locale toSelect;
+        if (cl.isPresent()) {
+            for (String n : AppConfig.getLanguages())
+                languages.add((n.equals(cl.get())) ? originalDisplayLocale : new Locale(n));
+            toSelect = originalDisplayLocale;
+        } else {
+            for (String n : AppConfig.getLanguages())
+                languages.add(new Locale(n));
+            toSelect = languages.get(0);
+        }
+        
+        // Make language Locale list read-only.
+        allLanguages = FXCollections.unmodifiableObservableList(languages);
+        
+        setCurrentLocale(toSelect);
+        
         // Set initial scene to the login screen
-        LoginScreenController.setCurrentScene(stage);
+        LoginScreenController.setCurrentScene(rootStageManager);
     }
     
     @Override
@@ -174,61 +125,62 @@ public class App extends Application {
         super.stop();
     }
     
-    /**
-     * The app main entry point.
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
-    }
-    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Globalization Members">
+    
+    private ObservableList<Locale> allLanguages;
+    
+    public ObservableList<Locale> getAllLanguages() { return allLanguages; }
+    
+    // Tracks the original locale settings at the time the app is started, so it can be restored when the app ends
+    private Locale originalDisplayLocale;
+    private Locale originalFormatLocale;
     
     /**
      * The name of the general application globalization resource bundle.
      */
     public static final String RESOURCE_NAME = "globalization/app";
-    private static ResourceBundle appResourceBundle;
+    
+    private ResourceBundle appResourceBundle;
     
     /**
      * Gets the current "app" resource bundle for the current language.
      * @return The current "app" resource bundle for the current language.
      */
-    public static ResourceBundle getAppResourceBundle() { return appResourceBundle; }
+    public ResourceBundle getAppResourceBundle() { return appResourceBundle; }
     
     /**
      * Gets a 'File "%s" not found' formatted message in the current language.
      * @param fileName - The name of the file to place into the message.
      * @return The formatted 'File "%s" not found' message in the current language.
      */
-    public static String getFileNotFoundMessage(String fileName) {
+    public String getFileNotFoundMessage(String fileName) {
         return String.format(getAppResourceBundle().getString("fileNotFound"), fileName);
     }
     
     // This contains the current locale.
-    private static Locale currentLocale;
+    private Locale currentLocale;
     // These next 4 are locale-specific formatters for date and/or time strings.
-    private static DateTimeFormatter shortDateTimeFormatter;
-    private static DateTimeFormatter fullDateTimeFormatter;
-    private static DateTimeFormatter fullDateFormatter;
-    private static DateTimeFormatter fullTimeFormatter;
+    private DateTimeFormatter shortDateTimeFormatter;
+    private DateTimeFormatter fullDateTimeFormatter;
+    private DateTimeFormatter fullDateFormatter;
+    private DateTimeFormatter fullTimeFormatter;
 
     /**
      * Gets the current {@link Locale}.
      * @return The current {@link Locale}.
      */
-    public static Locale getCurrentLocale() { return currentLocale; }
+    public Locale getCurrentLocale() { return currentLocale; }
     
-    private static HashMap<String, String> appointmentTypes;
+    private HashMap<String, String> appointmentTypes;
     
     /**
-     * Gets the human-readable, locale-specific dislay text for the specified appointment type code.
+     * Gets the human-readable, locale-specific display text for the specified appointment type code.
      * @param code The appointment type code that is stored in the database.
      * @return The current locale-specific formatter for full time strings.
      */
-    public static String getAppointmentTypeDisplay(String code) {
+    public String getAppointmentTypeDisplay(String code) {
         if (code == null || (code = code.trim()).isEmpty())
             return "";
         String lc = code.toLowerCase();
@@ -236,10 +188,10 @@ public class App extends Application {
     }
 
     /**
-     * Sets the current {@link Locale}.
+     * Sets the current {@link Locale} and initializes app information that contains locale-specific information.
      * @param locale The new app {@link Locale}.
      */
-    public static void setCurrentLocale(Locale locale) {
+    public void setCurrentLocale(Locale locale) {
         // Set default locale so all controls will be displayed appropriate for the current locale.
         Locale.setDefault(Locale.Category.DISPLAY, locale);
         Locale.setDefault(Locale.Category.FORMAT, locale);
@@ -262,39 +214,40 @@ public class App extends Application {
      * Gets the current locale-specific formatter for full time strings.
      * @return  The current locale-specific formatter for full time strings.
      */
-    public static DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
+    public DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
     
     /**
      * Gets the current locale-specific formatter for full date strings.
      * @return The current locale-specific formatter for full date strings.
      */
-    public static DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
+    public DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
     
     /**
      * Gets the current locale-specific formatter for short date/time strings.
      * @return The current locale-specific formatter for short date/time strings.
      */
-    public static DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
+    public DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
     
     /**
      * Gets the current locale-specific formatter for full date/time strings.
      * @return The current locale-specific formatter for full date/time strings.
      */
-    public static DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
+    public DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Members for tracking the current User">
     
     /**
      * Stores the currently logged in user.
      */
-    private static Optional<UserRow> currentUser = Optional.empty();
+    private Optional<UserRow> currentUser = Optional.empty();
     
     /**
      * Gets the currently logged in user.
      * @return The currently logged in user.
      */
-    public static Optional<UserRow> getCurrentUser() { return currentUser; }
+    public Optional<UserRow> getCurrentUser() { return currentUser; }
     
     /**
      * Sets the currently logged in user if a user name and password match.
@@ -304,7 +257,7 @@ public class App extends Application {
      * @throws InvalidOperationException
      * @throws java.sql.SQLException
      */
-    public static boolean trySetCurrentUser(String userName, String password) throws InvalidOperationException, SQLException {
+    public boolean tryLoginUser(String userName, String password) throws InvalidOperationException, SQLException {
         Optional<UserRow> user = SqlConnectionDependency.get((Connection connection) -> {
             try {
                 return UserRow.getByUserName(connection, userName);
@@ -322,9 +275,153 @@ public class App extends Application {
                 return true;
             }
         } else
-            getLogger().log(Level.WARNING, "No matching userName found");
+            logger.log(Level.WARNING, "No matching userName found");
         return false;
     }
     
     //</editor-fold>
+    
+    public class StageManager {
+        private final ReadOnlyBooleanWrapper root;
+
+        public boolean isRoot() { return root.get(); }
+
+        public ReadOnlyBooleanProperty rootProperty() { return root.getReadOnlyProperty(); }
+        
+        private final ReadOnlyObjectWrapper<Stage> stage;
+
+        public Stage getStage() { return stage.get(); }
+
+        public ReadOnlyObjectProperty<Stage> stageProperty() { return stage.getReadOnlyProperty(); }
+        
+        private final StringProperty windowTitle;
+
+        public String getWindowTitle() { return windowTitle.get(); }
+
+        public void setWindowTitle(String value) { windowTitle.set(value); }
+
+        public StringProperty windowTitleProperty() { return windowTitle; }
+        
+        public StageManager(Stage stage) {
+            windowTitle = new SimpleStringProperty();
+            stage.titleProperty().bindBidirectional(windowTitle);
+            root = new ReadOnlyBooleanWrapper(false);
+            this.stage = new ReadOnlyObjectWrapper<>(stage);
+        }
+
+        //<editor-fold defaultstate="collapsed" desc="Overloaded setScene methods">
+
+        /**
+         * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
+         * and sets up its controller.
+         * @param <T> The type of controller to set up.
+         * @param path The path of the FXML resource to load.
+         * @param bundleName The base name of the resource bundle to load.
+         * @param setupController The delegate method that sets up the controller.
+         */
+        public <T> void setScene(String path, String bundleName, java.util.function.BiConsumer<ResourceBundle, T> setupController) {
+            setSceneWithControllerFactory(path, bundleName, null, setupController);
+        }
+
+        /**
+         * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
+         * and sets up its controller.
+         * @param <T> The type of controller to set up.
+         * @param path The path of the FXML resource to load.
+         * @param bundleName The base name of the resource bundle to load.
+         * @param controllerFactory Creates the controller.
+         * @param setupController The delegate method that sets up the controller.
+         */
+        public <T> void setSceneWithControllerFactory(String path, String bundleName, Callback<Class<?>, Object> controllerFactory, java.util.function.BiConsumer<ResourceBundle, T> setupController) {
+            ResourceBundle rb = (bundleName == null || bundleName.trim().isEmpty()) ? getAppResourceBundle() :
+                ResourceBundle.getBundle(bundleName, getCurrentLocale());
+            // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+            FXMLLoader loader = new FXMLLoader(App.class.getResource(path), rb, null, controllerFactory);
+
+            try {
+                stage.get().setScene(new Scene(loader.load()));
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                return;
+            }
+
+            // Call the consumer to for controller setup.
+            setupController.accept(rb, loader.getController());
+
+            stage.get().show();
+        }
+
+        /**
+         * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
+         * and sets up its controller.
+         * @param <T> The type of controller to set up.
+         * @param path The path of the FXML resource to load.
+         * @param bundleName The base name of the resource bundle to load.
+         * @param setupController The delegate method that sets up the controller.
+         */
+        public <T> void setScene(String path, String bundleName, java.util.function.Consumer<T> setupController) {
+            setSceneWithControllerFactory(path, bundleName, null, setupController);
+        }
+
+        /**
+         * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path
+         * and sets up its controller.
+         * @param <T> The type of controller to set up.
+         * @param path The path of the FXML resource to load.
+         * @param bundleName The base name of the resource bundle to load.
+         * @param controllerFactory Creates the controller.
+         * @param setupController The delegate method that sets up the controller.
+         */
+        public <T> void setSceneWithControllerFactory(String path, String bundleName, Callback<Class<?>, Object> controllerFactory, java.util.function.Consumer<T> setupController) {
+            ResourceBundle rb = (bundleName == null || bundleName.trim().isEmpty()) ? getAppResourceBundle() :
+                ResourceBundle.getBundle(bundleName, getCurrentLocale());
+            // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+            FXMLLoader loader = new FXMLLoader(App.class.getResource(path), rb);
+
+            try {
+                stage.get().setScene(new Scene(loader.load()));
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                return;
+            }
+
+            // Call the consumer to for controller setup.
+            setupController.accept(loader.getController());
+
+            stage.get().show();
+        }
+
+        /**
+         * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path.
+         * @param path The path of the FXML resource to load.
+         * @param bundleName The base name of the resource bundle to load.
+         */
+        public void setScene(String path, String bundleName) {
+            setSceneWithControllerFactory(path, bundleName, null);
+        }
+
+        /**
+         * Sets the {@link javafx.scene.Scene} for the specified {@link javafx.stage.Stage} from the FXML resource at a given path.
+         * @param path The path of the FXML resource to load.
+         * @param bundleName The base name of the resource bundle to load.
+         * @param controllerFactory Creates the controller.
+         */
+        public void setSceneWithControllerFactory(String path, String bundleName, Callback<Class<?>, Object> controllerFactory) {
+            // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+            FXMLLoader loader = new FXMLLoader(App.class.getResource(path),
+                    (bundleName == null || bundleName.trim().isEmpty()) ? getAppResourceBundle() : ResourceBundle.getBundle(bundleName, getCurrentLocale()),
+                    null, controllerFactory);
+
+            try {
+                stage.get().setScene(new Scene(loader.load()));
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                return;
+            }
+
+            stage.get().show();
+        }
+
+        //</editor-fold>
+    }
 }

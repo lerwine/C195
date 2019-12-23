@@ -57,10 +57,12 @@ public class ManageAppointmentsController implements Initializable {
     @FXML
     private TableColumn<AppointmentRow, model.User> userTableColumn;
     
-    private String returnViewPath;
+    private final scheduler.App.StageManager stageManager;
     
-    private Stage currentStage;
-
+    public ManageAppointmentsController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
+    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -70,25 +72,22 @@ public class ManageAppointmentsController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
     }   
 
-    public static void setCurrentScene(Stage stage, String returnViewPath) throws InvalidArgumentException {
-        setCurrentScene(stage, returnViewPath, null);
+    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
+        setCurrentScene(stageManager, null);
     }
 
-    public static void setCurrentScene(Stage sourceStage, String returnViewPath, UserRow user) throws InvalidArgumentException {
+    public static void setCurrentScene(scheduler.App.StageManager stageManager, UserRow user) throws InvalidArgumentException {
         if (user != null) {
             if (user.getRowState() == UserRow.ROWSTATE_DELETED)
                 throw new InvalidArgumentException("user", "User was already deleted");
             if (user.getRowState() == UserRow.ROWSTATE_NEW)
                 throw new InvalidArgumentException("user", "User has not been saved");
         }
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, ManageAppointmentsController controller) -> {
-            controller.currentStage = stage;
-            if (user == null) {
-                stage.setTitle(rb.getString("manageAppointments"));
-            } else {
-                stage.setTitle(String.format(rb.getString("appointmentsForUser"), user.getUserName()));
-            }
-            controller.returnViewPath = returnViewPath;
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageAppointmentsController(stageManager), (ResourceBundle rb, ManageAppointmentsController controller) -> {
+            if (user == null)
+                stageManager.setWindowTitle(rb.getString("manageAppointments"));
+            else
+                stageManager.setWindowTitle(String.format(rb.getString("appointmentsForUser"), user.getUserName()));
         });
     }
 }

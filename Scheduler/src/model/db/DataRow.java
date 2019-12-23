@@ -224,7 +224,7 @@ public abstract class DataRow implements model.Record {
         primaryKey = new ReadOnlyIntegerWrapper(0);
         createDate = new ReadOnlyObjectWrapper<>(LocalDateTime.now());
         lastUpdate = new ReadOnlyObjectWrapper<>(createDate.getValue());
-        Optional<UserRow> user = scheduler.App.getCurrentUser();
+        Optional<UserRow> user = scheduler.App.getCurrent().getCurrentUser();
         lastUpdateBy = new ReadOnlyStringWrapper((user.isPresent()) ? user.get().getUserName() : "");
         createdBy = new ReadOnlyStringWrapper(lastUpdateBy.getValue());
         rowState = new ReadOnlyIntegerWrapper(ROWSTATE_NEW);
@@ -354,7 +354,7 @@ public abstract class DataRow implements model.Record {
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
         PreparedStatement ps = connection.prepareStatement(sql);
         setColumnValues(ps, fieldNames);
-        String userName = scheduler.App.getCurrentUser().get().getUserName();
+        String userName = scheduler.App.getCurrent().getCurrentUser().get().getUserName();
         int index = fieldNames.length + 1;
         ps.setString(index++, userName);
         ps.setString(index, userName);
@@ -372,7 +372,7 @@ public abstract class DataRow implements model.Record {
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
         PreparedStatement ps = connection.prepareStatement(sql);
         setColumnValues(ps, fieldNames);
-        String userName = scheduler.App.getCurrentUser().get().getUserName();
+        String userName = scheduler.App.getCurrent().getCurrentUser().get().getUserName();
         int index = fieldNames.length + 1;
         ps.setString(index++, userName);
         ps.setInt(index, getPrimaryKey());

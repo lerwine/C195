@@ -17,6 +17,6 @@ public class AppointmentTypeListCell extends ListCell<String> {
     @Override
     protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
-        setText(scheduler.App.getAppointmentTypeDisplay(item));
+        setText(scheduler.App.getCurrent().getAppointmentTypeDisplay(item));
     }
 }

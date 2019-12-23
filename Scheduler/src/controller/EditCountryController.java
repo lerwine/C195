@@ -37,7 +37,11 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
     @FXML
     private Label nameError;
     
-    private String returnViewPath;
+    private final scheduler.App.StageManager stageManager;
+    
+    public EditCountryController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
     
     /**
      * Initializes the controller class.
@@ -49,18 +53,16 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(Stage sourceStage, CountryRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(scheduler.App.StageManager stageManager, CountryRow model) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == CountryRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditCountryController controller) -> {
-            controller.returnViewPath = returnViewPath;
-            if (controller.setModel(model)) {
-                stage.setTitle(rb.getString("editCountry"));
-            } else {
-                stage.setTitle(rb.getString("addNewCountry"));
-            }
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditCountryController(stageManager), (ResourceBundle rb, EditCountryController controller) -> {
+            if (controller.setModel(model))
+                stageManager.setWindowTitle(rb.getString("editCountry"));
+            else
+                stageManager.setWindowTitle(rb.getString("addNewCountry"));
         });
     }
 

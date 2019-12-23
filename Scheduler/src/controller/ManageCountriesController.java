@@ -47,8 +47,12 @@ public class ManageCountriesController implements Initializable {
     @FXML
     private TableColumn<CountryRow, String> lastUpdateByTableColumn;
     
-    private String returnViewPath;
-
+    private final scheduler.App.StageManager stageManager;
+    
+    public ManageCountriesController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
+    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -56,7 +60,7 @@ public class ManageCountriesController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        
+        stageManager.setWindowTitle(rb.getString("manageCountries"));
         nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_NAME));
         createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDATE));
         createDateTableColumn.setCellFactory(col -> new TableCell<CountryRow, LocalDateTime>() {
@@ -66,7 +70,7 @@ public class ManageCountriesController implements Initializable {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getShortDateTimeFormatter()));
+                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDBY));
@@ -78,16 +82,13 @@ public class ManageCountriesController implements Initializable {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getShortDateTimeFormatter()));
+                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }
 
-    public static void setCurrentScene(Stage sourceStage, String returnViewPath) throws InvalidArgumentException {
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, ManageCountriesController controller) -> {
-            stage.setTitle(rb.getString("manageCountries"));
-            controller.returnViewPath = returnViewPath;
-        });
+    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageCountriesController(stageManager));
     }
 }

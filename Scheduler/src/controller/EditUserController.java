@@ -37,8 +37,6 @@ public class EditUserController extends ItemControllerBase<UserRow> {
      */
     public static final String VIEW_PATH = "/view/EditUser.fxml";
     
-    private String returnViewPath;
-
     @FXML
     private VBox outerPane;
 
@@ -68,6 +66,12 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     
     private ObservableList<Short> userActiveStateOptions;
     
+    private final scheduler.App.StageManager stageManager;
+    
+    public EditUserController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
+    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -81,7 +85,7 @@ public class EditUserController extends ItemControllerBase<UserRow> {
             @Override
             protected void updateItem(Short a, boolean bln) {
                 super.updateItem(a, bln);
-                ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+                ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
                 switch (a) {
                     case 1:
                         setText(rb.getString("normalUser"));
@@ -98,6 +102,38 @@ public class EditUserController extends ItemControllerBase<UserRow> {
         activeComboBox.setItems(userActiveStateOptions);
     }    
 
+    public static void setCurrentScene(scheduler.App.StageManager stageManager, UserRow model) throws InvalidArgumentException {
+        if (model == null)
+            throw new InvalidArgumentException("model", "Model cannot be null");
+        if (model.getRowState() == UserRow.ROWSTATE_DELETED)
+            throw new InvalidArgumentException("model", "Model was already deleted");
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditUserController(stageManager), (ResourceBundle rb, EditUserController controller) -> {
+            String s = model.getUserName();
+            if (s == null)
+                s = "";
+            if (controller.setModel(model)) {
+                stageManager.setWindowTitle(String.format(rb.getString("editUser"), s));
+                controller.changePasswordCheckBox.setText(String.format(rb.getString("changePassword"), s));
+                controller.changePasswordCheckBox.setDisable(false);
+                controller.changePasswordCheckBox.setSelected(false);
+                controller.confirmLabel.setVisible(false);
+                controller.confirmTextField.setVisible(false);
+                controller.passwordTextField.setVisible(false);
+                controller.passwordErrorMessage.setVisible(false);
+            } else {
+                stageManager.setWindowTitle(rb.getString("addNewUser"));
+                controller.changePasswordCheckBox.setText(String.format(rb.getString("password"), s));
+                controller.changePasswordCheckBox.setSelected(true);
+                controller.changePasswordCheckBox.setDisable(true);
+                controller.passwordTextField.setVisible(true);
+                controller.confirmLabel.setVisible(true);
+                controller.confirmTextField.setVisible(true);
+            }
+            controller.userNameTextField.setText(s);
+            controller.validateUserName();
+        });
+    }
+
     @FXML
     void userNameChanged(ActionEvent event) { validateUserName(); }
     
@@ -106,7 +142,7 @@ public class EditUserController extends ItemControllerBase<UserRow> {
         ResourceBundle rb;
         if (validateUserName()) {
             if (!validatePassword()) {
-                rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+                rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
                 Alert alert = new Alert(Alert.AlertType.ERROR,
                         String.format(rb.getString("fieldValidationFailed"), rb.getString("password")),
                         ButtonType.OK);
@@ -116,7 +152,7 @@ public class EditUserController extends ItemControllerBase<UserRow> {
                 return;
             }
         } else {
-            rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+            rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     String.format(rb.getString("fieldValidationFailed"), rb.getString("userName")),
                     ButtonType.OK);
@@ -153,7 +189,7 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     private boolean validateUserName() {
         String s = userNameTextField.getText();
         if (s.trim().isEmpty())
-            userNameErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale())
+            userNameErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
                     .getString("userNameCannotBeEmpty"));
         else {
             throw new RuntimeException("Method not impelmented");
@@ -168,10 +204,10 @@ public class EditUserController extends ItemControllerBase<UserRow> {
             passwordErrorMessage.setVisible(false);
             return true;
         }
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale());
+            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
         String s = passwordTextField.getText();
         if (s.trim().isEmpty())
-            passwordErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale())
+            passwordErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
                     .getString("passwordCannotBeEmpty"));
         else {
             if (confirmTextField.getText().equals(s)) {
@@ -179,46 +215,13 @@ public class EditUserController extends ItemControllerBase<UserRow> {
                 passwordErrorMessage.setVisible(false);
                 return true;
             }
-            passwordErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrentLocale())
+            passwordErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
                     .getString("passwordMismatch"));
         }
         passwordErrorMessage.setVisible(true);
         return false;
     }
     
-    public static void setCurrentScene(Stage sourceStage, UserRow model, String returnViewPath) throws InvalidArgumentException {
-        if (model == null)
-            throw new InvalidArgumentException("model", "Model cannot be null");
-        if (model.getRowState() == UserRow.ROWSTATE_DELETED)
-            throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditUserController controller) -> {
-            String s = model.getUserName();
-            if (s == null)
-                s = "";
-            controller.returnViewPath = returnViewPath;
-            if (controller.setModel(model)) {
-                stage.setTitle(String.format(rb.getString("editUser"), s));
-                controller.changePasswordCheckBox.setText(String.format(rb.getString("changePassword"), s));
-                controller.changePasswordCheckBox.setDisable(false);
-                controller.changePasswordCheckBox.setSelected(false);
-                controller.confirmLabel.setVisible(false);
-                controller.confirmTextField.setVisible(false);
-                controller.passwordTextField.setVisible(false);
-                controller.passwordErrorMessage.setVisible(false);
-            } else {
-                stage.setTitle(rb.getString("addNewUser"));
-                controller.changePasswordCheckBox.setText(String.format(rb.getString("password"), s));
-                controller.changePasswordCheckBox.setSelected(true);
-                controller.changePasswordCheckBox.setDisable(true);
-                controller.passwordTextField.setVisible(true);
-                controller.confirmLabel.setVisible(true);
-                controller.confirmTextField.setVisible(true);
-            }
-            controller.userNameTextField.setText(s);
-            controller.validateUserName();
-        });
-    }
-
     @Override
     void saveChangesClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

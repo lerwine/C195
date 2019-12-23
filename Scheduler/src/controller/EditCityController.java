@@ -45,7 +45,11 @@ public class EditCityController extends ItemControllerBase<CityRow> {
     @FXML
     private ComboBox<CountryRow> countryComboBox;
     
-    private String returnViewPath;
+    private final scheduler.App.StageManager stageManager;
+    
+    public EditCityController(scheduler.App.StageManager stageManager) {
+        this.stageManager = stageManager;
+    }
     
     /**
      * Initializes the controller class.
@@ -57,18 +61,16 @@ public class EditCityController extends ItemControllerBase<CityRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(Stage sourceStage, CityRow model, String returnViewPath) throws InvalidArgumentException {
+    public static void setCurrentScene(scheduler.App.StageManager stageManager, CityRow model) throws InvalidArgumentException {
         if (model == null)
             throw new InvalidArgumentException("model", "Model cannot be null");
         if (model.getRowState() == CityRow.ROWSTATE_DELETED)
             throw new InvalidArgumentException("model", "Model was already deleted");
-        scheduler.App.setScene(sourceStage, VIEW_PATH, RESOURCE_NAME, (Stage stage, ResourceBundle rb, EditCityController controller) -> {
-            controller.returnViewPath = returnViewPath;
-            if (controller.setModel(model)) {
-                stage.setTitle(rb.getString("editCity"));
-            } else {
-                stage.setTitle(rb.getString("addNewCity"));
-            }
+        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditCityController(stageManager), (ResourceBundle rb, EditCityController controller) -> {
+            if (controller.setModel(model))
+                stageManager.setWindowTitle(rb.getString("editCity"));
+            else
+                stageManager.setWindowTitle(rb.getString("addNewCity"));
         });
     }
 

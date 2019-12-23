@@ -26,7 +26,7 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
     
     protected final boolean setModel(T model) {
         this.model = model;
-        DateTimeFormatter dtf = scheduler.App.getFullDateTimeFormatter();
+        DateTimeFormatter dtf = scheduler.App.getCurrent().getFullDateTimeFormatter();
         createDateValue.setText(dtf.format(model.getCreateDate()));
         lastUpdateValue.setText(dtf.format(model.getLastUpdate()));
         createdByValue.setText(model.getCreatedBy());
