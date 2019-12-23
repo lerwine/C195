@@ -22,6 +22,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.beans.InvalidationListener;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -30,6 +32,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -64,6 +67,14 @@ public class FXMLDocumentController implements Initializable {
     private static final Pattern PATTERN_BACKSLASH = Pattern.compile("\\\\");
     static final Pattern PATTERN_RESOURCE_BUNDLE = Pattern.compile("^([^_.]+)(?:_([^.]+))?(.properties)?");
     
+    @FXML
+    private TableView<Locale> localesFilesTableView;
+    
+    @FXML
+    private TableColumn<Locale, String> languageTagTableColumn;
+    
+    private final ObservableList<Locale> allLocales;
+
     //<editor-fold defaultstate="collapsed" desc="Property Sets Pane">
     
     private File currentLocation;
@@ -634,10 +645,12 @@ public class FXMLDocumentController implements Initializable {
             });
         }
     }
-    
     //</editor-fold>
     
     public FXMLDocumentController() {
+        allLocales = FXCollections.observableArrayList();
+        for (Locale l : Locale.getAvailableLocales())
+            allLocales.add(l);
         selectedFile = null;
         currentLocation = (new File(".")).getAbsoluteFile().getParentFile();
         fileValidationChanged = new FileValidationChanged(this);
@@ -645,6 +658,11 @@ public class FXMLDocumentController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        languageTagTableColumn.setCellValueFactory((TableColumn.CellDataFeatures<Locale, String> param) -> {
+            Locale locale = param.getValue();
+            return new SimpleObjectProperty<>((locale == null) ? null : locale.toLanguageTag());
+        });
+        localesFilesTableView.setItems(allLocales);
         keyTextField.textProperty().addListener((ObservableValue<? extends String> observable, String oldText, String newText) -> {
             onKeyTextFieldChanged(observable, oldText, newText);
         });

@@ -47,14 +47,7 @@ public class PwHashTest {
     @Test
     public void testToString() {
         System.out.println("toString");
-        PwHash instance;
-        try {
-            instance = new PwHash("Password123!@#", true);
-        } catch (InvalidArgumentException ex) {
-            Logger.getLogger(PwHashTest.class.getName()).log(Level.SEVERE, null, ex);
-            fail(ex.getMessage());
-            return;
-        }
+        PwHash instance = new PwHash("Password123!@#", true);
         int expLength = 50;
         String result = instance.toString();
         assertEquals(expLength, result.length());
@@ -67,14 +60,7 @@ public class PwHashTest {
     public void testTest() {
         System.out.println("test");
         String password = "";
-        PwHash instance;
-        try {
-            instance = new PwHash("Password123!@#", true);
-        } catch (InvalidArgumentException ex) {
-            Logger.getLogger(PwHashTest.class.getName()).log(Level.SEVERE, null, ex);
-            fail(ex.getMessage());
-            return;
-        }
+        PwHash instance = new PwHash("Password123!@#", true);
         boolean expResult = false;
         boolean result = instance.test(password);
         assertEquals(expResult, result);

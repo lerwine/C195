@@ -157,7 +157,7 @@ public class UserRow extends DataRow implements model.User {
         this.userName = new ReadOnlyStringWrapper((userName == null) ? "" : userName);
         this.password = new NonNullableStringProperty((isRawPassword && password != null) ? password : "");
         this.active = new ActiveStateProperty(active);
-        passwordHash = new ReadOnlyObjectWrapper<>((password == null || password.trim().isEmpty()) ? null : new PwHash(password, false));
+        passwordHash = new ReadOnlyObjectWrapper<>(new PwHash(password, isRawPassword));
         passwordChangeManager = new PasswordChangeManager();
     }
     
@@ -168,7 +168,7 @@ public class UserRow extends DataRow implements model.User {
      */
     protected UserRow(UserRow user) throws InvalidOperationException {
         super(user);
-        this.passwordHash = new ReadOnlyObjectWrapper<>();
+        passwordHash = new ReadOnlyObjectWrapper<>(new PwHash(user.getPasswordHash().getEncodedHash(), false));
         userName = new ReadOnlyStringWrapper(user.getUserName());
         password = new NonNullableStringProperty(user.getPassword());
         active = new ActiveStateProperty(user.getActive());
@@ -177,9 +177,9 @@ public class UserRow extends DataRow implements model.User {
     
     private UserRow(ResultSet rs) throws SQLException {
         super(rs);
-        passwordHash = new ReadOnlyObjectWrapper<>();
+        passwordHash = new ReadOnlyObjectWrapper<>(new PwHash(scheduler.util.resultStringOrDefault(rs, PROP_PASSWORD, ""), false));
         userName = new ReadOnlyStringWrapper(scheduler.util.resultStringOrDefault(rs, PROP_USERNAME, ""));
-        password = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_PASSWORD, ""));
+        password = new NonNullableStringProperty();
         active = new ActiveStateProperty(scheduler.util.resultShortOrDefault(rs, PROP_ACTIVE, STATE_INACTIVE));
         passwordChangeManager = new PasswordChangeManager();
     }

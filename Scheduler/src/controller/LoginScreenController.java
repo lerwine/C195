@@ -9,10 +9,16 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,6 +32,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -216,33 +223,59 @@ public class LoginScreenController implements Initializable {
      * Validates that a language is selected.
      * Also changes culture-specific text to reflect the language selection change.
      */
-    private class LanguageValidation extends BooleanBinding {
-        private final ReadOnlyObjectProperty<Locale> selectedItemProperty;
-        LanguageValidation() {
-            // Bind to the selectedItem property of the language dropdown.
-            selectedItemProperty = languageComboBox.getSelectionModel().selectedItemProperty();
-            super.bind(selectedItemProperty);
+    private class LanguageValidation extends ReadOnlyBooleanProperty {
+        SimpleBooleanProperty innerProperty = new SimpleBooleanProperty(false);
+        ReadOnlyObjectProperty<Locale> selectedItem;
+        public LanguageValidation() {
+            selectedItem = languageComboBox.getSelectionModel().selectedItemProperty();
+            selectedItem.addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
+                onChange(newValue);
+                userNameValid.refresh();
+                passwordValid.refresh();
+            });
+            onChange(selectedItem.get());
+        }
+        
+        private void onChange(Locale value) {
+            languageComboBox.getButtonCell().setItem(value);
+            if (value == null)
+                innerProperty.set(false);
+            else {
+                // Change the current application language;
+                App.getCurrent().setCurrentLocale(value);
+                // Load resource bundle for new language
+                currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, value);
+                // Set window title
+                stageManager.setWindowTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
+                // Update field labels and button text.
+                userNameLabel.setText(currentResourceBundle.getString("userName"));
+                passwordLabel.setText(currentResourceBundle.getString("password"));
+                loginButton.setText(currentResourceBundle.getString("login"));
+                exitButton.setText(currentResourceBundle.getString("exit"));
+                innerProperty.set(true);
+            }
         }
         
         @Override
-        protected boolean computeValue() {
-            Locale value = selectedItemProperty.get();
-            languageComboBox.getButtonCell().setItem(value);
-            if (value == null)
-                return false;
-            // Change the current application language;
-            App.getCurrent().setCurrentLocale(value);
-            // Load resource bundle for new language
-            currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, value);
-            // Set window title
-            stageManager.setWindowTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
-            // Update field labels and button text.
-            userNameLabel.setText(currentResourceBundle.getString("userName"));
-            passwordLabel.setText(currentResourceBundle.getString("password"));
-            loginButton.setText(currentResourceBundle.getString("login"));
-            exitButton.setText(currentResourceBundle.getString("exit"));
-            return true;
-        }
+        public boolean get() { return innerProperty.get(); }
+
+        @Override
+        public void addListener(ChangeListener<? super Boolean> listener) { innerProperty.addListener(listener); }
+
+        @Override
+        public void removeListener(ChangeListener<? super Boolean> listener) { innerProperty.removeListener(listener); }
+
+        @Override
+        public void addListener(InvalidationListener listener) { innerProperty.addListener(listener); }
+
+        @Override
+        public void removeListener(InvalidationListener listener) { innerProperty.removeListener(listener); }
+
+        @Override
+        public Object getBean() { return innerProperty.getBean(); }
+
+        @Override
+        public String getName() { return innerProperty.getName(); }
     }
     
     /**
@@ -255,11 +288,17 @@ public class LoginScreenController implements Initializable {
             textProperty = userNameTextField.textProperty();
             super.bind(textProperty);
             super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                if (newValue)
-                    util.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
-                else
-                    util.collapseLabeledVertical(userNameValidationLabel);
+                onChange(newValue);
             });
+        }
+        
+        void refresh() { onChange(get()); }
+        
+        private void onChange(boolean value) {
+            if (value)
+                util.collapseLabeledVertical(userNameValidationLabel);
+            else
+                util.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
         }
         
         @Override
@@ -267,6 +306,12 @@ public class LoginScreenController implements Initializable {
             String value = textProperty.get();
             return value != null && !value.trim().isEmpty();
         }
+
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(textProperty); }
+
+        @Override
+        public void dispose() { super.unbind(textProperty); }
     }
     
     /**
@@ -280,10 +325,19 @@ public class LoginScreenController implements Initializable {
             super.bind(textProperty);
             super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                 if (newValue)
-                    util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
-                else
                     util.collapseLabeledVertical(passwordValidationLabel);
+                else
+                    util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
             });
+        }
+        
+        void refresh() { onChange(get()); }
+        
+        private void onChange(boolean value) {
+            if (value)
+                util.collapseLabeledVertical(passwordValidationLabel);
+            else
+                util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyUserName"));
         }
         
         @Override
@@ -291,6 +345,12 @@ public class LoginScreenController implements Initializable {
             String value = textProperty.get();
             return value != null && !value.trim().isEmpty();
         }
+
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(textProperty); }
+
+        @Override
+        public void dispose() { super.unbind(textProperty); }
     }
     
     //</editor-fold>

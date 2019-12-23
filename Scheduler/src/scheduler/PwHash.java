@@ -140,18 +140,20 @@ public final class PwHash {
                     byte[] sb = dec.decode(password.substring(0, SALT_STRING_LENGTH));
                     byte[] hb = dec.decode(password.substring(SALT_STRING_LENGTH) + "==");
                     ObservableByteArrayList b = salt.get();
-                    boolean notChanged = true;
-                    for (int i = 0; i < SALT_STRING_LENGTH; i++) {
-                        if (sb[i] != b.get(i)) {
-                            notChanged = false;
-                            break;
-                        }
-                    }
+                    boolean notChanged = b != null;
                     if (notChanged) {
-                        for (int i = 0; i < hb.length; i++) {
-                            if (hb[i] != b.get(i)) {
+                        for (int i = 0; i < SALT_LENGTH; i++) {
+                            if (sb[i] != b.get(i)) {
                                 notChanged = false;
                                 break;
+                            }
+                        }
+                        if (notChanged) {
+                            for (int i = 0; i < hb.length; i++) {
+                                if (hb[i] != b.get(i)) {
+                                    notChanged = false;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -161,7 +163,9 @@ public final class PwHash {
                     hash.set(new ObservableByteArrayList(hb));
                     valid.set(true);
                     return;
-                } catch (Exception ex) { }
+                } catch (Exception ex) {
+                    Logger.getLogger(PwHash.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             salt.set(null);
             hash.set(null);

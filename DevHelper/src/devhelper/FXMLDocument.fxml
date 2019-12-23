@@ -19,6 +19,65 @@
     <items>
         <VBox>
             <children>
+                <TableView fx:id="localesFilesTableView">
+                    <columns>
+                        <TableColumn editable="false" text="Country">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="country" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="ISO3 Country">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="iSO3Country" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="Display Country">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="displayCountry" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="Language">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="language" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="languageTagTableColumn" editable="false" text="Language Tag">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="script" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="ISO3 Language">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="iSO3Language" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="Display Language">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="displayLanguage" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="Script">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="script" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="Display Script">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="displayScript" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" text="Variant">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="variant" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Display Name">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="displayName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
                 <TableView fx:id="propertiesFilesTableView">
                     <columns>
                         <TableColumn fx:id="languageTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="Language">

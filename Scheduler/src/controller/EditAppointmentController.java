@@ -1,5 +1,15 @@
 package controller;
 
+import controller.cell.AppointmentTypeListCell;
+import controller.cell.AppointmentTypeListCellFactory;
+import controller.cell.CustomerListCell;
+import controller.cell.CustomerListCellFactory;
+import controller.cell.TimeZoneListCell;
+import controller.cell.TimeZoneListCellFactory;
+import controller.cell.UserListCell;
+import controller.cell.UserListCellFactory;
+import controller.cell.ZeroPadDigitListCell;
+import controller.cell.ZeroPadDigitListCellFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
@@ -16,7 +26,11 @@ import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -42,6 +56,10 @@ import scheduler.SqlConnectionDependency;
  * @author Leonard T. Erwine
  */
 public class EditAppointmentController extends ItemControllerBase<AppointmentRow> {
+    //<editor-fold defaultstate="collapsed" desc="Fields">
+    
+    //<editor-fold defaultstate="collapsed" desc="Constants">
+    
     /**
      * The name of the globalization resource bundle for this controller.
      */
@@ -51,7 +69,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
      * The path of the View associated with this controller.
      */
     public static final String VIEW_PATH = "/view/EditAppointment.fxml";
-
+    
     /**
      * Code for Phone Conference appointments, where the phone number is encoded into the URL field.
      */
@@ -85,31 +103,24 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
      */
     public static final String APPOINTMENT_CODE_OTHER = "other";
     
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
+    
     private ObservableList<CustomerRow> customers;
     
     @FXML
     private ComboBox<CustomerRow> customerComboBox;
     
     @FXML
-    void addCustomerClick(ActionEvent event) {
-    }
-    
-    private ObservableList<UserRow> users;
-    
-    @FXML
     private ComboBox<UserRow> userComboBox;
-    
-    @FXML
-    void addUserClick(ActionEvent event) {
-        
-    }
     
     @FXML
     private Label customerValidationLabel;
     
     @FXML
     private Label userValidationLabel;
-
+    
     @FXML
     private TextField titleTextField;
     
@@ -118,19 +129,6 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     
     @FXML
     private DatePicker startDatePicker;
-    
-    private LocalDateTime getStartDateTime() {
-        LocalDate date = startDatePicker.getValue();
-        Integer hour = startHourComboBox.getSelectionModel().getSelectedItem();
-        Integer minutes = startMinuteComboBox.getSelectionModel().getSelectedItem();
-        if (date == null || hour == null || minutes == null)
-            return null;
-        return LocalDateTime.of(date, LocalTime.of(hour, minutes));
-    }
-    
-    private ObservableList<Integer> hourOptions;
-    
-    private ObservableList<Integer> minuteOptions;
     
     @FXML
     private ComboBox<Integer> startHourComboBox;
@@ -144,15 +142,6 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private DatePicker endDatePicker;
     
-    private LocalDateTime getEndDateTime() {
-        LocalDate date = endDatePicker.getValue();
-        Integer hour = endHourComboBox.getSelectionModel().getSelectedItem();
-        Integer minutes = endMinuteComboBox.getSelectionModel().getSelectedItem();
-        if (date == null || hour == null || minutes == null)
-            return null;
-        return LocalDateTime.of(date, LocalTime.of(hour, minutes));
-    }
-    
     @FXML
     private ComboBox<Integer> endHourComboBox;
     
@@ -162,19 +151,8 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private Label endValidationLabel;
     
-    private ObservableList<TimeZone> timeZones;
-    
     @FXML
     private ComboBox<TimeZone> timeZoneComboBox;
-    
-    @FXML
-    void timeZoneChanged(ActionEvent event) { onTimeZoneChanged(); }
-    
-    void onTimeZoneChanged() {
-        TimeZone selectedTimeZone = timeZoneComboBox.getSelectionModel().getSelectedItem();
-    }
-    
-    private ObservableList<String> types;
     
     @FXML
     private ComboBox<String> typeComboBox;
@@ -221,11 +199,53 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @FXML
     private TextArea descriptionTextArea;
     
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Observables">
+    
+    private ObservableList<UserRow> users;
+    
+    private ObservableList<Integer> hourOptions;
+    
+    private ObservableList<Integer> minuteOptions;
+    
+    private ObservableList<TimeZone> timeZones;
+    
+    private ObservableList<AppointmentRow> currentAndFuture;
+    
+    private ObjectBinding<LocalDateTime> startDateTime;
+    
+    private ObjectBinding<LocalDateTime> endDateTime;
+    
+    private ObservableList<String> types;
+    
     private TypeBindings typeBindings;
     
-    private ValidationBindings validationBindings;
+    private BooleanBinding customerValid;
+    
+    private BooleanBinding userValid;
+    
+    private BooleanBinding titleValid;
+    
+    private BooleanBinding contactValid;
+    
+    private DateRangeValidator dateRangeValid;
+    
+    private LocationValidator locationValid;
+    
+    private UrlValidator urlValid;
+    
+    private BooleanBinding valid;
+    
+    //</editor-fold>
+    
+    ResourceBundle currentResourceBundle;
     
     private final scheduler.App.StageManager stageManager;
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Initialization">
     
     public EditAppointmentController(scheduler.App.StageManager stageManager) {
         this.stageManager = stageManager;
@@ -239,9 +259,26 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         currentResourceBundle = rb;
-        
         super.initialize(url, rb);
-
+        
+        // Configure combo box cells
+        customerComboBox.setCellFactory(new CustomerListCellFactory());
+        customerComboBox.setButtonCell(new CustomerListCell());
+        userComboBox.setCellFactory(new UserListCellFactory());
+        userComboBox.setButtonCell(new UserListCell());
+        startHourComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
+        startHourComboBox.setButtonCell(new ZeroPadDigitListCell());
+        startMinuteComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
+        startMinuteComboBox.setButtonCell(new ZeroPadDigitListCell());
+        endHourComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
+        endHourComboBox.setButtonCell(new ZeroPadDigitListCell());
+        endMinuteComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
+        endMinuteComboBox.setButtonCell(new ZeroPadDigitListCell());
+        timeZoneComboBox.setCellFactory(new TimeZoneListCellFactory());
+        timeZoneComboBox.setButtonCell(new TimeZoneListCell());
+        typeComboBox.setCellFactory(new AppointmentTypeListCellFactory());
+        typeComboBox.setButtonCell(new AppointmentTypeListCell());
+        
         // Open a new SQL connection dependency.
         SqlConnectionDependency dep;
         try {
@@ -272,9 +309,10 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         types = FXCollections.observableArrayList(APPOINTMENT_CODE_PHONE, APPOINTMENT_CODE_VIRTUAL, APPOINTMENT_CODE_CUSTOMER,
                 APPOINTMENT_CODE_HOME, APPOINTMENT_CODE_GERMANY, APPOINTMENT_CODE_INDIA, APPOINTMENT_CODE_HONDURAS,
                 APPOINTMENT_CODE_OTHER);
-
+        
         customerComboBox.setItems(customers);
         userComboBox.setItems(users);
+        
         LocalDateTime date = LocalDateTime.now().plusDays(1);
         startDatePicker.setValue(date.toLocalDate());
         startHourComboBox.setItems(hourOptions);
@@ -292,12 +330,51 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
-        onTimeZoneChanged();
+        startDateTime = scheduler.util.asLocalDateTime(startDatePicker.valueProperty(),
+            startHourComboBox.getSelectionModel().selectedItemProperty(), startMinuteComboBox.getSelectionModel().selectedItemProperty());
+        endDateTime = scheduler.util.asLocalDateTime(endDatePicker.valueProperty(),
+            endHourComboBox.getSelectionModel().selectedItemProperty(), endMinuteComboBox.getSelectionModel().selectedItemProperty());
+        
+        // Initialize validation bindings
         typeBindings = new TypeBindings();
-        validationBindings = new ValidationBindings();
+        customerValid = customerComboBox.getSelectionModel().selectedItemProperty().isNotNull();
+        userValid = customerComboBox.getSelectionModel().selectedItemProperty().isNotNull();
+        titleValid = scheduler.util.notNullOrWhiteSpace(titleTextField.textProperty());
+        contactValid = scheduler.util.notNullOrWhiteSpace(contactTextField.textProperty());
+        dateRangeValid = new DateRangeValidator();
+        locationValid = new LocationValidator();
+        urlValid = new UrlValidator();
+        valid = typeBindings.valid.and(customerValid).and(userValid).and(titleValid).and(contactValid).and(dateRangeValid).and(locationValid).and(urlValid);
+        
+        // Add validating binding listeners for simple validation types
+        customerValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            if (newValue)
+                scheduler.util.collapseLabeledVertical(customerValidationLabel);
+            else
+                scheduler.util.restoreLabeledVertical(customerValidationLabel, currentResourceBundle.getString("required"));
+        });
+        userValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            if (newValue)
+                scheduler.util.collapseLabeledVertical(userValidationLabel);
+            else
+                scheduler.util.restoreLabeledVertical(userValidationLabel, currentResourceBundle.getString("required"));
+        });
+        titleValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            if (newValue)
+                scheduler.util.collapseLabeledVertical(titleValidationLabel);
+            else
+                scheduler.util.restoreLabeledVertical(titleValidationLabel, currentResourceBundle.getString("required"));
+        });
+        contactValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            if (newValue)
+                scheduler.util.collapseLabeledVertical(contactValidationLabel);
+            else
+                scheduler.util.restoreLabeledVertical(contactValidationLabel, currentResourceBundle.getString("required"));
+        });
+        valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            getSaveChangesButton().setDisable(!newValue);
+        });
     }
-    
-    ResourceBundle currentResourceBundle;
     
     public static void setCurrentScene(scheduler.App.StageManager stageManager, AppointmentRow model) throws InvalidArgumentException {
         if (model == null)
@@ -315,7 +392,22 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         else
             stageManager.setWindowTitle(rb.getString("addNewAppointment"));
     }
+    
+    //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Event Handlers">
+    
+    @FXML
+    void addCustomerClick(ActionEvent event) {
+    }
+
+    @FXML
+    void addUserClick(ActionEvent event) {
+
+    }
+    
+    //</editor-fold>
+    
     @FXML
     @Override
     void saveChangesClick(ActionEvent event) {
@@ -329,6 +421,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     }
     
     private class TypeBindings {
+        private ReadOnlyObjectProperty<String> selectedItem;
         private final BooleanBinding phone;
         private final BooleanBinding virtual;
         private final BooleanBinding explicitPhysicalLocation;
@@ -336,134 +429,206 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         private final BooleanBinding showUrl;
         private final BooleanBinding valid;
         TypeBindings() {
-            ReadOnlyObjectProperty<String> selectedItemProperty = typeComboBox.getSelectionModel().selectedItemProperty();
-            phone = selectedItemProperty.isEqualTo(APPOINTMENT_CODE_PHONE);
-            phone.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            selectedItem = typeComboBox.getSelectionModel().selectedItemProperty();
+            SimpleStringProperty item = new SimpleStringProperty(selectedItem.get());
+            selectedItem.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                item.set(newValue);
             });
-            virtual = selectedItemProperty.isEqualTo(APPOINTMENT_CODE_VIRTUAL);
-            virtual.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            explicitPhysicalLocation = selectedItemProperty.isEqualTo(APPOINTMENT_CODE_OTHER);
-            explicitPhysicalLocation.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            implicitPhysicalLocation = selectedItemProperty.isEqualTo(APPOINTMENT_CODE_HOME)
-                    .or(selectedItemProperty.isEqualTo(APPOINTMENT_CODE_GERMANY))
-                    .or(selectedItemProperty.isEqualTo(APPOINTMENT_CODE_INDIA)).or(selectedItemProperty.isEqualTo(APPOINTMENT_CODE_HONDURAS));
-            implicitPhysicalLocation.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
+            phone = item.isEqualTo(APPOINTMENT_CODE_PHONE);
+            virtual = item.isEqualTo(APPOINTMENT_CODE_VIRTUAL);
+            explicitPhysicalLocation = item.isEqualTo(APPOINTMENT_CODE_OTHER);
+            implicitPhysicalLocation = item.isEqualTo(APPOINTMENT_CODE_HOME)
+                    .or(item.isEqualTo(APPOINTMENT_CODE_GERMANY))
+                    .or(item.isEqualTo(APPOINTMENT_CODE_INDIA)).or(item.isEqualTo(APPOINTMENT_CODE_HONDURAS));
             showUrl = phone.or(virtual);
-            showUrl.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
             valid = showUrl.or(explicitPhysicalLocation).or(implicitPhysicalLocation);
         }
     }
     
-    private class ValidationBindings {
-        final BooleanBinding customerValid;
-        final BooleanBinding userValid;
-        final BooleanBinding titleValid;
-        final ObjectBinding<LocalDateTime> startDateTime;
-        final ObjectBinding<LocalDateTime> endDateTime;
-        final StringBinding startValidationMessage;
-        final StringBinding endValidationMessage;
-        final BooleanBinding contactValid;
-        final BooleanBinding locationValid;
-        final StringBinding urlValidationMessage;
-        final BooleanBinding valid;
+    private class DateRangeValidator extends BooleanBinding {
+        private final ReadOnlyBooleanWrapper noScheduleConflict;
+        public boolean isNoScheduleConflict() { return noScheduleConflict.get(); }
+        public ReadOnlyBooleanProperty noScheduleConflictProperty() { return noScheduleConflict.getReadOnlyProperty(); }
         
-        ValidationBindings() {
-            customerValid = customerComboBox.getSelectionModel().selectedItemProperty().isNotNull();
-            userValid = userComboBox.getSelectionModel().selectedItemProperty().isNotNull();
-            titleValid = scheduler.util.notNullOrWhiteSpace(titleTextField.textProperty());
-            startDateTime = scheduler.util.asLocalDateTime(startDatePicker.valueProperty(), startHourComboBox.getSelectionModel().selectedItemProperty(),
-                    startMinuteComboBox.getSelectionModel().selectedItemProperty());
-            endDateTime = scheduler.util.asLocalDateTime(endDatePicker.valueProperty(), endHourComboBox.getSelectionModel().selectedItemProperty(),
-                    endMinuteComboBox.getSelectionModel().selectedItemProperty());
-            startValidationMessage = new StringBinding() {
-                { super.bind(startDateTime, endDateTime); }
-                
-                @Override
-                protected String computeValue() {
-                    LocalDateTime d = startDateTime.get();
-                    if (d == null)
-                        return currentResourceBundle.getString("required");
-                    LocalDateTime e = endDateTime.get();
-                    if (e != null && d.compareTo(e) > 0)
-                        return currentResourceBundle.getString("endCannotBeBeforeStart");
-                    return "";
-                }
-                
-                @Override
-                public void dispose() { super.unbind(startDateTime, endDateTime); }
-            };
-            endValidationMessage = new StringBinding() {
-                { super.bind(endDateTime); }
-                
-                @Override
-                protected String computeValue() {
-                    LocalDateTime d = startDateTime.get();
-                    if (d == null)
-                        return currentResourceBundle.getString("required");
-                    return "";
-                }
-                
-                @Override
-                public void dispose() { super.unbind(startDateTime); }
-            };
-            contactValid = scheduler.util.notNullOrWhiteSpace(contactTextField.textProperty());
-            locationValid = scheduler.util.notNullOrWhiteSpace(locationTextArea.textProperty()).or(typeBindings.explicitPhysicalLocation.not());
-            urlValidationMessage = new StringBinding() {
-                private final StringProperty url;
-                {
-                    url = urlTextField.textProperty();
-                    super.bind(url, typeBindings.phone, typeBindings.virtual);
-                }
-                
-                @Override
-                protected String computeValue() {
-                    if (typeBindings.phone.get()) {
-                        String s = url.get();
-                        if (s == null || s.trim().isEmpty())
-                            return currentResourceBundle.getString("required");
-                    } else if (typeBindings.virtual.get()) {
-                        String s = url.get();
-                        if (s == null || s.trim().isEmpty())
-                            return currentResourceBundle.getString("required");
-                        try {
-                            URL u = new URL(s);
-                            if (u.getHost() != null && !u.getHost().trim().isEmpty())
-                                return "";
-                        } catch (MalformedURLException ex) {
-                            Logger.getLogger(EditAppointmentController.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        return currentResourceBundle.getString("invalidUrl");
-                    }
-                    
-                    return "";
-                }
-                
-                @Override
-                public void dispose() { super.unbind(url, typeBindings.phone, typeBindings.virtual); }
-            };
-            valid = customerValid.and(userValid).and(titleValid).and(startValidationMessage.isEmpty()).and(endValidationMessage.isEmpty())
-                    .and(contactValid).and(locationValid).and(urlValidationMessage.isEmpty());
-            
-            customerValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            userValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            titleValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            startValidationMessage.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            });
-            endValidationMessage.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            });
-            contactValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            locationValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            });
-            urlValidationMessage.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            });
+        private final BooleanBinding startValid;
+        public BooleanBinding startValidProperty() { return startValid; }
+        public boolean isStartValid() { return startValid.get(); }
+        
+        private final BooleanBinding endValid;
+        public BooleanBinding endValidProperty() { return endValid; }
+        public boolean isEndValid() { return endValid.get(); }
+        
+        private final ReadOnlyObjectProperty<CustomerRow> selectedCustomer;
+        private final ReadOnlyObjectProperty<UserRow> selectedUser;
+        
+        {
+            selectedCustomer = customerComboBox.getSelectionModel().selectedItemProperty();
+            selectedUser = userComboBox.getSelectionModel().selectedItemProperty();
+            startValid = startDateTime.isNotNull();
+            endValid = endDateTime.isNotNull();
+            noScheduleConflict = new ReadOnlyBooleanWrapper(true);
+            super.bind(startDateTime, endDateTime, selectedCustomer, selectedUser);
         }
+        @Override
+        protected boolean computeValue() {
+            LocalDateTime end = endDateTime.get();
+            LocalDateTime start = startDateTime.get();
+            if (end == null) {
+                scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.restoreLabeledVertical(endValidationLabel, currentResourceBundle.getString("required"));
+                if (start == null)
+                    scheduler.util.restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("required"));
+                else
+                    scheduler.util.collapseLabeledVertical(startValidationLabel);
+                noScheduleConflict.set(true);
+                return false;
+            }
+            if (start == null) {
+                scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.collapseLabeledVertical(endValidationLabel);
+                scheduler.util.restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("required"));
+                noScheduleConflict.set(true);
+                return false;
+            }
+            scheduler.util.collapseLabeledVertical(startValidationLabel);
+            if (start.compareTo(end) > 0) {
+                scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.restoreLabeledVertical(endValidationLabel, currentResourceBundle.getString("endCannotBeBeforeStart"));
+                noScheduleConflict.set(true);
+                return false;
+            }
+            
+            CustomerRow customer = selectedCustomer.get();
+            boolean userConflict, customerConflict;
+            if (customer == null)
+                customerConflict = false;
+            else {
+                final int id = customer.getPrimaryKey();
+                customerConflict = currentAndFuture.stream().anyMatch((AppointmentRow r) -> r.getCustomerId() == id && r.getStart().compareTo(end) <= 0 && r.getEnd().compareTo(start) >= 0);
+            }
+            UserRow user = selectedUser.get();
+            if (user == null)
+                userConflict = false;
+            else {
+                final int id = user.getPrimaryKey();
+                userConflict = currentAndFuture.stream().anyMatch((AppointmentRow r) -> r.getUserId() == id && r.getStart().compareTo(end) <= 0 && r.getEnd().compareTo(start) >= 0);
+            }
+            if (userConflict)
+                scheduler.util.restoreLabeledVertical(dateTimeValidationLabel,
+                        currentResourceBundle.getString((customerConflict) ? "conflictsWithBoth" : "conflictsWithUser"));
+            else if (customerConflict)
+                scheduler.util.restoreLabeledVertical(dateTimeValidationLabel,
+                        currentResourceBundle.getString("conflictsWithCustomer"));
+            else {
+                noScheduleConflict.set(true);
+                scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                return false;
+            }
+            noScheduleConflict.set(false);
+            return true;
+        }
+
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(startDateTime, endDateTime, selectedCustomer, selectedUser); }
+
+        @Override
+        public void dispose() { super.unbind(startDateTime, endDateTime, selectedCustomer, selectedUser); }
+    }
+    
+    private class LocationValidator extends BooleanBinding {
+        StringProperty locationProperty;
+        {
+            locationProperty = locationTextArea.textProperty();
+            typeBindings.explicitPhysicalLocation.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue) {
+                    scheduler.util.restoreControlVertical(locationLabel);
+                    scheduler.util.restoreControlVertical(locationTextArea);
+                } else {
+                    scheduler.util.collapseControlVertical(locationLabel);
+                    scheduler.util.collapseControlVertical(locationTextArea);
+                    scheduler.util.collapseLabeledVertical(locationValidationLabel);
+                }
+            });
+            super.bind(locationProperty, typeBindings.explicitPhysicalLocation);
+        }
+        @Override
+        protected boolean computeValue() {
+            if (typeBindings.explicitPhysicalLocation.get()) {
+                String text = locationProperty.get();
+                if (text == null || text.trim().isEmpty()) {
+                    scheduler.util.restoreLabeledVertical(locationValidationLabel, currentResourceBundle.getString("required"));
+                    return false;
+                }
+                scheduler.util.collapseLabeledVertical(locationValidationLabel);
+            }
+            return true;
+        }
+
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(locationProperty, typeBindings.explicitPhysicalLocation); }
+
+        @Override
+        public void dispose() { super.unbind(locationProperty, typeBindings.explicitPhysicalLocation); }
+    }
+    
+    private class UrlValidator extends BooleanBinding {
+        StringProperty urlProperty;
+        {
+            urlProperty = urlTextField.textProperty();
+            typeBindings.phone.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue)
+                    scheduler.util.restoreLabeledVertical(urlLabel, currentResourceBundle.getString("phoneNumber"));
+            });
+            typeBindings.virtual.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue)
+                    scheduler.util.restoreLabeledVertical(urlLabel, currentResourceBundle.getString("meetingUrl"));
+            });
+            typeBindings.showUrl.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue)
+                    scheduler.util.restoreControlVertical(urlTextField);
+                else {
+                    scheduler.util.collapseControlVertical(urlLabel);
+                    scheduler.util.collapseControlVertical(urlTextField);
+                    scheduler.util.collapseLabeledVertical(urlValidationLabel);
+                }
+            });
+            super.bind(urlProperty, typeBindings.phone, typeBindings.virtual);
+        }
+        @Override
+        protected boolean computeValue() {
+            if (typeBindings.showUrl.get()) {
+                String text = urlProperty.get();
+                if (text == null || text.trim().isEmpty()) {
+                    scheduler.util.restoreLabeledVertical(urlValidationLabel, currentResourceBundle.getString("required"));
+                    return false;
+                }
+                if (typeBindings.phone.get()) {
+                    scheduler.util.collapseLabeledVertical(urlValidationLabel);
+                    return true;
+                }
+                try {
+                    URL url = new URL(text);
+                    if (url.getHost() != null && !url.getHost().trim().isEmpty()) {
+                        scheduler.util.collapseLabeledVertical(urlValidationLabel);
+                        return true;
+                    }
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(EditAppointmentController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                scheduler.util.restoreLabeledVertical(urlValidationLabel, currentResourceBundle.getString("invalidUrl"));
+                return false;
+            } else {
+                scheduler.util.collapseControlVertical(urlLabel);
+                scheduler.util.collapseControlVertical(urlTextField);
+                scheduler.util.collapseLabeledVertical(urlValidationLabel);
+            }
+            return true;
+        }
+
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(urlProperty, typeBindings.phone, typeBindings.virtual); }
+
+        @Override
+        public void dispose() { super.unbind(urlProperty, typeBindings.phone, typeBindings.virtual); }
     }
 }
