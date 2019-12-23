@@ -6,8 +6,6 @@
 package controller.cell;
 
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.control.ListCell;
 
 /**

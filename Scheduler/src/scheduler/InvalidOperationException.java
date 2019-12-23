@@ -6,6 +6,11 @@ package scheduler;
  */
 public class InvalidOperationException extends Exception {
     /**
+     *
+     */
+    private static final long serialVersionUID = -7744604194088153993L;
+
+    /**
      * Constructs a new invalid operation exception.
      */
     public InvalidOperationException() {

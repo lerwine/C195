@@ -6,9 +6,16 @@ package scheduler;
  * @author Leonard T. Erwine
  */
 public class InternalException extends RuntimeException {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = -3675524083708610412L;
+
     /**
      * Constructs a new internal exception with the specified detail message.
-     * @param message   The detail message.
+     * 
+     * @param message The detail message.
      */
     public InternalException(String message) {
         super(message);

@@ -5,6 +5,10 @@ package scheduler;
  * @author Leonard T. Erwine
  */
 public class InvalidArgumentException extends Exception {
+    /**
+     *
+     */
+    private static final long serialVersionUID = -3205896639957811389L;
     private final String name;
     
     /**
