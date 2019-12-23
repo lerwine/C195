@@ -184,6 +184,9 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     private TextArea locationTextArea;
     
     @FXML
+    private TextField phoneTextField;
+    
+    @FXML
     private Label contactValidationLabel;
     
     @FXML
@@ -235,6 +238,8 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
     
     private LocationValidator locationValid;
     
+    private PhoneValidator phoneValidator;
+    
     private UrlValidator urlValid;
     
     private BooleanBinding valid;
@@ -264,10 +269,10 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         super.initialize(url, rb);
         
         // Configure combo box cells
-        customerComboBox.setCellFactory(new CustomerListCellFactory<CustomerRow>());
-        customerComboBox.setButtonCell(new CustomerListCell<CustomerRow>());
-        userComboBox.setCellFactory(new UserListCellFactory<UserRow>());
-        userComboBox.setButtonCell(new UserListCell<UserRow>());
+        customerComboBox.setCellFactory(new CustomerListCellFactory<>());
+        customerComboBox.setButtonCell(new CustomerListCell<>());
+        userComboBox.setCellFactory(new UserListCellFactory<>());
+        userComboBox.setButtonCell(new UserListCell<>());
         startHourComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
         startHourComboBox.setButtonCell(new ZeroPadDigitListCell());
         startMinuteComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
@@ -340,13 +345,14 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
         // Initialize validation bindings
         typeBindings = new TypeBindings();
         customerValid = new NonNullLabeledBinding<>(customerComboBox.getSelectionModel().selectedItemProperty(), customerValidationLabel, currentResourceBundle.getString("required"));
-        userValid = new NonNullLabeledBinding<>(customerComboBox.getSelectionModel().selectedItemProperty(), userValidationLabel, currentResourceBundle.getString("required"));
+        userValid = new NonNullLabeledBinding<>(userComboBox.getSelectionModel().selectedItemProperty(), userValidationLabel, currentResourceBundle.getString("required"));
         titleValid = new NonWhiteSpaceLabeledBinding(titleTextField.textProperty(), titleValidationLabel, currentResourceBundle.getString("required"));
         contactValid = new NonWhiteSpaceLabeledBinding(contactTextField.textProperty(), contactValidationLabel, currentResourceBundle.getString("required"));
         dateRangeValid = new DateRangeValidator();
         locationValid = new LocationValidator();
+        phoneValidator = new PhoneValidator();
         urlValid = new UrlValidator();
-        valid = typeBindings.valid.and(customerValid).and(userValid).and(titleValid).and(contactValid).and(dateRangeValid).and(locationValid).and(urlValid);
+        valid = typeBindings.valid.and(customerValid).and(userValid).and(titleValid).and(contactValid).and(dateRangeValid).and(locationValid).and(phoneValidator).and(urlValid);
         
         // Add aggregate validation binding.
         valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
@@ -384,31 +390,39 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
 
     }
     
-    //</editor-fold>
+    @FXML
+    void showConflictsButtonClick(ActionEvent event) {
+
+    }
     
     @FXML
     @Override
     void saveChangesClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @FXML
     @Override
     void cancelClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (stageManager.isRoot())
+            HomeScreenController.setCurrentScene(stageManager);
+        else
+            stageManager.getStage().hide();
     }
     
+    //<editor-fold defaultstate="collapsed" desc="Validators">
+    
     /**
-     * 
+     *
      */
     private class TypeBindings {
-        private ReadOnlyObjectProperty<String> selectedItem;
+        private final ReadOnlyObjectProperty<String> selectedItem;
         private final BooleanBinding phone;
         private final BooleanBinding virtual;
         private final BooleanBinding explicitPhysicalLocation;
         private final BooleanBinding implicitPhysicalLocation;
-        private final BooleanBinding showUrl;
         private final BooleanBinding valid;
+        
         TypeBindings() {
             selectedItem = typeComboBox.getSelectionModel().selectedItemProperty();
             SimpleStringProperty item = new SimpleStringProperty(selectedItem.get());
@@ -421,30 +435,21 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             implicitPhysicalLocation = item.isEqualTo(APPOINTMENT_CODE_HOME)
                     .or(item.isEqualTo(APPOINTMENT_CODE_GERMANY))
                     .or(item.isEqualTo(APPOINTMENT_CODE_INDIA)).or(item.isEqualTo(APPOINTMENT_CODE_HONDURAS));
-            showUrl = phone.or(virtual);
-            valid = showUrl.or(explicitPhysicalLocation).or(implicitPhysicalLocation);
+            valid = phone.or(virtual).or(explicitPhysicalLocation).or(implicitPhysicalLocation);
         }
     }
     
     /**
-     * 
+     *
      */
     private class DateRangeValidator extends BooleanBinding {
         private final ReadOnlyBooleanWrapper noScheduleConflict;
-        public boolean isNoScheduleConflict() { return noScheduleConflict.get(); }
-        public ReadOnlyBooleanProperty noScheduleConflictProperty() { return noScheduleConflict.getReadOnlyProperty(); }
-        
         private final BooleanBinding startValid;
-        public BooleanBinding startValidProperty() { return startValid; }
-        public boolean isStartValid() { return startValid.get(); }
-        
         private final BooleanBinding endValid;
-        public BooleanBinding endValidProperty() { return endValid; }
-        public boolean isEndValid() { return endValid.get(); }
-        
         private final ReadOnlyObjectProperty<CustomerRow> selectedCustomer;
         private final ReadOnlyObjectProperty<UserRow> selectedUser;
         
+        DateRangeValidator()
         {
             selectedCustomer = customerComboBox.getSelectionModel().selectedItemProperty();
             selectedUser = userComboBox.getSelectionModel().selectedItemProperty();
@@ -453,7 +458,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             noScheduleConflict = new ReadOnlyBooleanWrapper(true);
             super.bind(startDateTime, endDateTime, selectedCustomer, selectedUser);
         }
-
+        
         
         @Override
         protected boolean computeValue() {
@@ -461,6 +466,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             LocalDateTime start = startDateTime.get();
             if (end == null) {
                 scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.collapseControlVertical(showConflictsButton);
                 scheduler.util.restoreLabeledVertical(endValidationLabel, currentResourceBundle.getString("required"));
                 if (start == null)
                     scheduler.util.restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("required"));
@@ -471,6 +477,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             }
             if (start == null) {
                 scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.collapseControlVertical(showConflictsButton);
                 scheduler.util.collapseLabeledVertical(endValidationLabel);
                 scheduler.util.restoreLabeledVertical(startValidationLabel, currentResourceBundle.getString("required"));
                 noScheduleConflict.set(true);
@@ -479,6 +486,7 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             scheduler.util.collapseLabeledVertical(startValidationLabel);
             if (start.compareTo(end) > 0) {
                 scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.collapseControlVertical(showConflictsButton);
                 scheduler.util.restoreLabeledVertical(endValidationLabel, currentResourceBundle.getString("endCannotBeBeforeStart"));
                 noScheduleConflict.set(true);
                 return false;
@@ -508,36 +516,40 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             else {
                 noScheduleConflict.set(true);
                 scheduler.util.collapseLabeledVertical(dateTimeValidationLabel);
+                scheduler.util.collapseControlVertical(showConflictsButton);
                 return false;
             }
+            scheduler.util.restoreControlVertical(showConflictsButton);
             noScheduleConflict.set(false);
             return true;
         }
-
+        
         @Override
         public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(startDateTime, endDateTime, selectedCustomer, selectedUser); }
-
+        
         @Override
         public void dispose() { super.unbind(startDateTime, endDateTime, selectedCustomer, selectedUser); }
     }
     
     /**
-     * 
+     *
      */
     private class LocationValidator extends BooleanBinding {
         StringProperty locationProperty;
+        
+        LocationValidator()
         {
             locationProperty = locationTextArea.textProperty();
             typeBindings.explicitPhysicalLocation.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                 explicitPhysicalLocationChange(newValue);
             });
-            if (typeBindings.explicitPhysicalLocation.get()) {
+            boolean changed = typeBindings.explicitPhysicalLocation.get();
+            explicitPhysicalLocationChange(changed);
+            if (changed)
                 locationChange(locationProperty.get());
-                explicitPhysicalLocationChange(true);
-            } else
-                explicitPhysicalLocationChange(false);
             super.bind(locationProperty, typeBindings.explicitPhysicalLocation);
         }
+        
         private boolean locationChange(String text) {
             if (text == null || text.trim().isEmpty()) {
                 scheduler.util.restoreLabeledVertical(locationValidationLabel, currentResourceBundle.getString("required"));
@@ -546,86 +558,126 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             scheduler.util.collapseLabeledVertical(locationValidationLabel);
             return true;
         }
+        
         private void explicitPhysicalLocationChange(boolean value) {
             if (value) {
-                scheduler.util.restoreControlVertical(locationLabel);
+                scheduler.util.restoreLabeledVertical(locationLabel, currentResourceBundle.getString("location"));
                 scheduler.util.restoreControlVertical(locationTextArea);
+                locationChange(locationProperty.get());
             } else {
-                scheduler.util.collapseControlVertical(locationLabel);
+                if (!typeBindings.phone.get()) {
+                    scheduler.util.collapseLabeledVertical(locationLabel);
+                    scheduler.util.collapseLabeledVertical(locationValidationLabel);
+                }
                 scheduler.util.collapseControlVertical(locationTextArea);
-                scheduler.util.collapseLabeledVertical(locationValidationLabel);
             }
         }
+        
         @Override
         protected boolean computeValue() {
             if (typeBindings.explicitPhysicalLocation.get())
                 return locationChange(locationProperty.get());
             return true;
         }
-
+        
         @Override
         public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(locationProperty, typeBindings.explicitPhysicalLocation); }
-
+        
         @Override
         public void dispose() { super.unbind(locationProperty, typeBindings.explicitPhysicalLocation); }
     }
     
     /**
-     * 
+     *
      */
-    private class UrlValidator extends BooleanBinding {
-        StringProperty urlProperty;
+    private class PhoneValidator extends BooleanBinding {
+        StringProperty phoneProperty;
+        
+        PhoneValidator()
         {
-            urlProperty = urlTextField.textProperty();
+            phoneProperty = phoneTextField.textProperty();
             typeBindings.phone.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                if (newValue)
-                    onPhone();
+                showPhoneChanged(newValue);
             });
-            typeBindings.virtual.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                if (newValue)
-                    onVirtual();
-            });
-            typeBindings.showUrl.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                showUrlChanged(newValue);
-            });
-            boolean showUrl = typeBindings.showUrl.get();
-            showUrlChanged(showUrl);
-            if (showUrl) {
-                if (typeBindings.phone.get())
-                    onPhone();
-                else
-                    onVirtual();
-                    urlChanged(urlProperty.get());
-            }
-            super.bind(urlProperty, typeBindings.phone, typeBindings.virtual);
+            boolean showPhone = typeBindings.phone.get();
+            showPhoneChanged(showPhone);
+            if (showPhone)
+                phoneTextChanged(phoneProperty.get());
+            super.bind(phoneProperty, typeBindings.phone, typeBindings.virtual);
         }
-
-        private void showUrlChanged(boolean value) {
-            if (value)
-                scheduler.util.restoreControlVertical(urlTextField);
-            else {
-                scheduler.util.collapseControlVertical(urlLabel);
-                scheduler.util.collapseControlVertical(urlTextField);
-                scheduler.util.collapseLabeledVertical(urlValidationLabel);
+        
+        private void showPhoneChanged(boolean value) {
+            if (value) {
+                scheduler.util.restoreLabeledVertical(locationLabel, currentResourceBundle.getString("phoneNumber"));
+                scheduler.util.restoreControlVertical(phoneTextField);
+                phoneTextChanged(phoneProperty.get());
+            } else {
+                if (!typeBindings.explicitPhysicalLocation.get()) {
+                    scheduler.util.collapseLabeledVertical(locationLabel);
+                    scheduler.util.collapseLabeledVertical(locationValidationLabel);
+                }
+                scheduler.util.collapseControlVertical(phoneTextField);
             }
         }
         
-        private void onPhone() {
-            scheduler.util.restoreLabeledVertical(urlLabel, currentResourceBundle.getString("phoneNumber"));
+        private boolean phoneTextChanged(String text) {
+            if (text == null || text.trim().isEmpty()) {
+                scheduler.util.restoreLabeledVertical(locationValidationLabel, currentResourceBundle.getString("required"));
+                return false;
+            }
+            scheduler.util.collapseLabeledVertical(locationValidationLabel);
+            return true;
         }
-
-        private void onVirtual() {
-            scheduler.util.restoreLabeledVertical(urlLabel, currentResourceBundle.getString("meetingUrl"));
+        
+        @Override
+        protected boolean computeValue() {
+            if (typeBindings.phone.get())
+                return phoneTextChanged(phoneProperty.get());
+            return true;
         }
-
+        
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(phoneProperty, typeBindings.phone, typeBindings.virtual); }
+        
+        @Override
+        public void dispose() { super.unbind(phoneProperty, typeBindings.phone, typeBindings.virtual); }
+    }
+    
+    /**
+     *
+     */
+    private class UrlValidator extends BooleanBinding {
+        StringProperty urlProperty;
+        
+        UrlValidator()
+        {
+            urlProperty = urlTextField.textProperty();
+            typeBindings.virtual.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                virtualChanged(newValue);
+            });
+            boolean showUrl = typeBindings.virtual.get();
+            virtualChanged(showUrl);
+            if (showUrl)
+                urlChanged(urlProperty.get());
+            super.bind(urlProperty, typeBindings.virtual);
+        }
+        
+        private void virtualChanged(boolean value) {
+            if (value) {
+                scheduler.util.restoreControlVertical(urlTextField);
+                scheduler.util.restoreControlVertical(urlLabel);
+                urlChanged(urlProperty.get());
+            } else {
+                scheduler.util.collapseControlVertical(urlLabel);
+                scheduler.util.collapseControlVertical(urlTextField);
+                scheduler.util.collapseControlVertical(urlValidationLabel);
+            }
+        }
+        
         private boolean urlChanged(String text) {
             if (text == null || text.trim().isEmpty()) {
                 scheduler.util.restoreLabeledVertical(urlValidationLabel, currentResourceBundle.getString("required"));
                 return false;
-            }
-            if (typeBindings.phone.get()) {
-                scheduler.util.collapseLabeledVertical(urlValidationLabel);
-                return true;
             }
             try {
                 URL url = new URL(text);
@@ -639,18 +691,22 @@ public class EditAppointmentController extends ItemControllerBase<AppointmentRow
             scheduler.util.restoreLabeledVertical(urlValidationLabel, currentResourceBundle.getString("invalidUrl"));
             return false;
         }
-
+        
         @Override
         protected boolean computeValue() {
-            if (typeBindings.showUrl.get())
+            if (typeBindings.virtual.get())
                 return urlChanged(urlProperty.get());
             return true;
         }
-
+        
         @Override
-        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(urlProperty, typeBindings.phone, typeBindings.virtual); }
-
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(urlProperty, typeBindings.virtual); }
+        
         @Override
-        public void dispose() { super.unbind(urlProperty, typeBindings.phone, typeBindings.virtual); }
+        public void dispose() { super.unbind(urlProperty, typeBindings.virtual); }
     }
+    
+    //</editor-fold>
+    
+    //</editor-fold>
 }

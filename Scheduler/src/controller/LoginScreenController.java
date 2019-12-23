@@ -207,7 +207,7 @@ public class LoginScreenController implements Initializable {
     }
 
     @FXML
-    void exitButtonClick(ActionEvent event) { ((Button)event.getSource()).getScene().getWindow().hide(); }
+    void exitButtonClick(ActionEvent event) { stageManager.getStage().hide(); }
     
     //<editor-fold defaultstate="collapsed" desc="Validation Binding Classes">
     
