@@ -1,30 +1,29 @@
-package controller;
+package scene.country;
 
+import scene.ItemControllerBase;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 import model.db.CountryRow;
-import scheduler.InvalidArgumentException;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditCountryController extends ItemControllerBase<CountryRow> {
+public class EditCountry extends ItemControllerBase<CountryRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/editCountry";
+    public static final String RESOURCE_NAME = "scene/country/EditCountry";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/EditCountry.fxml";
+    public static final String VIEW_PATH = "/scene/country/EditCountry.fxml";
 
     private String name;
     
@@ -37,11 +36,9 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
     @FXML
     private Label nameError;
     
-    private final scheduler.App.StageManager stageManager;
+    private java.lang.Runnable closeWindow;
     
-    public EditCountryController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private boolean dialogResult = false;
     
     /**
      * Initializes the controller class.
@@ -53,26 +50,33 @@ public class EditCountryController extends ItemControllerBase<CountryRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(scheduler.App.StageManager stageManager, CountryRow model) throws InvalidArgumentException {
-        if (model == null)
-            throw new InvalidArgumentException("model", "Model cannot be null");
-        if (model.getRowState() == CountryRow.ROWSTATE_DELETED)
-            throw new InvalidArgumentException("model", "Model was already deleted");
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditCountryController(stageManager), (ResourceBundle rb, EditCountryController controller) -> {
-            if (controller.setModel(model))
-                stageManager.setWindowTitle(rb.getString("editCountry"));
-            else
-                stageManager.setWindowTitle(rb.getString("addNewCountry"));
+    public static CountryRow addNew() {
+        EditCountry controller = new EditCountry();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(new CountryRow());
+            stage.setTitle(rb.getString("addNewCountry"));
         });
+        return (controller.dialogResult) ? controller.getModel() : null;
+    }
+
+    public static boolean edit(CountryRow row) {
+        EditCountry controller = new EditCountry();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(row);
+            stage.setTitle(rb.getString("editCountry"));
+        });
+        return controller.dialogResult;
     }
 
     @Override
-    void saveChangesClick(ActionEvent event) {
+    protected void saveChangesClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    void cancelClick(ActionEvent event) {
+    protected void cancelClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

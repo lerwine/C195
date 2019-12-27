@@ -5,11 +5,16 @@
  */
 package scheduler;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ResourceBundle;
+import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -19,8 +24,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.control.Labeled;
+import javafx.stage.Stage;
 
 /**
  *
@@ -156,10 +165,8 @@ public class util {
             @Override
             protected boolean computeValue() {
                 LocalDateTime s = start.get();
-                if (s == null)
-                    return true;
                 LocalDateTime e = end.get();
-                return e == null || s.compareTo(e) < 0;
+                return s == null || e == null || s.compareTo(e) <= 0;
             }
 
             @Override
@@ -197,20 +204,14 @@ public class util {
             throw new NullPointerException("Binding dependency cannot be null.");
 
         return new ObjectBinding<LocalDateTime>() {
-            { super.bind(date); }
+            { super.bind(date, hour, minute); }
 
             @Override
             protected LocalDateTime computeValue() {
                 LocalDate d = date.get();
-                if (d == null)
-                    return null;
                 Integer h = hour.get();
-                if (h == null)
-                    return null;
                 Integer m = minute.get();
-                if (m == null)
-                    return null;
-                return LocalDateTime.of(d, LocalTime.of(h, m, 0));
+                return (d == null || h == null || m == null) ? null : LocalDateTime.of(d, LocalTime.of(h, m, 0));
             }
 
             @Override
@@ -244,5 +245,22 @@ public class util {
     public static short resultShortOrDefault(ResultSet rs, String columnLabel, short defaultValue) throws SQLException {
         short result = rs.getShort(columnLabel);
         return (rs.wasNull()) ? defaultValue : result;
+    }
+    
+    public static <C> void showAndWait(C controller, String resourceBundleName, String fxmlPath, double width, double height, BiConsumer<ResourceBundle, Stage> beforeShow) {
+        Parent root;
+        try {
+            ResourceBundle rb = ResourceBundle.getBundle(resourceBundleName, scheduler.App.getCurrent().getCurrentLocale());
+            FXMLLoader loader = new FXMLLoader(controller.getClass().getResource(fxmlPath), rb);
+            loader.setController(controller);
+            root = loader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root, width, height));
+            if (beforeShow != null)
+                beforeShow.accept(rb, stage);
+            stage.showAndWait();
+        } catch (IOException ex) {
+            Logger.getLogger(util.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

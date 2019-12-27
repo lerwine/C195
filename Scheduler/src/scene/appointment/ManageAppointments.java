@@ -1,4 +1,4 @@
-package controller;
+package scene.appointment;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -9,27 +9,25 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.stage.Stage;
 import model.db.AppointmentRow;
 import model.db.UserRow;
-import scheduler.InvalidArgumentException;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class ManageAppointmentsController implements Initializable {
+public class ManageAppointments implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/manageAppointments";
+    public static final String RESOURCE_NAME = "scene/appointment/ManageAppointments";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/ManageAppointments.fxml";
-    
+    public static final String VIEW_PATH = "/scene/appointment/ManageAppointments.fxml";
+
     @FXML
     private Label headingLabel;
     
@@ -57,11 +55,7 @@ public class ManageAppointmentsController implements Initializable {
     @FXML
     private TableColumn<AppointmentRow, model.User> userTableColumn;
     
-    private final scheduler.App.StageManager stageManager;
-    
-    public ManageAppointmentsController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private java.lang.Runnable closeWindow;
     
     /**
      * Initializes the controller class.
@@ -70,24 +64,21 @@ public class ManageAppointmentsController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-    }   
-
-    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
-        setCurrentScene(stageManager, null);
     }
 
-    public static void setCurrentScene(scheduler.App.StageManager stageManager, UserRow user) throws InvalidArgumentException {
-        if (user != null) {
-            if (user.getRowState() == UserRow.ROWSTATE_DELETED)
-                throw new InvalidArgumentException("user", "User was already deleted");
-            if (user.getRowState() == UserRow.ROWSTATE_NEW)
-                throw new InvalidArgumentException("user", "User has not been saved");
-        }
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageAppointmentsController(stageManager), (ResourceBundle rb, ManageAppointmentsController controller) -> {
-            if (user == null)
-                stageManager.setWindowTitle(rb.getString("manageAppointments"));
-            else
-                stageManager.setWindowTitle(String.format(rb.getString("appointmentsForUser"), user.getUserName()));
+    public static void show(UserRow row) {
+        ManageAppointments controller = new ManageAppointments();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            stage.setTitle(rb.getString("appointmentsForUser"));
+        });
+    }
+    
+    public static void show() {
+        ManageAppointments controller = new ManageAppointments();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            stage.setTitle(rb.getString("manageAppointments"));
         });
     }
 }

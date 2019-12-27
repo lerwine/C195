@@ -27,3 +27,6 @@ hs_err_pid*
 /DevHelper/nbproject/private/
 /DevHelper/build/
 /DevHelper/dist/
+/AppointmentTracker/nbproject/private/
+/AppointmentTracker/build/
+/AppointmentTracker/dist/

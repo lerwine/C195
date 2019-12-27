@@ -1,4 +1,4 @@
-package controller;
+package scene.user;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -7,7 +7,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.stage.Stage;
 import model.db.UserRow;
 import scheduler.InvalidArgumentException;
 
@@ -16,17 +15,17 @@ import scheduler.InvalidArgumentException;
  *
  * @author Leonard T. Erwine
  */
-public class ManageUsersController implements Initializable {
+public class ManageUsers implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/manageUsers";
+    public static final String RESOURCE_NAME = "scene/user/ManageUsers";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/ManageUsers.fxml";
-    
+    public static final String VIEW_PATH = "/scene/user/ManageUsers.fxml";
+
     @FXML
     private TableView<UserRow> usersTableView;
 
@@ -48,11 +47,7 @@ public class ManageUsersController implements Initializable {
     @FXML
     private TableColumn<UserRow, String> lastUpdateByTableColumn;
     
-    private final scheduler.App.StageManager stageManager;
-    
-    public ManageUsersController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private java.lang.Runnable closeWindow;
     
     //private String returnViewPath;
 
@@ -63,10 +58,13 @@ public class ManageUsersController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        stageManager.setWindowTitle(rb.getString("manageUsers"));
     }
-
-    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageUsersController(stageManager));
+    
+    public static void show() {
+        ManageUsers controller = new ManageUsers();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            stage.setTitle(rb.getString("manageUsers"));
+        });
     }
 }

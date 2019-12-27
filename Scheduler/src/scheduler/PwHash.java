@@ -115,7 +115,7 @@ public final class PwHash {
             byte[] hb = skf.generateSecret(spec).getEncoded();
             hash.set(new ObservableByteArrayList(hb));
             Base64.Encoder enc = Base64.getEncoder();
-            encodedHash.set(enc.encodeToString(sb) + enc.encodeToString(hb).substring(0, 42));
+            encodedHash.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             // This should never occur unless there is a typo or invalid constant in the code.
             Logger.getLogger(PwHash.class.getName()).log(Level.SEVERE, null, ex);
@@ -137,8 +137,8 @@ public final class PwHash {
             if (newValue.length() == HASHED_STRING_LENGTH) {
                 Base64.Decoder dec = Base64.getDecoder();
                 try {
-                    byte[] sb = dec.decode(password.substring(0, SALT_STRING_LENGTH));
-                    byte[] hb = dec.decode(password.substring(SALT_STRING_LENGTH) + "==");
+                    byte[] sb = dec.decode(newValue.substring(0, SALT_STRING_LENGTH));
+                    byte[] hb = dec.decode(newValue.substring(SALT_STRING_LENGTH) + "==");
                     ObservableByteArrayList b = salt.get();
                     boolean notChanged = b != null;
                     if (notChanged) {
@@ -191,7 +191,13 @@ public final class PwHash {
      * @param password  The password to check.
      * @return  {@code true} if the hash of the specified password matches the current hash; otherwise, {@code false}.
      */
-    public boolean test(String password) { return test(password, salt.get().bytes, hash.get().bytes); }
+    public boolean test(String password) {
+        ObservableByteArrayList s = salt.get();
+        if (s == null)
+            return false;
+        ObservableByteArrayList h = hash.get();
+        return h!= null && test(password, s.bytes, h.bytes);
+    }
     
     public class ObservableByteArrayList extends javafx.collections.ObservableListBase<Byte> {
         private final byte[] bytes;

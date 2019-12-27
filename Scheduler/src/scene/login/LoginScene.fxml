@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import controls.LocaleLanguageListCell?>
+<?import controls.LocaleLanguageListCellFactory?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
@@ -7,16 +9,13 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import controller.cell.LocaleLanguageListCell?>
-<?import controller.cell.LocaleLanguageListCellFactory?>
 
-<VBox styleClass="outerContainer" stylesheets="@defaultStyles.css" 
-   xmlns="http://javafx.com/javafx/8.0.171" 
-   xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginScreenController">
+<VBox styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scene.login.LoginScene">
    <children>
       <GridPane>
          <columnConstraints>
@@ -51,12 +50,12 @@
                <Insets left="8.0" right="4.0" top="8.0" />
             </GridPane.margin>
          </Label>
-         <TextField fx:id="userNameTextField" minWidth="240.0" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"
-                    GridPane.rowIndex="1" GridPane.valignment="CENTER">
+         <TextField fx:id="userNameTextField" minWidth="240.0" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
             <GridPane.margin>
                <Insets top="8.0" />
             </GridPane.margin>
          </TextField>
+         <Label fx:id="userNameValidationLabel" styleClass="formControlValidationMessage" text="User Name cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
          <Label fx:id="passwordLabel" styleClass="formControlLabel" text="Password:" GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="CENTER">
             <GridPane.margin>
                <Insets left="8.0" right="4.0" top="8.0" />
@@ -67,7 +66,6 @@
                <Insets top="8.0" />
             </GridPane.margin>
          </PasswordField>
-         <Label fx:id="userNameValidationLabel" styleClass="formControlValidationMessage" text="User Name cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
          <Label fx:id="passwordValidationLabel" styleClass="formControlValidationMessage" text="Password cannot be empty." GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.valignment="TOP" />
          <padding>
             <Insets bottom="8.0" right="8.0" />
@@ -75,7 +73,7 @@
       </GridPane>
       <ButtonBar>
          <buttons>
-            <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#loginButtonClick" prefWidth="100.0" text="Log In" />
+            <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#loginButtonClick" prefWidth="100.0" text="Login" />
             <Button fx:id="exitButton" minWidth="100.0" mnemonicParsing="false" onAction="#exitButtonClick" prefWidth="100.0" text="Exit" />
          </buttons>
          <padding>

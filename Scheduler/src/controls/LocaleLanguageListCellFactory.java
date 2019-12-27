@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package controller.cell;
+package controls;
 
 import java.util.Locale;
 import javafx.scene.control.ListCell;

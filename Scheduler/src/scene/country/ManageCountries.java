@@ -1,4 +1,4 @@
-package controller;
+package scene.country;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -9,25 +9,23 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 import model.db.CountryRow;
-import scheduler.InvalidArgumentException;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class ManageCountriesController implements Initializable {
+public class ManageCountries implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "/globalization/manageCountries";
+    public static final String RESOURCE_NAME = "/scene/country/ManageCountries";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/ManageCountries.fxml";
+    public static final String VIEW_PATH = "/scene/country/ManageCountries.fxml";
 
     @FXML
     private TableView<CountryRow> countriesTableView;
@@ -47,11 +45,7 @@ public class ManageCountriesController implements Initializable {
     @FXML
     private TableColumn<CountryRow, String> lastUpdateByTableColumn;
     
-    private final scheduler.App.StageManager stageManager;
-    
-    public ManageCountriesController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private java.lang.Runnable closeWindow;
     
     /**
      * Initializes the controller class.
@@ -60,7 +54,6 @@ public class ManageCountriesController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        stageManager.setWindowTitle(rb.getString("manageCountries"));
         nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_NAME));
         createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDATE));
         createDateTableColumn.setCellFactory(col -> new TableCell<CountryRow, LocalDateTime>() {
@@ -87,8 +80,12 @@ public class ManageCountriesController implements Initializable {
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }
-
-    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageCountriesController(stageManager));
+    
+    public static void show() {
+        ManageCountries controller = new ManageCountries();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            stage.setTitle(rb.getString("manageCountries"));
+        });
     }
 }

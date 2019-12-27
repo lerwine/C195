@@ -1,15 +1,12 @@
-package controller;
+package scene.customer;
 
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 import model.db.CustomerRow;
 import scheduler.InvalidArgumentException;
 
@@ -18,7 +15,7 @@ import scheduler.InvalidArgumentException;
  *
  * @author Leonard T. Erwine
  */
-public class ManageCustomersController implements Initializable {
+public class ManageCustomers implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
@@ -53,11 +50,7 @@ public class ManageCustomersController implements Initializable {
     @FXML
     private TableColumn<CustomerRow, String> lastUpdateByTableColumn;
     
-    private final scheduler.App.StageManager stageManager;
-    
-    public ManageCustomersController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private java.lang.Runnable closeWindow;
     
     /**
      * Initializes the controller class.
@@ -66,10 +59,13 @@ public class ManageCustomersController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        stageManager.setWindowTitle(rb.getString("manageCustomers"));
     }
-
-    public static void setCurrentScene(scheduler.App.StageManager stageManager) throws InvalidArgumentException {
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new ManageCustomersController(stageManager));
+    
+    public static void show() {
+        ManageCustomers controller = new ManageCustomers();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            stage.setTitle(rb.getString("manageCustomers"));
+        });
     }
 }

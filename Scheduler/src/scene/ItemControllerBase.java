@@ -1,4 +1,4 @@
-package controller;
+package scene;
 
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
@@ -87,7 +87,7 @@ public abstract class ItemControllerBase<T extends DataRow> implements Initializ
     public void initialize(URL url, ResourceBundle rb) {
     }
     
-    abstract void saveChangesClick(ActionEvent event);
+    protected abstract void saveChangesClick(ActionEvent event);
     
-    abstract void cancelClick(ActionEvent event);
+    protected abstract void cancelClick(ActionEvent event);
 }

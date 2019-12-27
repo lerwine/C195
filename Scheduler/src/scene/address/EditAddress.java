@@ -1,5 +1,6 @@
-package controller;
+package scene.address;
 
+import scene.ItemControllerBase;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -9,23 +10,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.db.AddressRow;
 import model.db.CityRow;
-import scheduler.InvalidArgumentException;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditAddressController extends ItemControllerBase<AddressRow> {
+public class EditAddress extends ItemControllerBase<AddressRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/editAddress";
+    public static final String RESOURCE_NAME = "scene/address/EditAddress";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/EditAddress.fxml";
+    public static final String VIEW_PATH = "/scene/address/EditAddress.fxml";
 
     @FXML
     private TextField address1TextField;
@@ -48,11 +48,9 @@ public class EditAddressController extends ItemControllerBase<AddressRow> {
     @FXML
     private ComboBox<CityRow> cityComboBox;
     
-    private final scheduler.App.StageManager stageManager;
+    private java.lang.Runnable closeWindow;
     
-    public EditAddressController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private boolean dialogResult = false;
     
     /**
      * Initializes the controller class.
@@ -64,26 +62,33 @@ public class EditAddressController extends ItemControllerBase<AddressRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(scheduler.App.StageManager stageManager, AddressRow model) throws InvalidArgumentException {
-        if (model == null)
-            throw new InvalidArgumentException("model", "Model cannot be null");
-        if (model.getRowState() == AddressRow.ROWSTATE_DELETED)
-            throw new InvalidArgumentException("model", "Model was already deleted");
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditAddressController(stageManager), (ResourceBundle rb, EditAddressController controller) -> {
-            if (controller.setModel(model))
-                stageManager.setWindowTitle(rb.getString("editAddress"));
-            else
-                stageManager.setWindowTitle(rb.getString("addNewAddress"));
+    public static AddressRow addNew() {
+        EditAddress controller = new EditAddress();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(new AddressRow());
+            stage.setTitle(rb.getString("addNewAddress"));
         });
+        return (controller.dialogResult) ? controller.getModel() : null;
+    }
+
+    public static boolean edit(AddressRow row) {
+        EditAddress controller = new EditAddress();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(row);
+            stage.setTitle(rb.getString("editAddress"));
+        });
+        return controller.dialogResult;
     }
 
     @Override
-    void saveChangesClick(ActionEvent event) {
+    protected void saveChangesClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    void cancelClick(ActionEvent event) {
+    protected void cancelClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

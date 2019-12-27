@@ -1,5 +1,6 @@
-    package controller;
+package scene.customer;
 
+import scene.ItemControllerBase;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -18,16 +19,16 @@ import scheduler.InvalidArgumentException;
  *
  * @author Leonard T. Erwine
  */
-public class EditCustomerController extends ItemControllerBase<CustomerRow> {
+public class EditCustomer extends ItemControllerBase<CustomerRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/editCustomer";
+    public static final String RESOURCE_NAME = "scene/customer/EditCustomer";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/EditCustomer.fxml";
+    public static final String VIEW_PATH = "/scene/customer/EditCustomer.fxml";
 
     @FXML
     private Label nameLabel;
@@ -59,11 +60,9 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
     @FXML
     private Label countryLabel;
     
-    private final scheduler.App.StageManager stageManager;
+    private java.lang.Runnable closeWindow;
     
-    public EditCustomerController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private boolean dialogResult = false;
     
     /**
      * Initializes the controller class.
@@ -75,26 +74,33 @@ public class EditCustomerController extends ItemControllerBase<CustomerRow> {
         super.initialize(url, rb);
     }
     
-    public static void setCurrentScene(scheduler.App.StageManager stageManager, CustomerRow model) throws InvalidArgumentException {
-        if (model == null)
-            throw new InvalidArgumentException("model", "Model cannot be null");
-        if (model.getRowState() == CustomerRow.ROWSTATE_DELETED)
-            throw new InvalidArgumentException("model", "Model was already deleted");
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditCustomerController(stageManager), (ResourceBundle rb, EditCustomerController controller) -> {
-            if (controller.setModel(model))
-                stageManager.setWindowTitle(rb.getString("editCustomer"));
-            else
-                stageManager.setWindowTitle(rb.getString("addNewCustomer"));
+    public static CustomerRow addNew() {
+        EditCustomer controller = new EditCustomer();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(new CustomerRow());
+            stage.setTitle(rb.getString("addNewCustomer"));
         });
+        return (controller.dialogResult) ? controller.getModel() : null;
     }
 
+    public static boolean edit(CustomerRow row) {
+        EditCustomer controller = new EditCustomer();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(row);
+            stage.setTitle(rb.getString("editCustomer"));
+        });
+        return controller.dialogResult;
+    }
+    
     @Override
-    void saveChangesClick(ActionEvent event) {
+    protected void saveChangesClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    void cancelClick(ActionEvent event) {
+    protected void cancelClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -1,5 +1,7 @@
-package controller;
+package scene.login;
 
+import java.io.IOException;
+import scene.home.HomeScene;
 import scheduler.util;
 import java.net.URL;
 import java.sql.SQLException;
@@ -7,19 +9,15 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -35,7 +33,7 @@ import scheduler.InvalidOperationException;
  * FXML Controller class for the application login screen.
  * @author webmaster
  */
-public class LoginScreenController implements Initializable {
+public class LoginScene implements Initializable {
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
@@ -44,13 +42,14 @@ public class LoginScreenController implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/loginScreen";
+    public static final String RESOURCE_NAME = "scene/login/LoginScene";
     
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/LoginScreen.fxml";
-//</editor-fold>
+    public static final String VIEW_PATH = "/scene/login/LoginScene.fxml";
+
+    //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
     
@@ -112,15 +111,9 @@ public class LoginScreenController implements Initializable {
     
     private ResourceBundle currentResourceBundle;
     
-    private final scheduler.App.StageManager stageManager;
-    
     //<editor-fold defaultstate="collapsed" desc="Validation Bindings">
     
-    private LanguageValidation languageValid;
-    
-    private UserNameValidation userNameValid;
-    
-    private PasswordValidation passwordValid;
+    private Validation valid;
     
     private boolean successful;
 
@@ -137,8 +130,7 @@ public class LoginScreenController implements Initializable {
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
-    public LoginScreenController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
+    public LoginScene() {
         successful = false;
     }
     
@@ -153,26 +145,10 @@ public class LoginScreenController implements Initializable {
         currentResourceBundle = rb;
         languageComboBox.setItems(scheduler.App.getCurrent().getAllLanguages());
         languageComboBox.getSelectionModel().select(scheduler.App.getCurrent().getCurrentLocale());
-        languageValid = new LanguageValidation();
-        userNameValid = new UserNameValidation();
-        passwordValid = new PasswordValidation();
-        languageValid.and(userNameValid).and(passwordValid).addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue,
-                Boolean newValue) -> {
-            loginButton.setDisable(!newValue);
-        });
-    }
-    
-    /**
-     * Changes the scene of the root stage to the login screen.
-     * @param stageManager
-     */
-    public static void setCurrentScene(scheduler.App.StageManager stageManager) {
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new LoginScreenController(stageManager));
+        valid = new Validation();
     }
     
     //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Event Handlers">
     
     @FXML
     void loginButtonClick(ActionEvent event) {
@@ -180,12 +156,18 @@ public class LoginScreenController implements Initializable {
             // Change to home view if user could be successfully logged in.
             if (App.getCurrent().tryLoginUser(userNameTextField.getText(), passwordTextField.getText())) {
                 successful = true;
-                if (stageManager.isRoot())
-                    HomeScreenController.setCurrentScene(stageManager);
-                else
-                    ((Button)event.getSource()).getScene().getWindow().hide();
-            }
-            else {
+                
+                ResourceBundle rb = ResourceBundle.getBundle(scene.home.HomeScene.RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
+                // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+                FXMLLoader loader = new FXMLLoader(App.class.getResource(scene.home.HomeScene.VIEW_PATH), rb, null);
+                // Set window title
+                scheduler.App.getCurrent().getRootStage().setTitle(rb.getString("appointmentScheduler"));
+                try {
+                    scheduler.App.getCurrent().getRootStage().setScene(new Scene(loader.load()));
+                } catch (IOException ex) {
+                    Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("invalidCredentials"), ButtonType.OK);
                 alert.initStyle(StageStyle.UTILITY);
                 alert.setTitle(currentResourceBundle.getString("loginError"));
@@ -196,156 +178,90 @@ public class LoginScreenController implements Initializable {
             alert.initStyle(StageStyle.UTILITY);
             alert.setTitle(currentResourceBundle.getString("loginError"));
             alert.showAndWait();
-            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
+            Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         } catch (SQLException ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("dbAccessError"), ButtonType.OK);
             alert.initStyle(StageStyle.UTILITY);
             alert.setTitle(currentResourceBundle.getString("loginError"));
             alert.showAndWait();
-            Logger.getLogger(LoginScreenController.class.getName()).log(Level.SEVERE, "Login Exception", ex);
+            Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
     }
 
     @FXML
-    void exitButtonClick(ActionEvent event) { stageManager.getStage().hide(); }
+    void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getRootStage().hide(); }
     
-    //<editor-fold defaultstate="collapsed" desc="Validation Binding Classes">
-    
-    /**
-     * Validates that a language is selected.
-     * Also changes culture-specific text to reflect the language selection change.
-     */
-    private class LanguageValidation extends ReadOnlyBooleanProperty {
-        SimpleBooleanProperty innerProperty = new SimpleBooleanProperty(false);
-        ReadOnlyObjectProperty<Locale> selectedItem;
-        public LanguageValidation() {
-            selectedItem = languageComboBox.getSelectionModel().selectedItemProperty();
-            selectedItem.addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
-                onChange(newValue);
-                userNameValid.refresh();
-                passwordValid.refresh();
+    private class Validation extends BooleanBinding {
+        private final BooleanBinding languageValid;
+        private final BooleanBinding userNameValid;
+        private final BooleanBinding passwordValid;
+        
+        Validation() {
+            languageValid = languageComboBox.valueProperty().isNotNull();
+            userNameValid = util.notNullOrWhiteSpace(userNameTextField.textProperty());
+            passwordValid = util.notNullOrWhiteSpace(passwordTextField.textProperty());
+            super.bind(languageValid, userNameValid, passwordValid);
+            languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
+                selectedLanaguageChanged(newValue);
             });
-            onChange(selectedItem.get());
-        }
-        
-        private void onChange(Locale value) {
-            languageComboBox.getButtonCell().setItem(value);
-            if (value == null)
-                innerProperty.set(false);
-            else {
-                // Change the current application language;
-                App.getCurrent().setCurrentLocale(value);
-                // Load resource bundle for new language
-                currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, value);
-                // Set window title
-                stageManager.setWindowTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
-                // Update field labels and button text.
-                userNameLabel.setText(currentResourceBundle.getString("userName"));
-                passwordLabel.setText(currentResourceBundle.getString("password"));
-                loginButton.setText(currentResourceBundle.getString("login"));
-                exitButton.setText(currentResourceBundle.getString("exit"));
-                innerProperty.set(true);
-            }
-        }
-        
-        @Override
-        public boolean get() { return innerProperty.get(); }
-
-        @Override
-        public void addListener(ChangeListener<? super Boolean> listener) { innerProperty.addListener(listener); }
-
-        @Override
-        public void removeListener(ChangeListener<? super Boolean> listener) { innerProperty.removeListener(listener); }
-
-        @Override
-        public void addListener(InvalidationListener listener) { innerProperty.addListener(listener); }
-
-        @Override
-        public void removeListener(InvalidationListener listener) { innerProperty.removeListener(listener); }
-
-        @Override
-        public Object getBean() { return innerProperty.getBean(); }
-
-        @Override
-        public String getName() { return innerProperty.getName(); }
-    }
-    
-    /**
-     * Validates that the user name is not empty.
-     * Also updates visibility of the corresponding validation label.
-     */
-    private class UserNameValidation extends BooleanBinding {
-        private final StringProperty textProperty;
-        UserNameValidation() {
-            textProperty = userNameTextField.textProperty();
-            super.bind(textProperty);
+            userNameValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                userNameValidationChanged(newValue);
+            });
+            passwordValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                passwordValidationChanged(newValue);
+            });
             super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                onChange(newValue);
+                loginButton.setDisable(!newValue);
             });
+            selectedLanaguageChanged(languageComboBox.getSelectionModel().getSelectedItem());
+            userNameValidationChanged(userNameValid.get());
+            passwordValidationChanged(passwordValid.get());
+            loginButton.setDisable(!get());
         }
-        
-        void refresh() { onChange(get()); }
-        
-        private void onChange(boolean value) {
-            if (value)
-                util.collapseLabeledVertical(userNameValidationLabel);
+
+        private void passwordValidationChanged(Boolean newValue) {
+            if (newValue)
+                util.collapseControlVertical(passwordValidationLabel);
             else
-                util.restoreLabeledVertical(userNameValidationLabel, currentResourceBundle.getString("emptyUserName"));
+                util.restoreControlVertical(passwordValidationLabel);
         }
-        
+
+        private void userNameValidationChanged(Boolean newValue) {
+            if (newValue)
+                util.collapseControlVertical(userNameValidationLabel);
+            else
+                util.restoreControlVertical(userNameValidationLabel);
+        }
+
+        private void selectedLanaguageChanged(Locale newValue) {
+            languageComboBox.getButtonCell().setItem(newValue);
+            if (newValue == null)
+                return;
+            // Change the current application language;
+            App.getCurrent().setCurrentLocale(newValue);
+            // Load resource bundle for new language
+            currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, newValue);
+            // Set window title
+            scheduler.App.getCurrent().getRootStage().setTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
+            // Update field labels and button text.
+            userNameLabel.setText(currentResourceBundle.getString("userName"));
+            passwordLabel.setText(currentResourceBundle.getString("password"));
+            loginButton.setText(currentResourceBundle.getString("login"));
+            exitButton.setText(currentResourceBundle.getString("exit"));
+        }
+
         @Override
         protected boolean computeValue() {
-            String value = textProperty.get();
-            return value != null && !value.trim().isEmpty();
+            boolean l = languageValid.get();
+            boolean u = userNameValid.get();
+            return passwordValid.get() && u && l;
         }
 
         @Override
-        public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(textProperty); }
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(languageValid, userNameValid, passwordValid); }
 
         @Override
-        public void dispose() { super.unbind(textProperty); }
+        public void dispose() { super.unbind(languageValid, userNameValid, passwordValid); }
     }
     
-    /**
-     * Validates that the password is not empty.
-     * Also updates visibility of the corresponding validation label.
-     */
-    private class PasswordValidation extends BooleanBinding {
-        private final StringProperty textProperty;
-        PasswordValidation() {
-            textProperty = passwordTextField.textProperty();
-            super.bind(textProperty);
-            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                if (newValue)
-                    util.collapseLabeledVertical(passwordValidationLabel);
-                else
-                    util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyPassword"));
-            });
-        }
-        
-        void refresh() { onChange(get()); }
-        
-        private void onChange(boolean value) {
-            if (value)
-                util.collapseLabeledVertical(passwordValidationLabel);
-            else
-                util.restoreLabeledVertical(passwordValidationLabel, currentResourceBundle.getString("emptyUserName"));
-        }
-        
-        @Override
-        protected boolean computeValue() {
-            String value = textProperty.get();
-            return value != null && !value.trim().isEmpty();
-        }
-
-        @Override
-        public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(textProperty); }
-
-        @Override
-        public void dispose() { super.unbind(textProperty); }
-    }
-    
-    //</editor-fold>
-    
-    //</editor-fold>
 }

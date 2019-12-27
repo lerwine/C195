@@ -1,5 +1,6 @@
-package controller;
+package scene.user;
 
+import scene.ItemControllerBase;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -15,7 +16,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import model.db.DataRow;
 import model.db.UserRow;
@@ -26,17 +26,17 @@ import scheduler.InvalidArgumentException;
  *
  * @author Leonard T. Erwine
  */
-public class EditUserController extends ItemControllerBase<UserRow> {
+public class EditUser extends ItemControllerBase<UserRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "globalization/editUser";
+    public static final String RESOURCE_NAME = "scene/user/EditUser";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/view/EditUser.fxml";
-    
+    public static final String VIEW_PATH = "/scene/user/EditUser.fxml";
+
     @FXML
     private VBox outerPane;
 
@@ -66,11 +66,9 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     
     private ObservableList<Short> userActiveStateOptions;
     
-    private final scheduler.App.StageManager stageManager;
+    private java.lang.Runnable closeWindow;
     
-    public EditUserController(scheduler.App.StageManager stageManager) {
-        this.stageManager = stageManager;
-    }
+    private boolean dialogResult = false;
     
     /**
      * Initializes the controller class.
@@ -100,38 +98,39 @@ public class EditUserController extends ItemControllerBase<UserRow> {
             }
         });
         activeComboBox.setItems(userActiveStateOptions);
-    }    
-
-    public static void setCurrentScene(scheduler.App.StageManager stageManager, UserRow model) throws InvalidArgumentException {
-        if (model == null)
-            throw new InvalidArgumentException("model", "Model cannot be null");
-        if (model.getRowState() == UserRow.ROWSTATE_DELETED)
-            throw new InvalidArgumentException("model", "Model was already deleted");
-        stageManager.setSceneWithControllerFactory(VIEW_PATH, RESOURCE_NAME, (Class<?> c) -> new EditUserController(stageManager), (ResourceBundle rb, EditUserController controller) -> {
-            String s = model.getUserName();
-            if (s == null)
-                s = "";
-            if (controller.setModel(model)) {
-                stageManager.setWindowTitle(String.format(rb.getString("editUser"), s));
-                controller.changePasswordCheckBox.setText(String.format(rb.getString("changePassword"), s));
-                controller.changePasswordCheckBox.setDisable(false);
-                controller.changePasswordCheckBox.setSelected(false);
-                controller.confirmLabel.setVisible(false);
-                controller.confirmTextField.setVisible(false);
-                controller.passwordTextField.setVisible(false);
-                controller.passwordErrorMessage.setVisible(false);
-            } else {
-                stageManager.setWindowTitle(rb.getString("addNewUser"));
-                controller.changePasswordCheckBox.setText(String.format(rb.getString("password"), s));
-                controller.changePasswordCheckBox.setSelected(true);
-                controller.changePasswordCheckBox.setDisable(true);
-                controller.passwordTextField.setVisible(true);
-                controller.confirmLabel.setVisible(true);
-                controller.confirmTextField.setVisible(true);
-            }
-            controller.userNameTextField.setText(s);
-            controller.validateUserName();
+    }
+    
+    public static UserRow addNew() {
+        EditUser controller = new EditUser();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(new UserRow());
+            stage.setTitle(rb.getString("addNewUser"));
+            controller.changePasswordCheckBox.setText(rb.getString("password"));
+            controller.changePasswordCheckBox.setSelected(true);
+            controller.changePasswordCheckBox.setDisable(true);
+            controller.passwordTextField.setVisible(true);
+            controller.confirmLabel.setVisible(true);
+            controller.confirmTextField.setVisible(true);
         });
+        return (controller.dialogResult) ? controller.getModel() : null;
+    }
+
+    public static boolean edit(UserRow row) {
+        EditUser controller = new EditUser();
+        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+            controller.closeWindow = () -> stage.hide();
+            controller.setModel(row);
+            stage.setTitle(String.format(rb.getString("editUser"), row.getUserName()));
+            controller.changePasswordCheckBox.setDisable(false);
+            controller.changePasswordCheckBox.setSelected(false);
+            controller.confirmLabel.setVisible(false);
+            controller.confirmTextField.setVisible(false);
+            controller.passwordTextField.setVisible(false);
+            controller.passwordErrorMessage.setVisible(false);
+            controller.userNameTextField.setText(row.getUserName());
+        });
+        return controller.dialogResult;
     }
 
     @FXML
@@ -223,12 +222,12 @@ public class EditUserController extends ItemControllerBase<UserRow> {
     }
     
     @Override
-    void saveChangesClick(ActionEvent event) {
+    protected void saveChangesClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    void cancelClick(ActionEvent event) {
+    protected void cancelClick(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

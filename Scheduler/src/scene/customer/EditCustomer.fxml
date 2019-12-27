@@ -7,8 +7,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@defaultStyles.css"
-      fx:controller="controller.EditCustomerController"
+<VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css"
+      fx:controller="scene.customer.EditCustomer"
       xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       
