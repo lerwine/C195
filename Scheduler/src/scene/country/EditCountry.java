@@ -18,12 +18,12 @@ public class EditCountry extends ItemControllerBase<CountryRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/country/EditCountry";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/country/EditCountry";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/country/EditCountry.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/country/EditCountry.fxml";
 
     private String name;
     
@@ -52,7 +52,7 @@ public class EditCountry extends ItemControllerBase<CountryRow> {
     
     public static CountryRow addNew() {
         EditCountry controller = new EditCountry();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(new CountryRow());
             stage.setTitle(rb.getString("addNewCountry"));
@@ -62,7 +62,7 @@ public class EditCountry extends ItemControllerBase<CountryRow> {
 
     public static boolean edit(CountryRow row) {
         EditCountry controller = new EditCountry();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(row);
             stage.setTitle(rb.getString("editCountry"));

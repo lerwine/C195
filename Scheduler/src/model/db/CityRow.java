@@ -113,14 +113,14 @@ public class CityRow extends DataRow implements model.City {
         super();
         name = new NonNullableStringProperty();
         country = new SimpleObjectProperty<>();
-        countryId = scheduler.util.primaryKeyBinding(country);
+        countryId = scheduler.Util.primaryKeyBinding(country);
     }
     
     public CityRow(String name, CountryRow country) {
         super();
         this.name = new NonNullableStringProperty(name);
         this.country = new SimpleObjectProperty<>(country);
-        countryId = scheduler.util.primaryKeyBinding(this.country);
+        countryId = scheduler.Util.primaryKeyBinding(this.country);
     }
     
     public CityRow (ResultSet rs) throws SQLException {
@@ -129,7 +129,7 @@ public class CityRow extends DataRow implements model.City {
         if (rs.wasNull())
             name.set("");
         country = new SimpleObjectProperty<>(new Country(rs.getInt(PROP_COUNTRYID), rs.getString(CountryRow.COLNAME_COUNTRY)));
-        countryId = scheduler.util.primaryKeyBinding(country);
+        countryId = scheduler.Util.primaryKeyBinding(country);
     }
     
     //</editor-fold>

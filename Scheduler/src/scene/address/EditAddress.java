@@ -20,12 +20,12 @@ public class EditAddress extends ItemControllerBase<AddressRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/address/EditAddress";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/address/EditAddress";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/address/EditAddress.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/address/EditAddress.fxml";
 
     @FXML
     private TextField address1TextField;
@@ -64,7 +64,7 @@ public class EditAddress extends ItemControllerBase<AddressRow> {
     
     public static AddressRow addNew() {
         EditAddress controller = new EditAddress();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(new AddressRow());
             stage.setTitle(rb.getString("addNewAddress"));
@@ -74,7 +74,7 @@ public class EditAddress extends ItemControllerBase<AddressRow> {
 
     public static boolean edit(AddressRow row) {
         EditAddress controller = new EditAddress();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(row);
             stage.setTitle(rb.getString("editAddress"));

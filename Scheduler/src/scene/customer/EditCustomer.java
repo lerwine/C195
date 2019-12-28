@@ -23,12 +23,12 @@ public class EditCustomer extends ItemControllerBase<CustomerRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/customer/EditCustomer";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/customer/EditCustomer";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/customer/EditCustomer.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/customer/EditCustomer.fxml";
 
     @FXML
     private Label nameLabel;
@@ -76,7 +76,7 @@ public class EditCustomer extends ItemControllerBase<CustomerRow> {
     
     public static CustomerRow addNew() {
         EditCustomer controller = new EditCustomer();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(new CustomerRow());
             stage.setTitle(rb.getString("addNewCustomer"));
@@ -86,7 +86,7 @@ public class EditCustomer extends ItemControllerBase<CustomerRow> {
 
     public static boolean edit(CustomerRow row) {
         EditCustomer controller = new EditCustomer();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(row);
             stage.setTitle(rb.getString("editCustomer"));

@@ -70,7 +70,7 @@ public class CountryRow extends DataRow implements model.Country {
     
     public CountryRow (ResultSet rs) throws SQLException {
         super(rs);
-        name = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, COLNAME_COUNTRY, ""));
+        name = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, COLNAME_COUNTRY, ""));
     }
     
     //</editor-fold>

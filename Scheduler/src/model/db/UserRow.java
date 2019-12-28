@@ -177,10 +177,10 @@ public class UserRow extends DataRow implements model.User {
     
     private UserRow(ResultSet rs) throws SQLException {
         super(rs);
-        passwordHash = new ReadOnlyObjectWrapper<>(new PwHash(scheduler.util.resultStringOrDefault(rs, PROP_PASSWORD, ""), false));
-        userName = new ReadOnlyStringWrapper(scheduler.util.resultStringOrDefault(rs, PROP_USERNAME, ""));
+        passwordHash = new ReadOnlyObjectWrapper<>(new PwHash(scheduler.Util.resultStringOrDefault(rs, PROP_PASSWORD, ""), false));
+        userName = new ReadOnlyStringWrapper(scheduler.Util.resultStringOrDefault(rs, PROP_USERNAME, ""));
         password = new NonNullableStringProperty();
-        active = new ActiveStateProperty(scheduler.util.resultShortOrDefault(rs, PROP_ACTIVE, STATE_INACTIVE));
+        active = new ActiveStateProperty(scheduler.Util.resultShortOrDefault(rs, PROP_ACTIVE, STATE_INACTIVE));
         passwordChangeManager = new PasswordChangeManager();
     }
     

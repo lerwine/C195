@@ -188,7 +188,7 @@ public class AddressRow extends DataRow implements model.Address {
         address1 = new NonNullableStringProperty();
         address2 = new NonNullableStringProperty();
         city = new SimpleObjectProperty<>();
-        cityId = scheduler.util.primaryKeyBinding(city);
+        cityId = scheduler.Util.primaryKeyBinding(city);
         postalCode = new NonNullableStringProperty();
         phone = new NonNullableStringProperty();
     }
@@ -198,20 +198,20 @@ public class AddressRow extends DataRow implements model.Address {
         this.address1 = new NonNullableStringProperty(address1);
         this.address2 = new NonNullableStringProperty(address2);
         this.city = new SimpleObjectProperty<>(city);
-        cityId = scheduler.util.primaryKeyBinding(this.city);
+        cityId = scheduler.Util.primaryKeyBinding(this.city);
         this.postalCode = new NonNullableStringProperty(postalCode);
         this.phone = new NonNullableStringProperty(phone);
     }
     
     public AddressRow(ResultSet rs) throws SQLException {
         super(rs);
-        address1 = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, COLNAME_ADDRESS, ""));
-        address2 = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_ADDRESS2, ""));
+        address1 = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, COLNAME_ADDRESS, ""));
+        address2 = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_ADDRESS2, ""));
         city = new SimpleObjectProperty<>(new City(rs.getInt(PROP_CITYID), rs.getString(PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))));
-        cityId = scheduler.util.primaryKeyBinding(this.city);
-        postalCode = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_POSTALCODE, ""));
-        phone = new NonNullableStringProperty(scheduler.util.resultStringOrDefault(rs, PROP_PHONE, ""));
+        cityId = scheduler.Util.primaryKeyBinding(this.city);
+        postalCode = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_POSTALCODE, ""));
+        phone = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_PHONE, ""));
     }
     
     //</editor-fold>

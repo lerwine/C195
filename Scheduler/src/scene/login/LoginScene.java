@@ -1,8 +1,5 @@
 package scene.login;
 
-import java.io.IOException;
-import scene.home.HomeScene;
-import scheduler.util;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.Locale;
@@ -15,18 +12,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.stage.StageStyle;
-import scheduler.App;
+import javafx.stage.Stage;
 import scheduler.InvalidOperationException;
 
 /**
@@ -42,12 +34,12 @@ public class LoginScene implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/login/LoginScene";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/login/LoginScene";
     
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/login/LoginScene.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/login/LoginScene.fxml";
 
     //</editor-fold>
     
@@ -115,24 +107,11 @@ public class LoginScene implements Initializable {
     
     private Validation valid;
     
-    private boolean successful;
-
-    /**
-     * Get the value of successful
-     *
-     * @return the value of successful
-     */
-    public boolean isSuccessful() { return successful; }
-
     //</editor-fold>
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
-    
-    public LoginScene() {
-        successful = false;
-    }
     
     /**
      * Initializes the controller class.
@@ -141,7 +120,6 @@ public class LoginScene implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        successful = false;
         currentResourceBundle = rb;
         languageComboBox.setItems(scheduler.App.getCurrent().getAllLanguages());
         languageComboBox.getSelectionModel().select(scheduler.App.getCurrent().getCurrentLocale());
@@ -153,43 +131,29 @@ public class LoginScene implements Initializable {
     @FXML
     void loginButtonClick(ActionEvent event) {
         try {
+            scheduler.App app = scheduler.App.getCurrent();
             // Change to home view if user could be successfully logged in.
-            if (App.getCurrent().tryLoginUser(userNameTextField.getText(), passwordTextField.getText())) {
-                successful = true;
-                
-                ResourceBundle rb = ResourceBundle.getBundle(scene.home.HomeScene.RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
-                // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-                FXMLLoader loader = new FXMLLoader(App.class.getResource(scene.home.HomeScene.VIEW_PATH), rb, null);
-                // Set window title
-                scheduler.App.getCurrent().getRootStage().setTitle(rb.getString("appointmentScheduler"));
-                try {
-                    scheduler.App.getCurrent().getRootStage().setScene(new Scene(loader.load()));
-                } catch (IOException ex) {
-                    Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("invalidCredentials"), ButtonType.OK);
-                alert.initStyle(StageStyle.UTILITY);
-                alert.setTitle(currentResourceBundle.getString("loginError"));
-                alert.showAndWait();
-            }
+            if (app.tryLoginUser(userNameTextField.getText(), passwordTextField.getText())) {
+                app.changeRootStageScene(scene.home.HomeScene.GLOBALIZATION_RESOURCE_NAME, scene.home.HomeScene.FXML_RESOURCE_NAME, (ResourceBundle rb, Stage stage) -> {
+                    stage.setTitle(rb.getString("appointmentScheduler"));
+                });
+            } else
+                scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("invalidCredentials"));
         } catch (InvalidOperationException ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("validationError"), ButtonType.OK);
-            alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle(currentResourceBundle.getString("loginError"));
-            alert.showAndWait();
+            scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("validationError"));
             Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         } catch (SQLException ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, currentResourceBundle.getString("dbAccessError"), ButtonType.OK);
-            alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle(currentResourceBundle.getString("loginError"));
-            alert.showAndWait();
+            scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("dbAccessError"));
             Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
     }
 
     @FXML
     void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getRootStage().hide(); }
+    
+    public static void setAsRootStageScene() {
+        scheduler.App.getCurrent().changeRootStageScene(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME);
+    }
     
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
@@ -198,8 +162,8 @@ public class LoginScene implements Initializable {
         
         Validation() {
             languageValid = languageComboBox.valueProperty().isNotNull();
-            userNameValid = util.notNullOrWhiteSpace(userNameTextField.textProperty());
-            passwordValid = util.notNullOrWhiteSpace(passwordTextField.textProperty());
+            userNameValid = scheduler.Util.notNullOrWhiteSpace(userNameTextField.textProperty());
+            passwordValid = scheduler.Util.notNullOrWhiteSpace(passwordTextField.textProperty());
             super.bind(languageValid, userNameValid, passwordValid);
             languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
                 selectedLanaguageChanged(newValue);
@@ -221,28 +185,29 @@ public class LoginScene implements Initializable {
 
         private void passwordValidationChanged(Boolean newValue) {
             if (newValue)
-                util.collapseControlVertical(passwordValidationLabel);
+                scheduler.Util.collapseControlVertical(passwordValidationLabel);
             else
-                util.restoreControlVertical(passwordValidationLabel);
+                scheduler.Util.restoreControlVertical(passwordValidationLabel);
         }
 
         private void userNameValidationChanged(Boolean newValue) {
             if (newValue)
-                util.collapseControlVertical(userNameValidationLabel);
+                scheduler.Util.collapseControlVertical(userNameValidationLabel);
             else
-                util.restoreControlVertical(userNameValidationLabel);
+                scheduler.Util.restoreControlVertical(userNameValidationLabel);
         }
 
         private void selectedLanaguageChanged(Locale newValue) {
             languageComboBox.getButtonCell().setItem(newValue);
             if (newValue == null)
                 return;
+            scheduler.App app = scheduler.App.getCurrent();
             // Change the current application language;
-            App.getCurrent().setCurrentLocale(newValue);
+            app.setCurrentLocale(newValue);
             // Load resource bundle for new language
-            currentResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, newValue);
+            currentResourceBundle = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, newValue);
             // Set window title
-            scheduler.App.getCurrent().getRootStage().setTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
+            app.getRootStage().setTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
             // Update field labels and button text.
             userNameLabel.setText(currentResourceBundle.getString("userName"));
             passwordLabel.setText(currentResourceBundle.getString("password"));

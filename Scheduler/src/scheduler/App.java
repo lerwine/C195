@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -19,6 +20,7 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.db.UserRow;
@@ -100,15 +102,9 @@ public class App extends Application {
         
         setCurrentLocale(toSelect);
         
-        ResourceBundle rb = ResourceBundle.getBundle(scene.login.LoginScene.RESOURCE_NAME, getCurrentLocale());
-        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(scene.login.LoginScene.VIEW_PATH), rb, null);
+        scene.login.LoginScene.setAsRootStageScene();
         
-        try {
-            stage.setScene(new Scene(loader.load()));
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
+        stage.show();
     }
     
     @Override
@@ -135,7 +131,7 @@ public class App extends Application {
     /**
      * The name of the general application globalization resource bundle.
      */
-    public static final String RESOURCE_NAME = "scheduler/App";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scheduler/App";
     
     private ResourceBundle appResourceBundle;
     
@@ -192,7 +188,7 @@ public class App extends Application {
         Locale.setDefault(Locale.Category.FORMAT, locale);
         // Save the new locale.
         currentLocale = locale;
-        appResourceBundle = ResourceBundle.getBundle(RESOURCE_NAME, locale);
+        appResourceBundle = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, locale);
         fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
         fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
         shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
@@ -272,6 +268,88 @@ public class App extends Application {
         } else
             logger.log(Level.WARNING, "No matching userName found");
         return false;
+    }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Scene change methods">
+    
+    public void changeRootStageScene(String resourceBundleName, String fxmlPath) {
+        changeRootStageScene(resourceBundleName, fxmlPath, null);
+    }
+    
+    public void changeRootStageScene(String resourceBundleName, String fxmlPath, BiConsumer<ResourceBundle, Stage> beforeChangeScene) {
+        ResourceBundle rb = ResourceBundle.getBundle(resourceBundleName, currentLocale);
+        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxmlPath), rb);
+        try {
+            Scene scene = new Scene(loader.load());
+            if (beforeChangeScene != null)
+                beforeChangeScene.accept(rb, rootStage);
+            rootStage.setScene(scene);
+        } catch (IOException ex) {
+            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public <C> void changeRootStageScene(String resourceBundleName, String fxmlPath, C controller) {
+        changeRootStageScene(resourceBundleName, fxmlPath, controller, null);
+    }
+    
+    public <C> void changeRootStageScene(String resourceBundleName, String fxmlPath, C controller, BiConsumer<ResourceBundle, Stage> beforeChangeScene) {
+        ResourceBundle rb = ResourceBundle.getBundle(resourceBundleName, currentLocale);
+        // Create new FXML loader with the resource path URL of the new fxml page and the resource bundle for the current language.
+        FXMLLoader loader = new FXMLLoader(controller.getClass().getResource(fxmlPath), rb);
+        loader.setController(controller);
+        try {
+            Scene scene = new Scene(loader.load());
+            if (beforeChangeScene != null)
+                beforeChangeScene.accept(rb, rootStage);
+            rootStage.setScene(scene);
+        } catch (IOException ex) {
+            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void showAndWait(String resourceBundleName, String fxmlPath, double width, double height) {
+        showAndWait(resourceBundleName, fxmlPath, width, height, null);
+    }
+    
+    public static void showAndWait(String resourceBundleName, String fxmlPath, double width, double height, BiConsumer<ResourceBundle, Stage> beforeShow) {
+        Parent root;
+        try {
+            ResourceBundle rb = ResourceBundle.getBundle(resourceBundleName, scheduler.App.getCurrent().getCurrentLocale());
+            FXMLLoader loader = new FXMLLoader(Util.class.getResource(fxmlPath), rb);
+            root = loader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root, width, height));
+            if (beforeShow != null)
+                beforeShow.accept(rb, stage);
+            stage.showAndWait();
+        } catch (IOException ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static <C> void showAndWait(String resourceBundleName, String fxmlPath, C controller, double width, double height) {
+        showAndWait(resourceBundleName, fxmlPath, controller, width, height, null);
+    }
+    
+    public static <C> void showAndWait(String resourceBundleName, String fxmlPath, C controller, double width, double height, BiConsumer<ResourceBundle, Stage> beforeShow) {
+        Parent root;
+        try {
+            ResourceBundle rb = ResourceBundle.getBundle(resourceBundleName, scheduler.App.getCurrent().getCurrentLocale());
+            FXMLLoader loader = new FXMLLoader(controller.getClass().getResource(fxmlPath), rb);
+            loader.setController(controller);
+            root = loader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root, width, height));
+            if (beforeShow != null)
+                beforeShow.accept(rb, stage);
+            stage.showAndWait();
+        } catch (IOException ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     //</editor-fold>

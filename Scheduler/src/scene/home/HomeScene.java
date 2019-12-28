@@ -27,8 +27,8 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.stage.Stage;
 import model.db.AppointmentRow;
-import scheduler.App;
 import scheduler.SqlConnectionDependency;
 
 /**
@@ -39,12 +39,12 @@ public class HomeScene implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/home/HomeScene";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/home/HomeScene";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/home/HomeScene.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/home/HomeScene.fxml";
 
     @FXML
     private Menu appointmentsMenu;
@@ -155,16 +155,13 @@ public class HomeScene implements Initializable {
     }
     
     @FXML
-    void allAppointmentsMenuItemClick(ActionEvent event) {
-        ManageAppointments.show();
-        reloadCurrentAndFutureAppointments();
-    }
+    void allAppointmentsMenuItemClick(ActionEvent event) { ManageAppointments.setAsRootStageScene(); }
     
     @FXML
     void newCustomerMenuItemClick(ActionEvent event) { EditCustomer.addNew(); }
     
     @FXML
-    void allCustomersMenuItemClick(ActionEvent event) { ManageCustomers.show(); }
+    void allCustomersMenuItemClick(ActionEvent event) { ManageCustomers.setAsRootStageScene(); }
     
     @FXML
     void newCountryMenuItemClick(ActionEvent event) { EditCountry.addNew(); }
@@ -176,14 +173,20 @@ public class HomeScene implements Initializable {
     void newAddressMenuItemClick(ActionEvent event) { EditAddress.addNew(); }
     
     @FXML
-    void allCountriesMenuItemClick(ActionEvent event) { ManageCountries.show(); }
+    void allCountriesMenuItemClick(ActionEvent event) { ManageCountries.setAsRootStageScene(); }
     
     @FXML
     void newUserMenuItemClick(ActionEvent event) { EditUser.addNew(); }
     
     @FXML
-    void allUsersMenuItemClick(ActionEvent event) { ManageUsers.show(); }
+    void allUsersMenuItemClick(ActionEvent event) { ManageUsers.setAsRootStageScene(); }
     
     @FXML
-    void exitButtonClick(ActionEvent event) { App.getCurrent().getRootStage().hide(); }
+    void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getRootStage().hide(); }
+    
+    public static void setAsRootStageScene() {
+        scheduler.App.getCurrent().changeRootStageScene(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, (ResourceBundle rb, Stage stage) -> {
+            stage.setTitle(rb.getString("appointmentScheduler"));
+        });
+    }
 }

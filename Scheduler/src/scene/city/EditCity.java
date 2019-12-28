@@ -22,12 +22,12 @@ public class EditCity extends ItemControllerBase<CityRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/city/EditCity";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/city/EditCity";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/city/EditCity.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/city/EditCity.fxml";
 
     private int countryId;
     
@@ -62,7 +62,7 @@ public class EditCity extends ItemControllerBase<CityRow> {
     
     public static CityRow addNew() {
         EditCity controller = new EditCity();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(new CityRow());
             stage.setTitle(rb.getString("addNewCity"));
@@ -72,7 +72,7 @@ public class EditCity extends ItemControllerBase<CityRow> {
 
     public static boolean edit(CityRow row) {
         EditCity controller = new EditCity();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(row);
             stage.setTitle(rb.getString("editCity"));

@@ -9,6 +9,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 import model.db.CountryRow;
 
 /**
@@ -20,12 +21,12 @@ public class ManageCountries implements Initializable {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "/scene/country/ManageCountries";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "/scene/country/ManageCountries";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/country/ManageCountries.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/country/ManageCountries.fxml";
 
     @FXML
     private TableView<CountryRow> countriesTableView;
@@ -81,10 +82,8 @@ public class ManageCountries implements Initializable {
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }
     
-    public static void show() {
-        ManageCountries controller = new ManageCountries();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+    public static void setAsRootStageScene() {
+        scheduler.App.getCurrent().changeRootStageScene(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, (ResourceBundle rb, Stage stage) -> {
             stage.setTitle(rb.getString("manageCountries"));
         });
     }

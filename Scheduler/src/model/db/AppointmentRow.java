@@ -273,9 +273,9 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     public AppointmentRow() {
         super();
         customer = new SimpleObjectProperty<>();
-        customerId = scheduler.util.primaryKeyBinding(this.customer);
+        customerId = scheduler.Util.primaryKeyBinding(this.customer);
         user = new SimpleObjectProperty<>();
-        userId = scheduler.util.primaryKeyBinding(this.user);
+        userId = scheduler.Util.primaryKeyBinding(this.user);
         title = new NonNullableStringProperty();
         description = new NonNullableStringProperty();
         location = new NonNullableStringProperty();
@@ -290,9 +290,9 @@ public class AppointmentRow extends DataRow implements model.Appointment {
             String type, String url, LocalDateTime start, LocalDateTime end) {
         super();
         this.customer = new SimpleObjectProperty<>(customer);
-        customerId = scheduler.util.primaryKeyBinding(this.customer);
+        customerId = scheduler.Util.primaryKeyBinding(this.customer);
         this.user = new SimpleObjectProperty<>(user);
-        userId = scheduler.util.primaryKeyBinding(this.user);
+        userId = scheduler.Util.primaryKeyBinding(this.user);
         this.title = new NonNullableStringProperty(title);
         this.description = new NonNullableStringProperty(description);
         this.location = new NonNullableStringProperty(location);
@@ -311,9 +311,9 @@ public class AppointmentRow extends DataRow implements model.Appointment {
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)),
                 rs.getBoolean(CustomerRow.PROP_ACTIVE)));
-        customerId = scheduler.util.primaryKeyBinding(this.customer);
+        customerId = scheduler.Util.primaryKeyBinding(this.customer);
         user = new SimpleObjectProperty<>(new User(rs.getInt(PROP_USERID), rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE)));
-        userId = scheduler.util.primaryKeyBinding(this.user);
+        userId = scheduler.Util.primaryKeyBinding(this.user);
         title = new NonNullableStringProperty(rs.getString(PROP_TITLE));
         if (rs.wasNull())
             title.setValue("");

@@ -5,16 +5,11 @@
  */
 package scheduler;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ResourceBundle;
-import java.util.function.BiConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -24,18 +19,17 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Control;
 import javafx.scene.control.Labeled;
-import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-public class util {
+public class Util {
     public static void collapseLabeledVertical(Labeled labeled) {
         labeled.setText("");
         collapseControlVertical(labeled);
@@ -247,20 +241,10 @@ public class util {
         return (rs.wasNull()) ? defaultValue : result;
     }
     
-    public static <C> void showAndWait(C controller, String resourceBundleName, String fxmlPath, double width, double height, BiConsumer<ResourceBundle, Stage> beforeShow) {
-        Parent root;
-        try {
-            ResourceBundle rb = ResourceBundle.getBundle(resourceBundleName, scheduler.App.getCurrent().getCurrentLocale());
-            FXMLLoader loader = new FXMLLoader(controller.getClass().getResource(fxmlPath), rb);
-            loader.setController(controller);
-            root = loader.load();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root, width, height));
-            if (beforeShow != null)
-                beforeShow.accept(rb, stage);
-            stage.showAndWait();
-        } catch (IOException ex) {
-            Logger.getLogger(util.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public static void showErrorAlert(String title, String contentText) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, contentText, ButtonType.OK);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.setTitle(title);
+        alert.showAndWait();
     }
 }

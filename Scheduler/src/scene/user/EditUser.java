@@ -19,7 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.StageStyle;
 import model.db.DataRow;
 import model.db.UserRow;
-import scheduler.InvalidArgumentException;
 
 /**
  * FXML Controller class
@@ -30,12 +29,12 @@ public class EditUser extends ItemControllerBase<UserRow> {
     /**
      * The name of the globalization resource bundle for this controller.
      */
-    public static final String RESOURCE_NAME = "scene/user/EditUser";
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/user/EditUser";
 
     /**
      * The path of the View associated with this controller.
      */
-    public static final String VIEW_PATH = "/scene/user/EditUser.fxml";
+    public static final String FXML_RESOURCE_NAME = "/scene/user/EditUser.fxml";
 
     @FXML
     private VBox outerPane;
@@ -83,7 +82,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
             @Override
             protected void updateItem(Short a, boolean bln) {
                 super.updateItem(a, bln);
-                ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
+                ResourceBundle rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
                 switch (a) {
                     case 1:
                         setText(rb.getString("normalUser"));
@@ -102,7 +101,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
     
     public static UserRow addNew() {
         EditUser controller = new EditUser();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(new UserRow());
             stage.setTitle(rb.getString("addNewUser"));
@@ -118,7 +117,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
 
     public static boolean edit(UserRow row) {
         EditUser controller = new EditUser();
-        scheduler.util.showAndWait(controller, RESOURCE_NAME, VIEW_PATH, 640, 480, (rb, stage) -> {
+        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
             controller.closeWindow = () -> stage.hide();
             controller.setModel(row);
             stage.setTitle(String.format(rb.getString("editUser"), row.getUserName()));
@@ -141,7 +140,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
         ResourceBundle rb;
         if (validateUserName()) {
             if (!validatePassword()) {
-                rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
+                rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
                 Alert alert = new Alert(Alert.AlertType.ERROR,
                         String.format(rb.getString("fieldValidationFailed"), rb.getString("password")),
                         ButtonType.OK);
@@ -151,7 +150,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
                 return;
             }
         } else {
-            rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
+            rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     String.format(rb.getString("fieldValidationFailed"), rb.getString("userName")),
                     ButtonType.OK);
@@ -188,7 +187,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
     private boolean validateUserName() {
         String s = userNameTextField.getText();
         if (s.trim().isEmpty())
-            userNameErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
+            userNameErrorMessage.setText(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
                     .getString("userNameCannotBeEmpty"));
         else {
             throw new RuntimeException("Method not impelmented");
@@ -203,10 +202,10 @@ public class EditUser extends ItemControllerBase<UserRow> {
             passwordErrorMessage.setVisible(false);
             return true;
         }
-            ResourceBundle rb = ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
+            ResourceBundle rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
         String s = passwordTextField.getText();
         if (s.trim().isEmpty())
-            passwordErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
+            passwordErrorMessage.setText(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
                     .getString("passwordCannotBeEmpty"));
         else {
             if (confirmTextField.getText().equals(s)) {
@@ -214,7 +213,7 @@ public class EditUser extends ItemControllerBase<UserRow> {
                 passwordErrorMessage.setVisible(false);
                 return true;
             }
-            passwordErrorMessage.setText(ResourceBundle.getBundle(RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
+            passwordErrorMessage.setText(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
                     .getString("passwordMismatch"));
         }
         passwordErrorMessage.setVisible(true);
