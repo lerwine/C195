@@ -12,36 +12,24 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
+import scene.annotations.FXMLResource;
+import scene.annotations.GlobalizationResource;
 import scheduler.InvalidOperationException;
 
 /**
  * FXML Controller class for the application login screen.
  * @author webmaster
  */
-public class LoginScene implements Initializable {
+@GlobalizationResource("scene/login/LoginScene")
+@FXMLResource("/scene/login/LoginScene.fxml")
+public class LoginScene extends scene.Controller {
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
-    
-    //<editor-fold defaultstate="collapsed" desc="Constants">
-    
-    /**
-     * The name of the globalization resource bundle for this controller.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/login/LoginScene";
-    
-    /**
-     * The path of the View associated with this controller.
-     */
-    public static final String FXML_RESOURCE_NAME = "/scene/login/LoginScene.fxml";
-
-    //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
     
@@ -79,7 +67,7 @@ public class LoginScene implements Initializable {
      * The {@link PasswordField} where the user provides the password.
      */
     @FXML
-    private PasswordField passwordTextField;
+    private PasswordField passwordField;
     
     /**
      * The {@link Label} for the Password validation message.
@@ -133,11 +121,9 @@ public class LoginScene implements Initializable {
         try {
             scheduler.App app = scheduler.App.getCurrent();
             // Change to home view if user could be successfully logged in.
-            if (app.tryLoginUser(userNameTextField.getText(), passwordTextField.getText())) {
-                app.changeRootStageScene(scene.home.HomeScene.GLOBALIZATION_RESOURCE_NAME, scene.home.HomeScene.FXML_RESOURCE_NAME, (ResourceBundle rb, Stage stage) -> {
-                    stage.setTitle(rb.getString("appointmentScheduler"));
-                });
-            } else
+            if (app.tryLoginUser(userNameTextField.getText(), passwordField.getText()))
+                scene.RootController.setAsRootStageScene();
+            else
                 scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("invalidCredentials"));
         } catch (InvalidOperationException ex) {
             scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("validationError"));
@@ -151,10 +137,6 @@ public class LoginScene implements Initializable {
     @FXML
     void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getRootStage().hide(); }
     
-    public static void setAsRootStageScene() {
-        scheduler.App.getCurrent().changeRootStageScene(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME);
-    }
-    
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
         private final BooleanBinding userNameValid;
@@ -163,7 +145,7 @@ public class LoginScene implements Initializable {
         Validation() {
             languageValid = languageComboBox.valueProperty().isNotNull();
             userNameValid = scheduler.Util.notNullOrWhiteSpace(userNameTextField.textProperty());
-            passwordValid = scheduler.Util.notNullOrWhiteSpace(passwordTextField.textProperty());
+            passwordValid = scheduler.Util.notNullOrWhiteSpace(passwordField.textProperty());
             super.bind(languageValid, userNameValid, passwordValid);
             languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
                 selectedLanaguageChanged(newValue);
@@ -205,7 +187,7 @@ public class LoginScene implements Initializable {
             // Change the current application language;
             app.setCurrentLocale(newValue);
             // Load resource bundle for new language
-            currentResourceBundle = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, newValue);
+            currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
             // Set window title
             app.getRootStage().setTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
             // Update field labels and button text.

@@ -11,23 +11,17 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import model.db.CountryRow;
+import scene.annotations.FXMLResource;
+import scene.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class ManageCountries implements Initializable {
-    /**
-     * The name of the globalization resource bundle for this controller.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "/scene/country/ManageCountries";
-
-    /**
-     * The path of the View associated with this controller.
-     */
-    public static final String FXML_RESOURCE_NAME = "/scene/country/ManageCountries.fxml";
-
+@GlobalizationResource("scene/country/ManageCountries")
+@FXMLResource("/scene/country/ManageCountries.fxml")
+public class ManageCountries extends scene.ListingController {
     @FXML
     private TableView<CountryRow> countriesTableView;
 
@@ -82,9 +76,10 @@ public class ManageCountries implements Initializable {
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }
     
-    public static void setAsRootStageScene() {
-        scheduler.App.getCurrent().changeRootStageScene(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, (ResourceBundle rb, Stage stage) -> {
-            stage.setTitle(rb.getString("manageCountries"));
+    public static void setAsRootContent() {
+        setAsRootContent(ManageCountries.class, (scene.Controller.SetContentContext<ManageCountries> context) -> {
+            context.getStage().setTitle(context.getResourceBundle().getString("manageCountries"));
+            scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize country list");
         });
     }
 }

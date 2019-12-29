@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface PrimaryKey {
     /**
-     * The name of the primary key column for the associated table in the database.
-     * @return
+     * Gets the name of the primary key column for the associated table in the database.
+     * @return The name of the primary key column for the associated table in the database.
      */
     public String value();
 }

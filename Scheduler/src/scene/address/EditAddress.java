@@ -1,32 +1,26 @@
 package scene.address;
 
-import scene.ItemControllerBase;
+import scene.ItemController;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.event.ActionEvent;
+import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.db.AddressRow;
 import model.db.CityRow;
+import scene.annotations.FXMLResource;
+import scene.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditAddress extends ItemControllerBase<AddressRow> {
-    /**
-     * The name of the globalization resource bundle for this controller.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/address/EditAddress";
-
-    /**
-     * The path of the View associated with this controller.
-     */
-    public static final String FXML_RESOURCE_NAME = "/scene/address/EditAddress.fxml";
-
+@GlobalizationResource("scene/address/EditAddress")
+@FXMLResource("/scene/address/EditAddress.fxml")
+public class EditAddress extends ItemController<AddressRow> {
     @FXML
     private TextField address1TextField;
     
@@ -48,10 +42,6 @@ public class EditAddress extends ItemControllerBase<AddressRow> {
     @FXML
     private ComboBox<CityRow> cityComboBox;
     
-    private java.lang.Runnable closeWindow;
-    
-    private boolean dialogResult = false;
-    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -63,32 +53,39 @@ public class EditAddress extends ItemControllerBase<AddressRow> {
     }
     
     public static AddressRow addNew() {
-        EditAddress controller = new EditAddress();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
+            EditAddress controller = context.getController();
             controller.setModel(new AddressRow());
-            stage.setTitle(rb.getString("addNewAddress"));
+            context.getStage().setTitle(context.getResourceBundle().getString("addNewAddress"));
+        }, (SetContentContext<EditAddress> context) -> {
+            EditAddress controller = context.getController();
+            return (controller.isCanceled()) ? null : controller.getModel();
         });
-        return (controller.dialogResult) ? controller.getModel() : null;
     }
 
     public static boolean edit(AddressRow row) {
-        EditAddress controller = new EditAddress();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
+            EditAddress controller = context.getController();
             controller.setModel(row);
-            stage.setTitle(rb.getString("editAddress"));
+            context.getStage().setTitle(context.getResourceBundle().getString("editAddress"));
+        }, (SetContentContext<EditAddress> context) -> {
+            return !context.getController().isCanceled();
         });
-        return controller.dialogResult;
     }
 
     @Override
-    protected void saveChangesClick(ActionEvent event) {
+    public boolean isValid() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void cancelClick(ActionEvent event) {
+    public BooleanExpression validProperty() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    protected boolean saveChanges() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

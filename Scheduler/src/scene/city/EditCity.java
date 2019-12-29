@@ -1,34 +1,26 @@
 package scene.city;
 
-import scene.ItemControllerBase;
+import scene.ItemController;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.event.ActionEvent;
+import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 import model.db.CityRow;
 import model.db.CountryRow;
-import scheduler.InvalidArgumentException;
+import scene.annotations.FXMLResource;
+import scene.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditCity extends ItemControllerBase<CityRow> {
-    /**
-     * The name of the globalization resource bundle for this controller.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/city/EditCity";
-
-    /**
-     * The path of the View associated with this controller.
-     */
-    public static final String FXML_RESOURCE_NAME = "/scene/city/EditCity.fxml";
-
+@GlobalizationResource("scene/city/EditCity")
+@FXMLResource("/scene/city/EditCity.fxml")
+public class EditCity extends ItemController<CityRow> {
     private int countryId;
     
     @FXML
@@ -46,10 +38,6 @@ public class EditCity extends ItemControllerBase<CityRow> {
     @FXML
     private ComboBox<CountryRow> countryComboBox;
     
-    private java.lang.Runnable closeWindow;
-    
-    private boolean dialogResult = false;
-    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -61,32 +49,38 @@ public class EditCity extends ItemControllerBase<CityRow> {
     }
     
     public static CityRow addNew() {
-        EditCity controller = new EditCity();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditCity.class, 640, 480, (SetContentContext<EditCity> context) -> {
+            EditCity controller = context.getController();
             controller.setModel(new CityRow());
-            stage.setTitle(rb.getString("addNewCity"));
+            context.getStage().setTitle(context.getResourceBundle().getString("addNewCity"));
+        }, (SetContentContext<EditCity> context) -> {
+            EditCity controller = context.getController();
+            return (controller.isCanceled()) ? null : controller.getModel();
         });
-        return (controller.dialogResult) ? controller.getModel() : null;
     }
 
     public static boolean edit(CityRow row) {
-        EditCity controller = new EditCity();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditCity.class, 640, 480, (SetContentContext<EditCity> context) -> {
+            EditCity controller = context.getController();
             controller.setModel(row);
-            stage.setTitle(rb.getString("editCity"));
+            context.getStage().setTitle(context.getResourceBundle().getString("editCity"));
+        }, (SetContentContext<EditCity> context) -> {
+            return !context.getController().isCanceled();
         });
-        return controller.dialogResult;
     }
 
     @Override
-    protected void saveChangesClick(ActionEvent event) {
+    public boolean isValid() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void cancelClick(ActionEvent event) {
+    public BooleanExpression validProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean saveChanges() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

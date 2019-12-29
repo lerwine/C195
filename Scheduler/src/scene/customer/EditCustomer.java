@@ -1,35 +1,27 @@
 package scene.customer;
 
-import scene.ItemControllerBase;
+import scene.ItemController;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.event.ActionEvent;
+import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 import model.db.AddressRow;
 import model.db.CustomerRow;
-import scheduler.InvalidArgumentException;
+import scene.annotations.FXMLResource;
+import scene.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditCustomer extends ItemControllerBase<CustomerRow> {
-    /**
-     * The name of the globalization resource bundle for this controller.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/customer/EditCustomer";
-
-    /**
-     * The path of the View associated with this controller.
-     */
-    public static final String FXML_RESOURCE_NAME = "/scene/customer/EditCustomer.fxml";
-
+@GlobalizationResource("scene/customer/EditCustomer")
+@FXMLResource("/scene/customer/EditCustomer.fxml")
+public class EditCustomer extends ItemController<CustomerRow> {
     @FXML
     private Label nameLabel;
     
@@ -60,10 +52,6 @@ public class EditCustomer extends ItemControllerBase<CustomerRow> {
     @FXML
     private Label countryLabel;
     
-    private java.lang.Runnable closeWindow;
-    
-    private boolean dialogResult = false;
-    
     /**
      * Initializes the controller class.
      * @param url The URL of the associated view.
@@ -75,32 +63,38 @@ public class EditCustomer extends ItemControllerBase<CustomerRow> {
     }
     
     public static CustomerRow addNew() {
-        EditCustomer controller = new EditCustomer();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditCustomer.class, 640, 480, (SetContentContext<EditCustomer> context) -> {
+            EditCustomer controller = context.getController();
             controller.setModel(new CustomerRow());
-            stage.setTitle(rb.getString("addNewCustomer"));
+            context.getStage().setTitle(context.getResourceBundle().getString("addNewCustomer"));
+        }, (SetContentContext<EditCustomer> context) -> {
+            EditCustomer controller = context.getController();
+            return (controller.isCanceled()) ? null : controller.getModel();
         });
-        return (controller.dialogResult) ? controller.getModel() : null;
     }
 
     public static boolean edit(CustomerRow row) {
-        EditCustomer controller = new EditCustomer();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditCustomer.class, 640, 480, (SetContentContext<EditCustomer> context) -> {
+            EditCustomer controller = context.getController();
             controller.setModel(row);
-            stage.setTitle(rb.getString("editCustomer"));
+            context.getStage().setTitle(context.getResourceBundle().getString("editCustomer"));
+        }, (SetContentContext<EditCustomer> context) -> {
+            return !context.getController().isCanceled();
         });
-        return controller.dialogResult;
     }
-    
+
     @Override
-    protected void saveChangesClick(ActionEvent event) {
+    public boolean isValid() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void cancelClick(ActionEvent event) {
+    public BooleanExpression validProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean saveChanges() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

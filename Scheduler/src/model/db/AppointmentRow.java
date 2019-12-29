@@ -341,6 +341,19 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Database read/write methods">
     
+    public static final ObservableList<AppointmentRow> getAll(Connection connection) throws SQLException {
+        return selectFromDb(connection, SQL_SELECT, (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
+            AppointmentRow u;
+            try {
+                u = new AppointmentRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(AppointmentRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing AppointmentRow object from result set.");
+            }
+            return u;
+        });
+    }
+    
     public static final Optional<AppointmentRow> getById(Connection connection, int id) throws SQLException {
         return selectFirstFromDb(connection, SQL_SELECT + " WHERE appointment.appointmentId = ?", (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
             AppointmentRow u;
@@ -358,6 +371,19 @@ public class AppointmentRow extends DataRow implements model.Appointment {
             } catch (SQLException ex) {
                 Logger.getLogger(AppointmentRow.class.getName()).log(Level.SEVERE, null, ex);
             }
+        });
+    }
+    
+    public static final ObservableList<AppointmentRow> getByFilter(Connection connection, AppointmentsFilter filter) throws SQLException {
+        return selectFromDb(connection, filter, (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
+            AppointmentRow u;
+            try {
+                u = new AppointmentRow(rs);
+            } catch (SQLException ex) {
+                Logger.getLogger(AppointmentRow.class.getName()).log(Level.SEVERE, null, ex);
+                throw new InternalException("Error initializing AppointmentRow object from result set.");
+            }
+            return u;
         });
     }
     

@@ -11,9 +11,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -475,6 +472,17 @@ public abstract class DataRow implements model.Record {
         ObservableList<R> result = FXCollections.observableArrayList();
         PreparedStatement ps = connection.prepareStatement(sql);
         setValues.accept(ps);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next())
+            result.add(create.apply(rs));
+        return result;
+    }
+    
+    protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, QueryFilter<R> filter,
+            Function<ResultSet, R> create) throws SQLException {
+        ObservableList<R> result = FXCollections.observableArrayList();
+        PreparedStatement ps = connection.prepareStatement(filter.getSqlQueryString());
+        filter.setStatementValues(ps);
         ResultSet rs = ps.executeQuery();
         while (rs.next())
             result.add(create.apply(rs));

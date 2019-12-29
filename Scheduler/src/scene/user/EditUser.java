@@ -1,11 +1,21 @@
 package scene.user;
 
-import scene.ItemControllerBase;
+import scene.ItemController;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.beans.Observable;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.binding.StringBinding;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -15,59 +25,69 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
-import javafx.stage.StageStyle;
-import model.db.DataRow;
 import model.db.UserRow;
+import scene.annotations.FXMLResource;
+import scene.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-public class EditUser extends ItemControllerBase<UserRow> {
-    /**
-     * The name of the globalization resource bundle for this controller.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "scene/user/EditUser";
-
-    /**
-     * The path of the View associated with this controller.
-     */
-    public static final String FXML_RESOURCE_NAME = "/scene/user/EditUser.fxml";
-
-    @FXML
-    private VBox outerPane;
-
+@GlobalizationResource("scene/user/EditUser")
+@FXMLResource("/scene/user/EditUser.fxml")
+public class EditUser extends ItemController<UserRow> {
     @FXML
     private TextField userNameTextField;
 
     @FXML
-    private Label userNameErrorMessage;
+    private Label userNameErrorMessageLabel;
 
     @FXML
     private CheckBox changePasswordCheckBox;
 
     @FXML
-    private PasswordField passwordTextField;
+    private PasswordField passwordField;
     
     @FXML
     private Label confirmLabel;
 
     @FXML
-    private PasswordField confirmTextField;
+    private PasswordField confirmPasswordField;
     
     @FXML
-    private Label passwordErrorMessage;
+    private Label passwordErrorMessageLabel;
 
     @FXML
     private ComboBox<Short> activeComboBox;
     
     private ObservableList<Short> userActiveStateOptions;
     
-    private java.lang.Runnable closeWindow;
+    private final ReadOnlyStringWrapper originalUserName = new ReadOnlyStringWrapper();
     
-    private boolean dialogResult = false;
+    public String getOriginalUserName() { return originalUserName.get(); }
+
+    public ReadOnlyStringProperty originalUserNameProperty() { return originalUserName.getReadOnlyProperty(); }
+    
+    private final ReadOnlyBooleanWrapper userNameDuplicateInDb = new ReadOnlyBooleanWrapper();
+
+    public boolean isUserNameDuplicateInDb() { return userNameDuplicateInDb.get(); }
+
+    public ReadOnlyBooleanProperty userNameDuplicateInDbProperty() { return userNameDuplicateInDb.getReadOnlyProperty(); }
+
+    private UserNameValidator userNameErrorMessage;
+    
+    private PasswordValidator passwordErrorMessage;
+    
+    private BooleanBinding valid;
+    
+    @Override
+    public boolean isValid() { return valid.get(); }
+
+    @Override
+    public BooleanExpression validProperty() { return valid; }
+    
+    private ResourceBundle currentResourceBundle;
     
     /**
      * Initializes the controller class.
@@ -77,12 +97,13 @@ public class EditUser extends ItemControllerBase<UserRow> {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         super.initialize(url, rb);
+        currentResourceBundle = rb;
         userActiveStateOptions = FXCollections.observableArrayList(UserRow.STATE_USER, UserRow.STATE_ADMIN, UserRow.STATE_INACTIVE);
         activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
             @Override
             protected void updateItem(Short a, boolean bln) {
                 super.updateItem(a, bln);
-                ResourceBundle rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
+                
                 switch (a) {
                     case 1:
                         setText(rb.getString("normalUser"));
@@ -97,136 +118,151 @@ public class EditUser extends ItemControllerBase<UserRow> {
             }
         });
         activeComboBox.setItems(userActiveStateOptions);
+        newRowProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            onIsNewRowChanged(newValue);
+        });
+        onIsNewRowChanged(isNewRow());
+        userNameErrorMessage = new UserNameValidator();
+        passwordErrorMessage = new PasswordValidator();
+        valid = userNameErrorMessage.isEmpty().and(passwordErrorMessage.isEmpty());
+    }
+
+    private void onIsNewRowChanged(boolean value) {
+        if (value) {
+            changePasswordCheckBox.setText(currentResourceBundle.getString("password"));
+            changePasswordCheckBox.setSelected(true);
+            changePasswordCheckBox.setDisable(true);
+            passwordField.setVisible(true);
+            confirmLabel.setVisible(true);
+            confirmPasswordField.setVisible(true);
+            passwordErrorMessage.onChangePasswordCheckCheckChanged(passwordErrorMessage.changePasswordProperty.get());
+            passwordErrorMessage.onPasswordMessageChanged(passwordErrorMessage.get());
+        } else {
+            changePasswordCheckBox.setSelected(false);
+            changePasswordCheckBox.setDisable(false);
+            confirmLabel.setVisible(false);
+            passwordField.setVisible(false);
+            confirmPasswordField.setVisible(false);
+            passwordErrorMessageLabel.setVisible(false);
+        }
     }
     
     public static UserRow addNew() {
-        EditUser controller = new EditUser();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditUser.class, 640, 480, (SetContentContext<EditUser> context) -> {
+            EditUser controller = context.getController();
             controller.setModel(new UserRow());
-            stage.setTitle(rb.getString("addNewUser"));
-            controller.changePasswordCheckBox.setText(rb.getString("password"));
-            controller.changePasswordCheckBox.setSelected(true);
-            controller.changePasswordCheckBox.setDisable(true);
-            controller.passwordTextField.setVisible(true);
-            controller.confirmLabel.setVisible(true);
-            controller.confirmTextField.setVisible(true);
+            controller.originalUserName.set("");
+            context.getStage().setTitle(context.getResourceBundle().getString("addNewUser"));
+        }, (SetContentContext<EditUser> context) -> {
+            EditUser controller = context.getController();
+            return (controller.isCanceled()) ? null : controller.getModel();
         });
-        return (controller.dialogResult) ? controller.getModel() : null;
     }
 
     public static boolean edit(UserRow row) {
-        EditUser controller = new EditUser();
-        scheduler.App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, controller, 640, 480, (rb, stage) -> {
-            controller.closeWindow = () -> stage.hide();
+        return showAndWait(EditUser.class, 640, 480, (SetContentContext<EditUser> context) -> {
+            EditUser controller = context.getController();
             controller.setModel(row);
-            stage.setTitle(String.format(rb.getString("editUser"), row.getUserName()));
-            controller.changePasswordCheckBox.setDisable(false);
-            controller.changePasswordCheckBox.setSelected(false);
-            controller.confirmLabel.setVisible(false);
-            controller.confirmTextField.setVisible(false);
-            controller.passwordTextField.setVisible(false);
-            controller.passwordErrorMessage.setVisible(false);
+            context.getStage().setTitle(context.getResourceBundle().getString("editUser"));
+            controller.originalUserName.set(row.getUserName());
             controller.userNameTextField.setText(row.getUserName());
+        }, (SetContentContext<EditUser> context) -> {
+            return !context.getController().isCanceled();
         });
-        return controller.dialogResult;
     }
 
-    @FXML
-    void userNameChanged(ActionEvent event) { validateUserName(); }
-    
-    @FXML
-    void saveChangesButtonClick(ActionEvent event) {
-        ResourceBundle rb;
-        if (validateUserName()) {
-            if (!validatePassword()) {
-                rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
-                Alert alert = new Alert(Alert.AlertType.ERROR,
-                        String.format(rb.getString("fieldValidationFailed"), rb.getString("password")),
-                        ButtonType.OK);
-                alert.initStyle(StageStyle.UTILITY);
-                alert.setTitle(rb.getString("validationError"));
-                alert.showAndWait();
-                return;
-            }
-        } else {
-            rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    String.format(rb.getString("fieldValidationFailed"), rb.getString("userName")),
-                    ButtonType.OK);
-            alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle(rb.getString("validationError"));
-            alert.showAndWait();
-            return;
-        }
+    @Override
+    protected boolean saveChanges() {
         (new Alert(Alert.AlertType.INFORMATION, "saveChangesButtonClick not implemented", ButtonType.OK)).showAndWait();
+        return false;
     }
-    
-    @FXML
-    void cancelButtonClick(ActionEvent event) {
-        (new Alert(Alert.AlertType.INFORMATION, "cancelButtonClick not implemented", ButtonType.OK)).showAndWait();
-    }
-    
-    @FXML
-    void changePasswordCheckChanged(ActionEvent event) {
-        if (getModel().getRowState() == DataRow.ROWSTATE_NEW)
-            return;
+
+    private class UserNameValidator extends StringBinding {
+        private final StringProperty userNameProperty;
+
+        UserNameValidator() {
+            userNameProperty = userNameTextField.textProperty();
+            super.bind(userNameProperty, userNameDuplicateInDb);
+            userNameProperty.addListener((Observable observable) -> {
+                userNameDuplicateInDb.set(false);
+            });
+            super.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                onUserNameMessageChanged(newValue);
+            });
+            onUserNameMessageChanged(get());
+        }
         
-        boolean value = changePasswordCheckBox.isSelected();
-        passwordTextField.setVisible(value);
-        confirmLabel.setVisible(value);
-        confirmTextField.setVisible(value);
-        validatePassword();
-    }
-    
-    @FXML
-    void passwordChanged(ActionEvent event) {
-        (new Alert(Alert.AlertType.INFORMATION, "passwordChanged not implemented", ButtonType.OK)).showAndWait();
-    }
+        private void onUserNameMessageChanged(String value) {
+            if (value.isEmpty())
+                scheduler.Util.collapseLabeledVertical(userNameErrorMessageLabel);
+            else
+                scheduler.Util.restoreLabeledVertical(userNameErrorMessageLabel, currentResourceBundle.getString(value));
+        }
+        
+        @Override
+        protected String computeValue() {
+            String n = userNameProperty.get();
+            boolean b = userNameDuplicateInDb.get();
+            if (n.trim().isEmpty())
+                return "userNameCannotBeEmpty";
+            else
+                return (b) ? "userNameInUse" : "";
+        }
+            
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(userNameProperty, userNameDuplicateInDb); }
 
-    private boolean validateUserName() {
-        String s = userNameTextField.getText();
-        if (s.trim().isEmpty())
-            userNameErrorMessage.setText(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
-                    .getString("userNameCannotBeEmpty"));
-        else {
-            throw new RuntimeException("Method not impelmented");
-        }
-        userNameErrorMessage.setVisible(true);
-        return false;
+        @Override
+        public void dispose() { super.unbind(userNameProperty, userNameDuplicateInDb); }
     }
     
-    private boolean validatePassword() {
-        if (getModel().getRowState() != DataRow.ROWSTATE_NEW && !changePasswordCheckBox.isSelected()) {
-            passwordErrorMessage.setText("");
-            passwordErrorMessage.setVisible(false);
-            return true;
+    private class PasswordValidator extends StringBinding {
+        private final StringProperty passwordProperty;
+        private final StringProperty confirmProperty;
+        private final BooleanProperty changePasswordProperty;
+        PasswordValidator() {
+            passwordProperty = passwordField.textProperty();
+            confirmProperty = confirmPasswordField.textProperty();
+            changePasswordProperty = changePasswordCheckBox.selectedProperty();
+            super.bind(passwordProperty, confirmProperty, changePasswordProperty);
+            super.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                onPasswordMessageChanged(newValue);
+            });
+            changePasswordProperty.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                onChangePasswordCheckCheckChanged(newValue);
+            });
+            onChangePasswordCheckCheckChanged(changePasswordProperty.get());
+            onPasswordMessageChanged(get());
         }
-            ResourceBundle rb = ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale());
-        String s = passwordTextField.getText();
-        if (s.trim().isEmpty())
-            passwordErrorMessage.setText(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
-                    .getString("passwordCannotBeEmpty"));
-        else {
-            if (confirmTextField.getText().equals(s)) {
-                passwordErrorMessage.setText("");
-                passwordErrorMessage.setVisible(false);
-                return true;
+        
+        final void onPasswordMessageChanged(String value) {
+            if (value.isEmpty())
+                scheduler.Util.collapseLabeledVertical(passwordErrorMessageLabel);
+            else
+                scheduler.Util.restoreLabeledVertical(passwordErrorMessageLabel, currentResourceBundle.getString(value));
+        }
+        
+        final void onChangePasswordCheckCheckChanged(boolean value) {
+            confirmPasswordField.setDisable(!value);
+            confirmPasswordField.setDisable(!value);
+        }
+    
+        @Override
+        protected String computeValue() {
+            String p = passwordProperty.get();
+            String c = confirmProperty.get();
+            if (changePasswordProperty.get()) {
+                if (p.trim().isEmpty())
+                    return "passwordCannotBeEmpty";
+                return (p.equals(c)) ? "" : "passwordMismatch";
             }
-            passwordErrorMessage.setText(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, scheduler.App.getCurrent().getCurrentLocale())
-                    .getString("passwordMismatch"));
+            return "";
         }
-        passwordErrorMessage.setVisible(true);
-        return false;
-    }
-    
-    @Override
-    protected void saveChangesClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+            
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(passwordProperty, confirmProperty, changePasswordProperty); }
 
-    @Override
-    protected void cancelClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        @Override
+        public void dispose() { super.unbind(passwordProperty, confirmProperty, changePasswordProperty); }
     }
 }
