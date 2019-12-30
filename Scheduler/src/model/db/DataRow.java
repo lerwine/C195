@@ -261,14 +261,9 @@ public abstract class DataRow implements model.Record {
     }
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Database Read/Write methods">
     
-    /**
-     * 
-     * @param <R>
-     * @param rowClass
-     * @return
-     */
     public static final <R extends DataRow> String getTableName(Class<R> rowClass) {
         Class<TableName> tableNameClass = TableName.class;
         if (rowClass.isAnnotationPresent(tableNameClass)) {
@@ -279,12 +274,6 @@ public abstract class DataRow implements model.Record {
         throw new InternalException("Table name not defined");
     }
     
-    /**
-     * 
-     * @param <R>
-     * @param rowClass
-     * @return
-     */
     public static final <R extends DataRow> String getPrimaryKeyColName(Class<R> rowClass) {
         Class<PrimaryKey> pkClass = PrimaryKey.class;
         if (rowClass.isAnnotationPresent(pkClass)) {
@@ -295,15 +284,8 @@ public abstract class DataRow implements model.Record {
         throw new InternalException("Primary key column name not defined");
     }
 
-    /**
-     * 
-     * @return
-     */
     protected abstract String getSelectQuery();
     
-    /**
-     * 
-     */
     protected abstract String[] getColumnNames();
     
     /**

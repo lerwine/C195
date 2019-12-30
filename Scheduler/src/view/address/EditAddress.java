@@ -1,0 +1,83 @@
+package view.address;
+
+import view.ItemController;
+import javafx.beans.binding.BooleanExpression;
+import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import model.db.AddressRow;
+import model.db.CityRow;
+import view.annotations.FXMLResource;
+import view.annotations.GlobalizationResource;
+
+/**
+ * FXML Controller class
+ *
+ * @author Leonard T. Erwine
+ */
+@GlobalizationResource("view/address/EditAddress")
+@FXMLResource("/view/address/EditAddress.fxml")
+public class EditAddress extends ItemController<AddressRow> {
+    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
+    
+    @FXML
+    private TextField address1TextField;
+    
+    @FXML
+    private TextField address2TextField;
+    
+    @FXML
+    private Label address1Error;
+    
+    @FXML
+    private TextField postalCodeTextField;
+    
+    @FXML
+    private Label postalCodeError;
+    
+    @FXML
+    private TextField phoneTextField;
+    
+    @FXML
+    private ComboBox<CityRow> cityComboBox;
+    
+    //</editor-fold>
+    
+    public static AddressRow addNew() {
+        return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
+            EditAddress controller = context.getController();
+            controller.setModel(new AddressRow());
+            context.getStage().setTitle(context.getResources().getString("addNewAddress"));
+        }, (SetContentContext<EditAddress> context) -> {
+            EditAddress controller = context.getController();
+            return (controller.isCanceled()) ? null : controller.getModel();
+        });
+    }
+
+    public static boolean edit(AddressRow row) {
+        return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
+            EditAddress controller = context.getController();
+            controller.setModel(row);
+            context.getStage().setTitle(context.getResources().getString("editAddress"));
+        }, (SetContentContext<EditAddress> context) -> {
+            return !context.getController().isCanceled();
+        });
+    }
+
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public BooleanExpression validProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected boolean saveChanges() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+}

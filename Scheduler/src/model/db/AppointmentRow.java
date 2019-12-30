@@ -280,7 +280,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         description = new NonNullableStringProperty();
         location = new NonNullableStringProperty();
         contact = new NonNullableStringProperty();
-        type = new NonNullableStringProperty();
+        type = new NonNullableStringProperty(view.appointment.EditAppointment.APPOINTMENT_CODE_OTHER);
         url = new NonNullableStringProperty();
         start = new NonNullableLocalDateTimeProperty(LocalDateTime.now());
         end = new NonNullableLocalDateTimeProperty(start.getValue());
@@ -388,7 +388,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     }
     
     public static final ObservableList<AppointmentRow> getByCustomer(Connection connection, int customerId) throws SQLException {
-        return selectFromDb(connection, SQL_SELECT + " WHERE `address`.`customerId` = ?", (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
+        return selectFromDb(connection, SQL_SELECT + " WHERE `appointment`.`customerId` = ?", (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
             AppointmentRow u;
             try {
                 u = new AppointmentRow(rs);
@@ -408,7 +408,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     }
     
     public static final ObservableList<AppointmentRow> getAllByUser(Connection connection, int userId) throws SQLException {
-        return selectFromDb(connection, SQL_SELECT + " WHERE `address`.`userId` = ?", (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
+        return selectFromDb(connection, SQL_SELECT + " WHERE `appointment`.`userId` = ?", (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
             AppointmentRow u;
             try {
                 u = new AppointmentRow(rs);

@@ -10,8 +10,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Iterator;
-import java.util.function.Supplier;
+import java.util.Optional;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -21,12 +20,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Control;
-import javafx.scene.control.Labeled;
 import javafx.stage.StageStyle;
 
 /**
@@ -34,48 +29,6 @@ import javafx.stage.StageStyle;
  * @author Leonard T. Erwine
  */
 public class Util {
-    public static void collapseLabeledVertical(Labeled labeled) {
-        labeled.setText("");
-        collapseControlVertical(labeled);
-    }
-    
-    public static void collapseControlVertical(Control control) {
-        control.setMinHeight(0);
-        control.setPrefHeight(0);
-        control.setMaxHeight(0);
-        control.setVisible(false);
-    }
-    
-    public static void restoreLabeledVertical(Labeled labeled, String text) {
-        labeled.setText(text);
-        restoreControlVertical(labeled);
-    }
-    
-    public static void restoreControlVertical(Control control) {
-        restoreControlVertical(control, Control.USE_COMPUTED_SIZE);
-    }
-    
-    public static void restoreLabeledVertical(Labeled labeled, String text, double prefHeight) {
-        labeled.setText(text);
-        restoreControlVertical(labeled, prefHeight);
-    }
-    
-    public static void restoreControlVertical(Control control, double prefHeight) {
-        restoreControlVertical(control, Control.USE_COMPUTED_SIZE, prefHeight, Control.USE_COMPUTED_SIZE);
-    }
-    
-    public static void restoreLabeledVertical(Labeled labeled, String text, double minHeight, double prefHeight, double maxHeight) {
-        labeled.setText(text);
-        restoreControlVertical(labeled, minHeight, prefHeight, maxHeight);
-    }
-    
-    public static void restoreControlVertical(Control control, double minHeight, double prefHeight, double maxHeight) {
-        control.setMaxHeight(maxHeight);
-        control.setPrefHeight(prefHeight);
-        control.setMinHeight(minHeight);
-        control.setVisible(true);
-    }
-    
     /**
      * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or
      * an empty string if the source value was null.
@@ -245,10 +198,17 @@ public class Util {
         return (rs.wasNull()) ? defaultValue : result;
     }
     
-    public static void showErrorAlert(String title, String contentText) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, contentText, ButtonType.OK);
+    public static Optional<ButtonType> showErrorAlert(String title, String contentText, ButtonType... buttons) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, contentText, buttons);
         alert.initStyle(StageStyle.UTILITY);
         alert.setTitle(title);
-        alert.showAndWait();
+        return alert.showAndWait();
+    }
+    
+    public static Optional<ButtonType> showWarningAlert(String title, String contentText, ButtonType... buttons) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, contentText, buttons);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.setTitle(title);
+        return alert.showAndWait();
     }
 }

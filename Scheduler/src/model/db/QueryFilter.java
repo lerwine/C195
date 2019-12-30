@@ -14,7 +14,7 @@ import java.util.ResourceBundle;
  * @author Leonard T. Erwine
  * @param <R>
  */
-public interface QueryFilter<R extends DataRow> {
+public interface QueryFilter<R extends DataRow> extends java.util.function.Predicate<R> {
     String getWindowTitle(ResourceBundle b);
     String getSubHeading(ResourceBundle b);
     String getSqlQueryString();

@@ -1,7 +1,7 @@
 package scheduler;
 
 import com.mysql.jdbc.Connection;
-import scene.appointment.EditAppointment;
+import view.appointment.EditAppointment;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -107,8 +107,8 @@ public class App extends Application {
         setCurrentLocale(toSelect);
         
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(scene.Controller.getGlobalizationResourceName(scene.login.LoginScene.class), currentLocale);
-            FXMLLoader loader = new FXMLLoader(scene.login.LoginScene.class.getResource(scene.Controller.getFXMLResourceName(scene.login.LoginScene.class)), rb);
+            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(view.login.LoginScene.class), currentLocale);
+            FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.Controller.getFXMLResourceName(view.login.LoginScene.class)), rb);
             Scene scene = new Scene(loader.load());
             rootStage.setScene(scene);
             stage.show();

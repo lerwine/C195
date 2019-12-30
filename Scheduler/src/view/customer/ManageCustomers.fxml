@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.cell.*?>
+<?import controls.DateTimeTableCellFactory?>
+
+<VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" 
+    xmlns="http://javafx.com/javafx/8.0.171" 
+    xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.customer.ManageCustomers">
+    <children>
+        <TableView fx:id="listingTableView" visible="false" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="nameTableColumn" editable="false" prefWidth="62.0" text="%customerName">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="name" />
+                  </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="addressTableColumn" editable="false" prefWidth="62.0" text="%address">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="address" />
+                  </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="activeTableColumn" editable="false" prefWidth="62.0" text="%active">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="active" />
+                  </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="createdOnTableColumn" editable="false" text="%createdOn">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="createDate" />
+                  </cellValueFactory>
+                  <cellFactory>
+                      <DateTimeTableCellFactory />
+                  </cellFactory>
+                </TableColumn>
+                <TableColumn fx:id="createdByColumn" editable="false" text="%createdBy">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="createdBy" />
+                  </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="lastUpdateOnTableColumn" editable="false" text="%updatedOn">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="lastUpdate" />
+                  </cellValueFactory>
+                  <cellFactory>
+                      <DateTimeTableCellFactory />
+                  </cellFactory>
+                </TableColumn>
+                <TableColumn fx:id="lastUpdateByColumn" editable="false" text="%updatedBy">
+                  <cellValueFactory>
+                      <PropertyValueFactory property="lastUpdateBy" />
+                  </cellValueFactory>
+                </TableColumn>
+            </columns>
+        </TableView>
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="newButton" mnemonicParsing="false" text="%new" />
+                <Button fx:id="doneButton" mnemonicParsing="false" text="%done" />
+            </buttons>
+            <padding>
+                <Insets bottom="8.0" right="8.0" />
+            </padding>
+        </ButtonBar>
+    </children>
+</VBox>

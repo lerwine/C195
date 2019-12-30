@@ -185,9 +185,9 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
     public String getSqlQueryString() {
         HashSet<String> clauses = new HashSet<>();
         if (customer.isPresent())
-            clauses.add("`address`.`customerId` = ?");
+            clauses.add("`appointment`.`customerId` = ?");
         else if (user.isPresent())
-            clauses.add("`address`.`userId` = ?");
+            clauses.add("`appointment`.`userId` = ?");
         if (currentAndFuture)
             clauses.add("CAST(`end` AS Date) >= CURRENT_DATE");
         else {
@@ -214,15 +214,36 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
     public void setStatementValues(PreparedStatement ps) throws SQLException {
         int index = 0;
         if (customer.isPresent())
-            ps.setInt(index++, customer.get().getPrimaryKey());
+            ps.setInt(++index, customer.get().getPrimaryKey());
         else if (user.isPresent())
-            ps.setInt(index++, user.get().getPrimaryKey());
+            ps.setInt(++index, user.get().getPrimaryKey());
         if (currentAndFuture)
             return;
         if (start.isPresent())
-            ps.setDate(index++, Date.valueOf(start.get()));
+            ps.setDate(++index, Date.valueOf(start.get()));
         if (end.isPresent())
-            ps.setDate(index, Date.valueOf(end.get()));
+            ps.setDate(++index, Date.valueOf(end.get()));
     }
-    
+
+    @Override
+    public boolean test(AppointmentRow row) {
+        if (row == null)
+            return false;
+        if (customer.isPresent()) {
+            CustomerRow x = customer.get();
+            model.Customer y = row.getCustomer();
+            if (y == null || x.getPrimaryKey() != y.getPrimaryKey())
+                return false;
+        } else if (user.isPresent()) {
+            UserRow x = user.get();
+            model.User y = row.getUser();
+            if (y == null || x.getPrimaryKey() != y.getPrimaryKey())
+                return false;
+        }
+        if (currentAndFuture)
+            return LocalDate.now().compareTo(row.getEnd().toLocalDate()) >= 0;
+        if (start.isPresent() && row.getEnd().toLocalDate().compareTo(start.get()) < 0)
+            return false;
+        return !end.isPresent() || row.getStart().toLocalDate().compareTo(end.get()) > 0;
+    }
 }
