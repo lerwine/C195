@@ -26,7 +26,10 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -58,6 +61,51 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
+    
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+//    public static final String RESOURCEKEY_ADD = "add";
+    public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
+//    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
+    public static final String RESOURCEKEY_CUSTOMER = "customer";
+//    public static final String RESOURCEKEY_CUSTOMERNOTFOUND = "customerNotFound";
+//    public static final String RESOURCEKEY_DESCRIPTION = "description";
+    public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
+//    public static final String RESOURCEKEY_END = "end";
+    public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
+//    public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
+    public static final String RESOURCEKEY_LOCATION = "location";
+//    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
+    public static final String RESOURCEKEY_REQUIRED = "required";
+//    public static final String RESOURCEKEY_SHOW = "show";
+//    public static final String RESOURCEKEY_START = "start";
+//    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
+//    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
+//    public static final String RESOURCEKEY_TITLE = "title";
+//    public static final String RESOURCEKEY_TYPE = "type";
+//    public static final String RESOURCEKEY_USER = "user";
+//    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
+    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+//    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
+//    public static final String RESOURCEKEY_CREATED = "created";
+//    public static final String RESOURCEKEY_BY = "by";
+//    public static final String RESOURCEKEY_UPDATED = "updated";
+//    public static final String RESOURCEKEY_SAVE = "save";
+//    public static final String RESOURCEKEY_CANCEL = "cancel";
+    public static final String RESOURCEKEY_INVALIDHOUR = "invalidHour";
+    public static final String RESOURCEKEY_INVALIDMINUTE = "invalidMinute";
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSER1 = "conflictCustomerNUser1";
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USERN = "conflictCustomer1UserN";
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USER1 = "conflictCustomer1User1";
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERN = "conflictCustomerN";
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1 = "conflictCustomer1";
+    public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
+    public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
+
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Appointment type codes">
     
     /**
      * Code for Phone Conference appointments, where the phone number is encoded into the URL field.
@@ -91,7 +139,9 @@ public class EditAppointment extends ItemController<AppointmentRow> {
      * Code for appointments at other explicit physical locations.
      */
     public static final String APPOINTMENT_CODE_OTHER = "other";
-
+    
+    //</editor-fold>
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
@@ -358,7 +408,7 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             EditAppointment controller = context.getController();
             setCollections(controller);
             controller.setModel(new AppointmentRow());
-            context.getStage().setTitle(context.getResources().getString("addNewAppointment"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
         }, (SetContentContext<EditAppointment> context) -> {
             EditAppointment controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
@@ -370,7 +420,7 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             EditAppointment controller = context.getController();
             setCollections(controller);
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString("editAppointment"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITAPPOINTMENT));
         }, (SetContentContext<EditAppointment> context) -> {
             return !context.getController().isCanceled();
         });
@@ -422,15 +472,19 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="State management classes">
+    
     private class TypeSelectionState {
-        private final ObjectProperty<String> selectedTypeProperty;
-        private final ObjectProperty<CustomerRow> selectedCustomerProperty;
-        private final BooleanBinding explicitLocation;
-        private final BooleanBinding phone;
-        private final BooleanBinding virtual;
-        private final StringBinding locationLabelText;
-        private final StringBinding implicitLocationText;
-        private final BooleanBinding valid;
+        final ObjectProperty<String> selectedTypeProperty;
+        final ObjectProperty<CustomerRow> selectedCustomerProperty;
+        final BooleanBinding explicitLocation;
+        final BooleanBinding phone;
+        final BooleanBinding virtual;
+        final StringBinding locationLabelText;
+        final StringBinding implicitLocationText;
+        final BooleanBinding valid;
         
         TypeSelectionState() {
             selectedTypeProperty = typeComboBox.valueProperty();
@@ -473,7 +527,7 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 protected String computeValue() {
                     boolean e = explicitLocation.get();
                     String i = implicitLocationText.get();
-                    return (phone.get()) ? getResources().getString("phoneNumber") : ((e || !i.isEmpty()) ? getResources().getString("location") : "");
+                    return (phone.get()) ? getResources().getString(RESOURCEKEY_PHONENUMBER) : ((e || !i.isEmpty()) ? getResources().getString(RESOURCEKEY_LOCATION) : "");
                 }
                 @Override
                 public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(phone, explicitLocation, implicitLocationText); }
@@ -498,20 +552,20 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             locationLabelTextChanged(locationLabelText.get());
         }
         
-        private void explicitLocationChanged(boolean value) {
+        void explicitLocationChanged(boolean value) {
             if (value)
                 restoreControl(locationTextArea);
             else
                 collapseControl(locationTextArea);
         }
-        private void phoneChanged(boolean value) {
+        void phoneChanged(boolean value) {
             if (value)
                 restoreControl(phoneTextField);
             else
                 collapseControl(phoneTextField);
             
         }
-        private void virtualChanged(boolean value) {
+        void virtualChanged(boolean value) {
             if (value) {
                 restoreControl(urlLabel);
                 restoreControl(urlTextField);
@@ -521,13 +575,13 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 collapseControl(urlTextField);
             }
         }
-        private void implicitLocationTextChanged(String value) {
+        void implicitLocationTextChanged(String value) {
             if (value == null || value.trim().isEmpty())
                 collapseControl(implicitLocationLabel);
             else
                 restoreControl(implicitLocationLabel, value);
         }
-        private void locationLabelTextChanged(String value) {
+        void locationLabelTextChanged(String value) {
             if (value == null || value.trim().isEmpty())
                 collapseControl(locationLabel);
             else
@@ -535,15 +589,85 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         }
     }
     
-    //<editor-fold defaultstate="collapsed" desc="Validators">
+    private class ConflictLookupState {
+        final SimpleIntegerProperty customerConflictCount;
+        final SimpleIntegerProperty userConflictCount;
+        final ObjectProperty<CustomerRow> selectedCustomerProperty;
+        final ObjectProperty<UserRow> selectedUserProperty;
+        final StringBinding conflictMessage;
+        ConflictLookupState() {
+            customerConflictCount = new SimpleIntegerProperty(0);
+            userConflictCount = new SimpleIntegerProperty(0);
+            selectedCustomerProperty = customerComboBox.valueProperty();
+            selectedUserProperty = userComboBox.valueProperty();
+            conflictMessage = new StringBinding() {
+                { super.bind(customerConflictCount, userConflictCount);}
+                @Override
+                protected String computeValue() {
+                    int c = customerConflictCount.get();
+                    int u = userConflictCount.get();
+                    if (u == 1) {
+                        if (c == 1)
+                            return getResources().getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN);
+                        return (c > 1) ? String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), c) : getResources().getString(RESOURCEKEY_CONFLICTUSER1);
+                    }
+                    if (u > 1){
+                        if (c == 1)
+                            return String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), u);
+                        return (c > 1) ? String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), c, u) : String.format(getResources().getString(RESOURCEKEY_CONFLICTUSERN), u);
+                    }
+                    if (c == 1)
+                        return getResources().getString(RESOURCEKEY_CONFLICTCUSTOMER1);
+                    return (c > 0) ? String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMERN), c) : "";
+                }
+                @Override
+                public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(customerConflictCount, userConflictCount); }
+                @Override
+                public void dispose() { super.unbind(customerConflictCount, userConflictCount); }
+            };
+            dateRangeValidation.startValidation.selectedDateTime.addListener((observable) -> rangeChanged());
+            dateRangeValidation.endValidation.selectedDateTime.addListener((observable) -> rangeChanged());
+            selectedCustomerProperty.addListener((observable) -> customerConflictCount.set(0));
+            selectedUserProperty.addListener((observable) -> userConflictCount.set(0));
+        }
+        void rangeChanged() {
+            customerConflictCount.set(0);
+            userConflictCount.set(0);
+        }
+        boolean test() {
+            LocalDateTime start = dateRangeValidation.startValidation.selectedDateTime.get();
+            if (start != null) {
+                LocalDateTime end = dateRangeValidation.endValidation.selectedDateTime.get();
+                if (end != null && start.compareTo(end) <= 0) {
+                    CustomerRow c = selectedCustomerProperty.get();
+                    if (c != null) {
+                        UserRow u = selectedUserProperty.get();
+                        if (u != null) {
+                            int cc = AppointmentRow.getCountByCustomer(c.getPrimaryKey(), start, end);
+                            int uc = AppointmentRow.getCountByUser(u.getPrimaryKey(), start, end);
+                            customerConflictCount.set(cc);
+                            userConflictCount.set(uc);
+                            return cc == 0 && uc == 0;
+                        }
+                    }
+                }
+            }
+            customerConflictCount.set(0);
+            userConflictCount.set(0);
+            return false;
+        }
+    }
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Field Validation classes">
     
     private class DateValidation extends StringBinding {
-        private final ObjectProperty<LocalDate> dateProperty;
-        private final ObjectProperty<Integer> hourProperty;
-        private final ObjectProperty<Integer> minuteProperty;
-        private final ObjectProperty<TimeZone> timeZoneProperty;
-        private final ObjectBinding<ZonedDateTime> zonedDateTime;
-        private final ObjectBinding<LocalDateTime> selectedDateTime;
+        final ObjectProperty<LocalDate> dateProperty;
+        final ObjectProperty<Integer> hourProperty;
+        final ObjectProperty<Integer> minuteProperty;
+        final ObjectProperty<TimeZone> timeZoneProperty;
+        final ObjectBinding<ZonedDateTime> zonedDateTime;
+        final ObjectBinding<LocalDateTime> selectedDateTime;
         DateValidation(DatePicker datePicker, ComboBox<Integer> hourComboBox, ComboBox<Integer> minuteComboBox) {
             dateProperty = datePicker.valueProperty();
             hourProperty = hourComboBox.valueProperty();
@@ -586,10 +710,10 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             int h = hourProperty.get();
             int m = minuteProperty.get();
             if (dateProperty.get() == null)
-                return "required";
+                return RESOURCEKEY_REQUIRED;
             if (h < 0 || h > 23)
-                return "invalidHour";
-            return (m < 0 || m > 59) ? "invalidMinute" : "";
+                return RESOURCEKEY_INVALIDHOUR;
+            return (m < 0 || m > 59) ? RESOURCEKEY_INVALIDMINUTE : "";
         }
         @Override
         public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(dateProperty, hourProperty, minuteProperty); }
@@ -598,8 +722,9 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     }
     
     private class DateRangeValidation extends StringBinding {
-        private final DateValidation startValidation;
-        private final DateValidation endValidation;
+        final DateValidation startValidation;
+        final DateValidation endValidation;
+        
         DateRangeValidation() {
             startValidation = new DateValidation(startDatePicker, startHourComboBox, startMinuteComboBox);
             endValidation = new DateValidation(endDatePicker, endHourComboBox, endMinuteComboBox);
@@ -610,15 +735,13 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             LocalDateTime s = startValidation.selectedDateTime.get();
             LocalDateTime e = endValidation.selectedDateTime.get();
             String m = endValidation.get();
-            return (m.isEmpty() && s != null && s.compareTo(e) > 0) ? "endCannotBeBeforeStart" : m;
+            return (m.isEmpty() && s != null && s.compareTo(e) > 0) ? RESOURCEKEY_ENDCANNOTBEBEFORESTART : m;
         }
         @Override
         public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(startValidation.selectedDateTime, endValidation.selectedDateTime, endValidation); }
         @Override
         public void dispose() { super.unbind(startValidation.selectedDateTime, endValidation.selectedDateTime, endValidation); }
     }
-    
-    //</editor-fold>
     
     //</editor-fold>
 }
