@@ -51,7 +51,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     //<editor-fold defaultstate="collapsed" desc="customerId">
     
     public static final String PROP_CUSTOMERID = "customerId";
-    
+
     private final IntegerBinding customerId;
 
     /**
@@ -407,6 +407,10 @@ public class AppointmentRow extends DataRow implements model.Appointment {
         });
     }
     
+    public static int getCountByCustomer(int primaryKey, LocalDateTime start, LocalDateTime end) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     public static final ObservableList<AppointmentRow> getAllByUser(Connection connection, int userId) throws SQLException {
         return selectFromDb(connection, SQL_SELECT + " WHERE `appointment`.`userId` = ?", (Function<ResultSet, AppointmentRow>)(ResultSet rs) -> {
             AppointmentRow u;
@@ -463,6 +467,10 @@ public class AppointmentRow extends DataRow implements model.Appointment {
                 Logger.getLogger(AppointmentRow.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
+    }
+    
+    public static int getCountByUser(int primaryKey, LocalDateTime start, LocalDateTime end) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
