@@ -146,121 +146,131 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
-    @FXML
+    @FXML // Customer selection control
     private ComboBox<CustomerRow> customerComboBox;
 
-    @FXML
+    @FXML // User selection control.
     private ComboBox<UserRow> userComboBox;
 
-    @FXML
+    @FXML // Label for displaying customer selection validation message.
     private Label customerValidationLabel;
 
-    @FXML
+    @FXML // Label for displaying user selection validation message.
     private Label userValidationLabel;
 
-    @FXML
+    @FXML // Control for the appointment title.
     private TextField titleTextField;
 
-    @FXML
+    @FXML // Label for displaying appointment title validation message.
     private Label titleValidationLabel;
 
-    @FXML
+    @FXML // Control for selecting the appointment start date.
     private DatePicker startDatePicker;
 
-    @FXML
+    @FXML // Control for selecting the appointment start hour.
     private ComboBox<Integer> startHourComboBox;
 
-    @FXML
+    @FXML // Control for selecting the appointment start minute.
     private ComboBox<Integer> startMinuteComboBox;
 
-    @FXML
+    @FXML // Label for displaying appointment start date validation message.
     private Label startValidationLabel;
 
-    @FXML
+    @FXML // Control for selecting the appointment end date.
     private DatePicker endDatePicker;
 
-    @FXML
+    @FXML // Control for selecting the appointment end hour.
     private ComboBox<Integer> endHourComboBox;
 
-    @FXML
+    @FXML // Control for selecting the appointment end minute.
     private ComboBox<Integer> endMinuteComboBox;
 
-    @FXML
+    @FXML // Label for displaying appointment end date or date range validation message.
     private Label endValidationLabel;
 
-    @FXML
+    @FXML // Control for selecting the time zone for the appointment start and end.
     private ComboBox<TimeZone> timeZoneComboBox;
 
-    @FXML
+    @FXML // Field label that gets hidden when the user selects the default time zone.
     private Label currentTimeZoneLabel;
 
-    @FXML
+    @FXML // Label for displaying the selected time, converted to the default time zone.
     private Label currentTimeZoneValue;
 
-    @FXML
-    private Label dateTimeValidationLabel;
+    @FXML // Label for displaying customer and/or user appointment conflict counts.
+    private Label conflictValidationLabel;
 
-    @FXML
+    @FXML // Container control that holds the validation message and a button the user can use to view the individual conflicts.
     private HBox showConflictsHBox;
 
-    @FXML
+    @FXML // Field label for phone number control as well as explicit and implicit location.
     private Label locationLabel;
 
-    @FXML
+    @FXML // Appointment type selection control.
     private ComboBox<String> typeComboBox;
 
-    @FXML
+    @FXML // Explicit location input control.
     private TextArea locationTextArea;
 
-    @FXML
+    @FXML // Phone number input control.
     private TextField phoneTextField;
 
-    @FXML
+    @FXML // Label to contain the implicit location (Customer's address).
     private Label implicitLocationLabel;
             
-    @FXML
+    @FXML // Label for displaying phone or explicit location validation message.
     private Label locationValidationLabel;
 
-    @FXML
+    @FXML // Field label for the Meeting URL control.
     private Label urlLabel;
 
-    @FXML
+    @FXML // Meeting URL input control.
     private TextField urlTextField;
 
-    @FXML
+    @FXML // Label for displaying URL validation message.
     private Label urlValidationLabel;
     
-    @FXML
+    @FXML // Point-of-Contact input control.
     private TextField contactTextField;
 
-    @FXML
+    @FXML // Label for displaying point-of-contact validation message.
     private Label contactValidationLabel;
 
-    @FXML
+    @FXML // Appointment description input control.
     private TextArea descriptionTextArea;
 
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Observables">
     
+    // Items for the customerComboBox control.
     private ObservableList<CustomerRow> customers;
     
+    // Items for the userComboBox control.
     private ObservableList<UserRow> users;
     
+    // Items for the startHourComboBox and endHourComboBox controls.
     private ObservableList<Integer> hourOptions;
     
+    // Items for the startMinuteComboBox and endMinuteComboBox controls.
     private ObservableList<Integer> minuteOptions;
     
+    // Items for the timeZoneComboBox control.
     private ObservableList<TimeZone> timeZones;
     
-    private ObservableList<AppointmentRow> currentAndFuture;
-    
+    // Items for the typeComboBox control.
     private ObservableList<String> types;
     
+    // Manages visibility and text of controls according to the selected appointment type.
     private TypeSelectionState typeSelectionState;
     
+    // Manages visibility of the {@link #showConflictsHBox} control and the text of the {@link #conflictValidationLabel} control according to appointment schedule conflict results.
+    private ConflictLookupState conflictLookupState;
+
+    // Produces the validation message for the date range or null if the start and end date range is valid.
     private DateRangeValidation dateRangeValidation;
     
+    // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
     
     //</editor-fold>
@@ -312,7 +322,7 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 getFXMLResourceName(getClass()));
         assert currentTimeZoneValue != null : String.format("fx:id=\"currentTimeZoneValue\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
-        assert dateTimeValidationLabel != null : String.format("fx:id=\"dateTimeValidationLabel\" was not injected: check your FXML file '%s'.",
+        assert conflictValidationLabel != null : String.format("fx:id=\"dateTimeValidationLabel\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         assert showConflictsHBox != null : String.format("fx:id=\"showConflictsHBox\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -394,15 +404,22 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
         
-        // Initialize validation bindings
+        // Initialize validation and control state bindings
         typeSelectionState = new TypeSelectionState();
+        conflictLookupState = new ConflictLookupState();
         dateRangeValidation = new DateRangeValidation();
-        valid = typeSelectionState.valid.and(dateRangeValidation.isEmpty());
+        valid = dateRangeValidation.isEmpty().and(conflictLookupState.conflictMessage.isEmpty());
+        // Add listener to disable the "Save" button when the valid binding returns false.
         valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             saveChangesButton.setDisable(!newValue);
         });
     }
     
+    /**
+     * Adds a new appointment to the database.
+     * @return
+     *          The @{link model.db.AppointmentRow} object containing appointment that was added or @{code null} if no appointment was added.
+     */
     public static AppointmentRow addNew() {
         return showAndWait(EditAppointment.class, 800, 600, (SetContentContext<EditAppointment> context) -> {
             EditAppointment controller = context.getController();
@@ -415,6 +432,13 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         });
     }
 
+    /**
+     * Edits the specified appointment.
+     * @param row
+     *              The appointment to be edited.
+     * @return
+     *          {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
+     */
     public static boolean edit(AppointmentRow row) {
         return showAndWait(EditAppointment.class, 800, 600, (SetContentContext<EditAppointment> context) -> {
             EditAppointment controller = context.getController();
@@ -455,16 +479,17 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     
     @FXML
     void addCustomerClick(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @FXML
     void addUserClick(ActionEvent event) {
-
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
-
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -476,43 +501,66 @@ public class EditAppointment extends ItemController<AppointmentRow> {
 
     //<editor-fold defaultstate="collapsed" desc="State management classes">
     
+    /**
+     * Manages visibility and text of controls according to the selected appointment type.
+     * The {@link #locationTextArea} control is made visible when the selected appointment type is for an explicitly defined location.
+     * The {@link #phoneTextField} control is made visible when the selected appointment type is for a phone meeting.
+     * The {@link #urlLabel} and {@link #urlTextField} controls are made visible when the selected appointment type is for a virtual (online) meeting.
+     * The {@link #implicitLocationLabel} control is made visible when the selected appointment type indicates it is at the customer's location.
+     * The {@link #locationLabel} control is made visible when either the {@link #locationTextArea}, {@link #phoneTextField} or {@link #implicitLocationLabel} are visible.
+     */
     private class TypeSelectionState {
+        /**
+         * The currently selected appointment type from the {@link #typeComboBox} control.
+         */
         final ObjectProperty<String> selectedTypeProperty;
+        /**
+         * The currently selected customer from the {@link #customerComboBox} control.
+         */
         final ObjectProperty<CustomerRow> selectedCustomerProperty;
+        /**
+         * Indicates whether the selected appointment type is for an explicitly defined location ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_OTHER}).
+         */
         final BooleanBinding explicitLocation;
+        /**
+         * Indicates whether the selected appointment type is for a phone meeting ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_PHONE}).
+         */
         final BooleanBinding phone;
+        /**
+         * Indicates whether the selected appointment type is for an online (virtual) meeting ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_VIRTUAL}).
+         */
         final BooleanBinding virtual;
+        /**
+         * The text for the "location" label or blank if the location label should not be displayed.
+         */
         final StringBinding locationLabelText;
+        /**
+         * The text for the implicit location text or blank if the explicit location label should not be displayed.
+         */
         final StringBinding implicitLocationText;
-        final BooleanBinding valid;
         
         TypeSelectionState() {
+            // Get control properties to be bound to.
             selectedTypeProperty = typeComboBox.valueProperty();
             selectedCustomerProperty = customerComboBox.valueProperty();
+            // Set up boolean bindings
             explicitLocation = selectedTypeProperty.isEqualTo(APPOINTMENT_CODE_OTHER);
             phone = selectedTypeProperty.isEqualTo(APPOINTMENT_CODE_PHONE);
             virtual = selectedTypeProperty.isEqualTo(APPOINTMENT_CODE_VIRTUAL);
+            // Create binding for implicit location text (customer address).
             implicitLocationText = new StringBinding() {
                 { super.bind(selectedTypeProperty, selectedCustomerProperty); }
+                
                 @Override
                 protected String computeValue() {
+                    // If appointment type is for an appointment at the customer's location, return the customer's address;
+                    // otherwise, return an emtpty string to indicate that the implicit location text label should not be shown.
                     String t = selectedTypeProperty.get();
                     CustomerRow c = selectedCustomerProperty.get();
-                    if (t.equals(APPOINTMENT_CODE_HOME))
-                        return "Home office";
-                    if (t.equals(APPOINTMENT_CODE_GERMANY))
-                        return "Germany office";
-                    if (t.equals(APPOINTMENT_CODE_INDIA))
-                        return "India office";
-                    if (t.equals(APPOINTMENT_CODE_HONDURAS))
-                        return "Honduras office";
-                    if (t.equals(APPOINTMENT_CODE_CUSTOMER)) {
-                        if (c != null) {
-                            model.Address a = c.getAddress();
-                            if (a != null && !(t = a.toString().trim()).isEmpty())
-                                return t;
-                        }
-                        return "Customer location";
+                    if (t.equals(APPOINTMENT_CODE_CUSTOMER) && c != null) {
+                        model.Address a = c.getAddress();
+                        if (a != null && !(t = a.toString().trim()).isEmpty())
+                            return t;
                     }
                     return "";
                 }
@@ -521,10 +569,14 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 @Override
                 public void dispose() { super.unbind(selectedTypeProperty, selectedCustomerProperty); }
             };
+            // Create binding for location field label.
             locationLabelText = new StringBinding() {
                 { super.bind(phone, explicitLocation, implicitLocationText); }
                 @Override
                 protected String computeValue() {
+                    // If the location is the customer location or an explicit location, return "Location".
+                    // Else, if the appointment type is for a phone meeting, return "Phone number";
+                    // otherwise, return an emtpty string to indicate that the location field label should not be shown.
                     boolean e = explicitLocation.get();
                     String i = implicitLocationText.get();
                     return (phone.get()) ? getResources().getString(RESOURCEKEY_PHONENUMBER) : ((e || !i.isEmpty()) ? getResources().getString(RESOURCEKEY_LOCATION) : "");
@@ -534,17 +586,22 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 @Override
                 public void dispose() { super.unbind(phone, explicitLocation, implicitLocationText); }
             };
-            valid = explicitLocation.or(phone).or(virtual).or(implicitLocationText.isNotEmpty());
+            // Create listener to update control state when the explicit location appointment type indicator has changed.
             explicitLocation.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
                     explicitLocationChanged(newValue));
+            // Create listener to update control state when the phone appointment type indicator has changed.
             phone.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
                     phoneChanged(newValue));
+            // Create listener to update control state when the virtual appointment type indicator has changed.
             virtual.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
                     virtualChanged(newValue));
+            // Create listener to update control state when the implicit location text has changed.
             implicitLocationText.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
                     implicitLocationTextChanged(newValue));
+            // Create listener to update control state when the texst for the location field label has changed.
             locationLabelText.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
                     locationLabelTextChanged(newValue));
+            // Call the methods that handle changes, to initialize all control states.
             explicitLocationChanged(explicitLocation.get());
             phoneChanged(phone.get());
             virtualChanged(virtual.get());
@@ -552,20 +609,37 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             locationLabelTextChanged(locationLabelText.get());
         }
         
-        void explicitLocationChanged(boolean value) {
+        /**
+         * Update the {@link #locationTextArea} control display status.
+         * @param value
+         *              If {@code true}, then the {@link #locationTextArea} control will be made visible; otherwise, it will be hidden and collapsed.
+         */
+        final void explicitLocationChanged(boolean value) {
             if (value)
                 restoreControl(locationTextArea);
             else
                 collapseControl(locationTextArea);
         }
-        void phoneChanged(boolean value) {
+        
+        /**
+         * Update the {@link #phoneTextField} control display status.
+         * @param value
+         *              If {@code true}, then the {@link #phoneTextField} control will be made visible; otherwise, it will be hidden and collapsed.
+         */
+        final void phoneChanged(boolean value) {
             if (value)
                 restoreControl(phoneTextField);
             else
                 collapseControl(phoneTextField);
             
         }
-        void virtualChanged(boolean value) {
+        
+        /**
+         * Updates the display status for the {@link #urlLabel} and {@link #urlTextField} controls.
+         * @param value
+         *              If {@code true}, then the {@link #urlLabel} and {@link #urlLabel} controls will be made visible; otherwise, they will be hidden and collapsed.
+         */
+        final void virtualChanged(boolean value) {
             if (value) {
                 restoreControl(urlLabel);
                 restoreControl(urlTextField);
@@ -575,13 +649,27 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 collapseControl(urlTextField);
             }
         }
-        void implicitLocationTextChanged(String value) {
+        
+        /**
+         * Update the text and/or display status for the {@link #implicitLocationLabel} control.
+         * @param value
+         *              If empty, then the {@link #implicitLocationLabel} control will be hidden and collapsed;
+         *              otherwise, it will be made visible and its text updated accordingly.
+         */
+        final void implicitLocationTextChanged(String value) {
             if (value == null || value.trim().isEmpty())
                 collapseControl(implicitLocationLabel);
             else
                 restoreControl(implicitLocationLabel, value);
         }
-        void locationLabelTextChanged(String value) {
+        
+        /**
+         * Update the text and/or display status for the {@link #locationLabel} control.
+         * @param value
+         *              If empty, then the {@link #locationLabel} control will be hidden and collapsed;
+         *              otherwise, it will be made visible and its text updated accordingly.
+         */
+        final void locationLabelTextChanged(String value) {
             if (value == null || value.trim().isEmpty())
                 collapseControl(locationLabel);
             else
@@ -589,6 +677,11 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         }
     }
     
+    /**
+     * Manages visibility of the {@link #showConflictsHBox} control and the text of the {@link #conflictValidationLabel} control according to appointment schedule conflict results.
+     * The text of the {@link #conflictValidationLabel} control is updated to contain a verbal explanation of the conflict counts.
+     * The {@link #showConflictsHBox} control is made visible when there are one or more customer or user scheduling conflicts found.
+     */
     private class ConflictLookupState {
         final SimpleIntegerProperty customerConflictCount;
         final SimpleIntegerProperty userConflictCount;
@@ -634,6 +727,12 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             customerConflictCount.set(0);
             userConflictCount.set(0);
         }
+        /**
+         * This is invoked when the user clicks the "Save" button, to see if there are no customer or user scheduling conflicts.
+         * @return
+         *          {@code true} if selected date ranges are valid, a customer and user is selected, and there are no scheduling conflicts;
+         *          otherwise, {@code false} to indicate that the "save" should be aborted.
+         */
         boolean test() {
             LocalDateTime start = dateRangeValidation.startValidation.selectedDateTime.get();
             if (start != null) {
@@ -657,10 +756,14 @@ public class EditAppointment extends ItemController<AppointmentRow> {
             return false;
         }
     }
+    
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Field Validation classes">
     
+    /**
+     * Produces the resource key of the validation message for a date/time selection or an empty string if the entire date and time has been selected.
+     */
     private class DateValidation extends StringBinding {
         final ObjectProperty<LocalDate> dateProperty;
         final ObjectProperty<Integer> hourProperty;
@@ -721,8 +824,13 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         public void dispose() { super.unbind(dateProperty, hourProperty, minuteProperty); }
     }
     
+    /**
+     * Produces the resource key of the validation message for the date range or an empty string if the start and end date range is valid.
+     */
     private class DateRangeValidation extends StringBinding {
+        // The resource key of the validation message for the start date.
         final DateValidation startValidation;
+        // The resource key of the validation message for the end date.
         final DateValidation endValidation;
         
         DateRangeValidation() {
