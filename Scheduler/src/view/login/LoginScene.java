@@ -31,6 +31,22 @@ public class LoginScene extends view.Controller {
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+    public static final String RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN = "appointmentSchedulerLogin";
+    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
+    public static final String RESOURCEKEY_EXIT = "exit";
+    public static final String RESOURCEKEY_INVALIDCREDENTIALS = "invalidCredentials";
+    public static final String RESOURCEKEY_LOGIN = "login";
+    public static final String RESOURCEKEY_LOGINERROR = "loginError";
+    public static final String RESOURCEKEY_PASSWORD = "password";
+    public static final String RESOURCEKEY_USERNAME = "userName";
+    public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
+    public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
+    public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
+
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
     
     /**
@@ -119,12 +135,12 @@ public class LoginScene extends view.Controller {
             if (app.tryLoginUser(userNameTextField.getText(), passwordField.getText()))
                 view.RootController.setAsRootStageScene();
             else
-                scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("invalidCredentials"));
+                scheduler.Util.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
         } catch (InvalidOperationException ex) {
-            scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("validationError"));
+            scheduler.Util.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
             Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         } catch (SQLException ex) {
-            scheduler.Util.showErrorAlert(currentResourceBundle.getString("loginError"), currentResourceBundle.getString("dbAccessError"));
+            scheduler.Util.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_DBACCESSERROR));
             Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
         }
     }
@@ -184,12 +200,12 @@ public class LoginScene extends view.Controller {
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
             // Set window title
-            app.getRootStage().setTitle(currentResourceBundle.getString("appointmentSchedulerLogin"));
+            app.getRootStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
             // Update field labels and button text.
-            userNameLabel.setText(currentResourceBundle.getString("userName"));
-            passwordLabel.setText(currentResourceBundle.getString("password"));
-            loginButton.setText(currentResourceBundle.getString("login"));
-            exitButton.setText(currentResourceBundle.getString("exit"));
+            userNameLabel.setText(currentResourceBundle.getString(RESOURCEKEY_USERNAME));
+            passwordLabel.setText(currentResourceBundle.getString(RESOURCEKEY_PASSWORD));
+            loginButton.setText(currentResourceBundle.getString(RESOURCEKEY_LOGIN));
+            exitButton.setText(currentResourceBundle.getString(RESOURCEKEY_EXIT));
         }
 
         @Override

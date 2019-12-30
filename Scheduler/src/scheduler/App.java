@@ -34,6 +34,25 @@ import model.db.UserRow;
  * @author Leonard T. Erwine
  */
 public class App extends Application {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+    public static final String RESOURCEKEY_FILENOTFOUND = "fileNotFound";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_PHONE = "appointmentType_phone";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL = "appointmentType_virtual";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER = "appointmentType_customer";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_HOME = "appointmentType_home";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_GERMANY = "appointmentType_germany";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_INDIA = "appointmentType_india";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_HONDURAS = "appointmentType_honduras";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_OTHER = "appointmentType_other";
+    public static final String RESOURCEKEY_FXMLLOADERERRORTITLE = "fxmlLoaderErrorTitle";
+    public static final String RESOURCEKEY_FXMLLOADERERRORMESSAGE = "fxmlLoaderErrorMessage";
+    public static final String RESOURCEKEY_NOTHINGSELECTED = "nothingSelected";
+    public static final String RESOURCEKEY_NOITEMWASSELECTED = "noItemWasSelected";
+    public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
+    public static final String RESOURCEKEY_AREYOURSUREDELETE = "areYourSureDelete";
+
+    //</editor-fold>
     
     private static App current;
     
@@ -114,7 +133,7 @@ public class App extends Application {
             stage.show();
         } catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-            Util.showErrorAlert(appResourceBundle.getString("fxmlLoaderErrorTitle"), appResourceBundle.getString("fxmlLoaderErrorMessage"));
+            Util.showErrorAlert(appResourceBundle.getString(RESOURCEKEY_FXMLLOADERERRORTITLE), appResourceBundle.getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }
     
@@ -158,7 +177,7 @@ public class App extends Application {
      * @return The formatted 'File "%s" not found' message in the current language.
      */
     public String getFileNotFoundMessage(String fileName) {
-        return String.format(getAppResourceBundle().getString("fileNotFound"), fileName);
+        return String.format(getAppResourceBundle().getString(RESOURCEKEY_FILENOTFOUND), fileName);
     }
     
     // This contains the current locale.

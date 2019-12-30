@@ -35,6 +35,32 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/user/EditUser")
 @FXMLResource("/view/user/EditUser.fxml")
 public class EditUser extends ItemController<UserRow> {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+//    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
+    public static final String RESOURCEKEY_ADDNEWUSER = "addNewUser";
+    public static final String RESOURCEKEY_ADMINSTRATIVEUSER = "adminstrativeUser";
+//    public static final String RESOURCEKEY_CHANGEPASSWORD = "changePassword";
+//    public static final String RESOURCEKEY_CONFIRMPASSWORD = "confirmPassword";
+    public static final String RESOURCEKEY_EDITUSER = "editUser";
+    public static final String RESOURCEKEY_FIELDVALIDATIONFAILED = "fieldValidationFailed";
+    public static final String RESOURCEKEY_INACTIVE = "inactive";
+    public static final String RESOURCEKEY_NORMALUSER = "normalUser";
+    public static final String RESOURCEKEY_PASSWORD = "password";
+    public static final String RESOURCEKEY_PASSWORDCANNOTBEEMPTY = "passwordCannotBeEmpty";
+    public static final String RESOURCEKEY_PASSWORDMISMATCH = "passwordMismatch";
+//    public static final String RESOURCEKEY_USERNAME = "userName";
+    public static final String RESOURCEKEY_USERNAMECANNOTBEEMPTY = "userNameCannotBeEmpty";
+    public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
+//    public static final String RESOURCEKEY_BY = "by";
+//    public static final String RESOURCEKEY_CANCEL = "cancel";
+//    public static final String RESOURCEKEY_CREATED = "created";
+//    public static final String RESOURCEKEY_SAVE = "save";
+//    public static final String RESOURCEKEY_UPDATED = "updated";
+    public static final String RESOURCEKEY_USERNAMEINUSE = "userNameInUse";
+
+    //</editor-fold>
+    
     @FXML
     private TextField userNameTextField;
 
@@ -97,13 +123,13 @@ public class EditUser extends ItemController<UserRow> {
                 
                 switch (a) {
                     case 1:
-                        setText(getResources().getString("normalUser"));
+                        setText(getResources().getString(RESOURCEKEY_NORMALUSER));
                         break;
                     case 2:
-                        setText(getResources().getString("adminstrativeUser"));
+                        setText(getResources().getString(RESOURCEKEY_ADMINSTRATIVEUSER));
                         break;
                     default:
-                        setText(getResources().getString("inactive"));
+                        setText(getResources().getString(RESOURCEKEY_INACTIVE));
                         break;
                 }
             }
@@ -120,7 +146,7 @@ public class EditUser extends ItemController<UserRow> {
 
     private void onIsNewRowChanged(boolean value) {
         if (value) {
-            changePasswordCheckBox.setText(getResources().getString("password"));
+            changePasswordCheckBox.setText(getResources().getString(RESOURCEKEY_PASSWORD));
             changePasswordCheckBox.setSelected(true);
             changePasswordCheckBox.setDisable(true);
             passwordField.setVisible(true);
@@ -143,7 +169,7 @@ public class EditUser extends ItemController<UserRow> {
             EditUser controller = context.getController();
             controller.setModel(new UserRow());
             controller.originalUserName.set("");
-            context.getStage().setTitle(context.getResources().getString("addNewUser"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWUSER));
         }, (SetContentContext<EditUser> context) -> {
             EditUser controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
@@ -154,7 +180,7 @@ public class EditUser extends ItemController<UserRow> {
         return showAndWait(EditUser.class, 640, 480, (SetContentContext<EditUser> context) -> {
             EditUser controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString("editUser"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITUSER));
             controller.originalUserName.set(row.getUserName());
             controller.userNameTextField.setText(row.getUserName());
         }, (SetContentContext<EditUser> context) -> {

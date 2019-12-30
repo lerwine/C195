@@ -17,6 +17,20 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/country/EditCountry")
 @FXMLResource("/view/country/EditCountry.fxml")
 public class EditCountry extends ItemController<CountryRow> {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+    public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
+    public static final String RESOURCEKEY_EDITCOUNTRY = "editCountry";
+//    public static final String RESOURCEKEY_NAME = "name";
+//    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
+//    public static final String RESOURCEKEY_BY = "by";
+//    public static final String RESOURCEKEY_CANCEL = "cancel";
+//    public static final String RESOURCEKEY_CREATED = "created";
+//    public static final String RESOURCEKEY_SAVE = "save";
+//    public static final String RESOURCEKEY_UPDATED = "updated";
+
+    //</editor-fold>
+    
     private String name;
     
     @FXML
@@ -32,7 +46,7 @@ public class EditCountry extends ItemController<CountryRow> {
         return showAndWait(EditCountry.class, 640, 480, (SetContentContext<EditCountry> context) -> {
             EditCountry controller = context.getController();
             controller.setModel(new CountryRow());
-            context.getStage().setTitle(context.getResources().getString("addNewCountry"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCOUNTRY));
         }, (SetContentContext<EditCountry> context) -> {
             EditCountry controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
@@ -43,7 +57,7 @@ public class EditCountry extends ItemController<CountryRow> {
         return showAndWait(EditCountry.class, 640, 480, (SetContentContext<EditCountry> context) -> {
             EditCountry controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString("editCountry"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITCOUNTRY));
         }, (SetContentContext<EditCountry> context) -> {
             return !context.getController().isCanceled();
         });

@@ -80,7 +80,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
         R item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
             ResourceBundle rb = scheduler.App.getCurrent().getAppResourceBundle();
-            Util.showWarningAlert(rb.getString("nothingSelected"), rb.getString("noItemWasSelected"));
+            Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
             verifyDeleteItem(item);
@@ -91,7 +91,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
         R item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
             ResourceBundle rb = scheduler.App.getCurrent().getAppResourceBundle();
-            Util.showWarningAlert(rb.getString("nothingSelected"), rb.getString("noItemWasSelected"));
+            Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
             onEditItem(item);
@@ -122,7 +122,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
 
     private void verifyDeleteItem(R item) {
         ResourceBundle rb = scheduler.App.getCurrent().getAppResourceBundle();
-        Optional<ButtonType> response = Util.showWarningAlert(rb.getString("confirmDelete"), rb.getString("areYourSureDelete"), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOURSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             onDeleteItem(item);
     }

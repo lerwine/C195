@@ -19,6 +19,25 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/address/EditAddress")
 @FXMLResource("/view/address/EditAddress.fxml")
 public class EditAddress extends ItemController<AddressRow> {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+    public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
+    public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
+//    public static final String RESOURCEKEY_ADDRESS = "address";
+//    public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
+//    public static final String RESOURCEKEY_CITY = "city";
+//    public static final String RESOURCEKEY_COUNTRY = "country";
+//    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+//    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
+//    public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
+//    public static final String RESOURCEKEY_BY = "by";
+//    public static final String RESOURCEKEY_CANCEL = "cancel";
+//    public static final String RESOURCEKEY_CREATED = "created";
+//    public static final String RESOURCEKEY_SAVE = "save";
+//    public static final String RESOURCEKEY_UPDATED = "updated";
+
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
     @FXML
@@ -48,7 +67,7 @@ public class EditAddress extends ItemController<AddressRow> {
         return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
             EditAddress controller = context.getController();
             controller.setModel(new AddressRow());
-            context.getStage().setTitle(context.getResources().getString("addNewAddress"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWADDRESS));
         }, (SetContentContext<EditAddress> context) -> {
             EditAddress controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
@@ -59,7 +78,7 @@ public class EditAddress extends ItemController<AddressRow> {
         return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
             EditAddress controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString("editAddress"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITADDRESS));
         }, (SetContentContext<EditAddress> context) -> {
             return !context.getController().isCanceled();
         });

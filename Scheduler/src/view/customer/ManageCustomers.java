@@ -16,6 +16,19 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/customer/ManageCustomers")
 @FXMLResource("/view/customer/ManageCustomers.fxml")
 public class ManageCustomers extends view.ListingController {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+//    public static final String RESOURCEKEY_ACTIVE = "active";
+//    public static final String RESOURCEKEY_ADDRESS = "address";
+//    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
+//    public static final String RESOURCEKEY_CREATEDON = "createdOn";
+//    public static final String RESOURCEKEY_CUSTOMERNAME = "customerName";
+    public static final String RESOURCEKEY_MANAGECUSTOMERS = "manageCustomers";
+//    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
+//    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+
+    //</editor-fold>
+    
     @FXML
     private TableColumn<CustomerRow, String> customerNameTableColumn;
 
@@ -39,7 +52,7 @@ public class ManageCustomers extends view.ListingController {
     
     public static void setAsRootContent() {
         setAsRootContent(ManageCustomers.class, (view.Controller.SetContentContext<ManageCustomers> context) -> {
-            context.getStage().setTitle(context.getResources().getString("manageAppointments"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGECUSTOMERS));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize appointments list");
         });
     }

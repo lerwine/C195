@@ -12,6 +12,16 @@ import java.util.regex.Pattern;
  * @author Leonard T. Erwine
  */
 public class AppConfig {
+    //<editor-fold defaultstate="collapsed" desc="Property keys">
+
+    public static final String PROPERTYKEY_DBSERVERNAME = "dbServerName";
+    public static final String PROPERTYKEY_DBNAME = "dbName";
+    public static final String PROPERTYKEY_DBLOGIN = "dbLogin";
+    public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
+    public static final String PROPERTYKEY_LANGUAGES = "languages";
+
+    //</editor-fold>
+    
     private static Properties properties;
     private static final Pattern PATTERN_WHITESPACE = Pattern.compile("[\\r\\n\\s]+", 0);
     private static final String PROPERTIES_FILE_APPCONFIG = "appconfig.properties";
@@ -32,20 +42,20 @@ public class AppConfig {
         finally { iStream.close(); }
     }
     
-    public static String getDbServerName() { return properties.getProperty("dbServerName", DEFAULT_SERVER_NAME); }
+    public static String getDbServerName() { return properties.getProperty(PROPERTYKEY_DBSERVERNAME, DEFAULT_SERVER_NAME); }
     
-    public static String getDatabaseName() { return properties.getProperty("dbName", DEFAULT_DATABASE_NAME); }
+    public static String getDatabaseName() { return properties.getProperty(PROPERTYKEY_DBNAME, DEFAULT_DATABASE_NAME); }
     
     public static String getConnectionUrl() {
         return String.format("jdbc:mysql://%s/%s", getDbServerName(), getDatabaseName());
     }
     
-    public static String getDbLoginName() { return properties.getProperty("dbLogin", DEFAULT_DATABASE_NAME); }
+    public static String getDbLoginName() { return properties.getProperty(PROPERTYKEY_DBLOGIN, DEFAULT_DATABASE_NAME); }
     
-    public static String getDbLoginPassword() { return properties.getProperty("dbPassword", DEFAULT_DATABASE_PASSWORD); }
+    public static String getDbLoginPassword() { return properties.getProperty(PROPERTYKEY_DBPASSWORD, DEFAULT_DATABASE_PASSWORD); }
     
     public static String[] getLanguages() {
-        String s = properties.getProperty("languages");
+        String s = properties.getProperty(PROPERTYKEY_LANGUAGES);
         if (s == null || (s = s.trim()).isEmpty())
             return new String[0];
         return PATTERN_WHITESPACE.split(s);

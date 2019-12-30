@@ -24,6 +24,33 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/Root")
 @FXMLResource("/view/Root.fxml")
 public class RootController extends Controller {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+    public static final String RESOURCEKEY_ADDRESS = "address";
+    public static final String RESOURCEKEY_ALLAPPOINTMENTS = "allAppointments";
+    public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";
+    public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
+    public static final String RESOURCEKEY_ALLUSERS = "allUsers";
+    public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
+    public static final String RESOURCEKEY_APPOINTMENTSCHEDULER = "appointmentScheduler";
+    public static final String RESOURCEKEY_CUSTOMER = "customer";
+    public static final String RESOURCEKEY_CUSTOMERS = "customers";
+    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
+    public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
+    public static final String RESOURCEKEY_END = "end";
+    public static final String RESOURCEKEY_LOADINGDATA = "loadingData";
+    public static final String RESOURCEKEY_MYCURRENTANDUPCOMING = "myCurrentAndUpcoming";
+    public static final String RESOURCEKEY_NEW = "new";
+    public static final String RESOURCEKEY_NEWADDRESS = "newAddress";
+    public static final String RESOURCEKEY_NEWCITY = "newCity";
+    public static final String RESOURCEKEY_NEWCOUNTRY = "newCountry";
+    public static final String RESOURCEKEY_START = "start";
+    public static final String RESOURCEKEY_TITLE = "title";
+    public static final String RESOURCEKEY_TYPE = "type";
+    public static final String RESOURCEKEY_USERS = "users";
+
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="FXML controls">
     
     @FXML
@@ -262,7 +289,7 @@ public class RootController extends Controller {
         } catch (Exception ex) {
             Logger.getLogger(RootController.class.getName()).log(Level.SEVERE, null, ex);
             ResourceBundle arb = app.getAppResourceBundle();
-            scheduler.Util.showErrorAlert(arb.getString("fxmlLoaderErrorTitle"), arb.getString("fxmlLoaderErrorMessage"));
+            scheduler.Util.showErrorAlert(arb.getString(scheduler.App.RESOURCEKEY_FXMLLOADERERRORTITLE), arb.getString(scheduler.App.RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }
     

@@ -27,6 +27,37 @@ import scheduler.Util;
 @GlobalizationResource("view/appointment/ManageAppointments")
 @FXMLResource("/view/appointment/ManageAppointments.fxml")
 public class ManageAppointments extends view.ListingController {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+//    public static final String RESOURCEKEY_CUSTOMER = "customer";
+//    public static final String RESOURCEKEY_END = "end";
+//    public static final String RESOURCEKEY_START = "start";
+//    public static final String RESOURCEKEY_TITLE = "title";
+//    public static final String RESOURCEKEY_TYPE = "type";
+//    public static final String RESOURCEKEY_USER = "user";
+//    public static final String RESOURCEKEY_NEW = "new";
+    public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
+    public static final String RESOURCEKEY_MANAGEAPPOINTMENTS = "manageAppointments";
+    public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
+    public static final String RESOURCEKEY_CURRENTANDFUTUREAPPOINTMENTS = "currentAndFutureAppointments";
+    public static final String RESOURCEKEY_INRANGE = "inRange";
+    public static final String RESOURCEKEY_ONORAFTER = "onOrAfter";
+    public static final String RESOURCEKEY_ONORBEFORE = "onOrBefore";
+    public static final String RESOURCEKEY_ONDATE = "onDate";
+    public static final String RESOURCEKEY_APPOINTMENTSINRANGE = "appointmentsInRange";
+    public static final String RESOURCEKEY_APPOINTMENTSONORAFTER = "appointmentsOnOrAfter";
+    public static final String RESOURCEKEY_APPOINTMENTSONORBEFORE = "appointmentsOnOrBefore";
+    public static final String RESOURCEKEY_APPOINTMENTSONDATE = "appointmentsOnDate";
+    public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
+//    public static final String RESOURCEKEY_EDIT = "edit";
+//    public static final String RESOURCEKEY_DELETE = "delete";
+//    public static final String RESOURCEKEY_CREATEDON = "createdOn";
+//    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
+//    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+//    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
+
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
     @FXML
@@ -71,7 +102,7 @@ public class ManageAppointments extends view.ListingController {
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootContent() {
         setAsRootContent(ManageAppointments.class, (SetContentContext<ManageAppointments> context) -> {
-            context.getStage().setTitle(context.getResources().getString("manageAppointments"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
             ManageAppointments controller = context.getController();
             collapseControl(controller.headingLabel);
             ObservableList<AppointmentRow> apptList;

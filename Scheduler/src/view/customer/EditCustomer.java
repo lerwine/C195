@@ -20,6 +20,26 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/customer/EditCustomer")
 @FXMLResource("/view/customer/EditCustomer.fxml")
 public class EditCustomer extends ItemController<CustomerRow> {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+//    public static final String RESOURCEKEY_ACTIVE = "active";
+    public static final String RESOURCEKEY_ADDNEWCUSTOMER = "addNewCustomer";
+//    public static final String RESOURCEKEY_ADDRESS = "address";
+//    public static final String RESOURCEKEY_CITY = "city";
+//    public static final String RESOURCEKEY_COUNTRY = "country";
+    public static final String RESOURCEKEY_EDITCUSTOMER = "editCustomer";
+//    public static final String RESOURCEKEY_NAME = "name";
+//    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
+//    public static final String RESOURCEKEY_NO = "no";
+//    public static final String RESOURCEKEY_YES = "yes";
+//    public static final String RESOURCEKEY_BY = "by";
+//    public static final String RESOURCEKEY_CANCEL = "cancel";
+//    public static final String RESOURCEKEY_CREATED = "created";
+//    public static final String RESOURCEKEY_SAVE = "save";
+//    public static final String RESOURCEKEY_UPDATED = "updated";
+
+    //</editor-fold>
+    
     @FXML
     private Label nameLabel;
     
@@ -54,7 +74,7 @@ public class EditCustomer extends ItemController<CustomerRow> {
         return showAndWait(EditCustomer.class, 640, 480, (SetContentContext<EditCustomer> context) -> {
             EditCustomer controller = context.getController();
             controller.setModel(new CustomerRow());
-            context.getStage().setTitle(context.getResources().getString("addNewCustomer"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCUSTOMER));
         }, (SetContentContext<EditCustomer> context) -> {
             EditCustomer controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
@@ -65,7 +85,7 @@ public class EditCustomer extends ItemController<CustomerRow> {
         return showAndWait(EditCustomer.class, 640, 480, (SetContentContext<EditCustomer> context) -> {
             EditCustomer controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString("editCustomer"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITCUSTOMER));
         }, (SetContentContext<EditCustomer> context) -> {
             return !context.getController().isCanceled();
         });

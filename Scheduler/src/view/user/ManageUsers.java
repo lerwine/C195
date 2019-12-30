@@ -17,6 +17,16 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/user/ManageUsers")
 @FXMLResource("/view/user/ManageUsers.fxml")
 public class ManageUsers extends view.ListingController {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+    public static final String RESOURCEKEY_MANAGEUSERS = "manageUsers";
+//    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
+//    public static final String RESOURCEKEY_CREATEDON = "createdOn";
+//    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
+//    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+
+    //</editor-fold>
+    
     @FXML
     private TableView<UserRow> usersTableView;
 
@@ -44,7 +54,7 @@ public class ManageUsers extends view.ListingController {
 
     public static void setAsRootContent() {
         setAsRootContent(ManageUsers.class, (view.Controller.SetContentContext<ManageUsers> context) -> {
-            context.getStage().setTitle(context.getResources().getString("manageUsers"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGEUSERS));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize user list");
         });
     }

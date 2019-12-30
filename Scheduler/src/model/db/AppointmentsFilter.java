@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import view.appointment.ManageAppointments;
 
 /**
  *
@@ -142,41 +143,41 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
     @Override
     public String getWindowTitle(ResourceBundle rb) {
         if (customer.isPresent())
-            return String.format(rb.getString("appointmentsForCustomer"), customer.get().getName());
+            return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORCUSTOMER), customer.get().getName());
         if (user.isPresent())
-            return String.format(rb.getString("appointmentsForUser"), user.get().getUserName());
+            return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORUSER), user.get().getUserName());
         if (currentAndFuture)
-            return rb.getString("currentAndFutureAppointments");
+            return rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTUREAPPOINTMENTS);
         if (start.isPresent()) {
             DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateFormatter();
             if (end.isPresent()) {
                 if (start.get().compareTo(end.get()) == 0)
-                    return String.format(rb.getString("appointmentsOnDate"), formatter.format(start.get()));
-                return String.format(rb.getString("appointmentsInRange"), formatter.format(start.get()), formatter.format(end.get()));
+                    return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONDATE), formatter.format(start.get()));
+                return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSINRANGE), formatter.format(start.get()), formatter.format(end.get()));
             }
-            return String.format(rb.getString("appointmentsOnOrAfter"), formatter.format(start.get()));
+            return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONORAFTER), formatter.format(start.get()));
         }
         if (end.isPresent())
-            return String.format(rb.getString("appointmentsOnOrBefore"), scheduler.App.getCurrent().getFullDateFormatter().format(end.get()));
-        return rb.getString("manageAppointments");
+            return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONORBEFORE), scheduler.App.getCurrent().getFullDateFormatter().format(end.get()));
+        return rb.getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
     }
 
     @Override
     public String getSubHeading(ResourceBundle rb) {
         if (customer.isPresent() || user.isPresent()) {
             if (currentAndFuture)
-                return rb.getString("currentAndFuture");
+                return rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTURE);
             if (start.isPresent()) {
                 DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateFormatter();
                 if (end.isPresent()) {
                     if (start.get().compareTo(end.get()) == 0)
-                        return String.format(rb.getString("onDate"), formatter.format(start.get()));
-                    return String.format(rb.getString("inRange"), formatter.format(start.get()), formatter.format(end.get()));
+                        return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONDATE), formatter.format(start.get()));
+                    return String.format(rb.getString(ManageAppointments.RESOURCEKEY_INRANGE), formatter.format(start.get()), formatter.format(end.get()));
                 }
-                return String.format(rb.getString("onOrAfter"), formatter.format(start.get()));
+                return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONORAFTER), formatter.format(start.get()));
             }
             if (end.isPresent())
-                return String.format(rb.getString("onOrBefore"), scheduler.App.getCurrent().getFullDateFormatter().format(end.get()));
+                return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONORBEFORE), scheduler.App.getCurrent().getFullDateFormatter().format(end.get()));
         }
         return "";
     }

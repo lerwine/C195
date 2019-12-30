@@ -23,6 +23,17 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/country/ManageCountries")
 @FXMLResource("/view/country/ManageCountries.fxml")
 public class ManageCountries extends view.ListingController {
+    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+
+//    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
+//    public static final String RESOURCEKEY_CREATEDON = "createdOn";
+    public static final String RESOURCEKEY_MANAGECOUNTRIES = "manageCountries";
+//    public static final String RESOURCEKEY_NAME = "name";
+//    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
+//    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+
+    //</editor-fold>
+    
     @FXML
     private TableColumn<CountryRow, String> nameTableColumn;
 
@@ -69,7 +80,7 @@ public class ManageCountries extends view.ListingController {
     
     public static void setAsRootContent() {
         setAsRootContent(ManageCountries.class, (view.Controller.SetContentContext<ManageCountries> context) -> {
-            context.getStage().setTitle(context.getResources().getString("manageCountries"));
+            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize country list");
         });
     }
