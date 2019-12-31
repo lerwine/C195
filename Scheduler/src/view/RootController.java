@@ -32,7 +32,6 @@ public class RootController extends Controller {
     public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
     public static final String RESOURCEKEY_ALLUSERS = "allUsers";
     public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
-    public static final String RESOURCEKEY_APPOINTMENTSCHEDULER = "appointmentScheduler";
     public static final String RESOURCEKEY_CUSTOMER = "customer";
     public static final String RESOURCEKEY_CUSTOMERS = "customers";
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
@@ -188,7 +187,7 @@ public class RootController extends Controller {
 
         current = this;
         
-        view.appointment.ManageAppointments.setAsRootContent(new model.db.AppointmentsFilter(scheduler.App.getCurrent().getCurrentUser().get(), true));
+        view.appointment.ManageAppointments.setAsRootContent(new model.db.AppointmentsFilter(scheduler.App.CURRENT.get().getCurrentUser(), true));
     }
     
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
@@ -266,7 +265,7 @@ public class RootController extends Controller {
     void allUsersMenuItemClick(ActionEvent event) { view.user.ManageUsers.setAsRootContent(); }
     
     @FXML
-    void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getRootStage().hide(); }
+    void exitButtonClick(ActionEvent event) { scheduler.App.CURRENT.get().getPrimaryStage().hide(); }
     
     //</editor-fold>
     
@@ -279,16 +278,16 @@ public class RootController extends Controller {
     
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootStageScene() {
-        scheduler.App app = scheduler.App.getCurrent(); 
+        scheduler.App app = scheduler.App.CURRENT.get(); 
         try {
             ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(RootController.class), app.getCurrentLocale());
             FXMLLoader loader = new FXMLLoader(RootController.class.getResource(view.Controller.getFXMLResourceName(RootController.class)), rb);
             Scene scene = new Scene(loader.load());
             current = (RootController)loader.getController();
-            app.getRootStage().setScene(scene);
+            app.getPrimaryStage().setScene(scene);
         } catch (Exception ex) {
             Logger.getLogger(RootController.class.getName()).log(Level.SEVERE, null, ex);
-            ResourceBundle arb = app.getAppResourceBundle();
+            ResourceBundle arb = app.getResources();
             scheduler.Util.showErrorAlert(arb.getString(scheduler.App.RESOURCEKEY_FXMLLOADERERRORTITLE), arb.getString(scheduler.App.RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }

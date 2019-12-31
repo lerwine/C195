@@ -1,6 +1,6 @@
 package view.customer;
 
-import view.ItemController;
+import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -19,7 +19,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/customer/EditCustomer")
 @FXMLResource("/view/customer/EditCustomer.fxml")
-public class EditCustomer extends ItemController<CustomerRow> {
+public class EditCustomer extends EditItemController<CustomerRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVE = "active";
@@ -71,22 +71,22 @@ public class EditCustomer extends ItemController<CustomerRow> {
     private Label countryLabel;
     
     public static CustomerRow addNew() {
-        return showAndWait(EditCustomer.class, 640, 480, (SetContentContext<EditCustomer> context) -> {
+        return showAndWait(EditCustomer.class, 640, 480, (ContentChangeContext<EditCustomer> context) -> {
             EditCustomer controller = context.getController();
             controller.setModel(new CustomerRow());
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCUSTOMER));
-        }, (SetContentContext<EditCustomer> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCUSTOMER));
+        }, (ContentChangeContext<EditCustomer> context) -> {
             EditCustomer controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
         });
     }
 
     public static boolean edit(CustomerRow row) {
-        return showAndWait(EditCustomer.class, 640, 480, (SetContentContext<EditCustomer> context) -> {
+        return showAndWait(EditCustomer.class, 640, 480, (ContentChangeContext<EditCustomer> context) -> {
             EditCustomer controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITCUSTOMER));
-        }, (SetContentContext<EditCustomer> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITCUSTOMER));
+        }, (ContentChangeContext<EditCustomer> context) -> {
             return !context.getController().isCanceled();
         });
     }

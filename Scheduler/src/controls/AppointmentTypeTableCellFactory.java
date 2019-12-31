@@ -5,6 +5,7 @@
  */
 package controls;
 
+import javafx.collections.ObservableMap;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
@@ -14,6 +15,7 @@ import javafx.util.Callback;
  * @author Leonard T. Erwine
  */
 public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
+    private final ObservableMap<String, String> map = scheduler.App.CURRENT.get().getAppointmentTypes();
 
     @Override
     public TableCell<S, String> call(TableColumn<S, String> param) {
@@ -21,7 +23,7 @@ public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(scheduler.App.getCurrent().getAppointmentTypeDisplay(item));
+                setText(map.get(item));
             }
         };
     }

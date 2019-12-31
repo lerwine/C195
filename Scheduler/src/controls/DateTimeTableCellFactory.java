@@ -22,7 +22,7 @@ public class DateTimeTableCellFactory<S, T extends TemporalAccessor> implements 
             @Override
             protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
-                setText((item == null) ? "" : scheduler.App.getCurrent().getShortDateTimeFormatter().format(item));
+                setText((item == null) ? "" : scheduler.App.CURRENT.get().getShortDateTimeFormatter().format(item));
             }
         };
     }

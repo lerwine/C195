@@ -101,10 +101,10 @@ public class ManageAppointments extends view.ListingController {
 
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootContent() {
-        setAsRootContent(ManageAppointments.class, (SetContentContext<ManageAppointments> context) -> {
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
+        setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
             ManageAppointments controller = context.getController();
-            collapseControl(controller.headingLabel);
+            collapseNode(controller.headingLabel);
             ObservableList<AppointmentRow> apptList;
             try {
                 apptList = SqlConnectionDependency.get((Connection connection) -> {
@@ -124,7 +124,7 @@ public class ManageAppointments extends view.ListingController {
             itemsList.clear();
             for (AppointmentRow a : apptList)
                 itemsList.add(a);
-        }, (SetContentContext<ManageAppointments> context) -> {
+        }, (ContentChangeContext<ManageAppointments> context) -> {
             view.RootController rootCtl = view.RootController.getCurrent();
             ManageAppointments c = context.getController();
             rootCtl.currentContentControllerProperty().addListener(c.controllerChangeListener);
@@ -134,14 +134,14 @@ public class ManageAppointments extends view.ListingController {
 
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootContent(AppointmentsFilter filter) {
-        setAsRootContent(ManageAppointments.class, (SetContentContext<ManageAppointments> context) -> {
+        setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             ResourceBundle rb = context.getResources();
-            context.getStage().setTitle(filter.getWindowTitle(rb));
+            context.setWindowTitle(filter.getWindowTitle(rb));
             ManageAppointments controller = context.getController();
             controller.currentFilter = filter;
             String subHeading = filter.getSubHeading(rb);
             if (subHeading.isEmpty())
-                collapseControl(controller.headingLabel);
+                collapseNode(controller.headingLabel);
             else
                 controller.headingLabel.setText(subHeading);
             ObservableList<AppointmentRow> apptList;

@@ -15,7 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
@@ -79,7 +79,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
     protected void deleteMenuItemClick(ActionEvent event) {
         R item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
-            ResourceBundle rb = scheduler.App.getCurrent().getAppResourceBundle();
+            ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
             Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
@@ -90,7 +90,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
     protected void editMenuItemClick(ActionEvent event) {
         R item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
-            ResourceBundle rb = scheduler.App.getCurrent().getAppResourceBundle();
+            ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
             Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
@@ -121,7 +121,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
     protected void newButtonClick(ActionEvent event) { onAddNewItem(); }
 
     private void verifyDeleteItem(R item) {
-        ResourceBundle rb = scheduler.App.getCurrent().getAppResourceBundle();
+        ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
         Optional<ButtonType> response = Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOURSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             onDeleteItem(item);
@@ -137,25 +137,25 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
         setAsRootContent(ctlClass, null);
     }
     
-    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass, Consumer<SetContentContext<C>> onBeforeSetContent) {
+    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent) {
         setAsRootContent(ctlClass, onBeforeSetContent, null);
     }
     
     @SuppressWarnings("UseSpecificCatch")
-    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass, Consumer<SetContentContext<C>> onBeforeSetContent,
-                Consumer<SetContentContext<C>> onAfterSetScene) {
-        SetStageContextRW<C> context = new SetStageContextRW<>();
+    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent,
+                Consumer<ContentChangeContext<C>> onAfterSetScene) {
+        ContentChangeContextFactory<C> context = new ContentChangeContextFactory<>();
         try {
-            scheduler.App app = scheduler.App.getCurrent();
-            context.setStage(app.getRootStage());
+            scheduler.App app = scheduler.App.CURRENT.get();
             ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), app.getCurrentLocale());
             context.setResourceBundle(rb);
             FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)), rb);
-            Node content = loader.load();
+            Parent content = loader.load();
+            context.setParent(content);
             context.setController(loader.getController());
             if (onBeforeSetContent != null)
-                onBeforeSetContent.accept(context.getContext());
-           view.RootController.getCurrent().setContent(content, context.getContext().getController());
+                onBeforeSetContent.accept(context.get());
+           view.RootController.getCurrent().setContent(content, context.get().getController());
         } catch (Exception ex) {
             if (ctlClass == null)
                 Logger.getLogger(ListingController.class.getName()).log(Level.SEVERE, null, ex);
@@ -165,6 +165,6 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
             context.setError(ex);
         }
         if (onAfterSetScene != null)
-            onAfterSetScene.accept(context.getContext());
+            onAfterSetScene.accept(context.get());
     }
 }

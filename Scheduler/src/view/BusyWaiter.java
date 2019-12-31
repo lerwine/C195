@@ -57,231 +57,231 @@ public class BusyWaiter implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
     }
-    
-    public static boolean ShowAndRunAsync(String title, String message, String errorMessage, Runnable runnable) {
-        ValueAndResult<Object> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            runnable.run();
-                            Platform.runLater(() -> {
-                                try { result.success.set(true); }
-                                finally { stage.hide(); }
-                            });
-                        } catch (Exception ex) {
-                            Platform.runLater(() -> {
-                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                                finally { result.error.set(ex); }
-                            });
-                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }.start();
-            });
-        });
-        return result.success.get();
-    }
-    
-    public static <R> ValueAndResult<R> ShowAndRunAsync(String title, String message, String errorMessage, Supplier<R> supplier) {
-        ValueAndResult<R> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            final R r = supplier.get();
-                            Platform.runLater(() -> {
-                                try {
-                                    result.result.set(r);
-                                    result.success.set(true);
-                                } finally { stage.hide(); }
-                            });
-                        } catch (Exception ex) {
-                            Platform.runLater(() -> {
-                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                                finally { result.error.set(ex); }
-                            });
-                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }.start();
-            });
-        });
-        return result;
-    }
-    
-    public static <T, R> ValueAndResult<R> ShowAndRunAsync(String title, String message, String errorMessage, T t, Function<T, R> function) {
-        ValueAndResult<R> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            final R r = function.apply(t);
-                            Platform.runLater(() -> {
-                                try {
-                                    result.result.set(r);
-                                    result.success.set(true);
-                                } finally { stage.hide(); }
-                            });
-                        } catch (Exception ex) {
-                            Platform.runLater(() -> {
-                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                                finally { result.error.set(ex); }
-                            });
-                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }.start();
-            });
-        });
-        return result;
-    }
-    
-    public static <T, U, R> ValueAndResult<R> ShowAndRunAsync(String title, String message, String errorMessage, T t, U u, BiFunction<T, U, R> function) {
-        ValueAndResult<R> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            final R r = function.apply(t, u);
-                            Platform.runLater(() -> {
-                                try {
-                                    result.result.set(r);
-                                    result.success.set(true);
-                                } finally { stage.hide(); }
-                            });
-                        } catch (Exception ex) {
-                            Platform.runLater(() -> {
-                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                                finally { result.error.set(ex); }
-                            });
-                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }.start();
-            });
-        });
-        return result;
-    }
-    
-    public static boolean ShowAndRun(String title, String message, String errorMessage, Runnable runnable) {
-        ValueAndResult<Object> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                try {
-                    runnable.run();
-                    try { result.success.set(true); }
-                    finally { stage.hide(); }
-                } catch (Exception ex) {
-                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                    finally { result.error.set(ex); }
-                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
-        });
-        return result.success.get();
-    }
-    
-    public static <R> ValueAndResult<R> ShowAndRun(String title, String message, String errorMessage, Supplier<R> supplier) {
-        ValueAndResult<R> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                try {
-                    final R r = supplier.get();
-                    try {
-                        result.result.set(r);
-                        result.success.set(true);
-                    } finally { stage.hide(); }
-                } catch (Exception ex) {
-                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                    finally { result.error.set(ex); }
-                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
-        });
-        return result;
-    }
-    
-    public static <T, R> ValueAndResult<R> ShowAndRun(String title, String message, String errorMessage, T t, Function<T, R> function) {
-        ValueAndResult<R> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                try {
-                    final R r = function.apply(t);
-                    try {
-                        result.result.set(r);
-                        result.success.set(true);
-                    } finally { stage.hide(); }
-                } catch (Exception ex) {
-                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                    finally { result.error.set(ex); }
-                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
-        });
-        return result;
-    }
-    
-    public static <T, U, R> ValueAndResult<R> ShowAndRun(String title, String message, String errorMessage, T t, U u, BiFunction<T, U, R> function) {
-        ValueAndResult<R> result = new ValueAndResult<>();
-        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
-            BusyWaiter controller = new BusyWaiter();
-            Stage stage = context.getStage();
-            stage.setTitle(title);
-            controller.messageLabel.setText(message);
-            stage.setOnShown((event) -> {
-                try {
-                    final R r = function.apply(t, u);
-                    try {
-                        result.result.set(r);
-                        result.success.set(true);
-                    } finally { stage.hide(); }
-                } catch (Exception ex) {
-                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
-                    finally { result.error.set(ex); }
-                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
-        });
-        return result;
-    }
-    
+//    
+//    public static boolean ShowAndRunAsync(String title, String message, String errorMessage, Runnable runnable) {
+//        ValueAndResult<Object> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            runnable.run();
+//                            Platform.runLater(() -> {
+//                                try { result.success.set(true); }
+//                                finally { stage.hide(); }
+//                            });
+//                        } catch (Exception ex) {
+//                            Platform.runLater(() -> {
+//                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                                finally { result.error.set(ex); }
+//                            });
+//                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                }.start();
+//            });
+//        });
+//        return result.success.get();
+//    }
+//    
+//    public static <R> ValueAndResult<R> ShowAndRunAsync(String title, String message, String errorMessage, Supplier<R> supplier) {
+//        ValueAndResult<R> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            final R r = supplier.get();
+//                            Platform.runLater(() -> {
+//                                try {
+//                                    result.result.set(r);
+//                                    result.success.set(true);
+//                                } finally { stage.hide(); }
+//                            });
+//                        } catch (Exception ex) {
+//                            Platform.runLater(() -> {
+//                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                                finally { result.error.set(ex); }
+//                            });
+//                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                }.start();
+//            });
+//        });
+//        return result;
+//    }
+//    
+//    public static <T, R> ValueAndResult<R> ShowAndRunAsync(String title, String message, String errorMessage, T t, Function<T, R> function) {
+//        ValueAndResult<R> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            final R r = function.apply(t);
+//                            Platform.runLater(() -> {
+//                                try {
+//                                    result.result.set(r);
+//                                    result.success.set(true);
+//                                } finally { stage.hide(); }
+//                            });
+//                        } catch (Exception ex) {
+//                            Platform.runLater(() -> {
+//                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                                finally { result.error.set(ex); }
+//                            });
+//                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                }.start();
+//            });
+//        });
+//        return result;
+//    }
+//    
+//    public static <T, U, R> ValueAndResult<R> ShowAndRunAsync(String title, String message, String errorMessage, T t, U u, BiFunction<T, U, R> function) {
+//        ValueAndResult<R> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            final R r = function.apply(t, u);
+//                            Platform.runLater(() -> {
+//                                try {
+//                                    result.result.set(r);
+//                                    result.success.set(true);
+//                                } finally { stage.hide(); }
+//                            });
+//                        } catch (Exception ex) {
+//                            Platform.runLater(() -> {
+//                                try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                                finally { result.error.set(ex); }
+//                            });
+//                            Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                }.start();
+//            });
+//        });
+//        return result;
+//    }
+//    
+//    public static boolean ShowAndRun(String title, String message, String errorMessage, Runnable runnable) {
+//        ValueAndResult<Object> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                try {
+//                    runnable.run();
+//                    try { result.success.set(true); }
+//                    finally { stage.hide(); }
+//                } catch (Exception ex) {
+//                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                    finally { result.error.set(ex); }
+//                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            });
+//        });
+//        return result.success.get();
+//    }
+//    
+//    public static <R> ValueAndResult<R> ShowAndRun(String title, String message, String errorMessage, Supplier<R> supplier) {
+//        ValueAndResult<R> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                try {
+//                    final R r = supplier.get();
+//                    try {
+//                        result.result.set(r);
+//                        result.success.set(true);
+//                    } finally { stage.hide(); }
+//                } catch (Exception ex) {
+//                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                    finally { result.error.set(ex); }
+//                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            });
+//        });
+//        return result;
+//    }
+//    
+//    public static <T, R> ValueAndResult<R> ShowAndRun(String title, String message, String errorMessage, T t, Function<T, R> function) {
+//        ValueAndResult<R> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                try {
+//                    final R r = function.apply(t);
+//                    try {
+//                        result.result.set(r);
+//                        result.success.set(true);
+//                    } finally { stage.hide(); }
+//                } catch (Exception ex) {
+//                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                    finally { result.error.set(ex); }
+//                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            });
+//        });
+//        return result;
+//    }
+//    
+//    public static <T, U, R> ValueAndResult<R> ShowAndRun(String title, String message, String errorMessage, T t, U u, BiFunction<T, U, R> function) {
+//        ValueAndResult<R> result = new ValueAndResult<>();
+//        App.showAndWait(GLOBALIZATION_RESOURCE_NAME, FXML_RESOURCE_NAME, 320, 240, (scheduler.App.LoaderContext<BusyWaiter> context) -> {
+//            BusyWaiter controller = new BusyWaiter();
+//            Stage stage = context.getStage();
+//            stage.setTitle(title);
+//            controller.messageLabel.setText(message);
+//            stage.setOnShown((event) -> {
+//                try {
+//                    final R r = function.apply(t, u);
+//                    try {
+//                        result.result.set(r);
+//                        result.success.set(true);
+//                    } finally { stage.hide(); }
+//                } catch (Exception ex) {
+//                    try { controller.setErrorState(context.getResourceBundle(), errorMessage, stage); }
+//                    finally { result.error.set(ex); }
+//                    Logger.getLogger(BusyWaiter.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            });
+//        });
+//        return result;
+//    }
+//    
     private void setErrorState(ResourceBundle rb, String errorMessage, Stage stage) {
         Label errorLabel = new Label();
         errorLabel.setText(errorMessage);

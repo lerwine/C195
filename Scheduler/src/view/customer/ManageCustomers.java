@@ -51,8 +51,8 @@ public class ManageCustomers extends view.ListingController {
     private TableColumn<CustomerRow, String> lastUpdateByTableColumn;
     
     public static void setAsRootContent() {
-        setAsRootContent(ManageCustomers.class, (view.Controller.SetContentContext<ManageCustomers> context) -> {
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGECUSTOMERS));
+        setAsRootContent(ManageCustomers.class, (view.Controller.ContentChangeContext<ManageCustomers> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECUSTOMERS));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize appointments list");
         });
     }

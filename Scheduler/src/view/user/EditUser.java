@@ -1,6 +1,6 @@
 package view.user;
 
-import view.ItemController;
+import view.EditItemController;
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
@@ -34,7 +34,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/EditUser")
 @FXMLResource("/view/user/EditUser.fxml")
-public class EditUser extends ItemController<UserRow> {
+public class EditUser extends EditItemController<UserRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
@@ -165,25 +165,25 @@ public class EditUser extends ItemController<UserRow> {
     }
     
     public static UserRow addNew() {
-        return showAndWait(EditUser.class, 640, 480, (SetContentContext<EditUser> context) -> {
+        return showAndWait(EditUser.class, 640, 480, (ContentChangeContext<EditUser> context) -> {
             EditUser controller = context.getController();
             controller.setModel(new UserRow());
             controller.originalUserName.set("");
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWUSER));
-        }, (SetContentContext<EditUser> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWUSER));
+        }, (ContentChangeContext<EditUser> context) -> {
             EditUser controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
         });
     }
 
     public static boolean edit(UserRow row) {
-        return showAndWait(EditUser.class, 640, 480, (SetContentContext<EditUser> context) -> {
+        return showAndWait(EditUser.class, 640, 480, (ContentChangeContext<EditUser> context) -> {
             EditUser controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITUSER));
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITUSER));
             controller.originalUserName.set(row.getUserName());
             controller.userNameTextField.setText(row.getUserName());
-        }, (SetContentContext<EditUser> context) -> {
+        }, (ContentChangeContext<EditUser> context) -> {
             return !context.getController().isCanceled();
         });
     }
@@ -211,9 +211,9 @@ public class EditUser extends ItemController<UserRow> {
         
         private void onUserNameMessageChanged(String value) {
             if (value.isEmpty())
-                collapseControl(userNameErrorMessageLabel);
+                collapseNode(userNameErrorMessageLabel);
             else
-                restoreControl(userNameErrorMessageLabel, getResources().getString(value));
+                restoreLabeled(userNameErrorMessageLabel, getResources().getString(value));
         }
         
         @Override
@@ -254,9 +254,9 @@ public class EditUser extends ItemController<UserRow> {
         
         final void onPasswordMessageChanged(String value) {
             if (value.isEmpty())
-                collapseControl(passwordErrorMessageLabel);
+                collapseNode(passwordErrorMessageLabel);
             else
-                restoreControl(passwordErrorMessageLabel, getResources().getString(value));
+                restoreLabeled(passwordErrorMessageLabel, getResources().getString(value));
         }
         
         final void onChangePasswordCheckCheckChanged(boolean value) {

@@ -60,7 +60,7 @@ public class ManageCountries extends view.ListingController {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
+                    setText(item.format(scheduler.App.CURRENT.get().getShortDateTimeFormatter()));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_CREATEDBY));
@@ -72,15 +72,15 @@ public class ManageCountries extends view.ListingController {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
+                    setText(item.format(scheduler.App.CURRENT.get().getShortDateTimeFormatter()));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryRow.PROP_LASTUPDATEBY));
     }
     
     public static void setAsRootContent() {
-        setAsRootContent(ManageCountries.class, (view.Controller.SetContentContext<ManageCountries> context) -> {
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
+        setAsRootContent(ManageCountries.class, (view.Controller.ContentChangeContext<ManageCountries> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize country list");
         });
     }

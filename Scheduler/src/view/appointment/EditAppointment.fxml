@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import controls.CustomerListCell?>
+<?import controls.CustomerListCellFactory?>
+<?import controls.UserListCell?>
+<?import controls.UserListCellFactory?>
+<?import controls.AppointmentTypeListCell?>
+<?import controls.AppointmentTypeListCellFactory?>
+<?import controls.ZeroPadDigitListCell?>
+<?import controls.ZeroPadDigitListCellFactory?>
+<?import controls.TimeZoneListCell?>
+<?import controls.TimeZoneListCellFactory?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -55,12 +65,25 @@
                         <Insets left="8.0" />
                     </GridPane.margin>
                 </Label>
-                <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                    <cellFactory>
+                        <CustomerListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <CustomerListCell />
+                    </buttonCell>
+                </ComboBox>
                 <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addCustomerClick" prefWidth="38.0" text="%add" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
                     <GridPane.margin>
                         <Insets left="8.0" />
                     </GridPane.margin>
+                    <cellFactory>
+                        <UserListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <UserListCell />
+                    </buttonCell>
                 </ComboBox>
                 <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addUserClick" prefWidth="38.0" text="%add" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                 <Label fx:id="customerValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
@@ -97,9 +120,23 @@
                                 </DatePicker>
                                 <HBox alignment="CENTER">
                                     <children>
-                                        <ComboBox fx:id="startHourComboBox" minWidth="64.0" prefWidth="64.0" />
+                                        <ComboBox fx:id="startHourComboBox" minWidth="64.0" prefWidth="64.0">
+                                            <cellFactory>
+                                                <ZeroPadDigitListCellFactory />
+                                            </cellFactory>
+                                            <buttonCell>
+                                                <ZeroPadDigitListCell />
+                                            </buttonCell>
+                                        </ComboBox>
                                         <Label text=":" />
-                                        <ComboBox fx:id="startMinuteComboBox" editable="true" minWidth="64.0" prefWidth="64.0" />
+                                        <ComboBox fx:id="startMinuteComboBox" minWidth="64.0" prefWidth="64.0">
+                                            <cellFactory>
+                                                <ZeroPadDigitListCellFactory />
+                                            </cellFactory>
+                                            <buttonCell>
+                                                <ZeroPadDigitListCell />
+                                            </buttonCell>
+                                        </ComboBox>
                                     </children>
                                 </HBox>
                                 <Label fx:id="startValidationLabel" styleClass="formControlValidationMessage" text="%required" />
@@ -119,9 +156,23 @@
                                 </DatePicker>
                                 <HBox alignment="CENTER">
                                     <children>
-                                        <ComboBox fx:id="endHourComboBox" minWidth="64.0" prefWidth="64.0" />
+                                        <ComboBox fx:id="endHourComboBox" minWidth="64.0" prefWidth="64.0">
+                                            <cellFactory>
+                                                <ZeroPadDigitListCellFactory />
+                                            </cellFactory>
+                                            <buttonCell>
+                                                <ZeroPadDigitListCell />
+                                            </buttonCell>
+                                        </ComboBox>
                                         <Label text=":" />
-                                        <ComboBox fx:id="endMinuteComboBox" editable="true" minWidth="64.0" prefWidth="64.0" />
+                                        <ComboBox fx:id="endMinuteComboBox" minWidth="64.0" prefWidth="64.0">
+                                            <cellFactory>
+                                                <ZeroPadDigitListCellFactory />
+                                            </cellFactory>
+                                            <buttonCell>
+                                                <ZeroPadDigitListCell />
+                                            </buttonCell>
+                                        </ComboBox>
                                     </children>
                                 </HBox>
                                 <Label fx:id="endValidationLabel" styleClass="formControlValidationMessage" text="%required" />
@@ -133,7 +184,14 @@
                         <Label styleClass="formControlLabel" text="%timeZone" GridPane.columnIndex="2" />
                         <VBox GridPane.columnIndex="2" GridPane.rowIndex="1" HBox.hgrow="SOMETIMES">
                             <children>
-                                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" />
+                                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+                                    <cellFactory>
+                                        <TimeZoneListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <TimeZoneListCell />
+                                    </buttonCell>
+                                </ComboBox>
                                 <HBox>
                                     <children>
                                         <Label fx:id="currentTimeZoneLabel" style="-fx-label-padding: 0 4 0 0;" text="%currentTimeZone">
@@ -154,7 +212,7 @@
                 </GridPane>
                 <HBox fx:id="showConflictsHBox" alignment="CENTER_LEFT" styleClass="collapsed" GridPane.columnSpan="4" GridPane.rowIndex="7">
                     <children>
-                        <Label fx:id="conflictValidationLabel" styleClass="formControlValidationMessage" text="%conflictsWithBoth" />
+                        <Label fx:id="conflictValidationLabel" styleClass="formControlValidationMessage" text="%conflictCustomer1User1" />
                         <Button mnemonicParsing="false" onAction="#showConflictsButtonClick" text="%show">
                             <HBox.margin>
                                 <Insets left="8.0" />
@@ -175,7 +233,14 @@
                         <Insets left="8.0" top="8.0" />
                     </GridPane.margin>
                 </Label>
-                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="9" GridPane.valignment="TOP" />
+                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="9" GridPane.valignment="TOP">
+                    <cellFactory>
+                        <AppointmentTypeListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <AppointmentTypeListCell />
+                    </buttonCell>
+                </ComboBox>
                 <TextArea fx:id="locationTextArea" prefRowCount="4" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9">
                     <GridPane.margin>
                         <Insets left="8.0" />

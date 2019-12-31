@@ -54,7 +54,7 @@ public final class SqlConnectionDependency {
      * Gets the current {@link Connection}.
      * @return The current {@link Connection} or null if no SQL connection dependency is open.
      */
-    public final Connection getconnection() {
+    public final Connection getConnection() {
         // Value of "open" field won't be changed during a lock on the current dependency.
         synchronized(currentDepencencyLock) {
             if (open)
@@ -257,7 +257,7 @@ public final class SqlConnectionDependency {
     public static final <T> T get(Function<Connection, T> func) throws SQLException {
         SqlConnectionDependency dep = new SqlConnectionDependency(true);
         T result;
-        try { result = func.apply(dep.getconnection()); } finally { dep.close(); }
+        try { result = func.apply(dep.getConnection()); } finally { dep.close(); }
         return result;
     }
     
@@ -268,7 +268,7 @@ public final class SqlConnectionDependency {
      */
     public static void apply(Consumer<Connection> consumer) throws SQLException {
         SqlConnectionDependency dep = new SqlConnectionDependency(true);
-        try { consumer.accept(dep.getconnection()); } finally { dep.close(); }
+        try { consumer.accept(dep.getConnection()); } finally { dep.close(); }
     }
     
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);

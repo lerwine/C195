@@ -1,6 +1,6 @@
 package view.city;
 
-import view.ItemController;
+import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -18,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/city/EditCity")
 @FXMLResource("/view/city/EditCity.fxml")
-public class EditCity extends ItemController<CityRow> {
+public class EditCity extends EditItemController<CityRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
@@ -51,22 +51,22 @@ public class EditCity extends ItemController<CityRow> {
     private ComboBox<CountryRow> countryComboBox;
     
     public static CityRow addNew() {
-        return showAndWait(EditCity.class, 640, 480, (SetContentContext<EditCity> context) -> {
+        return showAndWait(EditCity.class, 640, 480, (ContentChangeContext<EditCity> context) -> {
             EditCity controller = context.getController();
             controller.setModel(new CityRow());
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCITY));
-        }, (SetContentContext<EditCity> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCITY));
+        }, (ContentChangeContext<EditCity> context) -> {
             EditCity controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
         });
     }
 
     public static boolean edit(CityRow row) {
-        return showAndWait(EditCity.class, 640, 480, (SetContentContext<EditCity> context) -> {
+        return showAndWait(EditCity.class, 640, 480, (ContentChangeContext<EditCity> context) -> {
             EditCity controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITCITY));
-        }, (SetContentContext<EditCity> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITCITY));
+        }, (ContentChangeContext<EditCity> context) -> {
             return !context.getController().isCanceled();
         });
     }

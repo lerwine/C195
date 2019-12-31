@@ -1,6 +1,6 @@
 package view.country;
 
-import view.ItemController;
+import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -16,7 +16,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/country/EditCountry")
 @FXMLResource("/view/country/EditCountry.fxml")
-public class EditCountry extends ItemController<CountryRow> {
+public class EditCountry extends EditItemController<CountryRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
@@ -43,22 +43,22 @@ public class EditCountry extends ItemController<CountryRow> {
     private Label nameError;
     
     public static CountryRow addNew() {
-        return showAndWait(EditCountry.class, 640, 480, (SetContentContext<EditCountry> context) -> {
+        return showAndWait(EditCountry.class, 640, 480, (ContentChangeContext<EditCountry> context) -> {
             EditCountry controller = context.getController();
             controller.setModel(new CountryRow());
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCOUNTRY));
-        }, (SetContentContext<EditCountry> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCOUNTRY));
+        }, (ContentChangeContext<EditCountry> context) -> {
             EditCountry controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
         });
     }
 
     public static boolean edit(CountryRow row) {
-        return showAndWait(EditCountry.class, 640, 480, (SetContentContext<EditCountry> context) -> {
+        return showAndWait(EditCountry.class, 640, 480, (ContentChangeContext<EditCountry> context) -> {
             EditCountry controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITCOUNTRY));
-        }, (SetContentContext<EditCountry> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITCOUNTRY));
+        }, (ContentChangeContext<EditCountry> context) -> {
             return !context.getController().isCanceled();
         });
     }

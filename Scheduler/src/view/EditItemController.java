@@ -17,6 +17,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -27,12 +28,14 @@ import static view.Controller.getFXMLResourceName;
 import static view.Controller.getGlobalizationResourceName;
 
 /**
- * A controller for an JavaFX scene that is displayed as a child window for editing a single item.
+ * The base class for controllers of a JavaFX {@link javafx.scene.Parent} node that is displayed in a child window
+ * for editing a single {@link model.db.DataRow}.
+ * 
  * @author Leonard T. Erwine
  * @param <T>
- *            The type of model that is being edited.
+ *            The type of {@link model.db.DataRow} that is being edited.
  */
-public abstract class ItemController<T extends DataRow> extends Controller {
+public abstract class EditItemController<T extends DataRow> extends Controller {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     private Runnable closeWindow;
@@ -170,7 +173,7 @@ public abstract class ItemController<T extends DataRow> extends Controller {
     /**
      * Creates new ItemController instance.
      */
-    public ItemController() {
+    public EditItemController() {
         model = new ReadOnlyObjectWrapper<>();
         newRow = new BooleanBinding() {
             { super.bind(model); }
@@ -192,7 +195,7 @@ public abstract class ItemController<T extends DataRow> extends Controller {
         };
         canceled = new ReadOnlyBooleanWrapper(true);
         model.addListener((ObservableValue<? extends T> observable, T oldValue, T newValue) -> {
-            DateTimeFormatter dtf = scheduler.App.getCurrent().getFullDateTimeFormatter();
+            DateTimeFormatter dtf = scheduler.App.CURRENT.get().getFullDateTimeFormatter();
             createDateValue.setText(dtf.format(newValue.getCreateDate()));
             lastUpdateValue.setText(dtf.format(newValue.getLastUpdate()));
             createdByValue.setText(newValue.getCreatedBy());
@@ -200,23 +203,23 @@ public abstract class ItemController<T extends DataRow> extends Controller {
         });
         newRow.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             if (newValue) {
-                collapseControl(createdLabel);
-                collapseControl(createDateValue);
-                collapseControl(createdByLabel);
-                collapseControl(createdByValue);
-                collapseControl(lastUpdateLabel);
-                collapseControl(lastUpdateValue);
-                collapseControl(lastUpdateByLabel);
-                collapseControl(lastUpdateByValue);
+                collapseNode(createdLabel);
+                collapseNode(createDateValue);
+                collapseNode(createdByLabel);
+                collapseNode(createdByValue);
+                collapseNode(lastUpdateLabel);
+                collapseNode(lastUpdateValue);
+                collapseNode(lastUpdateByLabel);
+                collapseNode(lastUpdateByValue);
             } else {
-                restoreControl(createdLabel);
-                restoreControl(createDateValue);
-                restoreControl(createdByLabel);
-                restoreControl(createdByValue);
-                restoreControl(lastUpdateLabel);
-                restoreControl(lastUpdateValue);
-                restoreControl(lastUpdateByLabel);
-                restoreControl(lastUpdateByValue);
+                restoreNode(createdLabel);
+                restoreNode(createDateValue);
+                restoreNode(createdByLabel);
+                restoreNode(createdByValue);
+                restoreNode(lastUpdateLabel);
+                restoreNode(lastUpdateValue);
+                restoreNode(lastUpdateByLabel);
+                restoreNode(lastUpdateByValue);
             }
         });
     }
@@ -246,6 +249,8 @@ public abstract class ItemController<T extends DataRow> extends Controller {
                 getFXMLResourceName(getClass()));
         assert cancelButton != null : String.format("fx:id=\"cancelButton\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
+        saveChangesButton.setDefaultButton(true);
+        cancelButton.setCancelButton(true);
     }
     
     //</editor-fold>
@@ -259,9 +264,9 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      */
     @FXML
     protected final void saveChangesClick(ActionEvent event) {
-        saveChanges();
+        //saveChanges();
         canceled.set(false);
-        closeWindow.run();
+        //closeWindow.run();
     }
     
     /**
@@ -278,10 +283,10 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      */
     @FXML
     protected final void cancelClick(ActionEvent event) {
-        if (canCancel()) {
-            canceled.set(true);
-            closeWindow.run();
-        }
+//        if (canCancel()) {
+//            canceled.set(true);
+//            closeWindow.run();
+//        }
     }
     
     /**
@@ -315,8 +320,8 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      *          The result value.
      */
     @SuppressWarnings("UseSpecificCatch")
-    protected final static <C extends ItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
-            Consumer<SetContentContext<C>> beforeShow, Function<SetContentContext<C>, R> getReturnValue) {
+    protected final static <C extends EditItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
+            Consumer<ContentChangeContext<C>> beforeShow, Function<ContentChangeContext<C>, R> getReturnValue) {
         return showAndWait(ctlClass, width, height, null, beforeShow, getReturnValue);
     }
     
@@ -342,38 +347,42 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      *          The result value.
      */
     @SuppressWarnings("UseSpecificCatch")
-    protected final static <C extends ItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
-            ItemController<?> parent, Consumer<SetContentContext<C>> beforeShow, Function<SetContentContext<C>, R> getReturnValue) {
-        SetStageContextRW<C> context = new SetStageContextRW<>();
+    protected final static <C extends EditItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
+            EditItemController<?> parent, Consumer<ContentChangeContext<C>> beforeShow, Function<ContentChangeContext<C>, R> getReturnValue) {
+        ContentChangeContextFactory<C> context = new ContentChangeContextFactory<>();
         try {
-            scheduler.App app = scheduler.App.getCurrent();
+            scheduler.App app = scheduler.App.CURRENT.get();
             Stage stage = new Stage();
-            context.setStage(app.getRootStage());
             ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), app.getCurrentLocale());
             context.setResourceBundle(rb);
             FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)), rb);
-            stage.setScene(new Scene(loader.load(), width, height));
+            Parent p = loader.load();
+            context.setParent(p);
+            stage.setScene(new Scene(p, width, height));
             C controller = loader.getController();
-            ((ItemController<?>)controller).currentStage = stage;
-            ((ItemController<?>)controller).closeWindow = () -> stage.hide();
+            ((EditItemController<?>)controller).currentStage = stage;
+            ((EditItemController<?>)controller).closeWindow = () -> stage.hide();
             controller.validProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                ((ItemController<?>)controller).saveChangesButton.setDisable(!newValue);
+                ((EditItemController<?>)controller).saveChangesButton.setDisable(!newValue);
             });
             context.setController(controller);
             if (beforeShow != null)
-                beforeShow.accept(context.getContext());
-            stage.initOwner((parent == null) ? app.getRootStage() : parent.currentStage);
+                beforeShow.accept(context.get());
+            stage.initOwner((parent == null) ? app.getPrimaryStage(): parent.currentStage);
             stage.initModality(Modality.APPLICATION_MODAL);
+            String title = context.get().getWindowTitle();
+            stage.setTitle((title.isEmpty()) ? scheduler.App.CURRENT.get()
+                    .getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER) : title);
             stage.showAndWait();
         } catch (Exception ex) {
             if (ctlClass == null)
-                Logger.getLogger(ItemController.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EditItemController.class.getName()).log(Level.SEVERE, null, ex);
             else
-                Logger.getLogger(ItemController.class.getName()).log(Level.SEVERE,
+                Logger.getLogger(EditItemController.class.getName()).log(Level.SEVERE,
                         String.format("Unexpected error opening %s as a child window", ctlClass.getName()), ex);
             context.setError(ex);
         }
-        return getReturnValue.apply(context.getContext());
+        return getReturnValue.apply(context.get());
     }
     
     /**
@@ -393,8 +402,8 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      * @return
      *          The result value.
      */
-    protected final static <C extends ItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
-            Function<SetContentContext<C>, R> getReturnValue) {
+    protected final static <C extends EditItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
+            Function<ContentChangeContext<C>, R> getReturnValue) {
         return showAndWait(ctlClass, width, height, null, null, getReturnValue);
     }
     
@@ -417,8 +426,8 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      * @return
      *          The result value.
      */
-    protected final static <C extends ItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
-            ItemController<?> parent, Function<SetContentContext<C>, R> getReturnValue) {
+    protected final static <C extends EditItemController<?>, R> R showAndWait(Class<? extends C> ctlClass, double width, double height,
+            EditItemController<?> parent, Function<ContentChangeContext<C>, R> getReturnValue) {
         return showAndWait(ctlClass, width, height, parent, null, getReturnValue);
     }
     
@@ -437,8 +446,8 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      * @param afterClose
      *          The delegate method to invoke after the new window is hidden.
      */
-    protected final static <C extends ItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
-            Consumer<SetContentContext<C>> beforeShow, Consumer<SetContentContext<C>> afterClose) {
+    protected final static <C extends EditItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
+            Consumer<ContentChangeContext<C>> beforeShow, Consumer<ContentChangeContext<C>> afterClose) {
         showAndWait(ctlClass, width, height, null, beforeShow, afterClose);
     }
     
@@ -460,36 +469,40 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      *          The delegate method to invoke after the new window is hidden.
      */
     @SuppressWarnings("UseSpecificCatch")
-    protected final static <C extends ItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
-            ItemController<?> parent, Consumer<SetContentContext<C>> beforeShow, Consumer<SetContentContext<C>> afterClose) {
-        SetStageContextRW<C> context = new SetStageContextRW<>();
+    protected final static <C extends EditItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
+            EditItemController<?> parent, Consumer<ContentChangeContext<C>> beforeShow, Consumer<ContentChangeContext<C>> afterClose) {
+        ContentChangeContextFactory<C> context = new ContentChangeContextFactory<>();
         try {
-            scheduler.App app = scheduler.App.getCurrent();
-            Stage stage = app.getRootStage();
-            context.setStage(app.getRootStage());
+            scheduler.App app = scheduler.App.CURRENT.get();
+            Stage stage = app.getPrimaryStage();
             ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), app.getCurrentLocale());
             context.setResourceBundle(rb);
             FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)), rb);
-            stage.setScene(new Scene(loader.load(), width, height));
+            Parent p = loader.load();
+            context.setParent(p);
+            stage.setScene(new Scene(p, width, height));
             C controller = loader.getController();
-            ((ItemController<?>)controller).currentStage = stage;
-            ((ItemController<?>)controller).closeWindow = () -> stage.hide();
+            ((EditItemController<?>)controller).currentStage = stage;
+            ((EditItemController<?>)controller).closeWindow = () -> stage.hide();
             context.setController(controller);
             if (beforeShow != null)
-                beforeShow.accept(context.getContext());
-            stage.initOwner((parent == null) ? app.getRootStage() : parent.currentStage);
+                beforeShow.accept(context.get());
+            stage.initOwner((parent == null) ? app.getPrimaryStage(): parent.currentStage);
             stage.initModality(Modality.APPLICATION_MODAL);
+            String title = context.get().getWindowTitle();
+            stage.setTitle((title.isEmpty()) ? scheduler.App.CURRENT.get()
+                    .getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER) : title);
             stage.showAndWait();
         } catch (Exception ex) {
             if (ctlClass == null)
-                Logger.getLogger(ItemController.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EditItemController.class.getName()).log(Level.SEVERE, null, ex);
             else
-                Logger.getLogger(ItemController.class.getName()).log(Level.SEVERE,
+                Logger.getLogger(EditItemController.class.getName()).log(Level.SEVERE,
                         String.format("Unexpected error opening %s as a child window", ctlClass.getName()), ex);
             context.setError(ex);
         }
         if (afterClose != null)
-            afterClose.accept(context.getContext());
+            afterClose.accept(context.get());
     }
     
     /**
@@ -505,9 +518,9 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      * @param beforeShow
      *          The delegate method to invoke before the new window is shown.
      */
-    protected final static <C extends ItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
-            Consumer<SetContentContext<C>> beforeShow) {
-        showAndWait(ctlClass, width, height, beforeShow, (Consumer<SetContentContext<C>>)null);
+    protected final static <C extends EditItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
+            Consumer<ContentChangeContext<C>> beforeShow) {
+        showAndWait(ctlClass, width, height, beforeShow, (Consumer<ContentChangeContext<C>>)null);
     }
     
     /**
@@ -525,9 +538,9 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      * @param beforeShow
      *          The delegate method to invoke before the new window is shown.
      */
-    protected final static <C extends ItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
-            ItemController<?> parent, Consumer<SetContentContext<C>> beforeShow) {
-        showAndWait(ctlClass, width, height, parent, beforeShow, (Consumer<SetContentContext<C>>)null);
+    protected final static <C extends EditItemController<?>> void showAndWait(Class<? extends C> ctlClass, double width, double height,
+            EditItemController<?> parent, Consumer<ContentChangeContext<C>> beforeShow) {
+        showAndWait(ctlClass, width, height, parent, beforeShow, (Consumer<ContentChangeContext<C>>)null);
     }
     
     /**
@@ -540,8 +553,8 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      *          The height of the new window.
      */
     @SuppressWarnings("UseSpecificCatch")
-    protected final static void showAndWait(Class<? extends ItemController<?>> ctlClass, double width, double height) {
-        showAndWait(ctlClass, width, height, (ItemController<?>)null);
+    protected final static void showAndWait(Class<? extends EditItemController<?>> ctlClass, double width, double height) {
+        showAndWait(ctlClass, width, height, (EditItemController<?>)null);
     }
     
     /**
@@ -556,24 +569,25 @@ public abstract class ItemController<T extends DataRow> extends Controller {
      *          The parent controller which is associated with the stage that will be the parent of the new window.
      */
     @SuppressWarnings("UseSpecificCatch")
-    protected final static void showAndWait(Class<? extends ItemController<?>> ctlClass, double width, double height, ItemController<?> parent) {
+    protected final static void showAndWait(Class<? extends EditItemController<?>> ctlClass, double width, double height, EditItemController<?> parent) {
         try {
-            scheduler.App app = scheduler.App.getCurrent();
-            Stage stage = app.getRootStage();
+            scheduler.App app = scheduler.App.CURRENT.get();
+            Stage stage = app.getPrimaryStage();
             FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)),
                     ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), app.getCurrentLocale()));
             stage.setScene(new Scene(loader.load(), width, height));
-            ItemController<?> controller = loader.getController();
+            EditItemController<?> controller = loader.getController();
             controller.currentStage = stage;
             controller.closeWindow = () -> stage.hide();
-            stage.initOwner((parent == null) ? app.getRootStage() : parent.currentStage);
-            stage.initModality(Modality.APPLICATION_MODAL); 
+            stage.initOwner((parent == null) ? app.getPrimaryStage() : parent.currentStage);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle(scheduler.App.CURRENT.get().getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER));
             stage.showAndWait();
         } catch (Exception ex) {
             if (ctlClass == null)
-                Logger.getLogger(ItemController.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EditItemController.class.getName()).log(Level.SEVERE, null, ex);
             else
-                Logger.getLogger(ItemController.class.getName()).log(Level.SEVERE,
+                Logger.getLogger(EditItemController.class.getName()).log(Level.SEVERE,
                     String.format("Unexpected error opening %s as a child window", ctlClass.getName()), ex);
         }
     }

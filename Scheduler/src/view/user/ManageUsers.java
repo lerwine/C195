@@ -53,8 +53,8 @@ public class ManageUsers extends view.ListingController {
     //private String returnViewPath;
 
     public static void setAsRootContent() {
-        setAsRootContent(ManageUsers.class, (view.Controller.SetContentContext<ManageUsers> context) -> {
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_MANAGEUSERS));
+        setAsRootContent(ManageUsers.class, (view.Controller.ContentChangeContext<ManageUsers> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEUSERS));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize user list");
         });
     }

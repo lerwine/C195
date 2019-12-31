@@ -1,6 +1,6 @@
 package view.address;
 
-import view.ItemController;
+import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -18,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/address/EditAddress")
 @FXMLResource("/view/address/EditAddress.fxml")
-public class EditAddress extends ItemController<AddressRow> {
+public class EditAddress extends EditItemController<AddressRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
@@ -64,22 +64,22 @@ public class EditAddress extends ItemController<AddressRow> {
     //</editor-fold>
     
     public static AddressRow addNew() {
-        return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
+        return showAndWait(EditAddress.class, 640, 480, (ContentChangeContext<EditAddress> context) -> {
             EditAddress controller = context.getController();
             controller.setModel(new AddressRow());
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWADDRESS));
-        }, (SetContentContext<EditAddress> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWADDRESS));
+        }, (ContentChangeContext<EditAddress> context) -> {
             EditAddress controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
         });
     }
 
     public static boolean edit(AddressRow row) {
-        return showAndWait(EditAddress.class, 640, 480, (SetContentContext<EditAddress> context) -> {
+        return showAndWait(EditAddress.class, 640, 480, (ContentChangeContext<EditAddress> context) -> {
             EditAddress controller = context.getController();
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITADDRESS));
-        }, (SetContentContext<EditAddress> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITADDRESS));
+        }, (ContentChangeContext<EditAddress> context) -> {
             return !context.getController().isCanceled();
         });
     }

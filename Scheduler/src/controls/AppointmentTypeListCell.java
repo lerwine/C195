@@ -5,6 +5,7 @@
  */
 package controls;
 
+import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;
 
 /**
@@ -12,9 +13,10 @@ import javafx.scene.control.ListCell;
  * @author Leonard T. Erwine
  */
 public class AppointmentTypeListCell extends ListCell<String> {
+    private final ObservableMap<String, String> map = scheduler.App.CURRENT.get().getAppointmentTypes();
     @Override
     protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
-        setText(scheduler.App.getCurrent().getAppointmentTypeDisplay(item));
+        setText(map.get(item));
     }
 }

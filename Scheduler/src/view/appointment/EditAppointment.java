@@ -1,6 +1,7 @@
 package view.appointment;
 
-import view.ItemController;
+import com.mysql.jdbc.Connection;
+import view.EditItemController;
 import controls.AppointmentTypeListCell;
 import controls.AppointmentTypeListCellFactory;
 import controls.CustomerListCell;
@@ -11,6 +12,8 @@ import controls.UserListCell;
 import controls.UserListCellFactory;
 import controls.ZeroPadDigitListCell;
 import controls.ZeroPadDigitListCellFactory;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,14 +25,14 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +52,7 @@ import model.db.UserRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import scheduler.SqlConnectionDependency;
+import scheduler.Util;
 
 /**
  * FXML Controller class
@@ -57,7 +61,7 @@ import scheduler.SqlConnectionDependency;
  */
 @GlobalizationResource("view/appointment/EditAppointment")
 @FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends ItemController<AppointmentRow> {
+public class EditAppointment extends EditItemController<AppointmentRow> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -73,7 +77,7 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
 //    public static final String RESOURCEKEY_END = "end";
     public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
-//    public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
+    public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
     public static final String RESOURCEKEY_LOCATION = "location";
 //    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
     public static final String RESOURCEKEY_REQUIRED = "required";
@@ -267,8 +271,19 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     // Manages visibility of the {@link #showConflictsHBox} control and the text of the {@link #conflictValidationLabel} control according to appointment schedule conflict results.
     private ConflictLookupState conflictLookupState;
 
-    // Produces the validation message for the date range or null if the start and end date range is valid.
+    // Produces the validation message for the phone and location fields.
+    private LocationValidation locationValid;
+    
+    // Produces the validation message for the date range or an empty string if the start and end date range is valid.
     private DateRangeValidation dateRangeValidation;
+    
+    // Produces the validation message for the virtual meeting URL or an empty string if the virtual meeting URL is valid.
+    private UrlValidation urlValidation;
+    
+    private SimpleRequirementValidation<CustomerRow> customerValid;
+    private SimpleRequirementValidation<UserRow> userValid;
+    private NonWhiteSpaceValidation titleValid;
+    private NonWhiteSpaceValidation contactValid;
     
     // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
@@ -351,24 +366,6 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         assert descriptionTextArea != null : String.format("fx:id=\"descriptionTextArea\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         
-        // Configure combo box cells
-        customerComboBox.setCellFactory(new CustomerListCellFactory<>());
-        customerComboBox.setButtonCell(new CustomerListCell<>());
-        userComboBox.setCellFactory(new UserListCellFactory<>());
-        userComboBox.setButtonCell(new UserListCell<>());
-        startHourComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
-        startHourComboBox.setButtonCell(new ZeroPadDigitListCell());
-        startMinuteComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
-        startMinuteComboBox.setButtonCell(new ZeroPadDigitListCell());
-        endHourComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
-        endHourComboBox.setButtonCell(new ZeroPadDigitListCell());
-        endMinuteComboBox.setCellFactory(new ZeroPadDigitListCellFactory());
-        endMinuteComboBox.setButtonCell(new ZeroPadDigitListCell());
-        timeZoneComboBox.setCellFactory(new TimeZoneListCellFactory());
-        timeZoneComboBox.setButtonCell(new TimeZoneListCell());
-        typeComboBox.setCellFactory(new AppointmentTypeListCellFactory());
-        typeComboBox.setButtonCell(new AppointmentTypeListCell());
-        
         // Initialize options lists for start and end time combo boxes.
         hourOptions = FXCollections.observableArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
         minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
@@ -384,8 +381,6 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 APPOINTMENT_CODE_HOME, APPOINTMENT_CODE_GERMANY, APPOINTMENT_CODE_INDIA, APPOINTMENT_CODE_HONDURAS,
                 APPOINTMENT_CODE_OTHER);
         
-        customerComboBox.setItems(customers);
-        userComboBox.setItems(users);
         LocalDateTime date = LocalDateTime.now().plusDays(1);
         startDatePicker.setValue(date.toLocalDate());
         startHourComboBox.setItems(hourOptions);
@@ -403,16 +398,43 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
-        
+        try {
+            withDbConnection((Connection connection) -> {
+                try {
+                    customers = FXCollections.observableArrayList(CustomerRow.getActive(connection));
+                } catch (SQLException ex) {
+                    customers = FXCollections.observableArrayList();
+                    Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    users = FXCollections.observableArrayList(UserRow.getActive(connection));
+                } catch (SQLException ex) {
+                    users = FXCollections.observableArrayList();
+                    Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+        } catch (SQLException ex) {
+            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        customerComboBox.setItems(customers);
+        userComboBox.setItems(users);
         // Initialize validation and control state bindings
         typeSelectionState = new TypeSelectionState();
-        conflictLookupState = new ConflictLookupState();
         dateRangeValidation = new DateRangeValidation();
-        valid = dateRangeValidation.isEmpty().and(conflictLookupState.conflictMessage.isEmpty());
+        conflictLookupState = new ConflictLookupState();
+        locationValid = new LocationValidation();
+        customerValid = new SimpleRequirementValidation<>(customerComboBox, customerValidationLabel);
+        userValid = new SimpleRequirementValidation<>(userComboBox, userValidationLabel);
+        titleValid = new NonWhiteSpaceValidation(titleTextField, titleValidationLabel);
+        urlValidation = new UrlValidation();
+        contactValid = new NonWhiteSpaceValidation(contactTextField, contactValidationLabel);
+        valid = customerValid.and(locationValid).and(userValid).and(titleValid).and(contactValid).and(dateRangeValidation.isEmpty())
+                .and(conflictLookupState.conflictMessage.isEmpty()).and(urlValidation.isEmpty());
         // Add listener to disable the "Save" button when the valid binding returns false.
         valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             saveChangesButton.setDisable(!newValue);
         });
+        saveChangesButton.setDisable(!valid.get());
     }
     
     /**
@@ -421,12 +443,11 @@ public class EditAppointment extends ItemController<AppointmentRow> {
      *          The @{link model.db.AppointmentRow} object containing appointment that was added or @{code null} if no appointment was added.
      */
     public static AppointmentRow addNew() {
-        return showAndWait(EditAppointment.class, 800, 600, (SetContentContext<EditAppointment> context) -> {
+        return showAndWait(EditAppointment.class, 800, 600, (ContentChangeContext<EditAppointment> context) -> {
             EditAppointment controller = context.getController();
-            setCollections(controller);
             controller.setModel(new AppointmentRow());
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
-        }, (SetContentContext<EditAppointment> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
+        }, (ContentChangeContext<EditAppointment> context) -> {
             EditAppointment controller = context.getController();
             return (controller.isCanceled()) ? null : controller.getModel();
         });
@@ -440,39 +461,15 @@ public class EditAppointment extends ItemController<AppointmentRow> {
      *          {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
      */
     public static boolean edit(AppointmentRow row) {
-        return showAndWait(EditAppointment.class, 800, 600, (SetContentContext<EditAppointment> context) -> {
+        return showAndWait(EditAppointment.class, 800, 600, (ContentChangeContext<EditAppointment> context) -> {
             EditAppointment controller = context.getController();
-            setCollections(controller);
             controller.setModel(row);
-            context.getStage().setTitle(context.getResources().getString(RESOURCEKEY_EDITAPPOINTMENT));
-        }, (SetContentContext<EditAppointment> context) -> {
+            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITAPPOINTMENT));
+        }, (ContentChangeContext<EditAppointment> context) -> {
             return !context.getController().isCanceled();
         });
     }
     
-    private static boolean setCollections(EditAppointment controller) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Loading data from database");
-        alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle("Initializing");
-        alert.show();
-        // Open a new SQL connection dependency.
-        SqlConnectionDependency dep;
-        try {
-            dep = new SqlConnectionDependency(true);
-            try {
-                controller.customers = FXCollections.observableArrayList(CustomerRow.getActive(dep.getconnection()));
-                controller.users = FXCollections.observableArrayList(UserRow.getActive(dep.getconnection()));
-            } finally {
-                dep.close();
-            }
-            return false;
-        } catch (SQLException ex) {
-            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
-        } finally { alert.close(); }
-        scheduler.Util.showErrorAlert("Database Error", "An unexpected error occurred while accessing the database. See logs for more information");
-        return true;
-    }
-
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
@@ -569,6 +566,7 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 @Override
                 public void dispose() { super.unbind(selectedTypeProperty, selectedCustomerProperty); }
             };
+            
             // Create binding for location field label.
             locationLabelText = new StringBinding() {
                 { super.bind(phone, explicitLocation, implicitLocationText); }
@@ -586,21 +584,27 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 @Override
                 public void dispose() { super.unbind(phone, explicitLocation, implicitLocationText); }
             };
+            
             // Create listener to update control state when the explicit location appointment type indicator has changed.
             explicitLocation.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
                     explicitLocationChanged(newValue));
+            
             // Create listener to update control state when the phone appointment type indicator has changed.
             phone.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
                     phoneChanged(newValue));
+            
             // Create listener to update control state when the virtual appointment type indicator has changed.
             virtual.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) ->
                     virtualChanged(newValue));
+            
             // Create listener to update control state when the implicit location text has changed.
             implicitLocationText.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
                     implicitLocationTextChanged(newValue));
+            
             // Create listener to update control state when the texst for the location field label has changed.
             locationLabelText.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) ->
                     locationLabelTextChanged(newValue));
+            
             // Call the methods that handle changes, to initialize all control states.
             explicitLocationChanged(explicitLocation.get());
             phoneChanged(phone.get());
@@ -616,9 +620,9 @@ public class EditAppointment extends ItemController<AppointmentRow> {
          */
         final void explicitLocationChanged(boolean value) {
             if (value)
-                restoreControl(locationTextArea);
+                restoreNode(locationTextArea);
             else
-                collapseControl(locationTextArea);
+                collapseNode(locationTextArea);
         }
         
         /**
@@ -628,9 +632,9 @@ public class EditAppointment extends ItemController<AppointmentRow> {
          */
         final void phoneChanged(boolean value) {
             if (value)
-                restoreControl(phoneTextField);
+                restoreNode(phoneTextField);
             else
-                collapseControl(phoneTextField);
+                collapseNode(phoneTextField);
             
         }
         
@@ -641,12 +645,12 @@ public class EditAppointment extends ItemController<AppointmentRow> {
          */
         final void virtualChanged(boolean value) {
             if (value) {
-                restoreControl(urlLabel);
-                restoreControl(urlTextField);
+                restoreNode(urlLabel);
+                restoreNode(urlTextField);
             }
             else {
-                collapseControl(urlLabel);
-                collapseControl(urlTextField);
+                collapseNode(urlLabel);
+                collapseNode(urlTextField);
             }
         }
         
@@ -658,9 +662,9 @@ public class EditAppointment extends ItemController<AppointmentRow> {
          */
         final void implicitLocationTextChanged(String value) {
             if (value == null || value.trim().isEmpty())
-                collapseControl(implicitLocationLabel);
+                collapseNode(implicitLocationLabel);
             else
-                restoreControl(implicitLocationLabel, value);
+                restoreLabeled(implicitLocationLabel, value);
         }
         
         /**
@@ -671,9 +675,9 @@ public class EditAppointment extends ItemController<AppointmentRow> {
          */
         final void locationLabelTextChanged(String value) {
             if (value == null || value.trim().isEmpty())
-                collapseControl(locationLabel);
+                collapseNode(locationLabel);
             else
-                restoreControl(locationLabel, value);
+                restoreLabeled(locationLabel, value);
         }
     }
     
@@ -718,15 +722,28 @@ public class EditAppointment extends ItemController<AppointmentRow> {
                 @Override
                 public void dispose() { super.unbind(customerConflictCount, userConflictCount); }
             };
-            dateRangeValidation.startValidation.selectedDateTime.addListener((observable) -> rangeChanged());
-            dateRangeValidation.endValidation.selectedDateTime.addListener((observable) -> rangeChanged());
-            selectedCustomerProperty.addListener((observable) -> customerConflictCount.set(0));
-            selectedUserProperty.addListener((observable) -> userConflictCount.set(0));
+            dateRangeValidation.startValidation.selectedDateTime.addListener((Observable observable) -> rangeChanged());
+            dateRangeValidation.endValidation.selectedDateTime.addListener((Observable observable) -> rangeChanged());
+            selectedCustomerProperty.addListener((Observable observable) -> customerConflictCount.set(0));
+            selectedUserProperty.addListener((Observable observable) -> userConflictCount.set(0));
+            conflictMessage.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                messageChanged(newValue);
+            });
+            messageChanged(conflictMessage.get());
+        }
+        final void messageChanged(String value) {
+            if (value.isEmpty())
+                collapseNode(showConflictsHBox);
+            else {
+                restoreNode(showConflictsHBox);
+                conflictValidationLabel.setText(value);
+            }
         }
         void rangeChanged() {
             customerConflictCount.set(0);
             userConflictCount.set(0);
         }
+        
         /**
          * This is invoked when the user clicks the "Save" button, to see if there are no customer or user scheduling conflicts.
          * @return
@@ -760,6 +777,91 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Field Validation classes">
+    
+    private class SimpleRequirementValidation<T> extends BooleanBinding {
+        final ObjectProperty<T> valueProperty;
+        final Label validationLabel;
+        SimpleRequirementValidation(ComboBox<T> target, Label validationLabel) {
+            valueProperty = target.valueProperty();
+            this.validationLabel = validationLabel;
+            super.bind(valueProperty);
+            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                onValidChanged(newValue);
+            });
+            onValidChanged(get());
+        }
+        private void onValidChanged(boolean value) {
+            if (value)
+                collapseNode(validationLabel);
+            else
+                restoreNode(validationLabel);
+        }
+        @Override
+        protected boolean computeValue() { return valueProperty.get() != null; }
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(valueProperty); }
+        @Override
+        public void dispose() { super.unbind(valueProperty); }
+    }
+    
+    private class NonWhiteSpaceValidation extends BooleanBinding {
+        final StringProperty fieldTextProperty;
+        final Label validationLabel;
+        NonWhiteSpaceValidation(TextField target, Label validationLabel) {
+            fieldTextProperty = target.textProperty();
+            this.validationLabel = validationLabel;
+            super.bind(fieldTextProperty);
+            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                onValidChanged(newValue);
+            });
+            onValidChanged(get());
+        }
+        private void onValidChanged(boolean value) {
+            if (value)
+                collapseNode(validationLabel);
+            else
+                restoreNode(validationLabel);
+        }
+        @Override
+        protected boolean computeValue() {
+            return !fieldTextProperty.get().trim().isEmpty();
+        }
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(fieldTextProperty); }
+        @Override
+        public void dispose() { super.unbind(fieldTextProperty); }
+    }
+    
+    private class LocationValidation extends BooleanBinding {
+        private final StringProperty locationProperty;
+        private final StringProperty phoneProperty;
+        LocationValidation() {
+            this.locationProperty = locationTextArea.textProperty();
+            this.phoneProperty = phoneTextField.textProperty();
+            super.bind(locationProperty, phoneProperty, typeSelectionState.explicitLocation, typeSelectionState.phone);
+            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue)
+                    collapseNode(locationValidationLabel);
+                else
+                    restoreLabeled(locationValidationLabel, getResources().getString(RESOURCEKEY_REQUIRED));
+            });
+        }
+        
+        @Override
+        protected boolean computeValue() {
+            String l = locationProperty.get();
+            String p = phoneProperty.get();
+            boolean e = typeSelectionState.explicitLocation.get();
+            if (typeSelectionState.phone.get())
+                return !p.trim().isEmpty();
+            return !(e && l.trim().isEmpty());
+        }
+        
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(locationProperty, phoneProperty, typeSelectionState.explicitLocation, typeSelectionState.phone); }
+        @Override
+        public void dispose() { super.unbind(locationProperty, phoneProperty, typeSelectionState.explicitLocation, typeSelectionState.phone); }
+    }
     
     /**
      * Produces the resource key of the validation message for a date/time selection or an empty string if the entire date and time has been selected.
@@ -825,19 +927,55 @@ public class EditAppointment extends ItemController<AppointmentRow> {
     }
     
     /**
-     * Produces the resource key of the validation message for the date range or an empty string if the start and end date range is valid.
+     * Validation binding for start and end date/time.
+     * This validates the selections for the {@link #endDatePicker}, {@link #endHourComboBox}, {@link #endMinuteComboBox},
+     * {@link #endDatePicker}, {@link #endHourComboBox}, and {@link #endMinuteComboBox}controls,
+     * producing the resource key of the validation message for the date range or an empty string if the start/end
+     * date/time range is valid.
      */
     private class DateRangeValidation extends StringBinding {
-        // The resource key of the validation message for the start date.
+        /**
+         * Validation binding for the range start date/time.
+         * This validates the selections for the {@link #startDatePicker}, {@link #startHourComboBox},
+         * and {@link #startMinuteComboBox} controls, producing the resource key of the validation message
+         * for the start date/time or an empty string if all start date/time selections are valid.
+         */
         final DateValidation startValidation;
-        // The resource key of the validation message for the end date.
+        
+        /**
+         * Validation binding for the range end date/time.
+         * This validates the selections for the {@link #endDatePicker}, {@link #endHourComboBox},
+         * and {@link #endMinuteComboBox} controls, producing the resource key of the validation message
+         * for the start date/time or an empty string if all start date/time selections are valid.
+         */
         final DateValidation endValidation;
         
         DateRangeValidation() {
             startValidation = new DateValidation(startDatePicker, startHourComboBox, startMinuteComboBox);
             endValidation = new DateValidation(endDatePicker, endHourComboBox, endMinuteComboBox);
             super.bind(startValidation.selectedDateTime, endValidation.selectedDateTime, endValidation);
+            startValidation.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                startValidationMessageChanged(newValue);
+            });
+            super.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                endValidationMessageChanged(newValue);
+            });
+            startValidationMessageChanged(startValidation.get());
+            endValidationMessageChanged(get());
         }
+        final void startValidationMessageChanged(String value) {
+            if (value.isEmpty())
+                collapseNode(startValidationLabel);
+            else
+                restoreLabeled(startValidationLabel, getResources().getString(value));
+        }
+        final void endValidationMessageChanged(String value) {
+            if (value.isEmpty())
+                collapseNode(endValidationLabel);
+            else
+                restoreLabeled(endValidationLabel, getResources().getString(value));
+        }
+        
         @Override
         protected String computeValue() {
             LocalDateTime s = startValidation.selectedDateTime.get();
@@ -849,6 +987,42 @@ public class EditAppointment extends ItemController<AppointmentRow> {
         public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(startValidation.selectedDateTime, endValidation.selectedDateTime, endValidation); }
         @Override
         public void dispose() { super.unbind(startValidation.selectedDateTime, endValidation.selectedDateTime, endValidation); }
+    }
+    
+    private class UrlValidation extends StringBinding {
+        final StringProperty urlTextProperty;
+        UrlValidation() {
+            urlTextProperty = urlTextField.textProperty();
+            super.bind(urlTextProperty, typeSelectionState.virtual);
+            super.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                if (newValue.isEmpty())
+                    collapseNode(urlValidationLabel);
+                else
+                    restoreLabeled(urlValidationLabel, getResources().getString(newValue));
+            });
+        }
+        @Override
+        protected String computeValue() {
+            String text = urlTextProperty.get();
+            if (typeSelectionState.virtual.get()) {
+                if (text.trim().isEmpty())
+                    return RESOURCEKEY_REQUIRED;
+                URL url;
+                try {
+                    url = new URL(text);
+                    if (url.getHost() == null || url.getHost().trim().isEmpty())
+                        return RESOURCEKEY_INVALIDURL;
+                } catch (MalformedURLException ex) {
+                    return RESOURCEKEY_INVALIDURL;
+                }
+            }
+            
+            return "";
+        }
+        @Override
+        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(urlTextProperty, typeSelectionState.virtual); }
+        @Override
+        public void dispose() { super.unbind(urlTextProperty, typeSelectionState.virtual); }
     }
     
     //</editor-fold>
