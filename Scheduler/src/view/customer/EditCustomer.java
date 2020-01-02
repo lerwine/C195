@@ -1,12 +1,12 @@
 package view.customer;
 
-import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import view.EditItem;
 import model.db.AddressRow;
 import model.db.CustomerRow;
 import view.annotations.FXMLResource;
@@ -19,7 +19,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/customer/EditCustomer")
 @FXMLResource("/view/customer/EditCustomer.fxml")
-public class EditCustomer extends EditItemController<CustomerRow> {
+public class EditCustomer extends view.Controller implements view.ItemController<CustomerRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVE = "active";
@@ -71,24 +71,13 @@ public class EditCustomer extends EditItemController<CustomerRow> {
     private Label countryLabel;
     
     public static CustomerRow addNew() {
-        return showAndWait(EditCustomer.class, 640, 480, (ContentChangeContext<EditCustomer> context) -> {
-            EditCustomer controller = context.getController();
-            controller.setModel(new CustomerRow());
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCUSTOMER));
-        }, (ContentChangeContext<EditCustomer> context) -> {
-            EditCustomer controller = context.getController();
-            return (controller.isCanceled()) ? null : controller.getModel();
-        });
+        EditItem.ShowAndWaitResult<CustomerRow> result = EditItem.showAndWait(EditCustomer.class, new CustomerRow(), 640, 480);
+        return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
     public static boolean edit(CustomerRow row) {
-        return showAndWait(EditCustomer.class, 640, 480, (ContentChangeContext<EditCustomer> context) -> {
-            EditCustomer controller = context.getController();
-            controller.setModel(row);
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITCUSTOMER));
-        }, (ContentChangeContext<EditCustomer> context) -> {
-            return !context.getController().isCanceled();
-        });
+        EditItem.ShowAndWaitResult<CustomerRow> result = EditItem.showAndWait(EditCustomer.class, row, 640, 480);
+        return result.isSuccessful();
     }
 
     @Override
@@ -102,7 +91,12 @@ public class EditCustomer extends EditItemController<CustomerRow> {
     }
 
     @Override
-    protected boolean saveChanges() {
+    public void accept(EditItem<CustomerRow> context) {
+        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
+    }
+
+    @Override
+    public Boolean apply(EditItem<CustomerRow> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

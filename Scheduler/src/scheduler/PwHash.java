@@ -14,7 +14,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import model.db.NonNullableStringProperty;
+import expressions.NonNullableStringProperty;
 
 /**
  * Contains a password hashed intended to be stored (in string format) in the database.

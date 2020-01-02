@@ -1,26 +1,15 @@
 package view.appointment;
 
 import com.mysql.jdbc.Connection;
-import view.EditItemController;
-import controls.AppointmentTypeListCell;
-import controls.AppointmentTypeListCellFactory;
-import controls.CustomerListCell;
-import controls.CustomerListCellFactory;
-import controls.TimeZoneListCell;
-import controls.TimeZoneListCellFactory;
-import controls.UserListCell;
-import controls.UserListCellFactory;
-import controls.ZeroPadDigitListCell;
-import controls.ZeroPadDigitListCellFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.time.format.TextStyle;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -38,21 +27,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.stage.StageStyle;
+import javafx.scene.text.Text;
 import model.db.AppointmentRow;
 import model.db.CustomerRow;
 import model.db.UserRow;
-import view.annotations.FXMLResource;
-import view.annotations.GlobalizationResource;
+import scheduler.InvalidOperationException;
 import scheduler.SqlConnectionDependency;
 import scheduler.Util;
+import view.EditItem;
+import view.annotations.FXMLResource;
+import view.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
@@ -61,14 +52,13 @@ import scheduler.Util;
  */
 @GlobalizationResource("view/appointment/EditAppointment")
 @FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends EditItemController<AppointmentRow> {
+public class EditAppointment extends view.Controller implements view.ItemController<AppointmentRow> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
     
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
-//    public static final String RESOURCEKEY_ADD = "add";
     public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
 //    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
     public static final String RESOURCEKEY_CUSTOMER = "customer";
@@ -80,7 +70,6 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
     public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
     public static final String RESOURCEKEY_LOCATION = "location";
 //    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
-    public static final String RESOURCEKEY_REQUIRED = "required";
 //    public static final String RESOURCEKEY_SHOW = "show";
 //    public static final String RESOURCEKEY_START = "start";
 //    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
@@ -91,11 +80,6 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
 //    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
     public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
 //    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
-//    public static final String RESOURCEKEY_CREATED = "created";
-//    public static final String RESOURCEKEY_BY = "by";
-//    public static final String RESOURCEKEY_UPDATED = "updated";
-//    public static final String RESOURCEKEY_SAVE = "save";
-//    public static final String RESOURCEKEY_CANCEL = "cancel";
     public static final String RESOURCEKEY_INVALIDHOUR = "invalidHour";
     public static final String RESOURCEKEY_INVALIDMINUTE = "invalidMinute";
     public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
@@ -160,6 +144,9 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
     private Label customerValidationLabel;
 
     @FXML // Label for displaying user selection validation message.
+    private Text customerValidationText;
+    
+    @FXML // Label for displaying user selection validation message.
     private Label userValidationLabel;
 
     @FXML // Control for the appointment title.
@@ -193,7 +180,7 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
     private Label endValidationLabel;
 
     @FXML // Control for selecting the time zone for the appointment start and end.
-    private ComboBox<TimeZone> timeZoneComboBox;
+    private ComboBox<TimeZoneChoice> timeZoneComboBox;
 
     @FXML // Field label that gets hidden when the user selects the default time zone.
     private Label currentTimeZoneLabel;
@@ -260,7 +247,7 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
     private ObservableList<Integer> minuteOptions;
     
     // Items for the timeZoneComboBox control.
-    private ObservableList<TimeZone> timeZones;
+    private ObservableList<TimeZoneChoice> timeZones;
     
     // Items for the typeComboBox control.
     private ObservableList<String> types;
@@ -298,17 +285,20 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
     
     //</editor-fold>
     
+    private int currentTimeZoneOffset;
+    
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
     @FXML
-    @Override
     protected void initialize() {
         assert customerComboBox != null : String.format("fx:id=\"customerComboBox\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         assert userComboBox != null : String.format("fx:id=\"userComboBox\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
-        assert customerValidationLabel != null : String.format("fx:id=\"customerValidationLabel\" was not injected: check your FXML file '%s'.",
+        assert customerValidationText != null : String.format("fx:id=\"customerValidationText\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
+//        assert customerValidationLabel != null : String.format("fx:id=\"customerValidationLabel\" was not injected: check your FXML file '%s'.",
+//                getFXMLResourceName(getClass()));
         assert userValidationLabel != null : String.format("fx:id=\"userValidationLabel\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         assert titleTextField != null : String.format("fx:id=\"titleTextField\" was not injected: check your FXML file '%s'.",
@@ -371,11 +361,9 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
         minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
         
         // Initialize options list for time zone combo box.
-        ArrayList<TimeZone> tzArr = new ArrayList<>();
-        Arrays.stream(TimeZone.getAvailableIDs()).forEach((String id) -> {
-            tzArr.add(TimeZone.getTimeZone(id));
-        });
-        timeZones = FXCollections.observableArrayList(tzArr);
+        timeZones = FXCollections.observableArrayList();
+        TimeZoneChoice.getAllChoices(scheduler.App.CURRENT.get().getCurrentLocale()).forEach((TimeZoneChoice c) -> timeZones.add(c));
+        
         // Get appointment type options.
         types = FXCollections.observableArrayList(APPOINTMENT_CODE_PHONE, APPOINTMENT_CODE_VIRTUAL, APPOINTMENT_CODE_CUSTOMER,
                 APPOINTMENT_CODE_HOME, APPOINTMENT_CODE_GERMANY, APPOINTMENT_CODE_INDIA, APPOINTMENT_CODE_HONDURAS,
@@ -393,8 +381,18 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
         endMinuteComboBox.setItems(minuteOptions);
         endMinuteComboBox.getSelectionModel().select(0);
         timeZoneComboBox.setItems(timeZones);
-        String tzId = TimeZone.getDefault().getID();
-        Optional<TimeZone> tz = timeZones.stream().filter((TimeZone t) -> t.getID().equals(tzId)).findFirst();
+        currentTimeZoneOffset = (TimeZone.getTimeZone(ZoneId.systemDefault())).getRawOffset();
+        // Get the best match to initially select the time zone.
+        String zId = ZoneId.systemDefault().getId();
+        Optional<TimeZoneChoice> tz = timeZones.stream().filter((TimeZoneChoice t) -> t.getZoneId().getId().equals(zId)).findFirst();
+        if (!tz.isPresent()) {
+            String sn = ZoneId.systemDefault().getDisplayName(TextStyle.SHORT, java.util.Locale.ITALY);
+            tz = timeZones.stream().filter((TimeZoneChoice t) -> t.getShortName().equals(sn)).findFirst();
+            if (!tz.isPresent()) {
+                tz = timeZones.stream().filter((TimeZoneChoice t) -> t.getTimeZone().getRawOffset() == currentTimeZoneOffset).findFirst();
+            }
+        }
+        
         timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
@@ -430,11 +428,6 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
         contactValid = new NonWhiteSpaceValidation(contactTextField, contactValidationLabel);
         valid = customerValid.and(locationValid).and(userValid).and(titleValid).and(contactValid).and(dateRangeValidation.isEmpty())
                 .and(conflictLookupState.conflictMessage.isEmpty()).and(urlValidation.isEmpty());
-        // Add listener to disable the "Save" button when the valid binding returns false.
-        valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            saveChangesButton.setDisable(!newValue);
-        });
-        saveChangesButton.setDisable(!valid.get());
     }
     
     /**
@@ -443,16 +436,10 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
      *          The @{link model.db.AppointmentRow} object containing appointment that was added or @{code null} if no appointment was added.
      */
     public static AppointmentRow addNew() {
-        return showAndWait(EditAppointment.class, 800, 600, (ContentChangeContext<EditAppointment> context) -> {
-            EditAppointment controller = context.getController();
-            controller.setModel(new AppointmentRow());
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
-        }, (ContentChangeContext<EditAppointment> context) -> {
-            EditAppointment controller = context.getController();
-            return (controller.isCanceled()) ? null : controller.getModel();
-        });
+        view.EditItem.ShowAndWaitResult<AppointmentRow> result = view.EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
+        return (result.isSuccessful()) ? result.getTarget() : null;
     }
-
+    
     /**
      * Edits the specified appointment.
      * @param row
@@ -461,17 +448,40 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
      *          {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
      */
     public static boolean edit(AppointmentRow row) {
-        return showAndWait(EditAppointment.class, 800, 600, (ContentChangeContext<EditAppointment> context) -> {
-            EditAppointment controller = context.getController();
-            controller.setModel(row);
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITAPPOINTMENT));
-        }, (ContentChangeContext<EditAppointment> context) -> {
-            return !context.getController().isCanceled();
-        });
+        view.EditItem.ShowAndWaitResult<AppointmentRow> result = view.EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
+        return result.isSuccessful();
     }
     
     //</editor-fold>
 
+    @Override
+    public void accept(EditItem<AppointmentRow> context) {
+        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
+    }
+
+    @Override
+    public Boolean apply(EditItem<AppointmentRow> context) {
+        if (!conflictLookupState.test()) {
+            String msg = conflictLookupState.conflictMessage.get();
+            if (msg.isEmpty())
+                return false;
+            Optional<ButtonType> response = Util.showWarningAlert(getResources().getString("conflictsFound"),
+                    String.format("%s\n\n%s", msg, getResources().getString("saveAnyway")), ButtonType.YES, ButtonType.NO);
+            if (!response.isPresent() || response.get() != ButtonType.YES)
+                return false;
+        }
+        try {
+            SqlConnectionDependency dep = new SqlConnectionDependency(true);
+            try {
+                updateModel(context.getTarget()).saveChanges(dep.getConnection());
+                return true;
+            } finally { dep.close(); }
+        } catch (SQLException | InvalidOperationException ex) {
+            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+    
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
     
     @FXML
@@ -489,9 +499,29 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    protected boolean saveChanges() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    private AppointmentRow updateModel(AppointmentRow row) {
+        String type = typeComboBox.getValue();
+        row.setContact(contactTextField.getText());
+        row.setCustomer(customerComboBox.getValue());
+        row.setDescription(descriptionTextArea.getText());
+        row.setEnd(dateRangeValidation.endValidation.selectedDateTime.get());
+        row.setStart(dateRangeValidation.startValidation.selectedDateTime.get());
+        row.setTitle(titleTextField.getText());
+        row.setType(type);
+        row.setUser(userComboBox.getValue());
+        if (type.equalsIgnoreCase(APPOINTMENT_CODE_OTHER))
+            row.setLocation(locationTextArea.getText());
+        else if (type.equalsIgnoreCase(APPOINTMENT_CODE_PHONE)) {
+            row.setLocation(phoneTextField.getText());
+        } else {
+            row.setLocation("");
+            if (type.equalsIgnoreCase(APPOINTMENT_CODE_VIRTUAL)) {
+                row.setUrl(urlTextField.getText());
+                return row;
+            }
+        }
+        row.setUrl("");
+        return row;
     }
     
     //</editor-fold>
@@ -843,7 +873,7 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
                 if (newValue)
                     collapseNode(locationValidationLabel);
                 else
-                    restoreLabeled(locationValidationLabel, getResources().getString(RESOURCEKEY_REQUIRED));
+                    restoreLabeled(locationValidationLabel, getResources().getString(view.EditItem.RESOURCEKEY_REQUIRED));
             });
         }
         
@@ -870,7 +900,7 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
         final ObjectProperty<LocalDate> dateProperty;
         final ObjectProperty<Integer> hourProperty;
         final ObjectProperty<Integer> minuteProperty;
-        final ObjectProperty<TimeZone> timeZoneProperty;
+        final ObjectProperty<TimeZoneChoice> timeZoneProperty;
         final ObjectBinding<ZonedDateTime> zonedDateTime;
         final ObjectBinding<LocalDateTime> selectedDateTime;
         DateValidation(DatePicker datePicker, ComboBox<Integer> hourComboBox, ComboBox<Integer> minuteComboBox) {
@@ -885,10 +915,10 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
                     LocalDate d = dateProperty.get();
                     int h = hourProperty.get();
                     int m = minuteProperty.get();
-                    TimeZone z = timeZoneProperty.get();
+                    TimeZoneChoice z = timeZoneProperty.get();
                     if (d == null || h < 0 || h > 23 || m < 0 || m > 59)
                         return null;
-                    return ZonedDateTime.of(d, LocalTime.of(h, m, 0), ((z == null) ? TimeZone.getDefault() : z).toZoneId());
+                    return ZonedDateTime.of(d, LocalTime.of(h, m, 0), ((z == null) ? timeZones.get(0) : z).getZoneId());
                 }
                 @Override
                 public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(dateProperty, hourProperty, minuteProperty, timeZoneProperty); }
@@ -915,7 +945,7 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
             int h = hourProperty.get();
             int m = minuteProperty.get();
             if (dateProperty.get() == null)
-                return RESOURCEKEY_REQUIRED;
+                return view.EditItem.RESOURCEKEY_REQUIRED;
             if (h < 0 || h > 23)
                 return RESOURCEKEY_INVALIDHOUR;
             return (m < 0 || m > 59) ? RESOURCEKEY_INVALIDMINUTE : "";
@@ -1006,7 +1036,7 @@ public class EditAppointment extends EditItemController<AppointmentRow> {
             String text = urlTextProperty.get();
             if (typeSelectionState.virtual.get()) {
                 if (text.trim().isEmpty())
-                    return RESOURCEKEY_REQUIRED;
+                    return view.EditItem.RESOURCEKEY_REQUIRED;
                 URL url;
                 try {
                     url = new URL(text);

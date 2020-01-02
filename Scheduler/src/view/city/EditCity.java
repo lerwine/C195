@@ -1,6 +1,5 @@
 package view.city;
 
-import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -8,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.db.CityRow;
 import model.db.CountryRow;
+import view.EditItem;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -18,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/city/EditCity")
 @FXMLResource("/view/city/EditCity.fxml")
-public class EditCity extends EditItemController<CityRow> {
+public class EditCity extends view.Controller implements view.ItemController<CityRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
@@ -51,24 +51,13 @@ public class EditCity extends EditItemController<CityRow> {
     private ComboBox<CountryRow> countryComboBox;
     
     public static CityRow addNew() {
-        return showAndWait(EditCity.class, 640, 480, (ContentChangeContext<EditCity> context) -> {
-            EditCity controller = context.getController();
-            controller.setModel(new CityRow());
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCITY));
-        }, (ContentChangeContext<EditCity> context) -> {
-            EditCity controller = context.getController();
-            return (controller.isCanceled()) ? null : controller.getModel();
-        });
+        EditItem.ShowAndWaitResult<CityRow> result = EditItem.showAndWait(EditCity.class, new CityRow(), 640, 480);
+        return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
     public static boolean edit(CityRow row) {
-        return showAndWait(EditCity.class, 640, 480, (ContentChangeContext<EditCity> context) -> {
-            EditCity controller = context.getController();
-            controller.setModel(row);
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITCITY));
-        }, (ContentChangeContext<EditCity> context) -> {
-            return !context.getController().isCanceled();
-        });
+        EditItem.ShowAndWaitResult<CityRow> result = EditItem.showAndWait(EditCity.class, row, 640, 480);
+        return result.isSuccessful();
     }
 
     @Override
@@ -82,7 +71,12 @@ public class EditCity extends EditItemController<CityRow> {
     }
 
     @Override
-    protected boolean saveChanges() {
+    public void accept(EditItem<CityRow> context) {
+        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCITY : RESOURCEKEY_EDITCITY));
+    }
+
+    @Override
+    public Boolean apply(EditItem<CityRow> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

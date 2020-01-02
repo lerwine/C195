@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package model.db;
+package expressions;
 
 import javafx.beans.property.SimpleIntegerProperty;
+import model.db.UserRow;
 
 /**
  * An integer property that only stores specific integer values that represent active status for users.

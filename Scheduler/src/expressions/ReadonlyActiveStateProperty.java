@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package model.db;
+package expressions;
 
 import javafx.beans.property.ReadOnlyIntegerWrapper;
+import model.db.UserRow;
 
 /**
  *

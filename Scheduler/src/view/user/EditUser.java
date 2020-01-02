@@ -1,6 +1,5 @@
 package view.user;
 
-import view.EditItemController;
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
@@ -23,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import view.EditItem;
 import model.db.UserRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
@@ -34,7 +34,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/EditUser")
 @FXMLResource("/view/user/EditUser.fxml")
-public class EditUser extends EditItemController<UserRow> {
+public class EditUser extends view.Controller implements view.ItemController<UserRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
@@ -112,9 +112,7 @@ public class EditUser extends EditItemController<UserRow> {
     public BooleanExpression validProperty() { return valid; }
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    @Override
     protected void initialize() {
-        super.initialize();
         userActiveStateOptions = FXCollections.observableArrayList(UserRow.STATE_USER, UserRow.STATE_ADMIN, UserRow.STATE_INACTIVE);
         activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
             @Override
@@ -135,17 +133,26 @@ public class EditUser extends EditItemController<UserRow> {
             }
         });
         activeComboBox.setItems(userActiveStateOptions);
-        newRowProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            onIsNewRowChanged(newValue);
-        });
-        onIsNewRowChanged(isNewRow());
         userNameErrorMessage = new UserNameValidator();
         passwordErrorMessage = new PasswordValidator();
         valid = userNameErrorMessage.isEmpty().and(passwordErrorMessage.isEmpty());
     }
 
-    private void onIsNewRowChanged(boolean value) {
-        if (value) {
+    public static UserRow addNew() {
+        EditItem.ShowAndWaitResult<UserRow> result = EditItem.showAndWait(EditUser.class, new UserRow(), 640, 480);
+        return (result.isSuccessful()) ? result.getTarget() : null;
+    }
+
+    public static boolean edit(UserRow row) {
+        EditItem.ShowAndWaitResult<UserRow> result = EditItem.showAndWait(EditUser.class, row, 640, 480);
+        return result.isSuccessful();
+    }
+
+    @Override
+    public void accept(EditItem<UserRow> context) {
+        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+        if (context.isNewRow().get()) {
+            originalUserName.set("");
             changePasswordCheckBox.setText(getResources().getString(RESOURCEKEY_PASSWORD));
             changePasswordCheckBox.setSelected(true);
             changePasswordCheckBox.setDisable(true);
@@ -161,37 +168,14 @@ public class EditUser extends EditItemController<UserRow> {
             passwordField.setVisible(false);
             confirmPasswordField.setVisible(false);
             passwordErrorMessageLabel.setVisible(false);
+            originalUserName.set(context.getTarget().getUserName());
+            userNameTextField.setText(context.getTarget().getUserName());
         }
-    }
-    
-    public static UserRow addNew() {
-        return showAndWait(EditUser.class, 640, 480, (ContentChangeContext<EditUser> context) -> {
-            EditUser controller = context.getController();
-            controller.setModel(new UserRow());
-            controller.originalUserName.set("");
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWUSER));
-        }, (ContentChangeContext<EditUser> context) -> {
-            EditUser controller = context.getController();
-            return (controller.isCanceled()) ? null : controller.getModel();
-        });
-    }
-
-    public static boolean edit(UserRow row) {
-        return showAndWait(EditUser.class, 640, 480, (ContentChangeContext<EditUser> context) -> {
-            EditUser controller = context.getController();
-            controller.setModel(row);
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITUSER));
-            controller.originalUserName.set(row.getUserName());
-            controller.userNameTextField.setText(row.getUserName());
-        }, (ContentChangeContext<EditUser> context) -> {
-            return !context.getController().isCanceled();
-        });
     }
 
     @Override
-    protected boolean saveChanges() {
-        (new Alert(Alert.AlertType.INFORMATION, "saveChangesButtonClick not implemented", ButtonType.OK)).showAndWait();
-        return false;
+    public Boolean apply(EditItem<UserRow> t) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     private class UserNameValidator extends StringBinding {

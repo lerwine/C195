@@ -24,6 +24,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" spacing="8.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.appointment.EditAppointment">
@@ -86,7 +87,7 @@
                     </buttonCell>
                 </ComboBox>
                 <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addUserClick" prefWidth="38.0" text="%add" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                <Label fx:id="customerValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
+                <Text fx:id="customerValidationText" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
                 <Label fx:id="userValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="2" GridPane.rowIndex="2">
                     <GridPane.margin>
                         <Insets left="8.0" />
@@ -286,53 +287,13 @@
                     </GridPane.margin>
                 </Label>
                 <TextArea fx:id="descriptionTextArea" prefRowCount="4" GridPane.columnSpan="4" GridPane.rowIndex="18" />
-                <Label fx:id="createdLabel" styleClass="formControlLabel" text="%created" GridPane.rowIndex="19">
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <Label fx:id="lastUpdateLabel" styleClass="formControlLabel" text="%updated" GridPane.columnIndex="2" GridPane.rowIndex="19">
-                    <GridPane.margin>
-                        <Insets left="8.0" top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <HBox GridPane.rowIndex="20">
-                    <children>
-                        <Label fx:id="createDateValue" text="12/10/2019 21:34" />
-                        <Label fx:id="createdByLabel" styleClass="formControlLabel" text="%by">
-                            <opaqueInsets>
-                                <Insets left="8.0" />
-                            </opaqueInsets>
-                            <HBox.margin>
-                                <Insets left="8.0" />
-                            </HBox.margin>
-                        </Label>
-                        <Label fx:id="createdByValue" text="Label" />
-                    </children>
-                </HBox>
-                <HBox GridPane.columnIndex="2" GridPane.rowIndex="20">
-                    <children>
-                        <Label fx:id="lastUpdateValue" text="12/10/2019 21:34" />
-                        <Label fx:id="lastUpdateByLabel" styleClass="formControlLabel" text="%by">
-                            <opaqueInsets>
-                                <Insets left="8.0" />
-                            </opaqueInsets>
-                            <HBox.margin>
-                                <Insets left="8.0" />
-                            </HBox.margin>
-                        </Label>
-                        <Label fx:id="lastUpdateByValue" text="Label" />
-                    </children>
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                </HBox>
             </children>
         </GridPane>
         <ButtonBar>
             <buttons>
-                <Button fx:id="saveChangesButton" mnemonicParsing="false" onAction="#saveChangesClick" text="%save" />
-                <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelClick" text="%cancel" />
+                <Button fx:id="saveChangesButton" mnemonicParsing="false" text="%save" onAction="#saveChangesButtonClick" />
+                <Button fx:id="deleteButton" mnemonicParsing="false" text="%delete" onAction="#deleteButtonClick" />
+                <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" onAction="#cancelButtonClick" />
             </buttons>
         </ButtonBar>
     </children>

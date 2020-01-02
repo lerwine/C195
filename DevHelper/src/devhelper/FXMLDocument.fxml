@@ -1,179 +1,242 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 
-<SplitPane dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
-    <items>
-        <VBox>
+<VBox prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
+    <children>
+        <GridPane>
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="17.0" prefHeight="17.0" />
+                <RowConstraints minHeight="17.0" prefHeight="17.0" />
+                <RowConstraints minHeight="25.0" prefHeight="25.0" />
+                <RowConstraints minHeight="17.0" prefHeight="17.0" />
+                <RowConstraints minHeight="17.0" prefHeight="17.0" />
+                <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="17.0" prefHeight="17.0" />
+                <RowConstraints minHeight="17.0" prefHeight="17.0" />
+                <RowConstraints minHeight="25.0" prefHeight="25.0" vgrow="SOMETIMES" />
+            </rowConstraints>
             <children>
-                <TableView fx:id="localesFilesTableView">
-                    <columns>
-                        <TableColumn editable="false" text="Country">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="country" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="ISO3 Country">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="iSO3Country" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="Display Country">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="displayCountry" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="Language">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="language" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn fx:id="languageTagTableColumn" editable="false" text="Language Tag">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="script" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="ISO3 Language">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="iSO3Language" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="Display Language">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="displayLanguage" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="Script">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="script" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="Display Script">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="displayScript" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" text="Variant">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="variant" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Display Name">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="displayName" />
-                            </cellValueFactory>
-                        </TableColumn>
-                    </columns>
-                </TableView>
-                <TableView fx:id="propertiesFilesTableView">
-                    <columns>
-                        <TableColumn fx:id="languageTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="Language">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="locale" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn fx:id="updatedTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="100.0" text="Last Updated">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="file" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn fx:id="propertiesFileStatusTableColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Status">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="validationMessage" />
-                            </cellValueFactory>
-                        </TableColumn>
-                    </columns>
-                </TableView>
-                <ButtonBar prefHeight="40.0" prefWidth="200.0">
-                    <buttons>
-                        <Button fx:id="translateResourceBundleButton" mnemonicParsing="false" onAction="#translateResourceBundleButtonAction" text="Translate" />
-                        <Button fx:id="addPropertiesFileButton" mnemonicParsing="false" onAction="#addPropertiesFileButtonAction" text="Add" />
-                        <Button fx:id="saveResourceBundleButton" mnemonicParsing="false" onAction="#saveResourceBundleButtonAction" text="Save" />
-                        <Button mnemonicParsing="false" onAction="#openResourceBundleButtonAction" text="Open" />
-                        <Button mnemonicParsing="false" onAction="#newResourceBundleButtonAction" text="New" />
-                    </buttons>
-                </ButtonBar>
+                <Label text="Countries" GridPane.vgrow="ALWAYS" />
+                <Label text="2-Letter Codes" GridPane.rowIndex="1" />
+                <ComboBox fx:id="twoLetterCountryCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+                <Label text="3-Letter Codes" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <ComboBox fx:id="threeLetterCountryCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+                <Label text="ISO 3 Codes" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <ComboBox fx:id="iso3CountryCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+                <Label text="Script Codes" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                <ComboBox fx:id="scriptCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+                <Label text="Languages" GridPane.rowIndex="3" />
+                <Label text="2-Letter Codes" GridPane.rowIndex="4" />
+                <ComboBox fx:id="twoLetterLanguageCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
+                <Label text="3-Letter Codes" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <ComboBox fx:id="threeLetterLanguageCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
+                <Label text="Language Tags" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                <ComboBox fx:id="languageTagsComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
+                <Label text="Time Zones" GridPane.rowIndex="6" />
+                <Label text="Time Zone IDs" GridPane.rowIndex="7" />
+                <ComboBox fx:id="timeZoneIDsComboBox" maxWidth="1.7976931348623157E308" onAction="#timeZoneComboBoxChanged" GridPane.rowIndex="8" />
+                <Label text="Zone IDs" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                <ComboBox fx:id="zoneIDsComboBox" maxWidth="1.7976931348623157E308" onAction="#timeZoneComboBoxChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
+                <Label text="Offset IDs" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+                <ComboBox fx:id="zoneOffsetIDsComboBox" maxWidth="1.7976931348623157E308" onAction="#timeZoneComboBoxChanged" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
             </children>
-        </VBox>
-        <SplitPane dividerPositions="0.29797979797979796">
-            <items>
-                <TableView fx:id="currentPropertiesFileTableView">
-                    <columns>
-                        <TableColumn fx:id="keyTableColumn" editable="false" prefWidth="75.0" text="Key">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="key" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn fx:id="valueTableColumn" editable="false" prefWidth="75.0" text="Value">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="value" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn fx:id="propertyStatusTableColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="85.0" text="Status">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="validationMessage" />
-                            </cellValueFactory>
-                        </TableColumn>
-                    </columns>
-                </TableView>
-                <VBox>
-                    <children>
-                        <GridPane>
-                            <columnConstraints>
-                                <ColumnConstraints />
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                            </columnConstraints>
-                            <rowConstraints>
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints vgrow="ALWAYS" />
-                            </rowConstraints>
-                            <padding>
-                                <Insets top="8.0" />
-                            </padding>
-                            <children>
-                                <Label text="Key:" />
-                                <TextField fx:id="keyTextField" onAction="#keyTextFieldAction" GridPane.columnIndex="1" />
-                                <Label fx:id="errorMessageLabel" text="Key cannot be empty." textFill="RED" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                    <GridPane.margin>
-                                        <Insets />
-                                    </GridPane.margin>
-                                </Label>
-                                <Label text="Value:" GridPane.rowIndex="2">
-                                    <GridPane.margin>
-                                        <Insets top="8.0" />
-                                    </GridPane.margin>
-                                </Label>
-                                <TextArea fx:id="valueTextArea" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="2">
-                                    <GridPane.margin>
-                                        <Insets top="8.0" />
-                                    </GridPane.margin>
-                                </TextArea>
-                            </children>
-                        </GridPane>
-                        <ButtonBar>
-                            <buttons>
-                                <Button fx:id="addPropertyButton" mnemonicParsing="false" onAction="#addPropertyButtonAction" text="Add" />
-                                <Button fx:id="deletePropertyButton" mnemonicParsing="false" onAction="#deletePropertyButtonAction" text="Delete" />
-                            </buttons>
-                        </ButtonBar>
-                    </children>
-                </VBox>
-            </items>
-        </SplitPane>
-    </items>
-</SplitPane>
+        </GridPane>
+      <Label text="Locales" />
+        <TableView fx:id="availableLocalesTableView" editable="false" tableMenuButtonVisible="true" VBox.vgrow="SOMETIMES">
+            <columns>
+                <TableColumn editable="false" prefWidth="60.0" text="Name">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="displayName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" prefWidth="60.0" text="Country">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="displayCountry" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Language">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="displayLanguage" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" prefWidth="60.0" text="Script" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="displayScript" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" prefWidth="60.0" text="Variant">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="displayVariant" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" prefWidth="100.0" text="Country Code">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="country" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" prefWidth="100.0" text="ISO 3 Country" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="iSO3Country" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="languageTagTableColumn" editable="false" prefWidth="100.0" text="Language Tag" />
+                <TableColumn editable="false" prefWidth="100.0" text="Language Code">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="language" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" prefWidth="100.0" text="ISO 3 Language">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="iSO3Language" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Script Code" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="script" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Variant Code">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="variant" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="localeToStringTableColumn" editable="false" text="String" />
+            </columns>
+        </TableView>
+      <Label text="Time Zones" />
+        <TableView fx:id="timeZonesTableView" editable="false" tableMenuButtonVisible="true" VBox.vgrow="SOMETIMES">
+            <columns>
+                <TableColumn editable="false" text="Name">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="name" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Zone ID">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="id" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="DST Savings">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="dstSavings" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Raw Offset">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="rawOffset" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Zone ID">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="zoneId" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Zone Name" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="zoneName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Normalized ID" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="normalizedId" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Normalized Name" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="normalizedName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" maxWidth="1.7976931348623157E308" text="Total Seconds" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="totalSeconds" />
+                    </cellValueFactory>
+                </TableColumn>
+            </columns>
+        </TableView>
+      <Label text="Zone IDs" />
+        <TableView fx:id="zoneIdsTableView" editable="false" tableMenuButtonVisible="true" VBox.vgrow="SOMETIMES">
+            <columns>
+                <TableColumn editable="false" text="Full Name">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="fullName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Full Name (standalone)" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="standaloneFull" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Short Name" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="shortName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Short Name (standalone)" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="standaloneShort" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Narrow Name" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="narrowName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Narrow Name (standalone)" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="standaloneNarrow" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Zone ID">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="id" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Normalized ID">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="normalizedId" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Normalized Name">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="normalizedName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Total Seconds">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="totalSeconds" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Time Zone ID">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="timeZoneId" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" text="Time Zone Name" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="timeZoneName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" maxWidth="1.7976931348623157E308" text="Time Zone Offset" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="timeZoneOffset" />
+                    </cellValueFactory>
+                </TableColumn>
+            </columns>
+        </TableView>
+    </children>
+</VBox>

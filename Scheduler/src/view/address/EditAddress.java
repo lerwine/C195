@@ -1,6 +1,7 @@
 package view.address;
 
-import view.EditItemController;
+import view.Controller;
+import view.EditItem;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -18,7 +19,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/address/EditAddress")
 @FXMLResource("/view/address/EditAddress.fxml")
-public class EditAddress extends EditItemController<AddressRow> {
+public class EditAddress extends Controller implements view.ItemController<AddressRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
@@ -64,24 +65,23 @@ public class EditAddress extends EditItemController<AddressRow> {
     //</editor-fold>
     
     public static AddressRow addNew() {
-        return showAndWait(EditAddress.class, 640, 480, (ContentChangeContext<EditAddress> context) -> {
-            EditAddress controller = context.getController();
-            controller.setModel(new AddressRow());
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWADDRESS));
-        }, (ContentChangeContext<EditAddress> context) -> {
-            EditAddress controller = context.getController();
-            return (controller.isCanceled()) ? null : controller.getModel();
-        });
+        EditItem.ShowAndWaitResult<AddressRow> result = EditItem.showAndWait(EditAddress.class, new AddressRow(), 640, 480);
+        return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
     public static boolean edit(AddressRow row) {
-        return showAndWait(EditAddress.class, 640, 480, (ContentChangeContext<EditAddress> context) -> {
-            EditAddress controller = context.getController();
-            controller.setModel(row);
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITADDRESS));
-        }, (ContentChangeContext<EditAddress> context) -> {
-            return !context.getController().isCanceled();
-        });
+        EditItem.ShowAndWaitResult<AddressRow> result = EditItem.showAndWait(EditAddress.class, row, 640, 480);
+        return result.isSuccessful();
+    }
+
+    @Override
+    public void accept(EditItem<AddressRow> context) {
+        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
+    }
+
+    @Override
+    public Boolean apply(EditItem<AddressRow> context) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -93,10 +93,4 @@ public class EditAddress extends EditItemController<AddressRow> {
     public BooleanExpression validProperty() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    @Override
-    protected boolean saveChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
 }

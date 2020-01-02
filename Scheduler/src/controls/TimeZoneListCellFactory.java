@@ -5,6 +5,7 @@
  */
 package controls;
 
+import java.time.ZoneId;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
@@ -13,7 +14,7 @@ import javafx.util.Callback;
  *
  * @author Leonard T. Erwine
  */
-public class TimeZoneListCellFactory implements Callback<ListView<java.util.TimeZone>, ListCell<java.util.TimeZone>> {
+public class TimeZoneListCellFactory implements Callback<ListView<ZoneId>, ListCell<ZoneId>> {
     @Override
-    public ListCell<java.util.TimeZone> call(ListView<java.util.TimeZone> param) { return new TimeZoneListCell(); }
+    public ListCell<ZoneId> call(ListView<ZoneId> param) { return new TimeZoneListCell(); }
 }

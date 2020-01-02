@@ -1,5 +1,8 @@
 package model.db;
 
+import expressions.ReadonlyActiveStateProperty;
+import expressions.NonNullableStringProperty;
+import expressions.NonNullableLocalDateTimeProperty;
 import com.mysql.jdbc.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -22,7 +22,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Labeled;
 import javafx.stage.StageStyle;
-import model.db.NonNullableStringProperty;
+import expressions.NonNullableStringProperty;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import scheduler.App;
@@ -57,7 +57,7 @@ public abstract class Controller {
      * @return
      *      The name of the FXML resource associated with the target controller or null if resource name is not specified.
      */
-    public static <C extends Controller> String getFXMLResourceName(Class<? extends C> ctlClass) {
+    public static <C> String getFXMLResourceName(Class<? extends C> ctlClass) {
         Class<FXMLResource> ac = FXMLResource.class;
         String message;
         if (ctlClass.isAnnotationPresent(ac)) {
@@ -84,7 +84,7 @@ public abstract class Controller {
      * @return
      *      The name of the internationalization resource bundle to be loaded with the target controller.
      */
-    public static <C extends Controller> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
+    public static <C> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
         String message;
         if (ctlClass.isAnnotationPresent(ac)) {

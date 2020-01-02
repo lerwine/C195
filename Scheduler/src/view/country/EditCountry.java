@@ -1,10 +1,10 @@
 package view.country;
 
-import view.EditItemController;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import view.EditItem;
 import model.db.CountryRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
@@ -16,7 +16,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/country/EditCountry")
 @FXMLResource("/view/country/EditCountry.fxml")
-public class EditCountry extends EditItemController<CountryRow> {
+public class EditCountry extends view.Controller implements view.ItemController<CountryRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
@@ -43,24 +43,13 @@ public class EditCountry extends EditItemController<CountryRow> {
     private Label nameError;
     
     public static CountryRow addNew() {
-        return showAndWait(EditCountry.class, 640, 480, (ContentChangeContext<EditCountry> context) -> {
-            EditCountry controller = context.getController();
-            controller.setModel(new CountryRow());
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_ADDNEWCOUNTRY));
-        }, (ContentChangeContext<EditCountry> context) -> {
-            EditCountry controller = context.getController();
-            return (controller.isCanceled()) ? null : controller.getModel();
-        });
+        EditItem.ShowAndWaitResult<CountryRow> result = EditItem.showAndWait(EditCountry.class, new CountryRow(), 640, 480);
+        return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
     public static boolean edit(CountryRow row) {
-        return showAndWait(EditCountry.class, 640, 480, (ContentChangeContext<EditCountry> context) -> {
-            EditCountry controller = context.getController();
-            controller.setModel(row);
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_EDITCOUNTRY));
-        }, (ContentChangeContext<EditCountry> context) -> {
-            return !context.getController().isCanceled();
-        });
+        EditItem.ShowAndWaitResult<CountryRow> result = EditItem.showAndWait(EditCountry.class, row, 640, 480);
+        return result.isSuccessful();
     }
 
     @Override
@@ -74,7 +63,12 @@ public class EditCountry extends EditItemController<CountryRow> {
     }
 
     @Override
-    protected boolean saveChanges() {
+    public void accept(EditItem<CountryRow> context) {
+        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
+    }
+
+    @Override
+    public Boolean apply(EditItem<CountryRow> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -8,6 +8,7 @@ package controls;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
@@ -19,18 +20,26 @@ import javafx.scene.control.ListCell;
  *
  * @author Leonard T. Erwine
  */
-public class TimeZoneListCell extends ListCell<java.util.TimeZone> {
+public class TimeZoneListCell extends ListCell<ZoneId> {
     final Locale locale = scheduler.App.CURRENT.get().getCurrentLocale();
     
     @Override
-    protected void updateItem(TimeZone item, boolean empty) {
+    protected void updateItem(ZoneId item, boolean empty) {
         super.updateItem(item, empty);
         if (item == null)
             setText("");
         else {
-            ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(item.toZoneId());
-            String zoneOffset = zonedDateTime.getOffset().getId();
-            setText(String.format("%s (%s)", item.getDisplayName(locale), (zoneOffset.equalsIgnoreCase("Z")) ? "+00:00" : zoneOffset));
+            TimeZone tz = TimeZone.getTimeZone(item);
+            
+            ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(item);
+            if (zonedDateTime != null) {
+                String zoneOffset = zonedDateTime.getOffset().getId();
+                if (zoneOffset != null) {
+                    setText(String.format("%s (%s)", item.getDisplayName(TextStyle.FULL, locale), (zoneOffset.equalsIgnoreCase("Z")) ? "+00:00" : zoneOffset));
+                    return;
+                }
+            }
+            setText(item.getDisplayName(TextStyle.FULL, locale));
         }
     }
 }
