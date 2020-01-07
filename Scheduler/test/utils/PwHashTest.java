@@ -5,7 +5,7 @@
  */
 package utils;
 
-import scheduler.PwHash;
+import util.PwHash;
 import scheduler.InvalidArgumentException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

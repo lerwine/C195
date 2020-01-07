@@ -30,11 +30,16 @@ public class ReadOnlyDataRowProperty<T extends DataRow> extends ReadOnlyObjectWr
 
     public BooleanBinding isModified() { return modified; }
 
+    private final BooleanBinding saved;
+
+    public BooleanBinding isSaved() { return saved; }
+
     public ReadOnlyDataRowProperty() {
         super();
         newRow = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_NEW);
         deleted = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_DELETED);
         modified = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_UNMODIFIED);
     }
 
     public ReadOnlyDataRowProperty(T initialValue) {
@@ -42,6 +47,7 @@ public class ReadOnlyDataRowProperty<T extends DataRow> extends ReadOnlyObjectWr
         newRow = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_NEW);
         deleted = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_DELETED);
         modified = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_UNMODIFIED);
     }
 
     public ReadOnlyDataRowProperty(Object bean, String name) {
@@ -49,6 +55,7 @@ public class ReadOnlyDataRowProperty<T extends DataRow> extends ReadOnlyObjectWr
         newRow = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_NEW);
         deleted = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_DELETED);
         modified = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_UNMODIFIED);
     }
 
     public ReadOnlyDataRowProperty(Object bean, String name, T initialValue) {
@@ -56,6 +63,7 @@ public class ReadOnlyDataRowProperty<T extends DataRow> extends ReadOnlyObjectWr
         newRow = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_NEW);
         deleted = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_DELETED);
         modified = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataRow.ROWSTATE_UNMODIFIED);
     }
     
     protected class PredicateBinding extends BooleanBinding {

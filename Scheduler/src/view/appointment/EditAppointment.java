@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -39,8 +40,8 @@ import model.db.AppointmentRow;
 import model.db.CustomerRow;
 import model.db.UserRow;
 import scheduler.InvalidOperationException;
-import scheduler.SqlConnectionDependency;
-import scheduler.Util;
+import util.SqlConnectionDependency;
+import util.Alerts;
 import view.EditItem;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
@@ -274,6 +275,7 @@ public class EditAppointment extends view.Controller implements view.ItemControl
     
     // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
+    private EditItem<AppointmentRow> parent;
     
     //</editor-fold>
 
@@ -362,7 +364,7 @@ public class EditAppointment extends view.Controller implements view.ItemControl
         
         // Initialize options list for time zone combo box.
         timeZones = FXCollections.observableArrayList();
-        TimeZoneChoice.getAllChoices(scheduler.App.CURRENT.get().getCurrentLocale()).forEach((TimeZoneChoice c) -> timeZones.add(c));
+        TimeZoneChoice.getAllChoices(Locale.getDefault(Locale.Category.DISPLAY)).forEach((TimeZoneChoice c) -> timeZones.add(c));
         
         // Get appointment type options.
         types = FXCollections.observableArrayList(APPOINTMENT_CODE_PHONE, APPOINTMENT_CODE_VIRTUAL, APPOINTMENT_CODE_CUSTOMER,
@@ -396,22 +398,15 @@ public class EditAppointment extends view.Controller implements view.ItemControl
         timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
-        try {
-            withDbConnection((Connection connection) -> {
-                try {
-                    customers = FXCollections.observableArrayList(CustomerRow.getActive(connection));
-                } catch (SQLException ex) {
-                    customers = FXCollections.observableArrayList();
-                    Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
-                    users = FXCollections.observableArrayList(UserRow.getActive(connection));
-                } catch (SQLException ex) {
-                    users = FXCollections.observableArrayList();
-                    Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
+        try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+            Connection connection = dep.getConnection();
+            customers = FXCollections.observableArrayList(CustomerRow.getActive(connection));
+            users = FXCollections.observableArrayList(UserRow.getActive(connection));
         } catch (SQLException ex) {
+            if (customers == null)
+                customers = FXCollections.observableArrayList();
+            if (users == null)
+                users = FXCollections.observableArrayList();
             Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
         }
         customerComboBox.setItems(customers);
@@ -456,6 +451,7 @@ public class EditAppointment extends view.Controller implements view.ItemControl
 
     @Override
     public void accept(EditItem<AppointmentRow> context) {
+        parent = context;
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
     }
 
@@ -465,17 +461,16 @@ public class EditAppointment extends view.Controller implements view.ItemControl
             String msg = conflictLookupState.conflictMessage.get();
             if (msg.isEmpty())
                 return false;
-            Optional<ButtonType> response = Util.showWarningAlert(getResources().getString("conflictsFound"),
+            Optional<ButtonType> response = Alerts.showWarningAlert(getResources().getString("conflictsFound"),
                     String.format("%s\n\n%s", msg, getResources().getString("saveAnyway")), ButtonType.YES, ButtonType.NO);
             if (!response.isPresent() || response.get() != ButtonType.YES)
                 return false;
         }
         try {
-            SqlConnectionDependency dep = new SqlConnectionDependency(true);
-            try {
+            try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
                 updateModel(context.getTarget()).saveChanges(dep.getConnection());
                 return true;
-            } finally { dep.close(); }
+            }
         } catch (SQLException | InvalidOperationException ex) {
             Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -486,12 +481,18 @@ public class EditAppointment extends view.Controller implements view.ItemControl
     
     @FXML
     void addCustomerClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        CustomerRow customer = view.customer.EditCustomer.addNew();
+        if (customer != null)
+            customers.add(customer);
+        customerComboBox.getSelectionModel().select(customer);
     }
 
     @FXML
     void addUserClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        UserRow user = view.user.EditUser.addNew();
+        if (user != null)
+            users.add(user);
+        userComboBox.getSelectionModel().select(user);
     }
     
     @FXML

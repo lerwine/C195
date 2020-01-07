@@ -105,6 +105,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final ObjectProperty<model.User> user;
 
+    @Override
     public model.User getUser() {
         return user.get();
     }
@@ -124,6 +125,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableStringProperty title;
 
+    @Override
     public String getTitle() {
         return title.get();
     }
@@ -143,6 +145,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableStringProperty description;
 
+    @Override
     public String getDescription() {
         return description.get();
     }
@@ -162,6 +165,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableStringProperty location;
 
+    @Override
     public String getLocation() {
         return location.get();
     }
@@ -181,6 +185,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableStringProperty contact;
 
+    @Override
     public String getContact() {
         return contact.get();
     }
@@ -200,6 +205,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableStringProperty type;
 
+    @Override
     public String getType() {
         return type.get();
     }
@@ -219,6 +225,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableStringProperty url;
 
+    @Override
     public String getUrl() {
         return url.get();
     }
@@ -238,6 +245,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     
     private final NonNullableLocalDateTimeProperty start;
 
+    @Override
     public LocalDateTime getStart() {
         return start.get();
     }
@@ -256,6 +264,7 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     public static final String PROP_END = "end";
     private final NonNullableLocalDateTimeProperty end;
 
+    @Override
     public LocalDateTime getEnd() {
         return end.get();
     }

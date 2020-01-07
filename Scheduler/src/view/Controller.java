@@ -26,7 +26,7 @@ import expressions.NonNullableStringProperty;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import scheduler.App;
-import scheduler.SqlConnectionDependency;
+import util.SqlConnectionDependency;
 
 /**
  * Base class for controllers.
@@ -99,20 +99,16 @@ public abstract class Controller {
         return App.GLOBALIZATION_RESOURCE_NAME;
     }
 
-    
+    @Deprecated
     protected static void withDbConnection(Consumer<Connection> consumer) throws SQLException {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Loading data from database");
         alert.initStyle(StageStyle.UTILITY);
         alert.setTitle("Initializing");
         alert.show();
         // Open a new SQL connection dependency.
-        SqlConnectionDependency dep;
         try {
-            dep = new SqlConnectionDependency(true);
-            try {
+            try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
                 consumer.accept(dep.getConnection());
-            } finally {
-                dep.close();
             }
         } finally { alert.close(); }
     }

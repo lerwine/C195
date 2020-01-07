@@ -5,7 +5,6 @@
  */
 package view;
 
-import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,11 +27,20 @@ import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import expressions.ReadOnlyDataRowProperty;
+import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
+import scheduler.InvalidOperationException;
+import util.SqlConnectionDependency;
+import scheduler.Util;
+import util.Alerts;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -45,9 +53,13 @@ import view.annotations.GlobalizationResource;
 @GlobalizationResource("view/EditItem")
 @FXMLResource("/view/EditItem.fxml")
 public class EditItem<R extends model.db.DataRow> extends Controller {
+    //<editor-fold defaultstate="collapsed" desc="fields">
+    
     private Stage stage;
     private ItemController<R> contentController;
     private final ShowAndWaitResult<R> result;
+    
+    //<editor-fold defaultstate="collapsed" desc="Constants">
     
     public static final String RESOURCEKEY_ADD = "add";
     public static final String RESOURCEKEY_REQUIRED = "required";
@@ -59,19 +71,23 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
     public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
     public static final String RESOURCEKEY_DELETE = "delete";
     public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
-
+    public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
+    public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
+    
+    //</editor-fold>
+    
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
+    
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-    @FXML // URL location of the FXML file that was given to the FXMLLoader
-    private URL location;
-
+    
     @FXML // fx:id="parentVBox"
     private VBox parentVBox; // Value injected by FXMLLoader
     
     @FXML // fx:id="contentBorderPane"
     private BorderPane contentBorderPane; // Value injected by FXMLLoader
-
+    
     @FXML
     protected Label createdLabel;
     
@@ -96,29 +112,39 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
     @FXML
     protected Label lastUpdateByValue;
     
-    @FXML // fx:id="saveChangesButton"
-    private Button saveChangesButton; // Value injected by FXMLLoader
-
-    @FXML // fx:id="deleteButton"
-    private Button deleteButton; // Value injected by FXMLLoader
-
+    @FXML
+    private Button saveChangesButton;
+    
+    @FXML
+    private Button deleteButton;
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="target property">
+    
     private final ReadOnlyDataRowProperty<R> target;
-
+    
     public R getTarget() { return target.get(); }
-
+    
     public ReadOnlyObjectProperty<R> targetProperty() { return target.getReadOnlyProperty(); }
-
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="windowTitle property">
+    
     private final StringProperty windowTitle;
-
+    
     public String getWindowTitle() { return windowTitle.get(); }
-
+    
     public void setWindowTitle(String value) { windowTitle.set((value == null || value.trim().isEmpty()) ? getDefaultWindowTitle() : value); }
-
+    
     public StringProperty windowTitleProperty() { return windowTitle; }
-
+    
     private String getDefaultWindowTitle() {
         return scheduler.App.CURRENT.get().getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER);
     }
+    
+    //</editor-fold>
     
     private EditItem() {
         result = new ShowAndWaitResult<>();
@@ -151,21 +177,32 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
 
     @FXML
     private void deleteButtonClick(ActionEvent event) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, "This action cannot be undone!\n\nAre you sure you want to delete this item?", ButtonType.YES, ButtonType.NO);
+        alert.setTitle("Confirm Delete");
+        alert.initStyle(StageStyle.UTILITY);
+        // TODO: Show confirmation dialog
         result.deleteOperation.set(true);
-        throw new UnsupportedOperationException("Not yet implemented");
-        // TODO: Delete
-//        result.successful.set(true);
-//        if (stage != null)
-//            stage.hide();
+        try (SqlConnectionDependency dep =  new SqlConnectionDependency()) {
+            result.getTarget().delete(dep.getConnection());
+            result.successful.set(result.target.isDeleted().get());
+        } catch (SQLException | InvalidOperationException ex) {
+            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (stage != null)
+            stage.hide();
     }
 
     @FXML
     private void saveChangesButtonClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not yet implemented");
-        // TODO: Save
-//        result.successful.set(true);
-//        if (stage != null)
-//            stage.hide();
+        result.deleteOperation.set(true);
+        try (SqlConnectionDependency dep =  new SqlConnectionDependency()) {
+            result.getTarget().saveChanges(dep.getConnection());
+            result.successful.set(result.target.isSaved().get());
+        } catch (SQLException | InvalidOperationException ex) {
+            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (stage != null)
+            stage.hide();
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -199,7 +236,7 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
     }
     
     public static <R extends model.db.DataRow, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
-            R target, EditItem parent) {
+            R target, EditItem<?> parent) {
         return showAndWait(contentClass, target, Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE, parent);
     }
     
@@ -210,28 +247,17 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
     
     @SuppressWarnings("UseSpecificCatch")
     public static <R extends model.db.DataRow, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
-            R target, double width, double height, EditItem parent) {
+            R target, double width, double height, EditItem<?> parent) {
         scheduler.App app = scheduler.App.CURRENT.get();
-        ResourceBundle rb;
-        FXMLLoader loader;
+        ResourceBundle editItemRb = null;
         final EditItem<R> editItem;
         Parent fxmlParent;
+        FXMLLoader loader;
         try {
-            rb = ResourceBundle.getBundle(getGlobalizationResourceName(EditItem.class), app.getCurrentLocale());
-            loader = new FXMLLoader(EditItem.class.getResource(getFXMLResourceName(EditItem.class)), rb);
+            editItemRb = ResourceBundle.getBundle(getGlobalizationResourceName(EditItem.class), Locale.getDefault(Locale.Category.DISPLAY));
+            loader = new FXMLLoader(EditItem.class.getResource(getFXMLResourceName(EditItem.class)), editItemRb);
             fxmlParent = loader.load();
             editItem = loader.getController();
-        } catch (Exception ex) {
-            if (contentClass == null)
-                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
-            else
-                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE,
-                        String.format("Unexpected error opening %s as a child window",contentClass.getName()), ex);
-            ShowAndWaitResult<R> resultObj = new ShowAndWaitResult<>();
-            resultObj.fault.set(ex);
-            return resultObj;
-        }
-        try {
             editItem.stage = new Stage();
             editItem.target.set(target);
             if (width <= 0.0)
@@ -249,22 +275,20 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
                 height = primaryScreenBounds.getHeight();
             editItem.stage.setScene(new Scene(fxmlParent, width, height));
             editItem.stage.setTitle(editItem.getWindowTitle());
-            rb = ResourceBundle.getBundle(getGlobalizationResourceName(contentClass), app.getCurrentLocale());
-            loader = new FXMLLoader(contentClass.getResource(getFXMLResourceName(contentClass)), rb);
-            editItem.contentBorderPane.setCenter(loader.load());
-            editItem.contentController = loader.getController();
         } catch (Exception ex) {
-            if (contentClass == null)
-                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
-            else
-                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE,
-                        String.format("Unexpected error opening %s as a child window",contentClass.getName()), ex);
-            ShowAndWaitResult<R> resultObj = (editItem == null) ? new ShowAndWaitResult<>() : editItem.result;
+            if (editItemRb != null)
+                Alerts.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
+            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE,
+                        String.format("Unexpected error loading view and controller for %s", EditItem.class.getName()), ex);
+            ShowAndWaitResult<R> resultObj = new ShowAndWaitResult<>();
             resultObj.fault.set(ex);
             return resultObj;
         }
-        
         try {
+            ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(contentClass), Locale.getDefault(Locale.Category.DISPLAY));
+            loader = new FXMLLoader(contentClass.getResource(getFXMLResourceName(contentClass)), rb);
+            editItem.contentBorderPane.setCenter(loader.load());
+            editItem.contentController = loader.getController();
             if (editItem.result.target.isNewRow().get()) {
                 collapseNode(editItem.createdLabel);
                 collapseNode(editItem.createDateValue);
@@ -296,10 +320,18 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
             });
             editItem.stage.showAndWait();
         } catch (Exception ex) {
+            Util.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
+            if (contentClass == null)
+                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
+            else
+                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE,
+                        String.format("Unexpected error opening %s as a child window",contentClass.getName()), ex);
             editItem.result.fault.set(ex);
-            editItem.contentController.onError(editItem.result);
+            if (editItem.contentController != null)
+                editItem.contentController.onError(editItem.result);
             return editItem.result;
         }
+        
         editItem.contentController.afterCloseDialog(editItem.result);
         return editItem.result;
     }

@@ -2,7 +2,7 @@ package model.db;
 
 import expressions.ActiveStateProperty;
 import expressions.NonNullableStringProperty;
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,7 +22,7 @@ import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
 import scheduler.InvalidOperationException;
-import scheduler.PwHash;
+import util.PwHash;
 
 /**
  * Represents a user account data row in the database.

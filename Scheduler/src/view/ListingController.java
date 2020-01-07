@@ -5,6 +5,7 @@
  */
 package view;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -147,7 +148,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Cont
         ContentChangeContextFactory<C> context = new ContentChangeContextFactory<>();
         try {
             scheduler.App app = scheduler.App.CURRENT.get();
-            ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), app.getCurrentLocale());
+            ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), Locale.getDefault(Locale.Category.DISPLAY));
             context.setResourceBundle(rb);
             FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)), rb);
             Parent content = loader.load();

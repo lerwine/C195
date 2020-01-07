@@ -1,4 +1,4 @@
-package scheduler;
+package util;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -15,6 +15,7 @@ import javafx.beans.value.ObservableValue;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import expressions.NonNullableStringProperty;
+import scheduler.InternalException;
 
 /**
  * Contains a password hashed intended to be stored (in string format) in the database.

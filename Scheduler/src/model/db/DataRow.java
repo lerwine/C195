@@ -1,6 +1,6 @@
 package model.db;
 
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -205,6 +205,7 @@ public abstract class DataRow implements model.Record {
      * Gets the database disposition for the current row.
      * @return The database disposition for the current row.
      */
+    @Override
     public int getRowState() { return rowState.get(); }
 
     public ReadOnlyIntegerProperty rowStateProperty() { return rowState.getReadOnlyProperty(); }
@@ -222,7 +223,7 @@ public abstract class DataRow implements model.Record {
         createDate = new ReadOnlyObjectWrapper<>(LocalDateTime.now());
         lastUpdate = new ReadOnlyObjectWrapper<>(createDate.getValue());
         UserRow user = scheduler.App.CURRENT.get().getCurrentUser();
-        lastUpdateBy = new ReadOnlyStringWrapper((user == null) ? user.getUserName() : "");
+        lastUpdateBy = new ReadOnlyStringWrapper((user == null) ? "" : user.getUserName());
         createdBy = new ReadOnlyStringWrapper(lastUpdateBy.getValue());
         rowState = new ReadOnlyIntegerWrapper(ROWSTATE_NEW);
         lastDbSync = new ReadOnlyObjectWrapper<>(LocalDateTime.MIN);
@@ -308,20 +309,22 @@ public abstract class DataRow implements model.Record {
         sql.append(getSelectQuery()).append(" WHERE `").append(getPrimaryKeyColName(rowClass)).append("` = ?");
         // Get row from database matching the current primary key value.
         Logger.getLogger(DataRow.class.getName()).log(Level.SEVERE, "Executing query: %s", sql.toString());
-        PreparedStatement ps = connection.prepareStatement(sql.toString());
-        ps.setInt(1, getPrimaryKey());
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql.toString(), ps.getParameterMetaData().getParameterCount()));
-        ResultSet rs = ps.getResultSet();
-        if (rs.next()) {
-            if (getRowState() == ROWSTATE_NEW) {
-                createDate.setValue(rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime());
-                createdBy.setValue(rs.getString(PROP_CREATEDBY));
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            ps.setInt(1, getPrimaryKey());
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql.toString(), ps.getParameterMetaData().getParameterCount()));
+            try (ResultSet rs = ps.getResultSet()) {
+                if (rs.next()) {
+                    if (getRowState() == ROWSTATE_NEW) {
+                        createDate.setValue(rs.getTimestamp(PROP_CREATEDATE).toLocalDateTime());
+                        createdBy.setValue(rs.getString(PROP_CREATEDBY));
+                    }
+                    lastUpdate.setValue(rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime());
+                    lastUpdateBy.setValue(rs.getString(PROP_LASTUPDATEBY));
+                    refreshFromDb(rs);
+                    lastDbSync.setValue(LocalDateTime.now());
+                    rowState.setValue(ROWSTATE_UNMODIFIED);
+                }
             }
-            lastUpdate.setValue(rs.getTimestamp(PROP_LASTUPDATE).toLocalDateTime());
-            lastUpdateBy.setValue(rs.getString(PROP_LASTUPDATEBY));
-            refreshFromDb(rs);
-            lastDbSync.setValue(LocalDateTime.now());
-            rowState.setValue(ROWSTATE_UNMODIFIED);
         }
     }
     
@@ -332,17 +335,19 @@ public abstract class DataRow implements model.Record {
                 PROP_CREATEDBY, PROP_LASTUPDATEBY, PROP_CREATEDATE, PROP_LASTUPDATE,
                 Arrays.stream(fieldNames).map((s) -> "?").reduce((p, n) -> p + ", " + n).get());
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
-        PreparedStatement ps = connection.prepareStatement(sql);
-        setColumnValues(ps, fieldNames);
-        String userName = scheduler.App.CURRENT.get().getCurrentUser().getUserName();
-        int index = fieldNames.length + 1;
-        ps.setString(index++, userName);
-        ps.setString(index, userName);
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ps.executeUpdate();
-        ResultSet rs = ps.getGeneratedKeys();
-        rs.next();
-        primaryKey.setValue(rs.getInt(1));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            setColumnValues(ps, fieldNames);
+            String userName = scheduler.App.CURRENT.get().getCurrentUser().getUserName();
+            int index = fieldNames.length + 1;
+            ps.setString(index++, userName);
+            ps.setString(index, userName);
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                rs.next();
+                primaryKey.setValue(rs.getInt(1));
+            }
+        }
     }
     
     private void update(Connection connection, Class<? extends DataRow> rowClass, String tableName) throws SQLException {
@@ -351,14 +356,15 @@ public abstract class DataRow implements model.Record {
                 tableName, Arrays.stream(fieldNames).map((s) -> "`" + s + "` = ?").reduce((p, n) -> p + ", " + n).get(),
                 PROP_LASTUPDATEBY, PROP_LASTUPDATE, getPrimaryKeyColName(rowClass));
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
-        PreparedStatement ps = connection.prepareStatement(sql);
-        setColumnValues(ps, fieldNames);
-        String userName = scheduler.App.CURRENT.get().getCurrentUser().getUserName();
-        int index = fieldNames.length + 1;
-        ps.setString(index++, userName);
-        ps.setInt(index, getPrimaryKey());
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ps.executeUpdate();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            setColumnValues(ps, fieldNames);
+            String userName = scheduler.App.CURRENT.get().getCurrentUser().getUserName();
+            int index = fieldNames.length + 1;
+            ps.setString(index++, userName);
+            ps.setInt(index, getPrimaryKey());
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            ps.executeUpdate();
+        }
     }
     
     /**
@@ -417,11 +423,12 @@ public abstract class DataRow implements model.Record {
             throw new InvalidOperationException(String.format("{0} row has not been added the database",
                     tableName));
         String sql = "DELETE FROM `" + tableName + "`  WHERE `" + getPrimaryKeyColName(rowClass) + "` = ?";
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setInt(1, getPrimaryKey());
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ps.executeUpdate();
-        rowState.setValue(ROWSTATE_DELETED);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, getPrimaryKey());
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            ps.executeUpdate();
+            rowState.setValue(ROWSTATE_DELETED);
+        }
     }
     
     /**
@@ -436,11 +443,13 @@ public abstract class DataRow implements model.Record {
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
             Function<ResultSet, R> create) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
-        PreparedStatement ps = connection.prepareStatement(sql);
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ResultSet rs = ps.executeQuery();
-        while (rs.next())
-            result.add(create.apply(rs));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    result.add(create.apply(rs));
+            }
+        }
         return result;
     }
     
@@ -459,24 +468,28 @@ public abstract class DataRow implements model.Record {
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, String sql,
             Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
-        PreparedStatement ps = connection.prepareStatement(sql);
-        setValues.accept(ps);
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ResultSet rs = ps.executeQuery();
-        while (rs.next())
-            result.add(create.apply(rs));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            setValues.accept(ps);
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    result.add(create.apply(rs));
+            }
+        }
         return result;
     }
     
     protected static final <R extends DataRow> ObservableList<R> selectFromDb(Connection connection, QueryFilter<R> filter,
             Function<ResultSet, R> create) throws SQLException {
         ObservableList<R> result = FXCollections.observableArrayList();
-        PreparedStatement ps = connection.prepareStatement(filter.getSqlQueryString());
-        filter.setStatementValues(ps);
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", filter.getSqlQueryString(), ps.getParameterMetaData().getParameterCount()));
-        ResultSet rs = ps.executeQuery();
-        while (rs.next())
-            result.add(create.apply(rs));
+        try (PreparedStatement ps = connection.prepareStatement(filter.getSqlQueryString())) {
+            filter.setStatementValues(ps);
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", filter.getSqlQueryString(), ps.getParameterMetaData().getParameterCount()));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    result.add(create.apply(rs));
+            }
+        }
         return result;
     }
     
@@ -492,12 +505,14 @@ public abstract class DataRow implements model.Record {
      */
     public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
             Function<ResultSet, R> create, Consumer<PreparedStatement> setValues) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        setValues.accept(ps);
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ResultSet rs = ps.executeQuery();
-        if (rs.next())
-            return Optional.of(create.apply(rs));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            setValues.accept(ps);
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return Optional.of(create.apply(rs));
+            }
+        }
         return Optional.empty();
     }
     
@@ -512,11 +527,13 @@ public abstract class DataRow implements model.Record {
      */
     public static final <R extends DataRow> Optional<R> selectFirstFromDb(Connection connection, String sql,
             Function<ResultSet, R> create) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
-        ResultSet rs = ps.executeQuery();
-        if (rs.next())
-            return Optional.of(create.apply(rs));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            LOG.info(String.format("Executing query \"%s\" with %d parameters", sql, ps.getParameterMetaData().getParameterCount()));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return Optional.of(create.apply(rs));
+            }
+        }
         return Optional.empty();
     }
     

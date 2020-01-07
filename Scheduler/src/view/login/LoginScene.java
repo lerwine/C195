@@ -1,25 +1,31 @@
 package view.login;
 
-import java.net.URL;
+import concurrent.SqlConnectionTask;
+import concurrent.TaskWaiter;
 import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import model.db.UserRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
-import scheduler.InvalidOperationException;
+import util.Alerts;
+import util.Bindings;
 
 /**
  * FXML Controller class for the application login screen.
@@ -28,6 +34,7 @@ import scheduler.InvalidOperationException;
 @GlobalizationResource("view/login/LoginScene")
 @FXMLResource("/view/login/LoginScene.fxml")
 public class LoginScene extends view.Controller {
+    private static final Logger LOG = Logger.getLogger(LoginScene.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
@@ -111,6 +118,7 @@ public class LoginScene extends view.Controller {
     
     private Validation valid;
     
+    
     //</editor-fold>
     
     //</editor-fold>
@@ -119,31 +127,43 @@ public class LoginScene extends view.Controller {
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
+        assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert userNameLabel != null : "fx:id=\"userNameLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert userNameValidationLabel != null : "fx:id=\"userNameValidationLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert passwordLabel != null : "fx:id=\"passwordLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert passwordField != null : "fx:id=\"passwordField\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert passwordValidationLabel != null : "fx:id=\"passwordValidationLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
+        assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
+
         currentResourceBundle = getResources();
         scheduler.App app = scheduler.App.CURRENT.get();
         languageComboBox.setItems(app.getAllLanguages());
-        languageComboBox.getSelectionModel().select(app.getCurrentLocale());
+        languageComboBox.getSelectionModel().select(Locale.getDefault(Locale.Category.DISPLAY));
         valid = new Validation();
+        valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            loginButton.setDisable(!newValue);
+        });
+        loginButton.setDisable(!valid.get());
+        
     }
     
     //</editor-fold>
     
     @FXML
     void loginButtonClick(ActionEvent event) {
-        try {
-            scheduler.App app = scheduler.App.CURRENT.get();
-            // Change to home view if user could be successfully logged in.
-            if (app.tryLoginUser(userNameTextField.getText(), passwordField.getText()))
+        LOG.entering(getClass().getName(), "loginButtonClick");
+         try {
+            if (scheduler.App.CURRENT.get().tryLoginUser(userNameTextField.getText(), passwordField.getText()))
                 view.RootController.setAsRootStageScene();
             else
-                scheduler.Util.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-        } catch (InvalidOperationException ex) {
-            scheduler.Util.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
-            Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
+                Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
         } catch (SQLException ex) {
-            scheduler.Util.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_DBACCESSERROR));
-            Logger.getLogger(LoginScene.class.getName()).log(Level.SEVERE, "Login Exception", ex);
+            Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
+            LOG.log(Level.SEVERE, "Login Exception", ex);
         }
+        LOG.exiting(getClass().getName(), "loginButtonClick");
     }
 
     @FXML
@@ -156,8 +176,8 @@ public class LoginScene extends view.Controller {
         
         Validation() {
             languageValid = languageComboBox.valueProperty().isNotNull();
-            userNameValid = scheduler.Util.notNullOrWhiteSpace(userNameTextField.textProperty());
-            passwordValid = scheduler.Util.notNullOrWhiteSpace(passwordField.textProperty());
+            userNameValid = Bindings.notNullOrWhiteSpace(userNameTextField.textProperty());
+            passwordValid = Bindings.notNullOrWhiteSpace(passwordField.textProperty());
             super.bind(languageValid, userNameValid, passwordValid);
             languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
                 selectedLanaguageChanged(newValue);
@@ -168,13 +188,9 @@ public class LoginScene extends view.Controller {
             passwordValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                 passwordValidationChanged(newValue);
             });
-            super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                loginButton.setDisable(!newValue);
-            });
             selectedLanaguageChanged(languageComboBox.getSelectionModel().getSelectedItem());
             userNameValidationChanged(userNameValid.get());
             passwordValidationChanged(passwordValid.get());
-            loginButton.setDisable(!get());
         }
 
         private void passwordValidationChanged(Boolean newValue) {
@@ -195,13 +211,12 @@ public class LoginScene extends view.Controller {
             languageComboBox.getButtonCell().setItem(newValue);
             if (newValue == null)
                 return;
-            scheduler.App app = scheduler.App.CURRENT.get();
             // Change the current application language;
-            app.setCurrentLocale(newValue);
+            scheduler.App.setCurrentLocale(newValue);
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
             // Set window title
-            app.getPrimaryStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            scheduler.App.CURRENT.get().getPrimaryStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
             // Update field labels and button text.
             userNameLabel.setText(currentResourceBundle.getString(RESOURCEKEY_USERNAME));
             passwordLabel.setText(currentResourceBundle.getString(RESOURCEKEY_PASSWORD));

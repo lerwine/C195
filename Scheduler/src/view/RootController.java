@@ -1,5 +1,6 @@
 package view;
 
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -280,7 +281,7 @@ public class RootController extends Controller {
     public static void setAsRootStageScene() {
         scheduler.App app = scheduler.App.CURRENT.get(); 
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(RootController.class), app.getCurrentLocale());
+            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
             FXMLLoader loader = new FXMLLoader(RootController.class.getResource(view.Controller.getFXMLResourceName(RootController.class)), rb);
             Scene scene = new Scene(loader.load());
             current = (RootController)loader.getController();

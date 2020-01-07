@@ -5,15 +5,11 @@
  */
 package controls;
 
-import java.sql.Date;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
-import java.util.TimeZone;
 import javafx.scene.control.ListCell;
 
 /**
@@ -21,7 +17,7 @@ import javafx.scene.control.ListCell;
  * @author Leonard T. Erwine
  */
 public class TimeZoneListCell extends ListCell<ZoneId> {
-    final Locale locale = scheduler.App.CURRENT.get().getCurrentLocale();
+    final Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
     
     @Override
     protected void updateItem(ZoneId item, boolean empty) {
@@ -29,8 +25,6 @@ public class TimeZoneListCell extends ListCell<ZoneId> {
         if (item == null)
             setText("");
         else {
-            TimeZone tz = TimeZone.getTimeZone(item);
-            
             ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(item);
             if (zonedDateTime != null) {
                 String zoneOffset = zonedDateTime.getOffset().getId();

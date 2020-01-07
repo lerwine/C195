@@ -5,7 +5,13 @@
  */
 package scheduler;
 
+import com.mysql.jdbc.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -79,6 +85,24 @@ public class utilTest {
         @Override
         public void start(Stage primaryStage) throws Exception {
             // noop
+        }
+    }
+    
+    @Test
+    public void testAddressTableAssertions() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://3.227.166.251/U03vHM";
+        try (Connection conn = (Connection)DriverManager.getConnection(url, "U03vHM", "53688096290"); PreparedStatement ps = conn.prepareStatement("SELECT * FROM appointments"); ResultSet rs = ps.executeQuery()) {
+            assertTrue(rs.next());
+            ResultSetMetaData metadata = rs.getMetaData();
+            int index = rs.findColumn("start");
+            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+            index = rs.findColumn("end");
+            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+            index = rs.findColumn("createDate");
+            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+            index = rs.findColumn("lastUpdate");
+            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
         }
     }
     

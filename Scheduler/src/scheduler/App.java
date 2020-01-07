@@ -1,6 +1,8 @@
 package scheduler;
 
-import com.mysql.jdbc.Connection;
+import util.SqlConnectionDependency;
+import java.sql.Connection;
+import concurrent.SqlConnectionTask;
 import view.appointment.EditAppointment;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -20,15 +22,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyMapProperty;
 import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -39,12 +40,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.db.UserRow;
+import util.Alerts;
 
 /**
  * Application class for Scheduler
  * @author Leonard T. Erwine
  */
 public class App extends Application {
+    
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_APPOINTMENTSCHEDULER = "appointmentScheduler";
@@ -63,6 +66,9 @@ public class App extends Application {
     public static final String RESOURCEKEY_NOITEMWASSELECTED = "noItemWasSelected";
     public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
     public static final String RESOURCEKEY_AREYOURSUREDELETE = "areYourSureDelete";
+    public static final String RESOURCEKEY_WORKING = "working";
+    public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
+    public static final String RESOURCEKEY_ABORT = "abort";
 
     //</editor-fold>
     
@@ -190,36 +196,6 @@ public class App extends Application {
      *          Application-global resource bundle property.
      */
     public ReadOnlyObjectProperty resourcesProperty() { return resources.getReadOnlyProperty(); }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="currentLocale property">
-    
-    private final ObjectProperty<Locale> currentLocale;
-
-    /**
-     * Gets the currently selected {@link java.util.Locale} (language).
-     * 
-     * @return
-     *          The currently selected {@link java.util.Locale} (language).
-     */
-    public Locale getCurrentLocale() { return currentLocale.get(); }
-
-    /**
-     * Sets the current application {@link java.util.Locale}.
-     * 
-     * @param value
-     *          The new application {@link java.util.Locale}.
-     */
-    public void setCurrentLocale(Locale value) { currentLocale.set(value); }
-
-    /**
-     * The currently selected {@link java.util.Locale} property.
-     * 
-     * @return
-     *          The currently selected {@link java.util.Locale} property.
-     */
-    public ObjectProperty<Locale> currentLocaleProperty() { return currentLocale; }
     
     //</editor-fold>
     
@@ -370,6 +346,25 @@ public class App extends Application {
         LOG = Logger.getLogger(App.class.getName());
     }
     
+    /**
+     * Sets the current application {@link java.util.Locale}.
+     * 
+     * @param value
+     *          The new application {@link java.util.Locale}.
+     */
+    public static void setCurrentLocale(Locale value) {
+        Locale.setDefault(Locale.Category.DISPLAY, value);
+        Locale.setDefault(Locale.Category.FORMAT, value);
+        App app = App.CURRENT.get();
+        if (app == null)
+            return;
+        app.resources.set(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, value));
+        app.fullTimeFormatter.set(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(value).withZone(ZoneId.systemDefault()));
+        app.fullDateFormatter.set(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(value).withZone(ZoneId.systemDefault()));
+        app.shortDateTimeFormatter.set(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(value).withZone(ZoneId.systemDefault()));
+        app.fullDateTimeFormatter.set(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(value).withZone(ZoneId.systemDefault()));
+    }
+
     public App() {
         primaryStage = new ReadOnlyObjectWrapper<>();
         allLanguages = new ReadOnlyListWrapper<>();
@@ -382,18 +377,7 @@ public class App extends Application {
         shortDateTimeFormatter = new ReadOnlyObjectWrapper<>();
         fullDateTimeFormatter = new ReadOnlyObjectWrapper<>();
         currentUser = new ReadOnlyObjectWrapper<>();
-        currentLocale = new SimpleObjectProperty<>();
         appointmentTypes = new ReadOnlyMapWrapper<>(new AppointmentTypes());
-        currentLocale.addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
-            // Set default locale so all controls will be displayed appropriate for the current locale.
-            Locale.setDefault(Locale.Category.DISPLAY, newValue);
-            Locale.setDefault(Locale.Category.FORMAT, newValue);
-            resources.set(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, newValue));
-            fullTimeFormatter.set(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(newValue).withZone(ZoneId.systemDefault()));
-            fullDateFormatter.set(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(newValue).withZone(ZoneId.systemDefault()));
-            shortDateTimeFormatter.set(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(newValue).withZone(ZoneId.systemDefault()));
-            fullDateTimeFormatter.set(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(newValue).withZone(ZoneId.systemDefault()));
-        });
         resources.addListener((ObservableValue<? extends ResourceBundle> observable, ResourceBundle oldValue, ResourceBundle newValue) -> {
             AppointmentTypes map = (AppointmentTypes)appointmentTypes.get();
             map.load(newValue);
@@ -422,14 +406,14 @@ public class App extends Application {
         allLanguages.set(new AllLanguages(AppConfig.getLanguages()));
         
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(view.login.LoginScene.class), currentLocale.get());
+            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(view.login.LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
             FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.Controller.getFXMLResourceName(view.login.LoginScene.class)), rb);
             Scene scene = new Scene(loader.load());
             primaryStage.get().setScene(scene);
             stage.show();
         } catch (Throwable ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-            Util.showErrorAlert(resources.get().getString(RESOURCEKEY_FXMLLOADERERRORTITLE), resources.get().getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
+            Alerts.showErrorAlert(resources.get().getString(RESOURCEKEY_FXMLLOADERERRORTITLE), resources.get().getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }
     
@@ -444,35 +428,52 @@ public class App extends Application {
     
     //</editor-fold>
     
-    /**
-     * Sets the currently logged in user if a user name and password match.
-     * @param userName The user's login name.
-     * @param password The user's actual password (not password hash).
-     * @return {@code true} if a matching {@link UserRow#userName} is found, and the password hash matches the stored value; otherwise {@code false}.
-     * @throws InvalidOperationException
-     * @throws java.sql.SQLException
-     */
-    public boolean tryLoginUser(String userName, String password) throws InvalidOperationException, SQLException {
-        Optional<UserRow> user = SqlConnectionDependency.get((Connection connection) -> {
-            try {
-                return UserRow.getByUserName(connection, userName);
-            } catch (SQLException ex) {
-                Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-                throw new RuntimeException("Error getting user by username", ex);
-            }
-        });
-        if (user.isPresent()) {
+    public boolean tryLoginUser(String userName, String password) throws SQLException {
+        Optional<UserRow> result;
+        try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+            result = UserRow.getByUserName(dep.getConnection(), userName);
+        }
+        if (result.isPresent()) {
+            LOG.info("User found");
             // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
             // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
             // as the stored password. If the password is correct, then the hash values will match.
-            if (user.get().getPasswordHash().test(password)) {
-                currentUser.set(user.get());
+            if (result.get().getPasswordHash().test(password)) {
+                LOG.info("Password matched");
+                currentUser.set(result.get());
+                LOG.exiting(getClass().getName(), "tryLoginUser");
                 return true;
             }
         } else
             LOG.log(Level.WARNING, "No matching userName found");
         return false;
     }
+//    public TaskWaiter<UserRow> getLoginUserTask(String userName, String password) {
+//        return TaskWaiter.fromSupplier(getPrimaryStage(), new DbConnectedSupplier<UserRow>() {
+//            @Override
+//            public UserRow get(Connection c) throws Exception {
+//                Optional<UserRow> user = UserRow.getByUserName(c, userName);
+//                if (user.isPresent()) {
+//                    LOG.info("User found");
+//                    // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
+//                    // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
+//                    // as the stored password. If the password is correct, then the hash values will match.
+//                    if (user.get().getPasswordHash().test(password)) {
+//                        LOG.info("Password matched");
+//                        Platform.runLater(() -> {
+//                            currentUser.set(user.get());
+//                            view.RootController.setAsRootStageScene();
+//                        });
+//                        LOG.exiting(getClass().getName(), "tryLoginUser");
+//                        return user.get();
+//                    }
+//                } else
+//                    LOG.log(Level.WARNING, "No matching userName found");
+//                LOG.exiting(getClass().getName(), "tryLoginUser");
+//                return null;
+//            }
+//        });
+//    }
     
     private class AppointmentTypes implements ObservableMap<String, String> {
         private final ObservableMap<String, String> backingMap;
@@ -634,6 +635,7 @@ public class App extends Application {
         public Object[] toArray() { return backingList.toArray(); }
 
         @Override
+        @SuppressWarnings("SuspiciousToArrayCall")
         public <Locale> Locale[] toArray(Locale[] a) { return backingList.toArray(a); }
 
         @Override
@@ -692,5 +694,40 @@ public class App extends Application {
 
         @Override
         public void removeListener(InvalidationListener listener) { readOnlyList.removeListener(listener); }
+    }
+    
+    public class LoginTask extends SqlConnectionTask<UserRow> {
+        private final String userName;
+        private final String password;
+        private LoginTask(String userName, String password) {
+            this.userName = userName;
+            this.password = password;
+        }
+        
+        @Override
+        protected UserRow call() throws Exception {
+            LOG.entering(getClass().getName(), "tryLoginUser");
+            Optional<UserRow> user = super.fromConnectedSupplier((Connection c) -> {
+                return UserRow.getByUserName(c, userName);
+            });
+            if (user.isPresent()) {
+                LOG.info("User found");
+                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
+                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
+                // as the stored password. If the password is correct, then the hash values will match.
+                if (user.get().getPasswordHash().test(password)) {
+                    LOG.info("Password matched");
+                    Platform.runLater(() -> {
+                        currentUser.set(user.get());
+                    });
+                    LOG.exiting(getClass().getName(), "tryLoginUser");
+                    return user.get();
+                }
+            } else
+                LOG.log(Level.WARNING, "No matching userName found");
+            LOG.exiting(getClass().getName(), "tryLoginUser");
+            return null;
+        }
+        
     }
 }

@@ -16,8 +16,8 @@ import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import model.db.AppointmentsFilter;
 import model.db.DataRow;
-import scheduler.SqlConnectionDependency;
-import scheduler.Util;
+import util.SqlConnectionDependency;
+import util.Alerts;
 
 /**
  * FXML Controller class
@@ -99,25 +99,17 @@ public class ManageAppointments extends view.ListingController {
                 getFXMLResourceName(getClass()));
     }
 
-    @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootContent() {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
             ManageAppointments controller = context.getController();
             collapseNode(controller.headingLabel);
             ObservableList<AppointmentRow> apptList;
-            try {
-                apptList = SqlConnectionDependency.get((Connection connection) -> {
-                    try {
-                        return AppointmentRow.getAll(connection);
-                    } catch (SQLException ex) {
-                        Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-                        throw new RuntimeException("Error getting appointments by filter", ex);
-                    }
-                });
-            } catch (Exception ex) {
+            try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+                apptList = AppointmentRow.getAll(dep.getConnection());
+            } catch (SQLException ex) {
                 Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-                Util.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
+                Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
                 apptList = FXCollections.observableArrayList();
             }
             ObservableList<AppointmentRow> itemsList = controller.getItemsList();
@@ -156,7 +148,7 @@ public class ManageAppointments extends view.ListingController {
                 });
             } catch (Exception ex) {
                 Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-                Util.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
+                Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
                 apptList = FXCollections.observableArrayList();
             }
             ObservableList<AppointmentRow> itemsList = controller.getItemsList();

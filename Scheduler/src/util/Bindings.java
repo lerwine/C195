@@ -1,16 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package scheduler;
+package util;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Optional;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -20,15 +12,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.stage.StageStyle;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author erwinel
  */
-public class Util {
+public class Bindings {
     /**
      * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or
      * an empty string if the source value was null.
@@ -40,7 +29,6 @@ public class Util {
      * @throws NullPointerException
      *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
-    @Deprecated
     public static StringBinding asTrimmedAndNotNull(final StringProperty stringProperty) {
         if (stringProperty == null)
             throw new NullPointerException("String binding cannot be null.");
@@ -73,7 +61,6 @@ public class Util {
      * @throws NullPointerException
      *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
-    @Deprecated
     public static BooleanBinding notNullOrWhiteSpace(final StringProperty stringProperty) {
         if (stringProperty == null)
             throw new NullPointerException("String binding cannot be null.");
@@ -108,7 +95,6 @@ public class Util {
      * @throws NullPointerException
      *         A source {@link javafx.beans.property.ObjectProperty} was {@code null}.
      */
-    @Deprecated
     public static BooleanBinding isRangeUndefinedOrValid(final ObjectExpression<LocalDateTime> start, final ObjectExpression<LocalDateTime> end) {
         if (start == null || end == null)
             throw new NullPointerException("LocalDateTime binding cannot be null.");
@@ -131,7 +117,6 @@ public class Util {
         };
     }
 
-    @Deprecated
     public static BooleanBinding isDateUndefinedOrValid(final ObjectExpression<LocalDateTime> value) {
         if (value == null)
             throw new NullPointerException("LocalDateTime binding cannot be null.");
@@ -153,7 +138,6 @@ public class Util {
         };
     }
 
-    @Deprecated
     public static ObjectBinding<LocalDateTime> asLocalDateTime(final ObjectExpression<LocalDate> date, final ObjectExpression<Integer> hour,
             final ObjectExpression<Integer> minute) {
         if (date == null || hour == null || minute == null)
@@ -178,7 +162,6 @@ public class Util {
         };
     }
 
-    @Deprecated
     public static <R extends model.Record> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
         if (recordProperty == null)
             throw new NullPointerException("Record binding cannot be null.");
@@ -194,31 +177,4 @@ public class Util {
         };
     }
     
-    @Deprecated
-    public static String resultStringOrDefault(ResultSet rs, String columnLabel, String defaultValue) throws SQLException {
-        String result = rs.getString(columnLabel);
-        return (rs.wasNull()) ? defaultValue : result;
-    }
-    
-    @Deprecated
-    public static short resultShortOrDefault(ResultSet rs, String columnLabel, short defaultValue) throws SQLException {
-        short result = rs.getShort(columnLabel);
-        return (rs.wasNull()) ? defaultValue : result;
-    }
-    
-    @Deprecated
-    public static Optional<ButtonType> showErrorAlert(String title, String contentText, ButtonType... buttons) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, contentText, buttons);
-        alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle(title);
-        return alert.showAndWait();
-    }
-    
-    @Deprecated
-    public static Optional<ButtonType> showWarningAlert(String title, String contentText, ButtonType... buttons) {
-        Alert alert = new Alert(Alert.AlertType.WARNING, contentText, buttons);
-        alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle(title);
-        return alert.showAndWait();
-    }
 }
