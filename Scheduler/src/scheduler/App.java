@@ -71,7 +71,7 @@ public class App extends Application {
     public static final String RESOURCEKEY_NOTHINGSELECTED = "nothingSelected";
     public static final String RESOURCEKEY_NOITEMWASSELECTED = "noItemWasSelected";
     public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
-    public static final String RESOURCEKEY_AREYOURSUREDELETE = "areYourSureDelete";
+    public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
     public static final String RESOURCEKEY_WORKING = "working";
     public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
     public static final String RESOURCEKEY_ABORT = "abort";

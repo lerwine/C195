@@ -5,7 +5,9 @@
  */
 package view;
 
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -125,7 +127,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
 
     private void verifyDeleteItem(R item) {
         ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
-        Optional<ButtonType> response = Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOURSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             onDeleteItem(item);
     }
@@ -135,6 +137,54 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
     protected abstract void onEditItem(R item);
 
     protected abstract void onDeleteItem(R item);
+    
+    protected int indexOfListItemByPrimaryKey(int pk) {
+        Iterator<R> iterator = getItemsList().iterator();
+        int index = -1;
+        while (iterator.hasNext()) {
+            ++index;
+            if (iterator.next().getPrimaryKey() == pk)
+                return index;
+        }
+        return -1;
+    }
+    
+    protected R getListItemByPrimaryKey(int pk) {
+        Iterator<R> iterator = getItemsList().iterator();
+        while (iterator.hasNext()) {
+            R item = iterator.next();
+            if (item.getPrimaryKey() == pk)
+                return item;
+        }
+        return null;
+    }
+    
+    protected boolean removeListItemByPrimaryKey(int pk) {
+        Iterator<R> iterator = getItemsList().iterator();
+        while (iterator.hasNext()) {
+            R item = iterator.next();
+            if (item.getPrimaryKey() == pk) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    protected boolean updateListItem(R row) {
+        Objects.requireNonNull(row);
+        int pk = row.getPrimaryKey();
+        ObservableList<R> items = getItemsList();
+        for (int i = 0; i < items.size(); i++) {
+            R r = items.get(i);
+            if (r.getPrimaryKey() == pk) {
+                if (r != row)
+                    items.set(i, row);
+                return true;
+            }
+        }
+        return false;
+    }
     
     protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass) {
         setAsRootContent(ctlClass, null);

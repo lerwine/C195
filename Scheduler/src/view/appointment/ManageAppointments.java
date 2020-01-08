@@ -72,7 +72,7 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
     
     private final ChangeListener<? super SchedulerController> controllerChangeListener;
     
-    private final ChangeListener<? super AppointmentRow> appointmentAddedListener;
+    private final ChangeListener<? super RootController.CrudAction<AppointmentRow>> appointmentAddedListener;
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
@@ -88,11 +88,15 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
                 }
             }
         };
-        appointmentAddedListener = new ChangeListener<AppointmentRow>() {
+        appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentRow>>() {
             @Override
-            public void changed(ObservableValue<? extends AppointmentRow> observable, AppointmentRow oldValue, AppointmentRow newValue) {
-                if (newValue != null && (currentFilter == null || currentFilter.test(newValue)))
-                    getItemsList().add(newValue);
+            public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentRow>> observable, RootController.CrudAction<AppointmentRow> oldValue, RootController.CrudAction<AppointmentRow> newValue) {
+                if (newValue != null && (currentFilter == null || currentFilter.test(newValue.getRow()))) {
+                    if (newValue.isDelete())
+                        removeListItemByPrimaryKey(newValue.getRow().getPrimaryKey());
+                    else if (newValue.isAdd() || !updateListItem(newValue.getRow()))
+                        getItemsList().add(newValue.getRow());
+                }
             }
         };
     }
@@ -169,12 +173,12 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
 
     @Override
     protected void onEditItem(AppointmentRow item) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        RootController.getCurrent().editAppointment(item);
     }
 
     @Override
     protected void onDeleteItem(AppointmentRow item) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        RootController.getCurrent().deleteAppointment(item);
     }
     
 }
