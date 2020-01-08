@@ -1,17 +1,13 @@
 package view.country;
 
-import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 import model.db.CountryRow;
-import model.db.DataRow;
+import util.Alerts;
+import view.ListingController;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -22,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/country/ManageCountries")
 @FXMLResource("/view/country/ManageCountries.fxml")
-public class ManageCountries extends view.ListingController {
+public class ManageCountries extends ListingController<CountryRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
@@ -81,7 +77,7 @@ public class ManageCountries extends view.ListingController {
     public static void setAsRootContent() {
         setAsRootContent(ManageCountries.class, (view.SchedulerController.ContentChangeContext<ManageCountries> context) -> {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
-            scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize country list");
+            Alerts.showErrorAlert("Not Implemented", "Need to initialize country list");
         });
     }
 
@@ -91,12 +87,12 @@ public class ManageCountries extends view.ListingController {
     }
 
     @Override
-    protected void onEditItem(DataRow item) {
+    protected void onEditItem(CountryRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(DataRow item) {
+    protected void onDeleteItem(CountryRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

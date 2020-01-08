@@ -160,7 +160,7 @@ public class App extends Application {
      * @return
      *          The original display {@link java.util.Locale} property.
      */
-    public ReadOnlyObjectProperty originalDisplayLocaleProperty() {
+    public ReadOnlyObjectProperty<Locale> originalDisplayLocaleProperty() {
         return originalDisplayLocale.getReadOnlyProperty();
     }
     
@@ -208,7 +208,7 @@ public class App extends Application {
      * @return
      *          Application-global resource bundle property.
      */
-    public ReadOnlyObjectProperty resourcesProperty() { return resources.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<ResourceBundle> resourcesProperty() { return resources.getReadOnlyProperty(); }
     
     //</editor-fold>
     
@@ -714,8 +714,7 @@ public class App extends Application {
         public Object[] toArray() { return backingList.toArray(); }
 
         @Override
-        @SuppressWarnings("SuspiciousToArrayCall")
-        public <Locale> Locale[] toArray(Locale[] a) { return backingList.toArray(a); }
+        public <T> T[] toArray(T[] a) { return backingList.toArray(a); }
 
         @Override
         public boolean add(Locale e) { throw new UnsupportedOperationException(); }

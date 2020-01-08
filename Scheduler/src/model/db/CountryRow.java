@@ -1,7 +1,7 @@
 package model.db;
 
 import expressions.NonNullableStringProperty;
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,12 +9,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import util.DB;
 
 /**
  *
@@ -71,7 +71,7 @@ public class CountryRow extends DataRow implements model.Country {
     
     public CountryRow (ResultSet rs) throws SQLException {
         super(rs);
-        name = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, COLNAME_COUNTRY, ""));
+        name = new NonNullableStringProperty(DB.resultStringOrDefault(rs, COLNAME_COUNTRY, ""));
     }
     
     //</editor-fold>

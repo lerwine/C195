@@ -1,7 +1,7 @@
 package model.db;
 
 import expressions.NonNullableStringProperty;
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,10 +10,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -26,6 +24,8 @@ import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import util.Bindings;
+import util.DB;
 
 /**
  *
@@ -189,7 +189,7 @@ public class AddressRow extends DataRow implements model.Address {
         address1 = new NonNullableStringProperty();
         address2 = new NonNullableStringProperty();
         city = new SimpleObjectProperty<>();
-        cityId = scheduler.Util.primaryKeyBinding(city);
+        cityId = Bindings.primaryKeyBinding(city);
         postalCode = new NonNullableStringProperty();
         phone = new NonNullableStringProperty();
     }
@@ -199,20 +199,20 @@ public class AddressRow extends DataRow implements model.Address {
         this.address1 = new NonNullableStringProperty(address1);
         this.address2 = new NonNullableStringProperty(address2);
         this.city = new SimpleObjectProperty<>(city);
-        cityId = scheduler.Util.primaryKeyBinding(this.city);
+        cityId = Bindings.primaryKeyBinding(this.city);
         this.postalCode = new NonNullableStringProperty(postalCode);
         this.phone = new NonNullableStringProperty(phone);
     }
     
     public AddressRow(ResultSet rs) throws SQLException {
         super(rs);
-        address1 = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, COLNAME_ADDRESS, ""));
-        address2 = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_ADDRESS2, ""));
+        address1 = new NonNullableStringProperty(DB.resultStringOrDefault(rs, COLNAME_ADDRESS, ""));
+        address2 = new NonNullableStringProperty(DB.resultStringOrDefault(rs, PROP_ADDRESS2, ""));
         city = new SimpleObjectProperty<>(new City(rs.getInt(PROP_CITYID), rs.getString(PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))));
-        cityId = scheduler.Util.primaryKeyBinding(this.city);
-        postalCode = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_POSTALCODE, ""));
-        phone = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_PHONE, ""));
+        cityId = Bindings.primaryKeyBinding(this.city);
+        postalCode = new NonNullableStringProperty(DB.resultStringOrDefault(rs, PROP_POSTALCODE, ""));
+        phone = new NonNullableStringProperty(DB.resultStringOrDefault(rs, PROP_PHONE, ""));
     }
     
     //</editor-fold>

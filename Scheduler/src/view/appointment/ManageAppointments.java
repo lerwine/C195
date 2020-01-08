@@ -13,7 +13,6 @@ import model.db.AppointmentRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import model.db.AppointmentsFilter;
-import model.db.DataRow;
 import scheduler.App;
 import util.Alerts;
 import view.RootController;

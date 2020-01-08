@@ -23,7 +23,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import scheduler.Util;
 import util.Alerts;
 
 /**
@@ -126,7 +125,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
 
     private void verifyDeleteItem(R item) {
         ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
-        Optional<ButtonType> response = Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOURSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOURSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             onDeleteItem(item);
     }
@@ -137,20 +136,19 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
 
     protected abstract void onDeleteItem(R item);
     
-    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass) {
+    protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass) {
         setAsRootContent(ctlClass, null);
     }
     
-    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent) {
+    protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent) {
         setAsRootContent(ctlClass, onBeforeSetContent, null);
     }
     
     @SuppressWarnings("UseSpecificCatch")
-    protected static <C extends ListingController> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent,
+    protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent,
                 Consumer<ContentChangeContext<C>> onAfterSetScene) {
         ContentChangeContextFactory<C> context = new ContentChangeContextFactory<>();
         try {
-            scheduler.App app = scheduler.App.CURRENT.get();
             ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), Locale.getDefault(Locale.Category.DISPLAY));
             context.setResourceBundle(rb);
             FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)), rb);

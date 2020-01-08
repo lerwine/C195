@@ -27,9 +27,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
-import static model.db.DataRow.ROWSTATE_MODIFIED;
-import static model.db.DataRow.ROWSTATE_UNMODIFIED;
 import scheduler.InternalException;
+import util.Bindings;
 
 /**
  *
@@ -285,9 +284,9 @@ public class AppointmentRow extends DataRow implements model.Appointment {
     public AppointmentRow() {
         super();
         customer = new SimpleObjectProperty<>();
-        customerId = scheduler.Util.primaryKeyBinding(this.customer);
+        customerId = Bindings.primaryKeyBinding(this.customer);
         user = new SimpleObjectProperty<>();
-        userId = scheduler.Util.primaryKeyBinding(this.user);
+        userId = Bindings.primaryKeyBinding(this.user);
         title = new NonNullableStringProperty();
         description = new NonNullableStringProperty();
         location = new NonNullableStringProperty();
@@ -302,9 +301,9 @@ public class AppointmentRow extends DataRow implements model.Appointment {
             String type, String url, LocalDateTime start, LocalDateTime end) {
         super();
         this.customer = new SimpleObjectProperty<>(customer);
-        customerId = scheduler.Util.primaryKeyBinding(this.customer);
+        customerId = Bindings.primaryKeyBinding(this.customer);
         this.user = new SimpleObjectProperty<>(user);
-        userId = scheduler.Util.primaryKeyBinding(this.user);
+        userId = Bindings.primaryKeyBinding(this.user);
         this.title = new NonNullableStringProperty(title);
         this.description = new NonNullableStringProperty(description);
         this.location = new NonNullableStringProperty(location);
@@ -323,9 +322,9 @@ public class AppointmentRow extends DataRow implements model.Appointment {
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)),
                 rs.getBoolean(CustomerRow.PROP_ACTIVE)));
-        customerId = scheduler.Util.primaryKeyBinding(this.customer);
+        customerId = Bindings.primaryKeyBinding(this.customer);
         user = new SimpleObjectProperty<>(new User(rs.getInt(PROP_USERID), rs.getString(UserRow.PROP_USERNAME), rs.getShort(UserRow.PROP_ACTIVE)));
-        userId = scheduler.Util.primaryKeyBinding(this.user);
+        userId = Bindings.primaryKeyBinding(this.user);
         title = new NonNullableStringProperty(rs.getString(PROP_TITLE));
         if (rs.wasNull())
             title.setValue("");

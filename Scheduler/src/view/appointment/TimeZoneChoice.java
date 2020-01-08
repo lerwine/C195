@@ -32,7 +32,8 @@ public class TimeZoneChoice implements Comparable<TimeZoneChoice> {
 
     public TimeZone getTimeZone() { return timeZone.get(); }
 
-    public ReadOnlyObjectProperty timeZoneProperty() { return timeZone.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() { return timeZone.getReadOnlyProperty(); }
+    
     private final ReadOnlyStringWrapper fullName;
 
     public String getFullName() {

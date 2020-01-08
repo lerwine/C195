@@ -4,8 +4,9 @@ import java.time.LocalDateTime;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import model.db.DataRow;
 import model.db.UserRow;
+import util.Alerts;
+import view.ListingController;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -16,7 +17,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/ManageUsers")
 @FXMLResource("/view/user/ManageUsers.fxml")
-public class ManageUsers extends view.ListingController {
+public class ManageUsers extends ListingController<UserRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_MANAGEUSERS = "manageUsers";
@@ -48,14 +49,12 @@ public class ManageUsers extends view.ListingController {
     @FXML
     private TableColumn<UserRow, String> lastUpdateByTableColumn;
     
-    private java.lang.Runnable closeWindow;
-    
     //private String returnViewPath;
 
     public static void setAsRootContent() {
         setAsRootContent(ManageUsers.class, (view.SchedulerController.ContentChangeContext<ManageUsers> context) -> {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEUSERS));
-            scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize user list");
+            Alerts.showErrorAlert("Not Implemented", "Need to initialize user list");
         });
     }
 
@@ -65,12 +64,12 @@ public class ManageUsers extends view.ListingController {
     }
 
     @Override
-    protected void onEditItem(DataRow item) {
+    protected void onEditItem(UserRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(DataRow item) {
+    protected void onDeleteItem(UserRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -39,7 +39,6 @@ import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
 import scheduler.InvalidOperationException;
 import util.DbConnector;
-import scheduler.Util;
 import util.Alerts;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
@@ -325,7 +324,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
             });
             editItem.stage.showAndWait();
         } catch (Exception ex) {
-            Util.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
+            Alerts.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
             if (contentClass == null)
                 LOG.log(Level.SEVERE, null, ex);
             else

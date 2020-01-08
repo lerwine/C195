@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import model.db.CustomerRow;
-import model.db.DataRow;
+import util.Alerts;
+import view.ListingController;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -15,7 +16,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/customer/ManageCustomers")
 @FXMLResource("/view/customer/ManageCustomers.fxml")
-public class ManageCustomers extends view.ListingController {
+public class ManageCustomers extends ListingController<CustomerRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVE = "active";
@@ -53,7 +54,7 @@ public class ManageCustomers extends view.ListingController {
     public static void setAsRootContent() {
         setAsRootContent(ManageCustomers.class, (view.SchedulerController.ContentChangeContext<ManageCustomers> context) -> {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECUSTOMERS));
-            scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize appointments list");
+            Alerts.showErrorAlert("Not Implemented", "Need to initialize appointments list");
         });
     }
 
@@ -63,12 +64,12 @@ public class ManageCustomers extends view.ListingController {
     }
 
     @Override
-    protected void onEditItem(DataRow item) {
+    protected void onEditItem(CustomerRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(DataRow item) {
+    protected void onDeleteItem(CustomerRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

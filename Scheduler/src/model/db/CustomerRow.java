@@ -26,6 +26,8 @@ import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import util.Bindings;
+import util.DB;
 
 /**
  *
@@ -152,7 +154,7 @@ public class CustomerRow extends DataRow implements model.Customer {
         super();
         name = new NonNullableStringProperty();
         address = new SimpleObjectProperty<>();
-        addressId = scheduler.Util.primaryKeyBinding(address);
+        addressId = Bindings.primaryKeyBinding(address);
         active = new SimpleBooleanProperty();
     }
     
@@ -166,7 +168,7 @@ public class CustomerRow extends DataRow implements model.Customer {
         super();
         this.name = new NonNullableStringProperty(name);
         this.address = new SimpleObjectProperty<>(address);
-        addressId = scheduler.Util.primaryKeyBinding(this.address);
+        addressId = Bindings.primaryKeyBinding(this.address);
         this.active = new SimpleBooleanProperty(active);
     }
     
@@ -177,12 +179,12 @@ public class CustomerRow extends DataRow implements model.Customer {
      */
     public CustomerRow (ResultSet rs) throws SQLException {
         super(rs);
-        name = new NonNullableStringProperty(scheduler.Util.resultStringOrDefault(rs, PROP_CUSTOMERNAME, ""));
+        name = new NonNullableStringProperty(DB.resultStringOrDefault(rs, PROP_CUSTOMERNAME, ""));
         address = new SimpleObjectProperty<>(new Address(rs.getInt(PROP_ADDRESSID), rs.getString(AddressRow.COLNAME_ADDRESS), rs.getString(AddressRow.PROP_ADDRESS2),
                 new AddressRow.City(rs.getInt(AddressRow.PROP_CITYID), rs.getString(AddressRow.PROP_CITY),
                 new CityRow.Country(rs.getInt(CityRow.PROP_COUNTRYID), rs.getString(CityRow.PROP_COUNTRY))),
                 rs.getString(AddressRow.PROP_POSTALCODE), rs.getString(AddressRow.PROP_PHONE)));
-        addressId = scheduler.Util.primaryKeyBinding(address);
+        addressId = Bindings.primaryKeyBinding(address);
         active = new SimpleBooleanProperty(rs.getBoolean(PROP_ACTIVE));
     }
     

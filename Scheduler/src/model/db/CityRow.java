@@ -1,20 +1,16 @@
 package model.db;
 
 import expressions.NonNullableStringProperty;
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -25,6 +21,7 @@ import javafx.collections.ObservableList;
 import model.annotations.PrimaryKey;
 import model.annotations.TableName;
 import scheduler.InternalException;
+import util.Bindings;
 
 /**
  *
@@ -114,14 +111,14 @@ public class CityRow extends DataRow implements model.City {
         super();
         name = new NonNullableStringProperty();
         country = new SimpleObjectProperty<>();
-        countryId = scheduler.Util.primaryKeyBinding(country);
+        countryId = Bindings.primaryKeyBinding(country);
     }
     
     public CityRow(String name, CountryRow country) {
         super();
         this.name = new NonNullableStringProperty(name);
         this.country = new SimpleObjectProperty<>(country);
-        countryId = scheduler.Util.primaryKeyBinding(this.country);
+        countryId = Bindings.primaryKeyBinding(this.country);
     }
     
     public CityRow (ResultSet rs) throws SQLException {
@@ -130,7 +127,7 @@ public class CityRow extends DataRow implements model.City {
         if (rs.wasNull())
             name.set("");
         country = new SimpleObjectProperty<>(new Country(rs.getInt(PROP_COUNTRYID), rs.getString(CountryRow.COLNAME_COUNTRY)));
-        countryId = scheduler.Util.primaryKeyBinding(country);
+        countryId = Bindings.primaryKeyBinding(country);
     }
     
     //</editor-fold>

@@ -1,6 +1,5 @@
 package view.login;
 
-import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
