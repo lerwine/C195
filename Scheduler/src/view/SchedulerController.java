@@ -32,6 +32,8 @@ public abstract class SchedulerController {
     
     @FXML // ResourceBundle injected by the FXMLLoader
     private ResourceBundle resources;
+    
+    private static final Logger LOG = Logger.getLogger(SchedulerController.class.getName());
 
     /**
      * Gets the {@link java.util.ResourceBundle} injected by the {@link javafx.fxml.FXMLLoader}.
@@ -61,7 +63,7 @@ public abstract class SchedulerController {
                     ctlClass.getName());
         } else
             message = String.format("Annotation scene.annotations.FXMLResourceName not present in type %s", ctlClass.getName());
-        Logger.getLogger(SchedulerController.class.getName()).log(Level.SEVERE, message);
+        LOG.log(Level.SEVERE, message);
         return null;
     }
     
@@ -88,7 +90,7 @@ public abstract class SchedulerController {
                     ctlClass.getName());
         } else
             message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", ctlClass.getName());
-        Logger.getLogger(SchedulerController.class.getName()).log(Level.SEVERE, message);
+        LOG.log(Level.SEVERE, message);
         return scheduler.App.GLOBALIZATION_RESOURCE_NAME;
     }
 

@@ -24,6 +24,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import scheduler.Util;
+import util.Alerts;
 
 /**
  *
@@ -63,6 +64,8 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
     
     //</editor-fold>
     
+    private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
+    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         assert listingTableView != null : String.format("fx:id=\"listingTableView\" was not injected: check your FXML file '%s'.",
@@ -81,7 +84,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
         R item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
             ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
-            Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
+            Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
             verifyDeleteItem(item);
@@ -92,7 +95,7 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
         R item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
             ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
-            Util.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
+            Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
             onEditItem(item);
@@ -159,10 +162,9 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
            view.RootController.getCurrent().setContent(content, context.get().getController());
         } catch (Exception ex) {
             if (ctlClass == null)
-                Logger.getLogger(ListingController.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             else
-                Logger.getLogger(ListingController.class.getName()).log(Level.SEVERE,
-                        String.format("Unexpected error setting %s as root content", ctlClass.getName()), ex);
+                LOG.log(Level.SEVERE,String.format("Unexpected error setting %s as root content", ctlClass.getName()), ex);
             context.setError(ex);
         }
         if (onAfterSetScene != null)

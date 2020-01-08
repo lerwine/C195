@@ -43,8 +43,12 @@ import scheduler.InvalidOperationException;
 import util.DbConnector;
 import util.Alerts;
 import view.EditItem;
+import view.ItemController;
+import view.SchedulerController;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
+import view.customer.EditCustomer;
+import view.user.EditUser;
 
 /**
  * FXML Controller class
@@ -53,7 +57,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/appointment/EditAppointment")
 @FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends view.SchedulerController implements view.ItemController<AppointmentRow> {
+public class EditAppointment extends SchedulerController implements ItemController<AppointmentRow> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -91,6 +95,8 @@ public class EditAppointment extends view.SchedulerController implements view.It
     public static final String RESOURCEKEY_CONFLICTCUSTOMER1 = "conflictCustomer1";
     public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
     public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
+    public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
+    public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
 
     //</editor-fold>
     
@@ -230,8 +236,10 @@ public class EditAppointment extends view.SchedulerController implements view.It
 
     @FXML // Appointment description input control.
     private TextArea descriptionTextArea;
-
+    
     //</editor-fold>
+    
+    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
     
     //<editor-fold defaultstate="collapsed" desc="Observables">
     
@@ -407,7 +415,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
                 customers = FXCollections.observableArrayList();
             if (users == null)
                 users = FXCollections.observableArrayList();
-            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         customerComboBox.setItems(customers);
         userComboBox.setItems(users);
@@ -431,7 +439,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
      *          The @{link model.db.AppointmentRow} object containing appointment that was added or @{code null} if no appointment was added.
      */
     public static AppointmentRow addNew() {
-        view.EditItem.ShowAndWaitResult<AppointmentRow> result = view.EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
+        EditItem.ShowAndWaitResult<AppointmentRow> result = EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
     
@@ -443,7 +451,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
      *          {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
      */
     public static boolean edit(AppointmentRow row) {
-        view.EditItem.ShowAndWaitResult<AppointmentRow> result = view.EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
+        EditItem.ShowAndWaitResult<AppointmentRow> result = EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
         return result.isSuccessful();
     }
     
@@ -461,8 +469,8 @@ public class EditAppointment extends view.SchedulerController implements view.It
             String msg = conflictLookupState.conflictMessage.get();
             if (msg.isEmpty())
                 return false;
-            Optional<ButtonType> response = Alerts.showWarningAlert(getResources().getString("conflictsFound"),
-                    String.format("%s\n\n%s", msg, getResources().getString("saveAnyway")), ButtonType.YES, ButtonType.NO);
+            Optional<ButtonType> response = Alerts.showWarningAlert(getResources().getString(RESOURCEKEY_APPOINTMENTCONFLICT),
+                    String.format("%s\n\n%s", msg, getResources().getString(RESOURCEKEY_SAVEANYWAY)), ButtonType.YES, ButtonType.NO);
             if (!response.isPresent() || response.get() != ButtonType.YES)
                 return false;
         }
@@ -472,7 +480,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
                 return true;
             }
         } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
-            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         return false;
     }
@@ -481,7 +489,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
     
     @FXML
     void addCustomerClick(ActionEvent event) {
-        CustomerRow customer = view.customer.EditCustomer.addNew();
+        CustomerRow customer = EditCustomer.addNew();
         if (customer != null)
             customers.add(customer);
         customerComboBox.getSelectionModel().select(customer);
@@ -489,7 +497,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
 
     @FXML
     void addUserClick(ActionEvent event) {
-        UserRow user = view.user.EditUser.addNew();
+        UserRow user = EditUser.addNew();
         if (user != null)
             users.add(user);
         userComboBox.getSelectionModel().select(user);
@@ -874,7 +882,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
                 if (newValue)
                     collapseNode(locationValidationLabel);
                 else
-                    restoreLabeled(locationValidationLabel, getResources().getString(view.EditItem.RESOURCEKEY_REQUIRED));
+                    restoreLabeled(locationValidationLabel, getResources().getString(EditItem.RESOURCEKEY_REQUIRED));
             });
         }
         
@@ -946,7 +954,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
             int h = hourProperty.get();
             int m = minuteProperty.get();
             if (dateProperty.get() == null)
-                return view.EditItem.RESOURCEKEY_REQUIRED;
+                return EditItem.RESOURCEKEY_REQUIRED;
             if (h < 0 || h > 23)
                 return RESOURCEKEY_INVALIDHOUR;
             return (m < 0 || m > 59) ? RESOURCEKEY_INVALIDMINUTE : "";
@@ -1037,7 +1045,7 @@ public class EditAppointment extends view.SchedulerController implements view.It
             String text = urlTextProperty.get();
             if (typeSelectionState.virtual.get()) {
                 if (text.trim().isEmpty())
-                    return view.EditItem.RESOURCEKEY_REQUIRED;
+                    return EditItem.RESOURCEKEY_REQUIRED;
                 URL url;
                 try {
                     url = new URL(text);

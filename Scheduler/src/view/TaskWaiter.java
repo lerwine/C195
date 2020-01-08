@@ -24,6 +24,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import scheduler.App;
 import util.DbConnectedCallable;
 import util.DbConnectionConsumer;
 import util.DbConnector;
@@ -83,8 +84,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
             updateTitle(heading);
             updateMessage((operation == null) ? "" : operation);
         } else if (operation == null || operation.trim().isEmpty()) {
-            updateTitle(resources.getString("pleaseWait"));
-            updateMessage(resources.getString("connectingToDb"));
+            updateTitle(resources.getString(App.RESOURCEKEY_PLEASEWAIT));
+            updateMessage(resources.getString(App.RESOURCEKEY_CONNECTINGTODB));
         } else {
             updateTitle("");
             updateMessage(operation);
@@ -207,7 +208,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             try {
                 task.get();
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(TaskWaiter.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 onError.accept(ex);
                 return;
             }
@@ -225,7 +226,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             try {
                 task.get();
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(TaskWaiter.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 return;
             }
             onSuccess.run();
@@ -242,9 +243,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
             try {
                 task.get();
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(TaskWaiter.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 onError.accept(ex);
-                return;
             }
         };
         task.setOnCancelled(onCompleted);
@@ -310,7 +310,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             try {
                 result = task.get();
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(TaskWaiter.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 onError.accept(ex);
                 return;
             }
@@ -329,7 +329,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             try {
                 result = task.get();
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(TaskWaiter.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 return;
             }
             onSuccess.accept(result);

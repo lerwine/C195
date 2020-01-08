@@ -14,8 +14,21 @@ import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
+import model.db.*;
+import scheduler.App;
+import util.Alerts;
+import view.address.EditAddress;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
+import view.appointment.EditAppointment;
+import view.appointment.ManageAppointments;
+import view.city.EditCity;
+import view.country.EditCountry;
+import view.country.ManageCountries;
+import view.customer.EditCustomer;
+import view.customer.ManageCustomers;
+import view.user.EditUser;
+import view.user.ManageUsers;
 
 /**
  * FXML Controller class
@@ -106,31 +119,33 @@ public class RootController extends SchedulerController {
     
     public static RootController getCurrent() { return current; }
     
+    private static final Logger LOG = Logger.getLogger(RootController.class.getName());
+    
     //<editor-fold defaultstate="collapsed" desc="Event handler delegates">
     
-    private final ReadOnlyObjectWrapper<model.db.AppointmentRow> appointmentAdded;
-    public model.db.AppointmentRow getAppointmentAdded() { return appointmentAdded.get(); }
-    public ReadOnlyObjectProperty<model.db.AppointmentRow> appointmentAddedProperty() { return appointmentAdded.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<AppointmentRow> appointmentAdded;
+    public AppointmentRow getAppointmentAdded() { return appointmentAdded.get(); }
+    public ReadOnlyObjectProperty<AppointmentRow> appointmentAddedProperty() { return appointmentAdded.getReadOnlyProperty(); }
        
-    private final ReadOnlyObjectWrapper<model.db.CustomerRow> customerAdded;
-    public model.db.CustomerRow getCustomerAdded() { return customerAdded.get(); }
-    public ReadOnlyObjectProperty<model.db.CustomerRow> customerAddedProperty() { return customerAdded.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<CustomerRow> customerAdded;
+    public CustomerRow getCustomerAdded() { return customerAdded.get(); }
+    public ReadOnlyObjectProperty<CustomerRow> customerAddedProperty() { return customerAdded.getReadOnlyProperty(); }
     
-    private final ReadOnlyObjectWrapper<model.db.CountryRow> countryAdded;
-    public model.db.CountryRow getCountryAdded() { return countryAdded.get(); }
-    public ReadOnlyObjectProperty<model.db.CountryRow> countryAddedProperty() { return countryAdded.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<CountryRow> countryAdded;
+    public CountryRow getCountryAdded() { return countryAdded.get(); }
+    public ReadOnlyObjectProperty<CountryRow> countryAddedProperty() { return countryAdded.getReadOnlyProperty(); }
      
-    private final ReadOnlyObjectWrapper<model.db.CityRow> cityAdded;
-    public model.db.CityRow getCityAdded() { return cityAdded.get(); }
-    public ReadOnlyObjectProperty<model.db.CityRow> cityAddedProperty() { return cityAdded.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<CityRow> cityAdded;
+    public CityRow getCityAdded() { return cityAdded.get(); }
+    public ReadOnlyObjectProperty<CityRow> cityAddedProperty() { return cityAdded.getReadOnlyProperty(); }
     
-    private final ReadOnlyObjectWrapper<model.db.AddressRow> addressAdded;
-    public model.db.AddressRow getAddressAdded() { return addressAdded.get(); }
-    public ReadOnlyObjectProperty<model.db.AddressRow> addressAddedProperty() { return addressAdded.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<AddressRow> addressAdded;
+    public AddressRow getAddressAdded() { return addressAdded.get(); }
+    public ReadOnlyObjectProperty<AddressRow> addressAddedProperty() { return addressAdded.getReadOnlyProperty(); }
     
-    private final ReadOnlyObjectWrapper<model.db.UserRow> userAdded;
-    public model.db.UserRow getUserAdded() { return userAdded.get(); }
-    public ReadOnlyObjectProperty<model.db.UserRow> userAddedProperty() { return userAdded.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<UserRow> userAdded;
+    public UserRow getUserAdded() { return userAdded.get(); }
+    public ReadOnlyObjectProperty<UserRow> userAddedProperty() { return userAdded.getReadOnlyProperty(); }
     
     private final ReadOnlyObjectWrapper<SchedulerController> contentControllerChanging;
     public SchedulerController getContentControllerChanging() { return contentControllerChanging.get(); }
@@ -188,7 +203,7 @@ public class RootController extends SchedulerController {
 
         current = this;
         
-        view.appointment.ManageAppointments.setAsRootContent(new model.db.AppointmentsFilter(scheduler.App.CURRENT.get().getCurrentUser(), true));
+        ManageAppointments.setAsRootContent(new AppointmentsFilter(App.CURRENT.get().getCurrentUser(), true));
     }
     
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
@@ -196,47 +211,47 @@ public class RootController extends SchedulerController {
     @FXML
     void newAppointmentMenuItemClick(ActionEvent event) { addNewAppointment(); }
 
-    public model.db.AppointmentRow addNewAppointment() {
-        model.db.AppointmentRow model = view.appointment.EditAppointment.addNew();
+    public AppointmentRow addNewAppointment() {
+        AppointmentRow model = EditAppointment.addNew();
         if (model != null)
             appointmentAdded.set(model);
         return model;
     }
     
     @FXML
-    void allAppointmentsMenuItemClick(ActionEvent event) { view.appointment.ManageAppointments.setAsRootContent(); }
+    void allAppointmentsMenuItemClick(ActionEvent event) { ManageAppointments.setAsRootContent(); }
          
     @FXML
     void newCustomerMenuItemClick(ActionEvent event) { addNewCustomer(); }
     
-    public model.db.CustomerRow addNewCustomer() {
-        model.db.CustomerRow model = view.customer.EditCustomer.addNew();
+    public CustomerRow addNewCustomer() {
+        CustomerRow model = EditCustomer.addNew();
         if (model != null)
             customerAdded.set(model);
         return model;
     }
     
     @FXML
-    void allCustomersMenuItemClick(ActionEvent event) { view.customer.ManageCustomers.setAsRootContent(); }
+    void allCustomersMenuItemClick(ActionEvent event) { ManageCustomers.setAsRootContent(); }
         
     @FXML
     void newCountryMenuItemClick(ActionEvent event) { addNewCountry(); }
     
-    public model.db.CountryRow addNewCountry() {
-        model.db.CountryRow model = view.country.EditCountry.addNew();
+    public CountryRow addNewCountry() {
+        CountryRow model = EditCountry.addNew();
         if (model != null)
             countryAdded.set(model);
         return model;
     }
     
     @FXML
-    void allCountriesMenuItemClick(ActionEvent event) { view.country.ManageCountries.setAsRootContent(); }
+    void allCountriesMenuItemClick(ActionEvent event) { ManageCountries.setAsRootContent(); }
     
     @FXML
     void newCityMenuItemClick(ActionEvent event) { addNewCity(); }
     
-    public model.db.CityRow addNewCity() {
-        model.db.CityRow model = view.city.EditCity.addNew();
+    public CityRow addNewCity() {
+        CityRow model = EditCity.addNew();
         if (model != null)
             cityAdded.set(model);
         return model;
@@ -245,8 +260,8 @@ public class RootController extends SchedulerController {
     @FXML
     void newAddressMenuItemClick(ActionEvent event) { addNewAddress(); }
     
-    public model.db.AddressRow addNewAddress() {
-        model.db.AddressRow model = view.address.EditAddress.addNew();
+    public AddressRow addNewAddress() {
+        AddressRow model = EditAddress.addNew();
         if (model != null)
             addressAdded.set(model);
         return model;
@@ -255,18 +270,18 @@ public class RootController extends SchedulerController {
     @FXML
     void newUserMenuItemClick(ActionEvent event) { addNewUser(); }
     
-    public model.db.UserRow addNewUser() {
-        model.db.UserRow model = view.user.EditUser.addNew();
+    public UserRow addNewUser() {
+        UserRow model = EditUser.addNew();
         if (model != null)
             userAdded.set(model);
         return model;
     }
     
     @FXML
-    void allUsersMenuItemClick(ActionEvent event) { view.user.ManageUsers.setAsRootContent(); }
+    void allUsersMenuItemClick(ActionEvent event) { ManageUsers.setAsRootContent(); }
     
     @FXML
-    void exitButtonClick(ActionEvent event) { scheduler.App.CURRENT.get().getPrimaryStage().hide(); }
+    void exitButtonClick(ActionEvent event) { App.CURRENT.get().getPrimaryStage().hide(); }
     
     //</editor-fold>
     
@@ -279,17 +294,17 @@ public class RootController extends SchedulerController {
     
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootStageScene() {
-        scheduler.App app = scheduler.App.CURRENT.get(); 
+        App app = App.CURRENT.get(); 
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(view.SchedulerController.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(RootController.class.getResource(view.SchedulerController.getFXMLResourceName(RootController.class)), rb);
+            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
+            FXMLLoader loader = new FXMLLoader(RootController.class.getResource(SchedulerController.getFXMLResourceName(RootController.class)), rb);
             Scene scene = new Scene(loader.load());
             current = (RootController)loader.getController();
             app.getPrimaryStage().setScene(scene);
         } catch (Exception ex) {
-            Logger.getLogger(RootController.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             ResourceBundle arb = app.getResources();
-            scheduler.Util.showErrorAlert(arb.getString(scheduler.App.RESOURCEKEY_FXMLLOADERERRORTITLE), arb.getString(scheduler.App.RESOURCEKEY_FXMLLOADERERRORMESSAGE));
+            Alerts.showErrorAlert(arb.getString(App.RESOURCEKEY_FXMLLOADERERRORTITLE), arb.getString(App.RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }
     

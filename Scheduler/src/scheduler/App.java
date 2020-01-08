@@ -1,7 +1,6 @@
 package scheduler;
 
 import util.DbConnector;
-import java.sql.Connection;
 import view.appointment.EditAppointment;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -17,7 +16,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -46,7 +44,9 @@ import javafx.stage.Stage;
 import model.db.UserRow;
 import util.Alerts;
 import view.RootController;
+import view.SchedulerController;
 import view.TaskWaiter;
+import view.login.LoginScene;
 
 /**
  * Application class for Scheduler
@@ -75,6 +75,13 @@ public class App extends Application {
     public static final String RESOURCEKEY_WORKING = "working";
     public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
     public static final String RESOURCEKEY_ABORT = "abort";
+    public static final String RESOURCEKEY_CANCEL = "cancel";
+    public static final String RESOURCEKEY_CONNECTINGTODB = "connectingToDb";
+    public static final String RESOURCEKEY_LOGGINGIN = "loggingIn";
+    public static final String RESOURCEKEY_CONNECTEDTODB = "connectedToDb";
+    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
+    public static final String RESOURCEKEY_DBREADERROR = "dbReadError";
+    public static final String RESOURCEKEY_GETTINGAPPOINTMENTS = "gettingAppointments";
 
     //</editor-fold>
     
@@ -412,13 +419,13 @@ public class App extends Application {
         allLanguages.set(new AllLanguages(AppConfig.getLanguages()));
         
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(view.SchedulerController.getGlobalizationResourceName(view.login.LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.SchedulerController.getFXMLResourceName(view.login.LoginScene.class)), rb);
+            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
+            FXMLLoader loader = new FXMLLoader(LoginScene.class.getResource(SchedulerController.getFXMLResourceName(LoginScene.class)), rb);
             Scene scene = new Scene(loader.load());
             primaryStage.get().setScene(scene);
             stage.show();
         } catch (Throwable ex) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
             Alerts.showErrorAlert(resources.get().getString(RESOURCEKEY_FXMLLOADERERRORTITLE), resources.get().getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }
@@ -437,7 +444,7 @@ public class App extends Application {
     public class LoginTask extends TaskWaiter<UserRow> {
         private final String userName, password;
         public LoginTask(String userName, String password) {
-            super(getPrimaryStage(), getResources().getString("connectingToDb"), getResources().getString("loggingIn"));
+            super(getPrimaryStage(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;
         }
@@ -453,7 +460,7 @@ public class App extends Application {
                 }
                 Platform.runLater(() -> {
                     LOG.log(Level.INFO, "Updating message");
-                    updateMessage(getResources().getString("connectedToDb"));
+                    updateMessage(getResources().getString(RESOURCEKEY_CONNECTEDTODB));
                 });
                 LOG.log(Level.INFO, "Invoking UserRow.getByUserName");
                 result = UserRow.getByUserName(dep.getConnection(), userName);

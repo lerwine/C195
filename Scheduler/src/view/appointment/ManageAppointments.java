@@ -27,7 +27,7 @@ import view.TaskWaiter;
  */
 @GlobalizationResource("view/appointment/ManageAppointments")
 @FXMLResource("/view/appointment/ManageAppointments.fxml")
-public class ManageAppointments extends view.ListingController {
+public class ManageAppointments extends view.ListingController<AppointmentRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_CUSTOMER = "customer";
@@ -50,14 +50,17 @@ public class ManageAppointments extends view.ListingController {
     public static final String RESOURCEKEY_APPOINTMENTSONORBEFORE = "appointmentsOnOrBefore";
     public static final String RESOURCEKEY_APPOINTMENTSONDATE = "appointmentsOnDate";
     public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
+    public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
 //    public static final String RESOURCEKEY_EDIT = "edit";
 //    public static final String RESOURCEKEY_DELETE = "delete";
 //    public static final String RESOURCEKEY_CREATEDON = "createdOn";
 //    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
 //    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
 //    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
-
+    
     //</editor-fold>
+    
+    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
     
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
@@ -71,7 +74,9 @@ public class ManageAppointments extends view.ListingController {
     private final ChangeListener<? super SchedulerController> controllerChangeListener;
     
     private final ChangeListener<? super AppointmentRow> appointmentAddedListener;
-
+    
+    //<editor-fold defaultstate="collapsed" desc="Initialization">
+    
     @SuppressWarnings("Convert2Lambda")
     public ManageAppointments() {
         controllerChangeListener = new ChangeListener<SchedulerController>() {
@@ -99,32 +104,34 @@ public class ManageAppointments extends view.ListingController {
         assert headingLabel != null : String.format("fx:id=\"headingLabel\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
     }
-
+    
     public static void setAsRootContent() {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
             ManageAppointments controller = context.getController();
             collapseNode(controller.headingLabel);
         }, (ContentChangeContext<ManageAppointments> context) -> {
-            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), "Getting appointments", (Connection c) -> AppointmentRow.getAll(c),
+            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
+                    (Connection c) -> AppointmentRow.getAll(c),
                     (ObservableList<AppointmentRow> apptList) -> {
-                ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
-                itemsList.clear();
-                apptList.forEach((a) -> {
-                    itemsList.add(a);
-                });
-            }, (Exception ex) -> {
-                Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-                Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
-                context.getController().getItemsList().clear();
-            });
+                        ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
+                        itemsList.clear();
+                        apptList.forEach((a) -> {
+                            itemsList.add(a);
+                        });
+                    }, (Exception ex) -> {
+                        LOG.log(Level.SEVERE, null, ex);
+                        ResourceBundle rb = App.CURRENT.get().getResources();
+                        Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
+                        context.getController().getItemsList().clear();
+                    });
             RootController rootCtl = RootController.getCurrent();
             ManageAppointments c = context.getController();
             rootCtl.currentContentControllerProperty().addListener(c.controllerChangeListener);
             rootCtl.appointmentAddedProperty().addListener(c.appointmentAddedListener);
         });
     }
-
+    
     public static void setAsRootContent(AppointmentsFilter filter) {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             ResourceBundle rb = context.getResources();
@@ -137,20 +144,24 @@ public class ManageAppointments extends view.ListingController {
             else
                 controller.headingLabel.setText(subHeading);
         }, (ContentChangeContext<ManageAppointments> context) -> {
-            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), "Getting appointments", (Connection c) -> AppointmentRow.getByFilter(c, filter),
+            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
+                    (Connection c) -> AppointmentRow.getByFilter(c, filter),
                     (ObservableList<AppointmentRow> apptList) -> {
-                ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
-                itemsList.clear();
-                apptList.forEach((a) -> {
-                    itemsList.add(a);
-                });
-            }, (Exception ex) -> {
-                Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-                Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
-                context.getController().getItemsList().clear();
-            });
+                        ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
+                        itemsList.clear();
+                        apptList.forEach((a) -> {
+                            itemsList.add(a);
+                        });
+                    }, (Exception ex) -> {
+                        LOG.log(Level.SEVERE, null, ex);
+                        ResourceBundle rb = App.CURRENT.get().getResources();
+                        Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
+                        context.getController().getItemsList().clear();
+                    });
         });
     }
+    
+    //</editor-fold>
     
     @Override
     protected void onAddNewItem() {
@@ -158,12 +169,12 @@ public class ManageAppointments extends view.ListingController {
     }
 
     @Override
-    protected void onEditItem(DataRow item) {
+    protected void onEditItem(AppointmentRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(DataRow item) {
+    protected void onDeleteItem(AppointmentRow item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

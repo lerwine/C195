@@ -71,12 +71,14 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
     public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
     public static final String RESOURCEKEY_DELETE = "delete";
     public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
+    public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
     public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
     public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
     
     //</editor-fold>
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -120,6 +122,8 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
     
     //</editor-fold>
     
+    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+    
     //<editor-fold defaultstate="collapsed" desc="target property">
     
     private final ReadOnlyDataRowProperty<R> target;
@@ -146,7 +150,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
     
     //</editor-fold>
     
-    private EditItem() {
+    public EditItem() {
         result = new ShowAndWaitResult<>();
         stage = null;
         target = new ReadOnlyDataRowProperty<>();
@@ -177,8 +181,9 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
 
     @FXML
     private void deleteButtonClick(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.WARNING, "This action cannot be undone!\n\nAre you sure you want to delete this item?", ButtonType.YES, ButtonType.NO);
-        alert.setTitle("Confirm Delete");
+        ResourceBundle rb = getResources();
+        Alert alert = new Alert(Alert.AlertType.WARNING, rb.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        alert.setTitle(RESOURCEKEY_CONFIRMDELETE);
         alert.initStyle(StageStyle.UTILITY);
         // TODO: Show confirmation dialog
         result.deleteOperation.set(true);
@@ -186,7 +191,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
             result.getTarget().delete(dep.getConnection());
             result.successful.set(result.target.isDeleted().get());
         } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
-            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         if (stage != null)
             stage.hide();
@@ -199,7 +204,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
             result.getTarget().saveChanges(dep.getConnection());
             result.successful.set(result.target.isSaved().get());
         } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
-            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         if (stage != null)
             stage.hide();
@@ -278,7 +283,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
         } catch (Exception ex) {
             if (editItemRb != null)
                 Alerts.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
-            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE,
+            LOG.log(Level.SEVERE,
                         String.format("Unexpected error loading view and controller for %s", EditItem.class.getName()), ex);
             ShowAndWaitResult<R> resultObj = new ShowAndWaitResult<>();
             resultObj.fault.set(ex);
@@ -322,10 +327,9 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
         } catch (Exception ex) {
             Util.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
             if (contentClass == null)
-                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             else
-                Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE,
-                        String.format("Unexpected error opening %s as a child window",contentClass.getName()), ex);
+                LOG.log(Level.SEVERE, String.format("Unexpected error opening %s as a child window",contentClass.getName()), ex);
             editItem.result.fault.set(ex);
             if (editItem.contentController != null)
                 editItem.contentController.onError(editItem.result);
