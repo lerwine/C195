@@ -24,7 +24,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/Root")
 @FXMLResource("/view/Root.fxml")
-public class RootController extends Controller {
+public class RootController extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDRESS = "address";
@@ -132,13 +132,13 @@ public class RootController extends Controller {
     public model.db.UserRow getUserAdded() { return userAdded.get(); }
     public ReadOnlyObjectProperty<model.db.UserRow> userAddedProperty() { return userAdded.getReadOnlyProperty(); }
     
-    private final ReadOnlyObjectWrapper<Controller> contentControllerChanging;
-    public Controller getContentControllerChanging() { return contentControllerChanging.get(); }
-    public ReadOnlyObjectProperty<Controller> contentControllerChangingProperty() { return contentControllerChanging.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<SchedulerController> contentControllerChanging;
+    public SchedulerController getContentControllerChanging() { return contentControllerChanging.get(); }
+    public ReadOnlyObjectProperty<SchedulerController> contentControllerChangingProperty() { return contentControllerChanging.getReadOnlyProperty(); }
     
-    private final ReadOnlyObjectWrapper<Controller> currentContentController;
-    public Controller getCurrentContentController() { return currentContentController.get(); }
-    public ReadOnlyObjectProperty<Controller> currentContentControllerProperty() { return currentContentController.getReadOnlyProperty(); }
+    private final ReadOnlyObjectWrapper<SchedulerController> currentContentController;
+    public SchedulerController getCurrentContentController() { return currentContentController.get(); }
+    public ReadOnlyObjectProperty<SchedulerController> currentContentControllerProperty() { return currentContentController.getReadOnlyProperty(); }
 
     //</editor-fold>
     
@@ -270,7 +270,7 @@ public class RootController extends Controller {
     
     //</editor-fold>
     
-    public void setContent(Node content, Controller controller) {
+    public void setContent(Node content, SchedulerController controller) {
         contentControllerChanging.set(controller);
         contentPane.getChildren().clear();
         contentPane.setCenter(content);
@@ -281,8 +281,8 @@ public class RootController extends Controller {
     public static void setAsRootStageScene() {
         scheduler.App app = scheduler.App.CURRENT.get(); 
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(RootController.class.getResource(view.Controller.getFXMLResourceName(RootController.class)), rb);
+            ResourceBundle rb = ResourceBundle.getBundle(view.SchedulerController.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
+            FXMLLoader loader = new FXMLLoader(RootController.class.getResource(view.SchedulerController.getFXMLResourceName(RootController.class)), rb);
             Scene scene = new Scene(loader.load());
             current = (RootController)loader.getController();
             app.getPrimaryStage().setScene(scene);

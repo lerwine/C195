@@ -79,7 +79,7 @@ public class ManageCountries extends view.ListingController {
     }
     
     public static void setAsRootContent() {
-        setAsRootContent(ManageCountries.class, (view.Controller.ContentChangeContext<ManageCountries> context) -> {
+        setAsRootContent(ManageCountries.class, (view.SchedulerController.ContentChangeContext<ManageCountries> context) -> {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
             scheduler.Util.showErrorAlert("Not Implemented", "Need to initialize country list");
         });

@@ -5,10 +5,7 @@
  */
 package view;
 
-import com.mysql.jdbc.Connection;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,14 +16,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Labeled;
-import javafx.stage.StageStyle;
 import expressions.NonNullableStringProperty;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
-import scheduler.App;
-import util.SqlConnectionDependency;
 
 /**
  * Base class for controllers.
@@ -35,7 +28,7 @@ import util.SqlConnectionDependency;
  * resource bundle to load with the target FXML resource.
  * @author Leonard T. Erwine
  */
-public abstract class Controller {
+public abstract class SchedulerController {
     
     @FXML // ResourceBundle injected by the FXMLLoader
     private ResourceBundle resources;
@@ -68,7 +61,7 @@ public abstract class Controller {
                     ctlClass.getName());
         } else
             message = String.format("Annotation scene.annotations.FXMLResourceName not present in type %s", ctlClass.getName());
-        Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, message);
+        Logger.getLogger(SchedulerController.class.getName()).log(Level.SEVERE, message);
         return null;
     }
     
@@ -95,22 +88,8 @@ public abstract class Controller {
                     ctlClass.getName());
         } else
             message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", ctlClass.getName());
-        Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, message);
-        return App.GLOBALIZATION_RESOURCE_NAME;
-    }
-
-    @Deprecated
-    protected static void withDbConnection(Consumer<Connection> consumer) throws SQLException {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Loading data from database");
-        alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle("Initializing");
-        alert.show();
-        // Open a new SQL connection dependency.
-        try {
-            try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
-                consumer.accept(dep.getConnection());
-            }
-        } finally { alert.close(); }
+        Logger.getLogger(SchedulerController.class.getName()).log(Level.SEVERE, message);
+        return scheduler.App.GLOBALIZATION_RESOURCE_NAME;
     }
 
     /**
@@ -120,7 +99,7 @@ public abstract class Controller {
      * @param <C>
      *          The type of controller associated with the target FXML resource.
      */
-    public static class ContentChangeContextFactory<C extends Controller> implements Supplier<ContentChangeContext<C>> {
+    public static class ContentChangeContextFactory<C extends SchedulerController> implements Supplier<ContentChangeContext<C>> {
         private final ContentChangeContext<C> context;
         
         /**
@@ -179,7 +158,7 @@ public abstract class Controller {
      * @param <C>
      *          The type of controller associated with the target {@link javafx.scene.Parent} node.
      */
-    public static class ContentChangeContext<C extends Controller> {
+    public static class ContentChangeContext<C extends SchedulerController> {
         //<editor-fold defaultstate="collapsed" desc="controller property">
         
         private final ReadOnlyObjectWrapper<C> controller = new ReadOnlyObjectWrapper<>();

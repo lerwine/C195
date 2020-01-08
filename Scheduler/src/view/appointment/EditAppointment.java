@@ -1,6 +1,6 @@
 package view.appointment;
 
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
@@ -40,7 +40,7 @@ import model.db.AppointmentRow;
 import model.db.CustomerRow;
 import model.db.UserRow;
 import scheduler.InvalidOperationException;
-import util.SqlConnectionDependency;
+import util.DbConnector;
 import util.Alerts;
 import view.EditItem;
 import view.annotations.FXMLResource;
@@ -53,7 +53,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/appointment/EditAppointment")
 @FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends view.Controller implements view.ItemController<AppointmentRow> {
+public class EditAppointment extends view.SchedulerController implements view.ItemController<AppointmentRow> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -398,11 +398,11 @@ public class EditAppointment extends view.Controller implements view.ItemControl
         timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
-        try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+        try (DbConnector dep = new DbConnector()) {
             Connection connection = dep.getConnection();
             customers = FXCollections.observableArrayList(CustomerRow.getActive(connection));
             users = FXCollections.observableArrayList(UserRow.getActive(connection));
-        } catch (SQLException ex) {
+        } catch (SQLException | ClassNotFoundException ex) {
             if (customers == null)
                 customers = FXCollections.observableArrayList();
             if (users == null)
@@ -467,11 +467,11 @@ public class EditAppointment extends view.Controller implements view.ItemControl
                 return false;
         }
         try {
-            try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+            try (DbConnector dep = new DbConnector()) {
                 updateModel(context.getTarget()).saveChanges(dep.getConnection());
                 return true;
             }
-        } catch (SQLException | InvalidOperationException ex) {
+        } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
             Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;

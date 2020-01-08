@@ -1,27 +1,21 @@
 package view.login;
 
-import concurrent.SqlConnectionTask;
-import concurrent.TaskWaiter;
 import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import model.db.UserRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import util.Alerts;
@@ -33,7 +27,7 @@ import util.Bindings;
  */
 @GlobalizationResource("view/login/LoginScene")
 @FXMLResource("/view/login/LoginScene.fxml")
-public class LoginScene extends view.Controller {
+public class LoginScene extends view.SchedulerController {
     private static final Logger LOG = Logger.getLogger(LoginScene.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
@@ -159,7 +153,7 @@ public class LoginScene extends view.Controller {
                 view.RootController.setAsRootStageScene();
             else
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-        } catch (SQLException ex) {
+        } catch (SQLException | ClassNotFoundException ex) {
             Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
             LOG.log(Level.SEVERE, "Login Exception", ex);
         }

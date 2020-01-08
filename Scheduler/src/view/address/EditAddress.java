@@ -1,6 +1,6 @@
 package view.address;
 
-import view.Controller;
+import view.SchedulerController;
 import view.EditItem;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
@@ -19,7 +19,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/address/EditAddress")
 @FXMLResource("/view/address/EditAddress.fxml")
-public class EditAddress extends Controller implements view.ItemController<AddressRow> {
+public class EditAddress extends SchedulerController implements view.ItemController<AddressRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";

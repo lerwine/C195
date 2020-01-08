@@ -5,7 +5,7 @@
  */
 package scheduler;
 
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,24 +15,20 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.function.Function;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Labeled;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.junit.After;
@@ -41,6 +37,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import util.Bindings;
 
 /**
  *
@@ -88,32 +85,62 @@ public class utilTest {
         }
     }
     
-    @Test
-    public void testAddressTableAssertions() throws SQLException, ClassNotFoundException {
-        Class.forName("com.mysql.jdbc.Driver");
-        String url = "jdbc:mysql://3.227.166.251/U03vHM";
-        try (Connection conn = (Connection)DriverManager.getConnection(url, "U03vHM", "53688096290"); PreparedStatement ps = conn.prepareStatement("SELECT * FROM appointments"); ResultSet rs = ps.executeQuery()) {
-            assertTrue(rs.next());
-            ResultSetMetaData metadata = rs.getMetaData();
-            int index = rs.findColumn("start");
-            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-            index = rs.findColumn("end");
-            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-            index = rs.findColumn("createDate");
-            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-            index = rs.findColumn("lastUpdate");
-            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+//    @Test
+//    public void testAddressTableAssertions() throws SQLException, ClassNotFoundException {
+//        Class.forName("com.mysql.jdbc.Driver");
+//        String url = "jdbc:mysql://3.227.166.251/U03vHM";
+//        try (Connection conn = (Connection)DriverManager.getConnection(url, "U03vHM", "53688096290"); PreparedStatement ps = conn.prepareStatement("SELECT * FROM appointments"); ResultSet rs = ps.executeQuery()) {
+//            assertTrue(rs.next());
+//            ResultSetMetaData metadata = rs.getMetaData();
+//            int index = rs.findColumn("start");
+//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+//            index = rs.findColumn("end");
+//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+//            index = rs.findColumn("createDate");
+//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+//            index = rs.findColumn("lastUpdate");
+//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
+//        }
+//    }
+    
+    class TestClassA implements IntSupplier {
+        private int value = 0;
+        private final Object monitor = new Object();
+        synchronized int testA(IntSupplier supplier) {
+            return supplier.getAsInt();
+        }
+        synchronized int testB(int value) {
+            return testA(this) + value;
+        }
+
+        @Override
+        public int getAsInt() {
+            synchronized (monitor) {
+                return ++value;
+            }
         }
     }
     
     /**
-     * Test of asTrimmedAndNotNull method, of class util.
+     * Test assumed monitor behavior.
+     */
+    @Test
+    public void testMonitorAssertions() {
+        int value = 5;
+        TestClassA target = new TestClassA();
+        int expected = 6;
+        int actual = target.testB(value);
+        assertEquals(actual, expected);
+    }
+    
+    /**
+     * Test of asTrimmedAndNotNull method, of class Bindings.
      */
     @Test
     public void testAsTrimmedAndNotNull() {
         System.out.println("asTrimmedAndNotNull: Initialize target controls for property binding");
         TextField targetControl = new TextField();
-        StringBinding targetBinding = Util.asTrimmedAndNotNull(targetControl.textProperty());
+        StringBinding targetBinding = Bindings.asTrimmedAndNotNull(targetControl.textProperty());
 
         System.out.println("asTrimmedAndNotNull: A string with extraneous whitespace should produce a string with the extraneous space removed.");
         String inputString = " test\r\n";
@@ -141,13 +168,13 @@ public class utilTest {
     }
 
     /**
-     * Test of notNullOrWhiteSpace method, of class util.
+     * Test of notNullOrWhiteSpace method, of class Bindings.
      */
     @Test
     public void testNotNullOrWhiteSpace() {
         System.out.println("notNullOrWhiteSpace: Initialize target controls for property binding");
         TextField targetControl = new TextField();
-        BooleanBinding targetBinding = Util.notNullOrWhiteSpace(targetControl.textProperty());
+        BooleanBinding targetBinding = Bindings.notNullOrWhiteSpace(targetControl.textProperty());
         
         System.out.println("notNullOrWhiteSpace: A string with a non-whitespace character should return true.");
         String inputString = "!";
@@ -186,7 +213,7 @@ public class utilTest {
     }
 
     /**
-     * Test of asLocalDateTime method, of class util.
+     * Test of asLocalDateTime method, of class Bindings.
      */
     @Test
     public void testAsLocalDateTime() {
@@ -198,7 +225,7 @@ public class utilTest {
         ComboBox<Integer> targetMinuteControl = new ComboBox();
         ObservableList<Integer> minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
         targetMinuteControl.setItems(minuteOptions);
-        ObjectBinding<LocalDateTime> targetBinding = Util.asLocalDateTime(targetDateControl.valueProperty(), targetHourControl.valueProperty(), targetMinuteControl.valueProperty());
+        ObjectBinding<LocalDateTime> targetBinding = Bindings.asLocalDateTime(targetDateControl.valueProperty(), targetHourControl.valueProperty(), targetMinuteControl.valueProperty());
         
         System.out.println("asLocalDateTime: When nothing is selected, a null value should be returned");
         LocalDateTime result = targetBinding.get();
@@ -240,7 +267,7 @@ public class utilTest {
     }
 
     /**
-     * Test of isRangeUndefinedOrValid method, of class util.
+     * Test of isRangeUndefinedOrValid method, of class Bindings.
      */
     @Test
     public void testIsRangeUndefinedOrValid() {
@@ -252,7 +279,7 @@ public class utilTest {
         targetStartHourControl.setItems(hourOptions);
         ComboBox<Integer> targetStartMinuteControl = new ComboBox();
         targetStartMinuteControl.setItems(minuteOptions);
-        ObjectExpression<LocalDateTime> targetStartExpression = Util.asLocalDateTime(targetStartDateControl.valueProperty(), targetStartHourControl.valueProperty(), targetStartMinuteControl.valueProperty());
+        ObjectExpression<LocalDateTime> targetStartExpression = Bindings.asLocalDateTime(targetStartDateControl.valueProperty(), targetStartHourControl.valueProperty(), targetStartMinuteControl.valueProperty());
         
         System.out.println("isRangeUndefinedOrValid: Initialize range end target controls for property binding");
         DatePicker targetEndDateControl = new DatePicker();
@@ -260,10 +287,10 @@ public class utilTest {
         targetEndHourControl.setItems(hourOptions);
         ComboBox<Integer> targetEndMinuteControl = new ComboBox();
         targetEndMinuteControl.setItems(minuteOptions);
-        ObjectExpression<LocalDateTime> targetEndExpression = Util.asLocalDateTime(targetEndDateControl.valueProperty(), targetEndHourControl.valueProperty(), targetEndMinuteControl.valueProperty());
+        ObjectExpression<LocalDateTime> targetEndExpression = Bindings.asLocalDateTime(targetEndDateControl.valueProperty(), targetEndHourControl.valueProperty(), targetEndMinuteControl.valueProperty());
         
         System.out.println("isRangeUndefinedOrValid: Initialize target binding");
-        BooleanBinding targetBinding = Util.isRangeUndefinedOrValid(targetStartExpression, targetEndExpression);
+        BooleanBinding targetBinding = Bindings.isRangeUndefinedOrValid(targetStartExpression, targetEndExpression);
         
         System.out.println("isRangeUndefinedOrValid: Should produce a true value if nothing is selected");
         boolean expResult = true;

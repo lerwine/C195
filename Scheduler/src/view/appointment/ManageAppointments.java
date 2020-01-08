@@ -1,6 +1,6 @@
 package view.appointment;
 
-import com.mysql.jdbc.Connection;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -16,8 +16,10 @@ import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import model.db.AppointmentsFilter;
 import model.db.DataRow;
-import util.SqlConnectionDependency;
+import util.DbConnector;
 import util.Alerts;
+import view.RootController;
+import view.SchedulerController;
 
 /**
  * FXML Controller class
@@ -67,17 +69,17 @@ public class ManageAppointments extends view.ListingController {
     
     private AppointmentsFilter currentFilter;
     
-    private final ChangeListener<? super view.Controller> controllerChangeListener;
+    private final ChangeListener<? super SchedulerController> controllerChangeListener;
     
     private final ChangeListener<? super AppointmentRow> appointmentAddedListener;
 
     @SuppressWarnings("Convert2Lambda")
     public ManageAppointments() {
-        controllerChangeListener = new ChangeListener<view.Controller>() {
+        controllerChangeListener = new ChangeListener<SchedulerController>() {
             @Override
-            public void changed(ObservableValue<? extends view.Controller> observable, view.Controller oldValue, view.Controller newValue) {
+            public void changed(ObservableValue<? extends SchedulerController> observable, SchedulerController oldValue, SchedulerController newValue) {
                 if (oldValue != null && oldValue == ManageAppointments.this) {
-                    view.RootController rootCtl = view.RootController.getCurrent();
+                    RootController rootCtl = RootController.getCurrent();
                     rootCtl.currentContentControllerProperty().removeListener(controllerChangeListener);
                     rootCtl.appointmentAddedProperty().removeListener(appointmentAddedListener);
                 }
@@ -105,9 +107,9 @@ public class ManageAppointments extends view.ListingController {
             ManageAppointments controller = context.getController();
             collapseNode(controller.headingLabel);
             ObservableList<AppointmentRow> apptList;
-            try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+            try (DbConnector dep = new DbConnector()) {
                 apptList = AppointmentRow.getAll(dep.getConnection());
-            } catch (SQLException ex) {
+            } catch (SQLException | ClassNotFoundException ex) {
                 Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
                 Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
                 apptList = FXCollections.observableArrayList();
@@ -117,7 +119,7 @@ public class ManageAppointments extends view.ListingController {
             for (AppointmentRow a : apptList)
                 itemsList.add(a);
         }, (ContentChangeContext<ManageAppointments> context) -> {
-            view.RootController rootCtl = view.RootController.getCurrent();
+            RootController rootCtl = RootController.getCurrent();
             ManageAppointments c = context.getController();
             rootCtl.currentContentControllerProperty().addListener(c.controllerChangeListener);
             rootCtl.appointmentAddedProperty().addListener(c.appointmentAddedListener);
@@ -138,13 +140,8 @@ public class ManageAppointments extends view.ListingController {
                 controller.headingLabel.setText(subHeading);
             ObservableList<AppointmentRow> apptList;
             try {
-                apptList = SqlConnectionDependency.get((Connection connection) -> {
-                    try {
-                        return AppointmentRow.getByFilter(connection, filter);
-                    } catch (SQLException ex) {
-                        Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-                        throw new RuntimeException("Error getting appointments by filter", ex);
-                    }
+                apptList = DbConnector.call((Connection connection) -> {
+                    return AppointmentRow.getByFilter(connection, filter);
                 });
             } catch (Exception ex) {
                 Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
@@ -160,7 +157,7 @@ public class ManageAppointments extends view.ListingController {
     
     @Override
     protected void onAddNewItem() {
-        view.RootController.getCurrent().addNewAppointment();
+        RootController.getCurrent().addNewAppointment();
     }
 
     @Override

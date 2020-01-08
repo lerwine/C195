@@ -38,7 +38,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
 import scheduler.InvalidOperationException;
-import util.SqlConnectionDependency;
+import util.DbConnector;
 import scheduler.Util;
 import util.Alerts;
 import view.annotations.FXMLResource;
@@ -52,7 +52,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/EditItem")
 @FXMLResource("/view/EditItem.fxml")
-public class EditItem<R extends model.db.DataRow> extends Controller {
+public class EditItem<R extends model.db.DataRow> extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="fields">
     
     private Stage stage;
@@ -182,10 +182,10 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
         alert.initStyle(StageStyle.UTILITY);
         // TODO: Show confirmation dialog
         result.deleteOperation.set(true);
-        try (SqlConnectionDependency dep =  new SqlConnectionDependency()) {
+        try (DbConnector dep =  new DbConnector()) {
             result.getTarget().delete(dep.getConnection());
             result.successful.set(result.target.isDeleted().get());
-        } catch (SQLException | InvalidOperationException ex) {
+        } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
             Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (stage != null)
@@ -195,10 +195,10 @@ public class EditItem<R extends model.db.DataRow> extends Controller {
     @FXML
     private void saveChangesButtonClick(ActionEvent event) {
         result.deleteOperation.set(true);
-        try (SqlConnectionDependency dep =  new SqlConnectionDependency()) {
+        try (DbConnector dep =  new DbConnector()) {
             result.getTarget().saveChanges(dep.getConnection());
             result.successful.set(result.target.isSaved().get());
-        } catch (SQLException | InvalidOperationException ex) {
+        } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
             Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (stage != null)

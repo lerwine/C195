@@ -305,8 +305,8 @@ public class TaskWaiter<T> extends Task<T> {
     @Override
     protected T call() throws Exception {
         Platform.runLater(() -> {
-            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(TaskWaiter.class), Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.Controller.getFXMLResourceName(TaskWaiter.class)), rb);
+            ResourceBundle rb = ResourceBundle.getBundle(view.SchedulerController.getGlobalizationResourceName(TaskWaiter.class), Locale.getDefault(Locale.Category.DISPLAY));
+            FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.SchedulerController.getFXMLResourceName(TaskWaiter.class)), rb);
             loader.setController(this);
             final Parent newParent;
             try {

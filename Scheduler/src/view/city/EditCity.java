@@ -18,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/city/EditCity")
 @FXMLResource("/view/city/EditCity.fxml")
-public class EditCity extends view.Controller implements view.ItemController<CityRow> {
+public class EditCity extends view.SchedulerController implements view.ItemController<CityRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";

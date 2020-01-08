@@ -31,7 +31,7 @@ import scheduler.Util;
  * @param <R>
  *          The type of object being presented in the listing.
  */
-public abstract class ListingController<R extends model.db.DataRow> extends Controller {
+public abstract class ListingController<R extends model.db.DataRow> extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="itemsList">
     
     private final ObservableList<R> itemsList = FXCollections.observableArrayList();

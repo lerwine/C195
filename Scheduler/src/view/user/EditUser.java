@@ -34,7 +34,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/EditUser")
 @FXMLResource("/view/user/EditUser.fxml")
-public class EditUser extends view.Controller implements view.ItemController<UserRow> {
+public class EditUser extends view.SchedulerController implements view.ItemController<UserRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";

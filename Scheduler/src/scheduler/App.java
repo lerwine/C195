@@ -1,6 +1,6 @@
 package scheduler;
 
-import util.SqlConnectionDependency;
+import util.DbConnector;
 import java.sql.Connection;
 import concurrent.SqlConnectionTask;
 import view.appointment.EditAppointment;
@@ -406,8 +406,8 @@ public class App extends Application {
         allLanguages.set(new AllLanguages(AppConfig.getLanguages()));
         
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(view.Controller.getGlobalizationResourceName(view.login.LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.Controller.getFXMLResourceName(view.login.LoginScene.class)), rb);
+            ResourceBundle rb = ResourceBundle.getBundle(view.SchedulerController.getGlobalizationResourceName(view.login.LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
+            FXMLLoader loader = new FXMLLoader(view.login.LoginScene.class.getResource(view.SchedulerController.getFXMLResourceName(view.login.LoginScene.class)), rb);
             Scene scene = new Scene(loader.load());
             primaryStage.get().setScene(scene);
             stage.show();
@@ -419,7 +419,7 @@ public class App extends Application {
     
     @Override
     public void stop() throws Exception {
-        SqlConnectionDependency.forceClose();
+        DbConnector.forceClose();
         // Resotre original locale settings
         Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale.get());
         Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale.get());
@@ -427,10 +427,19 @@ public class App extends Application {
     }
     
     //</editor-fold>
-    
-    public boolean tryLoginUser(String userName, String password) throws SQLException {
+
+    /**
+     * Looks up a user from the database and sets the current application user if the password hash matches.
+     * 
+     * @param userName The login name for the user to look up.
+     * @param password The raw password provided by the user.
+     * @return {@code true} if a user was found matching the specified {@link userName} and {@link password}; otherwise, false.
+     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
+     * @throws ClassNotFoundException if the SQL database driver class was not found.
+     */
+    public boolean tryLoginUser(String userName, String password) throws SQLException, ClassNotFoundException {
         Optional<UserRow> result;
-        try (SqlConnectionDependency dep = new SqlConnectionDependency()) {
+        try (DbConnector dep = new DbConnector()) {
             result = UserRow.getByUserName(dep.getConnection(), userName);
         }
         if (result.isPresent()) {

@@ -19,7 +19,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/customer/EditCustomer")
 @FXMLResource("/view/customer/EditCustomer.fxml")
-public class EditCustomer extends view.Controller implements view.ItemController<CustomerRow> {
+public class EditCustomer extends view.SchedulerController implements view.ItemController<CustomerRow> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVE = "active";
