@@ -8,7 +8,6 @@ package view;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -20,7 +19,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
@@ -88,7 +86,8 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
             Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
-            verifyDeleteItem(item);
+            onDeleteItem(item);
+//            verifyDeleteItem(item);
     }
 
     @FXML
@@ -117,7 +116,8 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
         if (item == null)
             return;
         if (event.getCode() == KeyCode.DELETE)
-            verifyDeleteItem(item);
+            onDeleteItem(item);
+//            verifyDeleteItem(item);
         else if (event.getCode() == KeyCode.ENTER)
             onEditItem(item);
     }
@@ -125,12 +125,12 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
     @FXML
     protected void newButtonClick(ActionEvent event) { onAddNewItem(); }
 
-    private void verifyDeleteItem(R item) {
-        ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
-        Optional<ButtonType> response = Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            onDeleteItem(item);
-    }
+//    private void verifyDeleteItem(R item) {
+//        ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+//        Optional<ButtonType> response = Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+//        if (response.isPresent() && response.get() == ButtonType.YES)
+//            onDeleteItem(item);
+//    }
 
     protected abstract void onAddNewItem();
 

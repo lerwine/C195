@@ -22,7 +22,6 @@ import javafx.stage.StageStyle;
 import model.db.*;
 import scheduler.App;
 import util.Alerts;
-import util.DbConnectedCallable;
 import util.DbConnector;
 import view.address.EditAddress;
 import view.annotations.FXMLResource;
@@ -38,7 +37,8 @@ import view.user.EditUser;
 import view.user.ManageUsers;
 
 /**
- * FXML Controller class
+ * Root FXML Controller class
+ * This also serves as the hub for all CRUD operations.
  *
  * @author Leonard T. Erwine
  */
@@ -128,40 +128,153 @@ public class RootController extends SchedulerController {
     
     private static final Logger LOG = Logger.getLogger(RootController.class.getName());
 
-    //<editor-fold defaultstate="collapsed" desc="Event handler delegates">
+    //<editor-fold defaultstate="collapsed" desc="JavaFX Properties">
+    
+    //<editor-fold defaultstate="collapsed" desc="Create/Update/Delete operation properties">
+    
+    //<editor-fold defaultstate="collapsed" desc="Appointment Create/Update/Delete op results">
     
     private final ReadOnlyObjectWrapper<CrudAction<AppointmentRow>> appointmentUpdated;
+    
+    /**
+     * Gets the last {@link model.db.AppointmentRow} that was added, modified or deleted.
+     * @return The last {@link model.db.AppointmentRow} that was added, modified or deleted.
+     */
     public CrudAction<AppointmentRow> getAppointmentAdded() { return appointmentUpdated.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.AppointmentRow} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.AppointmentRow} that was added, modified or deleted.
+     */
     public ReadOnlyObjectProperty<CrudAction<AppointmentRow>> appointmentAddedProperty() { return appointmentUpdated.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Customer Create/Update/Delete op results">
+    
     private final ReadOnlyObjectWrapper<CrudAction<CustomerRow>> customerUpdated;
+    
+    /**
+     * Gets the last {@link model.db.CustomerRow} that was added, modified or deleted.
+     * @return The last {@link model.db.CustomerRow} that was added, modified or deleted.
+     */
     public CrudAction<CustomerRow> getCustomerAdded() { return customerUpdated.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CustomerRow} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.CustomerRow} that was added, modified or deleted.
+     */
     public ReadOnlyObjectProperty<CrudAction<CustomerRow>> customerAddedProperty() { return customerUpdated.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Country Create/Update/Delete op results">
+    
     private final ReadOnlyObjectWrapper<CrudAction<CountryRow>> countryUpdated;
+    
+    /**
+     * Gets the last {@link model.db.CountryRow} that was added, modified or deleted.
+     * @return The last {@link model.db.CountryRow} that was added, modified or deleted.
+     */
     public CrudAction<CountryRow> getCountryAdded() { return countryUpdated.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CountryRow} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.CountryRow} that was added, modified or deleted.
+     */
     public ReadOnlyObjectProperty<CrudAction<CountryRow>> countryAddedProperty() { return countryUpdated.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="City Create/Update/Delete op results">
+    
     private final ReadOnlyObjectWrapper<CrudAction<CityRow>> cityUpdated;
+    
+    /**
+     * Gets the last {@link model.db.CityRow} that was added, modified or deleted.
+     * @return The last {@link model.db.CityRow} that was added, modified or deleted.
+     */
     public CrudAction<CityRow> getCityAdded() { return cityUpdated.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CityRow} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.CityRow} that was added, modified or deleted.
+     */
     public ReadOnlyObjectProperty<CrudAction<CityRow>> cityAddedProperty() { return cityUpdated.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="Address Create/Update/Delete op results">
+    
     private final ReadOnlyObjectWrapper<CrudAction<AddressRow>> addressUpdated;
+    
+    /**
+     * Gets the last {@link model.db.AddressRow} that was added, modified or deleted.
+     * @return The last {@link model.db.AddressRow} that was added, modified or deleted.
+     */
     public CrudAction<AddressRow> getAddressAdded() { return addressUpdated.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.AddressRow} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.AddressRow} that was added, modified or deleted.
+     */
     public ReadOnlyObjectProperty<CrudAction<AddressRow>> addressAddedProperty() { return addressUpdated.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="User Create/Update/Delete op results">
+    
     private final ReadOnlyObjectWrapper<CrudAction<UserRow>> userUpdated;
+    
+    /**
+     * Gets the last {@link model.db.UserRow} that was added, modified or deleted.
+     * @return The last {@link model.db.UserRow} that was added, modified or deleted.
+     */
     public CrudAction<UserRow> getUserAdded() { return userUpdated.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.UserRow} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.UserRow} that was added, modified or deleted.
+     */
     public ReadOnlyObjectProperty<CrudAction<UserRow>> userAddedProperty() { return userUpdated.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Content/Controller Changing">
+    
     private final ReadOnlyObjectWrapper<SchedulerController> contentControllerChanging;
+    
+    /**
+     * Gets the prospective {@link view.SchedulerController} that is associated with the {@link javafx.scene.Node} that will become the contents of the {@link contentPane}.
+     * @return The prospective {@link view.SchedulerController} that is associated with the {@link javafx.scene.Node} that will become the contents of the {@link contentPane}.
+     */
     public SchedulerController getContentControllerChanging() { return contentControllerChanging.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for then the contents of the {@link contentPane} and its associated controller is about to change.
+     * @return A JavaFX property that contains the prospective {@link view.SchedulerController} that is associated with the {@link javafx.scene.Node} that will become the contents of the {@link contentPane}.
+     */
     public ReadOnlyObjectProperty<SchedulerController> contentControllerChangingProperty() { return contentControllerChanging.getReadOnlyProperty(); }
     
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Content/Controller changed">
+    
     private final ReadOnlyObjectWrapper<SchedulerController> currentContentController;
+    
+    /**
+     * Gets the {@link view.SchedulerController} that is associated with the {@link javafx.scene.Node} that is the contents of the {@link contentPane}.
+     * @return The {@link view.SchedulerController} that is associated with the {@link javafx.scene.Node} that is the contents of the {@link contentPane}.
+     */
     public SchedulerController getCurrentContentController() { return currentContentController.get(); }
+    
+    /**
+     * Gets a JavaFX property that can be used to listen for then the contents of the {@link contentPane} and its associated controller has changed.
+     * @return A JavaFX property that contains the {@link view.SchedulerController} that is associated with the {@link javafx.scene.Node} that is the contents of the {@link contentPane}.
+     */
     public ReadOnlyObjectProperty<SchedulerController> currentContentControllerProperty() { return currentContentController.getReadOnlyProperty(); }
-
+    
+    //</editor-fold>
+    
     //</editor-fold>
     
     public RootController() {
