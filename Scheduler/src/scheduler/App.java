@@ -2,7 +2,6 @@ package scheduler;
 
 import util.DbConnector;
 import java.sql.Connection;
-import concurrent.SqlConnectionTask;
 import view.appointment.EditAppointment;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -18,6 +17,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -36,11 +38,15 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.db.UserRow;
 import util.Alerts;
+import view.RootController;
+import view.TaskWaiter;
 
 /**
  * Application class for Scheduler
@@ -428,6 +434,89 @@ public class App extends Application {
     
     //</editor-fold>
 
+    public class LoginTask extends TaskWaiter<UserRow> {
+        private final String userName, password;
+        public LoginTask(String userName, String password) {
+            super(getPrimaryStage(), getResources().getString("connectingToDb"), getResources().getString("loggingIn"));
+            this.userName = userName;
+            this.password = password;
+        }
+
+        @Override
+        protected UserRow getResult() throws Exception {
+            LOG.log(Level.INFO, "Task getResult overload invoked");
+            Optional<UserRow> result;
+            try (DbConnector dep = new DbConnector()) {
+                if (dep.getState() != DbConnector.STATE_CONNECTED) {
+                    LOG.log(Level.INFO, "Not connected");
+                    return null;
+                }
+                Platform.runLater(() -> {
+                    LOG.log(Level.INFO, "Updating message");
+                    updateMessage(getResources().getString("connectedToDb"));
+                });
+                LOG.log(Level.INFO, "Invoking UserRow.getByUserName");
+                result = UserRow.getByUserName(dep.getConnection(), userName);
+            }
+            if (result.isPresent()) {
+                LOG.log(Level.INFO, "User found");
+                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
+                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
+                // as the stored password. If the password is correct, then the hash values will match.
+                if (result.get().getPasswordHash().test(password)) {
+                    LOG.log(Level.INFO, "Password matched");
+                    currentUser.set(result.get());
+                    LOG.log(Level.INFO, "Returning from tryLoginUser");
+                    return result.get();
+                }
+                LOG.log(Level.WARNING, "Password mismatch");
+            } else
+                LOG.log(Level.WARNING, "No matching userName found");
+            LOG.log(Level.INFO, "Returning from tryLoginUser");
+            return null;
+        }
+        
+    }
+    
+    public void tryLoginUser(String userName, String password, Consumer<Exception> onNotSucceeded) {
+        LoginTask task = new LoginTask(userName, password);
+        EventHandler<WorkerStateEvent> handler = (event) -> {
+            LOG.log(Level.INFO, "Task completion handler invoked");
+            try {
+                UserRow user = task.get();
+                if (user == null) {
+                    if (onNotSucceeded != null) {
+                        if (Platform.isFxApplicationThread())
+                            onNotSucceeded.accept(null);
+                        else
+                            Platform.runLater(() -> {
+                                onNotSucceeded.accept(null);
+                            });
+                    }
+                } else if (Platform.isFxApplicationThread()) {
+                    RootController.setAsRootStageScene();
+                } else
+                    Platform.runLater(() -> {
+                        RootController.setAsRootStageScene();
+                    });
+            } catch (InterruptedException | ExecutionException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+                if (onNotSucceeded != null) {
+                    if (Platform.isFxApplicationThread())
+                        onNotSucceeded.accept(ex);
+                    else
+                        Platform.runLater(() -> {
+                            onNotSucceeded.accept(ex);
+                        });
+                }
+            }
+        };
+        task.setOnCancelled(handler);
+        task.setOnFailed(handler);
+        task.setOnSucceeded(handler);
+        TaskWaiter.execute(task);
+    }
+    
     /**
      * Looks up a user from the database and sets the current application user if the password hash matches.
      * 
@@ -457,32 +546,6 @@ public class App extends Application {
             LOG.log(Level.WARNING, "No matching userName found");
         return false;
     }
-//    public TaskWaiter<UserRow> getLoginUserTask(String userName, String password) {
-//        return TaskWaiter.fromSupplier(getPrimaryStage(), new DbConnectedSupplier<UserRow>() {
-//            @Override
-//            public UserRow get(Connection c) throws Exception {
-//                Optional<UserRow> user = UserRow.getByUserName(c, userName);
-//                if (user.isPresent()) {
-//                    LOG.info("User found");
-//                    // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
-//                    // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
-//                    // as the stored password. If the password is correct, then the hash values will match.
-//                    if (user.get().getPasswordHash().test(password)) {
-//                        LOG.info("Password matched");
-//                        Platform.runLater(() -> {
-//                            currentUser.set(user.get());
-//                            view.RootController.setAsRootStageScene();
-//                        });
-//                        LOG.exiting(getClass().getName(), "tryLoginUser");
-//                        return user.get();
-//                    }
-//                } else
-//                    LOG.log(Level.WARNING, "No matching userName found");
-//                LOG.exiting(getClass().getName(), "tryLoginUser");
-//                return null;
-//            }
-//        });
-//    }
     
     private class AppointmentTypes implements ObservableMap<String, String> {
         private final ObservableMap<String, String> backingMap;
@@ -703,40 +766,5 @@ public class App extends Application {
 
         @Override
         public void removeListener(InvalidationListener listener) { readOnlyList.removeListener(listener); }
-    }
-    
-    public class LoginTask extends SqlConnectionTask<UserRow> {
-        private final String userName;
-        private final String password;
-        private LoginTask(String userName, String password) {
-            this.userName = userName;
-            this.password = password;
-        }
-        
-        @Override
-        protected UserRow call() throws Exception {
-            LOG.entering(getClass().getName(), "tryLoginUser");
-            Optional<UserRow> user = super.fromConnectedSupplier((Connection c) -> {
-                return UserRow.getByUserName(c, userName);
-            });
-            if (user.isPresent()) {
-                LOG.info("User found");
-                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
-                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
-                // as the stored password. If the password is correct, then the hash values will match.
-                if (user.get().getPasswordHash().test(password)) {
-                    LOG.info("Password matched");
-                    Platform.runLater(() -> {
-                        currentUser.set(user.get());
-                    });
-                    LOG.exiting(getClass().getName(), "tryLoginUser");
-                    return user.get();
-                }
-            } else
-                LOG.log(Level.WARNING, "No matching userName found");
-            LOG.exiting(getClass().getName(), "tryLoginUser");
-            return null;
-        }
-        
     }
 }

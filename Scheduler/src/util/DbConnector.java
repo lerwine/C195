@@ -12,11 +12,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.AppConfig;
 
 /**
@@ -37,6 +42,8 @@ public final class DbConnector implements AutoCloseable {
      * Number of seconds to delay closing DB connection after last DbConnector has closed.
      */
     public static final int CONNECTION_CLOSE_DELAY_SECONDS = 1;
+
+    private static final Logger LOG = Logger.getLogger(DbConnector.class.getName());
     
     //<editor-fold defaultstate="collapsed" desc="SQL connection dependency tracking fields">
     
@@ -54,23 +61,23 @@ public final class DbConnector implements AutoCloseable {
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="closed property">
-    
-    private final ReadOnlyBooleanWrapper closed;
-    
-    /**
-     * Determines whether the current DbConnector is using an SQL {@link java.sql.Connection}.
-     * @return {@code true} if the current DbConnector is using an opened SQL {@link java.sql.Connection}; otherwise, {@code false}.
-     */
-    public boolean isClosed() { return closed.get(); }
-    
-    /**
-     * Gets a JavaFX property that determines whether the current DbConnector is using an SQL {@link java.sql.Connection}.
-     * @return A JavaFX property that determines whether the current DbConnector is using an SQL {@link java.sql.Connection}.
-     */
-    public ReadOnlyBooleanProperty closedProperty() { return closed.getReadOnlyProperty(); }
-    
-    //</editor-fold>
+//    //<editor-fold defaultstate="collapsed" desc="closed property">
+//    
+//    private final ReadOnlyBooleanWrapper closed;
+//    
+//    /**
+//     * Determines whether the current DbConnector is using an SQL {@link java.sql.Connection}.
+//     * @return {@code true} if the current DbConnector is using an opened SQL {@link java.sql.Connection}; otherwise, {@code false}.
+//     */
+//    public boolean isClosed() { return closed.get(); }
+//    
+//    /**
+//     * Gets a JavaFX property that determines whether the current DbConnector is using an SQL {@link java.sql.Connection}.
+//     * @return A JavaFX property that determines whether the current DbConnector is using an SQL {@link java.sql.Connection}.
+//     */
+//    public ReadOnlyBooleanProperty closedProperty() { return closed.getReadOnlyProperty(); }
+//    
+//    //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="connection property">
     
@@ -87,9 +94,27 @@ public final class DbConnector implements AutoCloseable {
      * @return A JavaFX property that contains the current SQL DB {@link java.sql.Connection}.
      */
     public ReadOnlyObjectProperty<Connection> connectionProperty() { return connection.getReadOnlyProperty(); }
-    
     //</editor-fold>
     
+    //<editor-fold defaultstate="collapsed" desc="state property">
+    
+    public static final int STATE_NOT_CONNECTED = 0;
+    
+    public static final int STATE_CONNECTING = 1;
+    
+    public static final int STATE_CONNECTED = 2;
+    
+    public static final int STATE_CONNECTION_ERROR = -1;
+    
+    private static int CURRENT_STATE = STATE_NOT_CONNECTED;
+    
+    private final ReadOnlyIntegerWrapper state;
+    
+    public int getState() { return state.get(); }
+    
+    public ReadOnlyIntegerProperty stateProperty() { return state.getReadOnlyProperty(); }
+    
+//</editor-fold>
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Constructors">
@@ -112,11 +137,8 @@ public final class DbConnector implements AutoCloseable {
      * @throws ClassNotFoundException if the driver class was not found.
      */
     public DbConnector(boolean doNotOpen) throws SQLException, ClassNotFoundException {
+        state = new ReadOnlyIntegerWrapper(STATE_NOT_CONNECTED);
         connection = new ReadOnlyObjectWrapper<>(null);
-        closed = new ReadOnlyBooleanWrapper(true);
-        connection.addListener((Observable observable) -> {
-            closed.set(connection.get() == null);
-        });
         if (!doNotOpen)
             open();
     }
@@ -137,26 +159,50 @@ public final class DbConnector implements AutoCloseable {
                 if ((previous = LATEST) != null)
                     previous.next = this;
                 LATEST = this;
-                connection.set(CONNECTION);
+                try { connection.set(CONNECTION); }
+                finally { state.set(CURRENT_STATE); }
                 return CONNECTION;
             }
         } else if (!c.isClosed())
             return c;
 
-        // Initialize database driver class
-        Class.forName(DB_DRIVER);
+        CURRENT_STATE = STATE_CONNECTING;
+        try {
+            try {
+                state.set(CURRENT_STATE);
+                if (CONNECTION != null)
+                    for (DbConnector d = LATEST; d != null; d = d.previous) {
+                        if (d.getState() != STATE_NOT_CONNECTED)
+                            d.state.set(CURRENT_STATE);
+                    }
+            } finally {
+                // Initialize database driver class
+                Class.forName(DB_DRIVER);
 
-        // Make new connection.
-        String url = AppConfig.getConnectionUrl();
-        Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Connecting to %s", url));
-        CONNECTION = (Connection)DriverManager.getConnection(url, AppConfig.getDbLoginName(), AppConfig.getDbLoginPassword());
-        Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Connected to %s", url));
-        connection.set(CONNECTION);
-        // if c == null, then this is a new connection dependency; otherwise, we were just re-opening a closed connection.
-        if (c == null) {
-            if ((previous = LATEST) != null)
-                previous.next = this;
-            LATEST = this;
+                // Make new connection.
+                String url = AppConfig.getConnectionUrl();
+                LOG.log(Level.INFO, String.format("Connecting to %s", url));
+                CONNECTION = (Connection)DriverManager.getConnection(url, AppConfig.getDbLoginName(), AppConfig.getDbLoginPassword());
+                LOG.log(Level.INFO, String.format("Connected to %s", url));
+                CURRENT_STATE = STATE_CONNECTED;
+            }
+        } finally {
+            if (CURRENT_STATE == STATE_CONNECTING)
+                CURRENT_STATE = STATE_CONNECTION_ERROR;
+            // if c == null, then this is a new connection dependency; otherwise, we were just re-opening a closed connection.
+            if (c == null) {
+                if ((previous = LATEST) != null)
+                    previous.next = this;
+                LATEST = this;
+            }
+            try { connection.set(CONNECTION); }
+            finally {
+                state.set(CURRENT_STATE);
+                for (DbConnector d = LATEST; d != null; d = d.previous) {
+                    if (d.getState() == STATE_CONNECTING)
+                        d.state.set(CURRENT_STATE);
+                }
+            }
         }
         return CONNECTION;
     }
@@ -168,8 +214,10 @@ public final class DbConnector implements AutoCloseable {
      */
     @Override
     public final synchronized void close() {
-        if (connection.get() == null)
+        if (connection.get() == null) {
+            state.set(STATE_NOT_CONNECTED);
             return;
+        }
         if (next == null) {
             if ((LATEST = previous) != null)
                 previous = previous.next = null;
@@ -187,11 +235,12 @@ public final class DbConnector implements AutoCloseable {
             }
             next = null;
         }
-        connection.set(null);
+        try { state.set(STATE_NOT_CONNECTED); }
+        finally { connection.set(null); }
     }
     
     // Schedules a task to close the DB connection after a predetermined delay.
-    private synchronized void scheduleClose() {
+    private static synchronized void scheduleClose() {
         ScheduledExecutorService svc = Executors.newSingleThreadScheduledExecutor();
         try {
             closeTask = svc.schedule(() -> {
@@ -201,7 +250,7 @@ public final class DbConnector implements AutoCloseable {
     }
     
     // Invoked from separate thread to close the DB connection after a predetermined delay.
-    private synchronized void checkClose() {
+    private static synchronized void checkClose() {
         closeTask = null;
         // If LATEST != null, then do not close. If CONNECTION is null, connection is already closed.
         if (LATEST != null || CONNECTION == null)
@@ -212,9 +261,12 @@ public final class DbConnector implements AutoCloseable {
         else {
             try { CONNECTION.close(); }
             catch (SQLException ex) {
-                Logger.getLogger(DbConnector.class.getName()).log(Level.SEVERE, null, ex);
-            } finally { CONNECTION = null; }
-            Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Disconnected from %s", AppConfig.getDbServerName()));
+                LOG.log(Level.SEVERE, null, ex);
+            } finally {
+                CONNECTION = null;
+                CURRENT_STATE = STATE_NOT_CONNECTED;
+            }
+            LOG.log(Level.INFO, String.format("Disconnected from %s", AppConfig.getDbServerName()));
         }
     }
     
@@ -228,6 +280,7 @@ public final class DbConnector implements AutoCloseable {
         try {
             Connection c = CONNECTION;
             CONNECTION = null;
+            CURRENT_STATE = STATE_NOT_CONNECTED;
             if (closeTask != null) {
                 closeTask.cancel(true);
                 closeTask = null;
@@ -245,27 +298,21 @@ public final class DbConnector implements AutoCloseable {
             // Make sure another thread hasn't already closed the database connection.
             if (c != null) {
                 c.close();
-                Logger.getLogger(DbConnector.class.getName()).log(Level.INFO, String.format("Disconnected from %s", AppConfig.getDbServerName()));
+               LOG.log(Level.INFO, String.format("Disconnected from %s", AppConfig.getDbServerName()));
             }
         } finally {
-            try { closed.stream().forEach((DbConnector d) -> d.connection.set(null)); }
+            try {
+                closed.stream().forEach((DbConnector d) -> {
+                    d.connection.set(null);
+                    d.state.set(STATE_NOT_CONNECTED);
+                });
+            }
             finally {
                 if (svc != null)
                     svc.shutdownNow();
             }
         }
     }
-    
-//    private synchronized boolean closeIfNoDependencies() throws SQLException {
-//        if (LATEST != null)
-//            return false;
-//        if (CONNECTION == null)
-//            return true;
-//        try { CONNECTION.close(); }
-//        finally { CONNECTION = null; }
-//        Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Disconnected from %s", AppConfig.getDbServerName()));
-//        return true;
-//    }
     
     private static Future<?> closeTask = null;
     private static LocalDateTime closeAt;

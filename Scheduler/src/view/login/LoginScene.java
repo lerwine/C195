@@ -16,6 +16,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import scheduler.App;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import util.Alerts;
@@ -147,17 +148,23 @@ public class LoginScene extends view.SchedulerController {
     
     @FXML
     void loginButtonClick(ActionEvent event) {
-        LOG.entering(getClass().getName(), "loginButtonClick");
-         try {
-            if (scheduler.App.CURRENT.get().tryLoginUser(userNameTextField.getText(), passwordField.getText()))
-                view.RootController.setAsRootStageScene();
-            else
+        LOG.log(Level.INFO, "loginButtonClick invoked");
+        App.CURRENT.get().tryLoginUser(userNameTextField.getText(), passwordField.getText(), (ex) -> {
+            if (ex == null)
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-        } catch (SQLException | ClassNotFoundException ex) {
-            Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
-            LOG.log(Level.SEVERE, "Login Exception", ex);
-        }
-        LOG.exiting(getClass().getName(), "loginButtonClick");
+            else
+                Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
+        });
+//         try {
+//            if (scheduler.App.CURRENT.get().tryLoginUser(userNameTextField.getText(), passwordField.getText()))
+//                view.RootController.setAsRootStageScene();
+//            else
+//                Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
+//        } catch (SQLException | ClassNotFoundException ex) {
+//            Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
+//            LOG.log(Level.SEVERE, "Login Exception", ex);
+//        }
+        LOG.log(Level.INFO, "Exiting loginButtonClick");
     }
 
     @FXML

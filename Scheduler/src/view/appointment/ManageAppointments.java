@@ -1,13 +1,11 @@
 package view.appointment;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -16,10 +14,11 @@ import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import model.db.AppointmentsFilter;
 import model.db.DataRow;
-import util.DbConnector;
+import scheduler.App;
 import util.Alerts;
 import view.RootController;
 import view.SchedulerController;
+import view.TaskWaiter;
 
 /**
  * FXML Controller class
@@ -106,19 +105,19 @@ public class ManageAppointments extends view.ListingController {
             context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
             ManageAppointments controller = context.getController();
             collapseNode(controller.headingLabel);
-            ObservableList<AppointmentRow> apptList;
-            try (DbConnector dep = new DbConnector()) {
-                apptList = AppointmentRow.getAll(dep.getConnection());
-            } catch (SQLException | ClassNotFoundException ex) {
+        }, (ContentChangeContext<ManageAppointments> context) -> {
+            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), "Getting appointments", (Connection c) -> AppointmentRow.getAll(c),
+                    (ObservableList<AppointmentRow> apptList) -> {
+                ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
+                itemsList.clear();
+                apptList.forEach((a) -> {
+                    itemsList.add(a);
+                });
+            }, (Exception ex) -> {
                 Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
                 Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
-                apptList = FXCollections.observableArrayList();
-            }
-            ObservableList<AppointmentRow> itemsList = controller.getItemsList();
-            itemsList.clear();
-            for (AppointmentRow a : apptList)
-                itemsList.add(a);
-        }, (ContentChangeContext<ManageAppointments> context) -> {
+                context.getController().getItemsList().clear();
+            });
             RootController rootCtl = RootController.getCurrent();
             ManageAppointments c = context.getController();
             rootCtl.currentContentControllerProperty().addListener(c.controllerChangeListener);
@@ -126,7 +125,6 @@ public class ManageAppointments extends view.ListingController {
         });
     }
 
-    @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootContent(AppointmentsFilter filter) {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             ResourceBundle rb = context.getResources();
@@ -138,20 +136,19 @@ public class ManageAppointments extends view.ListingController {
                 collapseNode(controller.headingLabel);
             else
                 controller.headingLabel.setText(subHeading);
-            ObservableList<AppointmentRow> apptList;
-            try {
-                apptList = DbConnector.call((Connection connection) -> {
-                    return AppointmentRow.getByFilter(connection, filter);
+        }, (ContentChangeContext<ManageAppointments> context) -> {
+            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), "Getting appointments", (Connection c) -> AppointmentRow.getByFilter(c, filter),
+                    (ObservableList<AppointmentRow> apptList) -> {
+                ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
+                itemsList.clear();
+                apptList.forEach((a) -> {
+                    itemsList.add(a);
                 });
-            } catch (Exception ex) {
+            }, (Exception ex) -> {
                 Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
                 Alerts.showErrorAlert("Database access error", "Error reading data from database. See logs for details.");
-                apptList = FXCollections.observableArrayList();
-            }
-            ObservableList<AppointmentRow> itemsList = controller.getItemsList();
-            itemsList.clear();
-            for (AppointmentRow a : apptList)
-                itemsList.add(a);
+                context.getController().getItemsList().clear();
+            });
         });
     }
     
