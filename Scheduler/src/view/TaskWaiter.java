@@ -32,15 +32,16 @@ import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
 /**
- *
+ * Controller / Task for showing busy indicator while background process is running.
+ * 
  * @author erwinel
- * @param <T>
+ * @param <T> Type of value produced by the task.
  */
 @GlobalizationResource("scheduler/App")
 @FXMLResource("/view/TaskWaiter.fxml")
 public abstract class TaskWaiter<T> extends Task<T> {
-    
     private static final Logger LOG = Logger.getLogger(TaskWaiter.class.getName());
+    
     private final Scene scene;
     private final Parent parent;
     

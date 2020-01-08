@@ -12,43 +12,39 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+<AnchorPane id="AnchorPane" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <stylesheets>
         <URL value="@/scheduler/defaultStyles.css" />
     </stylesheets>
     <children>
         <Pane fx:id="contentPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-        <Pane opacity="0.5" style="-fx-background-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <Pane opacity="0.75" style="-fx-background-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
         <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <top>
                 <VBox BorderPane.alignment="CENTER">
                     <BorderPane.margin>
-                        <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
+                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
                     </BorderPane.margin>
                     <children>
-                        <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="%pleaseWait" textAlignment="CENTER">
+                        <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="%pleaseWait" textAlignment="CENTER" textFill="WHITE">
                             <font>
                                 <Font size="18.0" />
                             </font>
-                            <effect>
-                                <DropShadow color="WHITE" height="32.0" radius="15.5" spread="0.75" width="32.0" />
-                            </effect>
                         </Label>
-                        <Label fx:id="operationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%connectingToDb" textAlignment="CENTER">
-                            <effect>
-                                <DropShadow color="WHITE" height="32.0" radius="15.5" spread="0.75" width="32.0" />
-                            </effect>
-                        </Label>
+                        <Label fx:id="operationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%connectingToDb" textAlignment="CENTER" textFill="WHITE" wrapText="true" />
                     </children>
+               <effect>
+                  <DropShadow blurType="ONE_PASS_BOX" height="64.0" radius="31.5" spread="0.85" width="64.0" />
+               </effect>
                 </VBox>
             </top>
             <center>
-                <ProgressIndicator BorderPane.alignment="CENTER" />
+                <ProgressIndicator minHeight="12.0" minWidth="12.0" BorderPane.alignment="CENTER" />
             </center>
             <bottom>
                 <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" BorderPane.alignment="CENTER">
                     <BorderPane.margin>
-                        <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
+                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
                     </BorderPane.margin>
                 </Button>
             </bottom>
