@@ -11,8 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import model.annotations.PrimaryKey;
-import model.annotations.TableName;
+import scheduler.dao.PrimaryKey;
+import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.DB;
 

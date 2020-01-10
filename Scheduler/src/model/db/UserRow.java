@@ -18,8 +18,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import model.annotations.PrimaryKey;
-import model.annotations.TableName;
+import scheduler.dao.PrimaryKey;
+import scheduler.dao.TableName;
 import scheduler.InternalException;
 import scheduler.InvalidOperationException;
 import util.DB;
@@ -95,7 +95,9 @@ public class UserRow extends DataRow implements model.User {
     public void setPassword(String value) { password.set(value); }
 
     public StringProperty passwordProperty() { return password; }
+
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="passwordHash">
     
     private final ReadOnlyObjectWrapper<PwHash> passwordHash;
@@ -132,6 +134,7 @@ public class UserRow extends DataRow implements model.User {
     //<editor-fold defaultstate="collapsed" desc="Constructors">
     
     private final PasswordChangeManager passwordChangeManager;
+
     /**
      * 
      */

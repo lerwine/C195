@@ -74,7 +74,5 @@ public class MergedResourceBundle  extends ResourceBundle {
     }
 
     @Override
-    public Locale getLocale() {
-        return innerBundle.getLocale();
-    }
+    public Locale getLocale() { return locale; }
 }

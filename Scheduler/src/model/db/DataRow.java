@@ -19,8 +19,8 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import model.annotations.PrimaryKey;
-import model.annotations.TableName;
+import scheduler.dao.PrimaryKey;
+import scheduler.dao.TableName;
 import scheduler.InternalException;
 import scheduler.InvalidOperationException;
 

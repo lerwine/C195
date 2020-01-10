@@ -18,8 +18,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import model.annotations.PrimaryKey;
-import model.annotations.TableName;
+import scheduler.dao.PrimaryKey;
+import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.Bindings;
 
