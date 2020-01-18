@@ -17,7 +17,7 @@
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.appointment.ManageAppointments">
     <children>
         <Label fx:id="headingLabel" style="-fx-label-padding: 0 0 8 0;" styleClass="header-section" text="%currentAndFutureAppointments" />
-        <TableView fx:id="listingTableView" editable="true" onKeyTyped="#listingTableViewKeyTyped" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+        <TableView fx:id="listingTableView" editable="true" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" text="%title">
                     <cellValueFactory>
@@ -91,15 +91,15 @@
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" onAction="#editMenuItemClick" text="%edit" />
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" onAction="#deleteMenuItemClick" text="%delete" />
+                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
                     </items>
                 </ContextMenu>
             </contextMenu>
         </TableView>
         <ButtonBar>
             <buttons>
-                <Button fx:id="newButton" mnemonicParsing="false" onAction="#newButtonClick" text="%new" />
+                <Button fx:id="newButton" mnemonicParsing="false" text="%new" />
             </buttons>
             <padding>
                 <Insets bottom="8.0" right="8.0" />

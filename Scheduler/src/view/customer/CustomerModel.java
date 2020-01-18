@@ -5,6 +5,7 @@
  */
 package view.customer;
 
+import java.sql.Connection;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -12,14 +13,14 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CustomerImpl;
-import view.ModelBase;
+import view.ItemModel;
 import view.address.CustomerAddress;
 
 /**
  *
  * @author erwinel
  */
-public class CustomerModel extends ModelBase<CustomerImpl> implements AppointmentCustomer<CustomerImpl> {
+public class CustomerModel extends ItemModel<CustomerImpl> implements AppointmentCustomer<CustomerImpl> {
 
     private final ReadOnlyStringWrapper name;
 
@@ -50,5 +51,21 @@ public class CustomerModel extends ModelBase<CustomerImpl> implements Appointmen
         this.name = new ReadOnlyStringWrapper(dao.getName());
         this.address = new ReadOnlyObjectWrapper<>(CustomerAddress.of(dao.getAddress()));
         this.active = new ReadOnlyBooleanWrapper(dao.isActive());
+    }
+
+    @Override
+    public void refreshFromDAO() {
+        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean delete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void saveChanges(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

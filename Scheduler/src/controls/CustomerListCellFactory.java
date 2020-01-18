@@ -10,10 +10,11 @@ import javafx.scene.control.ListView;
 import javafx.util.Callback;
 
 /**
- *
+ * 
  * @author Leonard T. Erwine
+ * @param <T>
  */
-public class CustomerListCellFactory<T extends model.Customer> implements Callback<ListView<T>, ListCell<T>> {
+public class CustomerListCellFactory<T extends view.customer.AppointmentCustomer<? extends scheduler.dao.Customer>> implements Callback<ListView<T>, ListCell<T>> {
     @Override
     public ListCell<T> call(ListView<T> param) { return new CustomerListCell<>(); }
 }

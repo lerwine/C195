@@ -7,11 +7,12 @@ import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
-import model.db.AppointmentsFilter;
+//import model.db.AppointmentsFilter;
 import scheduler.App;
 import scheduler.dao.AppointmentImpl;
 import util.Alerts;
@@ -26,7 +27,7 @@ import view.TaskWaiter;
  */
 @GlobalizationResource("view/appointment/ManageAppointments")
 @FXMLResource("/view/appointment/ManageAppointments.fxml")
-public class ManageAppointments extends view.ListingController<AppointmentImpl> {
+public class ManageAppointments extends view.ListingController<AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_CUSTOMER = "customer";
@@ -91,14 +92,14 @@ public class ManageAppointments extends view.ListingController<AppointmentImpl> 
         appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentImpl>>() {
             @Override
             public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentImpl>> observable,
-                    RootController.CrudAction<AppointmentImpl> oldValue, RootController.CrudAction<AppointmentImpl> newValue) {
+                RootController.CrudAction<AppointmentImpl> oldValue, RootController.CrudAction<AppointmentImpl> newValue) {
 //                if (newValue != null && (currentFilter == null || currentFilter.test(newValue.getRow()))) {
 //                    if (newValue.isDelete())
 //                        removeListItemByPrimaryKey(newValue.getRow().getPrimaryKey());
 //                    else if (newValue.isAdd() || !updateListItem(newValue.getRow()))
 //                        getItemsList().add(newValue.getRow());
 //                }
-                    throw new UnsupportedOperationException("Not supported yet.");
+                throw new UnsupportedOperationException("Not supported yet.");
             }
         };
     }
@@ -122,11 +123,12 @@ public class ManageAppointments extends view.ListingController<AppointmentImpl> 
                         throw new UnsupportedOperationException("Not supported yet.");
                     },
                     (ObservableList<AppointmentImpl> apptList) -> {
-                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
-                        itemsList.clear();
-                        apptList.forEach((a) -> {
-                            itemsList.add(a);
-                        });
+                        throw new UnsupportedOperationException("Not supported yet.");
+//                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
+//                        itemsList.clear();
+//                        apptList.forEach((a) -> {
+//                            itemsList.add(a);
+//                        });
                     }, (Exception ex) -> {
                         LOG.log(Level.SEVERE, null, ex);
                         ResourceBundle rb = App.CURRENT.get().getResources();
@@ -140,7 +142,17 @@ public class ManageAppointments extends view.ListingController<AppointmentImpl> 
         });
     }
     
-    public static void setAsRootContent(AppointmentsFilter filter) {
+    public static void setAsRootContent(view.ModelFilter<AppointmentImpl, AppointmentModel> filter) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    /**
+     * Use {@link #setAsRootContent(view.ModelFilter)}, instead.
+     * @param filter
+     * @deprecated
+     */
+    @Deprecated
+    public static void setAsRootContent(model.db.AppointmentsFilter filter) {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             ResourceBundle rb = context.getResources();
             context.setWindowTitle(filter.getWindowTitle(rb));
@@ -159,11 +171,12 @@ public class ManageAppointments extends view.ListingController<AppointmentImpl> 
                         throw new UnsupportedOperationException("Not supported yet.");
                     },
                     (ObservableList<AppointmentImpl> apptList) -> {
-                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
-                        itemsList.clear();
-                        apptList.forEach((a) -> {
-                            itemsList.add(a);
-                        });
+                        throw new UnsupportedOperationException("Not supported yet.");
+//                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
+//                        itemsList.clear();
+//                        apptList.forEach((a) -> {
+//                            itemsList.add(a);
+//                        });
                     }, (Exception ex) -> {
                         LOG.log(Level.SEVERE, null, ex);
                         ResourceBundle rb = App.CURRENT.get().getResources();
@@ -176,18 +189,52 @@ public class ManageAppointments extends view.ListingController<AppointmentImpl> 
     //</editor-fold>
     
     @Override
+    protected void onAddNewItem(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /**
+     * Use {@link #onAddNewItem(javafx.event.Event)}, instead.
+     * @deprecated
+     */
+    @Override
+    @Deprecated
     protected void onAddNewItem() {
         RootController.getCurrent().addNewAppointment();
     }
 
     @Override
-    protected void onEditItem(AppointmentImpl item) {
-        RootController.getCurrent().editAppointment(item);
+    protected void onEditItem(Event event, AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /**
+     * Use {@link #onEditItem(javafx.event.Event, view.appointment.AppointmentModel)}, instead.
+     * @param item
+     * @deprecated
+     */
+    @Override
+    @Deprecated
+    protected void onEditItem(AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet.");
+//        RootController.getCurrent().editAppointment(item);
     }
 
     @Override
-    protected void onDeleteItem(AppointmentImpl item) {
-        RootController.getCurrent().deleteAppointment(item);
+    protected void onDeleteItem(Event event, AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /**
+     * Use {@link #onDeleteItem(javafx.event.Event, view.appointment.AppointmentModel)}, instead.
+     * @param item
+     * @deprecated
+     */
+    @Override
+    @Deprecated
+    protected void onDeleteItem(AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet.");
+//        RootController.getCurrent().deleteAppointment(item);
     }
     
 }

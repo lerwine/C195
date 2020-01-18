@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -30,18 +31,24 @@ import scheduler.dao.DataObjectImpl;
 import scheduler.dao.UserImpl;
 import util.Alerts;
 import util.DbConnector;
+import view.address.AddressModel;
 import view.address.EditAddress;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
+import view.appointment.AppointmentModel;
 import view.appointment.EditAppointment;
 import view.appointment.ManageAppointments;
+import view.city.CityModel;
 import view.city.EditCity;
+import view.country.CountryModel;
 import view.country.EditCountry;
 import view.country.ManageCountries;
+import view.customer.CustomerModel;
 import view.customer.EditCustomer;
 import view.customer.ManageCustomers;
 import view.user.EditUser;
 import view.user.ManageUsers;
+import view.user.UserModel;
 
 /**
  * Root FXML Controller class
@@ -333,8 +340,7 @@ public class RootController extends SchedulerController {
 
         current = this;
         
-//        ManageAppointments.setAsRootContent(new AppointmentsFilter(App.CURRENT.get().getCurrentUserObsolete(), true));
-        throw new UnsupportedOperationException("Not supported yet.");
+        ManageAppointments.setAsRootContent(new model.db.AppointmentsFilter(App.CURRENT.get().getCurrentUserObsolete(), true));
     }
     
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
@@ -342,37 +348,53 @@ public class RootController extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
     
     @FXML
-    private void newAppointmentMenuItemClick(ActionEvent event) { addNewAppointment(); }
+    private void newAppointmentMenuItemClick(ActionEvent event) { addNewAppointment(event); }
 
+    public AppointmentModel addNewAppointment(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens a new window to add a new {@link model.db.AppointmentImpl}.
      * The {@link appointmentUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
-     * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
+     * @deprecated Use {@link #addNewAppointment(javafx.event.Event)}, instead.
      */
+    @Deprecated
     public AppointmentImpl addNewAppointment() {
-        AppointmentImpl model = EditAppointment.addNew();
-        if (model != null)
-            appointmentUpdated.set(new CrudAction<>(model, true));
-        return model;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        AppointmentImpl model = EditAppointment.addNew();
+//        if (model != null)
+//            appointmentUpdated.set(new CrudAction<>(model, true));
+//        return model;
     }
 
     /**
      * Opens an edit window to edit a {@link model.db.AppointmentImpl}.
-     * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
-     * 
-     * @param item The {@link model.db.AppointmentImpl} to be edited.
+     * @param event Contextual information about the event.
+     * @param item The {@link AppointmentModel} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
+    public boolean editAppointment(Event event, AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    /**
+     * @param item The {@link model.db.AppointmentImpl} to be edited.
+     * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
+     * @deprecated Use {@link #editAppointment(view.appointment.AppointmentModel)}, instead.
+     */
+    @Deprecated
     public boolean editAppointment(AppointmentImpl item) {
-        if (EditAppointment.edit(item)) {
-            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
-                appointmentUpdated.set(new CrudAction<>(item));
-            else
-                appointmentUpdated.set(new CrudAction<>(item, false));
-            return true;
-        }
-        return false;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        if (EditAppointment.edit(item)) {
+//            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
+//                appointmentUpdated.set(new CrudAction<>(item));
+//            else
+//                appointmentUpdated.set(new CrudAction<>(item, false));
+//            return true;
+//        }
+//        return false;
     }
 
     private static boolean deleteItem(DataObjectImpl item) {
@@ -394,12 +416,18 @@ public class RootController extends SchedulerController {
         return false;
     }
     
+    public boolean deleteAppointment(Event event, AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Deletes an {@link model.db.AppointmentImpl} after confirming with the current user.
      * 
      * @param item The {@link model.db.AppointmentImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
+     * @deprecated Use {@link #deleteAppointment(javafx.event.Event, view.appointment.AppointmentModel)}, instead.
      */
+    @Deprecated
     public boolean deleteAppointment(AppointmentImpl item) {
         if (deleteItem(item)) {
             appointmentUpdated.set(new CrudAction<>(item));
@@ -416,46 +444,66 @@ public class RootController extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="CustomerImpl operations">
     
     @FXML
-    private void newCustomerMenuItemClick(ActionEvent event) { addNewCustomer(); }
+    private void newCustomerMenuItemClick(ActionEvent event) { addNewCustomer(event); }
 
+    public CustomerModel addNewCustomer(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens a new window to add a new {@link model.db.CustomerImpl}.
      * The {@link customerUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
+     * @deprecated Use {@link #addNewCustomer(javafx.event.Event)}, instead.
      */
+    @Deprecated
     public CustomerImpl addNewCustomer() {
-        CustomerImpl model = EditCustomer.addNew();
-        if (model != null)
-            customerUpdated.set(new CrudAction<>(model, true));
-        return model;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        CustomerImpl model = EditCustomer.addNew();
+//        if (model != null)
+//            customerUpdated.set(new CrudAction<>(model, true));
+//        return model;
     }
 
+    public boolean editCustomer(Event event, CustomerModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens an edit window to edit a {@link model.db.CustomerImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
      * @param item The {@link model.db.CustomerImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
+     * @deprecated Use {@link #editCustomer(javafx.event.Event, view.customer.CustomerModel)}, instead.
      */
+    @Deprecated
     public boolean editCustomer(CustomerImpl item) {
-        if (EditCustomer.edit(item)) {
-            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
-                customerUpdated.set(new CrudAction<>(item));
-            else
-                customerUpdated.set(new CrudAction<>(item, false));
-            return true;
-        }
-        return false;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        if (EditCustomer.edit(item)) {
+//            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
+//                customerUpdated.set(new CrudAction<>(item));
+//            else
+//                customerUpdated.set(new CrudAction<>(item, false));
+//            return true;
+//        }
+//        return false;
     }
 
+    public boolean deleteCustomer(Event event, CustomerModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Deletes a {@link model.db.CustomerImpl} after confirming with the current user.
      * The {@link customerUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
      * @param item The {@link model.db.CustomerImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
+     * @deprecated Use {@link #deleteCustomer(javafx.event.Event, view.customer.CustomerModel)}, instead.
      */
+    @Deprecated
     public boolean deleteCustomer(CustomerImpl item) {
         if (deleteItem(item)) {
             customerUpdated.set(new CrudAction<>(item));
@@ -474,44 +522,64 @@ public class RootController extends SchedulerController {
     @FXML
     private void newCountryMenuItemClick(ActionEvent event) { addNewCountry(); }
 
+    public CountryModel addNewCountry(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens a new window to add a new {@link model.db.CountryImpl}.
      * The {@link countryUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
+     * @deprecated Use {@link #addNewCountry(javafx.event.Event)}, instead.
      */
+    @Deprecated
     public CountryImpl addNewCountry() {
-        CountryImpl model = EditCountry.addNew();
-        if (model != null)
-            countryUpdated.set(new CrudAction<>(model, true));
-        return model;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        CountryImpl model = EditCountry.addNew();
+//        if (model != null)
+//            countryUpdated.set(new CrudAction<>(model, true));
+//        return model;
     }
 
+    public boolean editCountry(Event event, CountryModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens an edit window to edit a {@link model.db.CountryImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
      * @param item The {@link model.db.CountryImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
+     * @deprecated Use {@link #editCountry(javafx.event.Event, view.country.CountryModel)}, instead.
      */
+    @Deprecated
     public boolean editCountry(CountryImpl item) {
-        if (EditCountry.edit(item)) {
-            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
-                countryUpdated.set(new CrudAction<>(item));
-            else
-                countryUpdated.set(new CrudAction<>(item, false));
-            return true;
-        }
-        return false;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        if (EditCountry.edit(item)) {
+//            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
+//                countryUpdated.set(new CrudAction<>(item));
+//            else
+//                countryUpdated.set(new CrudAction<>(item, false));
+//            return true;
+//        }
+//        return false;
     }
 
+    public boolean deleteCountry(Event event, CountryModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Deletes a {@link model.db.CountryImpl} after confirming with the current user.
      * The {@link countryUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
      * @param item The {@link model.db.CountryImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
+     * @deprecated Use {@link #deleteCountry(javafx.event.Event, view.country.CountryModel)}, instead.
      */
+    @Deprecated
     public boolean deleteCountry(CountryImpl item) {
         if (deleteItem(item)) {
             countryUpdated.set(new CrudAction<>(item));
@@ -530,44 +598,64 @@ public class RootController extends SchedulerController {
     @FXML
     private void newCityMenuItemClick(ActionEvent event) { addNewCity(); }
 
+    public CityModel addNewCity(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens a new window to add a new {@link model.db.CityImpl}.
      * The {@link cityUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
+     * @deprecated Use {@link #addNewCity(javafx.event.Event)}, instead.
      */
+    @Deprecated
     public CityImpl addNewCity() {
-        CityImpl model = EditCity.addNew();
-        if (model != null)
-            cityUpdated.set(new CrudAction<>(model, true));
-        return model;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        CityImpl model = EditCity.addNew();
+//        if (model != null)
+//            cityUpdated.set(new CrudAction<>(model, true));
+//        return model;
     }
 
+    public boolean editCity(Event event, CityModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens an edit window to edit a {@link model.db.CityImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
      * @param item The {@link model.db.CityImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
+     * @deprecated Use {@link #editCity(javafx.event.Event, view.city.CityModel)}, instead.
      */
+    @Deprecated
     public boolean editCity(CityImpl item) {
-        if (EditCity.edit(item)) {
-            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
-                cityUpdated.set(new CrudAction<>(item));
-            else
-                cityUpdated.set(new CrudAction<>(item, false));
-            return true;
-        }
-        return false;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        if (EditCity.edit(item)) {
+//            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
+//                cityUpdated.set(new CrudAction<>(item));
+//            else
+//                cityUpdated.set(new CrudAction<>(item, false));
+//            return true;
+//        }
+//        return false;
     }
 
+    public boolean deleteCity(Event event, CityModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Deletes a {@link model.db.CityImpl} after confirming with the current user.
      * The {@link cityUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
      * @param item The {@link model.db.CityImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
+     * @deprecated Use {@link #deleteCity(javafx.event.Event, view.city.CityModel)}, instead.
      */
+    @Deprecated
     public boolean deleteCity(CityImpl item) {
         if (deleteItem(item)) {
             cityUpdated.set(new CrudAction<>(item));
@@ -583,44 +671,64 @@ public class RootController extends SchedulerController {
     @FXML
     private void newAddressMenuItemClick(ActionEvent event) { addNewAddress(); }
 
+    public AddressModel addNewAddress(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens a new window to add a new {@link model.db.AddressImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
+     * @deprecated Use {@link #addNewAddress(javafx.event.Event)}, instead.
      */
+    @Deprecated
     public AddressImpl addNewAddress() {
-        AddressImpl model = EditAddress.addNew();
-        if (model != null)
-            addressUpdated.set(new CrudAction<>(model, true));
-        return model;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        AddressImpl model = EditAddress.addNew();
+//        if (model != null)
+//            addressUpdated.set(new CrudAction<>(model, true));
+//        return model;
     }
 
+    public boolean editAddress(Event event, AddressModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens an edit window to edit a {@link model.db.AddressImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
      * @param item The {@link model.db.AddressImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
+     * @deprecated Use {@link #editAddress(javafx.event.Event, view.address.AddressModel)}, instead.
      */
+    @Deprecated
     public boolean editAddress(AddressImpl item) {
-        if (EditAddress.edit(item)) {
-            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
-                addressUpdated.set(new CrudAction<>(item));
-            else
-                addressUpdated.set(new CrudAction<>(item, false));
-            return true;
-        }
-        return false;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        if (EditAddress.edit(item)) {
+//            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
+//                addressUpdated.set(new CrudAction<>(item));
+//            else
+//                addressUpdated.set(new CrudAction<>(item, false));
+//            return true;
+//        }
+//        return false;
     }
 
+    public boolean deleteAddress(Event event, AddressModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Deletes an {@link model.db.AddressImpl} after confirming with the current user.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
      * @param item The {@link model.db.AddressImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
+     * @deprecated Use {@link #deleteAddress(javafx.event.Event, view.address.AddressModel)}, instead.
      */
+    @Deprecated
     public boolean deleteAddress(AddressImpl item) {
         if (deleteItem(item)) {
             addressUpdated.set(new CrudAction<>(item));
@@ -636,43 +744,62 @@ public class RootController extends SchedulerController {
     @FXML
     private void newUserMenuItemClick(ActionEvent event) { addNewUser(); }
 
+    public UserModel addNewUser(Event event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens a new window to add a new {@link model.db.UserImpl}.
-     * The {@link userUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
+     * The {@link #userUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
+     * @deprecated Use {@link #addNewUser(javafx.event.Event)}, instead.
      */
+    @Deprecated
     public UserImpl addNewUser() {
-        UserImpl model = EditUser.addNew();
-        if (model != null)
-            userUpdated.set(new CrudAction<>(model, true));
-        return model;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        UserImpl model = EditUser.addNew();
+//        if (model != null)
+//            userUpdated.set(new CrudAction<>(model, true));
+//        return model;
     }
 
+    public boolean editUser(Event event, UserModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Opens an edit window to edit a {@link model.db.UserImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
      * @param item The {@link model.db.UserImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
+     * @deprecated Use {@link #editUser(javafx.event.Event, view.user.UserModel)}, instead.
      */
+    @Deprecated
     public boolean editUser(UserImpl item) {
-        if (EditUser.edit(item)) {
-            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
-                userUpdated.set(new CrudAction<>(item));
-            else
-                userUpdated.set(new CrudAction<>(item, false));
-            return true;
-        }
-        return false;
+        throw new UnsupportedOperationException("Not supported yet.");
+//        if (EditUser.edit(item)) {
+//            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
+//                userUpdated.set(new CrudAction<>(item));
+//            else
+//                userUpdated.set(new CrudAction<>(item, false));
+//            return true;
+//        }
+//        return false;
     }
 
+    public boolean deleteUser(Event event, UserModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Deletes a {@link model.db.UserImpl} after confirming with the current user.
      * The {@link userUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
      * @param item The {@link model.db.UserImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
+     * @deprecated Use {@link #deleteUser(javafx.event.Event, view.user.UserModel)}, instead.
      */
     public boolean deleteUser(UserImpl item) {
         if (deleteItem(item)) {
@@ -689,7 +816,7 @@ public class RootController extends SchedulerController {
             
     @FXML
     private void exitButtonClick(ActionEvent event) { App.CURRENT.get().getPrimaryStage().hide(); }
-    
+
     /**
      * Represents a Create, Update or Delete operation.
      * @deprecated Targe of CRUD action should derive from {@link view.ModelBase}.

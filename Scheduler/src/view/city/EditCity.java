@@ -18,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/city/EditCity")
 @FXMLResource("/view/city/EditCity.fxml")
-public class EditCity extends view.SchedulerController implements view.ItemController<CityImpl> {
+public class EditCity extends view.SchedulerController implements view.ItemController<CityModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
     /**
@@ -50,13 +50,13 @@ public class EditCity extends view.SchedulerController implements view.ItemContr
     @FXML
     private ComboBox<CountryImpl> countryComboBox;
     
-    public static CityImpl addNew() {
-        EditItem.ShowAndWaitResult<CityImpl> result = EditItem.showAndWait(EditCity.class, new CityImpl(), 640, 480);
+    public static CityModel addNew() {
+        EditItem.ShowAndWaitResult<CityModel> result = EditItem.showAndWait(EditCity.class, new CityModel(new CityImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CityImpl row) {
-        EditItem.ShowAndWaitResult<CityImpl> result = EditItem.showAndWait(EditCity.class, row, 640, 480);
+    public static boolean edit(CityModel item) {
+        EditItem.ShowAndWaitResult<CityModel> result = EditItem.showAndWait(EditCity.class, item, 640, 480);
         return result.isSuccessful();
     }
 
@@ -71,12 +71,12 @@ public class EditCity extends view.SchedulerController implements view.ItemContr
     }
 
     @Override
-    public void accept(EditItem<CityImpl> context) {
+    public void accept(EditItem<CityModel> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCITY : RESOURCEKEY_EDITCITY));
     }
 
     @Override
-    public Boolean apply(EditItem<CityImpl> t) {
+    public Boolean apply(EditItem<CityModel> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

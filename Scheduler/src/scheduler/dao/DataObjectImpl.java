@@ -28,7 +28,7 @@ import scheduler.App;
 import scheduler.InvalidOperationException;
 import util.DB;
 import util.ResultSetFunction;
-import view.ModelBase;
+import view.ItemModel;
 
 /**
  * The base DAO which contains properties and methods common to all DAO objects.

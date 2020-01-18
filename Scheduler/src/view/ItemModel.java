@@ -5,6 +5,7 @@
  */
 package view;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -22,7 +23,7 @@ import util.DB;
  * @author erwinel
  * @param <R> The type of {@link DataObjectImpl} to be used for data access operations.
  */
-public abstract class ModelBase<R extends DataObjectImpl> implements ChildModel<R> {
+public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<R> {
     //<editor-fold defaultstate="collapsed" desc="Properties">
     
     //<editor-fold defaultstate="collapsed" desc="dataObject property">
@@ -130,7 +131,7 @@ public abstract class ModelBase<R extends DataObjectImpl> implements ChildModel<
      * Initializes a new ModelBase object.
      * @param dao The {@link DataObjectImpl} to be used for data access operations.
      */
-    protected ModelBase(R dao) {
+    protected ItemModel(R dao) {
         Objects.requireNonNull(dao, "Data access object cannot be null");
         assert dao.getRowState() != DataObject.ROWSTATE_DELETED : String.format("%s has been deleted", dao.getClass().getName());
         dataObject = dao;
@@ -141,4 +142,15 @@ public abstract class ModelBase<R extends DataObjectImpl> implements ChildModel<
         newItem = new ReadOnlyBooleanWrapper(dao.getRowState() == DataObject.ROWSTATE_NEW);
     }
     
+    public abstract boolean delete(Connection connection);
+    
+    public abstract void saveChanges(Connection connection);
+    
+    public void refreshFromDAO() {
+        createDate.set(DB.fromUtcTimestamp(dataObject.getCreateDate()));
+        createdBy.set(dataObject.getCreatedBy());
+        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
+        lastModifiedBy.set(dataObject.getLastModifiedBy());
+        newItem.set(dataObject.getRowState() == DataObject.ROWSTATE_NEW);
+    }
 }

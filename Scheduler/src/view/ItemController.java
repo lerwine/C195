@@ -10,18 +10,17 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
-import scheduler.dao.DataObjectImpl;
 
 /**
- *
+ * Defines a controller for editing an {@link ItemModel}.
  * @author Leonard T. Erwine
- * @param <R>
+ * @param <M>
  */
-public interface ItemController<R extends DataObjectImpl> extends Consumer<EditItem<R>>, Function<EditItem<R>, Boolean> {
+public interface ItemController<M extends ItemModel<?>> extends Consumer<EditItem<M>>, Function<EditItem<M>, Boolean> {
     boolean isValid();
     BooleanExpression validProperty();  
-    default void afterCloseDialog(EditItem.ShowAndWaitResult<R> result) { }
-    default void onError(EditItem.ShowAndWaitResult<R> result) {
+    default void afterCloseDialog(EditItem.ShowAndWaitResult<M> result) { }
+    default void onError(EditItem.ShowAndWaitResult<M> result) {
         Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, result.getFault());
     }
 }

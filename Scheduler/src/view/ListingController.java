@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -23,42 +24,55 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import scheduler.dao.DataObjectImpl;
 import util.Alerts;
 
 /**
- *
+ * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
  * @author Leonard T. Erwine
- * @param <R>
- *          The type of object being presented in the listing.
+ * @param <M> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<R extends DataObjectImpl> extends SchedulerController {
+public abstract class ListingController<M extends ItemModel<?>> extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="itemsList">
     
-    private final ObservableList<R> itemsList = FXCollections.observableArrayList();
+    private final ObservableList<M> itemsList = FXCollections.observableArrayList();
+    
     /**
      * Gets the {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
      * @return The {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
      */
-    protected ObservableList<R> getItemsList() { return itemsList; }
+    protected ObservableList<M> getItemsList() { return itemsList; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
     //<editor-fold defaultstate="collapsed" desc="listingTableView">
-    
-    @FXML // fx:id="listingTableView"
-    protected TableView<R> listingTableView; // Value injected by FXMLLoader
+
+    /**
+     * The {@link TableView} control injected by the {@link FXMLLoader}.
+     */
+    @FXML
+    protected TableView<M> listingTableView;
     
     //</editor-fold>
     
+    /**
+     * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link ItemModel}.
+     * This is defined within the {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
+     */
     @FXML
     protected MenuItem editMenuItem;
     
+    /**
+     * The {@link MenuItem} injected by the {@link FXMLLoader} for deleting an {@link ItemModel}.
+     * This is defined within the {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
+     */
     @FXML
     protected MenuItem deleteMenuItem;
     
+    /**
+     * The {@link Button} control injected by the {@link FXMLLoader} for adding a new {@link ItemModel}.
+     */
     @FXML
     protected Button newButton;
     
@@ -66,34 +80,80 @@ public abstract class ListingController<R extends DataObjectImpl> extends Schedu
     
     private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
     
-    @FXML // This method is called by the FXMLLoader when initialization is complete
+    /**
+     * Called by the {@link FXMLLoader} to complete controller initialization.
+     */
+    @FXML
     protected void initialize() {
-        assert listingTableView != null : String.format("fx:id=\"listingTableView\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
-        assert editMenuItem != null : String.format("fx:id=\"editMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
-        assert deleteMenuItem != null : String.format("fx:id=\"deleteMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
-        assert newButton != null : String.format("fx:id=\"newButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
-        listingTableView.setItems(itemsList);
+        Objects.requireNonNull(listingTableView, String.format("fx:id=\"listingTableView\" was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()))).setItems(itemsList);
+        listingTableView.setOnKeyTyped((event) -> {
+            if (event.isAltDown() || event.isShortcutDown())
+                return;
+            if (event.isMetaDown() || event.isControlDown()) {
+                if (event.getCode() == KeyCode.N)
+                    onAddNewItem(event);
+                return;
+            }
+            if (event.isShiftDown())
+                return;
+            M item = listingTableView.getSelectionModel().getSelectedItem();
+            if (item == null)
+                return;
+            if (event.getCode() == KeyCode.DELETE)
+                onDeleteItem(event, item);
+            else if (event.getCode() == KeyCode.ENTER)
+                onEditItem(event, item);
+        });
+        Objects.requireNonNull(editMenuItem, String.format("fx:id=\"editMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            M item = listingTableView.getSelectionModel().getSelectedItem();
+            if (item == null) {
+                ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+                Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
+            }
+            else
+                onEditItem(event, item);
+        });
+        Objects.requireNonNull(deleteMenuItem, String.format("fx:id=\"deleteMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            M item = listingTableView.getSelectionModel().getSelectedItem();
+            if (item == null) {
+                ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+                Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
+            }
+            else
+                onDeleteItem(event, item);
+        });
+        Objects.requireNonNull(newButton, String.format("fx:id=\"newButton\" was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()))).setOnAction((event) -> onAddNewItem(event));
     }
     
-    @FXML
+    /**
+     * This gets called when the user clicks the {@link #deleteMenuItem} in the {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
+     * @param event information about the event.
+     * @deprecated Use {@link #onDeleteItem(javafx.event.Event, view.ItemModel)}, instead.
+     */
+    @Deprecated
     protected void deleteMenuItemClick(ActionEvent event) {
-        R item = listingTableView.getSelectionModel().getSelectedItem();
+        M item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
             ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
             Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
-            onDeleteItem(item);
+            onDeleteItem(event, item);
 //            verifyDeleteItem(item);
     }
 
-    @FXML
+    /**
+     * This gets called when the user clicks the {@link #editMenuItem} in the {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
+     * @param event information about the event.
+     * @deprecated Use {@link #onEditItem(javafx.event.Event, view.ItemModel)}, instead.
+     */
+    @Deprecated
     protected void editMenuItemClick(ActionEvent event) {
-        R item = listingTableView.getSelectionModel().getSelectedItem();
+        M item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
             ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
             Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
@@ -102,7 +162,13 @@ public abstract class ListingController<R extends DataObjectImpl> extends Schedu
             onEditItem(item);
     }
 
-    @FXML
+    /**
+     * This gets called when the use types a key when the {@link #listingTableView} control has the current focus.
+     * @param event information about the event.
+     * @deprecated Use {@link #onEditItem(javafx.event.Event, view.ItemModel)}, {@link #onDeleteItem(javafx.event.Event, view.ItemModel)} or
+     * {@link #onAddNewItem(javafx.event.Event)}, instead.
+     */
+    @Deprecated
     protected void listingTableViewKeyTyped(KeyEvent event) {
         if (event.isAltDown() || event.isShortcutDown())
             return;
@@ -113,7 +179,7 @@ public abstract class ListingController<R extends DataObjectImpl> extends Schedu
         }
         if (event.isShiftDown())
             return;
-        R item = listingTableView.getSelectionModel().getSelectedItem();
+        M item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null)
             return;
         if (event.getCode() == KeyCode.DELETE)
@@ -122,41 +188,82 @@ public abstract class ListingController<R extends DataObjectImpl> extends Schedu
             onEditItem(item);
     }
 
-    @FXML
+    /**
+     * @param event information about the event.
+     * @deprecated Use {@link #onAddNewItem(javafx.event.Event)}, instead.
+     */
+    @Deprecated
     protected void newButtonClick(ActionEvent event) { onAddNewItem(); }
 
-    protected abstract void onAddNewItem();
+    /**
+     * This gets called when the user clicks the {@link #newButton} control or types the {@link KeyCode#N} key while {@link KeyEvent#isMetaDown()}
+     * or {@link KeyEvent#isControlDown()}.
+     * @param event Contextual information about the event.
+     */
+    protected abstract void onAddNewItem(Event event);
+    
+    /**
+     * @deprecated Use {@link #onAddNewItem(javafx.event.Event)}, instead.
+     */
+    @Deprecated
+    protected void onAddNewItem() { throw new UnsupportedOperationException("Not supported yet."); }
 
-    protected abstract void onEditItem(R item);
+    /**
+     * This gets called when the user types the {@link KeyCode#ENTER} key or clicks the {@link #editMenuItem} in the
+     * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
+     * @param event Contextual information about the event.
+     * @param item The selected item to be edited.
+     */
+    protected abstract void onEditItem(Event event, M item);
 
-    protected abstract void onDeleteItem(R item);
+    /**
+     * @param item The item to be edited.
+     * @deprecated Use {@link #onEditItem(javafx.event.Event, view.ItemModel)}, instead.
+     */
+    @Deprecated
+    protected void onEditItem(M item) { throw new UnsupportedOperationException("Not supported yet."); }
+
+    /**
+     * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
+     * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
+     * @param event Contextual information about the event.
+     * @param item The selected item to be deleted.
+     */
+    protected abstract void onDeleteItem(Event event, M item);
+    
+    /**
+     * @param item The item to be deleted.
+     * @deprecated Use {@link #onDeleteItem(javafx.event.Event, view.ItemModel)}, instead.
+     */
+    @Deprecated
+    protected void onDeleteItem(M item) { throw new UnsupportedOperationException("Not supported yet."); }
     
     protected int indexOfListItemByPrimaryKey(int pk) {
-        Iterator<R> iterator = getItemsList().iterator();
+        Iterator<M> iterator = getItemsList().iterator();
         int index = -1;
         while (iterator.hasNext()) {
             ++index;
-            if (iterator.next().getPrimaryKey() == pk)
+            if (iterator.next().getDataObject().getPrimaryKey() == pk)
                 return index;
         }
         return -1;
     }
     
-    protected R getListItemByPrimaryKey(int pk) {
-        Iterator<R> iterator = getItemsList().iterator();
+    protected M getListItemByPrimaryKey(int pk) {
+        Iterator<M> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
-            R item = iterator.next();
-            if (item.getPrimaryKey() == pk)
+            M item = iterator.next();
+            if (item.getDataObject().getPrimaryKey() == pk)
                 return item;
         }
         return null;
     }
     
     protected boolean removeListItemByPrimaryKey(int pk) {
-        Iterator<R> iterator = getItemsList().iterator();
+        Iterator<M> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
-            R item = iterator.next();
-            if (item.getPrimaryKey() == pk) {
+            M item = iterator.next();
+            if (item.getDataObject().getPrimaryKey() == pk) {
                 iterator.remove();
                 return true;
             }
@@ -164,15 +271,15 @@ public abstract class ListingController<R extends DataObjectImpl> extends Schedu
         return false;
     }
     
-    protected boolean updateListItem(R row) {
-        Objects.requireNonNull(row);
-        int pk = row.getPrimaryKey();
-        ObservableList<R> items = getItemsList();
+    protected boolean updateListItem(M item) {
+        Objects.requireNonNull(item);
+        int pk = item.getDataObject().getPrimaryKey();
+        ObservableList<M> items = getItemsList();
         for (int i = 0; i < items.size(); i++) {
-            R r = items.get(i);
-            if (r.getPrimaryKey() == pk) {
-                if (r != row)
-                    items.set(i, row);
+            M m = items.get(i);
+            if (m.getDataObject().getPrimaryKey() == pk) {
+                if (m != item)
+                    items.set(i, item);
                 return true;
             }
         }

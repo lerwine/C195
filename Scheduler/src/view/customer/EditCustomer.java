@@ -19,7 +19,7 @@ import view.address.AddressModel;
  */
 @GlobalizationResource("view/customer/EditCustomer")
 @FXMLResource("/view/customer/EditCustomer.fxml")
-public class EditCustomer extends view.SchedulerController implements view.ItemController<CustomerImpl> {
+public class EditCustomer extends view.SchedulerController implements view.ItemController<CustomerModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     /**
@@ -64,13 +64,13 @@ public class EditCustomer extends view.SchedulerController implements view.ItemC
     @FXML
     private Label countryLabel;
     
-    public static CustomerImpl addNew() {
-        EditItem.ShowAndWaitResult<CustomerImpl> result = EditItem.showAndWait(EditCustomer.class, new CustomerImpl(), 640, 480);
+    public static CustomerModel addNew() {
+        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(EditCustomer.class, new CustomerModel(new CustomerImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CustomerImpl row) {
-        EditItem.ShowAndWaitResult<CustomerImpl> result = EditItem.showAndWait(EditCustomer.class, row, 640, 480);
+    public static boolean edit(CustomerModel row) {
+        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(EditCustomer.class, row, 640, 480);
         return result.isSuccessful();
     }
 
@@ -85,12 +85,12 @@ public class EditCustomer extends view.SchedulerController implements view.ItemC
     }
 
     @Override
-    public void accept(EditItem<CustomerImpl> context) {
+    public void accept(EditItem<CustomerModel> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
     }
 
     @Override
-    public Boolean apply(EditItem<CustomerImpl> t) {
+    public Boolean apply(EditItem<CustomerModel> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

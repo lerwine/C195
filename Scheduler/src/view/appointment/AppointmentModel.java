@@ -6,6 +6,7 @@
 package view.appointment;
 
 import java.net.URL;
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -13,7 +14,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.AppointmentImpl;
 import util.DB;
-import view.ModelBase;
+import view.ItemModel;
 import view.customer.AppointmentCustomer;
 import view.user.AppointmentUser;
 
@@ -21,7 +22,7 @@ import view.user.AppointmentUser;
  *
  * @author erwinel
  */
-public class AppointmentModel extends ModelBase<AppointmentImpl> {
+public class AppointmentModel extends ItemModel<AppointmentImpl> {
 
     private final ReadOnlyObjectWrapper<AppointmentCustomer<?>> customer;
 
@@ -99,6 +100,22 @@ public class AppointmentModel extends ModelBase<AppointmentImpl> {
         url = new ReadOnlyStringWrapper(dao.getUrl());
         start = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getStart()));
         end = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getEnd()));
+    }
+
+    @Override
+    public void refreshFromDAO() {
+        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean delete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void saveChanges(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

@@ -30,14 +30,14 @@ import view.annotations.GlobalizationResource;
  */
 public abstract class SchedulerController {
     
-    @FXML // ResourceBundle injected by the FXMLLoader
-    private ResourceBundle resources;
-    
     private static final Logger LOG = Logger.getLogger(SchedulerController.class.getName());
 
+    @FXML
+    private ResourceBundle resources;
+    
     /**
      * Gets the {@link java.util.ResourceBundle} injected by the {@link javafx.fxml.FXMLLoader}.
-     * @return
+     * @return The {@link java.util.ResourceBundle} injected by the {@link javafx.fxml.FXMLLoader}.
      */
     protected ResourceBundle getResources() { return resources; }
     
@@ -45,12 +45,9 @@ public abstract class SchedulerController {
      * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}.
      * This value is specified using the {@link scene.annotations.FXMLResourceName} annotation.
      * 
-     * @param <C>
-     *          The type of controller.
-     * @param ctlClass
-     *          The {@link java.lang.Class} for the target controller.
-     * @return
-     *      The name of the FXML resource associated with the target controller or null if resource name is not specified.
+     * @param <C> The type of controller.
+     * @param ctlClass The {@link java.lang.Class} for the target controller.
+     * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
      */
     public static <C> String getFXMLResourceName(Class<? extends C> ctlClass) {
         Class<FXMLResource> ac = FXMLResource.class;
@@ -71,13 +68,9 @@ public abstract class SchedulerController {
      * Gets the name of the internationalization resource bundle to be loaded with the specified controller
      * {@link java.lang.Class}.
      * This value is specified using the {@link scene.annotations.GlobalizationResource} annotation.
-     * 
-     * @param <C>
-     *          The type of controller.
-     * @param ctlClass
-     *          The {@link java.lang.Class} for the target controller.
-     * @return
-     *      The name of the internationalization resource bundle to be loaded with the target controller.
+     * @param <C> The type of controller.
+     * @param ctlClass The {@link java.lang.Class} for the target controller.
+     * @return The name of the internationalization resource bundle to be loaded with the target controller.
      */
     public static <C> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
@@ -97,18 +90,14 @@ public abstract class SchedulerController {
     /**
      * Creates and initializes a {@link ContentChangeContext} object.
      * The {@link ContentChangeContext} object produced will contain contextual information about the loaded FXML resource.
-     * 
-     * @param <C>
-     *          The type of controller associated with the target FXML resource.
+     * @param <C> The type of controller associated with the target FXML resource.
      */
     public static class ContentChangeContextFactory<C extends SchedulerController> implements Supplier<ContentChangeContext<C>> {
         private final ContentChangeContext<C> context;
         
         /**
          * Gets the read-only {@link ContentChangeContext} object that can be provided to handler functions.
-         * 
-         * @return
-         *          A read-only {@link ContentChangeContext} object that can be provided to handler functions.
+         * @return A read-only {@link ContentChangeContext} object that can be provided to handler functions.
          */
         @Override
         public ContentChangeContext<C> get() { return context; }
@@ -120,45 +109,34 @@ public abstract class SchedulerController {
         
         /**
          * Sets the controller obtained from the {@link javafx.fxml.FXMLLoader}.
-         * 
-         * @param value
-         *          The controller returned by the {@link javafx.fxml.FXMLLoader#getController()} method of
-         *          the {@link javafx.fxml.FXMLLoader}.
+         * @param value The controller returned by the {@link javafx.fxml.FXMLLoader#getController()} method of the {@link javafx.fxml.FXMLLoader}.
          */
         public void setController(C value) { context.controller.set(value); }
         
         /**
          * Sets the {@link javafx.scene.Parent} node that was loaded by the {@link javafx.fxml.FXMLLoader}.
-         * 
-         * @param value
-         *          The {@link javafx.scene.Parent} node that was returned by the
-         *          {@link javafx.fxml.FXMLLoader#load(java.net.URL, java.util.ResourceBundle)} method of the
-         *          {@link javafx.fxml.FXMLLoader}.
+         * @param value The {@link javafx.scene.Parent} node that was returned by the
+         * {@link javafx.fxml.FXMLLoader#load(java.net.URL, java.util.ResourceBundle)} method of the {@link javafx.fxml.FXMLLoader}.
          */
         public void setParent(Parent value) { context.parent.set(value); }
         
         /**
          * Gets the {@link java.util.ResourceBundle} obtained from the {@link javafx.fxml.FXMLLoader}.
-         * 
-         * @param value
-         *          The {@link java.util.ResourceBundle} returned by the {@link javafx.fxml.FXMLLoader#getResources()}
-         *          method of the {@link javafx.fxml.FXMLLoader}.
+         * @param value The {@link java.util.ResourceBundle} returned by the {@link javafx.fxml.FXMLLoader#getResources()} method of the
+         * {@link javafx.fxml.FXMLLoader}.
          */
         public void setResourceBundle(ResourceBundle value) { context.resources.set(value); }
         
         /**
          * Sets the error or exception that was caught while trying to load and initialize the target FXML resource.
-         * 
-         * @param value
-         *          The error or exception that was caught while trying to load and an initialize the target FXML resource.
+         * @param value The error or exception that was caught while trying to load and an initialize the target FXML resource.
          */
         public void setError(Throwable value) { context.error.set(value); }
     }
     
     /**
      * Contextual information about a loaded FXML resource.
-     * @param <C>
-     *          The type of controller associated with the target {@link javafx.scene.Parent} node.
+     * @param <C> The type of controller associated with the target {@link javafx.scene.Parent} node.
      */
     public static class ContentChangeContext<C extends SchedulerController> {
         //<editor-fold defaultstate="collapsed" desc="controller property">
@@ -167,63 +145,50 @@ public abstract class SchedulerController {
 
         /**
          * Gets the controller associated with the {@link #parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
-         *
-         * @return
-         *          The controller associated with the {@link #parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
+         * @return The controller associated with the {@link #parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
          */
         public C getController() { return controller.get(); }
         
         /**
          * The property that contains the controller associated with the {@link #parent} node.
-         *
-         * @return
-         *          The property that returns the controller associated with the {@link #parent} node.
+         * @return The property that returns the controller associated with the {@link #parent} node.
          */
         public ReadOnlyObjectProperty<C> controllerProperty() { return controller.getReadOnlyProperty(); }
         
         //</editor-fold>
+        
         //<editor-fold defaultstate="collapsed" desc="parent property">
         
         private final ReadOnlyObjectWrapper<Parent> parent = new ReadOnlyObjectWrapper<>();
         
         /**
          * Gets the target {@link javafx.scene.Parent} node, which was loaded by the {@link javafx.fxml.FXMLLoader}.
-         *
-         * @return
-         *          The target {@link javafx.scene.Parent} node, which was loaded by the {@link javafx.fxml.FXMLLoader}.
+         * @return The target {@link javafx.scene.Parent} node, which was loaded by the {@link javafx.fxml.FXMLLoader}.
          */
         public Parent getParent() { return parent.get(); }
         
         /**
          * The property that returns the {@link javafx.scene.Parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
-         *
-         * @return
-         *          The property that contains the {@link javafx.scene.Parent} node loaded by the
-         *          {@link javafx.fxml.FXMLLoader}.
+         * @return The property that contains the {@link javafx.scene.Parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
          */
         public ReadOnlyObjectProperty<Parent> parentProperty() { return parent.getReadOnlyProperty(); }
         
         //</editor-fold>
+        
         //<editor-fold defaultstate="collapsed" desc="error property">
         
         private final ReadOnlyObjectWrapper<Throwable> error = new ReadOnlyObjectWrapper<>();
         
         /**
          * Gets the error or exception that was caught while trying to load and initialize the target FXML resource.
-         *
-         * @return
-         *          The error or exception that was caught while trying to load and initialize the target FXML resource
-         *          or {@code null} if no error or exception occurred.
+         * @return The error or exception that was caught while trying to load and initialize the target FXML resource or {@code null} if no error
+         * or exception occurred.
          */
         public Throwable getError() { return error.get(); }
         
         /**
-         * The property that returns the error or exception that was caught while trying to load and initialize the
-         * target FXML resource.
-         *
-         * @return
-         *          The property that returns the error or exception that was caught while trying to load and initialize
-         *          the target FXML resource.
+         * The property that returns the error or exception that was caught while trying to load and initialize the target FXML resource.
+         * @return The property that returns the error or exception that was caught while trying to load and initialize the target FXML resource.
          */
         public ReadOnlyObjectProperty<Throwable> errorProperty() { return error.getReadOnlyProperty(); }
         
@@ -235,18 +200,13 @@ public abstract class SchedulerController {
         
         /**
          * Gets the {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
-         *
-         * @return
-         *          The {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
+         * @return The {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
          */
         public ResourceBundle getResources() { return resources.get(); }
         
         /**
          * The property that returns the {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
-         *
-         * @return
-         *          The property that returns the {@link java.util.ResourceBundle} loaded with the
-         *          {@link javafx.fxml.FXMLLoader}.
+         * @return The property that returns the {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
          */
         public ReadOnlyObjectProperty<ResourceBundle> resourcesProperty() { return resources.getReadOnlyProperty(); }
         
@@ -258,9 +218,7 @@ public abstract class SchedulerController {
 
         /**
          * Sets the title for the current window of the target {@link javafx.scene.Parent} node.
-         * 
-         * @param value
-         *          The title for the current window of the target {@link javafx.scene.Parent} node.
+         * @param value The title for the current window of the target {@link javafx.scene.Parent} node.
          */
         public void setWindowTitle(String value) { windowTitle.set(value); }
 
@@ -278,9 +236,7 @@ public abstract class SchedulerController {
      * This adds the CSS class "collapsed" to the {@link javafx.scene.Node#styleClass} list, which sets
      * vertical and horizontal dimensions to zero and sets the {@link javafx.scene.Node#visible}
      * property to {@code false}.
-     * 
-     * @param node
-     *              The JavaFX scene graph {@link javafx.scene.Node} to be collapsed and hidden.
+     * @param node The JavaFX scene graph {@link javafx.scene.Node} to be collapsed and hidden.
      */
     protected static void collapseNode(Node node) {
         ObservableList<String> classes = node.getStyleClass();
@@ -291,24 +247,19 @@ public abstract class SchedulerController {
     /**
      * Restores the visibility and dimensions of a JavaFX scene graph {@link javafx.scene.Node}.
      * This removes the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list.
-     * 
-     * @param node
-     *              The JavaFX scene graph {@link javafx.scene.Node} to be un-collapsed.
+     * @param node The JavaFX scene graph {@link javafx.scene.Node} to be un-collapsed.
      */
     protected static void restoreNode(Node node) {
         node.getStyleClass().remove("collapsed");
     }
     
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control and sets
-     * the {@link javafx.scene.control.Labeled#text} property.
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control and sets the
+     * {@link javafx.scene.control.Labeled#text} property.
      * This removes the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list and sets the
      * {@link javafx.scene.control.Labeled#text} property.
-     * 
-     * @param control
-     *              The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
-     * @param text
-     *              The text to apply to the {@link javafx.scene.control.Labeled} control.
+     * @param control The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
+     * @param text The text to apply to the {@link javafx.scene.control.Labeled} control.
      */
     protected static void restoreLabeled(Labeled control, String text) {
         control.getStyleClass().remove("collapsed");

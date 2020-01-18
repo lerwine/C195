@@ -13,6 +13,6 @@ import scheduler.dao.DataObjectImpl;
  *
  * @author erwinel
  */
-public interface ModelFilter<R extends DataObjectImpl, M extends ModelBase<R>> extends DataObjectFilter<R>, Predicate<M> {
+public interface ModelFilter<R extends DataObjectImpl, M extends ItemModel<R>> extends DataObjectFilter<R>, Predicate<M> {
     
 }

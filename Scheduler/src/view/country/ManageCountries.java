@@ -1,6 +1,7 @@
 package view.country;
 
 import java.time.LocalDateTime;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -19,32 +20,32 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/country/ManageCountries")
 @FXMLResource("/view/country/ManageCountries.fxml")
-public class ManageCountries extends ListingController<CountryImpl> {
+public class ManageCountries extends ListingController<CountryModel> {
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Countries"}.
      */
     public static final String RESOURCEKEY_MANAGECOUNTRIES = "manageCountries";
 
     @FXML
-    private TableColumn<CountryImpl, String> nameTableColumn;
+    private TableColumn<CountryModel, String> nameTableColumn;
 
     @FXML
-    private TableColumn<CountryImpl, LocalDateTime> createDateTableColumn;
+    private TableColumn<CountryModel, LocalDateTime> createDateTableColumn;
 
     @FXML
-    private TableColumn<CountryImpl, String> createdByTableColumn;
+    private TableColumn<CountryModel, String> createdByTableColumn;
 
     @FXML
-    private TableColumn<CountryImpl, LocalDateTime> lastUpdateTableColumn;
+    private TableColumn<CountryModel, LocalDateTime> lastUpdateTableColumn;
 
     @FXML
-    private TableColumn<CountryImpl, String> lastUpdateByTableColumn;
+    private TableColumn<CountryModel, String> lastUpdateByTableColumn;
     
     @Override
     protected void initialize() {
         nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_NAME));
         createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDATE));
-        createDateTableColumn.setCellFactory(col -> new TableCell<CountryImpl, LocalDateTime>() {
+        createDateTableColumn.setCellFactory(col -> new TableCell<CountryModel, LocalDateTime>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
@@ -56,7 +57,7 @@ public class ManageCountries extends ListingController<CountryImpl> {
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDBY));
         lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDDATE));
-        lastUpdateTableColumn.setCellFactory(col -> new TableCell<CountryImpl, LocalDateTime>() {
+        lastUpdateTableColumn.setCellFactory(col -> new TableCell<CountryModel, LocalDateTime>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
@@ -77,17 +78,17 @@ public class ManageCountries extends ListingController<CountryImpl> {
     }
 
     @Override
-    protected void onAddNewItem() {
+    protected void onAddNewItem(Event event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onEditItem(CountryImpl item) {
+    protected void onEditItem(Event event, CountryModel item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(CountryImpl item) {
+    protected void onDeleteItem(Event event, CountryModel item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

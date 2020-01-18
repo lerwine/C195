@@ -16,7 +16,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/country/EditCountry")
 @FXMLResource("/view/country/EditCountry.fxml")
-public class EditCountry extends view.SchedulerController implements view.ItemController<CountryImpl> {
+public class EditCountry extends view.SchedulerController implements view.ItemController<CountryModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
     /**
@@ -40,13 +40,13 @@ public class EditCountry extends view.SchedulerController implements view.ItemCo
     @FXML
     private Label nameError;
     
-    public static CountryImpl addNew() {
-        EditItem.ShowAndWaitResult<CountryImpl> result = EditItem.showAndWait(EditCountry.class, new CountryImpl(), 640, 480);
+    public static CountryModel addNew() {
+        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(EditCountry.class, new CountryModel(new CountryImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CountryImpl row) {
-        EditItem.ShowAndWaitResult<CountryImpl> result = EditItem.showAndWait(EditCountry.class, row, 640, 480);
+    public static boolean edit(CountryModel row) {
+        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(EditCountry.class, row, 640, 480);
         return result.isSuccessful();
     }
 
@@ -61,12 +61,12 @@ public class EditCountry extends view.SchedulerController implements view.ItemCo
     }
 
     @Override
-    public void accept(EditItem<CountryImpl> context) {
+    public void accept(EditItem<CountryModel> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
     }
 
     @Override
-    public Boolean apply(EditItem<CountryImpl> t) {
+    public Boolean apply(EditItem<CountryModel> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -1,6 +1,7 @@
 package view.user;
 
 import java.time.LocalDateTime;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -17,7 +18,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/ManageUsers")
 @FXMLResource("/view/user/ManageUsers.fxml")
-public class ManageUsers extends ListingController<UserImpl> {
+public class ManageUsers extends ListingController<UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_MANAGEUSERS = "manageUsers";
@@ -59,17 +60,17 @@ public class ManageUsers extends ListingController<UserImpl> {
     }
 
     @Override
-    protected void onAddNewItem() {
+    protected void onAddNewItem(Event event) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onEditItem(UserImpl item) {
+    protected void onEditItem(Event event, UserModel item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(UserImpl item) {
+    protected void onDeleteItem(Event event, UserModel item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

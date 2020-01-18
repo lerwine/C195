@@ -23,7 +23,7 @@ import util.Bindings;
 
 /**
  * FXML Controller class for the application login screen.
- * @author webmaster
+ * @author Leonard T. Erwine
  */
 @GlobalizationResource("view/login/LoginScene")
 @FXMLResource("/view/login/LoginScene.fxml")
@@ -154,15 +154,6 @@ public class LoginScene extends view.SchedulerController {
             else
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
         });
-//         try {
-//            if (scheduler.App.CURRENT.get().tryLoginUser(userNameTextField.getText(), passwordField.getText()))
-//                view.RootController.setAsRootStageScene();
-//            else
-//                Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-//        } catch (SQLException | ClassNotFoundException ex) {
-//            Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
-//            LOG.log(Level.SEVERE, "Login Exception", ex);
-//        }
         LOG.log(Level.INFO, "Exiting loginButtonClick");
     }
 

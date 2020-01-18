@@ -62,7 +62,7 @@ import view.address.CustomerAddress;
  */
 @GlobalizationResource("view/appointment/EditAppointment")
 @FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends SchedulerController implements ItemController<AppointmentImpl> {
+public class EditAppointment extends SchedulerController implements ItemController<AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -288,7 +288,7 @@ public class EditAppointment extends SchedulerController implements ItemControll
     
     // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
-    private EditItem<AppointmentImpl> parent;
+    private EditItem<AppointmentModel> parent;
     
     //</editor-fold>
 
@@ -431,8 +431,8 @@ public class EditAppointment extends SchedulerController implements ItemControll
         dateRangeValidation = new DateRangeValidation();
         conflictLookupState = new ConflictLookupState();
         locationValid = new LocationValidation();
-        customerValid = new SimpleRequirementValidation<CustomerModel>(customerComboBox, customerValidationLabel);
-        userValid = new SimpleRequirementValidation<UserModel>(userComboBox, userValidationLabel);
+        customerValid = new SimpleRequirementValidation<>(customerComboBox, customerValidationLabel);
+        userValid = new SimpleRequirementValidation<>(userComboBox, userValidationLabel);
         titleValid = new NonWhiteSpaceValidation(titleTextField, titleValidationLabel);
         urlValidation = new UrlValidation();
         contactValid = new NonWhiteSpaceValidation(contactTextField, contactValidationLabel);
@@ -440,12 +440,14 @@ public class EditAppointment extends SchedulerController implements ItemControll
                 .and(conflictLookupState.conflictMessage.isEmpty()).and(urlValidation.isEmpty());
     }
     
+    //</editor-fold>
+
     /**
      * Adds a new appointment to the database.
      * @return The {@link model.db.AppointmentImpl} object containing appointment that was added or {@code null} if no appointment was added.
      */
-    public static AppointmentImpl addNew() {
-        EditItem.ShowAndWaitResult<AppointmentImpl> result = EditItem.showAndWait(EditAppointment.class, new AppointmentImpl(), 800, 600);
+    public static AppointmentModel addNew() {
+        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(EditAppointment.class, new AppointmentModel(new AppointmentImpl()), 800, 600);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
     
@@ -454,21 +456,19 @@ public class EditAppointment extends SchedulerController implements ItemControll
      * @param row The appointment to be edited.
      * @return {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
      */
-    public static boolean edit(AppointmentImpl row) {
-        EditItem.ShowAndWaitResult<AppointmentImpl> result = EditItem.showAndWait(EditAppointment.class, new AppointmentImpl(), 800, 600);
+    public static boolean edit(AppointmentModel row) {
+        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(EditAppointment.class, row, 800, 600);
         return result.isSuccessful();
     }
     
-    //</editor-fold>
-
     @Override
-    public void accept(EditItem<AppointmentImpl> context) {
+    public void accept(EditItem<AppointmentModel> context) {
         parent = context;
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
     }
 
     @Override
-    public Boolean apply(EditItem<AppointmentImpl> context) {
+    public Boolean apply(EditItem<AppointmentModel> context) {
         if (!conflictLookupState.test()) {
             String msg = conflictLookupState.conflictMessage.get();
             if (msg.isEmpty())
@@ -493,20 +493,18 @@ public class EditAppointment extends SchedulerController implements ItemControll
     
     @FXML
     void addCustomerClick(ActionEvent event) {
-        CustomerImpl dao = EditCustomer.addNew();
-        if (null == dao)
+        CustomerModel customer = EditCustomer.addNew();
+        if (null == customer)
             return;
-        CustomerModel customer = new CustomerModel(dao);
         customers.add(customer);
         customerComboBox.getSelectionModel().select(customer);
     }
 
     @FXML
     void addUserClick(ActionEvent event) {
-        UserImpl dao = EditUser.addNew();
-        if (null == dao)
+        UserModel user = EditUser.addNew();
+        if (null == user)
             return;
-        UserModel user = new UserModel(dao);
         users.add(user);
         userComboBox.getSelectionModel().select(user);
     }
@@ -516,8 +514,9 @@ public class EditAppointment extends SchedulerController implements ItemControll
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private AppointmentImpl updateModel(AppointmentImpl row) {
+    private AppointmentModel updateModel(AppointmentModel model) {
         String type = typeComboBox.getValue();
+        AppointmentImpl row = model.getDataObject();
         row.setContact(contactTextField.getText());
         row.setCustomer(customerComboBox.getValue().getDataObject());
         row.setDescription(descriptionTextArea.getText());
@@ -534,11 +533,13 @@ public class EditAppointment extends SchedulerController implements ItemControll
             row.setLocation("");
             if (type.equalsIgnoreCase(APPOINTMENT_CODE_VIRTUAL)) {
                 row.setUrl(urlTextField.getText());
-                return row;
+                model.refreshFromDAO();
+                return model;
             }
         }
         row.setUrl("");
-        return row;
+        model.refreshFromDAO();
+        return model;
     }
     
     //</editor-fold>

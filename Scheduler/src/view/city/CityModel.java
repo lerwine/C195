@@ -6,6 +6,7 @@
 package view.city;
 
 import expressions.NonNullableStringProperty;
+import java.sql.Connection;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -19,7 +20,7 @@ import view.ChildModel;
  *
  * @author erwinel
  */
-public class CityModel extends view.ModelBase<CityImpl> implements AddressCity<CityImpl> {
+public class CityModel extends view.ItemModel<CityImpl> implements AddressCity<CityImpl> {
     
     private final ReadOnlyStringWrapper name;
 
@@ -40,5 +41,21 @@ public class CityModel extends view.ModelBase<CityImpl> implements AddressCity<C
     public CityModel(CityImpl dao) {
         super(dao);
         this.name = new ReadOnlyStringWrapper(dao.getName());
+    }
+
+    @Override
+    public void refreshFromDAO() {
+        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean delete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void saveChanges(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

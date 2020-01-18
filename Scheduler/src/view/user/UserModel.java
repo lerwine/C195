@@ -5,18 +5,19 @@
  */
 package view.user;
 
+import java.sql.Connection;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.UserImpl;
-import view.ModelBase;
+import view.ItemModel;
 
 /**
  *
  * @author erwinel
  */
-public class UserModel extends ModelBase<UserImpl> implements AppointmentUser<UserImpl> {
+public class UserModel extends ItemModel<UserImpl> implements AppointmentUser<UserImpl> {
 
     private final ReadOnlyStringWrapper userName;
 
@@ -38,5 +39,21 @@ public class UserModel extends ModelBase<UserImpl> implements AppointmentUser<Us
         super(dao);
         this.userName = new ReadOnlyStringWrapper(dao.getUserName());
         this.status = new ReadOnlyIntegerWrapper(dao.getStatus());
+    }
+
+    @Override
+    public void refreshFromDAO() {
+        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean delete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void saveChanges(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

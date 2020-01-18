@@ -12,7 +12,7 @@ import javafx.scene.control.ListCell;
  * @author Leonard T. Erwine
  * @param <T>
  */
-public class UserListCell<T extends model.User> extends ListCell<T> {
+public class UserListCell<T extends view.user.AppointmentUser<? extends scheduler.dao.User>> extends ListCell<T> {
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);

@@ -13,7 +13,7 @@ import javafx.util.Callback;
  *
  * @author Leonard T. Erwine
  */
-public class UserListCellFactory<T extends model.User> implements Callback<ListView<T>, ListCell<T>> {
+public class UserListCellFactory<T extends view.user.AppointmentUser<? extends scheduler.dao.User>> implements Callback<ListView<T>, ListCell<T>> {
     @Override
     public ListCell<T> call(ListView<T> param) { return new UserListCell<>(); }
 }

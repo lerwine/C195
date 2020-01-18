@@ -33,7 +33,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/EditUser")
 @FXMLResource("/view/user/EditUser.fxml")
-public class EditUser extends view.SchedulerController implements view.ItemController<UserImpl> {
+public class EditUser extends view.SchedulerController implements view.ItemController<UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
@@ -137,18 +137,18 @@ public class EditUser extends view.SchedulerController implements view.ItemContr
         valid = userNameErrorMessage.isEmpty().and(passwordErrorMessage.isEmpty());
     }
 
-    public static UserImpl addNew() {
-        EditItem.ShowAndWaitResult<UserImpl> result = EditItem.showAndWait(EditUser.class, new UserImpl(), 640, 480);
+    public static UserModel addNew() {
+        EditItem.ShowAndWaitResult<UserModel> result = EditItem.showAndWait(EditUser.class, new UserModel(new UserImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(UserImpl row) {
-        EditItem.ShowAndWaitResult<UserImpl> result = EditItem.showAndWait(EditUser.class, row, 640, 480);
+    public static boolean edit(UserModel row) {
+        EditItem.ShowAndWaitResult<UserModel> result = EditItem.showAndWait(EditUser.class, row, 640, 480);
         return result.isSuccessful();
     }
 
     @Override
-    public void accept(EditItem<UserImpl> context) {
+    public void accept(EditItem<UserModel> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
         if (context.isNewRow().get()) {
             originalUserName.set("");
@@ -173,7 +173,7 @@ public class EditUser extends view.SchedulerController implements view.ItemContr
     }
 
     @Override
-    public Boolean apply(EditItem<UserImpl> t) {
+    public Boolean apply(EditItem<UserModel> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

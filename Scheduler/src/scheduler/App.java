@@ -540,6 +540,13 @@ public class App extends Application {
         
     }
     
+    /**
+     * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+     * @param userName The login name for the user to look up.
+     * @param password The raw password provided by the user.
+     * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions
+     * and either the login was not found or the password hash did not match.
+     */
     public void tryLoginUser(String userName, String password, Consumer<Exception> onNotSucceeded) {
         LoginTask task = new LoginTask(userName, password);
         EventHandler<WorkerStateEvent> handler = (event) -> {
@@ -580,14 +587,14 @@ public class App extends Application {
     }
     
     /**
-     * Looks up a user from the database and sets the current application user if the password hash matches.
-     * 
-     * @param userName The login name for the user to look up.
-     * @param password The raw password provided by the user.
-     * @return {@code true} if a user was found matching the specified {@link userName} and {@link password}; otherwise, false.
-     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
-     * @throws ClassNotFoundException if the SQL database driver class was not found.
+     * @param userName
+     * @param password
+     * @return
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     * @deprecated Use {@link #tryLoginUser(java.lang.String, java.lang.String, java.util.function.Consumer)}, instead.
      */
+    @Deprecated
     public boolean tryLoginUser(String userName, String password) throws SQLException, ClassNotFoundException {
         Optional<UserImpl> result;
         try (DbConnector dep = new DbConnector()) {

@@ -5,6 +5,7 @@
  */
 package view.address;
 
+import java.sql.Connection;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -16,7 +17,7 @@ import view.city.AddressCity;
  *
  * @author erwinel
  */
-public class AddressModel extends view.ModelBase<AddressImpl> implements CustomerAddress<AddressImpl> {
+public class AddressModel extends view.ItemModel<AddressImpl> implements CustomerAddress<AddressImpl> {
 
     private final ReadOnlyStringWrapper address1;
 
@@ -79,4 +80,21 @@ public class AddressModel extends view.ModelBase<AddressImpl> implements Custome
         this.phone = new ReadOnlyStringWrapper();
     }
 
+    @Override
+    public void refreshFromDAO() {
+        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean delete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void saveChanges(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    
 }
