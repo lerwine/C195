@@ -14,6 +14,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
  *
  * @author Leonard T. Erwine
  */
+@Deprecated
 public class FieldValidation {
     private final ReadOnlyBooleanWrapper valid;
 

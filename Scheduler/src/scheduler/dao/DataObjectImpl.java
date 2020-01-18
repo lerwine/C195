@@ -5,148 +5,287 @@
  */
 package scheduler.dao;
 
-import expressions.NonNullableStringProperty;
-import expressions.NonNullableTimestampProperty;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
+import java.util.Optional;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import scheduler.App;
+import scheduler.InvalidOperationException;
+import util.DB;
+import util.ResultSetFunction;
+import view.ModelBase;
 
 /**
- *
+ * The base DAO which contains properties and methods common to all DAO objects.
  * @author erwinel
  */
 public abstract class DataObjectImpl implements DataObject {
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
     
-    public static final String[] SQL_BASE_FIELDNAMES;
-    
     //<editor-fold defaultstate="collapsed" desc="primaryKey property">
     
-    private final ReadOnlyIntegerWrapper primaryKey;
-    
+    private int primaryKey;
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public final int getPrimaryKey() { return primaryKey.get(); }
-    
-    public final ReadOnlyIntegerProperty primaryKeyProperty() { return primaryKey.getReadOnlyProperty(); }
-    
+    public final int getPrimaryKey() { return primaryKey; }
+
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="createDate property">
     
-    public static final String COLNAME_CREATEDATE = "createDate";
+    /**
+     * The name of the 'createDate' property.
+     */
+    public static final String PROP_CREATEDATE = "createDate";
     
-    private final NonNullableTimestampProperty createDate;
+    private Timestamp createDate;
     
     /**
-     * {@inheritDoc}
+     * Gets the timestamp when the data row associated with the current data object was inserted into the database.
+     * @return The timestamp when the data row associated with the current data object was inserted into the database.
      */
-    @Override
-    public Timestamp getCreateDate() { return createDate.get(); }
-    
-    public ReadOnlyObjectProperty<Timestamp> createDateProperty() { return createDate.getReadOnlyProperty(); }
+    public final Timestamp getCreateDate() { return createDate; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="createdBy property">
     
-    public static final String COLNAME_CREATEDBY = "createdBy";
+    /**
+     * The name of the 'createdBy' property.
+     */
+    public static final String PROP_CREATEDBY = "createdBy";
     
-    private final NonNullableStringProperty createdBy;
+    private String createdBy;
     
     /**
-     * {@inheritDoc}
+     * Gets the user name of the person who inserted the data row associated with the current data object into the database.
+     * @return The user name of the person who inserted the data row associated with the current data object into the database.
      */
-    @Override
-    public String getCreatedBy() { return createdBy.get(); }
-    
-    public ReadOnlyStringProperty createdByProperty() { return createdBy.getReadOnlyProperty(); }
+    public final String getCreatedBy() { return createdBy; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="lastModifiedDate property">
     
-    public static final String COLNAME_LASTUPDATE = "lastUpdate";
+    /**
+     * The name of the 'lastModifiedDate' property.
+     */
+    public static final String PROP_LASTMODIFIEDDATE = "lastModifiedDate";
     
-    private final NonNullableTimestampProperty lastModifiedDate;
+    private Timestamp lastModifiedDate;
     
     /**
-     * {@inheritDoc}
+     * Gets the timestamp when the data row associated with the current data object was last modified.
+     * @return The timestamp when the data row associated with the current data object was last modified.
      */
-    @Override
-    public Timestamp getLastModifiedDate() { return lastModifiedDate.get(); }
-    
-    public ReadOnlyObjectProperty<Timestamp> lastModifiedDateProperty() { return lastModifiedDate.getReadOnlyProperty(); }
+    public final Timestamp getLastModifiedDate() { return lastModifiedDate; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="lastModifiedBy property">
     
-    public static final String COLNAME_LASTUPDATEBY = "lastUpdateBy";
+    /**
+     * The name of the 'lastModifiedBy' property.
+     */
+    public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
     
-    private final NonNullableStringProperty lastModifiedBy;
+    private String lastModifiedBy;
+    
+    /**
+     * Gets the user name of the person who last modified the data row associated with the current data object in the database.
+     * @return The user name of the person who last modified the data row associated with the current data object in the database.
+     */
+    public final String getLastModifiedBy() { return lastModifiedBy; }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="rowState">
+    
+    private int rowState;
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getLastModifiedBy() { return lastModifiedBy.get(); }
+    public final int getRowState() { return rowState; }
     
-    public ReadOnlyStringProperty lastModifiedByProperty() { return lastModifiedBy.getReadOnlyProperty(); }
+    public final boolean isModified() { return rowState != DataObject.ROWSTATE_UNMODIFIED; }
     
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="rowState property">
-    
-    private final ReadOnlyIntegerWrapper rowState;
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getRowState() { return rowState.get(); }
-    
-    public ReadOnlyIntegerProperty rowStateProperty() { return rowState.getReadOnlyProperty(); }
-    
-    //</editor-fold>
-    
-    //</editor-fold>
-    
-    static {
-        SQL_BASE_FIELDNAMES = new String[] { COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY };
+    protected synchronized final void setAsModified() {
+        if (rowState != DataObject.ROWSTATE_UNMODIFIED)
+            return;
+        rowState = DataObject.ROWSTATE_MODIFIED;
+        UserImpl currentUser = App.getCurrentUser();
+        if (currentUser == null)
+            return;
+        lastModifiedBy = currentUser.getUserName();
+        lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
     }
     
-    public DataObjectImpl() {
-        primaryKey = new ReadOnlyIntegerWrapper();
-        createDate = new NonNullableTimestampProperty();
-        createdBy = new NonNullableStringProperty();
-        lastModifiedDate = new NonNullableTimestampProperty();
-        lastModifiedBy = new NonNullableStringProperty();
-        rowState = new ReadOnlyIntegerWrapper();
+    //</editor-fold>
+    
+    //</editor-fold>
+
+    /**
+     * Initializes a {@link DataObject.ROWSTATE_NEW} data access object.
+     */
+    protected DataObjectImpl() {
+        primaryKey = 0;
+        lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+        lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
+        rowState = DataObject.ROWSTATE_NEW;
     }
 
+    /**
+     * Initializes a data access object from a {@link ResultSet}.
+     * @param resultSet The data retrieved from the database.
+     * @throws SQLException if not able to read data from the {@link ResultSet}.
+     */
+    protected DataObjectImpl(ResultSet resultSet) throws SQLException {
+        primaryKey = assertBaseResultSetValid(resultSet);
+        createDate = resultSet.getTimestamp(COLNAME_CREATEDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
+        createdBy = resultSet.getString(COLNAME_CREATEDBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
+        lastModifiedDate = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
+        lastModifiedBy = resultSet.getString(COLNAME_LASTUPDATEBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
+        rowState = DataObject.ROWSTATE_UNMODIFIED;
+    }
+    
+    public synchronized void delete(Connection connection) throws SQLException {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        assert rowState == DataObject.ROWSTATE_UNMODIFIED || rowState == DataObject.ROWSTATE_MODIFIED : "Associated row does not exist";
+        String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, primaryKey);
+            assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
+                    getTableName(), getPrimaryKeyColName(), primaryKey);
+        }
+        rowState = DataObject.ROWSTATE_DELETED;
+    }
+    
+    private int assertBaseResultSetValid(ResultSet resultSet) throws SQLException {
+        Objects.requireNonNull(resultSet, "Result set cannot be null");
+        assert !resultSet.isClosed() : "Result set is closed.";
+        assert !(resultSet.isBeforeFirst() || resultSet.isAfterLast()) : "Result set is not positioned on a result row";
+        String pkColName = getPrimaryKeyColName();
+        int pk = resultSet.getInt(pkColName);
+        assert !resultSet.wasNull() : String.format("%s was null", pkColName);
+        return pk;
+    }
+    
+    protected synchronized void refresh(ResultSet resultSet) throws SQLException {
+        assert rowState != DataObject.ROWSTATE_DELETED : "Associated row was already deleted";
+        int pk = assertBaseResultSetValid(resultSet);
+        Timestamp cd = resultSet.getTimestamp(COLNAME_CREATEDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
+        String cb = resultSet.getString(COLNAME_CREATEDBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
+        Timestamp ud = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
+        String ub = resultSet.getString(COLNAME_LASTUPDATEBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
+        primaryKey = pk;
+        createDate = cd;
+        createdBy = cb;
+        lastModifiedDate = ud;
+        lastModifiedBy = ub;
+        rowState = DataObject.ROWSTATE_UNMODIFIED;
+    }
+    
+    protected static <T> ArrayList<T> toList(PreparedStatement ps, ResultSetFunction<T> factory) throws SQLException {
+        ArrayList<T> result = new ArrayList<>();
+        try (ResultSet rs = ps.getResultSet()) {
+            while (rs.next())
+                result.add(factory.apply(rs));
+        }
+        return result;
+    }
+    
+    protected static <T> Optional<T> toOptional(PreparedStatement ps, ResultSetFunction<T> factory) throws SQLException {
+        try (ResultSet rs = ps.getResultSet()) {
+            if (rs.next())
+                return Optional.of(factory.apply(rs));
+        }
+        return Optional.empty();
+    }
+    
+    protected static Stream<String> getBaseFieldNames() {
+        return Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY);
+    }
+    
+    public interface TableAndName {
+        String getName();
+        String getTable();
+    }
+    
+    public interface JoinTable {
+        String getParentColName();
+        String getChildColName();
+        String getTable();
+    }
+    
+    public static final class SelectQueryBuilder {
+        private final String tableName;
+        public String getTableName() { return tableName; }
+        private final TreeMap<String, TableAndName> columns;
+        private final TreeMap<String, JoinTable> joins;
+        public SelectQueryBuilder(String tableName) {
+            columns = new TreeMap<>();
+            joins = new TreeMap<>();
+            this.tableName = tableName;
+        }
+
+        public JoinTable join(String tableName, String tableAlias, String parentColName, String childColName) {
+            JoinTable result = new JoinTable() {
+                @Override
+                public String getParentColName() { return parentColName; }
+                @Override
+                public String getChildColName() { return childColName; }
+                @Override
+                public String getTable() { return tableName; }
+            };
+            joins.put(tableAlias, result);
+            return result;
+        }
+        
+        public void addColumn(String tableAlias, String name, String columnAlias) {
+            columns.put(columnAlias, new TableAndName() {
+                @Override
+                public String getName() { return name; }
+                @Override
+                public String getTable() { return SelectQueryBuilder.this.tableName; }
+            });
+        }
+    }
+    
+    /**
+     * Gets the name of the data table associated a DAO.
+     * @param <R> The type of DAO.
+     * @param rowClass The DAO class.
+     * @return The name of the data table associated with the specified DAO.
+     * @throws IllegalArgumentException if the table class name is not defined through the {@link TableName} annotation.
+     */
     public static final <R extends DataObjectImpl> String getTableName(Class<R> rowClass) {
         Class<TableName> tableNameClass = TableName.class;
         if (rowClass.isAnnotationPresent(tableNameClass)) {
@@ -157,8 +296,17 @@ public abstract class DataObjectImpl implements DataObject {
         throw new IllegalArgumentException("Table name not defined");
     }
     
+    public final String getTableName() { return getTableName(getClass()); }
+    
+    /**
+     * Gets the name of the primary key column associated a DAO.
+     * @param <R> The type of DAO.
+     * @param rowClass The DAO class.
+     * @return The name of the primary key column associated with the specified DAO.
+     * @throws IllegalArgumentException if the primary key column is not defined through the {@link PrimaryKeyColumn} annotation.
+     */
     public static final <R extends DataObjectImpl> String getPrimaryKeyColName(Class<R> rowClass) {
-        Class<PrimaryKey> pkClass = PrimaryKey.class;
+        Class<PrimaryKeyColumn> pkClass = PrimaryKeyColumn.class;
         if (rowClass.isAnnotationPresent(pkClass)) {
             String n = rowClass.getAnnotation(pkClass).value();
             if (n != null && !n.isEmpty())
@@ -166,262 +314,90 @@ public abstract class DataObjectImpl implements DataObject {
         }
         throw new IllegalArgumentException("Primary key column name not defined");
     }
-
-    public class SaveQueryBuilder {
-        private final boolean insert;
-        private final ArrayList<String> names;
-        private final ArrayList<Integer> types;
-        private final ArrayList<Object> values;
-        private boolean finalized;
+    
+    public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getClass()); }
+    
+    public void saveChanges(Connection connection) throws SQLException {
         
-        public final boolean isInsert() { return insert; }
-        
-        private synchronized int setColumn(String name, int t, Object value) {
-            Objects.requireNonNull(name);
-            assert !name.trim().isEmpty() : "Name cannot be empty";
-            assert !finalized : "Query builder is finalized";
-            int index = names.indexOf(name);
-            if (index < 0) {
-                index = names.size();
-                names.add(name);
-                types.add(t);
-                values.add(value);
-            } else {
-                assert types.get(index) == t : "Cannot change column type";
-                values.set(index, value);
-            }
-            return index;
-            
-        }
-        
-        public int setIntColumn(String name, int value) { return setColumn(name, Types.INTEGER, value); }
-        
-        public int getIntColumn(String name) { return (int)values.get(names.indexOf(name)); }
-        
-        public int setStringColumn(String name, String value) { return setColumn(name, Types.NVARCHAR, value); }
-        
-        public String getStringColumn(String name) { return (String)values.get(names.indexOf(name)); }
-        
-        public int setBooleanColumn(String name, boolean value) { return setColumn(name, Types.BIT, value); }
-        
-        public boolean getBooleanColumn(String name) { return (boolean)values.get(names.indexOf(name)); }
-        
-        public int setTimestampColumn(String name, Timestamp value) { return setColumn(name, Types.TIMESTAMP, value); }
-        
-        public Timestamp getTimestampColumn(String name) { return (Timestamp)values.get(names.indexOf(name)); }
-        
-        private SaveQueryBuilder() {
-            insert = getRowState() == ROWSTATE_NEW;
-            names = new ArrayList<>();
-            types = new ArrayList<>();
-            values = new ArrayList<>();
-            finalized = false;
-        }
-        
-        public synchronized PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-            Class<? extends DataObjectImpl> itemClass = DataObjectImpl.this.getClass();
-            final PreparedStatement ps;
-            if (insert)
-                ps = connection.prepareStatement(String.format("INSERT INTO %s (`%s`) VALUES (%s)", getTableName(itemClass), names.stream().reduce((t, u) -> t + "`, `" + u),
-                        names.stream().skip(1).reduce("%", ((t, u) -> t + ", %"))));
-            else {
-                String pk = getPrimaryKeyColName(itemClass);
-                if (!finalized) {
-                    names.add(pk);
-                    types.add(Types.INTEGER);
-                    values.add(getPrimaryKey());
-                }
-                ps = connection.prepareStatement(String.format("UPDATE %s SET `%s` WHERE `%s` = %%", getTableName(itemClass), names.stream().reduce((t, u) -> t + "`, `" + u), pk));
-            }
-            
-            finalized = true;
-            types.forEach(new Consumer<Integer>(){
-                private int index = 0;
+    }
+    public interface SelectOrderSpec {
+        String getName();
+        boolean isDescending();
+        public static SelectOrderSpec of(String colName, boolean descending) {
+            Objects.requireNonNull(colName, "Column name cannot be null");
+            assert !colName.trim().isEmpty() : "Column name cannot be empty";
+            return new SelectOrderSpec() {
                 @Override
-                public void accept(Integer t) {
-                    try {
-                        Object v = values.get(index++);
-                        if (null == v)
-                            ps.setNull(index, t);
-                        else
-                            switch (t) {
-                                case Types.INTEGER:
-                                    ps.setInt(index, (int)v);
-                                    break;
-                                case Types.BIT:
-                                    ps.setBoolean(index, (boolean)v);
-                                    break;
-                                case Types.TIMESTAMP:
-                                    ps.setTimestamp(index, (Timestamp)v);
-                                    break;
-                                default:
-                                    break;
-                            }
-                    } catch (SQLException ex) {
-                        Logger.getLogger(DataObjectImpl.class.getName()).log(Level.SEVERE, null, ex);
-                        throw new RuntimeException("Error setting column value", ex);
-                    }
-                }
+                public String getName() { return colName; }
+                @Override
+                public boolean isDescending() { return descending; }
+            };
+        }
+        public static SelectOrderSpec of(String colName) { return of(colName, false); }
+        public static ObservableList<SelectOrderSpec> of(SortedMap<String, Boolean> map) {
+            ObservableList<SelectOrderSpec> result = FXCollections.observableArrayList();
+            if (null != map && !map.isEmpty())
+                map.entrySet().forEach((i) -> result.add(SelectOrderSpec.of(i.getKey(), i.getValue())));
+            return result;
+        }
+        public static SortedMap<String, Boolean> of(SelectOrderSpec[] selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
+            return of((null == selections) ? null : Arrays.asList(selections), options, getDefault);
+        }
+        public static SortedMap<String, Boolean> of(Iterable<SelectOrderSpec> selections) {
+            final SortedMap<String, Boolean> result = new TreeMap<>();
+            selections.forEach((t) -> {
+                String n;
+                if (null != t && null != (n = t.getName()) && !n.trim().isEmpty())
+                    result.put(n, t.isDescending());
             });
-            return ps;
+            return result;
         }
-    }
-    
-    public static ZonedDateTime toZonedUtc(LocalDateTime dateTime) { return dateTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("UTC")); }
-    
-    public static Timestamp toUtcTimestamp(LocalDateTime dateTime) { return Timestamp.valueOf(toZonedUtc(dateTime).toLocalDateTime()); }
-    
-    /**
-     * Base class for object intended for modifying property values of owning class.
-     * 
-     * The purpose is to ensure that properties of the owning class are only modified from the Fx Application thread.
-     */
-    public abstract class EditableBase implements DataObject {
-        //<editor-fold defaultstate="collapsed" desc="Properties">
-        
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final int getPrimaryKey() { return primaryKey.get(); }
-        
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final Timestamp getCreateDate() { return createDate.get(); }
-        
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final String getCreatedBy() { return createdBy.get(); }
-        
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final Timestamp getLastModifiedDate() { return lastModifiedDate.get(); }
-        
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final String getLastModifiedBy() { return lastModifiedBy.get(); }
-        
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final int getRowState() { return rowState.get(); }
-
-        //</editor-fold>
-        
-        public abstract BooleanBinding isValid();
-        
-        protected EditableBase() {
-            if (getRowState() == ROWSTATE_DELETED)
-                throw new IllegalStateException("Cannot edit a deleted item");
+        public static SortedMap<String, Boolean> of(SelectOrderSpec ...selections) {
+            return of((selections == null) ? null : Arrays.asList(selections));
         }
-        
-        /**
-         * Updates the properties of the owning class with the modified values.
-         */
-        public abstract void applyChanges();
-        
-        /**
-         * Discards any modified property values.
-         */
-        public abstract void undoChanges();
-        
-        /**
-         * This gets invoked before an insert or update database operation.
-         * 
-         * @param connection The database connection that will be used for saving changes.
-         * @param queryBuilder The {@link SaveQueryBuilder} object used for specifying columns to be included in the insert or update query.
-         */
-        protected void beforeSaveChanges(Connection connection, SaveQueryBuilder queryBuilder) {
-            Timestamp modifiedDate = toUtcTimestamp(LocalDateTime.now());
-            String modifiedBy = App.CURRENT.get().getCurrentUser().getUserName();
-            if (getRowState() == ROWSTATE_NEW) {
-                queryBuilder.setTimestampColumn(COLNAME_CREATEDATE, modifiedDate);
-                queryBuilder.setStringColumn(COLNAME_CREATEDBY, modifiedBy);
-            }
-            queryBuilder.setTimestampColumn(COLNAME_LASTUPDATE, modifiedDate);
-            queryBuilder.setStringColumn(COLNAME_LASTUPDATEBY, modifiedBy);
+        public static SortedMap<String, Boolean> single(String colName, boolean isDescending) {
+            Objects.requireNonNull(colName, "Column name cannot be null");
+            assert !colName.trim().isEmpty() : "Column name cannot be empty";
+            final SortedMap<String, Boolean> result = new TreeMap<>();
+            result.put(colName, isDescending);
+            return result;
         }
-    
-        /**
-         * Saves the current object to the database.
-         * 
-         * @param connection The SQL database connection to use.
-         * 
-         * @throws SQLException if unable to complete the insert or update operation.
-         */
-        public synchronized final void saveChanges(Connection connection) throws SQLException {
-            if (getRowState() == ROWSTATE_DELETED)
-                throw new IllegalStateException("Cannot save a deleted item");
-            final SaveQueryBuilder queryBuilder = new SaveQueryBuilder();
-            beforeSaveChanges(connection, queryBuilder);
-            final int pk;
-            try (PreparedStatement ps = queryBuilder.createPreparedStatement(connection)) {
-                ps.executeUpdate();
-                if (getRowState() == ROWSTATE_NEW) {
-                    try (ResultSet rs = ps.getGeneratedKeys()) {
-                        pk = rs.getInt(1);
-                    }
-                } else
-                    pk = getPrimaryKey();
-            }
-            if (Platform.isFxApplicationThread())
-                afterSave(queryBuilder, pk);
-            else
-                Platform.runLater(() -> afterSave(queryBuilder, pk));
+        public static SortedMap<String, Boolean> single(String colName) {
+            return single(colName, false);
         }
-
-        private void afterSave(SaveQueryBuilder queryBuilder, int pk) {
-            lastModifiedDate.set(queryBuilder.getTimestampColumn(COLNAME_LASTUPDATE));
-            lastModifiedBy.set(queryBuilder.getStringColumn(COLNAME_LASTUPDATEBY));
-            if (getRowState() == ROWSTATE_NEW) {
-                createDate.set(queryBuilder.getTimestampColumn(COLNAME_CREATEDATE));
-                createdBy.set(queryBuilder.getStringColumn(COLNAME_CREATEDBY));
-                primaryKey.set(pk);
-            }
-            rowState.set(ROWSTATE_UNMODIFIED);
-            applyChanges();
-        }
-
-        /**
-         * Deletes the current object from the database.
-         * 
-         * @param connection The database connection to use.
-         * @throws java.sql.SQLException
-         */
-        public synchronized final void delete(Connection connection) throws SQLException {
-            if (getRowState() == ROWSTATE_DELETED)
-                throw new IllegalStateException("Item was already deleted");
-            if (getRowState() == ROWSTATE_NEW)
-                throw new IllegalStateException("Items that have never been saved cannot be deleted");
-            onBeforeDelete(connection);
-            Class<? extends DataObjectImpl> itemClass = DataObjectImpl.this.getClass();
-            final PreparedStatement ps = connection.prepareStatement(String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(itemClass), getPrimaryKeyColName(itemClass)));
-            if (Platform.isFxApplicationThread()) {
-                rowState.set(ROWSTATE_DELETED);
-                applyChanges();
-            } else
-                Platform.runLater(() -> {
-                    rowState.set(ROWSTATE_DELETED);
-                    applyChanges();
+        public static SortedMap<String, Boolean> of(Iterable<SelectOrderSpec> selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
+            final SortedMap<String, Boolean> result = new TreeMap<>();
+            if (null == options || options.isEmpty())
+                selections.forEach((t) -> {
+                    String n;
+                    if (null != t && null != (n = t.getName()) && !n.trim().isEmpty())
+                        result.put(n, t.isDescending());
                 });
-            
+            else
+                selections.forEach((t) -> {
+                    String n;
+                    if (null != t && null != (n = t.getName()) && options.contains(n))
+                        result.put(n, t.isDescending());
+                });
+            if (!result.isEmpty())
+                return result;
+            SortedMap<String, Boolean> map;
+            if (null == getDefault || null == (map = getDefault.get()))
+                map = new TreeMap<>();
+            return map;
         }
-
-        /**
-         * This gets called before a delete operation.
-         * Implementing classes can throw an {@link IllegalStateException} if it is not to be deleted.
-         * 
-         * @param connection The database connection to use.
-         */
-        protected void onBeforeDelete(Connection connection) throws IllegalStateException { }
+        public static String toOrderByClause(SortedMap<String, Boolean> map) {
+            if (map == null || map.isEmpty())
+                return "";
+            return String.format(" ORDER BY %s", map.entrySet().stream().map((t) -> (t.getValue()) ? String.format("`%s` DESC", t.getKey()) :
+                    String.format("`%s`", t.getKey())).reduce((i, u) -> String.format("%s, %s", i, u)));
+        }
+        public static String toOrderByClause(Iterable<SelectOrderSpec> selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
+            return toOrderByClause(of(selections, options, getDefault));
+        }
+        public static String toOrderByClause(SelectOrderSpec[] selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
+            return toOrderByClause(of(selections, options, getDefault));
+        }
     }
+    
 }

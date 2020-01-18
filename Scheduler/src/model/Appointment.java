@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
  *
  * @author Leonard T. Erwine
  */
+@Deprecated
 public interface Appointment extends Record {
     model.Customer getCustomer();
     model.User getUser();

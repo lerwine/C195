@@ -38,8 +38,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
 import scheduler.InvalidOperationException;
+import scheduler.dao.DataObjectImpl;
 import util.DbConnector;
 import util.Alerts;
+import util.DB;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -51,7 +53,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/EditItem")
 @FXMLResource("/view/EditItem.fxml")
-public class EditItem<R extends model.db.DataRow> extends SchedulerController {
+public class EditItem<R extends DataObjectImpl> extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="fields">
     
     private Stage stage;
@@ -189,7 +191,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
         try (DbConnector dep =  new DbConnector()) {
             result.getTarget().delete(dep.getConnection());
             result.successful.set(result.target.isDeleted().get());
-        } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
+        } catch (SQLException | ClassNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         if (stage != null)
@@ -202,7 +204,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
         try (DbConnector dep =  new DbConnector()) {
             result.getTarget().saveChanges(dep.getConnection());
             result.successful.set(result.target.isSaved().get());
-        } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
+        } catch (SQLException | ClassNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         if (stage != null)
@@ -234,23 +236,23 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
     
     //<editor-fold defaultstate="collapsed" desc="showAndWait overloads">
 
-    public static <R extends model.db.DataRow, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
+    public static <R extends DataObjectImpl, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
             R target) {
         return showAndWait(contentClass, target, null);
     }
     
-    public static <R extends model.db.DataRow, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
+    public static <R extends DataObjectImpl, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
             R target, EditItem<?> parent) {
         return showAndWait(contentClass, target, Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE, parent);
     }
     
-    public static <R extends model.db.DataRow, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
+    public static <R extends DataObjectImpl, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
             R target, double width, double height) {
         return showAndWait(contentClass, target, width, height, null);
     }
     
     @SuppressWarnings("UseSpecificCatch")
-    public static <R extends model.db.DataRow, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
+    public static <R extends DataObjectImpl, C extends ItemController<R>> EditItem.ShowAndWaitResult<R> showAndWait(Class<? extends C> contentClass,
             R target, double width, double height, EditItem<?> parent) {
         scheduler.App app = scheduler.App.CURRENT.get();
         ResourceBundle editItemRb = null;
@@ -309,11 +311,11 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
                 restoreLabeled(editItem.createdByValue, row.getCreatedBy());
                 DateTimeFormatter formatter = scheduler.App.CURRENT.get().getFullDateTimeFormatter();
                 restoreNode(editItem.createdLabel);
-                restoreLabeled(editItem.createDateValue, formatter.format(row.getCreateDate()));
+                restoreLabeled(editItem.createDateValue, formatter.format(DB.fromUtcTimestamp(row.getCreateDate())));
                 restoreNode(editItem.lastUpdateByLabel);
-                restoreLabeled(editItem.lastUpdateByValue, row.getLastUpdateBy());
+                restoreLabeled(editItem.lastUpdateByValue, row.getLastModifiedBy());
                 restoreNode(editItem.lastUpdateLabel);
-                restoreLabeled(editItem.lastUpdateValue, formatter.format(row.getLastUpdate()));
+                restoreLabeled(editItem.lastUpdateValue, formatter.format(DB.fromUtcTimestamp(row.getLastModifiedDate())));
                 restoreNode(editItem.deleteButton);
             }
             editItem.contentController.accept(editItem);
@@ -341,7 +343,7 @@ public class EditItem<R extends model.db.DataRow> extends SchedulerController {
     
     //</editor-fold>
     
-    public static class ShowAndWaitResult<R extends model.db.DataRow> {
+    public static class ShowAndWaitResult<R extends DataObjectImpl> {
 
         private final ReadOnlyBooleanWrapper successful;
 

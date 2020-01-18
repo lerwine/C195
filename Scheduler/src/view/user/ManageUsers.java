@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import model.db.UserRow;
+import scheduler.dao.UserImpl;
 import util.Alerts;
 import view.ListingController;
 import view.annotations.FXMLResource;
@@ -17,7 +17,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/ManageUsers")
 @FXMLResource("/view/user/ManageUsers.fxml")
-public class ManageUsers extends ListingController<UserRow> {
+public class ManageUsers extends ListingController<UserImpl> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_MANAGEUSERS = "manageUsers";
@@ -29,25 +29,25 @@ public class ManageUsers extends ListingController<UserRow> {
     //</editor-fold>
     
     @FXML
-    private TableView<UserRow> usersTableView;
+    private TableView<UserImpl> usersTableView;
 
     @FXML
-    private TableColumn<UserRow, String> userNameTableColumn;
+    private TableColumn<UserImpl, String> userNameTableColumn;
 
     @FXML
-    private TableColumn<UserRow, Short> statusTableColumn;
+    private TableColumn<UserImpl, Short> statusTableColumn;
 
     @FXML
-    private TableColumn<UserRow, LocalDateTime> createDateTableColumn;
+    private TableColumn<UserImpl, LocalDateTime> createDateTableColumn;
 
     @FXML
-    private TableColumn<UserRow, String> createdByTableColumn;
+    private TableColumn<UserImpl, String> createdByTableColumn;
 
     @FXML
-    private TableColumn<UserRow, LocalDateTime> lastUpdateTableColumn;
+    private TableColumn<UserImpl, LocalDateTime> lastUpdateTableColumn;
 
     @FXML
-    private TableColumn<UserRow, String> lastUpdateByTableColumn;
+    private TableColumn<UserImpl, String> lastUpdateByTableColumn;
     
     //private String returnViewPath;
 
@@ -64,12 +64,12 @@ public class ManageUsers extends ListingController<UserRow> {
     }
 
     @Override
-    protected void onEditItem(UserRow item) {
+    protected void onEditItem(UserImpl item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(UserRow item) {
+    protected void onDeleteItem(UserImpl item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

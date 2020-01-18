@@ -6,12 +6,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import scheduler.dao.AddressImpl;
 import view.EditItem;
-import model.db.AddressRow;
-import model.db.CustomerRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
-
+import scheduler.dao.CustomerImpl;
+import view.address.AddressModel;
 /**
  * FXML Controller class
  *
@@ -19,24 +19,18 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/customer/EditCustomer")
 @FXMLResource("/view/customer/EditCustomer.fxml")
-public class EditCustomer extends view.SchedulerController implements view.ItemController<CustomerRow> {
+public class EditCustomer extends view.SchedulerController implements view.ItemController<CustomerImpl> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
-//    public static final String RESOURCEKEY_ACTIVE = "active";
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Customer"}.
+     */
     public static final String RESOURCEKEY_ADDNEWCUSTOMER = "addNewCustomer";
-//    public static final String RESOURCEKEY_ADDRESS = "address";
-//    public static final String RESOURCEKEY_CITY = "city";
-//    public static final String RESOURCEKEY_COUNTRY = "country";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "EditS Customer"}.
+     */
     public static final String RESOURCEKEY_EDITCUSTOMER = "editCustomer";
-//    public static final String RESOURCEKEY_NAME = "name";
-//    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
-//    public static final String RESOURCEKEY_NO = "no";
-//    public static final String RESOURCEKEY_YES = "yes";
-//    public static final String RESOURCEKEY_BY = "by";
-//    public static final String RESOURCEKEY_CANCEL = "cancel";
-//    public static final String RESOURCEKEY_CREATED = "created";
-//    public static final String RESOURCEKEY_SAVE = "save";
-//    public static final String RESOURCEKEY_UPDATED = "updated";
 
     //</editor-fold>
     
@@ -62,7 +56,7 @@ public class EditCustomer extends view.SchedulerController implements view.ItemC
     private Label addressLabel;
     
     @FXML
-    private ComboBox<AddressRow> addressComboBox;
+    private ComboBox<AddressModel> addressComboBox;
     
     @FXML
     private Label cityLabel;
@@ -70,13 +64,13 @@ public class EditCustomer extends view.SchedulerController implements view.ItemC
     @FXML
     private Label countryLabel;
     
-    public static CustomerRow addNew() {
-        EditItem.ShowAndWaitResult<CustomerRow> result = EditItem.showAndWait(EditCustomer.class, new CustomerRow(), 640, 480);
+    public static CustomerImpl addNew() {
+        EditItem.ShowAndWaitResult<CustomerImpl> result = EditItem.showAndWait(EditCustomer.class, new CustomerImpl(), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CustomerRow row) {
-        EditItem.ShowAndWaitResult<CustomerRow> result = EditItem.showAndWait(EditCustomer.class, row, 640, 480);
+    public static boolean edit(CustomerImpl row) {
+        EditItem.ShowAndWaitResult<CustomerImpl> result = EditItem.showAndWait(EditCustomer.class, row, 640, 480);
         return result.isSuccessful();
     }
 
@@ -91,12 +85,12 @@ public class EditCustomer extends view.SchedulerController implements view.ItemC
     }
 
     @Override
-    public void accept(EditItem<CustomerRow> context) {
+    public void accept(EditItem<CustomerImpl> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
     }
 
     @Override
-    public Boolean apply(EditItem<CustomerRow> t) {
+    public Boolean apply(EditItem<CustomerImpl> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

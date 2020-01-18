@@ -1,7 +1,5 @@
 package scheduler.dao;
 
-import java.sql.Timestamp;
-
 /**
  * Base interface for all data objects representing a data row in the database.
  * 
@@ -9,6 +7,64 @@ import java.sql.Timestamp;
  */
 public interface DataObject {
 
+    //<editor-fold defaultstate="collapsed" desc="Database table names">
+
+    /**
+     * The name of the {@link User} database table.
+     */
+    public static final String TABLENAME_USER = "user";
+
+    /**
+     * The name of the {@link Country} database table.
+     */
+    public static final String TABLENAME_COUNTRY = "country";
+
+    /**
+     * The name of the {@link City} database table.
+     */
+    public static final String TABLENAME_CITY = "city";
+
+    /**
+     * The name of the {@link Address} database table.
+     */
+    public static final String TABLENAME_ADDRESS = "address";
+
+    /**
+     * The name of the {@link Customer} database table.
+     */
+    public static final String TABLENAME_CUSTOMER = "customer";
+    
+    /**
+     * The name of the {@link Appointment} database table.
+     */
+    public static final String TABLENAME_APPOINTMENT = "appointment";
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Column names">
+    
+    /**
+     * The name of the 'createDate' column.
+     */
+    public static final String COLNAME_CREATEDATE = "createDate";
+    
+    /**
+     * The name of the 'createdBy' column.
+     */
+    public static final String COLNAME_CREATEDBY = "createdBy";
+    
+    /**
+     * The name of the 'lastUpdate' column.
+     */
+    public static final String COLNAME_LASTUPDATE = "lastUpdate";
+    
+    /**
+     * The name of the 'lastUpdateBy' column.
+     */
+    public static final String COLNAME_LASTUPDATEBY = "lastUpdateBy";
+    
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Row state values">
     
     /**
@@ -40,32 +96,15 @@ public interface DataObject {
     int getPrimaryKey();
     
     /**
-     * Gets the timestamp when the data row associated with the current data object was inserted into the database.
-     * @return The timestamp when the data row associated with the current data object was inserted into the database.
-     */
-    Timestamp getCreateDate();
-    
-    /**
-     * Gets the user name of the person who inserted the data row associated with the current data object into the database.
-     * @return The user name of the person who inserted the data row associated with the current data object into the database.
-     */
-    String getCreatedBy();
-    
-    /**
-     * Gets the timestamp when the data row associated with the current data object was last modified.
-     * @return The timestamp when the data row associated with the current data object was last modified.
-     */
-    Timestamp getLastModifiedDate();
-    
-    /**
-     * Gets the user name of the person who last modified the data row associated with the current data object in the database.
-     * @return The user name of the person who last modified the data row associated with the current data object in the database.
-     */
-    String getLastModifiedBy();
-    
-    /**
      * Gets a value which indicates the disposition of the current data object in relation to the corresponding data row in the database.
      * @return {@link #ROWSTATE_UNMODIFIED}, {@link #ROWSTATE_MODIFIED}, {@link #ROWSTATE_NEW} or {@link #ROWSTATE_DELETED}.
      */
     int getRowState();
+    
+    /**
+     * Gets a value which indicates whether the current data object exists in the database.
+     * @return {@code true} if the row state is {@link #ROWSTATE_UNMODIFIED}, {@link #ROWSTATE_MODIFIED}, otherwise, {@code false} if
+     * the row state is {@link #ROWSTATE_NEW} or {@link #ROWSTATE_DELETED}.
+     */
+    default  boolean isExisting() { return getRowState() == ROWSTATE_MODIFIED || getRowState() == ROWSTATE_UNMODIFIED; }
 }

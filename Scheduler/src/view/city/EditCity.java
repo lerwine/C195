@@ -5,8 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import model.db.CityRow;
-import model.db.CountryRow;
+import scheduler.dao.CityImpl;
+import scheduler.dao.CountryImpl;
 import view.EditItem;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
@@ -18,21 +18,21 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/city/EditCity")
 @FXMLResource("/view/city/EditCity.fxml")
-public class EditCity extends view.SchedulerController implements view.ItemController<CityRow> {
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
+public class EditCity extends view.SchedulerController implements view.ItemController<CityImpl> {
+    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New City"}.
+     */
     public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
-//    public static final String RESOURCEKEY_COUNTRY = "country";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit City"}.
+     */
     public static final String RESOURCEKEY_EDITCITY = "editCity";
-//    public static final String RESOURCEKEY_NAME = "name";
-//    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
-//    public static final String RESOURCEKEY_BY = "by";
-//    public static final String RESOURCEKEY_CANCEL = "cancel";
-//    public static final String RESOURCEKEY_CREATED = "created";
-//    public static final String RESOURCEKEY_SAVE = "save";
-//    public static final String RESOURCEKEY_UPDATED = "updated";
 
     //</editor-fold>
+    
     private int countryId;
     
     @FXML
@@ -48,15 +48,15 @@ public class EditCity extends view.SchedulerController implements view.ItemContr
     private Label countryLabel;
     
     @FXML
-    private ComboBox<CountryRow> countryComboBox;
+    private ComboBox<CountryImpl> countryComboBox;
     
-    public static CityRow addNew() {
-        EditItem.ShowAndWaitResult<CityRow> result = EditItem.showAndWait(EditCity.class, new CityRow(), 640, 480);
+    public static CityImpl addNew() {
+        EditItem.ShowAndWaitResult<CityImpl> result = EditItem.showAndWait(EditCity.class, new CityImpl(), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CityRow row) {
-        EditItem.ShowAndWaitResult<CityRow> result = EditItem.showAndWait(EditCity.class, row, 640, 480);
+    public static boolean edit(CityImpl row) {
+        EditItem.ShowAndWaitResult<CityImpl> result = EditItem.showAndWait(EditCity.class, row, 640, 480);
         return result.isSuccessful();
     }
 
@@ -71,12 +71,12 @@ public class EditCity extends view.SchedulerController implements view.ItemContr
     }
 
     @Override
-    public void accept(EditItem<CityRow> context) {
+    public void accept(EditItem<CityImpl> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCITY : RESOURCEKEY_EDITCITY));
     }
 
     @Override
-    public Boolean apply(EditItem<CityRow> t) {
+    public Boolean apply(EditItem<CityImpl> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

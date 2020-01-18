@@ -3,7 +3,7 @@ package view.customer;
 import java.time.LocalDateTime;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
-import model.db.CustomerRow;
+import scheduler.dao.CustomerImpl;
 import util.Alerts;
 import view.ListingController;
 import view.annotations.FXMLResource;
@@ -16,40 +16,32 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/customer/ManageCustomers")
 @FXMLResource("/view/customer/ManageCustomers.fxml")
-public class ManageCustomers extends ListingController<CustomerRow> {
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
-
-//    public static final String RESOURCEKEY_ACTIVE = "active";
-//    public static final String RESOURCEKEY_ADDRESS = "address";
-//    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
-//    public static final String RESOURCEKEY_CREATEDON = "createdOn";
-//    public static final String RESOURCEKEY_CUSTOMERNAME = "customerName";
+public class ManageCustomers extends ListingController<CustomerImpl> {
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Customers"}.
+     */
     public static final String RESOURCEKEY_MANAGECUSTOMERS = "manageCustomers";
-//    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
-//    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
-
-    //</editor-fold>
-    
-    @FXML
-    private TableColumn<CustomerRow, String> customerNameTableColumn;
 
     @FXML
-    private TableColumn<CustomerRow, Integer> addressTableColumn;
+    private TableColumn<CustomerImpl, String> customerNameTableColumn;
 
     @FXML
-    private TableColumn<CustomerRow, Boolean> activeTableColumn;
+    private TableColumn<CustomerImpl, Integer> addressTableColumn;
 
     @FXML
-    private TableColumn<CustomerRow, LocalDateTime> createDateTableColumn;
+    private TableColumn<CustomerImpl, Boolean> activeTableColumn;
 
     @FXML
-    private TableColumn<CustomerRow, String> createdByTableColumn;
+    private TableColumn<CustomerImpl, LocalDateTime> createDateTableColumn;
 
     @FXML
-    private TableColumn<CustomerRow, LocalDateTime> lastUpdateTableColumn;
+    private TableColumn<CustomerImpl, String> createdByTableColumn;
 
     @FXML
-    private TableColumn<CustomerRow, String> lastUpdateByTableColumn;
+    private TableColumn<CustomerImpl, LocalDateTime> lastUpdateTableColumn;
+
+    @FXML
+    private TableColumn<CustomerImpl, String> lastUpdateByTableColumn;
     
     public static void setAsRootContent() {
         setAsRootContent(ManageCustomers.class, (view.SchedulerController.ContentChangeContext<ManageCustomers> context) -> {
@@ -64,12 +56,12 @@ public class ManageCustomers extends ListingController<CustomerRow> {
     }
 
     @Override
-    protected void onEditItem(CustomerRow item) {
+    protected void onEditItem(CustomerImpl item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected void onDeleteItem(CustomerRow item) {
+    protected void onDeleteItem(CustomerImpl item) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

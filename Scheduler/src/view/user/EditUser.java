@@ -20,8 +20,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import scheduler.dao.User;
 import view.EditItem;
-import model.db.UserRow;
+import scheduler.dao.UserImpl;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -32,7 +33,7 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/user/EditUser")
 @FXMLResource("/view/user/EditUser.fxml")
-public class EditUser extends view.SchedulerController implements view.ItemController<UserRow> {
+public class EditUser extends view.SchedulerController implements view.ItemController<UserImpl> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
@@ -111,7 +112,7 @@ public class EditUser extends view.SchedulerController implements view.ItemContr
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
-        userActiveStateOptions = FXCollections.observableArrayList(UserRow.STATE_USER, UserRow.STATE_ADMIN, UserRow.STATE_INACTIVE);
+        userActiveStateOptions = FXCollections.observableArrayList(User.STATUS_USER, User.STATUS_ADMIN, User.STATUS_INACTIVE);
         activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
             @Override
             protected void updateItem(Short a, boolean bln) {
@@ -136,18 +137,18 @@ public class EditUser extends view.SchedulerController implements view.ItemContr
         valid = userNameErrorMessage.isEmpty().and(passwordErrorMessage.isEmpty());
     }
 
-    public static UserRow addNew() {
-        EditItem.ShowAndWaitResult<UserRow> result = EditItem.showAndWait(EditUser.class, new UserRow(), 640, 480);
+    public static UserImpl addNew() {
+        EditItem.ShowAndWaitResult<UserImpl> result = EditItem.showAndWait(EditUser.class, new UserImpl(), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(UserRow row) {
-        EditItem.ShowAndWaitResult<UserRow> result = EditItem.showAndWait(EditUser.class, row, 640, 480);
+    public static boolean edit(UserImpl row) {
+        EditItem.ShowAndWaitResult<UserImpl> result = EditItem.showAndWait(EditUser.class, row, 640, 480);
         return result.isSuccessful();
     }
 
     @Override
-    public void accept(EditItem<UserRow> context) {
+    public void accept(EditItem<UserImpl> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
         if (context.isNewRow().get()) {
             originalUserName.set("");
@@ -172,7 +173,7 @@ public class EditUser extends view.SchedulerController implements view.ItemContr
     }
 
     @Override
-    public Boolean apply(EditItem<UserRow> t) {
+    public Boolean apply(EditItem<UserImpl> t) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

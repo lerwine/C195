@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface PrimaryKey {
+public @interface PrimaryKeyColumn {
     /**
      * Gets the name of the primary key column for the associated table in the database.
      * 

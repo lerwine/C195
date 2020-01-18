@@ -7,10 +7,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import model.db.AddressRow;
-import model.db.CityRow;
+import scheduler.dao.AddressImpl;
+import scheduler.dao.City;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
+import view.city.AddressCity;
 
 /**
  * FXML Controller class
@@ -19,23 +20,18 @@ import view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("view/address/EditAddress")
 @FXMLResource("/view/address/EditAddress.fxml")
-public class EditAddress extends SchedulerController implements view.ItemController<AddressRow> {
+public class EditAddress extends SchedulerController implements view.ItemController<AddressImpl> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Address"}.
+     */
     public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Address"}.
+     */
     public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
-//    public static final String RESOURCEKEY_ADDRESS = "address";
-//    public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
-//    public static final String RESOURCEKEY_CITY = "city";
-//    public static final String RESOURCEKEY_COUNTRY = "country";
-//    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-//    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-//    public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
-//    public static final String RESOURCEKEY_BY = "by";
-//    public static final String RESOURCEKEY_CANCEL = "cancel";
-//    public static final String RESOURCEKEY_CREATED = "created";
-//    public static final String RESOURCEKEY_SAVE = "save";
-//    public static final String RESOURCEKEY_UPDATED = "updated";
 
     //</editor-fold>
     
@@ -60,27 +56,27 @@ public class EditAddress extends SchedulerController implements view.ItemControl
     private TextField phoneTextField;
     
     @FXML
-    private ComboBox<CityRow> cityComboBox;
+    private ComboBox<AddressCity<? extends City>> cityComboBox;
     
     //</editor-fold>
     
-    public static AddressRow addNew() {
-        EditItem.ShowAndWaitResult<AddressRow> result = EditItem.showAndWait(EditAddress.class, new AddressRow(), 640, 480);
+    public static AddressImpl addNew() {
+        EditItem.ShowAndWaitResult<AddressImpl> result = EditItem.showAndWait(EditAddress.class, new AddressImpl(), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(AddressRow row) {
-        EditItem.ShowAndWaitResult<AddressRow> result = EditItem.showAndWait(EditAddress.class, row, 640, 480);
+    public static boolean edit(AddressImpl row) {
+        EditItem.ShowAndWaitResult<AddressImpl> result = EditItem.showAndWait(EditAddress.class, row, 640, 480);
         return result.isSuccessful();
     }
 
     @Override
-    public void accept(EditItem<AddressRow> context) {
+    public void accept(EditItem<AddressImpl> context) {
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
     }
 
     @Override
-    public Boolean apply(EditItem<AddressRow> context) {
+    public Boolean apply(EditItem<AddressImpl> context) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -36,19 +36,24 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
-import model.db.AppointmentRow;
-import model.db.CustomerRow;
-import model.db.UserRow;
-import scheduler.InvalidOperationException;
+import scheduler.dao.Address;
+import scheduler.dao.AppointmentImpl;
+import scheduler.dao.CustomerImpl;
+import scheduler.dao.User;
+import scheduler.dao.UserImpl;
 import util.DbConnector;
 import util.Alerts;
+import util.DB;
 import view.EditItem;
 import view.ItemController;
 import view.SchedulerController;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
+import view.customer.CustomerModel;
 import view.customer.EditCustomer;
 import view.user.EditUser;
+import view.user.UserModel;
+import view.address.CustomerAddress;
 
 /**
  * FXML Controller class
@@ -57,7 +62,7 @@ import view.user.EditUser;
  */
 @GlobalizationResource("view/appointment/EditAppointment")
 @FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends SchedulerController implements ItemController<AppointmentRow> {
+public class EditAppointment extends SchedulerController implements ItemController<AppointmentImpl> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -142,10 +147,10 @@ public class EditAppointment extends SchedulerController implements ItemControll
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     
     @FXML // Customer selection control
-    private ComboBox<CustomerRow> customerComboBox;
+    private ComboBox<CustomerModel> customerComboBox;
 
     @FXML // User selection control.
-    private ComboBox<UserRow> userComboBox;
+    private ComboBox<UserModel> userComboBox;
 
     @FXML // Label for displaying customer selection validation message.
     private Label customerValidationLabel;
@@ -244,10 +249,10 @@ public class EditAppointment extends SchedulerController implements ItemControll
     //<editor-fold defaultstate="collapsed" desc="Observables">
     
     // Items for the customerComboBox control.
-    private ObservableList<CustomerRow> customers;
+    private ObservableList<CustomerModel> customers;
     
     // Items for the userComboBox control.
-    private ObservableList<UserRow> users;
+    private ObservableList<UserModel> users;
     
     // Items for the startHourComboBox and endHourComboBox controls.
     private ObservableList<Integer> hourOptions;
@@ -276,14 +281,14 @@ public class EditAppointment extends SchedulerController implements ItemControll
     // Produces the validation message for the virtual meeting URL or an empty string if the virtual meeting URL is valid.
     private UrlValidation urlValidation;
     
-    private SimpleRequirementValidation<CustomerRow> customerValid;
-    private SimpleRequirementValidation<UserRow> userValid;
+    private SimpleRequirementValidation<CustomerModel> customerValid;
+    private SimpleRequirementValidation<UserModel> userValid;
     private NonWhiteSpaceValidation titleValid;
     private NonWhiteSpaceValidation contactValid;
     
     // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
-    private EditItem<AppointmentRow> parent;
+    private EditItem<AppointmentImpl> parent;
     
     //</editor-fold>
 
@@ -408,8 +413,10 @@ public class EditAppointment extends SchedulerController implements ItemControll
         typeComboBox.getSelectionModel().select(types.get(0));
         try (DbConnector dep = new DbConnector()) {
             Connection connection = dep.getConnection();
-            customers = FXCollections.observableArrayList(CustomerRow.getActive(connection));
-            users = FXCollections.observableArrayList(UserRow.getActive(connection));
+            customers = FXCollections.observableArrayList();
+            CustomerImpl.lookupByStatus(connection, true).forEach((c) -> customers.add(new CustomerModel(c)));
+            users = FXCollections.observableArrayList();
+            UserImpl.lookupByStatus(connection, User.STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
         } catch (SQLException | ClassNotFoundException ex) {
             if (customers == null)
                 customers = FXCollections.observableArrayList();
@@ -424,8 +431,8 @@ public class EditAppointment extends SchedulerController implements ItemControll
         dateRangeValidation = new DateRangeValidation();
         conflictLookupState = new ConflictLookupState();
         locationValid = new LocationValidation();
-        customerValid = new SimpleRequirementValidation<>(customerComboBox, customerValidationLabel);
-        userValid = new SimpleRequirementValidation<>(userComboBox, userValidationLabel);
+        customerValid = new SimpleRequirementValidation<CustomerModel>(customerComboBox, customerValidationLabel);
+        userValid = new SimpleRequirementValidation<UserModel>(userComboBox, userValidationLabel);
         titleValid = new NonWhiteSpaceValidation(titleTextField, titleValidationLabel);
         urlValidation = new UrlValidation();
         contactValid = new NonWhiteSpaceValidation(contactTextField, contactValidationLabel);
@@ -435,36 +442,33 @@ public class EditAppointment extends SchedulerController implements ItemControll
     
     /**
      * Adds a new appointment to the database.
-     * @return
-     *          The @{link model.db.AppointmentRow} object containing appointment that was added or @{code null} if no appointment was added.
+     * @return The {@link model.db.AppointmentImpl} object containing appointment that was added or {@code null} if no appointment was added.
      */
-    public static AppointmentRow addNew() {
-        EditItem.ShowAndWaitResult<AppointmentRow> result = EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
+    public static AppointmentImpl addNew() {
+        EditItem.ShowAndWaitResult<AppointmentImpl> result = EditItem.showAndWait(EditAppointment.class, new AppointmentImpl(), 800, 600);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
     
     /**
      * Edits the specified appointment.
-     * @param row
-     *              The appointment to be edited.
-     * @return
-     *          {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
+     * @param row The appointment to be edited.
+     * @return {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
      */
-    public static boolean edit(AppointmentRow row) {
-        EditItem.ShowAndWaitResult<AppointmentRow> result = EditItem.showAndWait(EditAppointment.class, new AppointmentRow(), 800, 600);
+    public static boolean edit(AppointmentImpl row) {
+        EditItem.ShowAndWaitResult<AppointmentImpl> result = EditItem.showAndWait(EditAppointment.class, new AppointmentImpl(), 800, 600);
         return result.isSuccessful();
     }
     
     //</editor-fold>
 
     @Override
-    public void accept(EditItem<AppointmentRow> context) {
+    public void accept(EditItem<AppointmentImpl> context) {
         parent = context;
         context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
     }
 
     @Override
-    public Boolean apply(EditItem<AppointmentRow> context) {
+    public Boolean apply(EditItem<AppointmentImpl> context) {
         if (!conflictLookupState.test()) {
             String msg = conflictLookupState.conflictMessage.get();
             if (msg.isEmpty())
@@ -479,7 +483,7 @@ public class EditAppointment extends SchedulerController implements ItemControll
                 updateModel(context.getTarget()).saveChanges(dep.getConnection());
                 return true;
             }
-        } catch (SQLException | ClassNotFoundException | InvalidOperationException ex) {
+        } catch (SQLException | ClassNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return false;
@@ -489,17 +493,21 @@ public class EditAppointment extends SchedulerController implements ItemControll
     
     @FXML
     void addCustomerClick(ActionEvent event) {
-        CustomerRow customer = EditCustomer.addNew();
-        if (customer != null)
-            customers.add(customer);
+        CustomerImpl dao = EditCustomer.addNew();
+        if (null == dao)
+            return;
+        CustomerModel customer = new CustomerModel(dao);
+        customers.add(customer);
         customerComboBox.getSelectionModel().select(customer);
     }
 
     @FXML
     void addUserClick(ActionEvent event) {
-        UserRow user = EditUser.addNew();
-        if (user != null)
-            users.add(user);
+        UserImpl dao = EditUser.addNew();
+        if (null == dao)
+            return;
+        UserModel user = new UserModel(dao);
+        users.add(user);
         userComboBox.getSelectionModel().select(user);
     }
     
@@ -508,16 +516,16 @@ public class EditAppointment extends SchedulerController implements ItemControll
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private AppointmentRow updateModel(AppointmentRow row) {
+    private AppointmentImpl updateModel(AppointmentImpl row) {
         String type = typeComboBox.getValue();
         row.setContact(contactTextField.getText());
-        row.setCustomer(customerComboBox.getValue());
+        row.setCustomer(customerComboBox.getValue().getDataObject());
         row.setDescription(descriptionTextArea.getText());
-        row.setEnd(dateRangeValidation.endValidation.selectedDateTime.get());
-        row.setStart(dateRangeValidation.startValidation.selectedDateTime.get());
+        row.setEnd(DB.toUtcTimestamp(dateRangeValidation.endValidation.selectedDateTime.get()));
+        row.setStart(DB.toUtcTimestamp(dateRangeValidation.startValidation.selectedDateTime.get()));
         row.setTitle(titleTextField.getText());
         row.setType(type);
-        row.setUser(userComboBox.getValue());
+        row.setUser(userComboBox.getValue().getDataObject());
         if (type.equalsIgnoreCase(APPOINTMENT_CODE_OTHER))
             row.setLocation(locationTextArea.getText());
         else if (type.equalsIgnoreCase(APPOINTMENT_CODE_PHONE)) {
@@ -553,7 +561,7 @@ public class EditAppointment extends SchedulerController implements ItemControll
         /**
          * The currently selected customer from the {@link #customerComboBox} control.
          */
-        final ObjectProperty<CustomerRow> selectedCustomerProperty;
+        final ObjectProperty<CustomerModel> selectedCustomerProperty;
         /**
          * Indicates whether the selected appointment type is for an explicitly defined location ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_OTHER}).
          */
@@ -592,9 +600,9 @@ public class EditAppointment extends SchedulerController implements ItemControll
                     // If appointment type is for an appointment at the customer's location, return the customer's address;
                     // otherwise, return an emtpty string to indicate that the implicit location text label should not be shown.
                     String t = selectedTypeProperty.get();
-                    CustomerRow c = selectedCustomerProperty.get();
+                    CustomerModel c = selectedCustomerProperty.get();
                     if (t.equals(APPOINTMENT_CODE_CUSTOMER) && c != null) {
-                        model.Address a = c.getAddress();
+                        CustomerAddress<? extends Address> a = c.getAddress();
                         if (a != null && !(t = a.toString().trim()).isEmpty())
                             return t;
                     }
@@ -728,8 +736,8 @@ public class EditAppointment extends SchedulerController implements ItemControll
     private class ConflictLookupState {
         final SimpleIntegerProperty customerConflictCount;
         final SimpleIntegerProperty userConflictCount;
-        final ObjectProperty<CustomerRow> selectedCustomerProperty;
-        final ObjectProperty<UserRow> selectedUserProperty;
+        final ObjectProperty<CustomerModel> selectedCustomerProperty;
+        final ObjectProperty<UserModel> selectedUserProperty;
         final StringBinding conflictMessage;
         ConflictLookupState() {
             customerConflictCount = new SimpleIntegerProperty(0);
@@ -783,23 +791,26 @@ public class EditAppointment extends SchedulerController implements ItemControll
             userConflictCount.set(0);
         }
         
+        @Deprecated
+        boolean test() { throw new RuntimeException("This has been deprecated"); }
+        
         /**
          * This is invoked when the user clicks the "Save" button, to see if there are no customer or user scheduling conflicts.
          * @return
          *          {@code true} if selected date ranges are valid, a customer and user is selected, and there are no scheduling conflicts;
          *          otherwise, {@code false} to indicate that the "save" should be aborted.
          */
-        boolean test() {
+        boolean test(Connection connection) throws SQLException {
             LocalDateTime start = dateRangeValidation.startValidation.selectedDateTime.get();
             if (start != null) {
                 LocalDateTime end = dateRangeValidation.endValidation.selectedDateTime.get();
                 if (end != null && start.compareTo(end) <= 0) {
-                    CustomerRow c = selectedCustomerProperty.get();
+                    CustomerModel c = selectedCustomerProperty.get();
                     if (c != null) {
-                        UserRow u = selectedUserProperty.get();
+                        UserModel u = selectedUserProperty.get();
                         if (u != null) {
-                            int cc = AppointmentRow.getCountByCustomer(c.getPrimaryKey(), start, end);
-                            int uc = AppointmentRow.getCountByUser(u.getPrimaryKey(), start, end);
+                            int cc = AppointmentImpl.lookupCount(connection, Optional.of(start), Optional.of(end), Optional.of(c.getDataObject()), Optional.empty());
+                            int uc = AppointmentImpl.lookupCount(connection, Optional.of(start), Optional.of(end), Optional.empty(), Optional.of(u.getDataObject()));
                             customerConflictCount.set(cc);
                             userConflictCount.set(uc);
                             return cc == 0 && uc == 0;

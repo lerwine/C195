@@ -9,11 +9,11 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import model.db.AppointmentRow;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import model.db.AppointmentsFilter;
 import scheduler.App;
+import scheduler.dao.AppointmentImpl;
 import util.Alerts;
 import view.RootController;
 import view.SchedulerController;
@@ -26,7 +26,7 @@ import view.TaskWaiter;
  */
 @GlobalizationResource("view/appointment/ManageAppointments")
 @FXMLResource("/view/appointment/ManageAppointments.fxml")
-public class ManageAppointments extends view.ListingController<AppointmentRow> {
+public class ManageAppointments extends view.ListingController<AppointmentImpl> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_CUSTOMER = "customer";
@@ -68,11 +68,11 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
     
     //</editor-fold>
     
-    private AppointmentsFilter currentFilter;
+    private AppointmentFilter currentFilter;
     
     private final ChangeListener<? super SchedulerController> controllerChangeListener;
     
-    private final ChangeListener<? super RootController.CrudAction<AppointmentRow>> appointmentAddedListener;
+    private final ChangeListener<? super RootController.CrudAction<AppointmentImpl>> appointmentAddedListener;
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
@@ -88,15 +88,17 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
                 }
             }
         };
-        appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentRow>>() {
+        appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentImpl>>() {
             @Override
-            public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentRow>> observable, RootController.CrudAction<AppointmentRow> oldValue, RootController.CrudAction<AppointmentRow> newValue) {
-                if (newValue != null && (currentFilter == null || currentFilter.test(newValue.getRow()))) {
-                    if (newValue.isDelete())
-                        removeListItemByPrimaryKey(newValue.getRow().getPrimaryKey());
-                    else if (newValue.isAdd() || !updateListItem(newValue.getRow()))
-                        getItemsList().add(newValue.getRow());
-                }
+            public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentImpl>> observable,
+                    RootController.CrudAction<AppointmentImpl> oldValue, RootController.CrudAction<AppointmentImpl> newValue) {
+//                if (newValue != null && (currentFilter == null || currentFilter.test(newValue.getRow()))) {
+//                    if (newValue.isDelete())
+//                        removeListItemByPrimaryKey(newValue.getRow().getPrimaryKey());
+//                    else if (newValue.isAdd() || !updateListItem(newValue.getRow()))
+//                        getItemsList().add(newValue.getRow());
+//                }
+                    throw new UnsupportedOperationException("Not supported yet.");
             }
         };
     }
@@ -115,9 +117,12 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
             collapseNode(controller.headingLabel);
         }, (ContentChangeContext<ManageAppointments> context) -> {
             TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-                    (Connection c) -> AppointmentRow.getAll(c),
-                    (ObservableList<AppointmentRow> apptList) -> {
-                        ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
+                    (Connection c) -> {
+                        // AppointmentImpl.load(c, null, null);
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    },
+                    (ObservableList<AppointmentImpl> apptList) -> {
+                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
                         itemsList.clear();
                         apptList.forEach((a) -> {
                             itemsList.add(a);
@@ -140,17 +145,21 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
             ResourceBundle rb = context.getResources();
             context.setWindowTitle(filter.getWindowTitle(rb));
             ManageAppointments controller = context.getController();
-            controller.currentFilter = filter;
-            String subHeading = filter.getSubHeading(rb);
-            if (subHeading.isEmpty())
-                collapseNode(controller.headingLabel);
-            else
-                controller.headingLabel.setText(subHeading);
+//            controller.currentFilter = filter;
+//            String subHeading = filter.getSubHeading(rb);
+//            if (subHeading.isEmpty())
+//                collapseNode(controller.headingLabel);
+//            else
+//                controller.headingLabel.setText(subHeading);
+            throw new UnsupportedOperationException("Not supported yet.");
         }, (ContentChangeContext<ManageAppointments> context) -> {
             TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-                    (Connection c) -> AppointmentRow.getByFilter(c, filter),
-                    (ObservableList<AppointmentRow> apptList) -> {
-                        ObservableList<AppointmentRow> itemsList = context.getController().getItemsList();
+                    (Connection c) -> {
+//                        AppointmentImpl.getByFilter(c, filter);
+                        throw new UnsupportedOperationException("Not supported yet.");
+                    },
+                    (ObservableList<AppointmentImpl> apptList) -> {
+                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
                         itemsList.clear();
                         apptList.forEach((a) -> {
                             itemsList.add(a);
@@ -172,12 +181,12 @@ public class ManageAppointments extends view.ListingController<AppointmentRow> {
     }
 
     @Override
-    protected void onEditItem(AppointmentRow item) {
+    protected void onEditItem(AppointmentImpl item) {
         RootController.getCurrent().editAppointment(item);
     }
 
     @Override
-    protected void onDeleteItem(AppointmentRow item) {
+    protected void onDeleteItem(AppointmentImpl item) {
         RootController.getCurrent().deleteAppointment(item);
     }
     

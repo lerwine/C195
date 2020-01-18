@@ -5,202 +5,195 @@
  */
 package scheduler.dao;
 
-import expressions.NonNullableStringProperty;
-import expressions.UserStatusProperty;
 import java.sql.Connection;
-import javafx.application.Platform;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.StringProperty;
-import util.PwHash;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 /**
  *
  * @author erwinel
  */
-@TableName("user")
-@PrimaryKey("userId")
+@TableName(DataObjectImpl.TABLENAME_USER)
+@PrimaryKeyColumn(UserImpl.COLNAME_USERID)
 public class UserImpl extends DataObjectImpl implements User {
+    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
     
-    public static final String[] SQL_EXTENDED_FIELDNAMES;
+    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
     
-    public static final String COLNAME_USERID = "userId";
+    private static String baseSelectQuery = null;
+    
+    public static String getBaseSelectQuery() {
+        if (null != baseSelectQuery)
+            return baseSelectQuery;
+        final StringBuilder sql = new StringBuilder("SELECT `");
+        sql.append(COLNAME_USERID);
+        Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE).forEach((t) -> {
+            sql.append("`, `").append(t);
+        });
+        baseSelectQuery = sql.append("` FROM `").append(getTableName(UserImpl.class)).toString();
+        return baseSelectQuery;
+    }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="static sortOptions property">
+    
+    private static ObservableSet<String> sortOptions = null;
+    public static ObservableSet<String> getSortOptions() {
+        if (sortOptions == null)
+            sortOptions = FXCollections.unmodifiableObservableSet(FXCollections.observableSet(COLNAME_USERNAME, COLNAME_ACTIVE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_CREATEDATE, COLNAME_CREATEDBY));
+        return sortOptions;
+    }
+
+    //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="userName property">
     
-    public static final String COLNAME_USERNAME = "userName";
-    
-    private final NonNullableStringProperty userName;
-    
+    private String userName;
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getUserName() { return userName.get(); }
-    
-    public ReadOnlyStringProperty userNameProperty() { return userName.getReadOnlyProperty(); }
-    
+    public String getUserName() { return userName; }
+
+    /**
+     * Set the value of userName
+     *
+     * @param userName new value of userName
+     */
+    public void setUserName(String userName) { this.userName = (userName == null) ? "" : userName; }
+
+
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="password property">
     
-    public static final String COLNAME_PASSWORD = "password";
-    
-    private final NonNullableStringProperty password;
-    
+    private String password;
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getPassword() { return password.get(); }
-    
-    public ReadOnlyStringProperty passwordProperty() { return password.getReadOnlyProperty(); }
-    
+    public String getPassword() { return password; }
+
+    /**
+     * Set the value of password
+     *
+     * @param password new value of password
+     */
+    public void setPassword(String password) { this.password = (password == null) ? "" : password; }
+
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="status property">
     
-    public static final String COLNAME_ACTIVE = "active";
-    
-    private final UserStatusProperty status;
-    
+    private int status;
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getStatus() { return status.get(); }
-    
-    public ReadOnlyIntegerProperty statusProperty() { return status.getReadOnlyProperty(); }
+    public int getStatus() { return status; }
+
+    /**
+     * Set the value of status
+     *
+     * @param status new value of status
+     */
+    public void setStatus(int status) { this.status = User.asValidStatus(status); }
     
     //</editor-fold>
     
-    static {
-        SQL_EXTENDED_FIELDNAMES = new String[] { COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE };
-    }
+    //</editor-fold>
     
+    /**
+     * Initializes a {@link DataObject.ROWSTATE_NEW} user object.
+     */
     public UserImpl() {
-        userName = new NonNullableStringProperty();
-        password = new NonNullableStringProperty();
-        status = new UserStatusProperty();
-    }
-
-    public Editable createEditable() { return new Editable(); }
-    
-    public static Iterable<UserImpl> getAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public static Iterable<UserImpl> getActive() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public static UserImpl getByPrimaryKey(int pk) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public int getAppointmentCount(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        super();
+        userName = "";
+        password = "";
+        status = User.STATUS_USER;
     }
     
-    public class Editable extends EditableBase implements User {
-        
-        private final NonNullableStringProperty userName;
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getUserName() { return userName.get(); }
-
-        public void setUserName(String value) { userName.set(value); }
-
-        public StringProperty userNameProperty() { return userName; }
-        
-        private final NonNullableStringProperty password;
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String getPassword() { return password.get(); }
-
-        public void setPassword(String value) { password.set(value); }
-
-        public StringProperty passwordProperty() { return password; }
-
-        private final UserStatusProperty status;
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int getStatus() { return status.get(); }
-
-        public void setStatus(int value) { status.set(value); }
-
-        public IntegerProperty statusProperty() { return status; }
-
-        private final BooleanBinding valid;
-        
-        @Override
-        public final BooleanBinding isValid() { return valid; }
-        
-        public Editable() {
-            userName = new NonNullableStringProperty(UserImpl.this.getUserName());
-            password = new NonNullableStringProperty("");
-            status = new UserStatusProperty(UserImpl.this.getStatus());
-            valid = userName.isWhiteSpaceOrEmpty().not().and(password.isWhiteSpaceOrEmpty().and(UserImpl.this.password.isWhiteSpaceOrEmpty()).not());
-        }
-
-        @Override
-        protected void beforeSaveChanges(Connection connection, SaveQueryBuilder queryBuilder) {
-            if (userName.isWhiteSpaceOrEmpty().get())
-                throw new IllegalStateException("User name cannot be empty");
-            if (password.isWhiteSpaceOrEmpty().get() && UserImpl.this.password.isWhiteSpaceOrEmpty().get())
-                throw new IllegalStateException("Password cannot be empty");
-            super.beforeSaveChanges(connection, queryBuilder);
-        }
-
-        @Override
-        protected void onBeforeDelete(Connection connection) throws IllegalStateException {
-            if (getAppointmentCount(connection) > 0)
-                throw new IllegalStateException("User has one or more appointments");
-            super.onBeforeDelete(connection);
-        }
-
-        @Override
-        public void undoChanges() {
-            if (Platform.isFxApplicationThread()) {
-                userName.set(UserImpl.this.getUserName());
-                password.set("");
-                status.set(UserImpl.this.getStatus());
-            } else
-                Platform.runLater(() -> {
-                    undoChanges();
-                });
-        }
-
-        @Override
-        public void applyChanges() {
-            if (Platform.isFxApplicationThread()) {
-                UserImpl.this.userName.set(getUserName());
-                String p = password.get();
-                if (p.isEmpty())
-                    UserImpl.this.password.set("");
-                else {
-                    PwHash pw = new PwHash(p, true);
-                    UserImpl.this.password.set(pw.getEncodedHash());
-                }
-                UserImpl.this.status.set(getStatus());
-            } else
-                Platform.runLater(() -> {
-                    applyChanges();
-                });
-        }
-
+    /**
+     * Initializes a user object from a {@link ResultSet}.
+     * @param resultSet The data retrieved from the database.
+     * @throws SQLException if not able to read data from the {@link ResultSet}.
+     */
+    private UserImpl(ResultSet resultSet) throws SQLException {
+        super(resultSet);
+        userName = resultSet.getString(COLNAME_USERNAME);
+        if (resultSet.wasNull())
+            userName = "";
+        password = resultSet.getString(COLNAME_PASSWORD);
+        if (resultSet.wasNull())
+            password = "";
+        status = User.asValidStatus(resultSet.getInt(COLNAME_ACTIVE));
+        if (resultSet.wasNull())
+            status = User.STATUS_INACTIVE;
     }
+    
+    public static ArrayList<UserImpl> lookupAll(Connection connection, Iterable<SelectOrderSpec> orderBy) throws SQLException {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        String sql = getBaseSelectQuery() + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(), () -> SelectOrderSpec.single(COLNAME_USERNAME));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            return toList(ps, (rs) -> new UserImpl(rs));
+        }
+    }
+
+    public static ArrayList<UserImpl> lookupAll(Connection connection) throws SQLException {
+        return lookupAll(connection, null);
+    }
+
+    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated, Iterable<SelectOrderSpec> orderBy) throws SQLException {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        String sql = String.format("%s WHERE `%s` %s %% %s", getBaseSelectQuery(), COLNAME_ACTIVE, (isNegated) ? "<>" : "=",
+                SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(), () -> SelectOrderSpec.single(COLNAME_USERNAME)));
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, status);
+            return toList(ps, (rs) -> new UserImpl(rs));
+        }
+    }
+
+    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated) throws SQLException {
+        return lookupByStatus(connection, status, isNegated, null);
+    }
+
+    public static Optional<UserImpl> getByUserName(Connection connection, String userName) throws SQLException {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        Objects.requireNonNull(userName, "User name cannot be null");
+        if (userName.trim().isEmpty())
+            return Optional.empty();
+        String sql = String.format("%s WHERE `%s` = %%", getBaseSelectQuery(), COLNAME_USERNAME);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, userName);
+            return toOptional(ps, (rs) -> new UserImpl(rs));
+        }
+    }
+    
+    public static Optional<UserImpl> lookupByPrimaryKey(Connection connection, int pk) throws SQLException {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        String sql = String.format("%s WHERE `%s` = %%", getBaseSelectQuery(), COLNAME_USERID);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, pk);
+            return toOptional(ps, (rs) -> new UserImpl(rs));
+        }
+    }
+
+    @Override
+    public synchronized void delete(Connection connection) throws SQLException {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        assert AppointmentImpl.lookupCount(connection, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(this)) == 0 : "User is associated with one or more appointments.";
+        super.delete(connection);
+    }
+    
 }

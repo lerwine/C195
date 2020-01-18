@@ -21,18 +21,19 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.Bindings;
 import util.DB;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(AddressRow.COLNAME_ADDRESSID)
+@PrimaryKeyColumn(AddressRow.COLNAME_ADDRESSID)
 @TableName("address")
+@Deprecated
 public class AddressRow extends DataRow implements model.Address {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     

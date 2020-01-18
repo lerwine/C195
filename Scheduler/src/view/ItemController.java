@@ -10,13 +10,14 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
+import scheduler.dao.DataObjectImpl;
 
 /**
  *
  * @author Leonard T. Erwine
  * @param <R>
  */
-public interface ItemController<R extends model.db.DataRow> extends Consumer<EditItem<R>>, Function<EditItem<R>, Boolean> {
+public interface ItemController<R extends DataObjectImpl> extends Consumer<EditItem<R>>, Function<EditItem<R>, Boolean> {
     boolean isValid();
     BooleanExpression validProperty();  
     default void afterCloseDialog(EditItem.ShowAndWaitResult<R> result) { }

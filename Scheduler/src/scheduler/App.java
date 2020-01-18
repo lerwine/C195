@@ -42,7 +42,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.db.UserRow;
+import scheduler.dao.UserImpl;
 import util.Alerts;
+import util.PwHash;
 import view.RootController;
 import view.SchedulerController;
 import view.TaskWaiter;
@@ -332,7 +334,12 @@ public class App extends Application {
     
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
     
-    private final ReadOnlyObjectWrapper<UserRow> currentUser;
+    private static UserImpl currentUser = null;
+    
+    public static UserImpl getCurrentUser() { return currentUser; }
+    
+    @Deprecated
+    private final ReadOnlyObjectWrapper<UserRow> currentUserObsolete;
 
     /**
      * Gets the currently logged in user.
@@ -340,7 +347,8 @@ public class App extends Application {
      * @return
      *          The currently logged in user.
      */
-    public UserRow getCurrentUser() { return currentUser.get(); }
+    @Deprecated
+    public UserRow getCurrentUserObsolete() { return currentUserObsolete.get(); }
 
     /**
      * Current logged in user property.
@@ -348,7 +356,8 @@ public class App extends Application {
      * @return
      *          Current logged in user property.
      */
-    public ReadOnlyObjectProperty<UserRow> currentUserProperty() { return currentUser.getReadOnlyProperty(); }
+    @Deprecated
+    public ReadOnlyObjectProperty<UserRow> currentUserObsoleteProperty() { return currentUserObsolete.getReadOnlyProperty(); }
     
     //</editor-fold>
     
@@ -389,7 +398,7 @@ public class App extends Application {
         fullDateFormatter = new ReadOnlyObjectWrapper<>();
         shortDateTimeFormatter = new ReadOnlyObjectWrapper<>();
         fullDateTimeFormatter = new ReadOnlyObjectWrapper<>();
-        currentUser = new ReadOnlyObjectWrapper<>();
+        currentUserObsolete = new ReadOnlyObjectWrapper<>();
         appointmentTypes = new ReadOnlyMapWrapper<>(new AppointmentTypes());
         resources.addListener((ObservableValue<? extends ResourceBundle> observable, ResourceBundle oldValue, ResourceBundle newValue) -> {
             AppointmentTypes map = (AppointmentTypes)appointmentTypes.get();
@@ -441,9 +450,55 @@ public class App extends Application {
     
     //</editor-fold>
 
-    public class LoginTask extends TaskWaiter<UserRow> {
+    public class LoginTask extends TaskWaiter<UserImpl> {
         private final String userName, password;
         public LoginTask(String userName, String password) {
+            super(getPrimaryStage(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
+            this.userName = userName;
+            this.password = password;
+        }
+
+        @Override
+        protected UserImpl getResult() throws Exception {
+            LOG.log(Level.INFO, "Task getResult overload invoked");
+            Optional<UserImpl> result;
+            try (DbConnector dep = new DbConnector()) {
+                if (dep.getState() != DbConnector.STATE_CONNECTED) {
+                    LOG.log(Level.INFO, "Not connected");
+                    return null;
+                }
+                Platform.runLater(() -> {
+                    LOG.log(Level.INFO, "Updating message");
+                    updateMessage(getResources().getString(RESOURCEKEY_CONNECTEDTODB));
+                });
+                LOG.log(Level.INFO, "Invoking UserImpl.getByUserName");
+                result = UserImpl.getByUserName(dep.getConnection(), userName);
+            }
+            if (result.isPresent()) {
+                LOG.log(Level.INFO, "User found");
+                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
+                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
+                // as the stored password. If the password is correct, then the hash values will match.
+                PwHash hash = new PwHash(result.get().getPassword(), false);
+                if (hash.test(password)) {
+                    LOG.log(Level.INFO, "Password matched");
+                    currentUser = result.get();
+                    LOG.log(Level.INFO, "Returning from tryLoginUser");
+                    return result.get();
+                }
+                LOG.log(Level.WARNING, "Password mismatch");
+            } else
+                LOG.log(Level.WARNING, "No matching userName found");
+            LOG.log(Level.INFO, "Returning from tryLoginUser");
+            return null;
+        }
+        
+    }
+    
+    @Deprecated
+    public class LoginTaskObsolete extends TaskWaiter<UserRow> {
+        private final String userName, password;
+        public LoginTaskObsolete(String userName, String password) {
             super(getPrimaryStage(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;
@@ -472,7 +527,7 @@ public class App extends Application {
                 // as the stored password. If the password is correct, then the hash values will match.
                 if (result.get().getPasswordHash().test(password)) {
                     LOG.log(Level.INFO, "Password matched");
-                    currentUser.set(result.get());
+                    currentUserObsolete.set(result.get());
                     LOG.log(Level.INFO, "Returning from tryLoginUser");
                     return result.get();
                 }
@@ -490,7 +545,7 @@ public class App extends Application {
         EventHandler<WorkerStateEvent> handler = (event) -> {
             LOG.log(Level.INFO, "Task completion handler invoked");
             try {
-                UserRow user = task.get();
+                UserImpl user = task.get();
                 if (user == null) {
                     if (onNotSucceeded != null) {
                         if (Platform.isFxApplicationThread())
@@ -534,18 +589,19 @@ public class App extends Application {
      * @throws ClassNotFoundException if the SQL database driver class was not found.
      */
     public boolean tryLoginUser(String userName, String password) throws SQLException, ClassNotFoundException {
-        Optional<UserRow> result;
+        Optional<UserImpl> result;
         try (DbConnector dep = new DbConnector()) {
-            result = UserRow.getByUserName(dep.getConnection(), userName);
+            result = UserImpl.getByUserName(dep.getConnection(), userName);
         }
         if (result.isPresent()) {
             LOG.info("User found");
             // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
             // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
             // as the stored password. If the password is correct, then the hash values will match.
-            if (result.get().getPasswordHash().test(password)) {
+            PwHash hash = new PwHash(result.get().getPassword(), false);
+            if (hash.test(password)) {
                 LOG.info("Password matched");
-                currentUser.set(result.get());
+                currentUser = result.get();
                 LOG.exiting(getClass().getName(), "tryLoginUser");
                 return true;
             }
@@ -714,6 +770,7 @@ public class App extends Application {
         public Object[] toArray() { return backingList.toArray(); }
 
         @Override
+        @SuppressWarnings("SuspiciousToArrayCall")
         public <T> T[] toArray(T[] a) { return backingList.toArray(a); }
 
         @Override

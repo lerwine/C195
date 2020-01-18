@@ -25,17 +25,18 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.Bindings;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(AppointmentRow.COLNAME_APPOINTMENTID)
+@PrimaryKeyColumn(AppointmentRow.COLNAME_APPOINTMENTID)
 @TableName("appointment")
+@Deprecated
 public class AppointmentRow extends DataRow implements model.Appointment {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     

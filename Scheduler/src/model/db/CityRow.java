@@ -18,17 +18,18 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.Bindings;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(CityRow.COLNAME_CITYID)
+@PrimaryKeyColumn(CityRow.COLNAME_CITYID)
 @TableName("city")
+@Deprecated
 public class CityRow extends DataRow implements model.City {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     

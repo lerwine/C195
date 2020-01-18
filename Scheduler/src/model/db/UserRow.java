@@ -18,19 +18,20 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import scheduler.InvalidOperationException;
 import util.DB;
 import util.PwHash;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  * Represents a user account data row in the database.
  * @author Leonard T. Erwine
  */
-@PrimaryKey(UserRow.COLNAME_USERID)
+@PrimaryKeyColumn(UserRow.COLNAME_USERID)
 @TableName("user")
+@Deprecated
 public class UserRow extends DataRow implements model.User {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     

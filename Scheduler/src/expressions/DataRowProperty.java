@@ -17,6 +17,7 @@ import model.db.DataRow;
  * @author Leonard T. Erwine
  * @param <T>
  */
+@Deprecated
 public class DataRowProperty<T extends DataRow> extends SimpleObjectProperty<T> {
     private final BooleanBinding newRow;
 

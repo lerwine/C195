@@ -19,15 +19,16 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import scheduler.InvalidOperationException;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  * Base class for data rows from the database.
  * @author Leonard T. Erwine
  */
+@Deprecated
 public abstract class DataRow implements model.Record {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
@@ -222,7 +223,7 @@ public abstract class DataRow implements model.Record {
         primaryKey = new ReadOnlyIntegerWrapper(0);
         createDate = new ReadOnlyObjectWrapper<>(LocalDateTime.now());
         lastUpdate = new ReadOnlyObjectWrapper<>(createDate.getValue());
-        UserRow user = scheduler.App.CURRENT.get().getCurrentUser();
+        UserRow user = scheduler.App.CURRENT.get().getCurrentUserObsolete();
         lastUpdateBy = new ReadOnlyStringWrapper((user == null) ? "" : user.getUserName());
         createdBy = new ReadOnlyStringWrapper(lastUpdateBy.getValue());
         rowState = new ReadOnlyIntegerWrapper(ROWSTATE_NEW);
@@ -276,7 +277,7 @@ public abstract class DataRow implements model.Record {
     }
     
     public static final <R extends DataRow> String getPrimaryKeyColName(Class<R> rowClass) {
-        Class<PrimaryKey> pkClass = PrimaryKey.class;
+        Class<PrimaryKeyColumn> pkClass = PrimaryKeyColumn.class;
         if (rowClass.isAnnotationPresent(pkClass)) {
             String n = rowClass.getAnnotation(pkClass).value();
             if (n != null && !n.isEmpty())
@@ -337,7 +338,7 @@ public abstract class DataRow implements model.Record {
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             setColumnValues(ps, fieldNames);
-            String userName = scheduler.App.CURRENT.get().getCurrentUser().getUserName();
+            String userName = scheduler.App.CURRENT.get().getCurrentUserObsolete().getUserName();
             int index = fieldNames.length + 1;
             ps.setString(index++, userName);
             ps.setString(index, userName);
@@ -358,7 +359,7 @@ public abstract class DataRow implements model.Record {
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             setColumnValues(ps, fieldNames);
-            String userName = scheduler.App.CURRENT.get().getCurrentUser().getUserName();
+            String userName = scheduler.App.CURRENT.get().getCurrentUserObsolete().getUserName();
             int index = fieldNames.length + 1;
             ps.setString(index++, userName);
             ps.setInt(index, getPrimaryKey());

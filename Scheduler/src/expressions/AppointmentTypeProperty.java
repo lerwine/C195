@@ -33,7 +33,7 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
     }
 
     public AppointmentTypeProperty(String initialValue) {
-        super(asValidValue(initialValue));
+        super(Appointment.asValidAppointmentType(initialValue));
     }
 
     public AppointmentTypeProperty(Object bean, String name) {
@@ -41,31 +41,11 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
     }
 
     public AppointmentTypeProperty(Object bean, String name, String initialValue) {
-        super(bean, name, asValidValue(initialValue));
-    }
-
-    public static String asValidValue(String value) {
-        if (value != null) {
-            if ((value = value.trim()).equalsIgnoreCase(Appointment.APPOINTMENTTYPE_CUSTOMER))
-                return Appointment.APPOINTMENTTYPE_CUSTOMER;
-            if (value.equalsIgnoreCase(Appointment.APPOINTMENTTYPE_GERMANY))
-                return Appointment.APPOINTMENTTYPE_GERMANY;
-            if (value.equalsIgnoreCase(Appointment.APPOINTMENTTYPE_HOME))
-                return Appointment.APPOINTMENTTYPE_HOME;
-            if (value.equalsIgnoreCase(Appointment.APPOINTMENTTYPE_HONDURAS))
-                return Appointment.APPOINTMENTTYPE_HONDURAS;
-            if (value.equalsIgnoreCase(Appointment.APPOINTMENTTYPE_INDIA))
-                return Appointment.APPOINTMENTTYPE_INDIA;
-            if (value.equalsIgnoreCase(Appointment.APPOINTMENTTYPE_PHONE))
-                return Appointment.APPOINTMENTTYPE_PHONE;
-            if (value.equalsIgnoreCase(Appointment.APPOINTMENTTYPE_VIRTUAL))
-                return Appointment.APPOINTMENTTYPE_VIRTUAL;
-        }
-        return Appointment.APPOINTMENTTYPE_OTHER;
+        super(bean, name, Appointment.asValidAppointmentType(initialValue));
     }
     
     @Override
-    public void set(String newValue) { super.set(asValidValue(newValue)); }
+    public void set(String newValue) { super.set(Appointment.asValidAppointmentType(newValue)); }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyStringPropertyBase {
 

@@ -19,8 +19,15 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.StageStyle;
-import model.db.*;
 import scheduler.App;
+import scheduler.dao.AddressImpl;
+import scheduler.dao.AppointmentImpl;
+import scheduler.dao.CityImpl;
+import scheduler.dao.CountryImpl;
+import scheduler.dao.CustomerImpl;
+import scheduler.dao.DataObject;
+import scheduler.dao.DataObjectImpl;
+import scheduler.dao.UserImpl;
 import util.Alerts;
 import util.DbConnector;
 import view.address.EditAddress;
@@ -134,106 +141,109 @@ public class RootController extends SchedulerController {
     
     //<editor-fold defaultstate="collapsed" desc="Appointment Create/Update/Delete op results">
     
-    private final ReadOnlyObjectWrapper<CrudAction<AppointmentRow>> appointmentUpdated;
+    private final ReadOnlyObjectWrapper<CrudAction<AppointmentImpl>> appointmentUpdated;
     
     /**
-     * Gets the last {@link model.db.AppointmentRow} that was added, modified or deleted.
-     * @return The last {@link model.db.AppointmentRow} that was added, modified or deleted.
+     * Gets the last {@link model.db.AppointmentImpl} that was added, modified or deleted.
+     * @return The last {@link model.db.AppointmentImpl} that was added, modified or deleted.
      */
-    public CrudAction<AppointmentRow> getAppointmentAdded() { return appointmentUpdated.get(); }
+    public CrudAction<AppointmentImpl> getAppointmentAdded() { return appointmentUpdated.get(); }
     
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@link model.db.AppointmentRow} has been added, modified or deleted.
-     * @return A JavaFX property that contains the last {@link model.db.AppointmentRow} that was added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.AppointmentImpl} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.AppointmentImpl} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<AppointmentRow>> appointmentAddedProperty() { return appointmentUpdated.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<CrudAction<AppointmentImpl>> appointmentAddedProperty() { return appointmentUpdated.getReadOnlyProperty(); }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Customer Create/Update/Delete op results">
     
-    private final ReadOnlyObjectWrapper<CrudAction<CustomerRow>> customerUpdated;
+    private final ReadOnlyObjectWrapper<CrudAction<CustomerImpl>> customerUpdated;
     
     /**
-     * Gets the last {@link model.db.CustomerRow} that was added, modified or deleted.
-     * @return The last {@link model.db.CustomerRow} that was added, modified or deleted.
+     * Gets the last {@link model.db.CustomerImpl} that was added, modified or deleted.
+     * @return The last {@link model.db.CustomerImpl} that was added, modified or deleted.
      */
-    public CrudAction<CustomerRow> getCustomerAdded() { return customerUpdated.get(); }
+    public CrudAction<CustomerImpl> getCustomerAdded() { return customerUpdated.get(); }
     
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CustomerRow} has been added, modified or deleted.
-     * @return A JavaFX property that contains the last {@link model.db.CustomerRow} that was added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CustomerImpl} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.CustomerImpl} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<CustomerRow>> customerAddedProperty() { return customerUpdated.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<CrudAction<CustomerImpl>> customerAddedProperty() { return customerUpdated.getReadOnlyProperty(); }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Country Create/Update/Delete op results">
     
-    private final ReadOnlyObjectWrapper<CrudAction<CountryRow>> countryUpdated;
+    private final ReadOnlyObjectWrapper<CrudAction<CountryImpl>> countryUpdated;
     
     /**
-     * Gets the last {@link model.db.CountryRow} that was added, modified or deleted.
-     * @return The last {@link model.db.CountryRow} that was added, modified or deleted.
+     * Gets the last {@link model.db.CountryImpl} that was added, modified or deleted.
+     * @return The last {@link model.db.CountryImpl} that was added, modified or deleted.
      */
-    public CrudAction<CountryRow> getCountryAdded() { return countryUpdated.get(); }
+    public CrudAction<CountryImpl> getCountryAdded() { return countryUpdated.get(); }
     
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CountryRow} has been added, modified or deleted.
-     * @return A JavaFX property that contains the last {@link model.db.CountryRow} that was added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CountryImpl} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.CountryImpl} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<CountryRow>> countryAddedProperty() { return countryUpdated.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<CrudAction<CountryImpl>> countryAddedProperty() { return countryUpdated.getReadOnlyProperty(); }
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="City Create/Update/Delete op results">
     
-    private final ReadOnlyObjectWrapper<CrudAction<CityRow>> cityUpdated;
+    private final ReadOnlyObjectWrapper<CrudAction<CityImpl>> cityUpdated;
     
     /**
-     * Gets the last {@link model.db.CityRow} that was added, modified or deleted.
-     * @return The last {@link model.db.CityRow} that was added, modified or deleted.
+     * Gets the last {@link model.db.CityImpl} that was added, modified or deleted.
+     * @return The last {@link model.db.CityImpl} that was added, modified or deleted.
      */
-    public CrudAction<CityRow> getCityAdded() { return cityUpdated.get(); }
+    public CrudAction<CityImpl> getCityAdded() { return cityUpdated.get(); }
     
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CityRow} has been added, modified or deleted.
-     * @return A JavaFX property that contains the last {@link model.db.CityRow} that was added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.CityImpl} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.CityImpl} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<CityRow>> cityAddedProperty() { return cityUpdated.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<CrudAction<CityImpl>> cityAddedProperty() { return cityUpdated.getReadOnlyProperty(); }
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Address Create/Update/Delete op results">
     
-    private final ReadOnlyObjectWrapper<CrudAction<AddressRow>> addressUpdated;
+    private final ReadOnlyObjectWrapper<CrudAction<AddressImpl>> addressUpdated;
     
     /**
-     * Gets the last {@link model.db.AddressRow} that was added, modified or deleted.
-     * @return The last {@link model.db.AddressRow} that was added, modified or deleted.
+     * Gets the last {@link model.db.AddressImpl} that was added, modified or deleted.
+     * @return The last {@link model.db.AddressImpl} that was added, modified or deleted.
      */
-    public CrudAction<AddressRow> getAddressAdded() { return addressUpdated.get(); }
+    public CrudAction<AddressImpl> getAddressAdded() { return addressUpdated.get(); }
     
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@link model.db.AddressRow} has been added, modified or deleted.
-     * @return A JavaFX property that contains the last {@link model.db.AddressRow} that was added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.AddressImpl} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.AddressImpl} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<AddressRow>> addressAddedProperty() { return addressUpdated.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<CrudAction<AddressImpl>> addressAddedProperty() { return addressUpdated.getReadOnlyProperty(); }
     
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="User Create/Update/Delete op results">
     
-    private final ReadOnlyObjectWrapper<CrudAction<UserRow>> userUpdated;
+    private final ReadOnlyObjectWrapper<CrudAction<UserImpl>> userUpdated;
     
     /**
-     * Gets the last {@link model.db.UserRow} that was added, modified or deleted.
-     * @return The last {@link model.db.UserRow} that was added, modified or deleted.
+     * Gets the last {@link model.db.UserImpl} that was added, modified or deleted.
+     * @return The last {@link model.db.UserImpl} that was added, modified or deleted.
      */
-    public CrudAction<UserRow> getUserAdded() { return userUpdated.get(); }
+    public CrudAction<UserImpl> getUserAdded() { return userUpdated.get(); }
     
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@link model.db.UserRow} has been added, modified or deleted.
-     * @return A JavaFX property that contains the last {@link model.db.UserRow} that was added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {@link model.db.UserImpl} has been added, modified or deleted.
+     * @return A JavaFX property that contains the last {@link model.db.UserImpl} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<UserRow>> userAddedProperty() { return userUpdated.getReadOnlyProperty(); }
+    public ReadOnlyObjectProperty<CrudAction<UserImpl>> userAddedProperty() { return userUpdated.getReadOnlyProperty(); }
     
     //</editor-fold>
     
@@ -323,39 +333,40 @@ public class RootController extends SchedulerController {
 
         current = this;
         
-        ManageAppointments.setAsRootContent(new AppointmentsFilter(App.CURRENT.get().getCurrentUser(), true));
+//        ManageAppointments.setAsRootContent(new AppointmentsFilter(App.CURRENT.get().getCurrentUserObsolete(), true));
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     
-    //<editor-fold defaultstate="collapsed" desc="AppointmentRow operations">
+    //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
     
     @FXML
     private void newAppointmentMenuItemClick(ActionEvent event) { addNewAppointment(); }
 
     /**
-     * Opens a new window to add a new {@link model.db.AppointmentRow}.
+     * Opens a new window to add a new {@link model.db.AppointmentImpl}.
      * The {@link appointmentUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
      */
-    public AppointmentRow addNewAppointment() {
-        AppointmentRow model = EditAppointment.addNew();
+    public AppointmentImpl addNewAppointment() {
+        AppointmentImpl model = EditAppointment.addNew();
         if (model != null)
             appointmentUpdated.set(new CrudAction<>(model, true));
         return model;
     }
 
     /**
-     * Opens an edit window to edit a {@link model.db.AppointmentRow}.
+     * Opens an edit window to edit a {@link model.db.AppointmentImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
-     * @param item The {@link model.db.AppointmentRow} to be edited.
+     * @param item The {@link model.db.AppointmentImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
-    public boolean editAppointment(AppointmentRow item) {
+    public boolean editAppointment(AppointmentImpl item) {
         if (EditAppointment.edit(item)) {
-            if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                 appointmentUpdated.set(new CrudAction<>(item));
             else
                 appointmentUpdated.set(new CrudAction<>(item, false));
@@ -364,7 +375,7 @@ public class RootController extends SchedulerController {
         return false;
     }
 
-    private static boolean deleteItem(DataRow item) {
+    private static boolean deleteItem(DataObjectImpl item) {
         ResourceBundle rb = App.CURRENT.get().getResources();
         Alert alert = new Alert(Alert.AlertType.ERROR, rb.getString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         alert.setTitle(rb.getString(App.RESOURCEKEY_CONFIRMDELETE));
@@ -373,7 +384,7 @@ public class RootController extends SchedulerController {
         if (response.isPresent() && response.get() == ButtonType.YES) {
             try {
                 DbConnector.apply((Connection c) -> item.delete(c));
-                if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+                if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                     return true;
             } catch (Exception ex) {
                 Logger.getLogger(RootController.class.getName()).log(Level.SEVERE, null, ex);
@@ -384,12 +395,12 @@ public class RootController extends SchedulerController {
     }
     
     /**
-     * Deletes an {@link model.db.AppointmentRow} after confirming with the current user.
+     * Deletes an {@link model.db.AppointmentImpl} after confirming with the current user.
      * 
-     * @param item The {@link model.db.AppointmentRow} to be deleted.
+     * @param item The {@link model.db.AppointmentImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
      */
-    public boolean deleteAppointment(AppointmentRow item) {
+    public boolean deleteAppointment(AppointmentImpl item) {
         if (deleteItem(item)) {
             appointmentUpdated.set(new CrudAction<>(item));
             return true;
@@ -402,34 +413,34 @@ public class RootController extends SchedulerController {
 
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="CustomerRow operations">
+    //<editor-fold defaultstate="collapsed" desc="CustomerImpl operations">
     
     @FXML
     private void newCustomerMenuItemClick(ActionEvent event) { addNewCustomer(); }
 
     /**
-     * Opens a new window to add a new {@link model.db.CustomerRow}.
+     * Opens a new window to add a new {@link model.db.CustomerImpl}.
      * The {@link customerUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
      */
-    public CustomerRow addNewCustomer() {
-        CustomerRow model = EditCustomer.addNew();
+    public CustomerImpl addNewCustomer() {
+        CustomerImpl model = EditCustomer.addNew();
         if (model != null)
             customerUpdated.set(new CrudAction<>(model, true));
         return model;
     }
 
     /**
-     * Opens an edit window to edit a {@link model.db.CustomerRow}.
+     * Opens an edit window to edit a {@link model.db.CustomerImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
-     * @param item The {@link model.db.CustomerRow} to be edited.
+     * @param item The {@link model.db.CustomerImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
-    public boolean editCustomer(CustomerRow item) {
+    public boolean editCustomer(CustomerImpl item) {
         if (EditCustomer.edit(item)) {
-            if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                 customerUpdated.set(new CrudAction<>(item));
             else
                 customerUpdated.set(new CrudAction<>(item, false));
@@ -439,13 +450,13 @@ public class RootController extends SchedulerController {
     }
 
     /**
-     * Deletes a {@link model.db.CustomerRow} after confirming with the current user.
+     * Deletes a {@link model.db.CustomerImpl} after confirming with the current user.
      * The {@link customerUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
-     * @param item The {@link model.db.CustomerRow} to be deleted.
+     * @param item The {@link model.db.CustomerImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
      */
-    public boolean deleteCustomer(CustomerRow item) {
+    public boolean deleteCustomer(CustomerImpl item) {
         if (deleteItem(item)) {
             customerUpdated.set(new CrudAction<>(item));
             return true;
@@ -458,34 +469,34 @@ public class RootController extends SchedulerController {
 
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="CountryRow operations">
+    //<editor-fold defaultstate="collapsed" desc="CountryImpl operations">
     
     @FXML
     private void newCountryMenuItemClick(ActionEvent event) { addNewCountry(); }
 
     /**
-     * Opens a new window to add a new {@link model.db.CountryRow}.
+     * Opens a new window to add a new {@link model.db.CountryImpl}.
      * The {@link countryUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
      */
-    public CountryRow addNewCountry() {
-        CountryRow model = EditCountry.addNew();
+    public CountryImpl addNewCountry() {
+        CountryImpl model = EditCountry.addNew();
         if (model != null)
             countryUpdated.set(new CrudAction<>(model, true));
         return model;
     }
 
     /**
-     * Opens an edit window to edit a {@link model.db.CountryRow}.
+     * Opens an edit window to edit a {@link model.db.CountryImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
-     * @param item The {@link model.db.CountryRow} to be edited.
+     * @param item The {@link model.db.CountryImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
-    public boolean editCountry(CountryRow item) {
+    public boolean editCountry(CountryImpl item) {
         if (EditCountry.edit(item)) {
-            if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                 countryUpdated.set(new CrudAction<>(item));
             else
                 countryUpdated.set(new CrudAction<>(item, false));
@@ -495,13 +506,13 @@ public class RootController extends SchedulerController {
     }
 
     /**
-     * Deletes a {@link model.db.CountryRow} after confirming with the current user.
+     * Deletes a {@link model.db.CountryImpl} after confirming with the current user.
      * The {@link countryUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
-     * @param item The {@link model.db.CountryRow} to be deleted.
+     * @param item The {@link model.db.CountryImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
      */
-    public boolean deleteCountry(CountryRow item) {
+    public boolean deleteCountry(CountryImpl item) {
         if (deleteItem(item)) {
             countryUpdated.set(new CrudAction<>(item));
             return true;
@@ -514,34 +525,34 @@ public class RootController extends SchedulerController {
             
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="CityRow operations">
+    //<editor-fold defaultstate="collapsed" desc="CityImpl operations">
     
     @FXML
     private void newCityMenuItemClick(ActionEvent event) { addNewCity(); }
 
     /**
-     * Opens a new window to add a new {@link model.db.CityRow}.
+     * Opens a new window to add a new {@link model.db.CityImpl}.
      * The {@link cityUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
      */
-    public CityRow addNewCity() {
-        CityRow model = EditCity.addNew();
+    public CityImpl addNewCity() {
+        CityImpl model = EditCity.addNew();
         if (model != null)
             cityUpdated.set(new CrudAction<>(model, true));
         return model;
     }
 
     /**
-     * Opens an edit window to edit a {@link model.db.CityRow}.
+     * Opens an edit window to edit a {@link model.db.CityImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
-     * @param item The {@link model.db.CityRow} to be edited.
+     * @param item The {@link model.db.CityImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
-    public boolean editCity(CityRow item) {
+    public boolean editCity(CityImpl item) {
         if (EditCity.edit(item)) {
-            if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                 cityUpdated.set(new CrudAction<>(item));
             else
                 cityUpdated.set(new CrudAction<>(item, false));
@@ -551,13 +562,13 @@ public class RootController extends SchedulerController {
     }
 
     /**
-     * Deletes a {@link model.db.CityRow} after confirming with the current user.
+     * Deletes a {@link model.db.CityImpl} after confirming with the current user.
      * The {@link cityUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
-     * @param item The {@link model.db.CityRow} to be deleted.
+     * @param item The {@link model.db.CityImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
      */
-    public boolean deleteCity(CityRow item) {
+    public boolean deleteCity(CityImpl item) {
         if (deleteItem(item)) {
             cityUpdated.set(new CrudAction<>(item));
             return true;
@@ -567,34 +578,34 @@ public class RootController extends SchedulerController {
             
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="AddressRow operations">
+    //<editor-fold defaultstate="collapsed" desc="AddressImpl operations">
     
     @FXML
     private void newAddressMenuItemClick(ActionEvent event) { addNewAddress(); }
 
     /**
-     * Opens a new window to add a new {@link model.db.AddressRow}.
+     * Opens a new window to add a new {@link model.db.AddressImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
      */
-    public AddressRow addNewAddress() {
-        AddressRow model = EditAddress.addNew();
+    public AddressImpl addNewAddress() {
+        AddressImpl model = EditAddress.addNew();
         if (model != null)
             addressUpdated.set(new CrudAction<>(model, true));
         return model;
     }
 
     /**
-     * Opens an edit window to edit a {@link model.db.AddressRow}.
+     * Opens an edit window to edit a {@link model.db.AddressImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
-     * @param item The {@link model.db.AddressRow} to be edited.
+     * @param item The {@link model.db.AddressImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
-    public boolean editAddress(AddressRow item) {
+    public boolean editAddress(AddressImpl item) {
         if (EditAddress.edit(item)) {
-            if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                 addressUpdated.set(new CrudAction<>(item));
             else
                 addressUpdated.set(new CrudAction<>(item, false));
@@ -604,13 +615,13 @@ public class RootController extends SchedulerController {
     }
 
     /**
-     * Deletes an {@link model.db.AddressRow} after confirming with the current user.
+     * Deletes an {@link model.db.AddressImpl} after confirming with the current user.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
-     * @param item The {@link model.db.AddressRow} to be deleted.
+     * @param item The {@link model.db.AddressImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
      */
-    public boolean deleteAddress(AddressRow item) {
+    public boolean deleteAddress(AddressImpl item) {
         if (deleteItem(item)) {
             addressUpdated.set(new CrudAction<>(item));
             return true;
@@ -620,34 +631,34 @@ public class RootController extends SchedulerController {
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="UserRow operations">
+    //<editor-fold defaultstate="collapsed" desc="UserImpl operations">
     
     @FXML
     private void newUserMenuItemClick(ActionEvent event) { addNewUser(); }
 
     /**
-     * Opens a new window to add a new {@link model.db.UserRow}.
+     * Opens a new window to add a new {@link model.db.UserImpl}.
      * The {@link userUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the operation has been canceled.
      * 
      * @return {@code true} if the item was added to the database; otherwise, {@code false} to indicate the add operation was canceled.
      */
-    public UserRow addNewUser() {
-        UserRow model = EditUser.addNew();
+    public UserImpl addNewUser() {
+        UserImpl model = EditUser.addNew();
         if (model != null)
             userUpdated.set(new CrudAction<>(model, true));
         return model;
     }
 
     /**
-     * Opens an edit window to edit a {@link model.db.UserRow}.
+     * Opens an edit window to edit a {@link model.db.UserImpl}.
      * The {@link addressUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when the edit window closes unless the edit is canceled.
      * 
-     * @param item The {@link model.db.UserRow} to be edited.
+     * @param item The {@link model.db.UserImpl} to be edited.
      * @return {@code true} if the item was edited or deleted from the database; otherwise, {@code false} to indicate the edit operation was canceled.
      */
-    public boolean editUser(UserRow item) {
+    public boolean editUser(UserImpl item) {
         if (EditUser.edit(item)) {
-            if (item.getRowState() == DataRow.ROWSTATE_DELETED)
+            if (item.getRowState() == DataObject.ROWSTATE_DELETED)
                 userUpdated.set(new CrudAction<>(item));
             else
                 userUpdated.set(new CrudAction<>(item, false));
@@ -657,13 +668,13 @@ public class RootController extends SchedulerController {
     }
 
     /**
-     * Deletes a {@link model.db.UserRow} after confirming with the current user.
+     * Deletes a {@link model.db.UserImpl} after confirming with the current user.
      * The {@link userUpdated} property will be updated with a new {@link view.RootController.CrudAction} object when successfully deleted.
      * 
-     * @param item The {@link model.db.UserRow} to be deleted.
+     * @param item The {@link model.db.UserImpl} to be deleted.
      * @return {@code true} if the item was successfully deleted from the database; otherwise, {@code false}.
      */
-    public boolean deleteUser(UserRow item) {
+    public boolean deleteUser(UserImpl item) {
         if (deleteItem(item)) {
             userUpdated.set(new CrudAction<>(item));
             return true;
@@ -681,10 +692,11 @@ public class RootController extends SchedulerController {
     
     /**
      * Represents a Create, Update or Delete operation.
-     * 
+     * @deprecated Targe of CRUD action should derive from {@link view.ModelBase}.
      * @param <T> The type of {@link model.db.DataRow} that was affected.
      */
-    public final class CrudAction<T extends DataRow> {
+    @Deprecated
+    public final class CrudAction<T extends DataObjectImpl> {
         private final T row;
         
         /**
@@ -737,8 +749,8 @@ public class RootController extends SchedulerController {
 
     /**
      * Changes the contents associated with the current RootController.
-     * This first sets the {@link contentControllerChanging} property with the candidate {@link view.SchedulerController} before changing the content.
-     * After the content is changed, this updates the @{link currentContentController property} with the new {@link view.SchedulerController}.
+     * This first sets the {@link #contentControllerChanging} property with the candidate {@link view.SchedulerController} before changing the content.
+     * After the content is changed, this updates the {@link #currentContentController} property with the new {@link view.SchedulerController}.
      * 
      * @param content The {@link javafx.scene.Node} that will be the new contents associated with the current RootController.
      * @param controller The {@link view.SchedulerController} associated with the content node.

@@ -34,7 +34,7 @@ public class UserStatusProperty extends SimpleIntegerProperty {
         }
 
         public UserStatusProperty(int initialValue) {
-            super(asValidValue(initialValue));
+            super(User.asValidStatus(initialValue));
         }
 
         public UserStatusProperty(Object bean, String name) {
@@ -42,16 +42,12 @@ public class UserStatusProperty extends SimpleIntegerProperty {
         }
 
         public UserStatusProperty(Object bean, String name, int initialValue) {
-            super(bean, name, asValidValue(initialValue));
+            super(bean, name, User.asValidStatus(initialValue));
         }
 
-        public static int asValidValue(int value) {
-            return (value < User.STATUS_INACTIVE) ? User.STATUS_INACTIVE : ((value > User.STATUS_ADMIN) ? User.STATUS_USER : value);
-        }
-        
         @Override
         public void set(int newValue) {
-            super.set(asValidValue(newValue));
+            super.set(User.asValidStatus(newValue));
         }
 
         private class ReadOnlyPropertyImpl extends ReadOnlyIntegerPropertyBase {

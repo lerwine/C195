@@ -17,6 +17,7 @@ import model.db.DataRow;
  *
  * @author Leonard T. Erwine
  */
+@Deprecated
 public class RecordProperty<R extends Record> extends SimpleObjectProperty<R> {
 
     private final BooleanBinding dataRow;

@@ -11,17 +11,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.DB;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(CountryRow.COLNAME_COUNTRYID)
+@PrimaryKeyColumn(CountryRow.COLNAME_COUNTRYID)
 @TableName("country")
+@Deprecated
 public class CountryRow extends DataRow implements model.Country {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     

@@ -9,6 +9,7 @@ package model;
  *
  * @author Leonard T. Erwine
  */
+@Deprecated
 public interface City extends Record {
     String getName();
     Country getCountry();

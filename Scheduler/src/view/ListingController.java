@@ -23,6 +23,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import scheduler.dao.DataObjectImpl;
 import util.Alerts;
 
 /**
@@ -31,7 +32,7 @@ import util.Alerts;
  * @param <R>
  *          The type of object being presented in the listing.
  */
-public abstract class ListingController<R extends model.db.DataRow> extends SchedulerController {
+public abstract class ListingController<R extends DataObjectImpl> extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="itemsList">
     
     private final ObservableList<R> itemsList = FXCollections.observableArrayList();
@@ -117,20 +118,12 @@ public abstract class ListingController<R extends model.db.DataRow> extends Sche
             return;
         if (event.getCode() == KeyCode.DELETE)
             onDeleteItem(item);
-//            verifyDeleteItem(item);
         else if (event.getCode() == KeyCode.ENTER)
             onEditItem(item);
     }
 
     @FXML
     protected void newButtonClick(ActionEvent event) { onAddNewItem(); }
-
-//    private void verifyDeleteItem(R item) {
-//        ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
-//        Optional<ButtonType> response = Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_CONFIRMDELETE), rb.getString(scheduler.App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-//        if (response.isPresent() && response.get() == ButtonType.YES)
-//            onDeleteItem(item);
-//    }
 
     protected abstract void onAddNewItem();
 

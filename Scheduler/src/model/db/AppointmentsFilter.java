@@ -19,6 +19,7 @@ import view.appointment.ManageAppointments;
  *
  * @author Leonard T. Erwine
  */
+@Deprecated
 public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
     private final Optional<CustomerRow> customer;
     

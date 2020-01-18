@@ -23,18 +23,19 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import scheduler.dao.PrimaryKey;
 import scheduler.dao.TableName;
 import scheduler.InternalException;
 import util.Bindings;
 import util.DB;
+import scheduler.dao.PrimaryKeyColumn;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-@PrimaryKey(CustomerRow.COLNAME_CUSTOMERID)
+@PrimaryKeyColumn(CustomerRow.COLNAME_CUSTOMERID)
 @TableName("customer")
+@Deprecated
 public class CustomerRow extends DataRow implements model.Customer {
     //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
     
