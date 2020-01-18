@@ -117,7 +117,7 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
             ManageAppointments controller = context.getController();
             collapseNode(controller.headingLabel);
         }, (ContentChangeContext<ManageAppointments> context) -> {
-            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
+            TaskWaiter.callAsync(App.getCurrent().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
                     (Connection c) -> {
                         // AppointmentImpl.load(c, null, null);
                         throw new UnsupportedOperationException("Not supported yet.");
@@ -131,7 +131,7 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
 //                        });
                     }, (Exception ex) -> {
                         LOG.log(Level.SEVERE, null, ex);
-                        ResourceBundle rb = App.CURRENT.get().getResources();
+                        ResourceBundle rb = App.getCurrent().getResources();
                         Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
                         context.getController().getItemsList().clear();
                     });
@@ -165,7 +165,7 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
 //                controller.headingLabel.setText(subHeading);
             throw new UnsupportedOperationException("Not supported yet.");
         }, (ContentChangeContext<ManageAppointments> context) -> {
-            TaskWaiter.callAsync(App.CURRENT.get().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
+            TaskWaiter.callAsync(App.getCurrent().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
                     (Connection c) -> {
 //                        AppointmentImpl.getByFilter(c, filter);
                         throw new UnsupportedOperationException("Not supported yet.");
@@ -179,7 +179,7 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
 //                        });
                     }, (Exception ex) -> {
                         LOG.log(Level.SEVERE, null, ex);
-                        ResourceBundle rb = App.CURRENT.get().getResources();
+                        ResourceBundle rb = App.getCurrent().getResources();
                         Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
                         context.getController().getItemsList().clear();
                     });

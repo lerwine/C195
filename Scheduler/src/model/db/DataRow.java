@@ -106,7 +106,7 @@ public abstract class DataRow implements model.Record {
      */
     public static final String PROP_CREATEDBY = "createdBy";
     
-    private final ReadOnlyStringWrapper createdBy;
+    private ReadOnlyStringWrapper createdBy;
 
     /**
      * Gets the {@link UserRow#userName} of the {@link UserRow} who inserted the row into the database.
@@ -153,9 +153,9 @@ public abstract class DataRow implements model.Record {
     /**
      * The name of the property that contains the {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
      */
-    public static final String PROP_LASTUPDATEBY = "lastUpdateBy";
+    public static String PROP_LASTUPDATEBY = "lastUpdateBy";
     
-    private final ReadOnlyStringWrapper lastUpdateBy;
+    private ReadOnlyStringWrapper lastUpdateBy;
 
     /**
      * Gets the {@link UserRow#userName} of the {@link UserRow} who last updated the row in the database.
@@ -223,9 +223,9 @@ public abstract class DataRow implements model.Record {
         primaryKey = new ReadOnlyIntegerWrapper(0);
         createDate = new ReadOnlyObjectWrapper<>(LocalDateTime.now());
         lastUpdate = new ReadOnlyObjectWrapper<>(createDate.getValue());
-        UserRow user = scheduler.App.CURRENT.get().getCurrentUserObsolete();
-        lastUpdateBy = new ReadOnlyStringWrapper((user == null) ? "" : user.getUserName());
-        createdBy = new ReadOnlyStringWrapper(lastUpdateBy.getValue());
+//        UserRow user = scheduler.App.CURRENT_OBSOLETE.get().getCurrentUserObsolete();
+//        lastUpdateBy = new ReadOnlyStringWrapper((user == null) ? "" : user.getUserName());
+//        createdBy = new ReadOnlyStringWrapper(lastUpdateBy.getValue());
         rowState = new ReadOnlyIntegerWrapper(ROWSTATE_NEW);
         lastDbSync = new ReadOnlyObjectWrapper<>(LocalDateTime.MIN);
     }
@@ -338,7 +338,7 @@ public abstract class DataRow implements model.Record {
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             setColumnValues(ps, fieldNames);
-            String userName = scheduler.App.CURRENT.get().getCurrentUserObsolete().getUserName();
+            String userName = scheduler.App.getCurrent().getCurrentUser().getUserName();
             int index = fieldNames.length + 1;
             ps.setString(index++, userName);
             ps.setString(index, userName);
@@ -359,7 +359,7 @@ public abstract class DataRow implements model.Record {
         Logger.getLogger(DataRow.class.getName()).log(Level.INFO, "Executing query: %s", sql);
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             setColumnValues(ps, fieldNames);
-            String userName = scheduler.App.CURRENT.get().getCurrentUserObsolete().getUserName();
+            String userName = scheduler.App.getCurrent().getCurrentUser().getUserName();
             int index = fieldNames.length + 1;
             ps.setString(index++, userName);
             ps.setInt(index, getPrimaryKey());

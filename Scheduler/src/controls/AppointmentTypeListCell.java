@@ -13,7 +13,7 @@ import javafx.scene.control.ListCell;
  * @author Leonard T. Erwine
  */
 public class AppointmentTypeListCell extends ListCell<String> {
-    private final ObservableMap<String, String> map = scheduler.App.CURRENT.get().getAppointmentTypes();
+    private final ObservableMap<String, String> map = scheduler.App.getCurrent().getAppointmentTypes();
     @Override
     protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);

@@ -24,13 +24,6 @@ import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyListWrapper;
-import javafx.beans.property.ReadOnlyMapProperty;
-import javafx.beans.property.ReadOnlyMapWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -41,7 +34,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import model.db.UserRow;
 import scheduler.dao.UserImpl;
 import util.Alerts;
 import util.PwHash;
@@ -95,27 +87,19 @@ public class App extends Application {
     /**
      * The current application instance.
      */
-    public static final ReadOnlyObjectWrapper<App> CURRENT;
+    private static App current;
+    
+    public static final App getCurrent() { return current; }
     
     //<editor-fold defaultstate="collapsed" desc="primaryStage property">
     
-    private final ReadOnlyObjectWrapper<Stage> primaryStage;
+    private Stage primaryStage;
     
     /**
      * Gets the primary {@link javafx.stage.Stage} for the application.
-     * 
-     * @return
-     *          The primary {@link javafx.stage.Stage} for the application.
+     * @return The primary {@link javafx.stage.Stage} for the application.
      */
-    public Stage getPrimaryStage() { return primaryStage.get(); }
-    
-    /**
-     * The primary application {@link javafx.stage.Stage} property.
-     * 
-     * @return
-     *          The primary application {@link javafx.stage.Stage} property.
-     */
-    public ReadOnlyObjectProperty<Stage> primaryStageProperty() { return primaryStage.getReadOnlyProperty(); }
+    public Stage getPrimaryStage() { return primaryStage; }
     
     //</editor-fold>
     
@@ -123,7 +107,7 @@ public class App extends Application {
 
     //<editor-fold defaultstate="collapsed" desc="allLanguages property">
     
-    private final ReadOnlyListWrapper<Locale> allLanguages;
+    private ObservableList<Locale> allLanguages;
     
     /**
      * Gets a list of {@link java.util.Locale} objects representing languages supported by the application.
@@ -131,22 +115,14 @@ public class App extends Application {
      * @return
      *          A list of {@link java.util.Locale} objects representing languages supported by the application.
      */
-    public ObservableList<Locale> getAllLanguages() { return allLanguages.get(); }
-    
-    /**
-     * Supported {@link java.util.Locale} list property.
-     * 
-     * @return
-     *          Supported {@link java.util.Locale} list property.
-     */
-    public ReadOnlyListProperty<Locale> allLanguagesProperty() { return allLanguages.getReadOnlyProperty(); }
+    public ObservableList<Locale> getAllLanguages() { return allLanguages; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="originalDisplayLocale property">
     
     // Tracks the original locale settings at the time the app is started, so it can be restored when the app ends
-    private final ReadOnlyObjectWrapper<Locale> originalDisplayLocale;
+    private final Locale originalDisplayLocale;
     
     /**
      * Gets the original display {@link java.util.Locale} at application start-up.
@@ -154,23 +130,13 @@ public class App extends Application {
      * @return
      *          The original display {@link java.util.Locale} at application start-up.
      */
-    public Locale getOriginalDisplayLocale() { return originalDisplayLocale.get(); }
-    
-    /**
-     * The original display {@link java.util.Locale} property.
-     * 
-     * @return
-     *          The original display {@link java.util.Locale} property.
-     */
-    public ReadOnlyObjectProperty<Locale> originalDisplayLocaleProperty() {
-        return originalDisplayLocale.getReadOnlyProperty();
-    }
+    public Locale getOriginalDisplayLocale() { return originalDisplayLocale; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="originalFormatLocale property">
     
-    private final ReadOnlyObjectWrapper<Locale> originalFormatLocale;
+    private final Locale originalFormatLocale;
     
     /**
      * Gets the original format {@link java.util.Locale} at application start-up.
@@ -178,23 +144,13 @@ public class App extends Application {
      * @return
      *          The original format {@link java.util.Locale} at application start-up.
      */
-    public Locale getOriginalFormatLocale() { return originalFormatLocale.get(); }
-    
-    /**
-     * The original format {@link java.util.Locale} property.
-     * 
-     * @return
-     *          The original format {@link java.util.Locale} property.
-     */
-    public ReadOnlyObjectProperty<Locale> originalFormatLocaleProperty() {
-        return originalFormatLocale.getReadOnlyProperty();
-    }
+    public Locale getOriginalFormatLocale() { return originalFormatLocale; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="resources property">
     
-    private final ReadOnlyObjectWrapper<ResourceBundle> resources;
+    private ResourceBundle resources;
     
     /**
      * Gets the application-global resource bundle for the current language.
@@ -202,21 +158,13 @@ public class App extends Application {
      * @return
      *          The application-global resource bundle for the current language.
      */
-    public ResourceBundle getResources() { return resources.get(); }
-    
-    /**
-     * Application-global resource bundle property.
-     * 
-     * @return
-     *          Application-global resource bundle property.
-     */
-    public ReadOnlyObjectProperty<ResourceBundle> resourcesProperty() { return resources.getReadOnlyProperty(); }
+    public ResourceBundle getResources() { return resources; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="appointmentTypes property">
     
-    private final ReadOnlyMapWrapper<String, String> appointmentTypes;
+    private final AppointmentTypes appointmentTypes;
     
     /**
      * Gets an observable map that maps the appointment type codes to the locale-specific display value.
@@ -224,21 +172,13 @@ public class App extends Application {
      * @return
      *          An observable map that maps the appointment type codes to the locale-specific display value.
      */
-    public ObservableMap<String, String> getAppointmentTypes() { return appointmentTypes.get(); }
-    
-    /**
-     * Locale-specific appointment type code / display value mapping.
-     * 
-     * @return
-     *          Locale-specific appointment type code / display value mapping.
-     */
-    public ReadOnlyMapProperty<String, String> appointmentTypesProperty() { return appointmentTypes.getReadOnlyProperty(); }
+    public ObservableMap<String, String> getAppointmentTypes() { return appointmentTypes; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="fullTimeFormatter property">
     
-    private final ReadOnlyObjectWrapper<DateTimeFormatter> fullTimeFormatter;
+    private DateTimeFormatter fullTimeFormatter;
     
     /**
      * Gets the current locale-specific formatter for full time strings.
@@ -246,22 +186,13 @@ public class App extends Application {
      * @return
      *          The current locale-specific formatter for full time strings.
      */
-    public DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter.get(); }
+    public DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
     
-    /**
-     * Current full locale-specific time formatter property.
-     * 
-     * @return
-     *          Current full locale-specific time formatter property.
-     */
-    public ReadOnlyObjectProperty<DateTimeFormatter> fullTimeFormatterProperty() {
-        return fullTimeFormatter.getReadOnlyProperty();
-    }
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="fullDateFormatter property">
     
-    private final ReadOnlyObjectWrapper<DateTimeFormatter> fullDateFormatter;
+    private DateTimeFormatter fullDateFormatter;
     
     /**
      * Gets the current locale-specific formatter for full date strings.
@@ -269,23 +200,13 @@ public class App extends Application {
      * @return
      *          The current locale-specific formatter for full date strings.
      */
-    public DateTimeFormatter getFullDateFormatter() { return fullDateFormatter.get(); }
-    
-    /**
-     * Current full locale-specific date formatter property.
-     * 
-     * @return
-     *          Current full locale-specific date formatter property.
-     */
-    public ReadOnlyObjectProperty<DateTimeFormatter> fullDateFormatterProperty() {
-        return fullDateFormatter.getReadOnlyProperty();
-    }
+    public DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="shortDateTimeFormatter property">
     
-    private final ReadOnlyObjectWrapper<DateTimeFormatter> shortDateTimeFormatter;
+    private DateTimeFormatter shortDateTimeFormatter;
     
     /**
      * Gets the current locale-specific formatter for short date/time strings.
@@ -293,22 +214,13 @@ public class App extends Application {
      * @return
      *          The current locale-specific formatter for short date/time strings.
      */
-    public DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter.get(); }
+    public DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
     
-    /**
-     * Current short locale-specific date/time formatter property.
-     * 
-     * @return
-     *          Current short locale-specific date/time formatter property.
-     */
-    public ReadOnlyObjectProperty<DateTimeFormatter> shortDateTimeFormatterProperty() {
-        return shortDateTimeFormatter.getReadOnlyProperty();
-    }
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="fullDateTimeFormatter property">
     
-    private final ReadOnlyObjectWrapper<DateTimeFormatter> fullDateTimeFormatter;
+    private DateTimeFormatter fullDateTimeFormatter;
     
     /**
      * Gets the current locale-specific formatter for full date/time strings.
@@ -316,17 +228,7 @@ public class App extends Application {
      * @return
      *          The current locale-specific formatter for full date/time strings.
      */
-    public DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter.get(); }
-    
-    /**
-     * Current full locale-specific date/time formatter property.
-     * 
-     * @return
-     *          Current full locale-specific date/time formatter property.
-     */
-    public ReadOnlyObjectProperty<DateTimeFormatter> fullDateTimeFormatterProperty() {
-        return fullDateTimeFormatter.getReadOnlyProperty();
-    }
+    public DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
     
     //</editor-fold>
     
@@ -338,33 +240,11 @@ public class App extends Application {
     
     public static UserImpl getCurrentUser() { return currentUser; }
     
-    @Deprecated
-    private final ReadOnlyObjectWrapper<UserRow> currentUserObsolete;
-
-    /**
-     * Gets the currently logged in user.
-     * 
-     * @return
-     *          The currently logged in user.
-     */
-    @Deprecated
-    public UserRow getCurrentUserObsolete() { return currentUserObsolete.get(); }
-
-    /**
-     * Current logged in user property.
-     * 
-     * @return
-     *          Current logged in user property.
-     */
-    @Deprecated
-    public ReadOnlyObjectProperty<UserRow> currentUserObsoleteProperty() { return currentUserObsolete.getReadOnlyProperty(); }
-    
     //</editor-fold>
     
     private static final Logger LOG;
     
     static {
-        CURRENT = new ReadOnlyObjectWrapper<>();
         LOG = Logger.getLogger(App.class.getName());
     }
     
@@ -377,39 +257,31 @@ public class App extends Application {
     public static void setCurrentLocale(Locale value) {
         Locale.setDefault(Locale.Category.DISPLAY, value);
         Locale.setDefault(Locale.Category.FORMAT, value);
-        App app = App.CURRENT.get();
-        if (app == null)
-            return;
-        app.resources.set(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, value));
-        app.fullTimeFormatter.set(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(value).withZone(ZoneId.systemDefault()));
-        app.fullDateFormatter.set(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(value).withZone(ZoneId.systemDefault()));
-        app.shortDateTimeFormatter.set(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(value).withZone(ZoneId.systemDefault()));
-        app.fullDateTimeFormatter.set(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(value).withZone(ZoneId.systemDefault()));
+        if (current != null)
+            current.setResources(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, value));
     }
 
+    private void setResources(ResourceBundle bundle) {
+        resources = bundle;
+        appointmentTypes.load(bundle);
+        Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
+        fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+        fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+        shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
+        fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+    }
+    
     public App() {
-        primaryStage = new ReadOnlyObjectWrapper<>();
-        allLanguages = new ReadOnlyListWrapper<>();
         // Store the original locale settings so they can be restored when app ends
-        originalDisplayLocale = new ReadOnlyObjectWrapper<>(Locale.getDefault(Locale.Category.DISPLAY));
-        originalFormatLocale = new ReadOnlyObjectWrapper<>(Locale.getDefault(Locale.Category.FORMAT));
-        resources = new ReadOnlyObjectWrapper<>();
-        fullTimeFormatter = new ReadOnlyObjectWrapper<>();
-        fullDateFormatter = new ReadOnlyObjectWrapper<>();
-        shortDateTimeFormatter = new ReadOnlyObjectWrapper<>();
-        fullDateTimeFormatter = new ReadOnlyObjectWrapper<>();
-        currentUserObsolete = new ReadOnlyObjectWrapper<>();
-        appointmentTypes = new ReadOnlyMapWrapper<>(new AppointmentTypes());
-        resources.addListener((ObservableValue<? extends ResourceBundle> observable, ResourceBundle oldValue, ResourceBundle newValue) -> {
-            AppointmentTypes map = (AppointmentTypes)appointmentTypes.get();
-            map.load(newValue);
-        });
+        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
+        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+        appointmentTypes = new AppointmentTypes();
     }
     
     //<editor-fold defaultstate="collapsed" desc="App Lifecycle Members">
     
     /**
-     * The app main entry point.
+     * The application main entry point.
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -419,23 +291,23 @@ public class App extends Application {
     @Override
     @SuppressWarnings("UseSpecificCatch")
     public void start(Stage stage) throws Exception {
-        CURRENT.set(this);
-        primaryStage.set(stage);
+        current = this;
+        primaryStage = stage;
         
         // Ensure app config is freshly loaded.
         AppConfig.refresh();
         
-        allLanguages.set(new AllLanguages(AppConfig.getLanguages()));
+        allLanguages = new AllLanguages(AppConfig.getLanguages());
         
         try {
             ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
             FXMLLoader loader = new FXMLLoader(LoginScene.class.getResource(SchedulerController.getFXMLResourceName(LoginScene.class)), rb);
             Scene scene = new Scene(loader.load());
-            primaryStage.get().setScene(scene);
+            primaryStage.setScene(scene);
             stage.show();
         } catch (Throwable ex) {
             LOG.log(Level.SEVERE, null, ex);
-            Alerts.showErrorAlert(resources.get().getString(RESOURCEKEY_FXMLLOADERERRORTITLE), resources.get().getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
+            Alerts.showErrorAlert(resources.getString(RESOURCEKEY_FXMLLOADERERRORTITLE), resources.getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
         }
     }
     
@@ -443,11 +315,11 @@ public class App extends Application {
     public void stop() throws Exception {
         DbConnector.forceClose();
         // Resotre original locale settings
-        Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale.get());
-        Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale.get());
+        Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale);
+        Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
         super.stop();
     }
-    
+
     //</editor-fold>
 
     public class LoginTask extends TaskWaiter<UserImpl> {
@@ -483,51 +355,6 @@ public class App extends Application {
                 if (hash.test(password)) {
                     LOG.log(Level.INFO, "Password matched");
                     currentUser = result.get();
-                    LOG.log(Level.INFO, "Returning from tryLoginUser");
-                    return result.get();
-                }
-                LOG.log(Level.WARNING, "Password mismatch");
-            } else
-                LOG.log(Level.WARNING, "No matching userName found");
-            LOG.log(Level.INFO, "Returning from tryLoginUser");
-            return null;
-        }
-        
-    }
-    
-    @Deprecated
-    public class LoginTaskObsolete extends TaskWaiter<UserRow> {
-        private final String userName, password;
-        public LoginTaskObsolete(String userName, String password) {
-            super(getPrimaryStage(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
-            this.userName = userName;
-            this.password = password;
-        }
-
-        @Override
-        protected UserRow getResult() throws Exception {
-            LOG.log(Level.INFO, "Task getResult overload invoked");
-            Optional<UserRow> result;
-            try (DbConnector dep = new DbConnector()) {
-                if (dep.getState() != DbConnector.STATE_CONNECTED) {
-                    LOG.log(Level.INFO, "Not connected");
-                    return null;
-                }
-                Platform.runLater(() -> {
-                    LOG.log(Level.INFO, "Updating message");
-                    updateMessage(getResources().getString(RESOURCEKEY_CONNECTEDTODB));
-                });
-                LOG.log(Level.INFO, "Invoking UserRow.getByUserName");
-                result = UserRow.getByUserName(dep.getConnection(), userName);
-            }
-            if (result.isPresent()) {
-                LOG.log(Level.INFO, "User found");
-                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
-                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
-                // as the stored password. If the password is correct, then the hash values will match.
-                if (result.get().getPasswordHash().test(password)) {
-                    LOG.log(Level.INFO, "Password matched");
-                    currentUserObsolete.set(result.get());
                     LOG.log(Level.INFO, "Returning from tryLoginUser");
                     return result.get();
                 }
@@ -584,37 +411,6 @@ public class App extends Application {
         task.setOnFailed(handler);
         task.setOnSucceeded(handler);
         TaskWaiter.execute(task);
-    }
-    
-    /**
-     * @param userName
-     * @param password
-     * @return
-     * @throws SQLException
-     * @throws ClassNotFoundException
-     * @deprecated Use {@link #tryLoginUser(java.lang.String, java.lang.String, java.util.function.Consumer)}, instead.
-     */
-    @Deprecated
-    public boolean tryLoginUser(String userName, String password) throws SQLException, ClassNotFoundException {
-        Optional<UserImpl> result;
-        try (DbConnector dep = new DbConnector()) {
-            result = UserImpl.getByUserName(dep.getConnection(), userName);
-        }
-        if (result.isPresent()) {
-            LOG.info("User found");
-            // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
-            // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
-            // as the stored password. If the password is correct, then the hash values will match.
-            PwHash hash = new PwHash(result.get().getPassword(), false);
-            if (hash.test(password)) {
-                LOG.info("Password matched");
-                currentUser = result.get();
-                LOG.exiting(getClass().getName(), "tryLoginUser");
-                return true;
-            }
-        } else
-            LOG.log(Level.WARNING, "No matching userName found");
-        return false;
     }
     
     private class AppointmentTypes implements ObservableMap<String, String> {
@@ -708,16 +504,16 @@ public class App extends Application {
             this.readOnlyList = FXCollections.unmodifiableObservableList(backingList);
 
             // Attempt to find a match for the current display language amongst the languages supported by the app.
-            final String lt = originalDisplayLocale.get().toLanguageTag();
+            final String lt = originalDisplayLocale.toLanguageTag();
             // First look for one that is an exact match with the language tag.
             Optional<String> cl = Arrays.stream(languageIds).filter((String id) -> id.equals(lt)).findFirst();
             if (!cl.isPresent()) {
                 // Look for one that matches the ISO3 language code.
-                final String iso3 = originalDisplayLocale.get().getISO3Language();
+                final String iso3 = originalDisplayLocale.getISO3Language();
                 cl = Arrays.stream(languageIds).filter((String id) -> id.equals(iso3)).findFirst();
                 if (!cl.isPresent()) {
                     // Look for one that matches the ISO2 language code.
-                    final String ln = originalDisplayLocale.get().getLanguage();
+                    final String ln = originalDisplayLocale.getLanguage();
                     cl = Arrays.stream(languageIds).filter((String id) -> id.equals(ln)).findFirst();
                 }
             }
@@ -726,8 +522,8 @@ public class App extends Application {
             Locale toSelect;
             if (cl.isPresent()) {
                 for (String n : AppConfig.getLanguages())
-                    backingList.add((n.equals(cl.get())) ? originalDisplayLocale.get() : new Locale(n));
-                toSelect = originalDisplayLocale.get();
+                    backingList.add((n.equals(cl.get())) ? originalDisplayLocale : new Locale(n));
+                toSelect = originalDisplayLocale;
             } else {
                 for (String n : AppConfig.getLanguages())
                     backingList.add(new Locale(n));

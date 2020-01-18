@@ -150,7 +150,7 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
         if (currentAndFuture)
             return rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTUREAPPOINTMENTS);
         if (start.isPresent()) {
-            DateTimeFormatter formatter = scheduler.App.CURRENT.get().getFullDateFormatter();
+            DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateFormatter();
             if (end.isPresent()) {
                 if (start.get().compareTo(end.get()) == 0)
                     return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONDATE), formatter.format(start.get()));
@@ -159,7 +159,7 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
             return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONORAFTER), formatter.format(start.get()));
         }
         if (end.isPresent())
-            return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONORBEFORE), scheduler.App.CURRENT.get().getFullDateFormatter().format(end.get()));
+            return String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSONORBEFORE), scheduler.App.getCurrent().getFullDateFormatter().format(end.get()));
         return rb.getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
     }
 
@@ -169,7 +169,7 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
             if (currentAndFuture)
                 return rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTURE);
             if (start.isPresent()) {
-                DateTimeFormatter formatter = scheduler.App.CURRENT.get().getFullDateFormatter();
+                DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateFormatter();
                 if (end.isPresent()) {
                     if (start.get().compareTo(end.get()) == 0)
                         return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONDATE), formatter.format(start.get()));
@@ -178,7 +178,7 @@ public class AppointmentsFilter implements QueryFilter<AppointmentRow> {
                 return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONORAFTER), formatter.format(start.get()));
             }
             if (end.isPresent())
-                return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONORBEFORE), scheduler.App.CURRENT.get().getFullDateFormatter().format(end.get()));
+                return String.format(rb.getString(ManageAppointments.RESOURCEKEY_ONORBEFORE), scheduler.App.getCurrent().getFullDateFormatter().format(end.get()));
         }
         return "";
     }

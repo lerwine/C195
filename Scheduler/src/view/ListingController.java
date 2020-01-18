@@ -109,7 +109,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             M item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+                ResourceBundle rb = scheduler.App.getCurrent().getResources();
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
             }
             else
@@ -119,7 +119,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             M item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+                ResourceBundle rb = scheduler.App.getCurrent().getResources();
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
             }
             else
@@ -138,7 +138,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
     protected void deleteMenuItemClick(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
-            ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+            ResourceBundle rb = scheduler.App.getCurrent().getResources();
             Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else
@@ -155,7 +155,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
     protected void editMenuItemClick(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (item == null) {
-            ResourceBundle rb = scheduler.App.CURRENT.get().getResources();
+            ResourceBundle rb = scheduler.App.getCurrent().getResources();
             Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
         }
         else

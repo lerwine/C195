@@ -225,7 +225,7 @@ public abstract class SchedulerController {
         public StringProperty windowTitleProperty() { return windowTitle; }
         
         public ContentChangeContext() {
-            this.windowTitle = new NonNullableStringProperty(scheduler.App.CURRENT.get()
+            this.windowTitle = new NonNullableStringProperty(scheduler.App.getCurrent()
                     .getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER), true);
         }
         

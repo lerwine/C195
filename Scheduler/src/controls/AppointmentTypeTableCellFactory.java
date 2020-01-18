@@ -15,7 +15,7 @@ import javafx.util.Callback;
  * @author Leonard T. Erwine
  */
 public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
-    private final ObservableMap<String, String> map = scheduler.App.CURRENT.get().getAppointmentTypes();
+    private final ObservableMap<String, String> map = scheduler.App.getCurrent().getAppointmentTypes();
 
     @Override
     public TableCell<S, String> call(TableColumn<S, String> param) {

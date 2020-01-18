@@ -132,7 +132,7 @@ public class LoginScene extends view.SchedulerController {
         assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
 
         currentResourceBundle = getResources();
-        scheduler.App app = scheduler.App.CURRENT.get();
+        scheduler.App app = scheduler.App.getCurrent();
         languageComboBox.setItems(app.getAllLanguages());
         languageComboBox.getSelectionModel().select(Locale.getDefault(Locale.Category.DISPLAY));
         valid = new Validation();
@@ -148,7 +148,7 @@ public class LoginScene extends view.SchedulerController {
     @FXML
     void loginButtonClick(ActionEvent event) {
         LOG.log(Level.INFO, "loginButtonClick invoked");
-        App.CURRENT.get().tryLoginUser(userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        App.getCurrent().tryLoginUser(userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null)
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             else
@@ -158,7 +158,7 @@ public class LoginScene extends view.SchedulerController {
     }
 
     @FXML
-    void exitButtonClick(ActionEvent event) { scheduler.App.CURRENT.get().getPrimaryStage().hide(); }
+    void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getPrimaryStage().hide(); }
     
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
@@ -207,7 +207,7 @@ public class LoginScene extends view.SchedulerController {
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
             // Set window title
-            scheduler.App.CURRENT.get().getPrimaryStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            scheduler.App.getCurrent().getPrimaryStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
             // Update field labels and button text.
             userNameLabel.setText(currentResourceBundle.getString(RESOURCEKEY_USERNAME));
             passwordLabel.setText(currentResourceBundle.getString(RESOURCEKEY_PASSWORD));

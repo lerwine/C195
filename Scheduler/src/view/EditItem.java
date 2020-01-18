@@ -163,7 +163,7 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
     public StringProperty windowTitleProperty() { return windowTitle; }
     
     private String getDefaultWindowTitle() {
-        return scheduler.App.CURRENT.get().getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER);
+        return scheduler.App.getCurrent().getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER);
     }
     
     //</editor-fold>
@@ -264,7 +264,7 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
     @SuppressWarnings("UseSpecificCatch")
     public static <M extends ItemModel<?>> EditItem.ShowAndWaitResult<M> showAndWait(Class<? extends ItemController<M>> contentClass, M target,
             double width, double height, EditItem<?> parent) {
-        scheduler.App app = scheduler.App.CURRENT.get();
+        scheduler.App app = scheduler.App.getCurrent();
         ResourceBundle editItemRb = null;
         final EditItem<M> editItem;
         Parent fxmlParent;
@@ -319,7 +319,7 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
                 M row = editItem.target.get();
                 restoreNode(editItem.createdByLabel);
                 restoreLabeled(editItem.createdByValue, row.getCreatedBy());
-                DateTimeFormatter formatter = scheduler.App.CURRENT.get().getFullDateTimeFormatter();
+                DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateTimeFormatter();
                 restoreNode(editItem.createdLabel);
                 restoreLabeled(editItem.createDateValue, formatter.format(row.getCreateDate()));
                 restoreNode(editItem.lastUpdateByLabel);

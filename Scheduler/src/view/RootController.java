@@ -35,6 +35,7 @@ import view.address.AddressModel;
 import view.address.EditAddress;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
+import view.appointment.AppointmentFilter;
 import view.appointment.AppointmentModel;
 import view.appointment.EditAppointment;
 import view.appointment.ManageAppointments;
@@ -339,8 +340,9 @@ public class RootController extends SchedulerController {
                 getFXMLResourceName(getClass()));
 
         current = this;
-        
-        ManageAppointments.setAsRootContent(new model.db.AppointmentsFilter(App.CURRENT.get().getCurrentUserObsolete(), true));
+        AppointmentFilter filter = new AppointmentFilter();
+        filter.setUser(Optional.of(App.getCurrentUser()));
+        ManageAppointments.setAsRootContent(filter);
     }
     
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
@@ -398,7 +400,7 @@ public class RootController extends SchedulerController {
     }
 
     private static boolean deleteItem(DataObjectImpl item) {
-        ResourceBundle rb = App.CURRENT.get().getResources();
+        ResourceBundle rb = App.getCurrent().getResources();
         Alert alert = new Alert(Alert.AlertType.ERROR, rb.getString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         alert.setTitle(rb.getString(App.RESOURCEKEY_CONFIRMDELETE));
         alert.initStyle(StageStyle.UTILITY);
@@ -815,7 +817,7 @@ public class RootController extends SchedulerController {
     //</editor-fold>
             
     @FXML
-    private void exitButtonClick(ActionEvent event) { App.CURRENT.get().getPrimaryStage().hide(); }
+    private void exitButtonClick(ActionEvent event) { App.getCurrent().getPrimaryStage().hide(); }
 
     /**
      * Represents a Create, Update or Delete operation.
@@ -894,7 +896,7 @@ public class RootController extends SchedulerController {
      */
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootStageScene() {
-        App app = App.CURRENT.get(); 
+        App app = App.getCurrent(); 
         try {
             ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
             FXMLLoader loader = new FXMLLoader(RootController.class.getResource(SchedulerController.getFXMLResourceName(RootController.class)), rb);

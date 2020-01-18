@@ -52,7 +52,7 @@ public class ManageCountries extends ListingController<CountryModel> {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.CURRENT.get().getShortDateTimeFormatter()));
+                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDBY));
@@ -64,7 +64,7 @@ public class ManageCountries extends ListingController<CountryModel> {
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.CURRENT.get().getShortDateTimeFormatter()));
+                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDBY));
