@@ -6,7 +6,7 @@
 package expressions;
 
 import javafx.beans.property.ReadOnlyIntegerWrapper;
-import model.db.UserRow;
+import scheduler.dao.User;
 
 /**
  *
@@ -14,11 +14,11 @@ import model.db.UserRow;
  */
 public class ReadonlyActiveStateProperty extends ReadOnlyIntegerWrapper {
 
-    public ReadonlyActiveStateProperty() { super(UserRow.STATE_USER); }
+    public ReadonlyActiveStateProperty() { super(User.STATUS_USER); }
 
     public ReadonlyActiveStateProperty(int initialValue) { super(ActiveStateProperty.asValidValue(initialValue)); }
 
-    public ReadonlyActiveStateProperty(Object bean, String name) { super(bean, name, UserRow.STATE_USER); }
+    public ReadonlyActiveStateProperty(Object bean, String name) { super(bean, name, User.STATUS_USER); }
 
     public ReadonlyActiveStateProperty(Object bean, String name, int initialValue) { super(bean, name, ActiveStateProperty.asValidValue(initialValue)); }
 
@@ -37,6 +37,6 @@ public class ReadonlyActiveStateProperty extends ReadOnlyIntegerWrapper {
                 return;
             } catch (Exception ex) { }
         }
-        super.set(UserRow.STATE_INACTIVE);
+        super.set(User.STATUS_INACTIVE);
     }
 }

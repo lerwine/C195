@@ -2,6 +2,7 @@ package view;
 
 import java.sql.Connection;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -32,22 +33,16 @@ import scheduler.dao.UserImpl;
 import util.Alerts;
 import util.DbConnector;
 import view.address.AddressModel;
-import view.address.EditAddress;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import view.appointment.AppointmentFilter;
 import view.appointment.AppointmentModel;
-import view.appointment.EditAppointment;
 import view.appointment.ManageAppointments;
 import view.city.CityModel;
-import view.city.EditCity;
 import view.country.CountryModel;
-import view.country.EditCountry;
 import view.country.ManageCountries;
 import view.customer.CustomerModel;
-import view.customer.EditCustomer;
 import view.customer.ManageCustomers;
-import view.user.EditUser;
 import view.user.ManageUsers;
 import view.user.UserModel;
 
@@ -896,9 +891,11 @@ public class RootController extends SchedulerController {
      */
     @SuppressWarnings("UseSpecificCatch")
     public static void setAsRootStageScene() {
-        App app = App.getCurrent(); 
+        assert current == null : "Root stage scene cannot be changed after it is set";
+        App app = Objects.requireNonNull(App.getCurrent(), "Application not started");
         try {
-            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(RootController.class), Locale.getDefault(Locale.Category.DISPLAY));
+            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(RootController.class),
+                    Locale.getDefault(Locale.Category.DISPLAY));
             FXMLLoader loader = new FXMLLoader(RootController.class.getResource(SchedulerController.getFXMLResourceName(RootController.class)), rb);
             Scene scene = new Scene(loader.load());
             current = (RootController)loader.getController();

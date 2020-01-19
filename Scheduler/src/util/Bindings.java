@@ -12,6 +12,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import scheduler.dao.DataObjectImpl;
 
 /**
  *
@@ -162,7 +163,7 @@ public class Bindings {
         };
     }
 
-    public static <R extends model.Record> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
+    public static <R extends DataObjectImpl> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
         if (recordProperty == null)
             throw new NullPointerException("Record binding cannot be null.");
         
@@ -171,7 +172,7 @@ public class Bindings {
 
             @Override
             protected int computeValue() {
-                model.Record record = recordProperty.get();
+                DataObjectImpl record = recordProperty.get();
                 return (record == null) ? 0 : record.getPrimaryKey();
             }
         };

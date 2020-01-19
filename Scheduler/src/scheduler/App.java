@@ -2,7 +2,6 @@ package scheduler;
 
 import util.DbConnector;
 import view.appointment.EditAppointment;
-import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -322,9 +321,9 @@ public class App extends Application {
 
     //</editor-fold>
 
-    public class LoginTask extends TaskWaiter<UserImpl> {
+    private class LoginTask extends TaskWaiter<UserImpl> {
         private final String userName, password;
-        public LoginTask(String userName, String password) {
+        LoginTask(String userName, String password) {
             super(getPrimaryStage(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;

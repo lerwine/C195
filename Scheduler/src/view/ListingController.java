@@ -14,7 +14,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -130,84 +129,12 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
     }
     
     /**
-     * This gets called when the user clicks the {@link #deleteMenuItem} in the {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
-     * @param event information about the event.
-     * @deprecated Use {@link #onDeleteItem(javafx.event.Event, view.ItemModel)}, instead.
-     */
-    @Deprecated
-    protected void deleteMenuItemClick(ActionEvent event) {
-        M item = listingTableView.getSelectionModel().getSelectedItem();
-        if (item == null) {
-            ResourceBundle rb = scheduler.App.getCurrent().getResources();
-            Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
-        }
-        else
-            onDeleteItem(event, item);
-//            verifyDeleteItem(item);
-    }
-
-    /**
-     * This gets called when the user clicks the {@link #editMenuItem} in the {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
-     * @param event information about the event.
-     * @deprecated Use {@link #onEditItem(javafx.event.Event, view.ItemModel)}, instead.
-     */
-    @Deprecated
-    protected void editMenuItemClick(ActionEvent event) {
-        M item = listingTableView.getSelectionModel().getSelectedItem();
-        if (item == null) {
-            ResourceBundle rb = scheduler.App.getCurrent().getResources();
-            Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
-        }
-        else
-            onEditItem(item);
-    }
-
-    /**
-     * This gets called when the use types a key when the {@link #listingTableView} control has the current focus.
-     * @param event information about the event.
-     * @deprecated Use {@link #onEditItem(javafx.event.Event, view.ItemModel)}, {@link #onDeleteItem(javafx.event.Event, view.ItemModel)} or
-     * {@link #onAddNewItem(javafx.event.Event)}, instead.
-     */
-    @Deprecated
-    protected void listingTableViewKeyTyped(KeyEvent event) {
-        if (event.isAltDown() || event.isShortcutDown())
-            return;
-        if (event.isMetaDown() || event.isControlDown()) {
-            if (event.getCode() == KeyCode.N)
-                onAddNewItem();
-            return;
-        }
-        if (event.isShiftDown())
-            return;
-        M item = listingTableView.getSelectionModel().getSelectedItem();
-        if (item == null)
-            return;
-        if (event.getCode() == KeyCode.DELETE)
-            onDeleteItem(item);
-        else if (event.getCode() == KeyCode.ENTER)
-            onEditItem(item);
-    }
-
-    /**
-     * @param event information about the event.
-     * @deprecated Use {@link #onAddNewItem(javafx.event.Event)}, instead.
-     */
-    @Deprecated
-    protected void newButtonClick(ActionEvent event) { onAddNewItem(); }
-
-    /**
      * This gets called when the user clicks the {@link #newButton} control or types the {@link KeyCode#N} key while {@link KeyEvent#isMetaDown()}
      * or {@link KeyEvent#isControlDown()}.
      * @param event Contextual information about the event.
      */
     protected abstract void onAddNewItem(Event event);
     
-    /**
-     * @deprecated Use {@link #onAddNewItem(javafx.event.Event)}, instead.
-     */
-    @Deprecated
-    protected void onAddNewItem() { throw new UnsupportedOperationException("Not supported yet."); }
-
     /**
      * This gets called when the user types the {@link KeyCode#ENTER} key or clicks the {@link #editMenuItem} in the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
@@ -217,26 +144,12 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
     protected abstract void onEditItem(Event event, M item);
 
     /**
-     * @param item The item to be edited.
-     * @deprecated Use {@link #onEditItem(javafx.event.Event, view.ItemModel)}, instead.
-     */
-    @Deprecated
-    protected void onEditItem(M item) { throw new UnsupportedOperationException("Not supported yet."); }
-
-    /**
      * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      * @param event Contextual information about the event.
      * @param item The selected item to be deleted.
      */
     protected abstract void onDeleteItem(Event event, M item);
-    
-    /**
-     * @param item The item to be deleted.
-     * @deprecated Use {@link #onDeleteItem(javafx.event.Event, view.ItemModel)}, instead.
-     */
-    @Deprecated
-    protected void onDeleteItem(M item) { throw new UnsupportedOperationException("Not supported yet."); }
     
     protected int indexOfListItemByPrimaryKey(int pk) {
         Iterator<M> iterator = getItemsList().iterator();

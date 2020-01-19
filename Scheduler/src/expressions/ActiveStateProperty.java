@@ -6,7 +6,7 @@
 package expressions;
 
 import javafx.beans.property.SimpleIntegerProperty;
-import model.db.UserRow;
+import scheduler.dao.User;
 
 /**
  * An integer property that only stores specific integer values that represent active status for users.
@@ -14,13 +14,13 @@ import model.db.UserRow;
  */
 public class ActiveStateProperty extends SimpleIntegerProperty {
     public static int asValidValue(int value) {
-        return (value < UserRow.STATE_INACTIVE) ? UserRow.STATE_INACTIVE : ((value > UserRow.STATE_ADMIN) ? UserRow.STATE_ADMIN : value);
+        return (value < User.STATUS_INACTIVE) ? User.STATUS_INACTIVE : ((value > User.STATUS_ADMIN) ? User.STATUS_ADMIN : value);
     }
     
     /**
      * 
      */
-    public ActiveStateProperty() { super(UserRow.STATE_USER); }
+    public ActiveStateProperty() { super(User.STATUS_USER); }
 
     /**
      * 
@@ -33,7 +33,7 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
      * @param bean
      * @param name
      */
-    public ActiveStateProperty(Object bean, String name) { super(bean, name, UserRow.STATE_USER); }
+    public ActiveStateProperty(Object bean, String name) { super(bean, name, User.STATUS_USER); }
 
     /**
      * 
@@ -59,6 +59,6 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
                 return;
             } catch (Exception ex) { }
         }
-        super.set(UserRow.STATE_INACTIVE);
+        super.set(User.STATUS_INACTIVE);
     }
 }

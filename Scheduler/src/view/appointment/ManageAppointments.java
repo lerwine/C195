@@ -146,95 +146,21 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    /**
-     * Use {@link #setAsRootContent(view.ModelFilter)}, instead.
-     * @param filter
-     * @deprecated
-     */
-    @Deprecated
-    public static void setAsRootContent(model.db.AppointmentsFilter filter) {
-        setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
-            ResourceBundle rb = context.getResources();
-            context.setWindowTitle(filter.getWindowTitle(rb));
-            ManageAppointments controller = context.getController();
-//            controller.currentFilter = filter;
-//            String subHeading = filter.getSubHeading(rb);
-//            if (subHeading.isEmpty())
-//                collapseNode(controller.headingLabel);
-//            else
-//                controller.headingLabel.setText(subHeading);
-            throw new UnsupportedOperationException("Not supported yet.");
-        }, (ContentChangeContext<ManageAppointments> context) -> {
-            TaskWaiter.callAsync(App.getCurrent().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-                    (Connection c) -> {
-//                        AppointmentImpl.getByFilter(c, filter);
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    },
-                    (ObservableList<AppointmentImpl> apptList) -> {
-                        throw new UnsupportedOperationException("Not supported yet.");
-//                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
-//                        itemsList.clear();
-//                        apptList.forEach((a) -> {
-//                            itemsList.add(a);
-//                        });
-                    }, (Exception ex) -> {
-                        LOG.log(Level.SEVERE, null, ex);
-                        ResourceBundle rb = App.getCurrent().getResources();
-                        Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
-                        context.getController().getItemsList().clear();
-                    });
-        });
-    }
-    
     //</editor-fold>
     
     @Override
     protected void onAddNewItem(Event event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    /**
-     * Use {@link #onAddNewItem(javafx.event.Event)}, instead.
-     * @deprecated
-     */
-    @Override
-    @Deprecated
-    protected void onAddNewItem() {
-        RootController.getCurrent().addNewAppointment();
+        RootController.getCurrent().addNewAppointment(event);
     }
 
     @Override
     protected void onEditItem(Event event, AppointmentModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    /**
-     * Use {@link #onEditItem(javafx.event.Event, view.appointment.AppointmentModel)}, instead.
-     * @param item
-     * @deprecated
-     */
-    @Override
-    @Deprecated
-    protected void onEditItem(AppointmentModel item) {
-        throw new UnsupportedOperationException("Not supported yet.");
-//        RootController.getCurrent().editAppointment(item);
+        RootController.getCurrent().editAppointment(event, item);
     }
 
     @Override
     protected void onDeleteItem(Event event, AppointmentModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    /**
-     * Use {@link #onDeleteItem(javafx.event.Event, view.appointment.AppointmentModel)}, instead.
-     * @param item
-     * @deprecated
-     */
-    @Override
-    @Deprecated
-    protected void onDeleteItem(AppointmentModel item) {
-        throw new UnsupportedOperationException("Not supported yet.");
-//        RootController.getCurrent().deleteAppointment(item);
+        RootController.getCurrent().deleteAppointment(event, item);
     }
     
 }
