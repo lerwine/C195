@@ -5,7 +5,6 @@
  */
 package scheduler.dao;
 
-import view.appointment.AppointmentFilter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,11 +13,19 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import scheduler.filter.ModelFilter;
+import scheduler.filter.OrderBy;
+import scheduler.filter.ParameterConsumer;
+import scheduler.filter.SqlStatementBuilder;
+import scheduler.filter.ValueAccessor;
 import util.DB;
+import view.ChildModel;
+import view.appointment.AppointmentModel;
+import view.customer.AppointmentCustomer;
+import view.user.AppointmentUser;
 
 /**
  *
@@ -344,38 +351,312 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         }
     }
 
-    public static ArrayList<AppointmentImpl> load(Connection connection, DataObjectFilter<Appointment> filter, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        String sql = getBaseSelectQuery();
-        if (filter != null) {
-            filter = filter.createClone();
-            sql += filter.toWhereClause();
-        }
-        sql += SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
-                () -> SelectOrderSpec.of(SelectOrderSpec.of(COLNAME_END, true),
-                        SelectOrderSpec.of(COLNAME_START, true)));
-        ArrayList<AppointmentImpl> result = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (filter != null)
-                filter.setWhereParameters(ps, 1);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next())
-                    result.add(new AppointmentImpl(rs));
-            }
-        }
-        return result;
+    @Override
+    public void saveChanges(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public static int getCount(Connection connection, DataObjectFilter<Appointment> filter) throws SQLException {
-        String sql;
-        if (filter != null) {
-            filter = filter.createClone();
-            sql = String.format("SELECT COUNT(`%s`) FROM `%s`%s", COLNAME_APPOINTMENTID, TABLENAME_APPOINTMENT, filter.toWhereClause());
-        } else
-            sql = String.format("SELECT COUNT(`%s`) FROM `%s`", COLNAME_APPOINTMENTID, TABLENAME_APPOINTMENT);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (filter != null)
-                filter.setWhereParameters(ps, 1);
-            try (ResultSet rs = ps.executeQuery()) {
+    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
+    
+    //<editor-fold defaultstate="collapsed" desc="Static ValueAccessor definitions">
+
+    /**
+     * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#start} property and sets the
+     * corresponding {@link PreparedStatement} parameter value.
+     */
+    public static final ValueAccessor<AppointmentModel, LocalDateTime> START = new ValueAccessor<AppointmentModel, LocalDateTime>() {
+        @Override
+        public String get() { return Appointment.COLNAME_START; }
+        @Override
+        public LocalDateTime apply(AppointmentModel t) { return t.getStart(); }
+        @Override
+        public void accept(LocalDateTime t, ParameterConsumer u) throws SQLException {
+            u.setDateTime(t);
+        }
+    };
+    
+    /**
+     * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#end} property and sets the
+     * corresponding {@link PreparedStatement} parameter value.
+     */
+    public static final ValueAccessor<AppointmentModel, LocalDateTime> END = new ValueAccessor<AppointmentModel, LocalDateTime>() {
+        @Override
+        public String get() { return Appointment.COLNAME_END; }
+        @Override
+        public LocalDateTime apply(AppointmentModel t) { return t.getEnd(); }
+        @Override
+        public void accept(LocalDateTime t, ParameterConsumer u) throws SQLException {
+            u.setDateTime(t);
+        }
+    };
+    
+    /**
+     * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#customer} property and sets the
+     * corresponding {@link PreparedStatement} parameter value.
+     */
+    public static final ValueAccessor<AppointmentModel, AppointmentCustomer<?>> CUSTOMER = new ValueAccessor<AppointmentModel, AppointmentCustomer<?>>() {
+        @Override
+        public String get() { return Appointment.COLNAME_CUSTOMERID; }
+        @Override
+        public AppointmentCustomer<?> apply(AppointmentModel t) { return t.getCustomer(); }
+        @Override
+        public void accept(AppointmentCustomer<?> t, ParameterConsumer u) throws SQLException {
+            u.setInt(t.getDataObject().getPrimaryKey());
+        }
+    };
+    
+    /**
+     * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#user} property and sets the
+     * corresponding {@link PreparedStatement} parameter value.
+     */
+    public static final ValueAccessor<AppointmentModel, AppointmentUser<?>> USER = new ValueAccessor<AppointmentModel, AppointmentUser<?>>() {
+        @Override
+        public String get() { return Appointment.COLNAME_USERID; }
+        @Override
+        public AppointmentUser<?> apply(AppointmentModel t) { return t.getUser(); }
+        @Override
+        public void accept(AppointmentUser<?> t, ParameterConsumer u) throws SQLException {
+            u.setInt(t.getDataObject().getPrimaryKey());
+        }
+    };
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
+
+    public static ModelFilter<AppointmentModel> customerWithinRange(AppointmentCustomer<?> customer, LocalDateTime start, LocalDateTime end) {
+        return withinRange(start, end).and(customerIs(customer));
+    }
+    
+    public static ModelFilter<AppointmentModel> userWithinRange(AppointmentUser<?> user, LocalDateTime start, LocalDateTime end) {
+        return withinRange(start, end).and(userIs(user));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments that occur within a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range ({@code model.getEnd() &gt;= start &amp;&amp; model.getStart() &lt; end}).
+     * if {@code start} is greater than {@code end}, then this will create a filter for appointments that occur entirely outside the range values;
+     * otherwise, it creates a filter for appointments that occur within the range values.
+     * @param start The inclusive starting {@link LocalDateTime} value of the date/time range.
+     * @param end The exclusive ending {@link LocalDateTime} value of the date/time range.
+     * @return A {@link ModelFilter} for appointments that occur within a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range.
+     */
+    public static ModelFilter<AppointmentModel> withinRange(LocalDateTime start, LocalDateTime end) {
+        return withinRange(start, false, end, false);
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments that occur within a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range.
+     * @param start The starting {@link LocalDateTime} value of the date/time range.
+     * @param startIsExclusive {@code true} to exclude the exact matches to the date/time range start ({@code model.getEnd() &gt; start});
+     * otherwise {@code false} to include exact matches ({@code model.getEnd() &gt;= start}).
+     * @param end The ending {@link LocalDateTime} value of the date/time range.
+     * @param endIsInclusive {@code true} to include the exact matches to the date/time range end ({@code model.getStart() &lt;<= end});
+     * otherwise {@code false} to exclude exact matches ({@code model.getStart() &lt; end}).
+     * @return A {@link ModelFilter} for appointments that occur within a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range.
+     */
+    public static ModelFilter<AppointmentModel> withinRange(LocalDateTime start, boolean startIsExclusive, LocalDateTime end, boolean endIsInclusive) {
+        assert Objects.requireNonNull(start, "Start cannot be null").compareTo(Objects.requireNonNull(end, "End cannot be null")) <= 0 :
+                "Start date/time cannot be greater than end date/time";
+        return ((startIsExclusive) ? endIsGreaterThan(start) : endIsGreaterThanOrEqualTo(start))
+                .and((endIsInclusive) ? startIsLessThanOrEqualTo(end) : startIsLessThan(end));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments that occur outside of a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range ({@code model.getEnd() &lt; start || model.getStart() &gt;= end}).
+     * @param start The exclusive starting {@link LocalDateTime} value of the date/time range.
+     * @param end The inclusive ending {@link LocalDateTime} value of the date/time range.
+     * @return A {@link ModelFilter} for appointments that occur outside of a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range.
+     */
+    public static ModelFilter<AppointmentModel> outsideRange(LocalDateTime start, LocalDateTime end) {
+        return outsideRange(start, false, end, false);
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments that occur outside of a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range.
+     * @param start The starting {@link LocalDateTime} value of the date/time range.
+     * @param startIsInclusive {@code true} to include the exact matches to the date/time range start ({@code model.getEnd() &lt;= start});
+     * otherwise {@code false} to include exact matches ({@code model.getEnd() &lt; start}).
+     * @param end The ending {@link LocalDateTime} value of the date/time range.
+     * @param endIsExclusive {@code true} to exclude the exact matches to the date/time range end ({@code model.getStart() &gt;< end});
+     * otherwise {@code false} to exclude exact matches ({@code model.getStart() &gt;= end}).
+     * @return A {@link ModelFilter} for appointments that occur outside of a {@link AppointmentModel#start} / {@link AppointmentModel#end}
+     * date/time range.
+     */
+    public static ModelFilter<AppointmentModel> outsideRange(LocalDateTime start, boolean startIsInclusive, LocalDateTime end, boolean endIsExclusive) {
+        assert Objects.requireNonNull(start, "Start cannot be null").compareTo(Objects.requireNonNull(end, "End cannot be null")) <= 0 :
+                "Start date/time cannot be greater than end date/time";
+        return ((startIsInclusive) ? endIsLessThanOrEqualTo(start) : endIsLessThan(start))
+                .or((endIsExclusive) ? startIsGreaterThan(end) : startIsGreaterThanOrEqualTo(end));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#start} column/property is greater than the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#start} column/property
+     * is greater than the specified value.
+     */
+    public static ModelFilter<AppointmentModel> startIsGreaterThan(LocalDateTime value) {
+        return ModelFilter.columnIsGreaterThan(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#start} column/property is greater than or equal to the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#start} column/property
+     * is greater than or equal to the specified value.
+     */
+    public static ModelFilter<AppointmentModel> startIsGreaterThanOrEqualTo(LocalDateTime value) {
+        return ModelFilter.columnIsGreaterThanOrEqualTo(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#start} column/property is less than the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#start} column/property
+     * is less than the specified value.
+     */
+    public static ModelFilter<AppointmentModel> startIsLessThanOrEqualTo(LocalDateTime value) {
+        return ModelFilter.columnIsLessThanOrEqualTo(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#start} column/property is less than or equal to the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#start} column/property
+     * is less than or equal to the specified value.
+     */
+    public static ModelFilter<AppointmentModel> startIsLessThan(LocalDateTime value) {
+        return ModelFilter.columnIsLessThan(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#end} column/property is greater than the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#end} column/property
+     * is greater than the specified value.
+     */
+    public static ModelFilter<AppointmentModel> endIsGreaterThan(LocalDateTime value) {
+        return ModelFilter.columnIsGreaterThan(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#end} column/property is greater than or equal to the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#end} column/property
+     * is greater than or equal to the specified value.
+     */
+    public static ModelFilter<AppointmentModel> endIsGreaterThanOrEqualTo(LocalDateTime value) {
+        return ModelFilter.columnIsGreaterThanOrEqualTo(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the value of the {@link AppointmentModel#end} column/property is less than or equal to the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#end} column/property is less than
+     * or equal to the specified value.
+     */
+    public static ModelFilter<AppointmentModel> endIsLessThanOrEqualTo(LocalDateTime value) {
+        return ModelFilter.columnIsLessThanOrEqualTo(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments objects where the value of the {@link AppointmentModel#end} column/property is less than the specified value.
+     * @param value The {@link LocalDateTime} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the value of the {@link AppointmentModel#end} column/property is less than
+     * the specified value.
+     */
+    public static ModelFilter<AppointmentModel> endIsLessThan(LocalDateTime value) {
+        return ModelFilter.columnIsLessThan(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#customer} column/property is equal to the primary key of the specified {@link AppointmentCustomer} object.
+     * @param value The {@link AppointmentCustomer} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#customer} column/property
+     * is equal to the primary key of the specified {@link AppointmentCustomer} object.
+     */
+    public static ModelFilter<AppointmentModel> customerIs(AppointmentCustomer<?> value) {
+        return ModelFilter.columnIsEqualTo(CUSTOMER, ModelFilter.COMPARATOR_CUSTOMER, ChildModel.requireExisting(value, "Customer"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#customer} column/property is not equal to the primary key of the specified {@link AppointmentCustomer} object.
+     * @param value The {@link AppointmentCustomer} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#customer} column/property
+     * is not equal to the primary key of the specified {@link AppointmentCustomer} object.
+     */
+    public static ModelFilter<AppointmentModel> customerIsNot(AppointmentCustomer<?> value) {
+        return ModelFilter.columnIsNotEqualTo(CUSTOMER, ModelFilter.COMPARATOR_CUSTOMER, ChildModel.requireExisting(value, "Customer"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#user} column/property is equal to the primary key of the specified {@link AppointmentUser} object.
+     * @param value The {@link AppointmentCustomer} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#user} column/property
+     * is equal to the primary key of the specified {@link AppointmentUser} object.
+     */
+    public static ModelFilter<AppointmentModel> userIs(AppointmentUser<?> value) {
+        return ModelFilter.columnIsEqualTo(USER, ModelFilter.COMPARATOR_USER, ChildModel.requireExisting(value, "User"));
+    }
+    
+    /**
+     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#user} column/property is not equal to the primary key of the specified {@link AppointmentCustomer} object.
+     * @param value The {@link AppointmentCustomer} to compare to.
+     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#user} column/property
+     * is not equal to the primary key of the specified {@link AppointmentUser} object.
+     */
+    public static ModelFilter<AppointmentModel> userIsNot(AppointmentUser<?> value) {
+        return ModelFilter.columnIsNotEqualTo(USER, ModelFilter.COMPARATOR_USER, ChildModel.requireExisting(value, "User"));
+    }
+    
+    //</editor-fold>
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="load* overloads">
+    
+    public static ArrayList<AppointmentImpl> loadAll(Connection connection) throws Exception {
+        return loadAll(connection, null);
+    }
+    
+    public static ArrayList<AppointmentImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return loadAll(connection, getBaseSelectQuery(),
+                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(COLNAME_START, true), OrderBy.of(COLNAME_END, true))),
+                (rs) -> new AppointmentImpl(rs));
+    }
+    
+    public static ArrayList<AppointmentImpl> load(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
+        return load(connection, filter, null);
+    }
+    
+    public static ArrayList<AppointmentImpl> load(Connection connection, ModelFilter<AppointmentModel> filter,
+            Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, getBaseSelectQuery(), filter,
+                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(COLNAME_START, true), OrderBy.of(COLNAME_END, true))),
+                (rs) -> new AppointmentImpl(rs));
+    }
+    
+    //</editor-fold>
+    
+    public static int getCount(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
+        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
+            builder.appendSql("SELECT COUNT(`").appendSql(COLNAME_APPOINTMENTID).appendSql("`) FROM `")
+                    .appendSql(TABLENAME_APPOINTMENT).appendSql("`");
+            if (null != filter) {
+                String s = filter.get();
+                if (!s.isEmpty())
+                    builder.appendSql(" WHERE ").appendSql(s);
+                filter.setParameterValues(builder.finalizeSql());
+            }
+        
+            try (ResultSet rs = builder.getResult().executeQuery()) {
                 if (rs.next())
                     return rs.getInt(1);
             }
@@ -383,256 +664,4 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         return 0;
     }
     
-    private static int addWhereParameters(PreparedStatement ps, int startIndex, Optional<LocalDateTime> startRange, Optional<LocalDateTime> endRange,
-            Optional<Customer> customer, Optional<User> user) throws SQLException {
-        if (startRange.isPresent())
-            ps.setTimestamp(startIndex++, DB.toUtcTimestamp(startRange.get()));
-        if (endRange.isPresent())
-            ps.setTimestamp(startIndex++, DB.toUtcTimestamp(endRange.get()));
-        if (customer.isPresent() && customer.get().isExisting())
-            ps.setInt(startIndex++, customer.get().getPrimaryKey());
-        if (user.isPresent() && user.get().isExisting())
-            ps.setInt(startIndex++, user.get().getPrimaryKey());
-        return startIndex;
-    }
-    
-    private static String buildWhereClause(Optional<LocalDateTime> startRange, boolean startIsExclusive, Optional<LocalDateTime> endRange,
-            boolean endIsInclusive, Optional<Customer> customer, Optional<User> user) {
-        if (startRange.isPresent()) {
-            if (endRange.isPresent()) {
-                if (startRange.get().compareTo(endRange.get()) > 0) {
-                    if (customer.isPresent()) {
-                        if (!customer.get().isExisting())
-                            return null;
-                        if (user.isPresent()) {
-                            if (user.get().isExisting())
-                                return String.format(" WHERE (`%s`%s%% OR `%s`%s%%) AND `%s`=%% AND `%s`=%%", COLNAME_END,
-                                        (startIsExclusive) ? "<" : "<=", COLNAME_START, (endIsInclusive) ? ">=" : ">", COLNAME_CUSTOMERID,
-                                        COLNAME_USERID);
-                            return null;
-                        }
-
-                        return String.format(" WHERE (`%s`%s%% OR `%s`%s%%) AND `%s`=%%", COLNAME_END, (startIsExclusive) ? "<" : "<=", COLNAME_START,
-                                (endIsInclusive) ? ">=" : ">", COLNAME_CUSTOMERID);
-                    }
-                    
-                    if (user.isPresent()) {
-                        if (user.get().isExisting())
-                            return String.format(" WHERE (`%s`%s%% OR `%s`%s%%) AND `%s`=%%", COLNAME_END, (startIsExclusive) ? "<" : "<=", COLNAME_START,
-                                    (endIsInclusive) ? ">=" : ">", COLNAME_USERID);
-                        return null;
-                    }
-
-                    return String.format(" WHERE `%s`%s%% OR `%s`%s%%", COLNAME_END, (startIsExclusive) ? "<" : "<=", COLNAME_START,
-                            (endIsInclusive) ? ">=" : ">");
-                }
-                
-                if (customer.isPresent()) {
-                    if (!customer.get().isExisting())
-                        return null;
-                    if (user.isPresent()) {
-                        if (user.get().isExisting())
-                            return String.format(" WHERE `%s`%s%% AND `%s`%s%% AND `%s`=%% AND `%s`=%%", COLNAME_END, (startIsExclusive) ? ">" : ">=",
-                                    COLNAME_START, (endIsInclusive) ? "<=" : "<", COLNAME_CUSTOMERID, COLNAME_USERID);
-                        return null;
-                    }
-
-                    return String.format(" WHERE `%s`%s%% AND `%s`%s%% AND `%s`=%%", COLNAME_END, (startIsExclusive) ? ">" : ">=", COLNAME_START,
-                            (endIsInclusive) ? "<=" : "<", COLNAME_CUSTOMERID);
-                }
-
-                if (user.isPresent()) {
-                    if (user.get().isExisting())
-                        return String.format(" WHERE `%s`%s%% AND `%s`%s%% AND `%s`=%%", COLNAME_END, (startIsExclusive) ? ">" : ">=", COLNAME_START,
-                                (endIsInclusive) ? "<=" : "<", COLNAME_USERID);
-                    return null;
-                }
-
-                return String.format(" WHERE `%s`%s%% AND `%s`%s%%", COLNAME_END, (startIsExclusive) ? ">" : ">=", COLNAME_START,
-                        (endIsInclusive) ? "<=" : "<");
-            }
-                
-            if (customer.isPresent()) {
-                if (!customer.get().isExisting())
-                    return null;
-                if (user.isPresent()) {
-                    if (user.get().isExisting())
-                        return String.format(" WHERE `%s`%s%% AND `%s`=%% AND `%s`=%%", COLNAME_END, (startIsExclusive) ? ">" : ">=", COLNAME_CUSTOMERID,
-                                COLNAME_USERID);
-                    return null;
-                    
-                }
-
-                return String.format(" WHERE `%s`%s%% AND `%s`=%%", COLNAME_END, (startIsExclusive) ? ">" : ">=", COLNAME_CUSTOMERID);
-            }
-
-            if (user.isPresent()) {
-                if (user.get().isExisting())
-                    return String.format(" WHERE `%s`%s%% AND `%s`=%%", COLNAME_END, (startIsExclusive) ? ">" : ">=", COLNAME_USERID);
-                return null;
-            }
-
-            return String.format(" WHERE `%s`%s%%", COLNAME_END, (startIsExclusive) ? ">" : ">=");
-        }
-        
-        if (endRange.isPresent()) {
-            if (customer.isPresent()) {
-                if (!customer.get().isExisting())
-                    return null;
-                if (user.isPresent()) {
-                    if (user.get().isExisting())
-                        return String.format(" WHERE `%s`%s%% AND `%s`=%% AND `%s`=%%", COLNAME_START, (endIsInclusive) ? "<=" : "<", COLNAME_CUSTOMERID,
-                                COLNAME_USERID);
-                    return null;
-                }
-
-                return String.format(" WHERE `%s`%s%% AND `%s`=%%", COLNAME_START, (endIsInclusive) ? "<=" : "<", COLNAME_CUSTOMERID);
-            }
-
-            if (user.isPresent()) {
-                if (user.get().isExisting())
-                    return String.format(" WHERE `%s`%s%% AND `%s`=%%", COLNAME_START, (endIsInclusive) ? "<=" : "<", COLNAME_USERID);
-                return null;
-            }
-
-            return String.format(" WHERE `%s`%s%%", COLNAME_START, (endIsInclusive) ? "<=" : "<");
-        }
-
-        if (customer.isPresent()) {
-            if (!customer.get().isExisting())
-                return null;
-            if (user.isPresent()) {
-                if (user.get().isExisting())
-                    return String.format(" WHERE `%s`=%% AND `%s`=%%", COLNAME_CUSTOMERID, COLNAME_USERID);
-                return null;
-            }
-
-            return String.format(" WHERE `%s`=%%", COLNAME_CUSTOMERID);
-        }
-
-        if (user.isPresent()) {
-            if (user.get().isExisting())
-                return String.format(" WHERE `%s`=%%", COLNAME_USERID);
-            return null;
-        }
-
-        return "";
-    }
-    
-    //<editor-fold defaultstate="collapsed" desc="lookup overloads">
-
-    /**
-     * Loads {@link AppointmentImpl} objects from database rows which match the specified parameters.
-     * @param connection The database connection to use.
-     * @param startRange The optional start date range.
-     * @param startIsExclusive {@code true} if the start date range is exclusive; otherwise, {@code false} if it is inclusive.
-     * @param endRange The optional end date range.
-     * @param endIsExclusive {@code true} if the start date range is inclusive; otherwise, {@code false} if it is exclusive.
-     * @param customer The optional {@link Customer} to match.
-     * @param user The optional {@link User} to match.
-     * @param orderBy Sorting options.
-     * @return {@link AppointmentImpl} object representing matching rows from the database.
-     * @throws SQLException if unable to perform SQL query.
-     */
-    public static ArrayList<AppointmentImpl> lookup(Connection connection, Optional<LocalDateTime> startRange, boolean startIsExclusive,
-            Optional<LocalDateTime> endRange, boolean endIsExclusive, Optional<Customer> customer, Optional<User> user, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        Objects.requireNonNull(customer, "Customer cannot be null");
-        Objects.requireNonNull(startRange, "Range Start cannot be null");
-        Objects.requireNonNull(endRange, "Range end cannot be null");
-        String sql = buildWhereClause(startRange, startIsExclusive, endRange, endIsExclusive, customer, user);
-        if (sql == null)
-            return new ArrayList<>();
-        sql = getBaseSelectQuery() + sql + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
-                () -> SelectOrderSpec.of(SelectOrderSpec.of(COLNAME_END, true), SelectOrderSpec.of(COLNAME_START, true)));
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            addWhereParameters(ps, 1, startRange, endRange, customer, user);
-            return toList(ps, (rs) -> new AppointmentImpl(rs));
-        }
-    }
-    
-    /**
-     * Loads {@link AppointmentImpl} objects from database rows which match the specified parameters.
-     * @param connection The database connection to use.
-     * @param startRange The optional inclusive start date range.
-     * @param endRange The optional exclusive end date range.
-     * @param customer The optional {@link Customer} to match.
-     * @param user The optional {@link User} to match.
-     * @param orderBy Sorting options.
-     * @return {@link AppointmentImpl} object representing matching rows from the database.
-     * @throws SQLException if unable to perform SQL query.
-     */
-    public static ArrayList<AppointmentImpl> lookup(Connection connection, Optional<LocalDateTime> startRange, Optional<LocalDateTime> endRange,
-            Optional<Customer> customer, Optional<User> user, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        return lookup(connection, startRange, false, endRange, false, customer, user, orderBy);
-    }
-    
-    /**
-     * Loads {@link AppointmentImpl} objects from database rows which match the specified parameters.
-     * @param connection The database connection to use.
-     * @param startRange The optional start date range.
-     * @param startIsExclusive {@code true} if the start date range is exclusive; otherwise, {@code false} if it is inclusive.
-     * @param endRange The optional end date range.
-     * @param endIsExclusive {@code true} if the start date range is inclusive; otherwise, {@code false} if it is exclusive.
-     * @param customer The optional {@link Customer} to match.
-     * @param user The optional {@link User} to match.
-     * @return {@link AppointmentImpl} object representing matching rows from the database.
-     * @throws SQLException if unable to perform SQL query.
-     */
-    public static ArrayList<AppointmentImpl> lookup(Connection connection, Optional<LocalDateTime> startRange, boolean startIsExclusive,
-            Optional<LocalDateTime> endRange, boolean endIsExclusive, Optional<Customer> customer, Optional<User> user) throws SQLException {
-        return lookup(connection, startRange, startIsExclusive, endRange, endIsExclusive, customer, user, null);
-    }
-    
-    /**
-     * Loads {@link AppointmentImpl} objects from database rows which match the specified parameters.
-     * @param connection The database connection to use.
-     * @param startRange The optional inclusive start date range.
-     * @param endRange The optional exclusive end date range.
-     * @param customer The optional {@link Customer} to match.
-     * @param user The optional {@link User} to match.
-     * @return {@link AppointmentImpl} object representing matching rows from the database.
-     * @throws SQLException if unable to perform SQL query.
-     */
-    public static ArrayList<AppointmentImpl> lookup(Connection connection, Optional<LocalDateTime> startRange, Optional<LocalDateTime> endRange,
-            Optional<Customer> customer, Optional<User> user) throws SQLException {
-        return lookup(connection, startRange, endRange, customer, user, null);
-    }
-    
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="lookupCount overloads">
-    
-    public static int lookupCount(Connection connection, Optional<LocalDateTime> startRange, boolean startIsExclusive, Optional<LocalDateTime> endRange,
-            boolean endIsExclusive, Optional<Customer> customer, Optional<User> user) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        Objects.requireNonNull(customer, "Customer cannot be null");
-        Objects.requireNonNull(user, "User cannot be null");
-        Objects.requireNonNull(startRange, "Start range cannot be null");
-        Objects.requireNonNull(endRange, "End range cannot be null");
-        
-        String sql = buildWhereClause(startRange, startIsExclusive, endRange, endIsExclusive, customer, user);
-        if (sql == null)
-            return 0;
-        sql = String.format("SELECT COUNT(`%s`) FROM `%s`%s", getPrimaryKeyColName(AppointmentImpl.class), TABLENAME_APPOINTMENT, sql);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            addWhereParameters(ps, 2, startRange, endRange, customer, user);
-            ResultSet rs = ps.getResultSet();
-            if (rs.next())
-                return rs.getInt(1);
-        }
-        return 0;
-    }
-    
-    public static int lookupCount(Connection connection, Optional<LocalDateTime> startRange, Optional<LocalDateTime> endRange,
-            Optional<Customer> customer, Optional<User> user) throws SQLException {
-        return lookupCount(connection, startRange, false, endRange, false, customer, user);
-    }
-    
-    //</editor-fold>
-
-    @Override
-    public void saveChanges(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

@@ -3,7 +3,6 @@ package view.appointment;
 import java.sql.Connection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -414,10 +413,10 @@ public class EditAppointment extends SchedulerController implements ItemControll
         try (DbConnector dep = new DbConnector()) {
             Connection connection = dep.getConnection();
             customers = FXCollections.observableArrayList();
-            CustomerImpl.lookupByStatus(connection, true).forEach((c) -> customers.add(new CustomerModel(c)));
+            CustomerImpl.loadByStatus(connection, true).forEach((c) -> customers.add(new CustomerModel(c)));
             users = FXCollections.observableArrayList();
             UserImpl.lookupByStatus(connection, User.STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
-        } catch (SQLException | ClassNotFoundException ex) {
+        } catch (Exception ex) {
             if (customers == null)
                 customers = FXCollections.observableArrayList();
             if (users == null)
@@ -480,10 +479,23 @@ public class EditAppointment extends SchedulerController implements ItemControll
         }
         try {
             try (DbConnector dep = new DbConnector()) {
+                if (conflictLookupState.test(dep.getConnection())) {
+                    updateModel(context.getTarget()).saveChanges(dep.getConnection());
+                    return true;
+                }
+            }
+            String msg = conflictLookupState.conflictMessage.get();
+            if (msg.isEmpty())
+                return false;
+            Optional<ButtonType> response = Alerts.showWarningAlert(getResources().getString(RESOURCEKEY_APPOINTMENTCONFLICT),
+                    String.format("%s\n\n%s", msg, getResources().getString(RESOURCEKEY_SAVEANYWAY)), ButtonType.YES, ButtonType.NO);
+            if (!response.isPresent() || response.get() != ButtonType.YES)
+                return false;
+            try (DbConnector dep = new DbConnector()) {
                 updateModel(context.getTarget()).saveChanges(dep.getConnection());
                 return true;
             }
-        } catch (SQLException | ClassNotFoundException ex) {
+        } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return false;
@@ -801,7 +813,7 @@ public class EditAppointment extends SchedulerController implements ItemControll
          *          {@code true} if selected date ranges are valid, a customer and user is selected, and there are no scheduling conflicts;
          *          otherwise, {@code false} to indicate that the "save" should be aborted.
          */
-        boolean test(Connection connection) throws SQLException {
+        boolean test(Connection connection) throws Exception {
             LocalDateTime start = dateRangeValidation.startValidation.selectedDateTime.get();
             if (start != null) {
                 LocalDateTime end = dateRangeValidation.endValidation.selectedDateTime.get();
@@ -810,8 +822,8 @@ public class EditAppointment extends SchedulerController implements ItemControll
                     if (c != null) {
                         UserModel u = selectedUserProperty.get();
                         if (u != null) {
-                            int cc = AppointmentImpl.lookupCount(connection, Optional.of(start), Optional.of(end), Optional.of(c.getDataObject()), Optional.empty());
-                            int uc = AppointmentImpl.lookupCount(connection, Optional.of(start), Optional.of(end), Optional.empty(), Optional.of(u.getDataObject()));
+                            int cc = AppointmentImpl.getCount(connection, AppointmentImpl.customerWithinRange(c, start, end));
+                            int uc = AppointmentImpl.getCount(connection, AppointmentImpl.userWithinRange(u, start, end));
                             customerConflictCount.set(cc);
                             userConflictCount.set(uc);
                             return cc == 0 && uc == 0;

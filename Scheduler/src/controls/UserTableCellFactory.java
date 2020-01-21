@@ -15,7 +15,7 @@ import javafx.util.Callback;
  * @param <S>
  * @param <T>
  */
-public class UserTableCellFactory<S, T extends view.user.AppointmentUser<? extends scheduler.dao.User>> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
+public class UserTableCellFactory<S, T extends view.user.AppointmentUser<?>> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
 
     @Override
     public TableCell<S, T> call(TableColumn<S, T> param) {

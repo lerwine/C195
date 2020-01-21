@@ -18,9 +18,9 @@ import view.address.CustomerAddress;
 import view.ChildModel;
 
 /**
- *
+ * Defines a {@link Customer} that is associated with an {@link view.appointment.AppointmentModel}.
  * @author erwinel
- * @param <T>
+ * @param <T> The type of {@link Customer} object.
  */
 public interface AppointmentCustomer<T extends Customer> extends ChildModel<T> {
     String getName();

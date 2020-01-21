@@ -16,6 +16,8 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import scheduler.filter.OrderBy;
+import view.country.CityCountry;
 
 /**
  *
@@ -95,17 +97,17 @@ public class CountryImpl extends DataObjectImpl implements Country {
             name = "";
     }
     
-    public static ArrayList<CountryImpl> lookupAll(Connection connection, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = getBaseSelectQuery() + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
-                () -> SelectOrderSpec.of(SelectOrderSpec.of(Country.COLNAME_COUNTRY)));
-        try (PreparedStatement ps = connection.prepareStatement(getBaseSelectQuery())) {
-            return toList(ps, (rs) -> new CountryImpl(rs));
-        }
+    public static ArrayList<CountryImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return loadAll(connection, getBaseSelectQuery(), orderBy, (rs) -> new CountryImpl(rs));
+//        String sql = getBaseSelectQuery() + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
+//                () -> SelectOrderSpec.of(SelectOrderSpec.of(Country.COLNAME_COUNTRY)));
+//        try (PreparedStatement ps = connection.prepareStatement(getBaseSelectQuery())) {
+//            return toList(ps, (rs) -> new CountryImpl(rs));
+//        }
     }
     
-    public static Iterable<CountryImpl> lookupAll(Connection connection) throws SQLException {
-        return lookupAll(connection, null);
+    public static Iterable<CountryImpl> loadAll(Connection connection) throws Exception {
+        return loadAll(connection, null);
     }
     
     public static Optional<CountryImpl> lookupByPrimaryKey(Connection connection, int pk) throws SQLException {
@@ -118,8 +120,8 @@ public class CountryImpl extends DataObjectImpl implements Country {
     }
 
     @Override
-    public synchronized void delete(Connection connection) throws SQLException {
-        assert CityImpl.lookupUsageCount(connection, this) == 0 : "Country is associated with one or more cities.";
+    public synchronized void delete(Connection connection) throws Exception {
+        assert CityImpl.getCount(connection, CityImpl.countryIs(CityCountry.of(this))) == 0 : "Country is associated with one or more cities.";
         super.delete(connection);
     }
 

@@ -13,6 +13,7 @@ import javafx.util.Callback;
 /**
  *
  * @author Leonard T. Erwine
+ * @param <S>
  */
 public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
     private final ObservableMap<String, String> map = scheduler.App.getCurrent().getAppointmentTypes();

@@ -1,6 +1,7 @@
 package view.appointment;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,13 +13,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
-//import model.db.AppointmentsFilter;
 import scheduler.App;
 import scheduler.dao.AppointmentImpl;
 import util.Alerts;
 import view.RootController;
 import view.SchedulerController;
 import view.TaskWaiter;
+import view.user.AppointmentUser;
 
 /**
  * FXML Controller class
@@ -69,11 +70,11 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
     
     //</editor-fold>
     
-    private AppointmentFilter currentFilter;
+    private AppointmentsFilter currentFilter;
     
     private final ChangeListener<? super SchedulerController> controllerChangeListener;
     
-    private final ChangeListener<? super RootController.CrudAction<AppointmentImpl>> appointmentAddedListener;
+    private final ChangeListener<? super RootController.CrudAction<AppointmentModel>> appointmentAddedListener;
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
@@ -89,16 +90,16 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
                 }
             }
         };
-        appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentImpl>>() {
+        appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentModel>>() {
             @Override
-            public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentImpl>> observable,
-                RootController.CrudAction<AppointmentImpl> oldValue, RootController.CrudAction<AppointmentImpl> newValue) {
-//                if (newValue != null && (currentFilter == null || currentFilter.test(newValue.getRow()))) {
-//                    if (newValue.isDelete())
-//                        removeListItemByPrimaryKey(newValue.getRow().getPrimaryKey());
-//                    else if (newValue.isAdd() || !updateListItem(newValue.getRow()))
-//                        getItemsList().add(newValue.getRow());
-//                }
+            public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentModel>> observable,
+                RootController.CrudAction<AppointmentModel> oldValue, RootController.CrudAction<AppointmentModel> newValue) {
+                if (newValue != null && (currentFilter == null || currentFilter.getFilter().test(newValue.getModel()))) {
+                    if (newValue.isDelete())
+                        removeListItemByPrimaryKey(newValue.getModel().getDataObject().getPrimaryKey());
+                    else if (newValue.isAdd() || !updateListItem(newValue.getModel()))
+                        getItemsList().add(newValue.getModel());
+                }
                 throw new UnsupportedOperationException("Not supported yet.");
             }
         };
@@ -111,24 +112,26 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
                 getFXMLResourceName(getClass()));
     }
     
-    public static void setAsRootContent() {
+    public static void setAsRootContent() { setAsRootContent(AppointmentsFilter.todayAndFuture(AppointmentUser.of(App.getCurrentUser()))); }
+    
+    public static void setAsRootContent(AppointmentsFilter filter) {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEAPPOINTMENTS));
+            context.setWindowTitle(filter.getWindowTitle(context));
             ManageAppointments controller = context.getController();
-            collapseNode(controller.headingLabel);
+            String headingText = filter.getHeadingText(context);
+            if (null == headingText || headingText.trim().isEmpty())
+                collapseNode(controller.headingLabel);
+            else
+                restoreLabeled(controller.headingLabel, headingText);
         }, (ContentChangeContext<ManageAppointments> context) -> {
             TaskWaiter.callAsync(App.getCurrent().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-                    (Connection c) -> {
-                        // AppointmentImpl.load(c, null, null);
-                        throw new UnsupportedOperationException("Not supported yet.");
-                    },
-                    (ObservableList<AppointmentImpl> apptList) -> {
-                        throw new UnsupportedOperationException("Not supported yet.");
-//                        ObservableList<AppointmentImpl> itemsList = context.getController().getItemsList();
-//                        itemsList.clear();
-//                        apptList.forEach((a) -> {
-//                            itemsList.add(a);
-//                        });
+                    (Connection c) -> AppointmentImpl.load(c, filter.getFilter()),
+                    (ArrayList<AppointmentImpl> apptList) -> {
+                        ObservableList<AppointmentModel> itemsList = context.getController().getItemsList();
+                        itemsList.clear();
+                        apptList.forEach((a) -> {
+                            itemsList.add(new AppointmentModel(a));
+                        });
                     }, (Exception ex) -> {
                         LOG.log(Level.SEVERE, null, ex);
                         ResourceBundle rb = App.getCurrent().getResources();
@@ -140,10 +143,6 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
             rootCtl.currentContentControllerProperty().addListener(c.controllerChangeListener);
             rootCtl.appointmentAddedProperty().addListener(c.appointmentAddedListener);
         });
-    }
-    
-    public static void setAsRootContent(view.ModelFilter<AppointmentImpl, AppointmentModel> filter) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     //</editor-fold>

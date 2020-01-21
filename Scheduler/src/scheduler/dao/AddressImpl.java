@@ -15,6 +15,16 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import scheduler.filter.ModelFilter;
+import scheduler.filter.OrderBy;
+import scheduler.filter.ParameterConsumer;
+import scheduler.filter.SqlStatementBuilder;
+import scheduler.filter.ValueAccessor;
+import view.ChildModel;
+import view.address.AddressModel;
+import view.address.CustomerAddress;
+import view.city.AddressCity;
+import view.country.CityCountry;
 
 /**
  *
@@ -205,36 +215,99 @@ public class AddressImpl extends DataObjectImpl implements Address {
             phone = "";
     }
     
-    public static ArrayList<AddressImpl> lookupAll(Connection connection, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = getBaseSelectQuery() + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
-                () -> SelectOrderSpec.of(SelectOrderSpec.of(Country.COLNAME_COUNTRY), SelectOrderSpec.of(COLNAME_POSTALCODE),
-                        SelectOrderSpec.of(City.COLNAME_CITY), SelectOrderSpec.of(COLNAME_ADDRESS),
-                        SelectOrderSpec.of(COLNAME_ADDRESS2)));
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            return toList(ps, (rs) -> new AddressImpl(rs));
+    @Override
+    public synchronized void delete(Connection connection) throws Exception {
+        assert CustomerImpl.getCount(connection, CustomerImpl.addressIs(CustomerAddress.of(this))) == 0 : "Address is associated with one or more addresses.";
+        super.delete(connection);
+    }
+    
+    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
+    
+    //<editor-fold defaultstate="collapsed" desc="Static ValueAccessor definitions">
+    
+    public static final ValueAccessor<AddressModel, AddressCity<?>> CITY = new ValueAccessor<AddressModel, AddressCity<?>>() {
+        
+        @Override
+        public void accept(AddressCity<?> t, ParameterConsumer u) throws SQLException {
+            u.setInt(t.getDataObject().getPrimaryKey());
         }
-    }
+        
+        @Override
+        public AddressCity<?> apply(AddressModel t) { return t.getCity(); }
+        
+        @Override
+        public String get() { return Address.COLNAME_CITYID; }
+
+    };
     
-    public static Iterable<AddressImpl> lookupAll(Connection connection) throws SQLException {
-        return lookupAll(connection, null);
-    }
-    
-    public static ArrayList<AddressImpl> lookupByCity(Connection connection, City city, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        Objects.requireNonNull(city, "City cannot be null");
-        if  (city.getRowState()== DataObject.ROWSTATE_DELETED || city.getRowState() == DataObject.ROWSTATE_NEW)
-            return new ArrayList<>();
-        String sql = String.format("%s WHERE a.`%s` = %%%s", getBaseSelectQuery(), COLNAME_CITYID, SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
-                () -> SelectOrderSpec.of(SelectOrderSpec.of(Country.COLNAME_COUNTRY), SelectOrderSpec.of(COLNAME_POSTALCODE),
-                        SelectOrderSpec.of(City.COLNAME_CITY), SelectOrderSpec.of(COLNAME_ADDRESS),
-                        SelectOrderSpec.of(COLNAME_ADDRESS2))));
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            return toList(ps, (rs) -> new AddressImpl(rs));
+    public static final ValueAccessor<AddressModel, CityCountry<?>> COUNTRY = new ValueAccessor<AddressModel, CityCountry<?>>() {
+        
+        @Override
+        public void accept(CityCountry<?> t, ParameterConsumer u) throws SQLException {
+            u.setInt(t.getDataObject().getPrimaryKey());
         }
+        
+        @Override
+        public CityCountry<?> apply(AddressModel t) {
+            AddressCity city = t.getCity();
+            return (null == city) ? null : city.getCountry();
+        }
+        
+        @Override
+        public String get() { return City.COLNAME_COUNTRYID; }
+        
+    };
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
+    
+    public static ModelFilter<AddressModel> cityIs(AddressCity<?> city) {
+        return ModelFilter.columnIsEqualTo(CITY, ModelFilter.COMPARATOR_CITY, ChildModel.requireExisting(city, "City"));
     }
     
-    public static Optional<AddressImpl> lookupByPrimaryKey(Connection connection, int pk) throws SQLException {
+    public static ModelFilter<AddressModel> cityIsNot(AddressCity<?> city) {
+        return ModelFilter.columnIsNotEqualTo(CITY, ModelFilter.COMPARATOR_CITY, ChildModel.requireExisting(city, "City"));
+    }
+    
+    public static ModelFilter<AddressModel> countryIs(CityCountry<?> country) {
+        return ModelFilter.columnIsEqualTo(COUNTRY, ModelFilter.COMPARATOR_COUNTRY, ChildModel.requireExisting(country, "Country"));
+    }
+    
+    public static ModelFilter<AddressModel> countryIsNot(CityCountry<?> country) {
+        return ModelFilter.columnIsNotEqualTo(COUNTRY, ModelFilter.COMPARATOR_COUNTRY, ChildModel.requireExisting(country, "Country"));
+    }
+    
+    //</editor-fold>
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="load* overloads">
+    
+    public static ArrayList<AddressImpl> loadAll(Connection connection) throws Exception {
+        return loadAll(connection, getBaseSelectQuery(), null, (rs) -> new AddressImpl(rs));
+    }
+    
+    public static ArrayList<AddressImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return loadAll(connection, getBaseSelectQuery(),
+                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(Country.COLNAME_COUNTRY), OrderBy.of(COLNAME_POSTALCODE),
+                        OrderBy.of(City.COLNAME_CITY), OrderBy.of(COLNAME_ADDRESS), OrderBy.of(COLNAME_ADDRESS2))),
+                (rs) -> new AddressImpl(rs));
+    }
+    
+    public static ArrayList<AddressImpl> load(Connection connection, ModelFilter<AddressModel> filter) throws Exception {
+        return load(connection, getBaseSelectQuery(), filter, null, (rs) -> new AddressImpl(rs));
+    }
+    
+    public static ArrayList<AddressImpl> load(Connection connection, ModelFilter<AddressModel> filter,
+            Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, getBaseSelectQuery(), filter,
+                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(Country.COLNAME_COUNTRY), OrderBy.of(COLNAME_POSTALCODE),
+                        OrderBy.of(City.COLNAME_CITY), OrderBy.of(COLNAME_ADDRESS), OrderBy.of(COLNAME_ADDRESS2))),
+                (rs) -> new AddressImpl(rs));
+    }
+    
+    public static Optional<AddressImpl> lookupByPrimaryKey(Connection connection, int pk) throws Exception {
         Objects.requireNonNull(connection, "Connection cannot be null");
         String sql = String.format("%s WHERE a.`%s` = %%", getBaseSelectQuery(), COLNAME_ADDRESSID);
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -243,25 +316,25 @@ public class AddressImpl extends DataObjectImpl implements Address {
         }
     }
 
-    public static int lookupUsageCount(Connection connection, City city) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        Objects.requireNonNull(city, "City cannot be null");
-        if  (city.getRowState()== DataObject.ROWSTATE_DELETED || city.getRowState() == DataObject.ROWSTATE_NEW)
-            return 0;
-        String sql = String.format("SELECT COUNT(`%s`) FROM `%s` WHERE '%s' = %%", getPrimaryKeyColName(AddressImpl.class), TABLENAME_ADDRESS,
-                COLNAME_CITYID);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, city.getPrimaryKey());
-            ResultSet rs = ps.getResultSet();
-            if (rs.next())
-                return rs.getInt(1);
+    public static int getCount(Connection connection, ModelFilter<AddressModel> filter) throws Exception {
+        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
+            builder.appendSql("SELECT COUNT(`").appendSql(COLNAME_ADDRESSID).appendSql("`) FROM `")
+                    .appendSql(TABLENAME_ADDRESS).appendSql("`");
+            if (null != filter) {
+                String s = filter.get();
+                if (!s.isEmpty())
+                    builder.appendSql(" WHERE ").appendSql(s);
+                filter.setParameterValues(builder.finalizeSql());
+            }
+        
+            try (ResultSet rs = builder.getResult().executeQuery()) {
+                if (rs.next())
+                    return rs.getInt(1);
+            }
         }
         return 0;
     }
-
-    @Override
-    public synchronized void delete(Connection connection) throws SQLException {
-        assert CustomerImpl.lookupUsageCount(connection, this) == 0 : "Address is associated with one or more addresses.";
-        super.delete(connection);
-    }
+    
+    //</editor-fold>
+    
 }

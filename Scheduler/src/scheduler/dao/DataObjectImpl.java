@@ -11,23 +11,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import scheduler.App;
-import scheduler.InvalidOperationException;
+import scheduler.filter.ModelFilter;
+import scheduler.filter.OrderBy;
+import scheduler.filter.SqlStatementBuilder;
 import util.DB;
 import util.ResultSetFunction;
+import util.ThrowableFunction;
 import view.ItemModel;
 
 /**
@@ -153,6 +149,15 @@ public abstract class DataObjectImpl implements DataObject {
         lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
         rowState = DataObject.ROWSTATE_NEW;
     }
+    
+    protected DataObjectImpl(int primaryKey, Timestamp createDate, String createdBy, Timestamp lastModifiedDate, String lastModifiedBy, int rowState) {
+        this.primaryKey = primaryKey;
+        this.createDate = createDate;
+        this.createdBy = createdBy;
+        this.lastModifiedDate = lastModifiedDate;
+        this.lastModifiedBy = lastModifiedBy;
+        this.rowState = DataObject.asValidRowState(rowState);
+    }
 
     /**
      * Initializes a data access object from a {@link ResultSet}.
@@ -172,7 +177,7 @@ public abstract class DataObjectImpl implements DataObject {
         rowState = DataObject.ROWSTATE_UNMODIFIED;
     }
     
-    public synchronized void delete(Connection connection) throws SQLException {
+    public synchronized void delete(Connection connection) throws Exception {
         Objects.requireNonNull(connection, "Connection cannot be null");
         assert rowState == DataObject.ROWSTATE_UNMODIFIED || rowState == DataObject.ROWSTATE_MODIFIED : "Associated row does not exist";
         String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
@@ -317,87 +322,53 @@ public abstract class DataObjectImpl implements DataObject {
     
     public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getClass()); }
     
+    public static <T extends DataObjectImpl> ArrayList<T> loadAll(Connection connection, String baseQuery,
+            ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
+        return loadAll(connection, baseQuery, null, create);
+    }
+    
+    public static <T extends DataObjectImpl> ArrayList<T> loadAll(Connection connection, String baseQuery, Iterable<OrderBy> orderBy,
+            ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
+        ArrayList<T> result = new ArrayList<>();
+        try (PreparedStatement ps = OrderBy.prepareStatement(connection, baseQuery, orderBy)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    result.add(create.apply(rs));
+            }
+        }
+        return result;
+    }
+    
+    public static <T extends DataObjectImpl> ArrayList<T> load(Connection connection, String baseQuery, ModelFilter<? extends ItemModel<T>> filter,
+            ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
+        return load(connection, baseQuery, filter, null, create);
+    }
+    
+    public static <T extends DataObjectImpl> ArrayList<T> load(Connection connection, String baseQuery, ModelFilter<? extends ItemModel<T>> filter,
+            Iterable<OrderBy> orderBy, ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
+        ArrayList<T> result = new ArrayList<>();
+        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
+            builder.appendSql(baseQuery);
+            if (null != filter) {
+                String s = filter.get();
+                if (!s.isEmpty())
+                    builder.appendSql(" WHERE ").appendSql(s);
+                filter.setParameterValues(builder.finalizeSql());
+            }
+            if (null != orderBy) {
+                String s = OrderBy.toSqlClause(orderBy);
+                if (!s.isEmpty())
+                    builder.appendSql(" ").appendSql(s);
+            }
+            try (ResultSet rs = builder.getResult().executeQuery()) {
+                while (rs.next())
+                    result.add(create.apply(rs));
+            }
+        }
+        return result;
+    }
+    
     public void saveChanges(Connection connection) throws SQLException {
         
     }
-    public interface SelectOrderSpec {
-        String getName();
-        boolean isDescending();
-        public static SelectOrderSpec of(String colName, boolean descending) {
-            Objects.requireNonNull(colName, "Column name cannot be null");
-            assert !colName.trim().isEmpty() : "Column name cannot be empty";
-            return new SelectOrderSpec() {
-                @Override
-                public String getName() { return colName; }
-                @Override
-                public boolean isDescending() { return descending; }
-            };
-        }
-        public static SelectOrderSpec of(String colName) { return of(colName, false); }
-        public static ObservableList<SelectOrderSpec> of(SortedMap<String, Boolean> map) {
-            ObservableList<SelectOrderSpec> result = FXCollections.observableArrayList();
-            if (null != map && !map.isEmpty())
-                map.entrySet().forEach((i) -> result.add(SelectOrderSpec.of(i.getKey(), i.getValue())));
-            return result;
-        }
-        public static SortedMap<String, Boolean> of(SelectOrderSpec[] selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
-            return of((null == selections) ? null : Arrays.asList(selections), options, getDefault);
-        }
-        public static SortedMap<String, Boolean> of(Iterable<SelectOrderSpec> selections) {
-            final SortedMap<String, Boolean> result = new TreeMap<>();
-            selections.forEach((t) -> {
-                String n;
-                if (null != t && null != (n = t.getName()) && !n.trim().isEmpty())
-                    result.put(n, t.isDescending());
-            });
-            return result;
-        }
-        public static SortedMap<String, Boolean> of(SelectOrderSpec ...selections) {
-            return of((selections == null) ? null : Arrays.asList(selections));
-        }
-        public static SortedMap<String, Boolean> single(String colName, boolean isDescending) {
-            Objects.requireNonNull(colName, "Column name cannot be null");
-            assert !colName.trim().isEmpty() : "Column name cannot be empty";
-            final SortedMap<String, Boolean> result = new TreeMap<>();
-            result.put(colName, isDescending);
-            return result;
-        }
-        public static SortedMap<String, Boolean> single(String colName) {
-            return single(colName, false);
-        }
-        public static SortedMap<String, Boolean> of(Iterable<SelectOrderSpec> selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
-            final SortedMap<String, Boolean> result = new TreeMap<>();
-            if (null == options || options.isEmpty())
-                selections.forEach((t) -> {
-                    String n;
-                    if (null != t && null != (n = t.getName()) && !n.trim().isEmpty())
-                        result.put(n, t.isDescending());
-                });
-            else
-                selections.forEach((t) -> {
-                    String n;
-                    if (null != t && null != (n = t.getName()) && options.contains(n))
-                        result.put(n, t.isDescending());
-                });
-            if (!result.isEmpty())
-                return result;
-            SortedMap<String, Boolean> map;
-            if (null == getDefault || null == (map = getDefault.get()))
-                map = new TreeMap<>();
-            return map;
-        }
-        public static String toOrderByClause(SortedMap<String, Boolean> map) {
-            if (map == null || map.isEmpty())
-                return "";
-            return String.format(" ORDER BY %s", map.entrySet().stream().map((t) -> (t.getValue()) ? String.format("`%s` DESC", t.getKey()) :
-                    String.format("`%s`", t.getKey())).reduce((i, u) -> String.format("%s, %s", i, u)));
-        }
-        public static String toOrderByClause(Iterable<SelectOrderSpec> selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
-            return toOrderByClause(of(selections, options, getDefault));
-        }
-        public static String toOrderByClause(SelectOrderSpec[] selections, Set<String> options, Supplier<SortedMap<String, Boolean>> getDefault) {
-            return toOrderByClause(of(selections, options, getDefault));
-        }
-    }
-    
 }

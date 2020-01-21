@@ -15,6 +15,12 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import scheduler.filter.ModelFilter;
+import scheduler.filter.OrderBy;
+import scheduler.filter.ParameterConsumer;
+import scheduler.filter.ValueAccessor;
+import view.user.AppointmentUser;
+import view.user.UserModel;
 
 /**
  *
@@ -142,29 +148,52 @@ public class UserImpl extends DataObjectImpl implements User {
             status = User.STATUS_INACTIVE;
     }
     
-    public static ArrayList<UserImpl> lookupAll(Connection connection, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = getBaseSelectQuery() + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(), () -> SelectOrderSpec.single(COLNAME_USERNAME));
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            return toList(ps, (rs) -> new UserImpl(rs));
+    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
+    
+    //<editor-fold defaultstate="collapsed" desc="Static ValueAccessor definitions">
+
+    public static final ValueAccessor<UserModel, Integer> STATUS = new ValueAccessor<UserModel, Integer>() {
+        @Override
+        public String get() { return City.COLNAME_COUNTRYID; }
+        @Override
+        public Integer apply(UserModel t) {
+            return t.getStatus();
         }
-    }
-
-    public static ArrayList<UserImpl> lookupAll(Connection connection) throws SQLException {
-        return lookupAll(connection, null);
-    }
-
-    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated, Iterable<SelectOrderSpec> orderBy) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = String.format("%s WHERE `%s` %s %% %s", getBaseSelectQuery(), COLNAME_ACTIVE, (isNegated) ? "<>" : "=",
-                SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(), () -> SelectOrderSpec.single(COLNAME_USERNAME)));
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, status);
-            return toList(ps, (rs) -> new UserImpl(rs));
+        @Override
+        public void accept(Integer t, ParameterConsumer u) throws SQLException {
+            u.setInt(t);
         }
+    };
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
+
+    public static ModelFilter<UserModel> statusIs(int value) {
+        return ModelFilter.columnIsEqualTo(STATUS, ModelFilter.COMPARATOR_INTEGER, value);
+    }
+    
+    public static ModelFilter<UserModel> statusIsNot(int value) {
+        return ModelFilter.columnIsNotEqualTo(STATUS, ModelFilter.COMPARATOR_INTEGER, value);
+    }
+    
+    //</editor-fold>
+    
+    //</editor-fold>
+    
+    public static ArrayList<UserImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return loadAll(connection, getBaseSelectQuery(), orderBy, (rs) -> new UserImpl(rs));
     }
 
-    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated) throws SQLException {
+    public static ArrayList<UserImpl> loadAll(Connection connection) throws Exception {
+        return loadAll(connection, null);
+    }
+
+    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, getBaseSelectQuery(), (isNegated) ? statusIsNot(status) : statusIs(status), orderBy, (rs) -> new UserImpl(rs));
+    }
+
+    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated) throws Exception {
         return lookupByStatus(connection, status, isNegated, null);
     }
 
@@ -190,9 +219,9 @@ public class UserImpl extends DataObjectImpl implements User {
     }
 
     @Override
-    public synchronized void delete(Connection connection) throws SQLException {
+    public synchronized void delete(Connection connection) throws Exception {
         Objects.requireNonNull(connection, "Connection cannot be null");
-        assert AppointmentImpl.lookupCount(connection, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(this)) == 0 : "User is associated with one or more appointments.";
+        assert AppointmentImpl.getCount(connection, AppointmentImpl.userIs(AppointmentUser.of(this))) == 0 : "User is associated with one or more appointments.";
         super.delete(connection);
     }
     

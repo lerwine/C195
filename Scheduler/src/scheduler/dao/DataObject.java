@@ -87,6 +87,12 @@ public interface DataObject {
      */
     public static final int ROWSTATE_MODIFIED = 2;
     
+    public static int asValidRowState(int value) {
+        if (value < ROWSTATE_DELETED)
+            return ROWSTATE_DELETED;
+        return (value > ROWSTATE_MODIFIED) ? ROWSTATE_MODIFIED : value;
+    }
+    
     //</editor-fold>
     
     /**
