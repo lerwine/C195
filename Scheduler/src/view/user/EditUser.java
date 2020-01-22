@@ -20,9 +20,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import scheduler.dao.User;
 import view.EditItem;
 import scheduler.dao.UserImpl;
+import scheduler.dao.factory.UserFactory;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 
@@ -112,7 +112,7 @@ public class EditUser extends view.SchedulerController implements view.ItemContr
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
-        userActiveStateOptions = FXCollections.observableArrayList(User.STATUS_USER, User.STATUS_ADMIN, User.STATUS_INACTIVE);
+        userActiveStateOptions = FXCollections.observableArrayList(UserFactory.STATUS_USER, UserFactory.STATUS_ADMIN, UserFactory.STATUS_INACTIVE);
         activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
             @Override
             protected void updateItem(Short a, boolean bln) {

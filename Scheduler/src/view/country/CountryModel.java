@@ -5,13 +5,10 @@
  */
 package view.country;
 
-import expressions.NonNullableStringProperty;
 import java.sql.Connection;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.Country;
 import scheduler.dao.CountryImpl;
-import view.ChildModel;
 
 /**
  *

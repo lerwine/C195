@@ -1,13 +1,12 @@
 package scheduler.filter;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import view.ItemModel;
 
 /**
@@ -15,7 +14,7 @@ import view.ItemModel;
  * @author erwinel
  * @param <M>
  */
-public class FilterAnd<M extends ItemModel<?>> extends TreeSet<ModelFilter<M>> implements ModelFilter<M> {
+public class FilterAnd<M extends ItemModel<?>> extends ArrayList<ModelFilter<M>> implements ModelFilter<M> {
     /**
      * SQL operator for compound "AND" statements
      */
@@ -126,13 +125,15 @@ public class FilterAnd<M extends ItemModel<?>> extends TreeSet<ModelFilter<M>> i
             return f;
         StringBuilder result = new StringBuilder();
         if (f.isCompound())
-            result.append("(").append(f.toString()).append(")");
+            result.append("(").append(f.get()).append(")");
+        else
+            result.append(f.get());
         do {
             f = it.next();
             if (f.isCompound())
-                result.append(" ").append(LOGICAL_OPERATOR_AND).append(" (").append(f.toString()).append(")");
+                result.append(" ").append(LOGICAL_OPERATOR_AND).append(" (").append(f.get()).append(")");
             else
-                result.append(" ").append(LOGICAL_OPERATOR_AND).append(" ").append(f.toString());
+                result.append(" ").append(LOGICAL_OPERATOR_AND).append(" ").append(f.get());
         } while (it.hasNext());
         return new SqlConditional() {
             private final String string = result.toString();

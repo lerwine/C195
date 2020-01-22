@@ -1,14 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package expressions;
 
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringPropertyBase;
 import javafx.beans.property.SimpleStringProperty;
-import scheduler.dao.Appointment;
+import scheduler.dao.factory.AppointmentFactory;
 
 /**
  *
@@ -29,23 +24,23 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
     }
 
     public AppointmentTypeProperty() {
-        super(Appointment.APPOINTMENTTYPE_OTHER);
+        super(AppointmentFactory.APPOINTMENTTYPE_OTHER);
     }
 
     public AppointmentTypeProperty(String initialValue) {
-        super(Appointment.asValidAppointmentType(initialValue));
+        super(AppointmentFactory.asValidAppointmentType(initialValue));
     }
 
     public AppointmentTypeProperty(Object bean, String name) {
-        super(bean, name, Appointment.APPOINTMENTTYPE_OTHER);
+        super(bean, name, AppointmentFactory.APPOINTMENTTYPE_OTHER);
     }
 
     public AppointmentTypeProperty(Object bean, String name, String initialValue) {
-        super(bean, name, Appointment.asValidAppointmentType(initialValue));
+        super(bean, name, AppointmentFactory.asValidAppointmentType(initialValue));
     }
     
     @Override
-    public void set(String newValue) { super.set(Appointment.asValidAppointmentType(newValue)); }
+    public void set(String newValue) { super.set(AppointmentFactory.asValidAppointmentType(newValue)); }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyStringPropertyBase {
 

@@ -37,9 +37,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.User;
-import scheduler.dao.UserImpl;
+import scheduler.dao.factory.AppointmentFactory;
+import scheduler.dao.factory.CustomerFactory;
+import scheduler.dao.factory.UserFactory;
 import util.DbConnector;
 import util.Alerts;
 import util.DB;
@@ -413,9 +413,9 @@ public class EditAppointment extends SchedulerController implements ItemControll
         try (DbConnector dep = new DbConnector()) {
             Connection connection = dep.getConnection();
             customers = FXCollections.observableArrayList();
-            CustomerImpl.loadByStatus(connection, true).forEach((c) -> customers.add(new CustomerModel(c)));
+            CustomerFactory.loadByStatus(connection, true).forEach((c) -> customers.add(new CustomerModel(c)));
             users = FXCollections.observableArrayList();
-            UserImpl.lookupByStatus(connection, User.STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
+            UserFactory.lookupByStatus(connection, UserFactory.STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
         } catch (Exception ex) {
             if (customers == null)
                 customers = FXCollections.observableArrayList();
@@ -822,8 +822,8 @@ public class EditAppointment extends SchedulerController implements ItemControll
                     if (c != null) {
                         UserModel u = selectedUserProperty.get();
                         if (u != null) {
-                            int cc = AppointmentImpl.getCount(connection, AppointmentImpl.customerWithinRange(c, start, end));
-                            int uc = AppointmentImpl.getCount(connection, AppointmentImpl.userWithinRange(u, start, end));
+                            int cc = AppointmentFactory.getCount(connection, AppointmentFactory.customerWithinRange(c, start, end));
+                            int uc = AppointmentFactory.getCount(connection, AppointmentFactory.userWithinRange(u, start, end));
                             customerConflictCount.set(cc);
                             userConflictCount.set(uc);
                             return cc == 0 && uc == 0;

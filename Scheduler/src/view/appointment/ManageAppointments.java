@@ -15,6 +15,7 @@ import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 import scheduler.App;
 import scheduler.dao.AppointmentImpl;
+import scheduler.dao.factory.AppointmentFactory;
 import util.Alerts;
 import view.RootController;
 import view.SchedulerController;
@@ -70,7 +71,7 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
     
     //</editor-fold>
     
-    private AppointmentsFilter currentFilter;
+    private AppointmentsViewOptions currentFilter;
     
     private final ChangeListener<? super SchedulerController> controllerChangeListener;
     
@@ -112,9 +113,9 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
                 getFXMLResourceName(getClass()));
     }
     
-    public static void setAsRootContent() { setAsRootContent(AppointmentsFilter.todayAndFuture(AppointmentUser.of(App.getCurrentUser()))); }
+    public static void setAsRootContent() { setAsRootContent(AppointmentsViewOptions.todayAndFuture(AppointmentUser.of(App.getCurrentUser()))); }
     
-    public static void setAsRootContent(AppointmentsFilter filter) {
+    public static void setAsRootContent(AppointmentsViewOptions filter) {
         setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
             context.setWindowTitle(filter.getWindowTitle(context));
             ManageAppointments controller = context.getController();
@@ -125,12 +126,12 @@ public class ManageAppointments extends view.ListingController<AppointmentModel>
                 restoreLabeled(controller.headingLabel, headingText);
         }, (ContentChangeContext<ManageAppointments> context) -> {
             TaskWaiter.callAsync(App.getCurrent().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-                    (Connection c) -> AppointmentImpl.load(c, filter.getFilter()),
-                    (ArrayList<AppointmentImpl> apptList) -> {
+                    (Connection c) -> (new AppointmentFactory()).load(c, filter.getFilter(), null),
+                    (ArrayList<AppointmentModel> apptList) -> {
                         ObservableList<AppointmentModel> itemsList = context.getController().getItemsList();
                         itemsList.clear();
                         apptList.forEach((a) -> {
-                            itemsList.add(new AppointmentModel(a));
+                            itemsList.add(a);
                         });
                     }, (Exception ex) -> {
                         LOG.log(Level.SEVERE, null, ex);

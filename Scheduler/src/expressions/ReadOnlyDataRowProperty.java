@@ -11,6 +11,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  *
@@ -37,34 +38,34 @@ public class ReadOnlyDataRowProperty<T extends DataObjectImpl> extends ReadOnlyO
 
     public ReadOnlyDataRowProperty() {
         super();
-        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_NEW);
-        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_DELETED);
-        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_MODIFIED);
-        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_UNMODIFIED);
+        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_NEW);
+        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_DELETED);
+        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_UNMODIFIED);
     }
 
     public ReadOnlyDataRowProperty(T initialValue) {
         super(initialValue);
-        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_NEW);
-        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_DELETED);
-        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_MODIFIED);
-        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_UNMODIFIED);
+        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_NEW);
+        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_DELETED);
+        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_UNMODIFIED);
     }
 
     public ReadOnlyDataRowProperty(Object bean, String name) {
         super(bean, name);
-        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_NEW);
-        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_DELETED);
-        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_MODIFIED);
-        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_UNMODIFIED);
+        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_NEW);
+        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_DELETED);
+        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_UNMODIFIED);
     }
 
     public ReadOnlyDataRowProperty(Object bean, String name, T initialValue) {
         super(bean, name, initialValue);
-        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_NEW);
-        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_DELETED);
-        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_MODIFIED);
-        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectImpl.ROWSTATE_UNMODIFIED);
+        newRow = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_NEW);
+        deleted = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_DELETED);
+        modified = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((T value) -> value.getRowState() == DataObjectFactory.ROWSTATE_UNMODIFIED);
     }
     
     protected class PredicateBinding extends BooleanBinding {

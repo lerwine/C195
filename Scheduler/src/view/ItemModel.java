@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package view;
 
 import java.sql.Connection;
@@ -14,8 +9,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.DataObject;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.factory.DataObjectFactory;
 import util.DB;
 
 /**
@@ -133,13 +128,13 @@ public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<
      */
     protected ItemModel(R dao) {
         Objects.requireNonNull(dao, "Data access object cannot be null");
-        assert dao.getRowState() != DataObject.ROWSTATE_DELETED : String.format("%s has been deleted", dao.getClass().getName());
+        assert dao.getRowState() != DataObjectFactory.ROWSTATE_DELETED : String.format("%s has been deleted", dao.getClass().getName());
         dataObject = dao;
         createDate = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getCreateDate()));
         createdBy = new ReadOnlyStringWrapper(dao.getCreatedBy());
         lastModifiedDate = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getLastModifiedDate()));
         lastModifiedBy = new ReadOnlyStringWrapper(dao.getLastModifiedBy());
-        newItem = new ReadOnlyBooleanWrapper(dao.getRowState() == DataObject.ROWSTATE_NEW);
+        newItem = new ReadOnlyBooleanWrapper(dao.getRowState() == DataObjectFactory.ROWSTATE_NEW);
     }
     
     public abstract boolean delete(Connection connection);
@@ -151,6 +146,6 @@ public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<
         createdBy.set(dataObject.getCreatedBy());
         lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
         lastModifiedBy.set(dataObject.getLastModifiedBy());
-        newItem.set(dataObject.getRowState() == DataObject.ROWSTATE_NEW);
+        newItem.set(dataObject.getRowState() == DataObjectFactory.ROWSTATE_NEW);
     }
 }

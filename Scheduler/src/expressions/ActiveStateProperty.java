@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package expressions;
 
 import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.dao.User;
+import scheduler.dao.factory.UserFactory;
 
 /**
  * An integer property that only stores specific integer values that represent active status for users.
@@ -14,13 +9,13 @@ import scheduler.dao.User;
  */
 public class ActiveStateProperty extends SimpleIntegerProperty {
     public static int asValidValue(int value) {
-        return (value < User.STATUS_INACTIVE) ? User.STATUS_INACTIVE : ((value > User.STATUS_ADMIN) ? User.STATUS_ADMIN : value);
+        return (value < UserFactory.STATUS_INACTIVE) ? UserFactory.STATUS_INACTIVE : ((value > UserFactory.STATUS_ADMIN) ? UserFactory.STATUS_ADMIN : value);
     }
     
     /**
      * 
      */
-    public ActiveStateProperty() { super(User.STATUS_USER); }
+    public ActiveStateProperty() { super(UserFactory.STATUS_USER); }
 
     /**
      * 
@@ -33,7 +28,7 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
      * @param bean
      * @param name
      */
-    public ActiveStateProperty(Object bean, String name) { super(bean, name, User.STATUS_USER); }
+    public ActiveStateProperty(Object bean, String name) { super(bean, name, UserFactory.STATUS_USER); }
 
     /**
      * 
@@ -59,6 +54,6 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
                 return;
             } catch (Exception ex) { }
         }
-        super.set(User.STATUS_INACTIVE);
+        super.set(UserFactory.STATUS_INACTIVE);
     }
 }

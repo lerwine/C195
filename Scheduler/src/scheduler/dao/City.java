@@ -3,6 +3,8 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.dao.factory.CityFactory;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  * Represents a data row from the "city" database table.
@@ -21,16 +23,6 @@ import java.util.Objects;
  * @author erwinel
  */
 public interface City extends DataObject {
-    
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    
-    public static final String COLNAME_CITYID = "cityId";
-    
-    public static final String COLNAME_CITY = "city";
-    
-    public static final String COLNAME_COUNTRYID = "countryId";
-    
-    //</editor-fold>
     
     /**
      * Gets the name of the current city.
@@ -65,7 +57,7 @@ public interface City extends DataObject {
             @Override
             public Country getCountry() { return country; }
             @Override
-            public int getRowState() { return ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
         };
     }
     
@@ -82,8 +74,8 @@ public interface City extends DataObject {
         if (resultSet.wasNull())
             return null;
         
-        Country country = Country.of(resultSet, COLNAME_COUNTRYID);
-        String name = resultSet.getString(COLNAME_CITY);
+        Country country = Country.of(resultSet, CityFactory.COLNAME_COUNTRYID);
+        String name = resultSet.getString(CityFactory.COLNAME_CITY);
         return of(id, (resultSet.wasNull()) ? "" : name, country);
     }
 }

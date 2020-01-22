@@ -14,7 +14,6 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CityImpl;
 import scheduler.dao.Country;
 import view.country.CityCountry;
-import view.ChildModel;
 
 /**
  *
@@ -30,7 +29,7 @@ public class CityModel extends view.ItemModel<CityImpl> implements AddressCity<C
     @Override
     public ReadOnlyStringProperty nameProperty() { return name.getReadOnlyProperty(); }
     
-    private final ReadOnlyObjectWrapper<CityCountry<? extends Country>> country = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<CityCountry<? extends Country>> country;
 
     @Override
     public CityCountry<?> getCountry() { return country.get(); }
@@ -40,7 +39,8 @@ public class CityModel extends view.ItemModel<CityImpl> implements AddressCity<C
     
     public CityModel(CityImpl dao) {
         super(dao);
-        this.name = new ReadOnlyStringWrapper(dao.getName());
+        name = new ReadOnlyStringWrapper(dao.getName());
+        country = new ReadOnlyObjectWrapper<>(CityCountry.of(dao.getCountry()));
     }
 
     @Override

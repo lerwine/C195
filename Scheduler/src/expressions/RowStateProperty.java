@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
 import scheduler.dao.DataObject;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  *
@@ -30,7 +31,7 @@ public class RowStateProperty extends SimpleIntegerProperty {
         }
 
         public RowStateProperty() {
-            this(DataObject.ROWSTATE_NEW);
+            this(DataObjectFactory.ROWSTATE_NEW);
         }
 
         public RowStateProperty(int initialValue) {
@@ -38,7 +39,7 @@ public class RowStateProperty extends SimpleIntegerProperty {
         }
 
         public RowStateProperty(Object bean, String name) {
-            this(bean, name, DataObject.ROWSTATE_NEW);
+            this(bean, name, DataObjectFactory.ROWSTATE_NEW);
         }
 
         public RowStateProperty(Object bean, String name, int initialValue) {
@@ -46,7 +47,8 @@ public class RowStateProperty extends SimpleIntegerProperty {
         }
 
         public static int asValidValue(int value) {
-            return (value < DataObject.ROWSTATE_DELETED) ? DataObject.ROWSTATE_DELETED : ((value > DataObject.ROWSTATE_MODIFIED) ? DataObject.ROWSTATE_MODIFIED : value);
+            return (value < DataObjectFactory.ROWSTATE_DELETED) ? DataObjectFactory.ROWSTATE_DELETED :
+                    ((value > DataObjectFactory.ROWSTATE_MODIFIED) ? DataObjectFactory.ROWSTATE_MODIFIED : value);
         }
         
         @Override

@@ -3,7 +3,8 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.Optional;
+import scheduler.dao.factory.DataObjectFactory;
+import scheduler.dao.factory.UserFactory;
 
 /**
  * Represents a data row from the "user" database table.
@@ -22,48 +23,6 @@ import java.util.Optional;
  * @author erwinel
  */
 public interface User extends DataObject {
-    //<editor-fold defaultstate="collapsed" desc="Status values">
-    
-    /**
-     * Value of {@link #getStatus()} when the current user is inactive.
-     */
-    public static final short STATUS_INACTIVE = 0;
-    
-    /**
-     * Value of {@link #getStatus()} when the current user is active and not an administrative account.
-     */
-    public static final short STATUS_USER = 1;
-    
-    /**
-     * Value of {@link #getStatus()} when the current user is an active administrative account.
-     */
-    public static final short STATUS_ADMIN = 2;
-    
-    public static int asValidStatus(int value) {
-        return (value < STATUS_INACTIVE) ? STATUS_INACTIVE : ((value > STATUS_ADMIN) ? STATUS_USER : value);
-    }
-    
-    public static Optional<Integer> requireValidStatus(Optional<Integer> value) {
-        if (value != null)
-            value.ifPresent((t) -> {
-                assert (t >= STATUS_INACTIVE && t <= STATUS_ADMIN) : "Invalid user stsatus value";
-            });
-        return value;
-    }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    
-    public static final String COLNAME_USERID = "userId";
-    
-    public static final String COLNAME_USERNAME = "userName";
-    
-    public static final String COLNAME_PASSWORD = "password";
-    
-    public static final String COLNAME_ACTIVE = "active";
-    
-    //</editor-fold>
     
     /**
      * Gets the current user's login name.
@@ -110,7 +69,7 @@ public interface User extends DataObject {
             @Override
             public int getPrimaryKey() { return pk; }
             @Override
-            public int getRowState() { return ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
         };
     }
     
@@ -126,13 +85,13 @@ public interface User extends DataObject {
         int id = resultSet.getInt(pkColName);
         if (resultSet.wasNull())
             return null;
-        String userName = resultSet.getString(COLNAME_USERNAME);
+        String userName = resultSet.getString(UserFactory.COLNAME_USERNAME);
         if (resultSet.wasNull())
             userName = "";
-        String password = resultSet.getString(COLNAME_PASSWORD);
+        String password = resultSet.getString(UserFactory.COLNAME_PASSWORD);
         if (resultSet.wasNull())
             password = "";
-        int status = resultSet.getInt(COLNAME_ACTIVE);
-        return User.of(id, userName, password, (resultSet.wasNull()) ? STATUS_INACTIVE : asValidStatus(status));
+        int status = resultSet.getInt(UserFactory.COLNAME_ACTIVE);
+        return User.of(id, userName, password, (resultSet.wasNull()) ? UserFactory.STATUS_INACTIVE : UserFactory.asValidStatus(status));
     }
 }

@@ -3,6 +3,8 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.dao.factory.CountryFactory;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  * Represents a data row from the country data table.
@@ -19,14 +21,6 @@ import java.util.Objects;
  */
 public interface Country extends DataObject {
     
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    
-    public static final String COLNAME_COUNTRYID = "countryId";
-    
-    public static final String COLNAME_COUNTRY = "country";
-    
-    //</editor-fold>
-
     /**
      * The name of the "name" property.
      */
@@ -53,7 +47,7 @@ public interface Country extends DataObject {
             @Override
             public int getPrimaryKey() { return pk; }
             @Override
-            public int getRowState() { return ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
         };
     }
     
@@ -69,7 +63,7 @@ public interface Country extends DataObject {
         int id = resultSet.getInt(pkColName);
         if (resultSet.wasNull())
             return null;
-        String name = resultSet.getString(COLNAME_COUNTRY);
+        String name = resultSet.getString(CountryFactory.COLNAME_COUNTRY);
         return of(id, (resultSet.wasNull()) ? "" : name);
     }
 }

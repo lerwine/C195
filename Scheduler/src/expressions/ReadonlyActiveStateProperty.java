@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package expressions;
 
 import javafx.beans.property.ReadOnlyIntegerWrapper;
-import scheduler.dao.User;
+import scheduler.dao.factory.UserFactory;
 
 /**
  *
@@ -14,11 +9,11 @@ import scheduler.dao.User;
  */
 public class ReadonlyActiveStateProperty extends ReadOnlyIntegerWrapper {
 
-    public ReadonlyActiveStateProperty() { super(User.STATUS_USER); }
+    public ReadonlyActiveStateProperty() { super(UserFactory.STATUS_USER); }
 
     public ReadonlyActiveStateProperty(int initialValue) { super(ActiveStateProperty.asValidValue(initialValue)); }
 
-    public ReadonlyActiveStateProperty(Object bean, String name) { super(bean, name, User.STATUS_USER); }
+    public ReadonlyActiveStateProperty(Object bean, String name) { super(bean, name, UserFactory.STATUS_USER); }
 
     public ReadonlyActiveStateProperty(Object bean, String name, int initialValue) { super(bean, name, ActiveStateProperty.asValidValue(initialValue)); }
 
@@ -37,6 +32,6 @@ public class ReadonlyActiveStateProperty extends ReadOnlyIntegerWrapper {
                 return;
             } catch (Exception ex) { }
         }
-        super.set(User.STATUS_INACTIVE);
+        super.set(UserFactory.STATUS_INACTIVE);
     }
 }

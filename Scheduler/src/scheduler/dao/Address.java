@@ -3,6 +3,8 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.dao.factory.AddressFactory;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  * Represents a data row from the "address" database table.
@@ -24,39 +26,6 @@ import java.util.Objects;
  * @author erwinel
  */
 public interface Address extends DataObject {
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-
-    /**
-     * The name of the 'addressId' column in the 'address' table, which is also the primary key.
-     */
-    public static final String COLNAME_ADDRESSID = "addressId";
-    
-    /**
-     * The name of the 'address' column in the 'address' table.
-     */
-    public static final String COLNAME_ADDRESS = "address";
-    
-    /**
-     * The name of the 'address2' column in the 'address' table.
-     */
-    public static final String COLNAME_ADDRESS2 = "address2";
-    
-    /**
-     * The name of the 'cityId' column in the 'address' table.
-     */
-    public static final String COLNAME_CITYID = "cityId";
-    
-    /**
-     * The name of the 'postalCode' column in the 'address' table.
-     */
-    public static final String COLNAME_POSTALCODE = "postalCode";
-    
-    /**
-     * The name of the 'phone' column in the 'address' table.
-     */
-    public static final String COLNAME_PHONE = "phone";
-    
-    //</editor-fold>
     
     /**
      * Gets the first line of the current address.
@@ -125,7 +94,7 @@ public interface Address extends DataObject {
             @Override
             public int getPrimaryKey() { return pk; }
             @Override
-            public int getRowState() { return ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
         };
     }
     
@@ -142,17 +111,17 @@ public interface Address extends DataObject {
         if (resultSet.wasNull())
             return null;
         
-        String address1 = resultSet.getString(COLNAME_ADDRESS);
+        String address1 = resultSet.getString(AddressFactory.COLNAME_ADDRESS);
         if (resultSet.wasNull())
             address1 = "";
-        String address2 = resultSet.getString(COLNAME_ADDRESS2);
+        String address2 = resultSet.getString(AddressFactory.COLNAME_ADDRESS2);
         if (resultSet.wasNull())
             address2 = "";
-        City city = City.of(resultSet, COLNAME_CITYID);
-        String postalCode = resultSet.getString(COLNAME_POSTALCODE);
+        City city = City.of(resultSet, AddressFactory.COLNAME_CITYID);
+        String postalCode = resultSet.getString(AddressFactory.COLNAME_POSTALCODE);
         if (resultSet.wasNull())
             postalCode = "";
-        String phone = resultSet.getString(COLNAME_PHONE);
+        String phone = resultSet.getString(AddressFactory.COLNAME_PHONE);
         return of(id, address1, address2, city, postalCode, (resultSet.wasNull()) ? "" : phone);
     }
 }

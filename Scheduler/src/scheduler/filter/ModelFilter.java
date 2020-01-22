@@ -5,6 +5,7 @@
  */
 package scheduler.filter;
 
+import scheduler.dao.factory.DataObjectFactory;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import scheduler.dao.DataObject;
 import util.ThrowableConsumer;
+import view.ChildModel;
 import view.ItemModel;
 import view.address.CustomerAddress;
 import view.city.AddressCity;
@@ -26,7 +28,7 @@ import view.user.AppointmentUser;
  * @author erwinel
  * @param <M> The type of {@link ItemModel} that can be filtered.
  */
-public interface ModelFilter<M extends ItemModel<?>> extends SqlConditional, Predicate<M>  {
+public interface ModelFilter<M extends ItemModel<?>> extends SqlConditional, Predicate<M> {
     
     //<editor-fold defaultstate="collapsed" desc="Instance members">
 
@@ -167,12 +169,14 @@ public interface ModelFilter<M extends ItemModel<?>> extends SqlConditional, Pre
     /**
      * A case-sensitive {@link Comparator} for string values.
      */
-    public static final Comparator<String> COMPARATOR_STRING = (String o1, String o2) -> o1.compareTo(o2);
+    public static final Comparator<String> COMPARATOR_STRING = (String o1, String o2) -> (o1 == null) ? ((o2 == null) ? 0 : 1) :
+            ((o2 == null) ? -1 : o1.compareTo(o2));
     
     /**
      * A {@link Comparator} for {@link LocalDateTime} values.
      */
-    public static final Comparator<LocalDateTime> COMPARATOR_LOCALDATETIME = (LocalDateTime o1, LocalDateTime o2) -> o1.compareTo(o2);
+    public static final Comparator<LocalDateTime> COMPARATOR_LOCALDATETIME = (LocalDateTime o1, LocalDateTime o2) -> (o1 == null) ? ((o2 == null) ? 0 : 1) :
+            ((o2 == null) ? -1 : o1.compareTo(o2));
     
     /**
      * A {@link Comparator} for {@link Integer} values.
@@ -184,125 +188,82 @@ public interface ModelFilter<M extends ItemModel<?>> extends SqlConditional, Pre
      */
     public static final Comparator<Boolean> COMPARATOR_BOOLEAN = (Boolean o1, Boolean o2) -> o1.compareTo(o2);
     
-    /**
-     * A {@link Comparator} for {@link AppointmentCustomer} objects.
-     */
-    public static final Comparator<AppointmentCustomer<?>> COMPARATOR_CUSTOMER = (AppointmentCustomer<?> o1, AppointmentCustomer<?> o2) -> {
+    public static <T extends ChildModel<?>> int compareChildModels(T o1, T o2, Comparator<T> comparator) {
         if (o1 == null)
             return (o2 == null) ? 0 : 1;
         if (o2 == null)
             return -1;
         if (o1.getDataObject().getPrimaryKey() == o2.getDataObject().getPrimaryKey()) {
-            if (o1.getDataObject().getRowState() == DataObject.ROWSTATE_NEW) {
-                if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
+            if (o1.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_NEW) {
+                if (o2.getDataObject().getRowState() != DataObjectFactory.ROWSTATE_NEW)
                     return -1;
-            } else if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
+            } else if (o2.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_NEW)
                 return 1;
             return 0;
         }
-        int result = o1.getName().compareTo(o2.getName());
+        int result = comparator.compare(o1, o2);
         return (result == 0) ? o1.getDataObject().getPrimaryKey() - o2.getDataObject().getPrimaryKey() : result;
+    };
+    
+    /**
+     * A {@link Comparator} for {@link AppointmentCustomer} objects.
+     */
+    public static final Comparator<AppointmentCustomer<?>> COMPARATOR_CUSTOMER = (AppointmentCustomer<?> o1, AppointmentCustomer<?> o2) -> {
+        return compareChildModels(o1, o2, (v1, v2) -> v1.getName().compareTo(v2.getName()));
     };
     
     /**
      * A {@link Comparator} for {@link AppointmentUser} objects.
      */
     public static final Comparator<AppointmentUser<?>> COMPARATOR_USER = (AppointmentUser<?> o1, AppointmentUser<?> o2) -> {
-        if (o1 == null)
-            return (o2 == null) ? 0 : 1;
-        if (o2 == null)
-            return -1;
-        if (o1.getDataObject().getPrimaryKey() == o2.getDataObject().getPrimaryKey()) {
-            if (o1.getDataObject().getRowState() == DataObject.ROWSTATE_NEW) {
-                if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                    return -1;
-            } else if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                return 1;
-            return 0;
-        }
-        int result = o1.getUserName().compareTo(o2.getUserName());
-        return (result == 0) ? o1.getDataObject().getPrimaryKey() - o2.getDataObject().getPrimaryKey() : result;
+        return compareChildModels(o1, o2, (v1, v2) -> v1.getUserName().compareTo(v2.getUserName()));
     };
     
     /**
      * A {@link Comparator} for {@link CityCountry} objects.
      */
     public static final Comparator<CityCountry<?>> COMPARATOR_COUNTRY = (CityCountry<?> o1, CityCountry<?> o2) -> {
-        if (o1 == null)
-            return (o2 == null) ? 0 : 1;
-        if (o2 == null)
-            return -1;
-        if (o1.getDataObject().getPrimaryKey() == o2.getDataObject().getPrimaryKey()) {
-            if (o1.getDataObject().getRowState() == DataObject.ROWSTATE_NEW) {
-                if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                    return -1;
-            } else if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                return 1;
-            return 0;
-        }
-        int result = o1.getName().compareTo(o2.getName());
-        return (result == 0) ? o1.getDataObject().getPrimaryKey() - o2.getDataObject().getPrimaryKey() : result;
+        return compareChildModels(o1, o2, (v1, v2) -> v1.getName().compareTo(v2.getName()));
     };
     
     /**
      * A {@link Comparator} for {@link AddressCity} objects.
      */
     public static final Comparator<AddressCity<?>> COMPARATOR_CITY = (AddressCity<?> o1, AddressCity<?> o2) -> {
-        if (o1 == null)
-            return (o2 == null) ? 0 : 1;
-        if (o2 == null)
-            return -1;
-        if (o1.getDataObject().getPrimaryKey() == o2.getDataObject().getPrimaryKey()) {
-            if (o1.getDataObject().getRowState() == DataObject.ROWSTATE_NEW) {
-                if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                    return -1;
-            } else if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                return 1;
-            return 0;
-        }
-        int result = o1.getName().compareTo(o2.getName());
-        return (result == 0) ? COMPARATOR_COUNTRY.compare(o1.getCountry(), o2.getCountry()) : result;
+        return compareChildModels(o1, o2, (v1, v2) -> {
+            int result = v1.getName().compareTo(v2.getName());
+            return (result == 0) ? COMPARATOR_COUNTRY.compare(o1.getCountry(), o2.getCountry()) : result;
+        });
     };
     
     /**
      * A {@link Comparator} for {@link CustomerAddress} objects.
      */
     public static final Comparator<CustomerAddress<?>> COMPARATOR_ADDRESS = (CustomerAddress<?> o1, CustomerAddress<?> o2) -> {
-        if (o1 == null)
-            return (o2 == null) ? 0 : 1;
-        if (o2 == null)
-            return -1;
-        if (o1.getDataObject().getPrimaryKey() == o2.getDataObject().getPrimaryKey()) {
-            if (o1.getDataObject().getRowState() == DataObject.ROWSTATE_NEW) {
-                if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
+        return compareChildModels(o1, o2, (v1, v2) -> {
+            int result = o1.getAddress1().compareTo(o2.getAddress1());
+            if (result != 0 || (result = o1.getAddress2().compareTo(o2.getAddress2())) != 0)
+                return result;
+            
+            AddressCity<?> a1 = o1.getCity();
+            AddressCity<?> a2 = o2.getCity();
+            if (a1 == null) {
+                if (a2 != null)
+                    return 1;
+            } else {
+                if (a2 == null)
                     return -1;
-            } else if (o2.getDataObject().getRowState() != DataObject.ROWSTATE_NEW)
-                return 1;
-            return 0;
-        }
-        int result = o1.getAddress1().compareTo(o2.getAddress1());
-        if (result != 0 || (result = o1.getAddress2().compareTo(o2.getAddress2())) != 0)
-            return result;
-        
-        AddressCity<?> a1 = o1.getCity();
-        AddressCity<?> a2 = o2.getCity();
-        if (a1 == null) {
-            if (a2 != null)
-                return 1;
-        } else {
-            if (a2 == null)
-                return -1;
-            if ((result = a1.getName().compareTo(a2.getName())) != 0)
-                return result;
-        }
-        
-        if (null != a1 && null != a2) {
-            if ((result = o1.getPostalCode().compareTo(o2.getPostalCode())) != 0 ||
-                    (result = COMPARATOR_COUNTRY.compare(a1.getCountry(), a2.getCountry())) != 0)
-                return result;
-        } else if ((result = o1.getPostalCode().compareTo(o2.getPostalCode())) != 0)
-            return result;
-        return o1.getDataObject().getPrimaryKey() - o2.getDataObject().getPrimaryKey();
+                if ((result = a1.getName().compareTo(a2.getName())) != 0)
+                    return result;
+            }
+
+            if (null != a1 && null != a2) {
+                if ((result = o1.getPostalCode().compareTo(o2.getPostalCode())) != 0)
+                    return result;
+                return COMPARATOR_COUNTRY.compare(a1.getCountry(), a2.getCountry());
+            }
+            return o1.getPostalCode().compareTo(o2.getPostalCode());
+        });
     };
     
     //</editor-fold>

@@ -3,6 +3,8 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.dao.factory.CustomerFactory;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  * Represents a data row from the "customer" database table.
@@ -23,18 +25,6 @@ import java.util.Objects;
  */
 public interface Customer extends DataObject {
 
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    
-    public static final String COLNAME_CUSTOMERID = "customerId";
-    
-    public static final String COLNAME_CUSTOMERNAME = "customerName";
-    
-    public static final String COLNAME_ADDRESSID = "addressId";
-    
-    public static final String COLNAME_ACTIVE = "active";
-    
-    //</editor-fold>
-    
     /**
      * Gets the name of the current customer.
      * This corresponds to the "customerName" database column.
@@ -79,7 +69,7 @@ public interface Customer extends DataObject {
             @Override
             public int getPrimaryKey() { return pk; }
             @Override
-            public int getRowState() { return ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
         };
     }
     
@@ -95,8 +85,8 @@ public interface Customer extends DataObject {
         int id = resultSet.getInt(pkColName);
         if (resultSet.wasNull())
             return null;
-        boolean active = resultSet.getBoolean(COLNAME_ACTIVE) && !resultSet.wasNull();
-        String name = resultSet.getString(COLNAME_CUSTOMERNAME);
-        return Customer.of(id, (resultSet.wasNull()) ? "" : name, Address.of(resultSet, COLNAME_ADDRESSID), active);
+        boolean active = resultSet.getBoolean(CustomerFactory.COLNAME_ACTIVE) && !resultSet.wasNull();
+        String name = resultSet.getString(CustomerFactory.COLNAME_CUSTOMERNAME);
+        return Customer.of(id, (resultSet.wasNull()) ? "" : name, Address.of(resultSet, CustomerFactory.COLNAME_ADDRESSID), active);
     }
 }

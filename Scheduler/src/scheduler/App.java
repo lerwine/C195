@@ -34,6 +34,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import scheduler.dao.UserImpl;
+import scheduler.dao.factory.UserFactory;
 import util.Alerts;
 import util.PwHash;
 import view.RootController;
@@ -343,7 +344,7 @@ public class App extends Application {
                     updateMessage(getResources().getString(RESOURCEKEY_CONNECTEDTODB));
                 });
                 LOG.log(Level.INFO, "Invoking UserImpl.getByUserName");
-                result = UserImpl.getByUserName(dep.getConnection(), userName);
+                result = UserFactory.getByUserName(dep.getConnection(), userName);
             }
             if (result.isPresent()) {
                 LOG.log(Level.INFO, "User found");

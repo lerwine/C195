@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package expressions;
 
 import java.util.Optional;
-import scheduler.dao.User;
+import scheduler.dao.factory.UserFactory;
 
 /**
  *
@@ -19,7 +14,7 @@ public class OptionalUserStatusProperty extends OptionalValueProperty<Integer> {
     }
 
     public OptionalUserStatusProperty(Optional<Integer> initialValue) {
-        super(User.requireValidStatus(initialValue));
+        super(UserFactory.requireValidStatus(initialValue));
     }
 
     public OptionalUserStatusProperty(Object bean, String name) {
@@ -27,12 +22,12 @@ public class OptionalUserStatusProperty extends OptionalValueProperty<Integer> {
     }
 
     public OptionalUserStatusProperty(Object bean, String name, Optional<Integer> initialValue) {
-        super(bean, name, User.requireValidStatus(initialValue));
+        super(bean, name, UserFactory.requireValidStatus(initialValue));
     }
 
     @Override
     public void set(Optional<Integer> newValue) {
-        super.set(User.requireValidStatus(newValue));
+        super.set(UserFactory.requireValidStatus(newValue));
     }
     
 }

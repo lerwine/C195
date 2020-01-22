@@ -8,6 +8,7 @@ package scheduler.dao.builder;
 import java.util.Objects;
 import java.util.TreeMap;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  *
@@ -38,7 +39,7 @@ public class SelectQueryBuilder<R extends DataObjectImpl> implements SelectTable
         private final TreeMap<String, JoinedSelectTable> joins;
 
         public SelectQueryBuilder(Class<R> daoClass) {
-            tableName = DataObjectImpl.getTableName(daoClass);
+            tableName = DataObjectFactory.getTableName(daoClass);
             tableAlias = tableName;
             columns = new TreeMap<>();
             joins = new TreeMap<>();

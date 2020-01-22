@@ -11,6 +11,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.factory.DataObjectFactory;
 
 /**
  *
@@ -36,10 +37,10 @@ public class ReadOnlyModelProperty<M extends view.ItemModel<?>> extends ReadOnly
     
     public ReadOnlyModelProperty() {
         super();
-        newRow = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectImpl.ROWSTATE_NEW);
-        deleted = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectImpl.ROWSTATE_DELETED);
-        modified = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectImpl.ROWSTATE_MODIFIED);
-        saved = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectImpl.ROWSTATE_UNMODIFIED);
+        newRow = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_NEW);
+        deleted = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_DELETED);
+        modified = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_MODIFIED);
+        saved = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_UNMODIFIED);
     }
     
     protected class PredicateBinding extends BooleanBinding {

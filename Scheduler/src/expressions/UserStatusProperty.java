@@ -1,14 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package expressions;
 
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.dao.User;
+import scheduler.dao.factory.UserFactory;
 
 /**
  *
@@ -30,24 +25,24 @@ public class UserStatusProperty extends SimpleIntegerProperty {
         }
 
         public UserStatusProperty() {
-            this(User.STATUS_USER);
+            this(UserFactory.STATUS_USER);
         }
 
         public UserStatusProperty(int initialValue) {
-            super(User.asValidStatus(initialValue));
+            super(UserFactory.asValidStatus(initialValue));
         }
 
         public UserStatusProperty(Object bean, String name) {
-            this(bean, name, User.STATUS_USER);
+            this(bean, name, UserFactory.STATUS_USER);
         }
 
         public UserStatusProperty(Object bean, String name, int initialValue) {
-            super(bean, name, User.asValidStatus(initialValue));
+            super(bean, name, UserFactory.asValidStatus(initialValue));
         }
 
         @Override
         public void set(int newValue) {
-            super.set(User.asValidStatus(newValue));
+            super.set(UserFactory.asValidStatus(newValue));
         }
 
         private class ReadOnlyPropertyImpl extends ReadOnlyIntegerPropertyBase {

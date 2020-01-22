@@ -73,11 +73,11 @@ public class AddressModel extends view.ItemModel<AddressImpl> implements Custome
 
     public AddressModel(AddressImpl dao) {
         super(dao);
-        this.address1 = new ReadOnlyStringWrapper();
-        this.address2 = new ReadOnlyStringWrapper();
-        this.city = new ReadOnlyObjectWrapper<>();
-        this.postalCode = new ReadOnlyStringWrapper();
-        this.phone = new ReadOnlyStringWrapper();
+        this.address1 = new ReadOnlyStringWrapper(dao.getAddress1());
+        this.address2 = new ReadOnlyStringWrapper(dao.getAddress2());
+        this.city = new ReadOnlyObjectWrapper<>(AddressCity.of(dao.getCity()));
+        this.postalCode = new ReadOnlyStringWrapper(dao.getPostalCode());
+        this.phone = new ReadOnlyStringWrapper(dao.getPhone());
     }
 
     @Override
