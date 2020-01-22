@@ -1,7 +1,5 @@
 package scheduler.dao;
 
-import scheduler.dao.factory.DataObjectFactory;
-
 /**
  * Base interface for all data objects representing a data row in the database.
  * 

@@ -1,7 +1,6 @@
-package scheduler.dao.factory;
+package scheduler.dao;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,13 +9,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import scheduler.dao.AddressImpl;
-import scheduler.dao.CityImpl;
-import scheduler.dao.CountryImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
-import scheduler.filter.SqlStatementBuilder;
 import scheduler.filter.ValueAccessor;
 import view.ChildModel;
 import view.address.AddressModel;
@@ -160,22 +155,30 @@ public class AddressFactory extends DataObjectFactory<AddressImpl, AddressModel>
         public String get() { return COLNAME_PHONE; }
     };
     
-    public static final ValueAccessor<AddressModel, AddressCity<?>> VALUE_ACCESSOR_CITY = new ValueAccessor<AddressModel, AddressCity<?>>() {
+    public static final ValueAccessor<AddressModel, Integer> VALUE_ACCESSOR_CITY_ID = new ValueAccessor<AddressModel, Integer>() {
         @Override
-        public void accept(AddressCity<?> t, ParameterConsumer u) throws SQLException { u.setInt(t.getDataObject().getPrimaryKey()); }
+        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
         @Override
-        public AddressCity<?> apply(AddressModel t) { return t.getCity(); }
+        public Integer apply(AddressModel t) {
+            AddressCity<?> c = t.getCity();
+            return (null != c && c.getDataObject().isExisting()) ? c.getDataObject().getPrimaryKey() : Integer.MIN_VALUE;
+        }
         @Override
         public String get() { return COLNAME_CITYID; }
     };
     
-    public static final ValueAccessor<AddressModel, CityCountry<?>> VALUE_ACCESSOR_COUNTRY = new ValueAccessor<AddressModel, CityCountry<?>>() {
+    public static final ValueAccessor<AddressModel, Integer> VALUE_ACCESSOR_COUNTRY_ID = new ValueAccessor<AddressModel, Integer>() {
         @Override
-        public void accept(CityCountry<?> t, ParameterConsumer u) throws SQLException { u.setInt(t.getDataObject().getPrimaryKey()); }
+        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
         @Override
-        public CityCountry<?> apply(AddressModel t) {
-            AddressCity city = t.getCity();
-            return (null == city) ? null : city.getCountry();
+        public Integer apply(AddressModel t) {
+            AddressCity c = t.getCity();
+            if (null != c) {
+                CityCountry<?> n = c.getCountry();
+                if (null != n && n.getDataObject().isExisting())
+                    return n.getDataObject().getPrimaryKey();
+            }
+            return Integer.MIN_VALUE;
         }
         @Override
         public String get() { return CityFactory.COLNAME_COUNTRYID; }
@@ -201,22 +204,6 @@ public class AddressFactory extends DataObjectFactory<AddressImpl, AddressModel>
         return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_ADDRESS1, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
     
-    public static ModelFilter<AddressModel> getFilterWhereCityNameIs(String value) {
-        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_CITY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-    public static ModelFilter<AddressModel> getFilterWhereCityNameIsNot(String value) {
-        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_CITY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-    public static ModelFilter<AddressModel> getFilterWhereCountryNameIs(String value) {
-        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_COUNTRY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-    public static ModelFilter<AddressModel> getFilterWhereCountryNameIsNot(String value) {
-        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_COUNTRY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
     public static ModelFilter<AddressModel> getFilterWherePostalCodeIs(String value) {
         return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_POSTALCODE, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
@@ -233,87 +220,79 @@ public class AddressFactory extends DataObjectFactory<AddressImpl, AddressModel>
         return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_PHONE, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
     
-    public static ModelFilter<AddressModel> getFilterWhereCityIs(AddressCity<?> city) {
-        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_CITY, ModelFilter.COMPARATOR_CITY, ChildModel.requireExisting(city, "City"));
+    public static ModelFilter<AddressModel> getFilterWhereCityIdIs(Integer id) {
+        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_CITY_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    public static ModelFilter<AddressModel> getFilterWhereCityIsNot(AddressCity<?> city) {
-        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_CITY, ModelFilter.COMPARATOR_CITY, ChildModel.requireExisting(city, "City"));
+    public static ModelFilter<AddressModel> getFilterWhereCityIdIsNot(Integer id) {
+        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_CITY_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    public static ModelFilter<AddressModel> getFilterWhereCountryIs(CityCountry<?> country) {
-        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_COUNTRY, ModelFilter.COMPARATOR_COUNTRY, ChildModel.requireExisting(country, "Country"));
+    public static ModelFilter<AddressModel> getFilterWhereCityNameIs(String value) {
+        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_CITY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
     
-    public static ModelFilter<AddressModel> getFilterWhereCountryIsNot(CityCountry<?> country) {
-        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_COUNTRY, ModelFilter.COMPARATOR_COUNTRY, ChildModel.requireExisting(country, "Country"));
+    public static ModelFilter<AddressModel> getFilterWhereCityNameIsNot(String value) {
+        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_CITY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
     
-    //</editor-fold>
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="load* overloads">
-    
-    @Deprecated
-    public static ArrayList<AddressImpl> loadAll(Connection connection) throws Exception {
-        return loadAll(connection, getBaseSelectQuery(), null, (rs) -> new AddressImpl(rs));
+    public static ModelFilter<AddressModel> getFilterWhereCountryIdIs(Integer id) {
+        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_COUNTRY_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    @Deprecated
-    public static ArrayList<AddressImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        return loadAll(connection, getBaseSelectQuery(),
-                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(CountryFactory.COLNAME_COUNTRY), OrderBy.of(COLNAME_POSTALCODE),
-                        OrderBy.of(CityFactory.COLNAME_CITY), OrderBy.of(COLNAME_ADDRESS), OrderBy.of(COLNAME_ADDRESS2))),
-                (rs) -> new AddressImpl(rs));
+    public static ModelFilter<AddressModel> getFilterWhereCountryIdIsNot(Integer id) {
+        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_COUNTRY_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    @Deprecated
-    public static ArrayList<AddressImpl> load(Connection connection, ModelFilter<AddressModel> filter) throws Exception {
-        return load(connection, getBaseSelectQuery(), filter, null, (rs) -> new AddressImpl(rs));
+    public static ModelFilter<AddressModel> getFilterWhereCountryNameIs(String value) {
+        return ModelFilter.columnIsEqualTo(VALUE_ACCESSOR_COUNTRY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
     
-//    @Deprecated
-//    public static ArrayList<AddressImpl> load(Connection connection, ModelFilter<AddressModel> filter,
-//            Iterable<OrderBy> orderBy) throws Exception {
-//        return load(connection, getBaseSelectQuery(), filter,
-//                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(CountryFactory.COLNAME_COUNTRY), OrderBy.of(COLNAME_POSTALCODE),
-//                        OrderBy.of(CityFactory.COLNAME_CITY), OrderBy.of(COLNAME_ADDRESS), OrderBy.of(COLNAME_ADDRESS2))),
-//                (rs) -> new AddressImpl(rs));
-//    }
-    
-    @Deprecated
-    public static Optional<AddressImpl> lookupByPrimaryKey(Connection connection, int pk) throws Exception {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = String.format("%s WHERE a.`%s` = %%", getBaseSelectQuery(), COLNAME_ADDRESSID);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, pk);
-            return toOptional(ps, (rs) -> new AddressImpl(rs));
-        }
+    public static ModelFilter<AddressModel> getFilterWhereCountryNameIsNot(String value) {
+        return ModelFilter.columnIsNotEqualTo(VALUE_ACCESSOR_COUNTRY_NAME, ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
-
-    @Deprecated
-    public static int getCount(Connection connection, ModelFilter<AddressModel> filter) throws Exception {
-        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
-            builder.appendSql("SELECT COUNT(`").appendSql(COLNAME_ADDRESSID).appendSql("`) FROM `")
-                    .appendSql(TABLENAME_ADDRESS).appendSql("`");
-            if (null != filter) {
-                String s = filter.get();
-                if (!s.isEmpty())
-                    builder.appendSql(" WHERE ").appendSql(s);
-                filter.setParameterValues(builder.finalizeSql());
-            }
-        
-            try (ResultSet rs = builder.getResult().executeQuery()) {
-                if (rs.next())
-                    return rs.getInt(1);
-            }
-        }
-        return 0;
+    
+    public static ModelFilter<AddressModel> getFilterWhereAddressLinesAre(String line1, String line2, int cityId, String postalCode, String phone) {
+        return getFilterWhereCityIdIs(cityId).and(getFilterWhereAddress1Is(line1)).and(getFilterWhereAddress2Is(line2)).and(getFilterWherePostalCodeIs(postalCode))
+                .and(getFilterWherePhoneIs(phone));
+    }
+    
+    public static ModelFilter<AddressModel> getFilterWhereAddressLinesAre(String line1, String line2, int cityId, String postalCode) {
+        return getFilterWhereCityIdIs(cityId).and(getFilterWhereAddress1Is(line1)).and(getFilterWhereAddress2Is(line2)).and(getFilterWherePostalCodeIs(postalCode));
     }
     
     //</editor-fold>
-
+    
+    //</editor-fold>
+    
+    public Optional<AddressImpl> findByAddressLines(Connection connection, String line1, String line2, int cityId, String postalCode, String phone) throws Exception {
+        return loadFirst(connection, getFilterWhereAddressLinesAre(line1, line2, cityId, postalCode, phone));
+    }
+    
+    public Optional<AddressImpl> findByAddressLines(Connection connection, String line1, String line2, int cityId, String postalCode) throws Exception {
+        return loadFirst(connection, getFilterWhereAddressLinesAre(line1, line2, cityId, postalCode));
+    }
+    
+    public ArrayList<AddressImpl> loadByCity(Connection connection, int cityId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, getFilterWhereCityIdIs(cityId), orderBy);
+    }
+    
+    public ArrayList<AddressImpl> loadByCity(Connection connection, int cityId) throws Exception {
+        return load(connection, getFilterWhereCityIdIs(cityId));
+    }
+    
+    public ArrayList<AddressImpl> loadByCountry(Connection connection, int countryId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, getFilterWhereCountryIdIs(countryId), orderBy);
+    }
+    
+    public ArrayList<AddressImpl> loadByCountry(Connection connection, int countryId) throws Exception {
+        return load(connection, getFilterWhereCountryIdIs(countryId));
+    }
+    
+    public int countByCity(Connection connection, int cityId) throws Exception {
+        return count(connection, getFilterWhereCityIdIs(cityId));
+    }
+    
     @Override
     protected AddressImpl fromResultSet(ResultSet resultSet) throws SQLException { return new AddressImpl(resultSet); }
 

@@ -5,7 +5,7 @@
  */
 package scheduler.filter;
 
-import scheduler.dao.factory.DataObjectFactory;
+import scheduler.dao.DataObjectFactory;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;

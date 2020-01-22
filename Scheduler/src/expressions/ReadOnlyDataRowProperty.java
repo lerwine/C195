@@ -11,7 +11,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.factory.DataObjectFactory;
+import scheduler.dao.DataObjectFactory;
 
 /**
  *

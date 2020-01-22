@@ -1,4 +1,4 @@
-package scheduler.dao.factory;
+package scheduler.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-import scheduler.dao.DataObjectImpl;
-import scheduler.dao.PrimaryKeyColumn;
-import scheduler.dao.TableName;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
@@ -309,8 +306,8 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
     
     public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getDaoClass()); }
     
-    public ArrayList<M> load(Connection connection, ModelFilter<? extends M> filter, Iterable<OrderBy> orderBy) throws Exception {
-        ArrayList<M> result = new ArrayList<>();
+    public ArrayList<D> load(Connection connection, ModelFilter<? extends M> filter, Iterable<OrderBy> orderBy) throws Exception {
+        ArrayList<D> result = new ArrayList<>();
         try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
             builder.appendSql(getBaseQuery());
             if (null != filter) {
@@ -326,13 +323,25 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
             }
             try (ResultSet rs = builder.getResult().executeQuery()) {
                 while (rs.next())
-                    result.add(fromDataAccessObject(fromResultSet(rs)));
+                    result.add(fromResultSet(rs));
             }
         }
         return result;
     }
     
-    public Optional<M> loadFirst(Connection connection, ModelFilter<? extends M> filter) throws Exception {
+    public ArrayList<D> load(Connection connection, ModelFilter<? extends M> filter) throws Exception {
+        return load(connection, filter, null);
+    }
+    
+    public ArrayList<D> load(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, null, orderBy);
+    }
+    
+    public ArrayList<D> load(Connection connection) throws Exception {
+        return load(connection, (ModelFilter<? extends M>)null);
+    }
+    
+    public Optional<D> loadFirst(Connection connection, ModelFilter<? extends M> filter) throws Exception {
         try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
             builder.appendSql(getBaseQuery());
             if (null != filter) {
@@ -343,20 +352,20 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
             }
             try (ResultSet rs = builder.getResult().executeQuery()) {
                 if (rs.next())
-                    return Optional.of(fromDataAccessObject(fromResultSet(rs)));
+                    return Optional.of(fromResultSet(rs));
             }
         }
         return Optional.empty();
     }
         
-    public Optional<M> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
+    public Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
         Objects.requireNonNull(connection, "Connection cannot be null");
         String sql = String.format("%s WHERE p.`%s` = %%", getBaseQuery(), getPrimaryKeyColName());
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, pk);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())
-                    return Optional.of(fromDataAccessObject(fromResultSet(rs)));
+                    return Optional.of(fromResultSet(rs));
             }
         }
         return Optional.empty();

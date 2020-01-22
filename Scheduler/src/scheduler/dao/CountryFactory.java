@@ -1,17 +1,15 @@
-package scheduler.dao.factory;
+package scheduler.dao;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import scheduler.dao.CountryImpl;
-import scheduler.filter.OrderBy;
+import scheduler.filter.ModelFilter;
+import scheduler.filter.ParameterConsumer;
+import scheduler.filter.ValueAccessor;
 import view.country.CountryModel;
 
 /**
@@ -58,31 +56,25 @@ public class CountryFactory extends DataObjectFactory<CountryImpl, CountryModel>
     
     //</editor-fold>
     
-    @Deprecated
-    public static ArrayList<CountryImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        return loadAll(connection, getBaseSelectQuery(), orderBy, (rs) -> new CountryImpl(rs));
-//        String sql = getBaseSelectQuery() + SelectOrderSpec.toOrderByClause(orderBy, getSortOptions(),
-//                () -> SelectOrderSpec.of(SelectOrderSpec.of(Country.COLNAME_COUNTRY)));
-//        try (PreparedStatement ps = connection.prepareStatement(getBaseSelectQuery())) {
-//            return toList(ps, (rs) -> new CountryImpl(rs));
-//        }
+    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
+    
+    public static final ValueAccessor<CountryModel, String> ACCESSOR_NAME = new ValueAccessor<CountryModel, String>() {
+        @Override
+        public String get() { return COLNAME_COUNTRY; }
+        @Override
+        public String apply(CountryModel t) { return t.getName(); }
+        @Override
+        public void accept(String t, ParameterConsumer u) throws SQLException { u.setString(t); }
+    };
+    
+    public static ModelFilter<CountryModel> nameIs(String value) {
+        return ModelFilter.columnIsEqualTo(ACCESSOR_NAME, ModelFilter.COMPARATOR_STRING, value);
     }
     
-    @Deprecated
-    public static Iterable<CountryImpl> loadAll(Connection connection) throws Exception {
-        return loadAll(connection, null);
-    }
+    //</editor-fold>
     
-    @Deprecated
-    public static Optional<CountryImpl> lookupByPrimaryKey(Connection connection, int pk) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = String.format("%s WHERE p.`%s` = %%", getBaseSelectQuery(), COLNAME_COUNTRYID);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, pk);
-            return toOptional(ps, (rs) -> new CountryImpl(rs));
-        }
-    }
-
+    public Optional<CountryImpl> findByName(Connection connection, String value) throws Exception { return loadFirst(connection, nameIs(value)); }
+    
     @Override
     protected CountryImpl fromResultSet(ResultSet resultSet) throws SQLException { return new CountryImpl(resultSet); }
 

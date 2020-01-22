@@ -10,7 +10,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.factory.DataObjectFactory;
+import scheduler.dao.DataObjectFactory;
 import util.DB;
 
 /**

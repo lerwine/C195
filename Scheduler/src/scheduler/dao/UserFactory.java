@@ -1,16 +1,13 @@
-package scheduler.dao.factory;
+package scheduler.dao;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import scheduler.dao.UserImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
@@ -102,7 +99,7 @@ public class UserFactory extends DataObjectFactory<UserImpl, UserModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Static ValueAccessor definitions">
 
-    public static final ValueAccessor<UserModel, Integer> STATUS = new ValueAccessor<UserModel, Integer>() {
+    public static final ValueAccessor<UserModel, Integer> ACCESSOR_STATUS = new ValueAccessor<UserModel, Integer>() {
         @Override
         public String get() { return COLNAME_ACTIVE; }
         @Override
@@ -115,65 +112,63 @@ public class UserFactory extends DataObjectFactory<UserImpl, UserModel> {
         }
     };
     
+    public static final ValueAccessor<UserModel, String> ACCESSOR_USERNAME = new ValueAccessor<UserModel, String>() {
+        @Override
+        public String get() { return COLNAME_USERNAME; }
+        @Override
+        public String apply(UserModel t) {
+            return t.getUserName();
+        }
+        @Override
+        public void accept(String t, ParameterConsumer u) throws SQLException {
+            u.setString(t);
+        }
+    };
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
 
     public static ModelFilter<UserModel> statusIs(int value) {
-        return ModelFilter.columnIsEqualTo(STATUS, ModelFilter.COMPARATOR_INTEGER, value);
+        return ModelFilter.columnIsEqualTo(ACCESSOR_STATUS, ModelFilter.COMPARATOR_INTEGER, value);
     }
     
     public static ModelFilter<UserModel> statusIsNot(int value) {
-        return ModelFilter.columnIsNotEqualTo(STATUS, ModelFilter.COMPARATOR_INTEGER, value);
+        return ModelFilter.columnIsNotEqualTo(ACCESSOR_STATUS, ModelFilter.COMPARATOR_INTEGER, value);
+    }
+    
+    public static ModelFilter<UserModel> userNameIs(String value) {
+        return ModelFilter.columnIsEqualTo(ACCESSOR_USERNAME, ModelFilter.COMPARATOR_STRING, value);
+    }
+    
+    public static ModelFilter<UserModel> userNameIsNot(String value) {
+        return ModelFilter.columnIsNotEqualTo(ACCESSOR_USERNAME, ModelFilter.COMPARATOR_STRING, value);
     }
     
     //</editor-fold>
     
     //</editor-fold>
     
-    @Deprecated
-    public static ArrayList<UserImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        return loadAll(connection, getBaseSelectQuery(), orderBy, (rs) -> new UserImpl(rs));
-    }
-
-    @Deprecated
-    public static ArrayList<UserImpl> loadAll(Connection connection) throws Exception {
-        return loadAll(connection, null);
-    }
-
-    @Deprecated
-    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection,  getBaseSelectQuery(), (isNegated) ? statusIsNot(status) : statusIs(status), orderBy, (rs) -> new UserImpl(rs));
-    }
-
-    @Deprecated
-    public static ArrayList<UserImpl> lookupByStatus(Connection connection, int status, boolean isNegated) throws Exception {
-        return lookupByStatus(connection, status, isNegated, null);
-    }
-
-    @Deprecated
-    public static Optional<UserImpl> getByUserName(Connection connection, String userName) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        Objects.requireNonNull(userName, "User name cannot be null");
-        if (userName.trim().isEmpty())
-            return Optional.empty();
-        String sql = String.format("%s WHERE `%s` = %%",  getBaseSelectQuery(), COLNAME_USERNAME);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, userName);
-            return toOptional(ps, (rs) -> new UserImpl(rs));
-        }
+    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, (isNegated) ? statusIsNot(status) : statusIs(status), orderBy);
     }
     
-    @Deprecated
-    public static Optional<UserImpl> lookupByPrimaryKey(Connection connection, int pk) throws SQLException {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = String.format("%s WHERE `%s` = %%",  getBaseSelectQuery(), COLNAME_USERID);
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, pk);
-            return toOptional(ps, (rs) -> new UserImpl(rs));
-        }
+    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, statusIs(status), orderBy);
     }
-
+    
+    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated) throws Exception {
+        return load(connection, (isNegated) ? statusIsNot(status) : statusIs(status));
+    }
+    
+    public ArrayList<UserImpl> loadByStatus(Connection connection, int status) throws Exception {
+        return load(connection, statusIs(status));
+    }
+    
+    public Optional<UserImpl> findByUserName(Connection connection, String userName) throws Exception {
+        return (null == userName || userName.trim().isEmpty()) ? Optional.empty() : loadFirst(connection, userNameIs(userName));
+    }
+    
     @Override
     protected UserImpl fromResultSet(ResultSet resultSet) throws SQLException { return new UserImpl(resultSet); }
 

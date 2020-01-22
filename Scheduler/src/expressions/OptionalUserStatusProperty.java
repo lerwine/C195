@@ -1,7 +1,7 @@
 package expressions;
 
 import java.util.Optional;
-import scheduler.dao.factory.UserFactory;
+import scheduler.dao.UserFactory;
 
 /**
  *

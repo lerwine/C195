@@ -3,8 +3,6 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import scheduler.dao.factory.DataObjectFactory;
-import scheduler.dao.factory.UserFactory;
 
 /**
  * Represents a data row from the "user" database table.

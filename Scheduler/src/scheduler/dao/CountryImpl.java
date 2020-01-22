@@ -3,9 +3,6 @@ package scheduler.dao;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import scheduler.dao.factory.CityFactory;
-import scheduler.dao.factory.CountryFactory;
-import scheduler.dao.factory.DataObjectFactory;
 import view.country.CityCountry;
 
 /**
@@ -50,7 +47,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
      * @param resultSet The data retrieved from the database.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public CountryImpl(ResultSet resultSet) throws SQLException {
+    CountryImpl(ResultSet resultSet) throws SQLException {
         super(resultSet);
         name = resultSet.getString(CountryFactory.COLNAME_COUNTRY);
         if (resultSet.wasNull())
@@ -59,7 +56,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
     
     @Override
     public synchronized void delete(Connection connection) throws Exception {
-        assert CityFactory.getCount(connection, CityFactory.countryIs(CityCountry.of(this))) == 0 : "Country is associated with one or more cities.";
+        assert (new CityFactory()).countByCountry(connection, getPrimaryKey()) == 0 : "Country is associated with one or more cities.";
         super.delete(connection);
     }
 

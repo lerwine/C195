@@ -4,12 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import scheduler.dao.factory.AddressFactory;
-import scheduler.dao.factory.AppointmentFactory;
-import scheduler.dao.factory.CityFactory;
-import scheduler.dao.factory.CountryFactory;
-import scheduler.dao.factory.CustomerFactory;
-import scheduler.dao.factory.DataObjectFactory;
 import view.customer.AppointmentCustomer;
 
 
@@ -108,7 +102,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
      * @param resultSet The data retrieved from the database.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public CustomerImpl(ResultSet resultSet) throws SQLException {
+    CustomerImpl(ResultSet resultSet) throws SQLException {
         super(resultSet);
         name  = resultSet.getString(CustomerFactory.COLNAME_CUSTOMERNAME);
         if (resultSet.wasNull())
@@ -155,7 +149,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     @Override
     public synchronized void delete(Connection connection) throws Exception {
         Objects.requireNonNull(connection, "Connection cannot be null");
-        assert AppointmentFactory.getCount(connection, AppointmentFactory.customerIs(AppointmentCustomer.of(this))) == 0 : "Customer is associated with one or more appointments.";
+        assert (new AppointmentFactory()).countByCustomer(connection, getPrimaryKey()) == 0 : "Customer is associated with one or more appointments.";
         super.delete(connection);
     }
     

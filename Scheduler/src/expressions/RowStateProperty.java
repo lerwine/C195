@@ -9,7 +9,7 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
 import scheduler.dao.DataObject;
-import scheduler.dao.factory.DataObjectFactory;
+import scheduler.dao.DataObjectFactory;
 
 /**
  *

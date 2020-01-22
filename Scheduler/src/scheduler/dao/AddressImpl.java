@@ -3,12 +3,6 @@ package scheduler.dao;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import scheduler.dao.factory.AddressFactory;
-import scheduler.dao.factory.CityFactory;
-import scheduler.dao.factory.CountryFactory;
-import scheduler.dao.factory.CustomerFactory;
-import scheduler.dao.factory.DataObjectFactory;
-import view.address.CustomerAddress;
 
 /**
  *
@@ -133,7 +127,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
      * @param resultSet The data retrieved from the database.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public AddressImpl(ResultSet resultSet) throws SQLException {
+    AddressImpl(ResultSet resultSet) throws SQLException {
         super(resultSet);
         address1 = resultSet.getString(AddressFactory.COLNAME_ADDRESS);
         if (resultSet.wasNull())
@@ -166,7 +160,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
     
     @Override
     public synchronized void delete(Connection connection) throws Exception {
-        assert CustomerFactory.getCount(connection, CustomerFactory.addressIs(CustomerAddress.of(this))) == 0 : "Address is associated with one or more addresses.";
+        assert (new CustomerFactory()).count(connection, CustomerFactory.addressIdIs(getPrimaryKey())) == 0 : "Address is associated with one or more addresses.";
         super.delete(connection);
     }
     

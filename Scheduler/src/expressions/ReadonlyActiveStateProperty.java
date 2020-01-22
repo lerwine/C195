@@ -1,7 +1,7 @@
 package expressions;
 
 import javafx.beans.property.ReadOnlyIntegerWrapper;
-import scheduler.dao.factory.UserFactory;
+import scheduler.dao.UserFactory;
 
 /**
  *

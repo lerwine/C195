@@ -8,7 +8,7 @@ package scheduler.dao.builder;
 import java.util.Objects;
 import java.util.TreeMap;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.factory.DataObjectFactory;
+import scheduler.dao.DataObjectFactory;
 
 /**
  *

@@ -8,7 +8,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import scheduler.App;
-import scheduler.dao.factory.DataObjectFactory;
 import util.DB;
 
 /**

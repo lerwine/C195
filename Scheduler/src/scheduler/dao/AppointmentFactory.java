@@ -1,21 +1,16 @@
-package scheduler.dao.factory;
+package scheduler.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import scheduler.dao.AddressImpl;
-import scheduler.dao.AppointmentImpl;
-import scheduler.dao.CityImpl;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.UserImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
@@ -221,7 +216,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#start} property and sets the
      * corresponding {@link PreparedStatement} parameter value.
      */
-    public static final ValueAccessor<AppointmentModel, LocalDateTime> START = new ValueAccessor<AppointmentModel, LocalDateTime>() {
+    public static final ValueAccessor<AppointmentModel, LocalDateTime> ACCESSOR_START = new ValueAccessor<AppointmentModel, LocalDateTime>() {
         @Override
         public String get() { return COLNAME_START; }
         @Override
@@ -236,7 +231,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#end} property and sets the
      * corresponding {@link PreparedStatement} parameter value.
      */
-    public static final ValueAccessor<AppointmentModel, LocalDateTime> END = new ValueAccessor<AppointmentModel, LocalDateTime>() {
+    public static final ValueAccessor<AppointmentModel, LocalDateTime> ACCESSOR_END = new ValueAccessor<AppointmentModel, LocalDateTime>() {
         @Override
         public String get() { return COLNAME_END; }
         @Override
@@ -251,42 +246,44 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#customer} property and sets the
      * corresponding {@link PreparedStatement} parameter value.
      */
-    public static final ValueAccessor<AppointmentModel, AppointmentCustomer<?>> CUSTOMER = new ValueAccessor<AppointmentModel, AppointmentCustomer<?>>() {
+    public static final ValueAccessor<AppointmentModel, Integer> ACCESSOR_CUSTOMER_ID = new ValueAccessor<AppointmentModel, Integer>() {
         @Override
         public String get() { return COLNAME_CUSTOMERID; }
         @Override
-        public AppointmentCustomer<?> apply(AppointmentModel t) { return t.getCustomer(); }
-        @Override
-        public void accept(AppointmentCustomer<?> t, ParameterConsumer u) throws SQLException {
-            u.setInt(t.getDataObject().getPrimaryKey());
+        public Integer apply(AppointmentModel t) {
+            AppointmentCustomer<?> c = t.getCustomer();
+            return (null != c && c.getDataObject().isExisting()) ? c.getDataObject().getPrimaryKey() : Integer.MIN_VALUE;
         }
+        @Override
+        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
     };
     
     /**
      * The {@link AppointmentAccessor} that gets the value of the {@link AppointmentModel#user} property and sets the
      * corresponding {@link PreparedStatement} parameter value.
      */
-    public static final ValueAccessor<AppointmentModel, AppointmentUser<?>> USER = new ValueAccessor<AppointmentModel, AppointmentUser<?>>() {
+    public static final ValueAccessor<AppointmentModel, Integer> ACCESSOR_USER_ID = new ValueAccessor<AppointmentModel, Integer>() {
         @Override
         public String get() { return COLNAME_USERID; }
         @Override
-        public AppointmentUser<?> apply(AppointmentModel t) { return t.getUser(); }
-        @Override
-        public void accept(AppointmentUser<?> t, ParameterConsumer u) throws SQLException {
-            u.setInt(t.getDataObject().getPrimaryKey());
+        public Integer apply(AppointmentModel t) {
+            AppointmentUser<?> u = t.getUser();
+            return (null != u && u.getDataObject().isExisting()) ? u.getDataObject().getPrimaryKey() : Integer.MIN_VALUE;
         }
+        @Override
+        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
     };
     
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
 
-    public static ModelFilter<AppointmentModel> customerWithinRange(AppointmentCustomer<?> customer, LocalDateTime start, LocalDateTime end) {
-        return withinRange(start, end).and(customerIs(customer));
+    public static ModelFilter<AppointmentModel> customerWithinRange(int id, LocalDateTime start, LocalDateTime end) {
+        return withinRange(start, end).and(customerIdIs(id));
     }
     
-    public static ModelFilter<AppointmentModel> userWithinRange(AppointmentUser<?> user, LocalDateTime start, LocalDateTime end) {
-        return withinRange(start, end).and(userIs(user));
+    public static ModelFilter<AppointmentModel> userWithinRange(int id, LocalDateTime start, LocalDateTime end) {
+        return withinRange(start, end).and(userIdIs(id));
     }
     
     /**
@@ -360,7 +357,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * is greater than the specified value.
      */
     public static ModelFilter<AppointmentModel> startIsGreaterThan(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThan(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsGreaterThan(ACCESSOR_START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -370,7 +367,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * is greater than or equal to the specified value.
      */
     public static ModelFilter<AppointmentModel> startIsGreaterThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThanOrEqualTo(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -380,7 +377,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * is less than the specified value.
      */
     public static ModelFilter<AppointmentModel> startIsLessThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsLessThanOrEqualTo(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -390,7 +387,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * is less than or equal to the specified value.
      */
     public static ModelFilter<AppointmentModel> startIsLessThan(LocalDateTime value) {
-        return ModelFilter.columnIsLessThan(START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsLessThan(ACCESSOR_START, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -400,7 +397,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * is greater than the specified value.
      */
     public static ModelFilter<AppointmentModel> endIsGreaterThan(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThan(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsGreaterThan(ACCESSOR_END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -410,7 +407,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * is greater than or equal to the specified value.
      */
     public static ModelFilter<AppointmentModel> endIsGreaterThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThanOrEqualTo(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -420,7 +417,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * or equal to the specified value.
      */
     public static ModelFilter<AppointmentModel> endIsLessThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsLessThanOrEqualTo(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
     /**
@@ -430,102 +427,152 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
      * the specified value.
      */
     public static ModelFilter<AppointmentModel> endIsLessThan(LocalDateTime value) {
-        return ModelFilter.columnIsLessThan(END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
+        return ModelFilter.columnIsLessThan(ACCESSOR_END, ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value, "Value cannot be null"));
     }
     
-    /**
-     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#customer} column/property is equal to the primary key of the specified {@link AppointmentCustomer} object.
-     * @param value The {@link AppointmentCustomer} to compare to.
-     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#customer} column/property
-     * is equal to the primary key of the specified {@link AppointmentCustomer} object.
-     */
-    public static ModelFilter<AppointmentModel> customerIs(AppointmentCustomer<?> value) {
-        return ModelFilter.columnIsEqualTo(CUSTOMER, ModelFilter.COMPARATOR_CUSTOMER, ChildModel.requireExisting(value, "Customer"));
+    public static ModelFilter<AppointmentModel> customerIdIs(int id) {
+        return ModelFilter.columnIsEqualTo(ACCESSOR_CUSTOMER_ID, ModelFilter.COMPARATOR_INTEGER, id);
+    }
+    public static ModelFilter<AppointmentModel> customerIdIsNot(int id) {
+        return ModelFilter.columnIsNotEqualTo(ACCESSOR_CUSTOMER_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    /**
-     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#customer} column/property is not equal to the primary key of the specified {@link AppointmentCustomer} object.
-     * @param value The {@link AppointmentCustomer} to compare to.
-     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#customer} column/property
-     * is not equal to the primary key of the specified {@link AppointmentCustomer} object.
-     */
-    public static ModelFilter<AppointmentModel> customerIsNot(AppointmentCustomer<?> value) {
-        return ModelFilter.columnIsNotEqualTo(CUSTOMER, ModelFilter.COMPARATOR_CUSTOMER, ChildModel.requireExisting(value, "Customer"));
+    public static ModelFilter<AppointmentModel> userIdIs(int id) {
+        return ModelFilter.columnIsEqualTo(ACCESSOR_USER_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    /**
-     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#user} column/property is equal to the primary key of the specified {@link AppointmentUser} object.
-     * @param value The {@link AppointmentCustomer} to compare to.
-     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#user} column/property
-     * is equal to the primary key of the specified {@link AppointmentUser} object.
-     */
-    public static ModelFilter<AppointmentModel> userIs(AppointmentUser<?> value) {
-        return ModelFilter.columnIsEqualTo(USER, ModelFilter.COMPARATOR_USER, ChildModel.requireExisting(value, "User"));
+    public static ModelFilter<AppointmentModel> userIdIsNot(int id) {
+        return ModelFilter.columnIsNotEqualTo(ACCESSOR_USER_ID, ModelFilter.COMPARATOR_INTEGER, id);
     }
     
-    /**
-     * Creates a {@link ModelFilter} for appointments where the primary key of the {@link AppointmentModel#user} column/property is not equal to the primary key of the specified {@link AppointmentCustomer} object.
-     * @param value The {@link AppointmentCustomer} to compare to.
-     * @return A {@link ModelFilter} for {@link AppointmentModel} objects where the primary key of the {@link AppointmentModel#user} column/property
-     * is not equal to the primary key of the specified {@link AppointmentUser} object.
-     */
-    public static ModelFilter<AppointmentModel> userIsNot(AppointmentUser<?> value) {
-        return ModelFilter.columnIsNotEqualTo(USER, ModelFilter.COMPARATOR_USER, ChildModel.requireExisting(value, "User"));
+    public static ModelFilter<AppointmentModel> todayAndFuture(int userId, int customerId) {
+        return endIsGreaterThan(LocalDate.now().atTime(0, 0, 0, 0)).and(userIdIs(userId)).and(customerIdIs(customerId));
+    }
+    
+    public static ModelFilter<AppointmentModel> todayAndFuture(int userId) {
+        return endIsGreaterThan(LocalDate.now().atTime(0, 0, 0, 0)).and(userIdIs(userId));
+    }
+    
+    public static ModelFilter<AppointmentModel> todayAndFuture() {
+        return endIsGreaterThan(LocalDate.now().atTime(0, 0, 0, 0));
+    }
+    
+    public static ModelFilter<AppointmentModel> customerTodayAndFuture(int customerId) {
+        return endIsGreaterThan(LocalDate.now().atTime(0, 0, 0, 0)).and(customerIdIs(customerId));
+    }
+    
+    public static ModelFilter<AppointmentModel> yesterdayAndPast(int userId, int customerId) {
+        return endIsLessThanOrEqualTo(LocalDate.now().atTime(0, 0, 0, 0)).and(userIdIs(userId)).and(customerIdIs(customerId));
+    }
+    
+    public static ModelFilter<AppointmentModel> yesterdayAndPast(int userId) {
+        return endIsLessThanOrEqualTo(LocalDate.now().atTime(0, 0, 0, 0)).and(userIdIs(userId));
+    }
+    
+    public static ModelFilter<AppointmentModel> yesterdayAndPast() {
+        return endIsLessThanOrEqualTo(LocalDate.now().atTime(0, 0, 0, 0));
+    }
+    
+    public static ModelFilter<AppointmentModel> customerYesterdayAndPast(int customerId) {
+        return endIsLessThanOrEqualTo(LocalDate.now().atTime(0, 0, 0, 0)).and(customerIdIs(customerId));
     }
     
     //</editor-fold>
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="load* overloads">
-    
-    @Deprecated
-    public static ArrayList<AppointmentImpl> loadAll(Connection connection) throws Exception {
-        return loadAll(connection, null);
+    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, todayAndFuture(userId, customerId), orderBy);
     }
     
-    @Deprecated
-    public static ArrayList<AppointmentImpl> loadAll(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        return loadAll(connection, getBaseSelectQuery(),
-                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(COLNAME_START, true), OrderBy.of(COLNAME_END, true))),
-                (rs) -> new AppointmentImpl(rs));
+    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId, int customerId) throws Exception {
+        return load(connection, todayAndFuture(userId, customerId));
     }
     
-//    @Deprecated
-//    public static ArrayList<AppointmentImpl> load(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
-//        return load(connection, filter, null);
-//    }
-    
-//    @Deprecated
-//    public static ArrayList<AppointmentImpl> load(Connection connection, ModelFilter<AppointmentModel> filter,
-//            Iterable<OrderBy> orderBy) throws Exception {
-//        return load(connection, getBaseSelectQuery(), filter,
-//                OrderBy.getOrderByOrDefault(orderBy, () -> OrderBy.of(OrderBy.of(COLNAME_START, true), OrderBy.of(COLNAME_END, true))),
-//                (rs) -> new AppointmentImpl(rs));
-//    }
-    
-    //</editor-fold>
-    
-    @Deprecated
-    public static int getCount(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
-        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
-            builder.appendSql("SELECT COUNT(`").appendSql(COLNAME_APPOINTMENTID).appendSql("`) FROM `")
-                    .appendSql(TABLENAME_APPOINTMENT).appendSql("`");
-            if (null != filter) {
-                String s = filter.get();
-                if (!s.isEmpty())
-                    builder.appendSql(" WHERE ").appendSql(s);
-                filter.setParameterValues(builder.finalizeSql());
-            }
-        
-            try (ResultSet rs = builder.getResult().executeQuery()) {
-                if (rs.next())
-                    return rs.getInt(1);
-            }
-        }
-        return 0;
+    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, todayAndFuture(userId), orderBy);
     }
-
+    
+    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId) throws Exception {
+        return load(connection, todayAndFuture(userId));
+    }
+    
+    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, todayAndFuture(), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection) throws Exception {
+        return load(connection, todayAndFuture());
+    }
+    
+    public ArrayList<AppointmentImpl> loadCustomerTodayAndFuture(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, customerTodayAndFuture(customerId), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadCustomerTodayAndFuture(Connection connection, int customerId) throws Exception {
+        return load(connection, customerTodayAndFuture(customerId));
+    }
+    
+    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, yesterdayAndPast(userId, customerId), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId, int customerId) throws Exception {
+        return load(connection, yesterdayAndPast(userId, customerId));
+    }
+    
+    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, yesterdayAndPast(userId), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId) throws Exception {
+        return load(connection, yesterdayAndPast(userId));
+    }
+    
+    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, yesterdayAndPast(), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection) throws Exception {
+        return load(connection, yesterdayAndPast());
+    }
+    
+    public ArrayList<AppointmentImpl> loadCustomerYesterdayAndPast(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, customerYesterdayAndPast(customerId), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadCustomerYesterdayAndPast(Connection connection, int customerId) throws Exception {
+        return load(connection, customerYesterdayAndPast(customerId));
+    }
+    
+    public ArrayList<AppointmentImpl> load(Connection connection, int userId, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, userIdIs(userId).and(customerIdIs(customerId)), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> load(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, userIdIs(userId), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> loadByCustomer(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, customerIdIs(customerId), orderBy);
+    }
+    
+    public int countByCustomer(Connection connection, int customerId, LocalDateTime start, LocalDateTime end) throws Exception {
+        return count(connection, customerIdIs(customerId).and(withinRange(start, end)));
+    }
+    
+    public int countByCustomer(Connection connection, int customerId) throws Exception {
+        return count(connection, customerIdIs(customerId));
+    }
+    
+    public int countByUser(Connection connection, int userId, LocalDateTime start, LocalDateTime end) throws Exception {
+        return count(connection, userIdIs(userId).and(withinRange(start, end)));
+    }
+    
+    public int countByUser(Connection connection, int userId) throws Exception {
+        return count(connection, userIdIs(userId));
+    }
+    
     @Override
     protected AppointmentImpl fromResultSet(ResultSet resultSet) throws SQLException { return new AppointmentImpl(resultSet); }
 

@@ -3,7 +3,7 @@ package expressions;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.dao.factory.UserFactory;
+import scheduler.dao.UserFactory;
 
 /**
  *

@@ -22,7 +22,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import view.EditItem;
 import scheduler.dao.UserImpl;
-import scheduler.dao.factory.UserFactory;
+import scheduler.dao.UserFactory;
 import view.annotations.FXMLResource;
 import view.annotations.GlobalizationResource;
 

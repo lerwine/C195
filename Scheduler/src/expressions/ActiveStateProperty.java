@@ -1,7 +1,7 @@
 package expressions;
 
 import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.dao.factory.UserFactory;
+import scheduler.dao.UserFactory;
 
 /**
  * An integer property that only stores specific integer values that represent active status for users.

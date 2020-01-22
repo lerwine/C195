@@ -1,7 +1,7 @@
 package view.appointment;
 
 import java.time.LocalDate;
-import scheduler.dao.factory.AppointmentFactory;
+import scheduler.dao.AppointmentFactory;
 import scheduler.filter.ModelFilter;
 import view.SchedulerController;
 import view.customer.AppointmentCustomer;
@@ -23,15 +23,13 @@ public interface AppointmentsViewOptions {
     
     public static AppointmentsViewOptions todayAndFuture(AppointmentUser user) {
         return new AppointmentsViewOptions() {
+            private final ModelFilter<AppointmentModel> filter = AppointmentFactory.todayAndFuture(user.getDataObject().getPrimaryKey());
             @Override
             public String getWindowTitle(SchedulerController.ContentChangeContext<ManageAppointments> context) {
                 return context.getResources().getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
             }
             @Override
-            public ModelFilter<AppointmentModel> getFilter() {
-                return AppointmentFactory.userIs(user).and(AppointmentFactory.endIsGreaterThan(LocalDate.now().atTime(0, 0, 0, 0)));
-            }
-
+            public ModelFilter<AppointmentModel> getFilter() { return filter; }
             @Override
             public String getHeadingText(SchedulerController.ContentChangeContext<ManageAppointments> context) {
                 return String.format(context.getResources().getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORUSER), user.getUserName());
@@ -42,15 +40,13 @@ public interface AppointmentsViewOptions {
     
     public static AppointmentsViewOptions todayAndFuture(AppointmentCustomer customer) {
         return new AppointmentsViewOptions() {
+            private final ModelFilter<AppointmentModel> filter = AppointmentFactory.customerTodayAndFuture(customer.getDataObject().getPrimaryKey());
             @Override
             public String getWindowTitle(SchedulerController.ContentChangeContext<ManageAppointments> context) {
                 return context.getResources().getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
             }
             @Override
-            public ModelFilter<AppointmentModel> getFilter() {
-                return AppointmentFactory.customerIs(customer).and(AppointmentFactory.endIsGreaterThan(LocalDate.now().atTime(0, 0, 0, 0)));
-            }
-
+            public ModelFilter<AppointmentModel> getFilter() { return filter; }
             @Override
             public String getHeadingText(SchedulerController.ContentChangeContext<ManageAppointments> context) {
                 return String.format(context.getResources().getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORCUSTOMER), customer.getName());

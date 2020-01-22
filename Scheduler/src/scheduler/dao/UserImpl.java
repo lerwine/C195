@@ -4,9 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import scheduler.dao.factory.AppointmentFactory;
-import scheduler.dao.factory.DataObjectFactory;
-import scheduler.dao.factory.UserFactory;
 import view.user.AppointmentUser;
 
 /**
@@ -93,7 +90,7 @@ public class UserImpl extends DataObjectImpl implements User {
      * @param resultSet The data retrieved from the database.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public UserImpl(ResultSet resultSet) throws SQLException {
+    UserImpl(ResultSet resultSet) throws SQLException {
         super(resultSet);
         userName = resultSet.getString(UserFactory.COLNAME_USERNAME);
         if (resultSet.wasNull())
@@ -109,7 +106,7 @@ public class UserImpl extends DataObjectImpl implements User {
     @Override
     public synchronized void delete(Connection connection) throws Exception {
         Objects.requireNonNull(connection, "Connection cannot be null");
-        assert AppointmentFactory.getCount(connection, AppointmentFactory.userIs(AppointmentUser.of(this))) == 0 : "User is associated with one or more appointments.";
+        assert (new AppointmentFactory()).countByUser(connection, getPrimaryKey()) == 0 : "User is associated with one or more appointments.";
         super.delete(connection);
     }
     

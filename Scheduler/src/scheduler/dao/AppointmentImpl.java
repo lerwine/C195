@@ -6,8 +6,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import scheduler.dao.factory.AppointmentFactory;
-import scheduler.dao.factory.DataObjectFactory;
 import util.DB;
 
 /**
@@ -252,7 +250,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
      * @param resultSet The data retrieved from the database.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public AppointmentImpl(ResultSet resultSet) throws SQLException {
+    AppointmentImpl(ResultSet resultSet) throws SQLException {
         super(resultSet);
         customer = Customer.of(resultSet, AppointmentFactory.COLNAME_CUSTOMERID);
         user = User.of(resultSet, AppointmentFactory.COLNAME_USERID);
