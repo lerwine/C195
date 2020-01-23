@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.SortedSet;
-import view.ItemModel;
+import scheduler.view.ItemModel;
 
 /**
  *

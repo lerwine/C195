@@ -13,10 +13,10 @@ import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.ValueAccessor;
-import view.address.CustomerAddress;
-import view.city.AddressCity;
-import view.country.CityCountry;
-import view.customer.CustomerModel;
+import scheduler.view.address.CustomerAddress;
+import scheduler.view.city.AddressCity;
+import scheduler.view.country.CityCountry;
+import scheduler.view.customer.CustomerModel;
 
 /**
  *
@@ -33,36 +33,6 @@ public class CustomerFactory extends DataObjectFactory<CustomerImpl, CustomerMod
     public static final String COLNAME_ADDRESSID = "addressId";
     
     public static final String COLNAME_ACTIVE = "active";
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
-    
-    private static String baseSelectQuery = null;
-    
-    public static String getBaseSelectQuery() {
-        if (null != baseSelectQuery)
-            return baseSelectQuery;
-        final StringBuilder sql = new StringBuilder("SELECT p.`");
-        sql.append(CustomerFactory.COLNAME_CUSTOMERID).append("` AS ").append(CustomerFactory.COLNAME_CUSTOMERID);
-        Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE,
-                COLNAME_LASTUPDATEBY, CustomerFactory.COLNAME_CUSTOMERID, CustomerFactory.COLNAME_CUSTOMERNAME,
-                CustomerFactory.COLNAME_ADDRESSID).forEach((t) -> {
-            sql.append(", p.`").append(t).append("` AS ").append(t);
-        });
-        Stream.of(AddressFactory.COLNAME_ADDRESS, AddressFactory.COLNAME_ADDRESS2, AddressFactory.COLNAME_CITYID, AddressFactory.COLNAME_POSTALCODE,
-                AddressFactory.COLNAME_PHONE).forEach((t) -> {
-            sql.append(", a.`").append(t).append("` AS ").append(t);
-        });
-        baseSelectQuery = sql.append(", c.`").append(CityFactory.COLNAME_CITY).append("` AS ").append(CityFactory.COLNAME_CITY)
-                .append(", c.`").append(CityFactory.COLNAME_COUNTRYID).append("` AS ").append(CityFactory.COLNAME_COUNTRYID)
-                .append(", n.`").append(CountryFactory.COLNAME_COUNTRY).append("` AS ").append(CountryFactory.COLNAME_COUNTRY)
-                .append("` FROM `").append(getTableName(CustomerImpl.class))
-                .append("` p LEFT JOIN `").append(getTableName(AddressImpl.class)).append("` a ON p.`").append(CustomerFactory.COLNAME_ADDRESSID).append("`=a.`").append(AddressFactory.COLNAME_ADDRESSID)
-                .append("` LEFT JOIN `").append(getTableName(CityImpl.class)).append("` c ON a.`").append(AddressFactory.COLNAME_CITYID).append("`=c.`").append(CityFactory.COLNAME_CITYID)
-                .append("` LEFT JOIN `").append(getTableName(CountryImpl.class)).append("` n ON c.`").append(CityFactory.COLNAME_COUNTRYID).append("`=n.`").append(CountryFactory.COLNAME_COUNTRYID).toString();
-        return baseSelectQuery;
-    }
     
     //</editor-fold>
     
@@ -303,11 +273,24 @@ public class CustomerFactory extends DataObjectFactory<CustomerImpl, CustomerMod
     @Override
     public CustomerModel fromDataAccessObject(CustomerImpl dao) { return (dao == null) ? null : new CustomerModel(dao); }
 
+    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
+    
+    private static final String BASE_SELECT_SQL = String.format("SELECT p.`%s` AS `%s`, p.`%s` AS `%s`, p.`%s` AS `%s`, p.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`,"
+            + "a.`%s` AS `%s`, c.`%s` AS `%s`, c.`%s` AS `%s`, n.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`"
+            + " FROM `%s` p LEFT JOIN `%s` a ON p.`%s`=a.`%s` LEFT JOIN `%s` c ON a.`%s`=c.`%s` LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_CUSTOMERID, COLNAME_CUSTOMERID, 
+            COLNAME_CUSTOMERNAME, COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_ADDRESSID, AddressFactory.COLNAME_ADDRESS, 
+            AddressFactory.COLNAME_ADDRESS, AddressFactory.COLNAME_ADDRESS2, AddressFactory.COLNAME_ADDRESS2, AddressFactory.COLNAME_CITYID, AddressFactory.COLNAME_CITYID,
+            CityFactory.COLNAME_CITY, CityFactory.COLNAME_CITY, CityFactory.COLNAME_COUNTRYID, CityFactory.COLNAME_COUNTRYID, CountryFactory.COLNAME_COUNTRY,
+            CountryFactory.COLNAME_COUNTRY, AddressFactory.COLNAME_POSTALCODE, AddressFactory.COLNAME_POSTALCODE, AddressFactory.COLNAME_PHONE, AddressFactory.COLNAME_PHONE,
+            COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
+            TABLENAME_CUSTOMER, TABLENAME_ADDRESS, COLNAME_ADDRESSID, AddressFactory.COLNAME_ADDRESSID, TABLENAME_CITY, AddressFactory.COLNAME_CITYID, CityFactory.COLNAME_CITYID,
+            TABLENAME_COUNTRY, CityFactory.COLNAME_COUNTRYID, CountryFactory.COLNAME_COUNTRYID);
+    
     @Override
-    public String getBaseQuery() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public String getBaseQuery() { return BASE_SELECT_SQL; }
 
+    //</editor-fold>
+    
     @Override
     public Class<? extends CustomerImpl> getDaoClass() { return CustomerImpl.class; }
     

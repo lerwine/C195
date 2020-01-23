@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import util.DB;
+import scheduler.util.DB;
 
 /**
  *

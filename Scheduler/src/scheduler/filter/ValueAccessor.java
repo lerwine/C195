@@ -4,8 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import util.ThrowableBiConsumer;
-import view.ItemModel;
+import scheduler.util.ThrowableBiConsumer;
+import scheduler.view.ItemModel;
 
 /**
  * Defines an object that gets the name of the corresponding data column, gets the data column value from a {@link ItemModel}

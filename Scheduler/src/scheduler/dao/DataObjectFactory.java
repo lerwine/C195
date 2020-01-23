@@ -14,9 +14,9 @@ import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.SqlStatementBuilder;
 import scheduler.filter.ValueAccessor;
-import util.ResultSetFunction;
-import util.ThrowableFunction;
-import view.ItemModel;
+import scheduler.util.ResultSetFunction;
+import scheduler.util.ThrowableFunction;
+import scheduler.view.ItemModel;
 
 /**
  *

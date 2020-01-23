@@ -12,7 +12,7 @@ import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.ValueAccessor;
-import view.user.UserModel;
+import scheduler.view.user.UserModel;
 
 /**
  *

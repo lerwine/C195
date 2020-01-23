@@ -16,10 +16,10 @@ import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.SqlStatementBuilder;
 import scheduler.filter.ValueAccessor;
-import view.ChildModel;
-import view.appointment.AppointmentModel;
-import view.customer.AppointmentCustomer;
-import view.user.AppointmentUser;
+import scheduler.view.ChildModel;
+import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.customer.AppointmentCustomer;
+import scheduler.view.user.AppointmentUser;
 
 /**
  *

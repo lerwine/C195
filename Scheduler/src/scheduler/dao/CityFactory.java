@@ -15,9 +15,9 @@ import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.SqlStatementBuilder;
 import scheduler.filter.ValueAccessor;
-import view.ChildModel;
-import view.city.CityModel;
-import view.country.CityCountry;
+import scheduler.view.ChildModel;
+import scheduler.view.city.CityModel;
+import scheduler.view.country.CityCountry;
 
 /**
  *
@@ -37,26 +37,15 @@ public class CityFactory extends DataObjectFactory<CityImpl, CityModel> {
     
     //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
     
-    private static String baseSelectQuery = null;
+    private static final String BASE_SELECT_SQL = String.format("SELECT c.`%s` AS `%s`, c.`%s` AS `%s`, c.`%s` AS `%s`, n.`%s` AS `%s` FROM `%s` c"
+            + " LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_CITYID, COLNAME_CITYID, CityFactory.COLNAME_CITY, CityFactory.COLNAME_CITY, CityFactory.COLNAME_COUNTRYID,
+            CityFactory.COLNAME_COUNTRYID, CountryFactory.COLNAME_COUNTRY, CountryFactory.COLNAME_COUNTRY, COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
+            COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY, TABLENAME_CITY, TABLENAME_COUNTRY,
+            CityFactory.COLNAME_COUNTRYID, CountryFactory.COLNAME_COUNTRYID);
     
-    public static String getBaseSelectQuery() {
-        if (null != baseSelectQuery)
-            return baseSelectQuery;
-        final StringBuilder sql = new StringBuilder("SELECT c.`");
-        sql.append(COLNAME_CITYID).append("` AS ").append(COLNAME_CITYID);
-        Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE,
-                COLNAME_LASTUPDATEBY).forEach((t) -> {
-            sql.append(", c.`").append(t).append("` AS ").append(t);
-        });
-        baseSelectQuery = sql.append(", c.`").append(COLNAME_CITY).append("` AS ").append(COLNAME_CITY)
-                .append(", c.`").append(COLNAME_COUNTRYID).append("` AS ").append(COLNAME_COUNTRYID)
-                .append(", n.`").append(CountryFactory.COLNAME_COUNTRY).append("` AS ").append(CountryFactory.COLNAME_COUNTRY)
-                .append("` FROM `").append(getTableName(CityImpl.class))
-                .append("` c LEFT JOIN `").append(getTableName(CountryImpl.class)).append("` n ON c.`").append(COLNAME_COUNTRYID)
-                .append("`=n.`").append(CountryFactory.COLNAME_COUNTRYID).toString();
-        return baseSelectQuery;
-    }
-    
+    @Override
+    public String getBaseQuery() { return BASE_SELECT_SQL; }
+
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="static sortOptions property">
@@ -150,11 +139,6 @@ public class CityFactory extends DataObjectFactory<CityImpl, CityModel> {
 
     @Override
     public CityModel fromDataAccessObject(CityImpl dao) { return (dao == null) ? null : new CityModel(dao); }
-
-    @Override
-    public String getBaseQuery() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
     @Override
     public Class<? extends CityImpl> getDaoClass() { return CityImpl.class; }

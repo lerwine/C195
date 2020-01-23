@@ -1,7 +1,7 @@
 package scheduler;
 
-import util.DbConnector;
-import view.appointment.EditAppointment;
+import scheduler.util.DbConnector;
+import scheduler.view.appointment.EditAppointment;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -35,12 +35,12 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import scheduler.dao.UserImpl;
 import scheduler.dao.UserFactory;
-import util.Alerts;
-import util.PwHash;
-import view.RootController;
-import view.SchedulerController;
-import view.TaskWaiter;
-import view.login.LoginScene;
+import scheduler.util.Alerts;
+import scheduler.util.PwHash;
+import scheduler.view.RootController;
+import scheduler.view.SchedulerController;
+import scheduler.view.TaskWaiter;
+import scheduler.view.login.LoginScene;
 
 /**
  * Application class for Scheduler

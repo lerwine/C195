@@ -12,8 +12,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import scheduler.dao.AddressFactory;
-import view.ItemModel;
-import view.address.AddressModel;
+import scheduler.view.ItemModel;
+import scheduler.view.address.AddressModel;
 
 /**
  *

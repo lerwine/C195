@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import view.user.AppointmentUser;
+import scheduler.view.user.AppointmentUser;
 
 /**
  *

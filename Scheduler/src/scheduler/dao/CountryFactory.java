@@ -10,7 +10,7 @@ import javafx.collections.ObservableSet;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.ValueAccessor;
-import view.country.CountryModel;
+import scheduler.view.country.CountryModel;
 
 /**
  *
@@ -26,24 +26,6 @@ public class CountryFactory extends DataObjectFactory<CountryImpl, CountryModel>
     
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
-    
-    private static String baseSelectQuery = null;
-    
-    public static String getBaseSelectQuery() {
-        if (null != baseSelectQuery)
-            return baseSelectQuery;
-        final StringBuilder sql = new StringBuilder("SELECT `");
-        Stream.of(COLNAME_COUNTRYID, COLNAME_COUNTRY, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
-                COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY).forEach((t) -> {
-            sql.append("`, `").append(t).append(t);
-        });
-        baseSelectQuery = sql.append("` FROM `").append(getTableName(CountryImpl.class)).append("`").toString();
-        return baseSelectQuery;
-    }
-    
-    //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="static sortOptions property">
     
     private static ObservableSet<String> sortOptions = null;
@@ -81,11 +63,16 @@ public class CountryFactory extends DataObjectFactory<CountryImpl, CountryModel>
     @Override
     public CountryModel fromDataAccessObject(CountryImpl dao) { return (dao == null) ? null : new CountryModel(dao); }
 
+    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
+    
+    private static final String BASE_SELECT_SQL = String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_COUNTRYID, COLNAME_COUNTRY, COLNAME_CREATEDATE,
+            COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, TABLENAME_COUNTRY);
+    
     @Override
-    public String getBaseQuery() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public String getBaseQuery() { return BASE_SELECT_SQL; }
 
+    //</editor-fold>
+    
     @Override
     public Class<? extends CountryImpl> getDaoClass() { return CountryImpl.class; }
 

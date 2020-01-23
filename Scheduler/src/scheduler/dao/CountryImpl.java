@@ -3,7 +3,7 @@ package scheduler.dao;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import view.country.CityCountry;
+import scheduler.view.country.CityCountry;
 
 /**
  *

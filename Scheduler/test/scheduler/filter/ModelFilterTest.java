@@ -25,9 +25,9 @@ import scheduler.dao.DataObjectImpl;
 import scheduler.dao.PrimaryKeyColumn;
 import scheduler.dao.TableName;
 import scheduler.dao.DataObjectFactory;
-import util.DB;
-import view.ChildModel;
-import view.ItemModel;
+import scheduler.util.DB;
+import scheduler.view.ChildModel;
+import scheduler.view.ItemModel;
 
 /**
  *

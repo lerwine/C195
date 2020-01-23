@@ -13,14 +13,14 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Predicate;
 import scheduler.dao.DataObject;
-import util.ThrowableConsumer;
-import view.ChildModel;
-import view.ItemModel;
-import view.address.CustomerAddress;
-import view.city.AddressCity;
-import view.country.CityCountry;
-import view.customer.AppointmentCustomer;
-import view.user.AppointmentUser;
+import scheduler.util.ThrowableConsumer;
+import scheduler.view.ChildModel;
+import scheduler.view.ItemModel;
+import scheduler.view.address.CustomerAddress;
+import scheduler.view.city.AddressCity;
+import scheduler.view.country.CityCountry;
+import scheduler.view.customer.AppointmentCustomer;
+import scheduler.view.user.AppointmentUser;
 
 /**
  * Defines an object that function as a {@link Predicate} for {@link ItemModel} objects and also can produce an SQL statement for use within
