@@ -6,7 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import scheduler.dao.UserImpl;
-import scheduler.util.Alerts;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -16,8 +15,8 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/user/ManageUsers")
-@FXMLResource("/view/user/ManageUsers.fxml")
+@GlobalizationResource("scheduler/view/user/ManageUsers")
+@FXMLResource("/scheduler/view/user/ManageUsers.fxml")
 public class ManageUsers extends ListingController<UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
@@ -52,11 +51,12 @@ public class ManageUsers extends ListingController<UserModel> {
     
     //private String returnViewPath;
 
+    @Deprecated
     public static void setAsRootContent() {
-        setAsRootContent(ManageUsers.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageUsers> context) -> {
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEUSERS));
-            Alerts.showErrorAlert("Not Implemented", "Need to initialize user list");
-        });
+//        setAsRootContent(ManageUsers.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageUsers> context) -> {
+//            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGEUSERS));
+//            Alerts.showErrorAlert("Not Implemented", "Need to initialize user list");
+//        });
     }
 
     @Override

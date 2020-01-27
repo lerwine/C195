@@ -1,57 +1,84 @@
 package scheduler.view.appointment;
 
-import java.time.LocalDate;
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.function.Function;
 import scheduler.dao.AppointmentFactory;
+import scheduler.dao.Customer;
+import scheduler.dao.User;
 import scheduler.filter.ModelFilter;
-import scheduler.view.SchedulerController;
-import scheduler.view.customer.AppointmentCustomer;
-import scheduler.view.user.AppointmentUser;
+import scheduler.filter.ParameterConsumer;
 
 /**
  *
  * @author erwinel
  */
-public interface AppointmentsViewOptions {
+public interface AppointmentsViewOptions extends ModelFilter<AppointmentModel> {
 
-    String getWindowTitle(SchedulerController.ContentChangeContext<ManageAppointments> context);
+    String getWindowTitle(ResourceBundle rb);
 
-    default String getHeadingText(SchedulerController.ContentChangeContext<ManageAppointments> context) {
-        return "";
-    }
+    default String getHeadingText(ResourceBundle rb) { return ""; }
 
-    ModelFilter<AppointmentModel> getFilter();
+    //ModelFilter<AppointmentModel> getFilter();
     
-    public static AppointmentsViewOptions todayAndFuture(AppointmentUser user) {
+    public static AppointmentsViewOptions of(ModelFilter<AppointmentModel> filter, Function<ResourceBundle, String> getHeadingText,
+            Function<ResourceBundle, String> getTitleText) {
         return new AppointmentsViewOptions() {
-            private final ModelFilter<AppointmentModel> filter = AppointmentFactory.todayAndFuture(user.getDataObject().getPrimaryKey());
             @Override
-            public String getWindowTitle(SchedulerController.ContentChangeContext<ManageAppointments> context) {
-                return context.getResources().getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
+            public String getWindowTitle(ResourceBundle rb) {
+                if (null == getTitleText)
+                    return rb.getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
+                return getTitleText.apply(rb);
             }
             @Override
-            public ModelFilter<AppointmentModel> getFilter() { return filter; }
-            @Override
-            public String getHeadingText(SchedulerController.ContentChangeContext<ManageAppointments> context) {
-                return String.format(context.getResources().getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORUSER), user.getUserName());
+            public String getHeadingText(ResourceBundle rb) {
+                if (null == getHeadingText)
+                    return "";
+                return getHeadingText.apply(rb);
             }
-
+            @Override
+            public String getColName() { return filter.getColName(); }
+            @Override
+            public String getOperator() { return filter.getOperator(); }
+            @Override
+            public void setParameterValues(ParameterConsumer consumer) throws SQLException { filter.setParameterValues(consumer); }
+            @Override
+            public String get() { return filter.get(); }
+            @Override
+            public ModelFilter<AppointmentModel> makeClone() {
+                return AppointmentsViewOptions.of(filter.makeClone(), getHeadingText, getTitleText);
+            }
+            @Override
+            public boolean isCompound() { return filter.isCompound(); }
+            @Override
+            public boolean isEmpty() { return filter.isEmpty(); }
+            @Override
+            public boolean test(AppointmentModel t) { return filter.test(t); }
         };
     }
     
-    public static AppointmentsViewOptions todayAndFuture(AppointmentCustomer customer) {
-        return new AppointmentsViewOptions() {
-            private final ModelFilter<AppointmentModel> filter = AppointmentFactory.customerTodayAndFuture(customer.getDataObject().getPrimaryKey());
-            @Override
-            public String getWindowTitle(SchedulerController.ContentChangeContext<ManageAppointments> context) {
-                return context.getResources().getString(ManageAppointments.RESOURCEKEY_MANAGEAPPOINTMENTS);
-            }
-            @Override
-            public ModelFilter<AppointmentModel> getFilter() { return filter; }
-            @Override
-            public String getHeadingText(SchedulerController.ContentChangeContext<ManageAppointments> context) {
-                return String.format(context.getResources().getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORCUSTOMER), customer.getName());
-            }
-
-        };
+    public static AppointmentsViewOptions of(ModelFilter<AppointmentModel> filter, Function<ResourceBundle, String> getHeadingText) {
+        return of(filter, getHeadingText, null);
+    }
+    
+    public static AppointmentsViewOptions all() {
+        return AppointmentsViewOptions.of(ModelFilter.empty(), null);
+    }
+    
+    public static AppointmentsViewOptions todayAndFuture() {
+        return AppointmentsViewOptions.of(AppointmentFactory.todayAndFuture(), (rb) -> rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTURE));
+    }
+    
+    public static AppointmentsViewOptions todayAndFuture(User user) {
+        return AppointmentsViewOptions.of(AppointmentFactory.todayAndFuture(Objects.requireNonNull(user).getPrimaryKey()), (rb) ->
+                String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORUSER), user.getUserName()),
+                (rb) -> rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTURE));
+    }
+    
+    public static AppointmentsViewOptions todayAndFuture(Customer customer) {
+        return AppointmentsViewOptions.of(AppointmentFactory.customerTodayAndFuture(Objects.requireNonNull(customer).getPrimaryKey()), (rb) ->
+                String.format(rb.getString(ManageAppointments.RESOURCEKEY_APPOINTMENTSFORCUSTOMER), customer.getName()),
+                (rb) -> rb.getString(ManageAppointments.RESOURCEKEY_CURRENTANDFUTURE));
     }
 }

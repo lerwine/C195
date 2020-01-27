@@ -9,6 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
+import scheduler.view.ItemController;
+import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.AddressCity;
@@ -18,9 +20,9 @@ import scheduler.view.city.AddressCity;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/address/EditAddress")
-@FXMLResource("/view/address/EditAddress.fxml")
-public class EditAddress extends SchedulerController implements scheduler.view.ItemController<AddressModel> {
+@GlobalizationResource("scheduler/view/address/EditAddress")
+@FXMLResource("/scheduler/view/address/EditAddress.fxml")
+public class EditAddress extends ItemController<AddressModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     /**
@@ -60,19 +62,19 @@ public class EditAddress extends SchedulerController implements scheduler.view.I
     
     //</editor-fold>
     
-    public static AddressModel addNew() {
-        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.showAndWait(EditAddress.class, new AddressModel(new AddressImpl()), 640, 480);
+    public static AddressModel addNew(ViewManager parentViewManager) {
+        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.showAndWait(parentViewManager, EditAddress.class, new AddressModel(new AddressImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(AddressModel row) {
-        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.showAndWait(EditAddress.class, row, 640, 480);
+    public static boolean edit(ViewManager parentViewManager, AddressModel row) {
+        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.showAndWait(parentViewManager, EditAddress.class, row, 640, 480);
         return result.isSuccessful();
     }
 
     @Override
     public void accept(EditItem<AddressModel> context) {
-        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
+        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
     }
 
     @Override

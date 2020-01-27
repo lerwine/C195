@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import controls.CustomerListCell?>
-<?import controls.CustomerListCellFactory?>
-<?import controls.UserListCell?>
-<?import controls.UserListCellFactory?>
-<?import controls.AppointmentTypeListCell?>
-<?import controls.AppointmentTypeListCellFactory?>
-<?import controls.ZeroPadDigitListCell?>
-<?import controls.ZeroPadDigitListCellFactory?>
-<?import controls.TimeZoneListCell?>
-<?import controls.TimeZoneListCellFactory?>
+<?import scheduler.controls.CustomerListCell?>
+<?import scheduler.controls.CustomerListCellFactory?>
+<?import scheduler.controls.UserListCell?>
+<?import scheduler.controls.UserListCellFactory?>
+<?import scheduler.controls.AppointmentTypeListCell?>
+<?import scheduler.controls.AppointmentTypeListCellFactory?>
+<?import scheduler.controls.ZeroPadDigitListCell?>
+<?import scheduler.controls.ZeroPadDigitListCellFactory?>
+<?import scheduler.controls.TimeZoneListCell?>
+<?import scheduler.controls.TimeZoneListCellFactory?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -27,7 +27,7 @@
 <?import javafx.scene.text.Text?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" spacing="8.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.appointment.EditAppointment">
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
     <children>
         <GridPane VBox.vgrow="ALWAYS">
             <columnConstraints>

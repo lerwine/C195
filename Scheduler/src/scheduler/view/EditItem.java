@@ -33,14 +33,18 @@ import java.util.Objects;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.geometry.Dimension2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
+import javafx.util.Pair;
 import scheduler.util.DbConnector;
 import scheduler.util.Alerts;
+import static scheduler.view.SchedulerController.collapseNode;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * Base FXML Controller class for editing {@link ItemModel} items in a new modal window.
@@ -53,7 +57,10 @@ import scheduler.view.annotations.GlobalizationResource;
 public class EditItem<M extends ItemModel<?>> extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="fields">
     
-    private Stage stage;
+    private ViewManager childViewManager;
+    
+    public ViewManager getChildViewManager() { return childViewManager; }
+    
     private ItemController<M> contentController;
     private final ShowAndWaitResult<M> result;
     
@@ -72,8 +79,6 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
     public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
     public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
     public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
-    
-    //</editor-fold>
     
     //</editor-fold>
     
@@ -124,67 +129,23 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
     
     //<editor-fold defaultstate="collapsed" desc="target property">
     
-    private final ReadOnlyModelProperty<M> target;
+    private M target;
     
     /**
      * Gets the {@link ItemModel} being edited.
      * @return The {@link ItemModel} being edited.
      */
-    public M getTarget() { return target.get(); }
-    
-    /**
-     * Gets the {@link ReadOnlyObjectProperty} containing the {@link ItemModel} being edited.
-     * @return The {@link ReadOnlyObjectProperty} containing the {@link ItemModel} being edited.
-     */
-    public ReadOnlyObjectProperty<M> targetProperty() { return target.getReadOnlyProperty(); }
+    public M getTarget() { return target; }
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="windowTitle property">
-    
-    private final StringProperty windowTitle;
-    
-    /**
-     * Gets the window title to be applied to the current {@link #stage}.
-     * @return The window title to be applied to the current {@link #stage}.
-     */
-    public String getWindowTitle() { return windowTitle.get(); }
-    
-    /**
-     * Sets the window title to be applied to the current {@link #stage}.
-     * @param value The window title to be applied to the current {@link #stage}.
-     */
-    public void setWindowTitle(String value) { windowTitle.set((value == null || value.trim().isEmpty()) ? getDefaultWindowTitle() : value); }
-    
-    /**
-     * Gets the {@link StringProperty} that contains the window title to be applied to the current {@link #stage}.
-     * @return The {@link StringProperty} that contains the window title to be applied to the current {@link #stage}.
-     */
-    public StringProperty windowTitleProperty() { return windowTitle; }
-    
-    private String getDefaultWindowTitle() {
-        return scheduler.App.getCurrent().getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER);
-    }
-    
     //</editor-fold>
-
+    
     /**
      * Initializes a new EditItem controller.
      */
     protected EditItem() {
         result = new ShowAndWaitResult<>();
-        stage = null;
-        target = new ReadOnlyModelProperty<>();
-        windowTitle = new SimpleStringProperty(getDefaultWindowTitle()) {
-            @Override
-            public void set(String newValue) {
-                super.set((newValue == null || (newValue = newValue.trim()).isEmpty()) ? getDefaultWindowTitle() : newValue);
-            }
-        };
-        windowTitle.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            if (stage != null)
-                stage.setTitle(newValue);
-        });
     }
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -216,8 +177,7 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
             } catch (SQLException | ClassNotFoundException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
-            if (stage != null)
-                stage.hide();
+            getViewManager().closeWindow();
         });
         Objects.requireNonNull(deleteButton, String.format("fx:id=\"deleteButton\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
@@ -233,120 +193,157 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
             } catch (SQLException | ClassNotFoundException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
-            if (stage != null)
-                stage.hide();
+            getViewManager().closeWindow();
         });
         Objects.requireNonNull(cancelButton, String.format("fx:id=\"cancelButton\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             result.successful.set(true);
             result.canceled.set(true);
-            if (stage != null)
-                stage.hide();
+            getViewManager().closeWindow();
         });
+        childViewManager = new ViewManager() {
+            @Override
+            public Parent getContent() { return (Parent)contentBorderPane.getCenter(); }
+            @Override
+            public void setContent(Parent content) {
+                contentBorderPane.getChildren().clear();
+                contentBorderPane.setCenter(content);
+            }
+            @Override
+            public Parent getRoot() { return getViewManager().getRoot(); }
+            @Override
+            public void setRoot(Parent content) { getViewManager().setRoot(content); }
+            @Override
+            public String getWindowTitle() { return getViewManager().getWindowTitle(); }
+            @Override
+            public void setWindowTitle(String text) { getViewManager().setWindowTitle(text); }
+            @Override
+            public void closeWindow() { getViewManager().closeWindow(); }
+            @Override
+            public Pair<Stage, ViewManager> newChild(Modality modality) { return getViewManager().newChild(modality); }
+            @Override
+            public void setContent(Parent content, double width, double height) {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+        };
     }
     
     //<editor-fold defaultstate="collapsed" desc="showAndWait overloads">
 
-    public static <M extends ItemModel<?>> EditItem.ShowAndWaitResult<M> showAndWait(Class<? extends ItemController<M>> contentClass, M target) {
-        return showAndWait(contentClass, target, null);
-    }
-    
-    public static <M extends ItemModel<?>> EditItem.ShowAndWaitResult<M> showAndWait(Class<? extends ItemController<M>> contentClass, M target,
-            EditItem<?> parent) {
-        return showAndWait(contentClass, target, Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE, parent);
-    }
-    
-    public static <M extends ItemModel<?>> EditItem.ShowAndWaitResult<M> showAndWait(Class<? extends ItemController<M>> contentClass, M target,
-            double width, double height) {
-        return showAndWait(contentClass, target, width, height, null);
+    public static <M extends ItemModel<?>> EditItem.ShowAndWaitResult<M> showAndWait(ViewManager parentViewManager,
+            Class<? extends ItemController<M>> contentClass, M target) {
+        return showAndWait(parentViewManager, contentClass, target, Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
     }
     
     @SuppressWarnings("UseSpecificCatch")
-    public static <M extends ItemModel<?>> EditItem.ShowAndWaitResult<M> showAndWait(Class<? extends ItemController<M>> contentClass, M target,
-            double width, double height, EditItem<?> parent) {
-        scheduler.App app = scheduler.App.getCurrent();
-        ResourceBundle editItemRb = null;
+    public static <M extends ItemModel<?>, C extends ItemController<M>> EditItem.ShowAndWaitResult<M> showAndWait(ViewManager parentViewManager,
+            Class<C> contentClass, M target, final double width, final double height) {
         final EditItem<M> editItem;
-        Parent fxmlParent;
         FXMLLoader loader;
+        Pair<Stage, ViewManager> stageAndManager;
         try {
-            editItemRb = ResourceBundle.getBundle(getGlobalizationResourceName(EditItem.class), Locale.getDefault(Locale.Category.DISPLAY));
-            loader = new FXMLLoader(EditItem.class.getResource(getFXMLResourceName(EditItem.class)), editItemRb);
-            fxmlParent = loader.load();
-            editItem = loader.getController();
-            editItem.stage = new Stage();
-            editItem.target.set(target);
-            if (width <= 0.0)
-                width = editItem.parentVBox.getWidth();
-            if (height <= 0.0)
-                height = editItem.parentVBox.getHeight();
-            Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-            if (width <= 0.0)
-                width = Math.ceil(primaryScreenBounds.getWidth() * 0.75);
-            else if (width > primaryScreenBounds.getWidth())
-                width = primaryScreenBounds.getWidth();
-            if (height <= 0.0)
-                height = Math.ceil(primaryScreenBounds.getHeight() * 0.75);
-            else if (height > primaryScreenBounds.getHeight())
-                height = primaryScreenBounds.getHeight();
-            editItem.stage.setScene(new Scene(fxmlParent, width, height));
-            editItem.stage.setTitle(editItem.getWindowTitle());
+            stageAndManager = parentViewManager.newChild(Modality.APPLICATION_MODAL);
+            editItem = EditItem.setView(EditItem.class, stageAndManager.getValue(), new ViewControllerFactory<EditItem>() {
+                @Override
+                public Dimension2D getDimensions(EditItem controller, Parent view) {
+                    double w =  (width <= 0.0) ? controller.parentVBox.getWidth() : width;
+                    double h = (height <= 0.0) ? controller.parentVBox.getHeight() : height;
+                    Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+                    
+                    if (w <= 0.0)
+                        w = Math.ceil(primaryScreenBounds.getWidth() * 0.75);
+                    else if (w > primaryScreenBounds.getWidth())
+                        w = primaryScreenBounds.getWidth();
+                    if (h <= 0.0)
+                        return new Dimension2D(w, Math.ceil(primaryScreenBounds.getHeight() * 0.75));
+                    if (h > primaryScreenBounds.getHeight())
+                        return new Dimension2D(w, primaryScreenBounds.getHeight());
+                    return new Dimension2D(w, h);
+                }
+                
+                @Override
+                public void onLoaded(EditItem newController, Parent newView, SchedulerController currentController, Parent currentView) {
+                    newController.target = target;
+                }
+
+                @Override
+                public void onApplied(EditItem currentController, Parent currentView, SchedulerController oldController, Parent oldView) {
+                    try {
+                        currentController.contentController =  setView(contentClass, currentController.getChildViewManager(),
+                                new ViewControllerFactory<C>() {
+                            @Override
+                            public void beforeLoad(FXMLLoader loader) {
+                                ViewControllerFactory.super.beforeLoad(loader); //To change body of generated methods, choose Tools | Templates.
+                            }
+
+                            @Override
+                            public void onLoaded(C newController, Parent newView, SchedulerController currentController, Parent currentView) {
+                                ViewControllerFactory.super.onLoaded(newController, newView, currentController, currentView); //To change body of generated methods, choose Tools | Templates.
+                            }
+
+                            @Override
+                            public void onApplied(C currentController, Parent currentView, SchedulerController oldController, Parent oldView) {
+                                ViewControllerFactory.super.onApplied(currentController, currentView, oldController, oldView); //To change body of generated methods, choose Tools | Templates.
+                            }
+
+                            @Override
+                            public C call(Class<C> param) {
+                                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            }
+                            
+                        });
+                        if (currentController.result.target.isNewRow().get()) {
+                            collapseNode(currentController.createdLabel);
+                            collapseNode(currentController.createDateValue);
+                            collapseNode(currentController.createdByLabel);
+                            collapseNode(currentController.createdByValue);
+                            collapseNode(currentController.lastUpdateLabel);
+                            collapseNode(currentController.lastUpdateValue);
+                            collapseNode(currentController.lastUpdateByLabel);
+                            collapseNode(currentController.lastUpdateByValue);
+                            collapseNode(currentController.deleteButton);
+                        } else {
+                            M row = (M)currentController.target;
+                            restoreNode(currentController.createdByLabel);
+                            restoreLabeled(currentController.createdByValue, row.getCreatedBy());
+                            DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateTimeFormatter();
+                            restoreNode(currentController.createdLabel);
+                            restoreLabeled(currentController.createDateValue, formatter.format(row.getCreateDate()));
+                            restoreNode(currentController.lastUpdateByLabel);
+                            restoreLabeled(currentController.lastUpdateByValue, row.getLastModifiedBy());
+                            restoreNode(currentController.lastUpdateLabel);
+                            restoreLabeled(currentController.lastUpdateValue, formatter.format(row.getLastModifiedDate()));
+                            restoreNode(currentController.deleteButton);
+                        }
+                        currentController.contentController.accept(currentController);
+                        currentController.contentController.validProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                            currentController.saveChangesButton.setDisable(!newValue);
+                        });
+                    } catch (Exception ex) {
+                        Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                
+                @Override
+                public EditItem call(Class<EditItem> param) {
+                    try {
+                        return (EditItem)ReflectUtil.newInstance(param);
+                    } catch (InstantiationException | IllegalAccessException ex) {
+                        Logger.getLogger(ViewControllerFactory.class.getName()).log(Level.SEVERE, "Error instantiating controller", ex);
+                        throw new RuntimeException("Error instantiating controller", ex);
+                    }
+                }
+                
+            });
         } catch (Exception ex) {
-            if (editItemRb != null)
-                Alerts.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
-            LOG.log(Level.SEVERE,
-                        String.format("Unexpected error loading view and controller for %s", EditItem.class.getName()), ex);
+            LOG.log(Level.SEVERE, String.format("Unexpected error loading view and controller for %s", EditItem.class.getName()), ex);
             ShowAndWaitResult<M> resultObj = new ShowAndWaitResult<>();
             resultObj.fault.set(ex);
             return resultObj;
         }
-        try {
-            ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(contentClass), Locale.getDefault(Locale.Category.DISPLAY));
-            loader = new FXMLLoader(contentClass.getResource(getFXMLResourceName(contentClass)), rb);
-            editItem.contentBorderPane.setCenter(loader.load());
-            editItem.contentController = loader.getController();
-            if (editItem.result.target.isNewRow().get()) {
-                collapseNode(editItem.createdLabel);
-                collapseNode(editItem.createDateValue);
-                collapseNode(editItem.createdByLabel);
-                collapseNode(editItem.createdByValue);
-                collapseNode(editItem.lastUpdateLabel);
-                collapseNode(editItem.lastUpdateValue);
-                collapseNode(editItem.lastUpdateByLabel);
-                collapseNode(editItem.lastUpdateByValue);
-                collapseNode(editItem.deleteButton);
-            } else {
-                M row = editItem.target.get();
-                restoreNode(editItem.createdByLabel);
-                restoreLabeled(editItem.createdByValue, row.getCreatedBy());
-                DateTimeFormatter formatter = scheduler.App.getCurrent().getFullDateTimeFormatter();
-                restoreNode(editItem.createdLabel);
-                restoreLabeled(editItem.createDateValue, formatter.format(row.getCreateDate()));
-                restoreNode(editItem.lastUpdateByLabel);
-                restoreLabeled(editItem.lastUpdateByValue, row.getLastModifiedBy());
-                restoreNode(editItem.lastUpdateLabel);
-                restoreLabeled(editItem.lastUpdateValue, formatter.format(row.getLastModifiedDate()));
-                restoreNode(editItem.deleteButton);
-            }
-            editItem.contentController.accept(editItem);
-            editItem.stage.initOwner((parent == null) ? app.getPrimaryStage(): parent.stage);
-            editItem.stage.initModality(Modality.APPLICATION_MODAL);
-            editItem.contentController.validProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-                editItem.saveChangesButton.setDisable(!newValue);
-            });
-            editItem.stage.showAndWait();
-        } catch (Exception ex) {
-            Alerts.showErrorAlert(editItemRb.getString(RESOURCEKEY_LOADERRORTITLE), editItemRb.getString(RESOURCEKEY_LOADERRORMESSAGE));
-            if (contentClass == null)
-                LOG.log(Level.SEVERE, null, ex);
-            else
-                LOG.log(Level.SEVERE, String.format("Unexpected error opening %s as a child window",contentClass.getName()), ex);
-            editItem.result.fault.set(ex);
-            if (editItem.contentController != null)
-                editItem.contentController.onError(editItem.result);
-            return editItem.result;
-        }
         
+        stageAndManager.getKey().showAndWait();
         editItem.contentController.afterCloseDialog(editItem.result);
         return editItem.result;
     }
@@ -393,11 +390,5 @@ public class EditItem<M extends ItemModel<?>> extends SchedulerController {
             target = new ReadOnlyModelProperty<>();
         }
     }
-        
-    public BooleanBinding isNewRow() { return target.isNewRow(); }
-
-    public BooleanBinding isModified() { return target.isModified(); }
-
-    public BooleanBinding isDeleted() { return target.isDeleted(); }
     
 }

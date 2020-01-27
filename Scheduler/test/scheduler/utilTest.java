@@ -5,19 +5,10 @@
  */
 package scheduler;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.function.Function;
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -38,6 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import scheduler.util.Bindings;
+import testHelpers.FakeApp;
 
 /**
  *
@@ -50,20 +42,7 @@ public class utilTest {
     
     @BeforeClass
     public static void setUpClass() {
-        Thread t = new Thread("JavaFX Init Thread") {
-            @Override
-            public void run() {
-                Application.launch(FakeApp.class, new String[0]);
-            }
-        };
-        t.setDaemon(true);
-        t.start();
-        System.out.printf("FX App thread started\n");
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(utilTest.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        FakeApp.setUp();
     }
     
     @AfterClass
@@ -77,31 +56,6 @@ public class utilTest {
     @After
     public void tearDown() {
     }
-    
-    public static class FakeApp extends Application {
-        @Override
-        public void start(Stage primaryStage) throws Exception {
-            // noop
-        }
-    }
-    
-//    @Test
-//    public void testAddressTableAssertions() throws SQLException, ClassNotFoundException {
-//        Class.forName("com.mysql.jdbc.Driver");
-//        String url = "jdbc:mysql://3.227.166.251/U03vHM";
-//        try (Connection conn = (Connection)DriverManager.getConnection(url, "U03vHM", "53688096290"); PreparedStatement ps = conn.prepareStatement("SELECT * FROM appointments"); ResultSet rs = ps.executeQuery()) {
-//            assertTrue(rs.next());
-//            ResultSetMetaData metadata = rs.getMetaData();
-//            int index = rs.findColumn("start");
-//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-//            index = rs.findColumn("end");
-//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-//            index = rs.findColumn("createDate");
-//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-//            index = rs.findColumn("lastUpdate");
-//            assertEquals(metadata.getColumnType(index), Types.TIMESTAMP_WITH_TIMEZONE);
-//        }
-//    }
     
     class TestClassA implements IntSupplier {
         private int value = 0;

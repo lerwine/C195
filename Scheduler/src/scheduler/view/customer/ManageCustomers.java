@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
-import scheduler.dao.CustomerImpl;
-import scheduler.util.Alerts;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -15,8 +13,8 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/customer/ManageCustomers")
-@FXMLResource("/view/customer/ManageCustomers.fxml")
+@GlobalizationResource("scheduler/view/customer/ManageCustomers")
+@FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
 public class ManageCustomers extends ListingController<CustomerModel> {
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Customers"}.
@@ -44,11 +42,12 @@ public class ManageCustomers extends ListingController<CustomerModel> {
     @FXML
     private TableColumn<CustomerModel, String> lastUpdateByTableColumn;
     
+    @Deprecated
     public static void setAsRootContent() {
-        setAsRootContent(ManageCustomers.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageCustomers> context) -> {
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECUSTOMERS));
-            Alerts.showErrorAlert("Not Implemented", "Need to initialize appointments list");
-        });
+//        setAsRootContent(ManageCustomers.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageCustomers> context) -> {
+//            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECUSTOMERS));
+//            Alerts.showErrorAlert("Not Implemented", "Need to initialize appointments list");
+//        });
     }
 
     @Override

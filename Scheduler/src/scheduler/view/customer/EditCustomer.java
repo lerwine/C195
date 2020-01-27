@@ -6,20 +6,21 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import scheduler.dao.AddressImpl;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.dao.CustomerImpl;
+import scheduler.view.ItemController;
+import scheduler.view.ViewManager;
 import scheduler.view.address.AddressModel;
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/customer/EditCustomer")
-@FXMLResource("/view/customer/EditCustomer.fxml")
-public class EditCustomer extends scheduler.view.SchedulerController implements scheduler.view.ItemController<CustomerModel> {
+@GlobalizationResource("scheduler/view/customer/EditCustomer")
+@FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
+public class EditCustomer extends ItemController<CustomerModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     /**
@@ -64,19 +65,14 @@ public class EditCustomer extends scheduler.view.SchedulerController implements 
     @FXML
     private Label countryLabel;
     
-    public static CustomerModel addNew() {
-        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(EditCustomer.class, new CustomerModel(new CustomerImpl()), 640, 480);
+    public static CustomerModel addNew(ViewManager parentViewManager) {
+        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(parentViewManager, EditCustomer.class, new CustomerModel(new CustomerImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CustomerModel row) {
-        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(EditCustomer.class, row, 640, 480);
+    public static boolean edit(ViewManager parentViewManager, CustomerModel row) {
+        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(parentViewManager, EditCustomer.class, row, 640, 480);
         return result.isSuccessful();
-    }
-
-    @Override
-    public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -86,7 +82,7 @@ public class EditCustomer extends scheduler.view.SchedulerController implements 
 
     @Override
     public void accept(EditItem<CustomerModel> context) {
-        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
+        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
     }
 
     @Override

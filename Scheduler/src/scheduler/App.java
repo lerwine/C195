@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,16 +29,13 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import scheduler.dao.UserImpl;
 import scheduler.dao.UserFactory;
-import scheduler.util.Alerts;
 import scheduler.util.PwHash;
-import scheduler.view.RootController;
-import scheduler.view.SchedulerController;
+import scheduler.view.MainController;
 import scheduler.view.TaskWaiter;
+import scheduler.view.ViewManager;
 import scheduler.view.login.LoginScene;
 
 /**
@@ -91,15 +87,15 @@ public class App extends Application {
     
     public static final App getCurrent() { return current; }
     
-    //<editor-fold defaultstate="collapsed" desc="primaryStage property">
+    //<editor-fold defaultstate="collapsed" desc="primaryViewManager property">
     
-    private Stage primaryStage;
+    private ViewManager primaryViewManager;
     
     /**
-     * Gets the primary {@link javafx.stage.Stage} for the application.
-     * @return The primary {@link javafx.stage.Stage} for the application.
+     * Gets the primary {@link ViewManager} for the application.
+     * @return The primary {@link ViewManager} for the application.
      */
-    public Stage getPrimaryStage() { return primaryStage; }
+    public ViewManager getPrimaryViewManager() { return primaryViewManager; }
     
     //</editor-fold>
     
@@ -292,23 +288,13 @@ public class App extends Application {
     @SuppressWarnings("UseSpecificCatch")
     public void start(Stage stage) throws Exception {
         current = this;
-        primaryStage = stage;
+        primaryViewManager = ViewManager.of(stage);
         
         // Ensure app config is freshly loaded.
         AppConfig.refresh();
         
         allLanguages = new AllLanguages(AppConfig.getLanguages());
-        
-        try {
-            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(LoginScene.class), Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(LoginScene.class.getResource(SchedulerController.getFXMLResourceName(LoginScene.class)), rb);
-            Scene scene = new Scene(loader.load());
-            primaryStage.setScene(scene);
-            stage.show();
-        } catch (Throwable ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            Alerts.showErrorAlert(resources.getString(RESOURCEKEY_FXMLLOADERERRORTITLE), resources.getString(RESOURCEKEY_FXMLLOADERERRORMESSAGE));
-        }
+        LoginScene.setView(LoginScene.class, primaryViewManager);
     }
     
     @Override
@@ -325,7 +311,7 @@ public class App extends Application {
     private class LoginTask extends TaskWaiter<UserImpl> {
         private final String userName, password;
         LoginTask(String userName, String password) {
-            super(getPrimaryStage(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
+            super(getPrimaryViewManager(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;
         }
@@ -390,12 +376,16 @@ public class App extends Application {
                             });
                     }
                 } else if (Platform.isFxApplicationThread()) {
-                    RootController.setAsRootStageScene();
+                    MainController.setView(MainController.class, primaryViewManager);
                 } else
                     Platform.runLater(() -> {
-                        RootController.setAsRootStageScene();
+                        try {
+                            MainController.setView(MainController.class, primaryViewManager);
+                        } catch (Exception ex) {
+                            LOG.log(Level.SEVERE, null, ex);
+                        }
                     });
-            } catch (InterruptedException | ExecutionException ex) {
+            } catch (Exception ex) {
                 LOG.log(Level.SEVERE, null, ex);
                 if (onNotSucceeded != null) {
                     if (Platform.isFxApplicationThread())
@@ -633,4 +623,5 @@ public class App extends Application {
         @Override
         public void removeListener(InvalidationListener listener) { readOnlyList.removeListener(listener); }
     }
+    
 }

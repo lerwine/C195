@@ -20,14 +20,15 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
 import scheduler.util.Bindings;
+import scheduler.view.SchedulerController;
 
 /**
  * FXML Controller class for the application login screen.
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/login/LoginScene")
-@FXMLResource("/view/login/LoginScene.fxml")
-public class LoginScene extends scheduler.view.SchedulerController {
+@GlobalizationResource("scheduler/view/login/LoginScene")
+@FXMLResource("/scheduler/view/login/LoginScene.fxml")
+public class LoginScene extends SchedulerController {
     private static final Logger LOG = Logger.getLogger(LoginScene.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
@@ -158,7 +159,7 @@ public class LoginScene extends scheduler.view.SchedulerController {
     }
 
     @FXML
-    void exitButtonClick(ActionEvent event) { scheduler.App.getCurrent().getPrimaryStage().hide(); }
+    void exitButtonClick(ActionEvent event) { getViewManager().closeWindow(); }
     
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
@@ -207,7 +208,7 @@ public class LoginScene extends scheduler.view.SchedulerController {
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
             // Set window title
-            scheduler.App.getCurrent().getPrimaryStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            getViewManager().setWindowTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
             // Update field labels and button text.
             userNameLabel.setText(currentResourceBundle.getString(RESOURCEKEY_USERNAME));
             passwordLabel.setText(currentResourceBundle.getString(RESOURCEKEY_PASSWORD));

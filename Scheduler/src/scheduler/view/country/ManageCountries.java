@@ -18,8 +18,8 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/country/ManageCountries")
-@FXMLResource("/view/country/ManageCountries.fxml")
+@GlobalizationResource("scheduler/view/country/ManageCountries")
+@FXMLResource("/scheduler/view/country/ManageCountries.fxml")
 public class ManageCountries extends ListingController<CountryModel> {
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Countries"}.
@@ -70,11 +70,12 @@ public class ManageCountries extends ListingController<CountryModel> {
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDBY));
     }
     
+    @Deprecated
     public static void setAsRootContent() {
-        setAsRootContent(ManageCountries.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageCountries> context) -> {
-            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
-            Alerts.showErrorAlert("Not Implemented", "Need to initialize country list");
-        });
+//        setAsRootContent(ManageCountries.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageCountries> context) -> {
+//            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
+//            Alerts.showErrorAlert("Not Implemented", "Need to initialize country list");
+//        });
     }
 
     @Override

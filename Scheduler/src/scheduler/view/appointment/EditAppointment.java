@@ -45,7 +45,7 @@ import scheduler.util.Alerts;
 import scheduler.util.DB;
 import scheduler.view.EditItem;
 import scheduler.view.ItemController;
-import scheduler.view.SchedulerController;
+import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.customer.CustomerModel;
@@ -59,9 +59,9 @@ import scheduler.view.address.CustomerAddress;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/appointment/EditAppointment")
-@FXMLResource("/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends SchedulerController implements ItemController<AppointmentModel> {
+@GlobalizationResource("scheduler/view/appointment/EditAppointment")
+@FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
+public class EditAppointment extends ItemController<AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -445,8 +445,8 @@ public class EditAppointment extends SchedulerController implements ItemControll
      * Adds a new appointment to the database.
      * @return The {@link model.db.AppointmentImpl} object containing appointment that was added or {@code null} if no appointment was added.
      */
-    public static AppointmentModel addNew() {
-        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(EditAppointment.class, new AppointmentModel(new AppointmentImpl()), 800, 600);
+    public static AppointmentModel addNew(ViewManager parentViewManager) {
+        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(parentViewManager, EditAppointment.class, new AppointmentModel(new AppointmentImpl()), 800, 600);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
     
@@ -455,15 +455,15 @@ public class EditAppointment extends SchedulerController implements ItemControll
      * @param row The appointment to be edited.
      * @return {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
      */
-    public static boolean edit(AppointmentModel row) {
-        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(EditAppointment.class, row, 800, 600);
+    public static boolean edit(ViewManager parentViewManager, AppointmentModel row) {
+        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(parentViewManager, EditAppointment.class, row, 800, 600);
         return result.isSuccessful();
     }
     
     @Override
     public void accept(EditItem<AppointmentModel> context) {
         parent = context;
-        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
+        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
     }
 
     @Override
@@ -505,7 +505,7 @@ public class EditAppointment extends SchedulerController implements ItemControll
     
     @FXML
     void addCustomerClick(ActionEvent event) {
-        CustomerModel customer = EditCustomer.addNew();
+        CustomerModel customer = EditCustomer.addNew(getViewManager());
         if (null == customer)
             return;
         customers.add(customer);
@@ -514,7 +514,7 @@ public class EditAppointment extends SchedulerController implements ItemControll
 
     @FXML
     void addUserClick(ActionEvent event) {
-        UserModel user = EditUser.addNew();
+        UserModel user = EditUser.addNew(getViewManager());
         if (null == user)
             return;
         users.add(user);

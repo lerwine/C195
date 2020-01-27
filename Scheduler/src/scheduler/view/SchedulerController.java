@@ -5,19 +5,18 @@
  */
 package scheduler.view;
 
+import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Dimension2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Labeled;
-import scheduler.expressions.NonNullableStringProperty;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -32,6 +31,10 @@ public abstract class SchedulerController {
     
     private static final Logger LOG = Logger.getLogger(SchedulerController.class.getName());
 
+    private ViewManager viewManager;
+    
+    protected final ViewManager getViewManager() { return viewManager; }
+    
     @FXML
     private ResourceBundle resources;
     
@@ -39,7 +42,7 @@ public abstract class SchedulerController {
      * Gets the {@link java.util.ResourceBundle} injected by the {@link javafx.fxml.FXMLLoader}.
      * @return The {@link java.util.ResourceBundle} injected by the {@link javafx.fxml.FXMLLoader}.
      */
-    protected ResourceBundle getResources() { return resources; }
+    protected final ResourceBundle getResources() { return resources; }
     
     /**
      * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}.
@@ -49,7 +52,7 @@ public abstract class SchedulerController {
      * @param ctlClass The {@link java.lang.Class} for the target controller.
      * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
      */
-    public static <C> String getFXMLResourceName(Class<? extends C> ctlClass) {
+    public static final <C> String getFXMLResourceName(Class<? extends C> ctlClass) {
         Class<FXMLResource> ac = FXMLResource.class;
         String message;
         if (ctlClass.isAnnotationPresent(ac)) {
@@ -72,7 +75,7 @@ public abstract class SchedulerController {
      * @param ctlClass The {@link java.lang.Class} for the target controller.
      * @return The name of the internationalization resource bundle to be loaded with the target controller.
      */
-    public static <C> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
+    public static final <C> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
         String message;
         if (ctlClass.isAnnotationPresent(ac)) {
@@ -88,147 +91,150 @@ public abstract class SchedulerController {
     }
 
     /**
-     * Creates and initializes a {@link ContentChangeContext} object.
-     * The {@link ContentChangeContext} object produced will contain contextual information about the loaded FXML resource.
-     * @param <C> The type of controller associated with the target FXML resource.
+     * This gets called before the FXML view associated with this controller is added to the target {@link javafx.stage.Stage}.
+     * @param newView The FXML view associated with this controller.
+     * @param currentController The JavaFX controller for the FXML view that will be replaced by the one associated with this controller.
+     * @param currentView The FXML view that will be replaced by the one associated with this controller.
      */
-    public static class ContentChangeContextFactory<C extends SchedulerController> implements Supplier<ContentChangeContext<C>> {
-        private final ContentChangeContext<C> context;
-        
-        /**
-         * Gets the read-only {@link ContentChangeContext} object that can be provided to handler functions.
-         * @return A read-only {@link ContentChangeContext} object that can be provided to handler functions.
-         */
-        @Override
-        public ContentChangeContext<C> get() { return context; }
-        
-        /**
-         * Creates a ContentChangeContextFactory object.
-         */
-        public ContentChangeContextFactory() { context = new ContentChangeContext<>(); }
-        
-        /**
-         * Sets the controller obtained from the {@link javafx.fxml.FXMLLoader}.
-         * @param value The controller returned by the {@link javafx.fxml.FXMLLoader#getController()} method of the {@link javafx.fxml.FXMLLoader}.
-         */
-        public void setController(C value) { context.controller.set(value); }
-        
-        /**
-         * Sets the {@link javafx.scene.Parent} node that was loaded by the {@link javafx.fxml.FXMLLoader}.
-         * @param value The {@link javafx.scene.Parent} node that was returned by the
-         * {@link javafx.fxml.FXMLLoader#load(java.net.URL, java.util.ResourceBundle)} method of the {@link javafx.fxml.FXMLLoader}.
-         */
-        public void setParent(Parent value) { context.parent.set(value); }
-        
-        /**
-         * Gets the {@link java.util.ResourceBundle} obtained from the {@link javafx.fxml.FXMLLoader}.
-         * @param value The {@link java.util.ResourceBundle} returned by the {@link javafx.fxml.FXMLLoader#getResources()} method of the
-         * {@link javafx.fxml.FXMLLoader}.
-         */
-        public void setResourceBundle(ResourceBundle value) { context.resources.set(value); }
-        
-        /**
-         * Sets the error or exception that was caught while trying to load and initialize the target FXML resource.
-         * @param value The error or exception that was caught while trying to load and an initialize the target FXML resource.
-         */
-        public void setError(Throwable value) { context.error.set(value); }
+    protected void onLoaded(Parent newView, SchedulerController currentController, Parent currentView) { }
+    
+    /**
+     * This gets called after the FXML view associated with this controller is added to the target {@link javafx.stage.Stage}.
+     * @param currentView The FXML view associated with this controller.
+     * @param oldController The JavaFX controller for the FXML view that was replaced by the one associated with this controller.
+     * @param oldView The FXML view that was replaced by the one associated with this controller.
+     */
+    protected void onApplied(Parent currentView, SchedulerController oldController, Parent oldView) { }
+    
+    /**
+     * This gets called before the FXML view associated with this controller is removed from the target {@link javafx.stage.Stage} or
+     * its {@link javafx.stage.Stage} is being hidden.
+     * @param newController The JavaFX controller for the FXML view that will be replacing the current one or {@code null} if the current
+     * {@link javafx.stage.Stage} is being hidden.
+     * @param newParent The FXML view that will be replacing the current one or {@code null} if the current {@link javafx.stage.Stage} is being hidden.
+     */
+    protected void onUnloading(SchedulerController newController, Parent newParent) { }
+    
+    /**
+     * This gets called after the FXML view associated with this controller has been removed from the target {@link javafx.stage.Stage} or
+     * its {@link javafx.stage.Stage} was hidden.
+     * @param newController The JavaFX controller for the FXML view that replaced the current one or {@code null} if the current
+     * {@link javafx.stage.Stage} was hidden.
+     * @param newParent The FXML view that replaced the current one or {@code null} if the current {@link javafx.stage.Stage} was hidden.
+     */
+    protected void onUnloaded(SchedulerController newController, Parent newParent) { }
+    
+    /**
+     * Sets the FXML view associated with a {@link ViewManager}.
+     * The {@link FXMLResource} applied to the controller class defines the path of the FXML view resource.
+     * The {@link GlobalizationResource} applied to the controller class defines the globalization resource bundle to load.
+     * @param <C> The type of JavaFX controller for the target FXML view.
+     * @param controllerClass The class of the JavaFX controller for the target FXML view.
+     * @param viewManager The {@link ViewManager} that is used to control the current view.
+     * @param factory The {@link ViewControllerFactory} that creates and initializes the JavaFX controller or {@code null} to use a default factory.
+     * @return The JavaFX controller.
+     * @throws Exception if not able to load the target FXML view.
+     */
+    public static <C extends SchedulerController> C setView(Class<C> controllerClass, ViewManager viewManager,
+            ViewControllerFactory<C> factory) throws Exception {
+        Objects.requireNonNull(controllerClass, "Controller class cannot be null");
+        Objects.requireNonNull(viewManager, "View manager cannot be null");
+        ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(controllerClass), Locale.getDefault(Locale.Category.DISPLAY));
+        FXMLLoader loader;
+        if (null == factory)
+            loader = new FXMLLoader(controllerClass.getResource(getFXMLResourceName(controllerClass)), rb);
+        else {
+            loader = new FXMLLoader(controllerClass.getResource(getFXMLResourceName(controllerClass)), rb, null, (c) -> factory.call((Class<C>)c));
+            factory.beforeLoad(loader);
+        }
+        Parent parent = loader.load();
+        C controller = loader.getController();
+        ((SchedulerController)controller).viewManager = viewManager;
+        if (null == factory) {
+            controller.onLoaded(parent, null, null);
+            viewManager.setContent(parent);
+            controller.onApplied(parent, null, null);
+        } else {
+            factory.onLoaded(controller, parent, null, null);
+            controller.onLoaded(parent, null, null);
+            Dimension2D d = factory.getDimensions(controller, parent);
+            if (null == d)
+                viewManager.setContent(parent);
+            else
+                viewManager.setContent(parent, d.getWidth(), d.getHeight());
+            try { factory.onApplied(controller, parent, null, null); }
+            finally { controller.onApplied(parent, null, null); }
+        }
+        return controller;
     }
     
     /**
-     * Contextual information about a loaded FXML resource.
-     * @param <C> The type of controller associated with the target {@link javafx.scene.Parent} node.
+     * Sets the FXML view associated with a {@link ViewManager}.
+     * The {@link FXMLResource} applied to the controller class defines the path of the FXML view resource.
+     * The {@link GlobalizationResource} applied to the controller class defines the globalization resource bundle to load.
+     * @param <C> The type of JavaFX controller for the new FXML view.
+     * @param controllerClass The class of the JavaFX controller for the target FXML view.
+     * @param viewManager The {@link ViewManager} that is used to control the current view.
+     * @return The JavaFX controller.
+     * @throws Exception if not able to load the target FXML view.
      */
-    public static class ContentChangeContext<C extends SchedulerController> {
-        //<editor-fold defaultstate="collapsed" desc="controller property">
-        
-        private final ReadOnlyObjectWrapper<C> controller = new ReadOnlyObjectWrapper<>();
-
-        /**
-         * Gets the controller associated with the {@link #parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
-         * @return The controller associated with the {@link #parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
-         */
-        public C getController() { return controller.get(); }
-        
-        /**
-         * The property that contains the controller associated with the {@link #parent} node.
-         * @return The property that returns the controller associated with the {@link #parent} node.
-         */
-        public ReadOnlyObjectProperty<C> controllerProperty() { return controller.getReadOnlyProperty(); }
-        
-        //</editor-fold>
-        
-        //<editor-fold defaultstate="collapsed" desc="parent property">
-        
-        private final ReadOnlyObjectWrapper<Parent> parent = new ReadOnlyObjectWrapper<>();
-        
-        /**
-         * Gets the target {@link javafx.scene.Parent} node, which was loaded by the {@link javafx.fxml.FXMLLoader}.
-         * @return The target {@link javafx.scene.Parent} node, which was loaded by the {@link javafx.fxml.FXMLLoader}.
-         */
-        public Parent getParent() { return parent.get(); }
-        
-        /**
-         * The property that returns the {@link javafx.scene.Parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
-         * @return The property that contains the {@link javafx.scene.Parent} node loaded by the {@link javafx.fxml.FXMLLoader}.
-         */
-        public ReadOnlyObjectProperty<Parent> parentProperty() { return parent.getReadOnlyProperty(); }
-        
-        //</editor-fold>
-        
-        //<editor-fold defaultstate="collapsed" desc="error property">
-        
-        private final ReadOnlyObjectWrapper<Throwable> error = new ReadOnlyObjectWrapper<>();
-        
-        /**
-         * Gets the error or exception that was caught while trying to load and initialize the target FXML resource.
-         * @return The error or exception that was caught while trying to load and initialize the target FXML resource or {@code null} if no error
-         * or exception occurred.
-         */
-        public Throwable getError() { return error.get(); }
-        
-        /**
-         * The property that returns the error or exception that was caught while trying to load and initialize the target FXML resource.
-         * @return The property that returns the error or exception that was caught while trying to load and initialize the target FXML resource.
-         */
-        public ReadOnlyObjectProperty<Throwable> errorProperty() { return error.getReadOnlyProperty(); }
-        
-        //</editor-fold>
-        
-        //<editor-fold defaultstate="collapsed" desc="resources property">
-        
-        private final ReadOnlyObjectWrapper<ResourceBundle> resources = new ReadOnlyObjectWrapper<>();
-        
-        /**
-         * Gets the {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
-         * @return The {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
-         */
-        public ResourceBundle getResources() { return resources.get(); }
-        
-        /**
-         * The property that returns the {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
-         * @return The property that returns the {@link java.util.ResourceBundle} loaded with the {@link javafx.fxml.FXMLLoader}.
-         */
-        public ReadOnlyObjectProperty<ResourceBundle> resourcesProperty() { return resources.getReadOnlyProperty(); }
-        
-        //</editor-fold>
-        
-        private final StringProperty windowTitle;
-
-        public String getWindowTitle() { return windowTitle.get(); }
-
-        /**
-         * Sets the title for the current window of the target {@link javafx.scene.Parent} node.
-         * @param value The title for the current window of the target {@link javafx.scene.Parent} node.
-         */
-        public void setWindowTitle(String value) { windowTitle.set(value); }
-
-        public StringProperty windowTitleProperty() { return windowTitle; }
-        
-        public ContentChangeContext() {
-            this.windowTitle = new NonNullableStringProperty(scheduler.App.getCurrent()
-                    .getResources().getString(scheduler.App.RESOURCEKEY_APPOINTMENTSCHEDULER), true);
+    public static <C extends SchedulerController> C setView(Class<C> controllerClass, ViewManager viewManager) throws Exception {
+        return setView(controllerClass, viewManager, null);
+    }
+    
+    /**
+     * Replaces the current FXML view with a new one.
+     * The {@link FXMLResource} applied to the controller class defines the path of the FXML view resource.
+     * The {@link GlobalizationResource} applied to the controller class defines the globalization resource bundle to load.
+     * @param <C> The type of JavaFX controller for the new FXML view.
+     * @param controllerClass The class of the JavaFX controller for the new FXML view.
+     * @param factory The {@link ViewControllerFactory} that creates and initializes the new JavaFX controller or {@code null} to use a default factory.
+     * @return The JavaFX controller.
+     * @throws Exception if not able to load the new FXML view.
+     */
+    public <C extends SchedulerController> C replaceView(Class<C> controllerClass, ViewControllerFactory<C> factory) throws Exception {
+        Objects.requireNonNull(controllerClass, "Controller class cannot be null");
+        ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(controllerClass), Locale.getDefault(Locale.Category.DISPLAY));
+        FXMLLoader loader;
+        if (null == factory)
+            loader = new FXMLLoader(controllerClass.getResource(getFXMLResourceName(controllerClass)), rb);
+        else {
+            loader = new FXMLLoader(controllerClass.getResource(getFXMLResourceName(controllerClass)), rb, null, (c) -> factory.call((Class<C>)c));
+            factory.beforeLoad(loader);
         }
-        
+        Parent parent = loader.load();
+        C controller = loader.getController();
+        ((SchedulerController)controller).viewManager = viewManager;
+        Parent oldView = viewManager.getContent();
+        if (null != factory)
+            factory.onLoaded(controller, parent, this, oldView);
+        controller.onLoaded(parent, this, oldView);
+        onUnloading(controller, parent);
+        viewManager.setContent(parent);
+        try {
+            if (null == factory)
+                controller.onApplied(parent, this, oldView);
+            else
+                try { factory.onApplied(controller, parent, this, oldView); }
+                finally { controller.onApplied(parent, this, oldView); }
+        } finally {
+            viewManager = null;
+            onUnloaded(controller, parent);
+        }
+        return controller;
+    }
+    
+    /**
+     * Replaces the current FXML view with a new one.
+     * The {@link FXMLResource} applied to the controller class defines the path of the FXML view resource.
+     * The {@link GlobalizationResource} applied to the controller class defines the globalization resource bundle to load.
+     * @param <C> The type of JavaFX controller for the new FXML view.
+     * @param controllerClass  The class of the JavaFX controller for the new FXML view.
+     * @return The JavaFX controller.
+     * @throws Exception if not able to load the new FXML view.
+     */
+    public <C extends SchedulerController> C replaceView(Class<C> controllerClass) throws Exception {
+        return replaceView(controllerClass, null);
     }
     
     /**
@@ -265,5 +271,4 @@ public abstract class SchedulerController {
         control.getStyleClass().remove("collapsed");
         control.setText(text);
     }
-    
-}
+    }

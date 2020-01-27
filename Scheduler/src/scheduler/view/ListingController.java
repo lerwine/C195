@@ -6,10 +6,8 @@
 package scheduler.view;
 
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -23,14 +21,43 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
  * @author Leonard T. Erwine
  * @param <M> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<M extends ItemModel<?>> extends SchedulerController {
+public abstract class ListingController<M extends ItemModel<?>> extends MainContentController {
+    //<editor-fold defaultstate="collapsed" desc="itemsList">
+    
+    private ModelFilter<M> itemsFilter = ModelFilter.empty();
+    
+    /**
+     * Gets the {@link ModelFilter} that is used to filter items bound to the {@link #listingTableView}.
+     * @return The {@link javafx.collections.ObservableList} that is used to filter items bound to the {@link #listingTableView}.
+     */
+    protected ModelFilter<M> getItemsFilter() { return itemsFilter; }
+    
+    protected void setItemsFilter(ModelFilter<M> value) {
+        if (value == null) {
+            if (itemsFilter.isEmpty())
+                return;
+            itemsFilter = ModelFilter.empty();
+        } else {
+            if (value == itemsFilter)
+                return;
+            itemsFilter = value;
+        }
+        onItemsFilterChanged();
+    }
+    
+    protected void onItemsFilterChanged() { }
+    
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="itemsList">
     
     private final ObservableList<M> itemsList = FXCollections.observableArrayList();
@@ -199,36 +226,38 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
         return false;
     }
     
-    protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass) {
-        setAsRootContent(ctlClass, null);
-    }
-    
-    protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent) {
-        setAsRootContent(ctlClass, onBeforeSetContent, null);
-    }
-    
-    @SuppressWarnings("UseSpecificCatch")
-    protected static <C extends ListingController<?>> void setAsRootContent(Class<? extends C> ctlClass, Consumer<ContentChangeContext<C>> onBeforeSetContent,
-                Consumer<ContentChangeContext<C>> onAfterSetScene) {
-        ContentChangeContextFactory<C> context = new ContentChangeContextFactory<>();
-        try {
-            ResourceBundle rb = ResourceBundle.getBundle(getGlobalizationResourceName(ctlClass), Locale.getDefault(Locale.Category.DISPLAY));
-            context.setResourceBundle(rb);
-            FXMLLoader loader = new FXMLLoader(ctlClass.getResource(getFXMLResourceName(ctlClass)), rb);
-            Parent content = loader.load();
-            context.setParent(content);
-            context.setController(loader.getController());
-            if (onBeforeSetContent != null)
-                onBeforeSetContent.accept(context.get());
-           scheduler.view.RootController.getCurrent().setContent(content, context.get().getController());
-        } catch (Exception ex) {
-            if (ctlClass == null)
-                LOG.log(Level.SEVERE, null, ex);
-            else
-                LOG.log(Level.SEVERE,String.format("Unexpected error setting %s as root content", ctlClass.getName()), ex);
-            context.setError(ex);
-        }
-        if (onAfterSetScene != null)
-            onAfterSetScene.accept(context.get());
+    public static <M extends ItemModel<?>, L extends ListingController<M>> ViewControllerFactory<L> createItemsFactory(ModelFilter<M> filter,
+            ViewControllerInitializer<L> intializer) {
+        return new ViewControllerFactory<L>() {
+            @Override
+            public void beforeLoad(FXMLLoader loader) {
+                if (null != intializer)
+                    intializer.beforeLoad(loader);
+            }
+
+            @Override
+            public void onLoaded(L newController, Parent newView, SchedulerController currentController, Parent currentView) {
+                if (null != intializer)
+                    intializer.onLoaded(newController, newView, currentController, currentView);
+                ((ListingController<M>)newController).itemsFilter = (filter == null) ? ModelFilter.empty() : filter;
+            }
+
+            @Override
+            public void onApplied(L currentController, Parent currentView, SchedulerController oldController, Parent oldView) {
+                if (null != intializer)
+                    intializer.onApplied(currentController, currentView, oldController, oldView);
+            }
+
+            @Override
+            public L call(Class<L> param) {
+                try {
+                    return (L)ReflectUtil.newInstance(param);
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    Logger.getLogger(ViewControllerFactory.class.getName()).log(Level.SEVERE, "Error instantiating controller", ex);
+                    throw new RuntimeException("Error instantiating controller", ex);
+                }
+            }
+            
+        };
     }
 }

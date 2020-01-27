@@ -6,6 +6,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.view.EditItem;
 import scheduler.dao.CountryImpl;
+import scheduler.view.ItemController;
+import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -14,9 +16,9 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/country/EditCountry")
-@FXMLResource("/view/country/EditCountry.fxml")
-public class EditCountry extends scheduler.view.SchedulerController implements scheduler.view.ItemController<CountryModel> {
+@GlobalizationResource("scheduler/view/country/EditCountry")
+@FXMLResource("/scheduler/view/country/EditCountry.fxml")
+public class EditCountry extends ItemController<CountryModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
     /**
@@ -40,13 +42,13 @@ public class EditCountry extends scheduler.view.SchedulerController implements s
     @FXML
     private Label nameError;
     
-    public static CountryModel addNew() {
-        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(EditCountry.class, new CountryModel(new CountryImpl()), 640, 480);
+    public static CountryModel addNew(ViewManager parentViewManager) {
+        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(parentViewManager, EditCountry.class, new CountryModel(new CountryImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(CountryModel row) {
-        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(EditCountry.class, row, 640, 480);
+    public static boolean edit(ViewManager parentViewManager, CountryModel row) {
+        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(parentViewManager, EditCountry.class, row, 640, 480);
         return result.isSuccessful();
     }
 
@@ -62,7 +64,7 @@ public class EditCountry extends scheduler.view.SchedulerController implements s
 
     @Override
     public void accept(EditItem<CountryModel> context) {
-        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
+        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
     }
 
     @Override

@@ -23,6 +23,8 @@ import javafx.scene.control.TextField;
 import scheduler.view.EditItem;
 import scheduler.dao.UserImpl;
 import scheduler.dao.UserFactory;
+import scheduler.view.ItemController;
+import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -31,9 +33,9 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/user/EditUser")
-@FXMLResource("/view/user/EditUser.fxml")
-public class EditUser extends scheduler.view.SchedulerController implements scheduler.view.ItemController<UserModel> {
+@GlobalizationResource("scheduler/view/user/EditUser")
+@FXMLResource("/scheduler/view/user/EditUser.fxml")
+public class EditUser extends ItemController<UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
@@ -137,20 +139,20 @@ public class EditUser extends scheduler.view.SchedulerController implements sche
         valid = userNameErrorMessage.isEmpty().and(passwordErrorMessage.isEmpty());
     }
 
-    public static UserModel addNew() {
-        EditItem.ShowAndWaitResult<UserModel> result = EditItem.showAndWait(EditUser.class, new UserModel(new UserImpl()), 640, 480);
+    public static UserModel addNew(ViewManager parentViewManager) {
+        EditItem.ShowAndWaitResult<UserModel> result = EditItem.showAndWait(parentViewManager, EditUser.class, new UserModel(new UserImpl()), 640, 480);
         return (result.isSuccessful()) ? result.getTarget() : null;
     }
 
-    public static boolean edit(UserModel row) {
-        EditItem.ShowAndWaitResult<UserModel> result = EditItem.showAndWait(EditUser.class, row, 640, 480);
+    public static boolean edit(ViewManager parentViewManager, UserModel row) {
+        EditItem.ShowAndWaitResult<UserModel> result = EditItem.showAndWait(parentViewManager, EditUser.class, row, 640, 480);
         return result.isSuccessful();
     }
 
     @Override
     public void accept(EditItem<UserModel> context) {
-        context.setWindowTitle(getResources().getString((context.isNewRow().get()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
-        if (context.isNewRow().get()) {
+        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+        if (context.getTarget().isNewItem()) {
             originalUserName.set("");
             changePasswordCheckBox.setText(getResources().getString(RESOURCEKEY_PASSWORD));
             changePasswordCheckBox.setSelected(true);

@@ -19,11 +19,9 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import scheduler.App;
 import scheduler.util.DbConnectedCallable;
 import scheduler.util.DbConnectionConsumer;
@@ -42,7 +40,8 @@ import scheduler.view.annotations.GlobalizationResource;
 public abstract class TaskWaiter<T> extends Task<T> {
     private static final Logger LOG = Logger.getLogger(TaskWaiter.class.getName());
     
-    private final Scene scene;
+    //private final Scene scene;
+    private final ViewManager viewManager;
     private final Parent parent;
     
     @FXML // ResourceBundle injected by the FXMLLoader
@@ -60,19 +59,18 @@ public abstract class TaskWaiter<T> extends Task<T> {
     @FXML
     private Button cancelButton;
 
-    public TaskWaiter(Stage stage) {
-        this(stage, null);
+    public TaskWaiter(ViewManager viewManager) {
+        this(viewManager, null);
     }
     
-    public TaskWaiter(Stage stage, String operation) {
-        this(stage, operation, null);
+    public TaskWaiter(ViewManager viewManager, String operation) {
+        this(viewManager, operation, null);
     }
     
-    public TaskWaiter(Stage stage, String operation, String heading) {
+    public TaskWaiter(ViewManager viewManager, String operation, String heading) {
         super();
-        Objects.requireNonNull(stage);
-        scene = stage.getScene();
-        parent = scene.getRoot();
+        this.viewManager = Objects.requireNonNull(viewManager);
+        parent = viewManager.getRoot();
         titleProperty().addListener((observable) -> {
             if (headingLabel != null)
                 updateHeadingLabel();
@@ -177,7 +175,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             LOG.log(Level.SEVERE, "Error loading FXML", ex);
             throw new RuntimeException("Error loading FXML", ex);
         }
-        scene.setRoot(newParent);
+        viewManager.setRoot(newParent);
         contentPane.getChildren().add(parent);
     }
     
@@ -185,26 +183,26 @@ public abstract class TaskWaiter<T> extends Task<T> {
         LOG.log(Level.INFO, "restoreScene called");
         cancelButton.setOnAction(null);
         contentPane.getChildren().remove(parent);
-        scene.setRoot(parent);
+        viewManager.setRoot(parent);
     }
 
-    public static TaskWaiter<?> fromConsumer(Stage stage, DbConnectionConsumer consumer) {
-        return fromConsumer(stage, null, consumer);
+    public static TaskWaiter<?> fromConsumer(ViewManager viewManager, DbConnectionConsumer consumer) {
+        return fromConsumer(viewManager, null, consumer);
     }
     
-    public static TaskWaiter<?> fromConsumer(Stage stage, String operation, DbConnectionConsumer consumer) {
-        return fromConsumer(stage, operation, null, consumer);
+    public static TaskWaiter<?> fromConsumer(ViewManager viewManager, String operation, DbConnectionConsumer consumer) {
+        return fromConsumer(viewManager, operation, null, consumer);
     }
     
-    public static TaskWaiter<?> fromConsumer(Stage stage, String operation, String heading, DbConnectionConsumer consumer) {
-        return new TaskWaiterImpl<>(stage, operation, heading, () -> {
+    public static TaskWaiter<?> fromConsumer(ViewManager viewManager, String operation, String heading, DbConnectionConsumer consumer) {
+        return new TaskWaiterImpl<>(viewManager, operation, heading, () -> {
            DbConnector.apply(consumer);
            return null;
         });
     }
     
-    public static void acceptAsync(Stage stage, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
-        TaskWaiter<?> task = fromConsumer(stage, operation, heading, consumer);
+    public static void acceptAsync(ViewManager viewManager, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+        TaskWaiter<?> task = fromConsumer(viewManager, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
                 task.get();
@@ -221,8 +219,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static void acceptAsync(Stage stage, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess) {
-        TaskWaiter<?> task = fromConsumer(stage, operation, heading, consumer);
+    public static void acceptAsync(ViewManager viewManager, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess) {
+        TaskWaiter<?> task = fromConsumer(viewManager, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
                 task.get();
@@ -238,8 +236,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static void acceptAsync(Stage stage, String operation, String heading, DbConnectionConsumer consumer, Consumer<Exception> onError) {
-        TaskWaiter<?> task = fromConsumer(stage, operation, heading, consumer);
+    public static void acceptAsync(ViewManager viewManager, String operation, String heading, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+        TaskWaiter<?> task = fromConsumer(viewManager, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
                 task.get();
@@ -254,58 +252,58 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static TaskWaiter<?> acceptAsync(Stage stage, String operation, String heading, DbConnectionConsumer consumer) {
-        TaskWaiter<?> task = fromConsumer(stage, operation, heading, consumer);
+    public static TaskWaiter<?> acceptAsync(ViewManager viewManager, String operation, String heading, DbConnectionConsumer consumer) {
+        TaskWaiter<?> task = fromConsumer(viewManager, operation, heading, consumer);
         execute(task);
         return task;
     }
     
-    public static void acceptAsync(Stage stage, String operation, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
-        acceptAsync(stage, operation, null, consumer, onSuccess, onError);
+    public static void acceptAsync(ViewManager viewManager, String operation, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+        acceptAsync(viewManager, operation, null, consumer, onSuccess, onError);
     }
     
-    public static void acceptAsync(Stage stage, String operation, DbConnectionConsumer consumer, Runnable onSuccess) {
-        acceptAsync(stage, operation, null, consumer, onSuccess);
+    public static void acceptAsync(ViewManager viewManager, String operation, DbConnectionConsumer consumer, Runnable onSuccess) {
+        acceptAsync(viewManager, operation, null, consumer, onSuccess);
     }
     
-    public static void acceptAsync(Stage stage, String operation, DbConnectionConsumer consumer, Consumer<Exception> onError) {
-        acceptAsync(stage, operation, null, consumer, onError);
+    public static void acceptAsync(ViewManager viewManager, String operation, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+        acceptAsync(viewManager, operation, null, consumer, onError);
     }
     
-    public static TaskWaiter<?> acceptAsync(Stage stage, String operation, DbConnectionConsumer consumer) {
-        return acceptAsync(stage, operation, null, consumer);
+    public static TaskWaiter<?> acceptAsync(ViewManager viewManager, String operation, DbConnectionConsumer consumer) {
+        return acceptAsync(viewManager, operation, null, consumer);
     }
     
-    public static void acceptAsync(Stage stage, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
-        acceptAsync(stage, null, consumer, onSuccess, onError);
+    public static void acceptAsync(ViewManager viewManager, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+        acceptAsync(viewManager, null, consumer, onSuccess, onError);
     }
     
-    public static void acceptAsync(Stage stage, DbConnectionConsumer consumer, Runnable onSuccess) {
-        acceptAsync(stage, null, consumer, onSuccess);
+    public static void acceptAsync(ViewManager viewManager, DbConnectionConsumer consumer, Runnable onSuccess) {
+        acceptAsync(viewManager, null, consumer, onSuccess);
     }
     
-    public static void acceptAsync(Stage stage, DbConnectionConsumer consumer, Consumer<Exception> onError) {
-        acceptAsync(stage, null, consumer, onError);
+    public static void acceptAsync(ViewManager viewManager, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+        acceptAsync(viewManager, null, consumer, onError);
     }
     
-    public static TaskWaiter<?> acceptAsync(Stage stage, DbConnectionConsumer consumer) {
-        return acceptAsync(stage, null, consumer);
+    public static TaskWaiter<?> acceptAsync(ViewManager viewManager, DbConnectionConsumer consumer) {
+        return acceptAsync(viewManager, null, consumer);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Stage stage, DbConnectedCallable<T> callable) {
-        return fromCallable(stage, null, callable);
+    public static <T> TaskWaiter<T> fromCallable(ViewManager viewManager, DbConnectedCallable<T> callable) {
+        return fromCallable(viewManager, null, callable);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Stage stage, String operation, DbConnectedCallable<T> callable) {
-        return fromCallable(stage, operation, null, callable);
+    public static <T> TaskWaiter<T> fromCallable(ViewManager viewManager, String operation, DbConnectedCallable<T> callable) {
+        return fromCallable(viewManager, operation, null, callable);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Stage stage, String operation, String heading, DbConnectedCallable<T> callable) {
-        return new TaskWaiterImpl<>(stage, operation, heading, () -> DbConnector.call(callable));
+    public static <T> TaskWaiter<T> fromCallable(ViewManager viewManager, String operation, String heading, DbConnectedCallable<T> callable) {
+        return new TaskWaiterImpl<>(viewManager, operation, heading, () -> DbConnector.call(callable));
     }
 
-    public static <T> void callAsync(Stage stage, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(stage, operation, heading, () -> DbConnector.call(callable));
+    public static <T> void callAsync(ViewManager viewManager, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(viewManager, operation, heading, () -> DbConnector.call(callable));
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             T result;
             try {
@@ -323,8 +321,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
 
-    public static <T> void callAsync(Stage stage, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(stage, operation, heading, () -> DbConnector.call(callable));
+    public static <T> void callAsync(ViewManager viewManager, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
+        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(viewManager, operation, heading, () -> DbConnector.call(callable));
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             T result;
             try {
@@ -341,32 +339,32 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Stage stage, String operation, String heading, DbConnectedCallable<T> callable) {
-        return new TaskWaiterImpl<>(stage, operation, heading, () -> DbConnector.call(callable));
+    public static <T> TaskWaiter<T> callAsync(ViewManager viewManager, String operation, String heading, DbConnectedCallable<T> callable) {
+        return new TaskWaiterImpl<>(viewManager, operation, heading, () -> DbConnector.call(callable));
     }
 
-    public static <T> void callAsync(Stage stage, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        callAsync(stage, operation, null, callable, onSuccess, onError);
+    public static <T> void callAsync(ViewManager viewManager, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        callAsync(viewManager, operation, null, callable, onSuccess, onError);
     }
 
-    public static <T> void callAsync(Stage stage, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        callAsync(stage, operation, null, callable, onSuccess);
+    public static <T> void callAsync(ViewManager viewManager, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
+        callAsync(viewManager, operation, null, callable, onSuccess);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Stage stage, String operation, DbConnectedCallable<T> callable) {
-        return callAsync(stage, operation, null, callable);
+    public static <T> TaskWaiter<T> callAsync(ViewManager viewManager, String operation, DbConnectedCallable<T> callable) {
+        return callAsync(viewManager, operation, null, callable);
     }
 
-    public static <T> void callAsync(Stage stage, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        callAsync(stage, null, callable, onSuccess, onError);
+    public static <T> void callAsync(ViewManager viewManager, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        callAsync(viewManager, null, callable, onSuccess, onError);
     }
 
-    public static <T> void callAsync(Stage stage, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        callAsync(stage, null, callable, onSuccess);
+    public static <T> void callAsync(ViewManager viewManager, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
+        callAsync(viewManager, null, callable, onSuccess);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Stage stage, DbConnectedCallable<T> callable) {
-        return callAsync(stage, null, callable);
+    public static <T> TaskWaiter<T> callAsync(ViewManager viewManager, DbConnectedCallable<T> callable) {
+        return callAsync(viewManager, null, callable);
     }
 
     protected abstract T getResult() throws Exception;

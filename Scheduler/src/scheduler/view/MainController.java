@@ -1,28 +1,25 @@
 package scheduler.view;
 
-import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.util.Pair;
 import scheduler.App;
-import scheduler.dao.AppointmentImpl;
-import scheduler.util.Alerts;
 import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.appointment.AppointmentsViewOptions;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.city.CityModel;
 import scheduler.view.country.CountryModel;
@@ -38,9 +35,9 @@ import scheduler.view.user.UserModel;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/Root")
-@FXMLResource("/view/Root.fxml")
-public class RootController extends SchedulerController {
+@GlobalizationResource("scheduler/view/Main")
+@FXMLResource("/scheduler/view/MainView.fxml")
+public class MainController extends SchedulerController {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     public static final String RESOURCEKEY_ADDRESS = "address";
@@ -118,12 +115,20 @@ public class RootController extends SchedulerController {
     
     //</editor-fold>
     
-    private static RootController current;
+    private static MainController current;
     
-    public static RootController getCurrent() { return current; }
+    public static MainController getCurrent() { return current; }
     
-    private static final Logger LOG = Logger.getLogger(RootController.class.getName());
+    private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
+    private ViewManager childViewManager;
+    
+    public ViewManager getChildViewManager() { return childViewManager; }
+    
+    private MainContentController contentController;
+    
+    public MainContentController getContentController() { return contentController; }
+    
     //<editor-fold defaultstate="collapsed" desc="JavaFX Properties">
     
     //<editor-fold defaultstate="collapsed" desc="Create/Update/Delete operation properties">
@@ -238,53 +243,15 @@ public class RootController extends SchedulerController {
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Content/Controller Changing">
-    
-    private final ReadOnlyObjectWrapper<SchedulerController> contentControllerChanging;
-    
-    /**
-     * Gets the prospective {@link scheduler.view.SchedulerController} that is associated with the {@link javafx.scene.Node} that will become the contents of the {@link contentPane}.
-     * @return The prospective {@link scheduler.view.SchedulerController} that is associated with the {@link javafx.scene.Node} that will become the contents of the {@link contentPane}.
-     */
-    public SchedulerController getContentControllerChanging() { return contentControllerChanging.get(); }
-    
-    /**
-     * Gets a JavaFX property that can be used to listen for then the contents of the {@link contentPane} and its associated controller is about to change.
-     * @return A JavaFX property that contains the prospective {@link scheduler.view.SchedulerController} that is associated with the {@link javafx.scene.Node} that will become the contents of the {@link contentPane}.
-     */
-    public ReadOnlyObjectProperty<SchedulerController> contentControllerChangingProperty() { return contentControllerChanging.getReadOnlyProperty(); }
-    
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Content/Controller changed">
-    
-    private final ReadOnlyObjectWrapper<SchedulerController> currentContentController;
-    
-    /**
-     * Gets the {@link scheduler.view.SchedulerController} that is associated with the {@link javafx.scene.Node} that is the contents of the {@link contentPane}.
-     * @return The {@link scheduler.view.SchedulerController} that is associated with the {@link javafx.scene.Node} that is the contents of the {@link contentPane}.
-     */
-    public SchedulerController getCurrentContentController() { return currentContentController.get(); }
-    
-    /**
-     * Gets a JavaFX property that can be used to listen for then the contents of the {@link contentPane} and its associated controller has changed.
-     * @return A JavaFX property that contains the {@link scheduler.view.SchedulerController} that is associated with the {@link javafx.scene.Node} that is the contents of the {@link contentPane}.
-     */
-    public ReadOnlyObjectProperty<SchedulerController> currentContentControllerProperty() { return currentContentController.getReadOnlyProperty(); }
-    
-    //</editor-fold>
-    
-    //</editor-fold>
-    
-    public RootController() {
+    public MainController() {
         appointmentUpdated = new ReadOnlyObjectWrapper<>();
         customerUpdated = new ReadOnlyObjectWrapper<>();
         countryUpdated = new ReadOnlyObjectWrapper<>();
         cityUpdated = new ReadOnlyObjectWrapper<>();
         addressUpdated = new ReadOnlyObjectWrapper<>();
         userUpdated = new ReadOnlyObjectWrapper<>();
-        currentContentController = new ReadOnlyObjectWrapper<>();
-        contentControllerChanging = new ReadOnlyObjectWrapper<>();
     }
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -294,7 +261,13 @@ public class RootController extends SchedulerController {
         Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> ManageAppointments.setAsRootContent());
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                setView(ManageAppointments.class, childViewManager, ListingController.createItemsFactory(AppointmentsViewOptions.all(), null));
+            } catch (Exception ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
@@ -320,8 +293,44 @@ public class RootController extends SchedulerController {
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         current = this;
-        ManageAppointments.setAsRootContent();
+        childViewManager = new ViewManager() {
+            @Override
+            public Parent getContent() { return (Parent)contentPane.getCenter(); }
+            @Override
+            public void setContent(Parent content) {
+                contentPane.getChildren().clear();
+                contentPane.setCenter(content);
+            }
+            @Override
+            public Parent getRoot() { return getViewManager().getRoot(); }
+            @Override
+            public void setRoot(Parent content) { getViewManager().setRoot(content); }
+            @Override
+            public String getWindowTitle() { return getViewManager().getWindowTitle(); }
+            @Override
+            public void setWindowTitle(String text) { getViewManager().setWindowTitle(text); }
+            @Override
+            public void closeWindow() { getViewManager().closeWindow(); }
+            @Override
+            public Pair<Stage, ViewManager> newChild(Modality modality) { return getViewManager().newChild(modality); }
+            @Override
+            public void setContent(Parent content, double width, double height) {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+        };
     }
+
+    @Override
+    protected void onApplied(Parent currentView, SchedulerController oldController, Parent oldView) {
+        super.onApplied(currentView, oldController, oldView);
+        try {
+            setView(ManageAppointments.class, childViewManager,
+                    ListingController.createItemsFactory(AppointmentsViewOptions.todayAndFuture(App.getCurrentUser()), null));
+        } catch (Exception ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     
@@ -480,42 +489,5 @@ public class RootController extends SchedulerController {
         }
     }
     
-    //</editor-fold>
-
-    /**
-     * Changes the contents associated with the current RootController.
-     * This first sets the {@link #contentControllerChanging} property with the candidate {@link scheduler.view.SchedulerController} before changing the content.
-     * After the content is changed, this updates the {@link #currentContentController} property with the new {@link scheduler.view.SchedulerController}.
-     * 
-     * @param content The {@link javafx.scene.Node} that will be the new contents associated with the current RootController.
-     * @param controller The {@link scheduler.view.SchedulerController} associated with the content node.
-     */
-    public void setContent(Node content, SchedulerController controller) {
-        contentControllerChanging.set(controller);
-        contentPane.getChildren().clear();
-        contentPane.setCenter(content);
-        currentContentController.set(controller);
-    }
-    
-    /**
-     * Changes the application root stage to the {@link javafx.scene.Parent} that is associated a new RootController
-     */
-    @SuppressWarnings("UseSpecificCatch")
-    public static void setAsRootStageScene() {
-        assert current == null : "Root stage scene cannot be changed after it is set";
-        App app = Objects.requireNonNull(App.getCurrent(), "Application not started");
-        try {
-            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(RootController.class),
-                    Locale.getDefault(Locale.Category.DISPLAY));
-            FXMLLoader loader = new FXMLLoader(RootController.class.getResource(SchedulerController.getFXMLResourceName(RootController.class)), rb);
-            Scene scene = new Scene(loader.load());
-            current = (RootController)loader.getController();
-            app.getPrimaryStage().setScene(scene);
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            ResourceBundle arb = app.getResources();
-            Alerts.showErrorAlert(arb.getString(App.RESOURCEKEY_FXMLLOADERERRORTITLE), arb.getString(App.RESOURCEKEY_FXMLLOADERERRORMESSAGE));
-        }
-    }
-    
+    //</editor-fold>    
 }

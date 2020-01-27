@@ -16,11 +16,11 @@ import javafx.beans.binding.BooleanExpression;
  * @author Leonard T. Erwine
  * @param <M>
  */
-public interface ItemController<M extends ItemModel<?>> extends Consumer<EditItem<M>>, Function<EditItem<M>, Boolean> {
-    boolean isValid();
-    BooleanExpression validProperty();  
-    default void afterCloseDialog(EditItem.ShowAndWaitResult<M> result) { }
-    default void onError(EditItem.ShowAndWaitResult<M> result) {
-        Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, null, result.getFault());
+public abstract class ItemController<M extends ItemModel<?>> extends SchedulerController implements Consumer<EditItem<M>>, Function<EditItem<M>, Boolean> {
+    public boolean isValid() { return validProperty().get(); }
+    public abstract BooleanExpression validProperty();  
+    public void afterCloseDialog(EditItem.ShowAndWaitResult<M> result) { }
+    public void onError(EditItem.ShowAndWaitResult<M> result) {
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, result.getFault());
     }
 }

@@ -10,25 +10,26 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.App;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.AppointmentFactory;
+import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
-import scheduler.view.RootController;
+import scheduler.view.MainController;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
-import scheduler.view.user.AppointmentUser;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("view/appointment/ManageAppointments")
-@FXMLResource("/view/appointment/ManageAppointments.fxml")
+@GlobalizationResource("scheduler/view/appointment/ManageAppointments")
+@FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
 public class ManageAppointments extends scheduler.view.ListingController<AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
@@ -70,38 +71,69 @@ public class ManageAppointments extends scheduler.view.ListingController<Appoint
     private Label headingLabel;
     
     //</editor-fold>
-    
-    private AppointmentsViewOptions currentFilter;
-    
-    private final ChangeListener<? super SchedulerController> controllerChangeListener;
-    
-    private final ChangeListener<? super RootController.CrudAction<AppointmentModel>> appointmentAddedListener;
+
+    @Override
+    protected void setItemsFilter(ModelFilter<AppointmentModel> value) {
+        assert value == null || value instanceof AppointmentsViewOptions : "Invalid items filter type";
+        super.setItemsFilter(value); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected void onItemsFilterChanged() {
+        super.onItemsFilterChanged();
+        AppointmentsViewOptions options = (AppointmentsViewOptions)getItemsFilter();
+        getViewManager().setWindowTitle(options.getWindowTitle(getResources()));
+        String heading = options.getHeadingText(getResources());
+        if (heading.isEmpty())
+            collapseNode(headingLabel);
+        else
+            restoreLabeled(headingLabel, heading);
+        
+        TaskWaiter.callAsync(getViewManager(), getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
+            (Connection c) -> (new AppointmentFactory()).load(c, options),
+            (ArrayList<AppointmentImpl> apptList) -> {
+                ObservableList<AppointmentModel> itemsList = getItemsList();
+                itemsList.clear();
+                apptList.forEach((a) -> {
+                    itemsList.add(new AppointmentModel(a));
+                });
+            }, (Exception ex) -> {
+                getItemsList().clear();
+                LOG.log(Level.SEVERE, "Error loading items", ex);
+                ResourceBundle rb = App.getCurrent().getResources();
+                Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
+            });
+    }
+
+    @Override
+    protected void onApplied(Parent currentView, SchedulerController oldController, Parent oldView) {
+        getMainController().appointmentAddedProperty().addListener(appointmentAddedListener);
+        super.onApplied(currentView, oldController, oldView);
+        onItemsFilterChanged();
+    }
+
+    @Override
+    protected void onUnloading(SchedulerController newController, Parent newParent) {
+        getMainController().appointmentAddedProperty().removeListener(appointmentAddedListener);
+        super.onUnloading(newController, newParent);
+    }
+
+    private final ChangeListener<? super MainController.CrudAction<AppointmentModel>> appointmentAddedListener;
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
     @SuppressWarnings("Convert2Lambda")
     public ManageAppointments() {
-        controllerChangeListener = new ChangeListener<SchedulerController>() {
+        appointmentAddedListener = new ChangeListener<MainController.CrudAction<AppointmentModel>>() {
             @Override
-            public void changed(ObservableValue<? extends SchedulerController> observable, SchedulerController oldValue, SchedulerController newValue) {
-                if (oldValue != null && oldValue == ManageAppointments.this) {
-                    RootController rootCtl = RootController.getCurrent();
-                    rootCtl.currentContentControllerProperty().removeListener(controllerChangeListener);
-                    rootCtl.appointmentAddedProperty().removeListener(appointmentAddedListener);
-                }
-            }
-        };
-        appointmentAddedListener = new ChangeListener<RootController.CrudAction<AppointmentModel>>() {
-            @Override
-            public void changed(ObservableValue<? extends RootController.CrudAction<AppointmentModel>> observable,
-                RootController.CrudAction<AppointmentModel> oldValue, RootController.CrudAction<AppointmentModel> newValue) {
-                if (newValue != null && (currentFilter == null || currentFilter.getFilter().test(newValue.getModel()))) {
+            public void changed(ObservableValue<? extends MainController.CrudAction<AppointmentModel>> observable,
+                MainController.CrudAction<AppointmentModel> oldValue, MainController.CrudAction<AppointmentModel> newValue) {
+                if (newValue != null && getItemsFilter().test(newValue.getModel())) {
                     if (newValue.isDelete())
                         removeListItemByPrimaryKey(newValue.getModel().getDataObject().getPrimaryKey());
                     else if (newValue.isAdd() || !updateListItem(newValue.getModel()))
                         getItemsList().add(newValue.getModel());
                 }
-                throw new UnsupportedOperationException("Not supported yet.");
             }
         };
     }
@@ -109,58 +141,26 @@ public class ManageAppointments extends scheduler.view.ListingController<Appoint
     @FXML // This method is called by the FXMLLoader when initialization is complete
     @Override
     protected void initialize() {
+        super.initialize();
         assert headingLabel != null : String.format("fx:id=\"headingLabel\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
-    }
-    
-    public static void setAsRootContent() { setAsRootContent(AppointmentsViewOptions.todayAndFuture(AppointmentUser.of(App.getCurrentUser()))); }
-    
-    public static void setAsRootContent(AppointmentsViewOptions options) {
-        setAsRootContent(ManageAppointments.class, (ContentChangeContext<ManageAppointments> context) -> {
-            context.setWindowTitle(options.getWindowTitle(context));
-            ManageAppointments controller = context.getController();
-            String headingText = options.getHeadingText(context);
-            if (null == headingText || headingText.trim().isEmpty())
-                collapseNode(controller.headingLabel);
-            else
-                restoreLabeled(controller.headingLabel, headingText);
-        }, (ContentChangeContext<ManageAppointments> context) -> {
-            TaskWaiter.callAsync(App.getCurrent().getPrimaryStage(), context.getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-                    (Connection c) -> (new AppointmentFactory()).load(c, options.getFilter()),
-                    (ArrayList<AppointmentImpl> apptList) -> {
-                        ObservableList<AppointmentModel> itemsList = context.getController().getItemsList();
-                        itemsList.clear();
-                        apptList.forEach((a) -> {
-                            itemsList.add(new AppointmentModel(a));
-                        });
-                    }, (Exception ex) -> {
-                        LOG.log(Level.SEVERE, null, ex);
-                        ResourceBundle rb = App.getCurrent().getResources();
-                        Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
-                        context.getController().getItemsList().clear();
-                    });
-            RootController rootCtl = RootController.getCurrent();
-            ManageAppointments c = context.getController();
-            rootCtl.currentContentControllerProperty().addListener(c.controllerChangeListener);
-            rootCtl.appointmentAddedProperty().addListener(c.appointmentAddedListener);
-        });
     }
     
     //</editor-fold>
     
     @Override
     protected void onAddNewItem(Event event) {
-        RootController.getCurrent().addNewAppointment(event);
+        MainController.getCurrent().addNewAppointment(event);
     }
 
     @Override
     protected void onEditItem(Event event, AppointmentModel item) {
-        RootController.getCurrent().editAppointment(event, item);
+        MainController.getCurrent().editAppointment(event, item);
     }
 
     @Override
     protected void onDeleteItem(Event event, AppointmentModel item) {
-        RootController.getCurrent().deleteAppointment(event, item);
+        MainController.getCurrent().deleteAppointment(event, item);
     }
     
 }
