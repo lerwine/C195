@@ -31,6 +31,7 @@ public interface SqlStatementBuilder<T extends AutoCloseable> extends AutoClosea
             
             @Override
             public String getSql() {
+                
                 return stringBuilder.toString();
             }
 
@@ -44,7 +45,8 @@ public interface SqlStatementBuilder<T extends AutoCloseable> extends AutoClosea
             @Override
             public ParameterConsumer finalizeSql() throws SQLException {
                 assert null == result : "SQL has been already been finalized";
-                result = connection.prepareStatement(getSql());
+                String s = getSql();
+                result = connection.prepareStatement(s);
                 return ParameterConsumer.fromPreparedStatement(result);
             }
 

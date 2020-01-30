@@ -1,6 +1,10 @@
 package scheduler.view.country;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Locale;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableCell;
@@ -46,25 +50,27 @@ public class ManageCountries extends ListingController<CountryModel> {
         nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_NAME));
         createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDATE));
         createDateTableColumn.setCellFactory(col -> new TableCell<CountryModel, LocalDateTime>() {
+            private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
+                    setText(item.format(fmt));
             }
         });
         createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDBY));
         lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDDATE));
         lastUpdateTableColumn.setCellFactory(col -> new TableCell<CountryModel, LocalDateTime>() {
+            private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty)
                     setText(null);
                 else
-                    setText(item.format(scheduler.App.getCurrent().getShortDateTimeFormatter()));
+                    setText(item.format(fmt));
             }
         });
         lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDBY));

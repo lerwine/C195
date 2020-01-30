@@ -63,25 +63,6 @@ public class UserFactory extends DataObjectFactory<UserImpl, UserModel> {
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
-    
-    private static String baseSelectQuery = null;
-    
-    public static String getBaseSelectQuery() {
-        if (null != baseSelectQuery)
-            return baseSelectQuery;
-        final StringBuilder sql = new StringBuilder("SELECT `");
-        sql.append(COLNAME_USERID);
-        Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE,
-                COLNAME_LASTUPDATEBY, COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE).forEach((t) -> {
-            sql.append("`, `").append(t);
-        });
-        baseSelectQuery = sql.append("` FROM `").append(getTableName(UserImpl.class)).toString();
-        return baseSelectQuery;
-    }
-    
-    //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="static sortOptions property">
     
     private static ObservableSet<String> sortOptions = null;
@@ -177,7 +158,8 @@ public class UserFactory extends DataObjectFactory<UserImpl, UserModel> {
 
     @Override
     public String getBaseQuery() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE, COLNAME_CREATEDATE,
+                COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, getTableName(UserImpl.class));
     }
 
     @Override

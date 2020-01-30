@@ -1,5 +1,6 @@
 package scheduler.view.login;
 
+import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -10,11 +11,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.App;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -149,7 +155,7 @@ public class LoginScene extends SchedulerController {
     @FXML
     void loginButtonClick(ActionEvent event) {
         LOG.log(Level.INFO, "loginButtonClick invoked");
-        App.getCurrent().tryLoginUser(userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        App.getCurrent().tryLoginUser((Stage)userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null)
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             else
@@ -159,7 +165,7 @@ public class LoginScene extends SchedulerController {
     }
 
     @FXML
-    void exitButtonClick(ActionEvent event) { getViewManager().closeWindow(); }
+    void exitButtonClick(ActionEvent event) { languageComboBox.getScene().getWindow().hide(); }
     
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
@@ -204,12 +210,16 @@ public class LoginScene extends SchedulerController {
             if (newValue == null)
                 return;
             // Change the current application language;
-            scheduler.App.setCurrentLocale(newValue);
+            App.setCurrentLocale(newValue);
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
-            // Set window title
-            getViewManager().setWindowTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
             // Update field labels and button text.
+            Scene scene = languageComboBox.getScene();
+            if (null != scene) {
+                Window window = (Stage)scene.getWindow();
+                if (null != window && window instanceof Stage)
+                    ((Stage)window).setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            }
             userNameLabel.setText(currentResourceBundle.getString(RESOURCEKEY_USERNAME));
             passwordLabel.setText(currentResourceBundle.getString(RESOURCEKEY_PASSWORD));
             loginButton.setText(currentResourceBundle.getString(RESOURCEKEY_LOGIN));
@@ -229,5 +239,10 @@ public class LoginScene extends SchedulerController {
         @Override
         public void dispose() { super.unbind(languageValid, userNameValid, passwordValid); }
     }
-    
+
+    @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+        super.onBeforeShow(currentView, stage);
+    }
 }

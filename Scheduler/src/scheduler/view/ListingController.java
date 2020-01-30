@@ -6,9 +6,9 @@
 package scheduler.view;
 
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,17 +21,17 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import scheduler.App;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
-import sun.reflect.misc.ReflectUtil;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
  * @author Leonard T. Erwine
  * @param <M> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<M extends ItemModel<?>> extends MainContentController {
-    //<editor-fold defaultstate="collapsed" desc="itemsList">
+public abstract class ListingController<M extends ItemModel<?>> extends SchedulerController {
+    //<editor-fold defaultstate="collapsed" desc="itemsFilter">
     
     private ModelFilter<M> itemsFilter = ModelFilter.empty();
     
@@ -135,7 +135,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             M item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = scheduler.App.getCurrent().getResources();
+                ResourceBundle rb = ResourceBundle.getBundle(App.GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY));
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
             }
             else
@@ -145,7 +145,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             M item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = scheduler.App.getCurrent().getResources();
+                ResourceBundle rb = ResourceBundle.getBundle(App.GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY));
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
             }
             else
@@ -226,38 +226,12 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         return false;
     }
     
-    public static <M extends ItemModel<?>, L extends ListingController<M>> ViewControllerFactory<L> createItemsFactory(ModelFilter<M> filter,
-            ViewControllerInitializer<L> intializer) {
-        return new ViewControllerFactory<L>() {
-            @Override
-            public void beforeLoad(FXMLLoader loader) {
-                if (null != intializer)
-                    intializer.beforeLoad(loader);
-            }
-
-            @Override
-            public void onLoaded(L newController, Parent newView, SchedulerController currentController, Parent currentView) {
-                if (null != intializer)
-                    intializer.onLoaded(newController, newView, currentController, currentView);
-                ((ListingController<M>)newController).itemsFilter = (filter == null) ? ModelFilter.empty() : filter;
-            }
-
-            @Override
-            public void onApplied(L currentController, Parent currentView, SchedulerController oldController, Parent oldView) {
-                if (null != intializer)
-                    intializer.onApplied(currentController, currentView, oldController, oldView);
-            }
-
-            @Override
-            public L call(Class<L> param) {
-                try {
-                    return (L)ReflectUtil.newInstance(param);
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    Logger.getLogger(ViewControllerFactory.class.getName()).log(Level.SEVERE, "Error instantiating controller", ex);
-                    throw new RuntimeException("Error instantiating controller", ex);
-                }
-            }
-            
-        };
+    public static class Factory<M extends ItemModel<?>, C extends ListingController<M>, V extends Parent> extends MainController.ChildFactory<C, V> {
+        private ModelFilter<M> filter;
+        public ModelFilter<M> getFilter() { return filter; }
+        protected Factory(Class<C> controllerClass, ModelFilter<M> filter) {
+            super(controllerClass);
+            this.filter = filter;
+        }
     }
 }

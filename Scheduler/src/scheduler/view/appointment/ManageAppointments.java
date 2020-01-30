@@ -1,27 +1,18 @@
 package scheduler.view.appointment;
 
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.stage.Stage;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.App;
-import scheduler.dao.AppointmentImpl;
-import scheduler.dao.AppointmentFactory;
 import scheduler.filter.ModelFilter;
-import scheduler.util.Alerts;
 import scheduler.view.MainController;
-import scheduler.view.SchedulerController;
-import scheduler.view.TaskWaiter;
 
 /**
  * FXML Controller class
@@ -82,40 +73,27 @@ public class ManageAppointments extends scheduler.view.ListingController<Appoint
     protected void onItemsFilterChanged() {
         super.onItemsFilterChanged();
         AppointmentsViewOptions options = (AppointmentsViewOptions)getItemsFilter();
-        getViewManager().setWindowTitle(options.getWindowTitle(getResources()));
+//        getViewManager().setWindowTitle;
         String heading = options.getHeadingText(getResources());
         if (heading.isEmpty())
             collapseNode(headingLabel);
         else
             restoreLabeled(headingLabel, heading);
         
-        TaskWaiter.callAsync(getViewManager(), getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
-            (Connection c) -> (new AppointmentFactory()).load(c, options),
-            (ArrayList<AppointmentImpl> apptList) -> {
-                ObservableList<AppointmentModel> itemsList = getItemsList();
-                itemsList.clear();
-                apptList.forEach((a) -> {
-                    itemsList.add(new AppointmentModel(a));
-                });
-            }, (Exception ex) -> {
-                getItemsList().clear();
-                LOG.log(Level.SEVERE, "Error loading items", ex);
-                ResourceBundle rb = App.getCurrent().getResources();
-                Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
-            });
-    }
-
-    @Override
-    protected void onApplied(Parent currentView, SchedulerController oldController, Parent oldView) {
-        getMainController().appointmentAddedProperty().addListener(appointmentAddedListener);
-        super.onApplied(currentView, oldController, oldView);
-        onItemsFilterChanged();
-    }
-
-    @Override
-    protected void onUnloading(SchedulerController newController, Parent newParent) {
-        getMainController().appointmentAddedProperty().removeListener(appointmentAddedListener);
-        super.onUnloading(newController, newParent);
+//        TaskWaiter.callAsync(getViewManager(), getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS),
+//            (Connection c) -> (new AppointmentFactory()).load(c, options),
+//            (ArrayList<AppointmentImpl> apptList) -> {
+//                ObservableList<AppointmentModel> itemsList = getItemsList();
+//                itemsList.clear();
+//                apptList.forEach((a) -> {
+//                    itemsList.add(new AppointmentModel(a));
+//                });
+//            }, (Exception ex) -> {
+//                getItemsList().clear();
+//                LOG.log(Level.SEVERE, "Error loading items", ex);
+//                ResourceBundle rb = App.getCurrent().getResources();
+//                Alerts.showErrorAlert(rb.getString(App.RESOURCEKEY_DBACCESSERROR), rb.getString(App.RESOURCEKEY_DBREADERROR));
+//            });
     }
 
     private final ChangeListener<? super MainController.CrudAction<AppointmentModel>> appointmentAddedListener;
@@ -149,18 +127,27 @@ public class ManageAppointments extends scheduler.view.ListingController<Appoint
     //</editor-fold>
     
     @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        stage.setTitle(((AppointmentsViewOptions)getItemsFilter()).getWindowTitle(getResources()));
+        super.onBeforeShow(currentView, stage);
+    }
+
+    @Override
     protected void onAddNewItem(Event event) {
-        MainController.getCurrent().addNewAppointment(event);
+//        MainController.getCurrent().addNewAppointment(event);
     }
 
     @Override
     protected void onEditItem(Event event, AppointmentModel item) {
-        MainController.getCurrent().editAppointment(event, item);
+//        MainController.getCurrent().editAppointment(event, item);
     }
 
     @Override
     protected void onDeleteItem(Event event, AppointmentModel item) {
-        MainController.getCurrent().deleteAppointment(event, item);
+//        MainController.getCurrent().deleteAppointment(event, item);
     }
     
+    public static class FactoryImpl extends Factory<AppointmentModel, ManageAppointments, Parent> {
+        public FactoryImpl(AppointmentsViewOptions options) { super(ManageAppointments.class, options); }
+    }
 }

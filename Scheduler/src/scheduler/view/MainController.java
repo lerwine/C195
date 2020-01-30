@@ -1,5 +1,6 @@
 package scheduler.view;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -7,14 +8,12 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.util.Pair;
 import scheduler.App;
+import static scheduler.view.SchedulerController.getFXMLResourceName;
 import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -115,19 +114,21 @@ public class MainController extends SchedulerController {
     
     //</editor-fold>
     
-    private static MainController current;
-    
-    public static MainController getCurrent() { return current; }
-    
     private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
-    private ViewManager childViewManager;
+    public static class ChildFactory<C extends SchedulerController, V extends Node> extends NestedViewFactory<BorderPane, C, V> {
+
+        protected ChildFactory(Class<C> controllerClass) { super(controllerClass); }
+        
+        @Override
+        protected void setChildOf(BorderPane parent) { parent.setCenter(getView()); }
+
+        @Override
+        protected void clearChild(BorderPane parent) { parent.setCenter(null); }
+        
+    }
     
-    public ViewManager getChildViewManager() { return childViewManager; }
-    
-    private MainContentController contentController;
-    
-    public MainContentController getContentController() { return contentController; }
+    private ChildFactory<? extends SchedulerController, ? extends Node> childFactory;
     
     //<editor-fold defaultstate="collapsed" desc="JavaFX Properties">
     
@@ -262,11 +263,7 @@ public class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                setView(ManageAppointments.class, childViewManager, ListingController.createItemsFactory(AppointmentsViewOptions.all(), null));
-            } catch (Exception ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -292,45 +289,14 @@ public class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> ManageUsers.setAsRootContent());
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
-        current = this;
-        childViewManager = new ViewManager() {
-            @Override
-            public Parent getContent() { return (Parent)contentPane.getCenter(); }
-            @Override
-            public void setContent(Parent content) {
-                contentPane.getChildren().clear();
-                contentPane.setCenter(content);
-            }
-            @Override
-            public Parent getRoot() { return getViewManager().getRoot(); }
-            @Override
-            public void setRoot(Parent content) { getViewManager().setRoot(content); }
-            @Override
-            public String getWindowTitle() { return getViewManager().getWindowTitle(); }
-            @Override
-            public void setWindowTitle(String text) { getViewManager().setWindowTitle(text); }
-            @Override
-            public void closeWindow() { getViewManager().closeWindow(); }
-            @Override
-            public Pair<Stage, ViewManager> newChild(Modality modality) { return getViewManager().newChild(modality); }
-            @Override
-            public void setContent(Parent content, double width, double height) {
-                throw new UnsupportedOperationException("Not supported.");
-            }
-        };
-    }
-
-    @Override
-    protected void onApplied(Parent currentView, SchedulerController oldController, Parent oldView) {
-        super.onApplied(currentView, oldController, oldView);
+        childFactory = new ManageAppointments.FactoryImpl(AppointmentsViewOptions.todayAndFuture(App.getCurrentUser()));
         try {
-            setView(ManageAppointments.class, childViewManager,
-                    ListingController.createItemsFactory(AppointmentsViewOptions.todayAndFuture(App.getCurrentUser()), null));
-        } catch (Exception ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            childFactory.addToParent(contentPane, null);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     

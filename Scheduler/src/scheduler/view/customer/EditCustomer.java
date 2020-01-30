@@ -11,7 +11,6 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.dao.CustomerImpl;
 import scheduler.view.ItemController;
-import scheduler.view.ViewManager;
 import scheduler.view.address.AddressModel;
 /**
  * FXML Controller class
@@ -65,16 +64,6 @@ public class EditCustomer extends ItemController<CustomerModel> {
     @FXML
     private Label countryLabel;
     
-    public static CustomerModel addNew(ViewManager parentViewManager) {
-        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(parentViewManager, EditCustomer.class, new CustomerModel(new CustomerImpl()), 640, 480);
-        return (result.isSuccessful()) ? result.getTarget() : null;
-    }
-
-    public static boolean edit(ViewManager parentViewManager, CustomerModel row) {
-        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.showAndWait(parentViewManager, EditCustomer.class, row, 640, 480);
-        return result.isSuccessful();
-    }
-
     @Override
     public BooleanExpression validProperty() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -82,7 +71,7 @@ public class EditCustomer extends ItemController<CustomerModel> {
 
     @Override
     public void accept(EditItem<CustomerModel> context) {
-        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
+//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
     }
 
     @Override

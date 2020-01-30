@@ -7,7 +7,6 @@ import javafx.scene.control.TextField;
 import scheduler.view.EditItem;
 import scheduler.dao.CountryImpl;
 import scheduler.view.ItemController;
-import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -42,16 +41,6 @@ public class EditCountry extends ItemController<CountryModel> {
     @FXML
     private Label nameError;
     
-    public static CountryModel addNew(ViewManager parentViewManager) {
-        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(parentViewManager, EditCountry.class, new CountryModel(new CountryImpl()), 640, 480);
-        return (result.isSuccessful()) ? result.getTarget() : null;
-    }
-
-    public static boolean edit(ViewManager parentViewManager, CountryModel row) {
-        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.showAndWait(parentViewManager, EditCountry.class, row, 640, 480);
-        return result.isSuccessful();
-    }
-
     @Override
     public boolean isValid() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -64,7 +53,7 @@ public class EditCountry extends ItemController<CountryModel> {
 
     @Override
     public void accept(EditItem<CountryModel> context) {
-        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
+//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
     }
 
     @Override

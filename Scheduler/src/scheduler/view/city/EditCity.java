@@ -9,7 +9,6 @@ import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;
 import scheduler.view.EditItem;
 import scheduler.view.ItemController;
-import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -52,16 +51,6 @@ public class EditCity extends ItemController<CityModel> {
     @FXML
     private ComboBox<CountryImpl> countryComboBox;
     
-    public static CityModel addNew(ViewManager parentViewManager) {
-        EditItem.ShowAndWaitResult<CityModel> result = EditItem.showAndWait(parentViewManager, EditCity.class, new CityModel(new CityImpl()), 640, 480);
-        return (result.isSuccessful()) ? result.getTarget() : null;
-    }
-
-    public static boolean edit(ViewManager parentViewManager, CityModel item) {
-        EditItem.ShowAndWaitResult<CityModel> result = EditItem.showAndWait(parentViewManager, EditCity.class, item, 640, 480);
-        return result.isSuccessful();
-    }
-
     @Override
     public boolean isValid() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -74,7 +63,7 @@ public class EditCity extends ItemController<CityModel> {
 
     @Override
     public void accept(EditItem<CityModel> context) {
-        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCITY : RESOURCEKEY_EDITCITY));
+//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCITY : RESOURCEKEY_EDITCITY));
     }
 
     @Override

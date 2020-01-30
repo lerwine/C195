@@ -7,6 +7,7 @@ package scheduler.view;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import javafx.stage.Window;
 
 /**
  *
@@ -15,20 +16,20 @@ import java.util.concurrent.Callable;
 public class TaskWaiterImpl<T> extends TaskWaiter<T> {
     private final Callable<T> callable;
     
-    public TaskWaiterImpl(ViewManager viewManager, Callable<T> callable) {
-        super(viewManager);
+    public TaskWaiterImpl(Window window, Callable<T> callable) {
+        super(window);
         Objects.requireNonNull(callable);
         this.callable = callable;
     }
     
-    public TaskWaiterImpl(ViewManager viewManager, String operation, Callable<T> callable) {
-        super(viewManager, operation);
+    public TaskWaiterImpl(Window window, String operation, Callable<T> callable) {
+        super(window, operation);
         Objects.requireNonNull(callable);
         this.callable = callable;
     }
     
-    public TaskWaiterImpl(ViewManager viewManager, String operation, String heading, Callable<T> callable) {
-        super(viewManager, operation, heading);
+    public TaskWaiterImpl(Window window, String operation, String heading, Callable<T> callable) {
+        super(window, operation, heading);
         Objects.requireNonNull(callable);
         this.callable = callable;
     }

@@ -1,10 +1,5 @@
 package scheduler;
 
-import scheduler.util.DbConnector;
-import scheduler.view.appointment.EditAppointment;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -12,6 +7,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
+import scheduler.util.DbConnector;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -29,13 +25,16 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.dao.UserImpl;
 import scheduler.dao.UserFactory;
 import scheduler.util.PwHash;
 import scheduler.view.MainController;
+import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
-import scheduler.view.ViewManager;
+import scheduler.view.appointment.EditAppointment;
 import scheduler.view.login.LoginScene;
 
 /**
@@ -87,18 +86,6 @@ public class App extends Application {
     
     public static final App getCurrent() { return current; }
     
-    //<editor-fold defaultstate="collapsed" desc="primaryViewManager property">
-    
-    private ViewManager primaryViewManager;
-    
-    /**
-     * Gets the primary {@link ViewManager} for the application.
-     * @return The primary {@link ViewManager} for the application.
-     */
-    public ViewManager getPrimaryViewManager() { return primaryViewManager; }
-    
-    //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Globalization Properties">
 
     //<editor-fold defaultstate="collapsed" desc="allLanguages property">
@@ -115,48 +102,48 @@ public class App extends Application {
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="originalDisplayLocale property">
+//    //<editor-fold defaultstate="collapsed" desc="originalDisplayLocale property">
+//    
+//    // Tracks the original locale settings at the time the app is started, so it can be restored when the app ends
+//    private final Locale originalDisplayLocale;
+//    
+//    /**
+//     * Gets the original display {@link java.util.Locale} at application start-up.
+//     * 
+//     * @return
+//     *          The original display {@link java.util.Locale} at application start-up.
+//     */
+//    public Locale getOriginalDisplayLocale() { return originalDisplayLocale; }
+//    
+//    //</editor-fold>
     
-    // Tracks the original locale settings at the time the app is started, so it can be restored when the app ends
-    private final Locale originalDisplayLocale;
+//    //<editor-fold defaultstate="collapsed" desc="originalFormatLocale property">
+//    
+//    private final Locale originalFormatLocale;
+//    
+//    /**
+//     * Gets the original format {@link java.util.Locale} at application start-up.
+//     * 
+//     * @return
+//     *          The original format {@link java.util.Locale} at application start-up.
+//     */
+//    public Locale getOriginalFormatLocale() { return originalFormatLocale; }
+//    
+//    //</editor-fold>
     
-    /**
-     * Gets the original display {@link java.util.Locale} at application start-up.
-     * 
-     * @return
-     *          The original display {@link java.util.Locale} at application start-up.
-     */
-    public Locale getOriginalDisplayLocale() { return originalDisplayLocale; }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="originalFormatLocale property">
-    
-    private final Locale originalFormatLocale;
-    
-    /**
-     * Gets the original format {@link java.util.Locale} at application start-up.
-     * 
-     * @return
-     *          The original format {@link java.util.Locale} at application start-up.
-     */
-    public Locale getOriginalFormatLocale() { return originalFormatLocale; }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="resources property">
-    
-    private ResourceBundle resources;
-    
-    /**
-     * Gets the application-global resource bundle for the current language.
-     * 
-     * @return
-     *          The application-global resource bundle for the current language.
-     */
-    public ResourceBundle getResources() { return resources; }
-    
-    //</editor-fold>
+//    //<editor-fold defaultstate="collapsed" desc="resources property">
+//    
+//    private ResourceBundle resources;
+//    
+//    /**
+//     * Gets the application-global resource bundle for the current language.
+//     * 
+//     * @return
+//     *          The application-global resource bundle for the current language.
+//     */
+//    public ResourceBundle getResources() { return resources; }
+//    
+//    //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="appointmentTypes property">
     
@@ -172,62 +159,62 @@ public class App extends Application {
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="fullTimeFormatter property">
-    
-    private DateTimeFormatter fullTimeFormatter;
-    
-    /**
-     * Gets the current locale-specific formatter for full time strings.
-     * 
-     * @return
-     *          The current locale-specific formatter for full time strings.
-     */
-    public DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="fullDateFormatter property">
-    
-    private DateTimeFormatter fullDateFormatter;
-    
-    /**
-     * Gets the current locale-specific formatter for full date strings.
-     * 
-     * @return
-     *          The current locale-specific formatter for full date strings.
-     */
-    public DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="shortDateTimeFormatter property">
-    
-    private DateTimeFormatter shortDateTimeFormatter;
-    
-    /**
-     * Gets the current locale-specific formatter for short date/time strings.
-     * 
-     * @return
-     *          The current locale-specific formatter for short date/time strings.
-     */
-    public DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="fullDateTimeFormatter property">
-    
-    private DateTimeFormatter fullDateTimeFormatter;
-    
-    /**
-     * Gets the current locale-specific formatter for full date/time strings.
-     * 
-     * @return
-     *          The current locale-specific formatter for full date/time strings.
-     */
-    public DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
-    
-    //</editor-fold>
-    
+//    //<editor-fold defaultstate="collapsed" desc="fullTimeFormatter property">
+//    
+//    private DateTimeFormatter fullTimeFormatter;
+//    
+//    /**
+//     * Gets the current locale-specific formatter for full time strings.
+//     * 
+//     * @return
+//     *          The current locale-specific formatter for full time strings.
+//     */
+//    public DateTimeFormatter getFullTimeFormatter() { return fullTimeFormatter; }
+//    
+//    //</editor-fold>
+//    
+//    //<editor-fold defaultstate="collapsed" desc="fullDateFormatter property">
+//    
+//    private DateTimeFormatter fullDateFormatter;
+//    
+//    /**
+//     * Gets the current locale-specific formatter for full date strings.
+//     * 
+//     * @return
+//     *          The current locale-specific formatter for full date strings.
+//     */
+//    public DateTimeFormatter getFullDateFormatter() { return fullDateFormatter; }
+//    
+//    //</editor-fold>
+//    
+//    //<editor-fold defaultstate="collapsed" desc="shortDateTimeFormatter property">
+//    
+//    private DateTimeFormatter shortDateTimeFormatter;
+//    
+//    /**
+//     * Gets the current locale-specific formatter for short date/time strings.
+//     * 
+//     * @return
+//     *          The current locale-specific formatter for short date/time strings.
+//     */
+//    public DateTimeFormatter getShortDateTimeFormatter() { return shortDateTimeFormatter; }
+//    
+//    //</editor-fold>
+//    
+//    //<editor-fold defaultstate="collapsed" desc="fullDateTimeFormatter property">
+//    
+//    private DateTimeFormatter fullDateTimeFormatter;
+//    
+//    /**
+//     * Gets the current locale-specific formatter for full date/time strings.
+//     * 
+//     * @return
+//     *          The current locale-specific formatter for full date/time strings.
+//     */
+//    public DateTimeFormatter getFullDateTimeFormatter() { return fullDateTimeFormatter; }
+//    
+//    //</editor-fold>
+//    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
@@ -258,19 +245,19 @@ public class App extends Application {
     }
 
     private void setResources(ResourceBundle bundle) {
-        resources = bundle;
+//        resources = bundle;
         appointmentTypes.load(bundle);
-        Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
-        fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
-        fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
-        shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
-        fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+//        Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
+//        fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+//        fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+//        shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
+//        fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
     }
     
     public App() {
         // Store the original locale settings so they can be restored when app ends
-        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
-        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+//        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
+//        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
         appointmentTypes = new AppointmentTypes();
     }
     
@@ -288,21 +275,20 @@ public class App extends Application {
     @SuppressWarnings("UseSpecificCatch")
     public void start(Stage stage) throws Exception {
         current = this;
-        primaryViewManager = ViewManager.of(stage);
         
         // Ensure app config is freshly loaded.
         AppConfig.refresh();
         
         allLanguages = new AllLanguages(AppConfig.getLanguages());
-        LoginScene.setView(LoginScene.class, primaryViewManager);
+        SchedulerController.ViewControllerFactory.loadInto(LoginScene.class, stage, true);
     }
     
     @Override
     public void stop() throws Exception {
         DbConnector.forceClose();
         // Resotre original locale settings
-        Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale);
-        Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
+//        Locale.setDefault(Locale.Category.DISPLAY, originalDisplayLocale);
+//        Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
         super.stop();
     }
 
@@ -310,8 +296,12 @@ public class App extends Application {
 
     private class LoginTask extends TaskWaiter<UserImpl> {
         private final String userName, password;
-        LoginTask(String userName, String password) {
-            super(getPrimaryViewManager(), getResources().getString(RESOURCEKEY_CONNECTINGTODB), getResources().getString(RESOURCEKEY_LOGGINGIN));
+        
+        LoginTask(Window window, String userName, String password) {
+            this(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME), window, userName, password);
+        }
+        private LoginTask(ResourceBundle rb, Window window, String userName, String password) {
+            super(window, rb.getString(RESOURCEKEY_CONNECTINGTODB), rb.getString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;
         }
@@ -327,7 +317,7 @@ public class App extends Application {
                 }
                 Platform.runLater(() -> {
                     LOG.log(Level.INFO, "Updating message");
-                    updateMessage(getResources().getString(RESOURCEKEY_CONNECTEDTODB));
+                    updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB));
                 });
                 LOG.log(Level.INFO, "Invoking UserImpl.getByUserName");
                 result = (new UserFactory()).findByUserName(dep.getConnection(), userName);
@@ -355,13 +345,14 @@ public class App extends Application {
     
     /**
      * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+     * @param stage The stage
      * @param userName The login name for the user to look up.
      * @param password The raw password provided by the user.
      * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions
      * and either the login was not found or the password hash did not match.
      */
-    public void tryLoginUser(String userName, String password, Consumer<Exception> onNotSucceeded) {
-        LoginTask task = new LoginTask(userName, password);
+    public void tryLoginUser(Stage stage, String userName, String password, Consumer<Exception> onNotSucceeded) {
+        LoginTask task = new LoginTask(stage, userName, password);
         EventHandler<WorkerStateEvent> handler = (event) -> {
             LOG.log(Level.INFO, "Task completion handler invoked");
             try {
@@ -375,12 +366,12 @@ public class App extends Application {
                                 onNotSucceeded.accept(null);
                             });
                     }
-                } else if (Platform.isFxApplicationThread()) {
-                    MainController.setView(MainController.class, primaryViewManager);
-                } else
+                } else if (Platform.isFxApplicationThread())
+                    SchedulerController.ViewControllerFactory.loadInto(MainController.class, stage, false);
+                else
                     Platform.runLater(() -> {
                         try {
-                            MainController.setView(MainController.class, primaryViewManager);
+                            SchedulerController.ViewControllerFactory.loadInto(MainController.class, stage, false);
                         } catch (Exception ex) {
                             LOG.log(Level.SEVERE, null, ex);
                         }
@@ -494,16 +485,16 @@ public class App extends Application {
             this.readOnlyList = FXCollections.unmodifiableObservableList(backingList);
 
             // Attempt to find a match for the current display language amongst the languages supported by the app.
-            final String lt = originalDisplayLocale.toLanguageTag();
+            final String lt = Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag();
             // First look for one that is an exact match with the language tag.
             Optional<String> cl = Arrays.stream(languageIds).filter((String id) -> id.equals(lt)).findFirst();
             if (!cl.isPresent()) {
                 // Look for one that matches the ISO3 language code.
-                final String iso3 = originalDisplayLocale.getISO3Language();
+                final String iso3 = Locale.getDefault(Locale.Category.DISPLAY).getISO3Language();
                 cl = Arrays.stream(languageIds).filter((String id) -> id.equals(iso3)).findFirst();
                 if (!cl.isPresent()) {
                     // Look for one that matches the ISO2 language code.
-                    final String ln = originalDisplayLocale.getLanguage();
+                    final String ln = Locale.getDefault(Locale.Category.DISPLAY).getLanguage();
                     cl = Arrays.stream(languageIds).filter((String id) -> id.equals(ln)).findFirst();
                 }
             }
@@ -512,8 +503,8 @@ public class App extends Application {
             Locale toSelect;
             if (cl.isPresent()) {
                 for (String n : AppConfig.getLanguages())
-                    backingList.add((n.equals(cl.get())) ? originalDisplayLocale : new Locale(n));
-                toSelect = originalDisplayLocale;
+                    backingList.add((n.equals(cl.get())) ? Locale.getDefault(Locale.Category.DISPLAY) : new Locale(n));
+                toSelect = Locale.getDefault(Locale.Category.DISPLAY);
             } else {
                 for (String n : AppConfig.getLanguages())
                     backingList.add(new Locale(n));

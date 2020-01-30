@@ -5,7 +5,11 @@
  */
 package scheduler.controls;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.time.temporal.TemporalAccessor;
+import java.util.Locale;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
@@ -20,10 +24,11 @@ public class DateTimeTableCellFactory<S, T extends TemporalAccessor> implements 
     @Override
     public TableCell<S, T> call(TableColumn<S, T> param) {
         return new TableCell<S, T>() {
+            private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
             @Override
             protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
-                setText((item == null) ? "" : scheduler.App.getCurrent().getShortDateTimeFormatter().format(item));
+                setText((item == null) ? "" : fmt.format(item));
             }
         };
     }

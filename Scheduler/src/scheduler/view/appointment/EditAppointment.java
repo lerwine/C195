@@ -45,12 +45,9 @@ import scheduler.util.Alerts;
 import scheduler.util.DB;
 import scheduler.view.EditItem;
 import scheduler.view.ItemController;
-import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.customer.CustomerModel;
-import scheduler.view.customer.EditCustomer;
-import scheduler.view.user.EditUser;
 import scheduler.view.user.UserModel;
 import scheduler.view.address.CustomerAddress;
 
@@ -441,29 +438,10 @@ public class EditAppointment extends ItemController<AppointmentModel> {
     
     //</editor-fold>
 
-    /**
-     * Adds a new appointment to the database.
-     * @return The {@link model.db.AppointmentImpl} object containing appointment that was added or {@code null} if no appointment was added.
-     */
-    public static AppointmentModel addNew(ViewManager parentViewManager) {
-        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(parentViewManager, EditAppointment.class, new AppointmentModel(new AppointmentImpl()), 800, 600);
-        return (result.isSuccessful()) ? result.getTarget() : null;
-    }
-    
-    /**
-     * Edits the specified appointment.
-     * @param row The appointment to be edited.
-     * @return {@code true} if the changes were saved; otherwise {@code false} if the changes were discarded.
-     */
-    public static boolean edit(ViewManager parentViewManager, AppointmentModel row) {
-        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.showAndWait(parentViewManager, EditAppointment.class, row, 800, 600);
-        return result.isSuccessful();
-    }
-    
     @Override
     public void accept(EditItem<AppointmentModel> context) {
         parent = context;
-        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
+//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
     }
 
     @Override
@@ -505,20 +483,20 @@ public class EditAppointment extends ItemController<AppointmentModel> {
     
     @FXML
     void addCustomerClick(ActionEvent event) {
-        CustomerModel customer = EditCustomer.addNew(getViewManager());
-        if (null == customer)
-            return;
-        customers.add(customer);
-        customerComboBox.getSelectionModel().select(customer);
+//        CustomerModel customer = EditCustomer.addNew(getViewManager());
+//        if (null == customer)
+//            return;
+//        customers.add(customer);
+//        customerComboBox.getSelectionModel().select(customer);
     }
 
     @FXML
     void addUserClick(ActionEvent event) {
-        UserModel user = EditUser.addNew(getViewManager());
-        if (null == user)
-            return;
-        users.add(user);
-        userComboBox.getSelectionModel().select(user);
+//        UserModel user = EditUser.addNew(getViewManager());
+//        if (null == user)
+//            return;
+//        users.add(user);
+//        userComboBox.getSelectionModel().select(user);
     }
     
     @FXML

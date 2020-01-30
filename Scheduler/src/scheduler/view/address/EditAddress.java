@@ -10,7 +10,6 @@ import javafx.scene.control.TextField;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
 import scheduler.view.ItemController;
-import scheduler.view.ViewManager;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.AddressCity;
@@ -62,19 +61,9 @@ public class EditAddress extends ItemController<AddressModel> {
     
     //</editor-fold>
     
-    public static AddressModel addNew(ViewManager parentViewManager) {
-        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.showAndWait(parentViewManager, EditAddress.class, new AddressModel(new AddressImpl()), 640, 480);
-        return (result.isSuccessful()) ? result.getTarget() : null;
-    }
-
-    public static boolean edit(ViewManager parentViewManager, AddressModel row) {
-        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.showAndWait(parentViewManager, EditAddress.class, row, 640, 480);
-        return result.isSuccessful();
-    }
-
     @Override
     public void accept(EditItem<AddressModel> context) {
-        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
+//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
     }
 
     @Override
