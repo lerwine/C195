@@ -73,7 +73,7 @@ public class ModelFilterTest {
         filter = filter.and(ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString));
         String message = String.format("%s: %s ⊥ %s && %s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_ACTIVE,
                 (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        String expResult = String.format("`%s`=%% AND `%s`<>%%", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE);
+        String expResult = String.format("`%s`=? AND `%s`<>?", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -90,7 +90,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         filter = filter.and(ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString));
         filter = filter.and(ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt));
-        expResult = String.format("`%s`=%% AND `%s`<>%% AND `%s`<=%%", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE,
+        expResult = String.format("`%s`=? AND `%s`<>? AND `%s`<=?", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE,
                 TestParentDAO.COLNAME_RATE);
         message = String.format("%s: %s ⊥ %s && %s: \"%s\" ⊥ \"%s\" && %s: %d ⊥ %d", TestParentDAO.COLNAME_ACTIVE,
                 (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString,
@@ -129,7 +129,7 @@ public class ModelFilterTest {
         filter = filter.or(ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString));
         String message = String.format("%s: %s ⊥ %s || %s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_ACTIVE,
                 (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        String expResult = String.format("`%s`=%% OR `%s`<>%%", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE);
+        String expResult = String.format("`%s`=? OR `%s`<>?", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -155,7 +155,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         filter = filter.or(ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString));
         filter = filter.or(ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt));
-        expResult = String.format("`%s`=%% OR `%s`<>%% OR `%s`<=%%", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE,
+        expResult = String.format("`%s`=? OR `%s`<>? OR `%s`<=?", TestParentDAO.COLNAME_ACTIVE, TestParentDAO.COLNAME_TITLE,
                 TestParentDAO.COLNAME_RATE);
         message = String.format("%s: %s ⊥ %s || %s: \"%s\" ⊥ \"%s\" || %s: %d ⊥ %d", TestParentDAO.COLNAME_ACTIVE,
                 (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString,
@@ -440,7 +440,7 @@ public class ModelFilterTest {
         assertEquals(testDateTime, model.getLastModifiedDate());
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
-        String expResult = String.format("`%s`=%%", TestParentDAO.COLNAME_ID);
+        String expResult = String.format("`%s`=?", TestParentDAO.COLNAME_ID);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -453,7 +453,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString);
         message = String.format("%s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        expResult = String.format("`%s`=%%", TestParentDAO.COLNAME_TITLE);
+        expResult = String.format("`%s`=?", TestParentDAO.COLNAME_TITLE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -466,7 +466,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
-        expResult = String.format("`%s`=%%", TestParentDAO.COLNAME_ACTIVE);
+        expResult = String.format("`%s`=?", TestParentDAO.COLNAME_ACTIVE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -480,7 +480,7 @@ public class ModelFilterTest {
         testInt = model.getRate();
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt);
         message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_RATE, model.getRate(), testInt);
-        expResult = String.format("`%s`=%%", TestParentDAO.COLNAME_RATE);
+        expResult = String.format("`%s`=?", TestParentDAO.COLNAME_RATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -495,7 +495,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_CHILD, COMPARATOR_CHILD, TestChildModel.of(testChild));
         message = String.format("%s: { pk: %d, name: \"%s\" } ⊥ { pk: %d, name: \"%s\" }", TestParentDAO.COLNAME_CHILDID, testChild.getPrimaryKey(),
                 testChild.getName(), model.getChild().getDataObject().getPrimaryKey(), model.getChild().getName());
-        expResult = String.format("`%s`=%%", TestParentDAO.COLNAME_CHILDID);
+        expResult = String.format("`%s`=?", TestParentDAO.COLNAME_CHILDID);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -516,7 +516,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsEqualTo(ACCESSOR_LASTMODIFIEDDATE, ModelFilter.COMPARATOR_LOCALDATETIME, testDateTime);
         message = String.format("%s: %s ⊥ %s", DataObjectFactory.COLNAME_LASTUPDATE, model.getLastModifiedDate().toString(), testDateTime.toString());
-        expResult = String.format("`%s`=%%", DataObjectFactory.COLNAME_LASTUPDATE);
+        expResult = String.format("`%s`=?", DataObjectFactory.COLNAME_LASTUPDATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -545,7 +545,7 @@ public class ModelFilterTest {
                 DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
-        String expResult = String.format("`%s`<>%%", TestParentDAO.COLNAME_ID);
+        String expResult = String.format("`%s`<>?", TestParentDAO.COLNAME_ID);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -558,7 +558,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString);
         message = String.format("%s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        expResult = String.format("`%s`<>%%", TestParentDAO.COLNAME_TITLE);
+        expResult = String.format("`%s`<>?", TestParentDAO.COLNAME_TITLE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -571,7 +571,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
-        expResult = String.format("`%s`<>%%", TestParentDAO.COLNAME_ACTIVE);
+        expResult = String.format("`%s`<>?", TestParentDAO.COLNAME_ACTIVE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -585,7 +585,7 @@ public class ModelFilterTest {
         testInt = model.getRate();
         filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt);
         message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_RATE, model.getRate(), testInt);
-        expResult = String.format("`%s`<>%%", TestParentDAO.COLNAME_RATE);
+        expResult = String.format("`%s`<>?", TestParentDAO.COLNAME_RATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -600,7 +600,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_CHILD, COMPARATOR_CHILD, TestChildModel.of(testChild));
         message = String.format("%s: { pk: %d, name: \"%s\" } ⊥ { pk: %d, name: \"%s\" }", TestParentDAO.COLNAME_CHILDID, testChild.getPrimaryKey(),
                 testChild.getName(), model.getChild().getDataObject().getPrimaryKey(), model.getChild().getName());
-        expResult = String.format("`%s`<>%%", TestParentDAO.COLNAME_CHILDID);
+        expResult = String.format("`%s`<>?", TestParentDAO.COLNAME_CHILDID);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -621,7 +621,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_LASTMODIFIEDDATE, ModelFilter.COMPARATOR_LOCALDATETIME, testDateTime);
         message = String.format("%s: %s ⊥ %s", DataObjectFactory.COLNAME_LASTUPDATE, model.getLastModifiedDate().toString(), testDateTime.toString());
-        expResult = String.format("`%s`<>%%", DataObjectFactory.COLNAME_LASTUPDATE);
+        expResult = String.format("`%s`<>?", DataObjectFactory.COLNAME_LASTUPDATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -650,7 +650,7 @@ public class ModelFilterTest {
                 DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsGreaterThan(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
-        String expResult = String.format("`%s`>%%", TestParentDAO.COLNAME_ID);
+        String expResult = String.format("`%s`>?", TestParentDAO.COLNAME_ID);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -669,7 +669,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsGreaterThan(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString);
         message = String.format("%s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        expResult = String.format("`%s`>%%", TestParentDAO.COLNAME_TITLE);
+        expResult = String.format("`%s`>?", TestParentDAO.COLNAME_TITLE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -688,7 +688,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsGreaterThan(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
-        expResult = String.format("`%s`>%%", TestParentDAO.COLNAME_ACTIVE);
+        expResult = String.format("`%s`>?", TestParentDAO.COLNAME_ACTIVE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -711,7 +711,7 @@ public class ModelFilterTest {
         testInt = model.getRate();
         filter = ModelFilter.columnIsGreaterThan(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt);
         message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_RATE, model.getRate(), testInt);
-        expResult = String.format("`%s`>%%", TestParentDAO.COLNAME_RATE);
+        expResult = String.format("`%s`>?", TestParentDAO.COLNAME_RATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -732,7 +732,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsGreaterThan(ACCESSOR_CHILD, COMPARATOR_CHILD, TestChildModel.of(testChild));
         message = String.format("%s: { pk: %d, name: \"%s\" } ⊥ { pk: %d, name: \"%s\" }", TestParentDAO.COLNAME_CHILDID,
                 model.getChild().getDataObject().getPrimaryKey(), model.getChild().getName(), testChild.getPrimaryKey(), testChild.getName());
-        expResult = String.format("`%s`>%%", TestParentDAO.COLNAME_CHILDID);
+        expResult = String.format("`%s`>?", TestParentDAO.COLNAME_CHILDID);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -767,7 +767,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsGreaterThan(ACCESSOR_LASTMODIFIEDDATE, ModelFilter.COMPARATOR_LOCALDATETIME, testDateTime);
         message = String.format("%s: %s ⊥ %s", DataObjectFactory.COLNAME_LASTUPDATE, model.getLastModifiedDate().toString(), testDateTime.toString());
-        expResult = String.format("`%s`>%%", DataObjectFactory.COLNAME_LASTUPDATE);
+        expResult = String.format("`%s`>?", DataObjectFactory.COLNAME_LASTUPDATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -802,7 +802,7 @@ public class ModelFilterTest {
                 DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
-        String expResult = String.format("`%s`>=%%", TestParentDAO.COLNAME_ID);
+        String expResult = String.format("`%s`>=?", TestParentDAO.COLNAME_ID);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -821,7 +821,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString);
         message = String.format("%s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        expResult = String.format("`%s`>=%%", TestParentDAO.COLNAME_TITLE);
+        expResult = String.format("`%s`>=?", TestParentDAO.COLNAME_TITLE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -840,7 +840,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
-        expResult = String.format("`%s`>=%%", TestParentDAO.COLNAME_ACTIVE);
+        expResult = String.format("`%s`>=?", TestParentDAO.COLNAME_ACTIVE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -863,7 +863,7 @@ public class ModelFilterTest {
         testInt = model.getRate();
         filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt);
         message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_RATE, model.getRate(), testInt);
-        expResult = String.format("`%s`>=%%", TestParentDAO.COLNAME_RATE);
+        expResult = String.format("`%s`>=?", TestParentDAO.COLNAME_RATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -884,7 +884,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_CHILD, COMPARATOR_CHILD, TestChildModel.of(testChild));
         message = String.format("%s: { pk: %d, name: \"%s\" } ⊥ { pk: %d, name: \"%s\" }", TestParentDAO.COLNAME_CHILDID,
                 model.getChild().getDataObject().getPrimaryKey(), model.getChild().getName(), testChild.getPrimaryKey(), testChild.getName());
-        expResult = String.format("`%s`>=%%", TestParentDAO.COLNAME_CHILDID);
+        expResult = String.format("`%s`>=?", TestParentDAO.COLNAME_CHILDID);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -919,7 +919,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_LASTMODIFIEDDATE, ModelFilter.COMPARATOR_LOCALDATETIME, testDateTime);
         message = String.format("%s: %s ⊥ %s", DataObjectFactory.COLNAME_LASTUPDATE, model.getLastModifiedDate().toString(), testDateTime.toString());
-        expResult = String.format("`%s`>=%%", DataObjectFactory.COLNAME_LASTUPDATE);
+        expResult = String.format("`%s`>=?", DataObjectFactory.COLNAME_LASTUPDATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -954,7 +954,7 @@ public class ModelFilterTest {
                 DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsLessThan(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
-        String expResult = String.format("`%s`<%%", TestParentDAO.COLNAME_ID);
+        String expResult = String.format("`%s`<?", TestParentDAO.COLNAME_ID);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -973,7 +973,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsLessThan(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString);
         message = String.format("%s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        expResult = String.format("`%s`<%%", TestParentDAO.COLNAME_TITLE);
+        expResult = String.format("`%s`<?", TestParentDAO.COLNAME_TITLE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -992,7 +992,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsLessThan(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
-        expResult = String.format("`%s`<%%", TestParentDAO.COLNAME_ACTIVE);
+        expResult = String.format("`%s`<?", TestParentDAO.COLNAME_ACTIVE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -1015,7 +1015,7 @@ public class ModelFilterTest {
         testInt = model.getRate();
         filter = ModelFilter.columnIsLessThan(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt);
         message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_RATE, model.getRate(), testInt);
-        expResult = String.format("`%s`<%%", TestParentDAO.COLNAME_RATE);
+        expResult = String.format("`%s`<?", TestParentDAO.COLNAME_RATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -1036,7 +1036,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsLessThan(ACCESSOR_CHILD, COMPARATOR_CHILD, TestChildModel.of(testChild));
         message = String.format("%s: { pk: %d, name: \"%s\" } ⊥ { pk: %d, name: \"%s\" }", TestParentDAO.COLNAME_CHILDID, testChild.getPrimaryKey(),
                 testChild.getName(), model.getChild().getDataObject().getPrimaryKey(), model.getChild().getName());
-        expResult = String.format("`%s`<%%", TestParentDAO.COLNAME_CHILDID);
+        expResult = String.format("`%s`<?", TestParentDAO.COLNAME_CHILDID);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -1071,7 +1071,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsLessThan(ACCESSOR_LASTMODIFIEDDATE, ModelFilter.COMPARATOR_LOCALDATETIME, testDateTime);
         message = String.format("%s: %s ⊥ %s", DataObjectFactory.COLNAME_LASTUPDATE, model.getLastModifiedDate().toString(), testDateTime.toString());
-        expResult = String.format("`%s`<%%", DataObjectFactory.COLNAME_LASTUPDATE);
+        expResult = String.format("`%s`<?", DataObjectFactory.COLNAME_LASTUPDATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertFalse(message, filter.test(model));
@@ -1106,7 +1106,7 @@ public class ModelFilterTest {
                 DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
-        String expResult = String.format("`%s`<=%%", TestParentDAO.COLNAME_ID);
+        String expResult = String.format("`%s`<=?", TestParentDAO.COLNAME_ID);
         String result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -1125,7 +1125,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString);
         message = String.format("%s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_TITLE, model.getTitle(), testString);
-        expResult = String.format("`%s`<=%%", TestParentDAO.COLNAME_TITLE);
+        expResult = String.format("`%s`<=?", TestParentDAO.COLNAME_TITLE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -1144,7 +1144,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
-        expResult = String.format("`%s`<=%%", TestParentDAO.COLNAME_ACTIVE);
+        expResult = String.format("`%s`<=?", TestParentDAO.COLNAME_ACTIVE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -1167,7 +1167,7 @@ public class ModelFilterTest {
         testInt = model.getRate();
         filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_RATE, ModelFilter.COMPARATOR_INTEGER, testInt);
         message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_RATE, model.getRate(), testInt);
-        expResult = String.format("`%s`<=%%", TestParentDAO.COLNAME_RATE);
+        expResult = String.format("`%s`<=?", TestParentDAO.COLNAME_RATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -1188,7 +1188,7 @@ public class ModelFilterTest {
         filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_CHILD, COMPARATOR_CHILD, TestChildModel.of(testChild));
         message = String.format("%s: { pk: %d, name: \"%s\" } ⊥ { pk: %d, name: \"%s\" }", TestParentDAO.COLNAME_CHILDID,
                 model.getChild().getDataObject().getPrimaryKey(), model.getChild().getName(), testChild.getPrimaryKey(), testChild.getName());
-        expResult = String.format("`%s`<=%%", TestParentDAO.COLNAME_CHILDID);
+        expResult = String.format("`%s`<=?", TestParentDAO.COLNAME_CHILDID);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));
@@ -1223,7 +1223,7 @@ public class ModelFilterTest {
         
         filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_LASTMODIFIEDDATE, ModelFilter.COMPARATOR_LOCALDATETIME, testDateTime);
         message = String.format("%s: %s ⊥ %s", DataObjectFactory.COLNAME_LASTUPDATE, model.getLastModifiedDate().toString(), testDateTime.toString());
-        expResult = String.format("`%s`<=%%", DataObjectFactory.COLNAME_LASTUPDATE);
+        expResult = String.format("`%s`<=?", DataObjectFactory.COLNAME_LASTUPDATE);
         result = filter.get();
         assertEquals(message, expResult, result);
         assertTrue(message, filter.test(model));

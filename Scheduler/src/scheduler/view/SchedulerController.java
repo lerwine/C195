@@ -149,8 +149,11 @@ public abstract class SchedulerController {
          * @param parent The new {@link Parent} for the current view.
          */
         protected void onBeforeShow(P parent) {
-            Stage stage = (Stage)parent.getScene().getWindow();
-            onBeforeShow(stage);
+            Scene scene = parent.getScene();
+            if (null != scene) {
+                Stage stage = (Stage)scene.getWindow();
+                onBeforeShow(stage);
+            }
         }
 
         /**

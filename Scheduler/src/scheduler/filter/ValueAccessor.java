@@ -17,5 +17,5 @@ import scheduler.view.ItemModel;
 public interface ValueAccessor<M extends ItemModel<?>, V> extends Function<M, V>, Supplier<String>,
         ThrowableBiConsumer<V, ParameterConsumer, SQLException> {
     
-    default String getSqlValue() { return "%"; }
+    default String getSqlValue() { return "?"; }
 }

@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Predicate;
-import scheduler.dao.DataObject;
 import scheduler.util.ThrowableConsumer;
 import scheduler.view.ChildModel;
 import scheduler.view.ItemModel;
@@ -52,7 +51,7 @@ public interface ModelFilter<M extends ItemModel<?>> extends SqlConditional, Pre
     void setParameterValues(ParameterConsumer consumer) throws SQLException;
     
     @Override
-    default String get() { return String.format("`%s`%s%%", getColName(), getOperator()); }
+    default String get() { return String.format("`%s`%s?", getColName(), getOperator()); }
     
     /**
      *

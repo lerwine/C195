@@ -48,13 +48,13 @@ public class FilterOrTest {
         System.out.println("combine");
         ModelFilter<AddressModel> x = ModelFilter.columnIsEqualTo(AddressFactory.VALUE_ACCESSOR_ADDRESS1, ModelFilter.COMPARATOR_STRING, "");
         ModelFilter<AddressModel> y = ModelFilter.columnIsEqualTo(AddressFactory.VALUE_ACCESSOR_POSTALCODE, ModelFilter.COMPARATOR_STRING, "");
-        String expResult = String.format("`%s`=%% OR `%s`=%%", AddressFactory.COLNAME_ADDRESS, AddressFactory.COLNAME_POSTALCODE);
+        String expResult = String.format("`%s`=? OR `%s`=?", AddressFactory.COLNAME_ADDRESS, AddressFactory.COLNAME_POSTALCODE);
         ModelFilter<AddressModel> filter = FilterOr.combine(x, y);
         String result = filter.get();
         assertEquals(expResult, result);
         y = ModelFilter.columnIsEqualTo(AddressFactory.VALUE_ACCESSOR_CITY_NAME, ModelFilter.COMPARATOR_STRING, "");
         filter = FilterAnd.combine(filter, y);
-        expResult = String.format("(%s) AND `%s`=%%", expResult, AddressFactory.VALUE_ACCESSOR_CITY_NAME);
+        expResult = String.format("(%s) AND `%s`=?", expResult, AddressFactory.VALUE_ACCESSOR_CITY_NAME);
         result = filter.get();
         assertEquals(expResult, result);
     }
