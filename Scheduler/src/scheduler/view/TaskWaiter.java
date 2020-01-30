@@ -159,7 +159,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
     }
 
     private void showPopup() throws RuntimeException {
-        LOG.log(Level.INFO, "loadBusyFxml called");
+        LOG.log(Level.INFO, "showPopup called");
         ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(TaskWaiter.class),
                 Locale.getDefault(Locale.Category.DISPLAY));
         FXMLLoader loader = new FXMLLoader(TaskWaiter.class.getResource(SchedulerController.getFXMLResourceName(TaskWaiter.class)), rb);
@@ -178,11 +178,12 @@ public abstract class TaskWaiter<T> extends Task<T> {
         popup.getContent().add(newParent);
         popup.setAnchorLocation(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
         popup.show(owner);
-        popup.sizeToScene();
+        popup.setWidth(owner.getWidth());
+        popup.setHeight(owner.getHeight());
     }
     
     private void hidePopup() {
-        LOG.log(Level.INFO, "restoreScene called");
+        LOG.log(Level.INFO, "hidePopup called");
         cancelButton.setOnAction(null);
         popup.hide();
     }
