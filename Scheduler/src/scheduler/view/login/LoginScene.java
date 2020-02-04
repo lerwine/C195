@@ -1,7 +1,9 @@
 package scheduler.view.login;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,16 +14,17 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
@@ -126,6 +129,42 @@ public class LoginScene extends SchedulerController {
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
+    public static void loadInto(Stage stage) throws IOException {
+        String[] languageIds = AppConfig.getLanguages();
+        // Attempt to find a match for the current display language amongst the languages supported by the app.
+        final String lt = Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag();
+        // First look for one that is an exact match with the language tag.
+        Optional<String> cl = Arrays.stream(languageIds).filter((String id) -> id.equals(lt)).findFirst();
+        if (!cl.isPresent()) {
+            // Look for one that matches the ISO3 language code.
+            final String iso3 = Locale.getDefault(Locale.Category.DISPLAY).getISO3Language();
+            cl = Arrays.stream(languageIds).filter((String id) -> id.equals(iso3)).findFirst();
+            if (!cl.isPresent()) {
+                // Look for one that matches the ISO2 language code.
+                final String ln = Locale.getDefault(Locale.Category.DISPLAY).getLanguage();
+                cl = Arrays.stream(languageIds).filter((String id) -> id.equals(ln)).findFirst();
+            }
+        }
+        
+        // Populate list of Locale objects.
+        ObservableList<Locale> languages = FXCollections.observableArrayList();
+        if (cl.isPresent())
+            for (String n : AppConfig.getLanguages())
+                languages.add((n.equals(cl.get())) ? Locale.getDefault(Locale.Category.DISPLAY) : new Locale(n));
+        else {
+            for (String n : AppConfig.getLanguages())
+                languages.add(new Locale(n));
+            Locale toSelect = languages.get(0);
+            Locale.setDefault(Locale.Category.DISPLAY, toSelect);
+            Locale.setDefault(Locale.Category.FORMAT, toSelect);
+        }
+
+        SchedulerController.load(stage, LoginScene.class, (Parent v, LoginScene c) -> {
+            c.languageComboBox.setItems(languages);
+            stage.setScene(new Scene(v));
+        });
+    }
+    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'LoginScene.fxml'.";
@@ -137,17 +176,19 @@ public class LoginScene extends SchedulerController {
         assert passwordValidationLabel != null : "fx:id=\"passwordValidationLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
         assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
         assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
-
         currentResourceBundle = getResources();
-        scheduler.App app = scheduler.App.getCurrent();
-        languageComboBox.setItems(app.getAllLanguages());
+    }
+    
+    @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
         languageComboBox.getSelectionModel().select(Locale.getDefault(Locale.Category.DISPLAY));
         valid = new Validation();
         valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             loginButton.setDisable(!newValue);
         });
         loginButton.setDisable(!valid.get());
-        
+        super.onBeforeShow(currentView, stage);
     }
     
     //</editor-fold>
@@ -155,7 +196,7 @@ public class LoginScene extends SchedulerController {
     @FXML
     void loginButtonClick(ActionEvent event) {
         LOG.log(Level.INFO, "loginButtonClick invoked");
-        App.getCurrent().tryLoginUser((Stage)userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        App.tryLoginUser((Stage)userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null)
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             else
@@ -166,6 +207,10 @@ public class LoginScene extends SchedulerController {
 
     @FXML
     void exitButtonClick(ActionEvent event) { languageComboBox.getScene().getWindow().hide(); }
+
+    public void setLanguages(ObservableList<Locale> languages) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
@@ -210,7 +255,8 @@ public class LoginScene extends SchedulerController {
             if (newValue == null)
                 return;
             // Change the current application language;
-            App.setCurrentLocale(newValue);
+            Locale.setDefault(Locale.Category.DISPLAY, newValue);
+            Locale.setDefault(Locale.Category.FORMAT, newValue);
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
             // Update field labels and button text.
@@ -240,9 +286,4 @@ public class LoginScene extends SchedulerController {
         public void dispose() { super.unbind(languageValid, userNameValid, passwordValid); }
     }
 
-    @Override
-    protected void onBeforeShow(Node currentView, Stage stage) {
-        stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-        super.onBeforeShow(currentView, stage);
-    }
 }

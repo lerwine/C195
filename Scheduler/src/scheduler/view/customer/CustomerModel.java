@@ -54,17 +54,6 @@ public class CustomerModel extends ItemModel<CustomerImpl> implements Appointmen
     }
 
     @Override
-    public void refreshFromDAO() {
-        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean delete(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public void saveChanges(Connection connection) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

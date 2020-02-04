@@ -161,18 +161,6 @@ public abstract class DataObjectImpl implements DataObject {
         rowState = DataObjectFactory.ROWSTATE_UNMODIFIED;
     }
     
-    public synchronized void delete(Connection connection) throws Exception {
-        Objects.requireNonNull(connection, "Connection cannot be null");
-        assert rowState == DataObjectFactory.ROWSTATE_UNMODIFIED || rowState == DataObjectFactory.ROWSTATE_MODIFIED : "Associated row does not exist";
-        String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, primaryKey);
-            assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
-                    getTableName(), getPrimaryKeyColName(), primaryKey);
-        }
-        rowState = DataObjectFactory.ROWSTATE_DELETED;
-    }
-    
     private int assertBaseResultSetValid(ResultSet resultSet) throws SQLException {
         Objects.requireNonNull(resultSet, "Result set cannot be null");
         assert !resultSet.isClosed() : "Result set is closed.";
@@ -207,6 +195,40 @@ public abstract class DataObjectImpl implements DataObject {
     public final String getPrimaryKeyColName() { return DataObjectFactory.getPrimaryKeyColName(getClass()); }
     
     public void saveChanges(Connection connection) throws SQLException {
-        
+         throw new UnsupportedOperationException("Not supported yet.");
     }
+    
+    public abstract boolean canDelete(Connection connection) throws Exception;
+    
+    public synchronized void delete(Connection connection) throws Exception {
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        assert rowState != DataObjectFactory.ROWSTATE_DELETED :
+                String.format("%s has already been deleted", getClass().getName());
+        assert rowState != DataObjectFactory.ROWSTATE_NEW :
+                String.format("%s has not been inserted into the database", getClass().getName());
+        String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, primaryKey);
+            assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
+                    getTableName(), getPrimaryKeyColName(), primaryKey);
+        }
+        rowState = DataObjectFactory.ROWSTATE_DELETED;
+    }
+    
+    public abstract boolean isValid();
+    
+    /**
+     * Gets a validation message which would indicate why the current item cannot be saved.
+     * @param connection The {@link Connection} that can be used for validation.
+     * @return The validation message if the current item cannot be saved; otherwise, {@code null} or an empty string if the current item is valid. 
+     */
+    public abstract String getValidationMessageForSave(Connection connection);
+        
+    /**
+     * Gets a validation message which would indicate why the current item cannot be deleted.
+     * @param connection The {@link Connection} that can be used for validation.
+     * @return The validation message if the current item cannot be deleted; otherwise, {@code null} or an empty string if the current item can be deleted. 
+     */
+    public abstract String getValidationMessageForDelete(Connection connection);
+        
 }

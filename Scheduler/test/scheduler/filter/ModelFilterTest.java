@@ -1312,6 +1312,26 @@ public class ModelFilterTest {
         @Override
         public String getName() { return name; }
         public void setName(String value) { name = (value == null) ? "" : value; }
+
+        @Override
+        public boolean canDelete(Connection connection) throws Exception {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean isValid() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getValidationMessageForSave(Connection connection) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getValidationMessageForDelete(Connection connection) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
     
     @TableName(TEST_TABLENAME_PARENT)
@@ -1340,6 +1360,26 @@ public class ModelFilterTest {
         @Override
         public TestChildDAO getChild() { return child; }
         public void setChild(TestChildDAO value) { child = value; }
+
+        @Override
+        public boolean canDelete(Connection connection) throws Exception {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public boolean isValid() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getValidationMessageForSave(Connection connection) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getValidationMessageForDelete(Connection connection) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
     
     public interface TestChildModel<T extends TestChildDAO> extends ChildModel<T> {
@@ -1409,8 +1449,6 @@ public class ModelFilterTest {
             name = new ReadOnlyStringWrapper(dao.getName());
         }
         @Override
-        public boolean delete(Connection connection) { throw new UnsupportedOperationException("Not supported yet."); }
-        @Override
         public void saveChanges(Connection connection) { throw new UnsupportedOperationException("Not supported yet."); }
         private final ReadOnlyStringWrapper name;
         @Override
@@ -1427,8 +1465,6 @@ public class ModelFilterTest {
             rate = new ReadOnlyIntegerWrapper(dao.getRate());
             child = new ReadOnlyObjectWrapper<>(TestChildModel.of(dao.getChild()));
         }
-        @Override
-        public boolean delete(Connection connection) { throw new UnsupportedOperationException("Not supported yet."); }
         @Override
         public void saveChanges(Connection connection) { throw new UnsupportedOperationException("Not supported yet."); }
         private final ReadOnlyStringWrapper title;

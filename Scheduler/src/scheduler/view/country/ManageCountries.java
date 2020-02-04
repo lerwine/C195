@@ -1,19 +1,19 @@
 package scheduler.view.country;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Locale;
+import java.io.IOException;
+import java.sql.Connection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.cell.PropertyValueFactory;
-import scheduler.dao.Country;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import scheduler.dao.CountryFactory;
 import scheduler.dao.CountryImpl;
+import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
+import scheduler.view.CrudAction;
 import scheduler.view.ListingController;
+import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -25,77 +25,78 @@ import scheduler.view.annotations.GlobalizationResource;
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
 public class ManageCountries extends ListingController<CountryModel> {
+    
+    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
+    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Countries"}.
      */
     public static final String RESOURCEKEY_MANAGECOUNTRIES = "manageCountries";
 
-    @FXML
-    private TableColumn<CountryModel, String> nameTableColumn;
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Countries"}.
+     */
+    public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
 
-    @FXML
-    private TableColumn<CountryModel, LocalDateTime> createDateTableColumn;
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Database Access Error"}.
+     */
+    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
 
-    @FXML
-    private TableColumn<CountryModel, String> createdByTableColumn;
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading countries..."}.
+     */
+    public static final String RESOURCEKEY_ERRORLOADINGCOUNTRIES = "errorLoadingCountries";
 
-    @FXML
-    private TableColumn<CountryModel, LocalDateTime> lastUpdateTableColumn;
-
-    @FXML
-    private TableColumn<CountryModel, String> lastUpdateByTableColumn;
-    
-    @Override
-    protected void initialize() {
-        nameTableColumn.setCellValueFactory(new PropertyValueFactory<>(Country.PROP_NAME));
-        createDateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDATE));
-        createDateTableColumn.setCellFactory(col -> new TableCell<CountryModel, LocalDateTime>() {
-            private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty)
-                    setText(null);
-                else
-                    setText(item.format(fmt));
-            }
-        });
-        createdByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_CREATEDBY));
-        lastUpdateTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDDATE));
-        lastUpdateTableColumn.setCellFactory(col -> new TableCell<CountryModel, LocalDateTime>() {
-            private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty)
-                    setText(null);
-                else
-                    setText(item.format(fmt));
-            }
-        });
-        lastUpdateByTableColumn.setCellValueFactory(new PropertyValueFactory<>(CountryImpl.PROP_LASTMODIFIEDBY));
+    public static void loadInto(MainController mc, Stage stage, ModelFilter<CountryModel> filter) throws IOException {
+        loadInto(ManageCountries.class, mc, stage, filter);
     }
     
-    @Deprecated
-    public static void setAsRootContent() {
-//        setAsRootContent(ManageCountries.class, (scheduler.view.SchedulerController.ContentChangeContext<ManageCountries> context) -> {
-//            context.setWindowTitle(context.getResources().getString(RESOURCEKEY_MANAGECOUNTRIES));
-//            Alerts.showErrorAlert("Not Implemented", "Need to initialize country list");
-//        });
-    }
-
     @Override
     protected void onAddNewItem(Event event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        getMainController().addNewCountry(event);
     }
 
     @Override
-    protected void onEditItem(Event event, CountryModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected CrudAction<CountryModel> onEditItem(Event event, CountryModel item) {
+        return getMainController().editCountry(event, item);
     }
 
     @Override
     protected void onDeleteItem(Event event, CountryModel item) {
+        getMainController().deleteCountry(event, item);
+    }
+
+    @Override
+    protected void onFilterChanged(Stage owner) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    private class CountriesLoadTask extends ItemsLoadTask<CountryImpl> {
+        CountriesLoadTask(Stage owner) {
+            super(owner, getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
+        }
+
+        @Override
+        protected void processNullResult(Window owner) {
+            LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
+            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCOUNTRIES));
+        }
+
+        @Override
+        protected CountryModel toModel(CountryImpl result) { return new CountryModel(result); }
+
+        @Override
+        protected Iterable<CountryImpl> getResult(Connection connection, ModelFilter<CountryModel> filter) throws Exception {
+            return (new CountryFactory()).load(connection, filter);
+        }
+        
+        @Override
+        protected void processException(Throwable ex, Window owner) {
+            super.processException(ex, owner);
+            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCOUNTRIES));
+        }
+        
+    }
+
 }

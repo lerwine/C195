@@ -11,7 +11,8 @@ import scheduler.dao.DataObject;
 public interface ChildModel<R extends DataObject> {
 
     /**
-     * Gets the {@link DataObjectImpl} to be used for data access operations.
+     * Gets the {@link DataObjectImpl} to be used for data access operations.m the child model properties;
+     * otherwise, {@code false} to return the {@link DataObject} as-is.
      * @return The {@link DataObjectImpl} to be used for data access operations.
      */
     R getDataObject();

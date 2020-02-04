@@ -5,7 +5,6 @@
  */
 package scheduler.view.appointment;
 
-import java.net.URL;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -100,17 +99,6 @@ public class AppointmentModel extends ItemModel<AppointmentImpl> {
         url = new ReadOnlyStringWrapper(dao.getUrl());
         start = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getStart()));
         end = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getEnd()));
-    }
-
-    @Override
-    public void refreshFromDAO() {
-        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean delete(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override

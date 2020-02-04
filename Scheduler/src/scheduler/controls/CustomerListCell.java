@@ -1,16 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.controls;
 
 import javafx.scene.control.ListCell;
 
 /**
- * List cell for displaying the name of a {@link 
- * @author Leonard T. Erwine
- * @param <T>
+ *
+ * @author lerwi
+ * @param <T> The item type.
  */
 public class CustomerListCell<T extends scheduler.view.customer.AppointmentCustomer<?>> extends ListCell<T> {
     @Override

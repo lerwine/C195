@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -10,43 +8,31 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="480.0" prefWidth="640.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.EditUser">
-    <children>
-      <Label styleClass="header-section" text="Add New User" />
-      <GridPane>
-        <columnConstraints>
-          <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
-          <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="ALWAYS" />
-            <RowConstraints minHeight="10.0" valignment="BOTTOM" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <Label styleClass="hLeftFieldLabel" text="%userName" />
-            <TextField fx:id="userNameTextField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" />
-            <Label fx:id="userNameErrorMessageLabel" styleClass="error" text="%userNameCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <CheckBox fx:id="changePasswordCheckBox" mnemonicParsing="false" styleClass="hLeftFieldLabel" text="Password:" GridPane.rowIndex="2" />
-            <PasswordField fx:id="passwordField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label fx:id="confirmLabel" styleClass="hLeftFieldLabel" text="%confirmPassword" GridPane.rowIndex="3" />
-            <PasswordField fx:id="confirmPasswordField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Label fx:id="passwordErrorMessageLabel" styleClass="error" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <Label styleClass="hLeftFieldLabel" text="%activeState" GridPane.rowIndex="5" />
-            <ComboBox fx:id="activeComboBox" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
-            <ButtonBar prefHeight="40.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="6">
-              <buttons>
-                <Button fx:id="saveChangesButton" mnemonicParsing="false" onAction="#saveChangesButtonClick" text="Add New" />
-                  <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#cancelButtonClick" text="Cancel" />
-              </buttons>
-            </ButtonBar>
-         </children>
-      </GridPane>
-    </children>
-</VBox>
+
+<GridPane stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.EditUser">
+  <columnConstraints>
+    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
+    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="TOP" vgrow="ALWAYS" />
+  </rowConstraints>
+   <children>
+      <Label styleClass="hLeftFieldLabel" text="%userName" />
+      <TextField fx:id="userNameTextField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" />
+      <Label fx:id="userNameErrorMessageLabel" styleClass="error" text="%userNameCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <CheckBox fx:id="changePasswordCheckBox" mnemonicParsing="false" styleClass="hLeftFieldLabel" text="\%password" GridPane.rowIndex="2" />
+      <PasswordField fx:id="passwordField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <Label fx:id="confirmLabel" styleClass="hLeftFieldLabel" text="%confirmPassword" GridPane.rowIndex="3" />
+      <PasswordField fx:id="confirmPasswordField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <Label fx:id="passwordErrorMessageLabel" styleClass="error" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+      <Label styleClass="hLeftFieldLabel" text="%activeState" GridPane.rowIndex="5" />
+      <ComboBox fx:id="activeComboBox" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
+   </children>
+</GridPane>

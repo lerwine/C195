@@ -1,19 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import scheduler.controls.CustomerListCell?>
-<?import scheduler.controls.CustomerListCellFactory?>
-<?import scheduler.controls.UserListCell?>
-<?import scheduler.controls.UserListCellFactory?>
-<?import scheduler.controls.AppointmentTypeListCell?>
-<?import scheduler.controls.AppointmentTypeListCellFactory?>
-<?import scheduler.controls.ZeroPadDigitListCell?>
-<?import scheduler.controls.ZeroPadDigitListCellFactory?>
-<?import scheduler.controls.TimeZoneListCell?>
-<?import scheduler.controls.TimeZoneListCellFactory?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
@@ -25,279 +14,275 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
+<?import scheduler.controls.AppointmentTypeListCell?>
+<?import scheduler.controls.AppointmentTypeListCellFactory?>
+<?import scheduler.controls.CustomerListCell?>
+<?import scheduler.controls.CustomerListCellFactory?>
+<?import scheduler.controls.TimeZoneListCell?>
+<?import scheduler.controls.TimeZoneListCellFactory?>
+<?import scheduler.controls.UserListCell?>
+<?import scheduler.controls.UserListCellFactory?>
+<?import scheduler.controls.ZeroPadDigitListCell?>
+<?import scheduler.controls.ZeroPadDigitListCellFactory?>
 
-<VBox prefHeight="600.0" prefWidth="800.0" spacing="8.0" styleClass="outerContainer" stylesheets="@../../scheduler/defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
+
+<GridPane stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" />
+        <ColumnConstraints />
+        <ColumnConstraints hgrow="ALWAYS" />
+        <ColumnConstraints />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints /><!--5-->
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints /><!--10-->
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints /><!--15-->
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
+        <RowConstraints />
+        <RowConstraints /><!--20-->
+    </rowConstraints>
     <children>
-        <GridPane VBox.vgrow="ALWAYS">
+        <Label styleClass="formControlLabel" text="%customer" GridPane.columnSpan="2" />
+        <Label styleClass="formControlLabel" text="%user" GridPane.columnIndex="2" GridPane.columnSpan="2">
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
+        </Label>
+        <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+            <cellFactory>
+                <CustomerListCellFactory />
+            </cellFactory>
+            <buttonCell>
+                <CustomerListCell />
+            </buttonCell>
+        </ComboBox>
+        <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addCustomerClick" prefWidth="38.0" text="%add" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
+            <cellFactory>
+                <UserListCellFactory />
+            </cellFactory>
+            <buttonCell>
+                <UserListCell />
+            </buttonCell>
+        </ComboBox>
+        <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addUserClick" prefWidth="38.0" text="%add" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+        <Text fx:id="customerValidationText" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
+        <Label fx:id="userValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="2" GridPane.rowIndex="2">
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
+        </Label>
+        <Label styleClass="formControlLabel" text="%title" GridPane.columnSpan="4" GridPane.rowIndex="3">
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
+        </Label>
+        <TextField fx:id="titleTextField" GridPane.columnSpan="4" GridPane.rowIndex="4" />
+        <Label fx:id="titleValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnSpan="4" GridPane.rowIndex="5" />
+        <GridPane GridPane.columnSpan="4" GridPane.rowIndex="6">
             <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" />
+                <ColumnConstraints hgrow="SOMETIMES" />
                 <ColumnConstraints hgrow="ALWAYS" />
-                <ColumnConstraints />
-                <ColumnConstraints hgrow="ALWAYS" />
-                <ColumnConstraints />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints /><!--5-->
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints /><!--10-->
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints /><!--15-->
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
-                <RowConstraints />
-                <RowConstraints /><!--20-->
+                <RowConstraints vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <Label styleClass="formControlLabel" text="%customer" GridPane.columnSpan="2" />
-                <Label styleClass="formControlLabel" text="%user" GridPane.columnIndex="2" GridPane.columnSpan="2">
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
-                    <cellFactory>
-                        <CustomerListCellFactory />
-                    </cellFactory>
-                    <buttonCell>
-                        <CustomerListCell />
-                    </buttonCell>
-                </ComboBox>
-                <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addCustomerClick" prefWidth="38.0" text="%add" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                    <cellFactory>
-                        <UserListCellFactory />
-                    </cellFactory>
-                    <buttonCell>
-                        <UserListCell />
-                    </buttonCell>
-                </ComboBox>
-                <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addUserClick" prefWidth="38.0" text="%add" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                <Text fx:id="customerValidationText" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
-                <Label fx:id="userValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="2" GridPane.rowIndex="2">
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <Label styleClass="formControlLabel" text="%title" GridPane.columnSpan="4" GridPane.rowIndex="3">
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <TextField fx:id="titleTextField" GridPane.columnSpan="4" GridPane.rowIndex="4" />
-                <Label fx:id="titleValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnSpan="4" GridPane.rowIndex="5" />
-                <GridPane GridPane.columnSpan="4" GridPane.rowIndex="6">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" />
-                        <ColumnConstraints hgrow="SOMETIMES" />
-                        <ColumnConstraints hgrow="ALWAYS" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints />
-                        <RowConstraints vgrow="SOMETIMES" />
-                    </rowConstraints>
+                <Label styleClass="formControlLabel" text="%start" />
+                <VBox GridPane.rowIndex="1">
                     <children>
-                        <Label styleClass="formControlLabel" text="%start" />
-                        <VBox GridPane.rowIndex="1">
+                        <DatePicker fx:id="startDatePicker">
+                            <VBox.margin>
+                                <Insets bottom="8.0" />
+                            </VBox.margin>
+                        </DatePicker>
+                        <HBox alignment="CENTER">
                             <children>
-                                <DatePicker fx:id="startDatePicker">
-                                    <VBox.margin>
-                                        <Insets bottom="8.0" />
-                                    </VBox.margin>
-                                </DatePicker>
-                                <HBox alignment="CENTER">
-                                    <children>
-                                        <ComboBox fx:id="startHourComboBox" minWidth="64.0" prefWidth="64.0">
-                                            <cellFactory>
-                                                <ZeroPadDigitListCellFactory />
-                                            </cellFactory>
-                                            <buttonCell>
-                                                <ZeroPadDigitListCell />
-                                            </buttonCell>
-                                        </ComboBox>
-                                        <Label text=":" />
-                                        <ComboBox fx:id="startMinuteComboBox" minWidth="64.0" prefWidth="64.0">
-                                            <cellFactory>
-                                                <ZeroPadDigitListCellFactory />
-                                            </cellFactory>
-                                            <buttonCell>
-                                                <ZeroPadDigitListCell />
-                                            </buttonCell>
-                                        </ComboBox>
-                                    </children>
-                                </HBox>
-                                <Label fx:id="startValidationLabel" styleClass="formControlValidationMessage" text="%required" />
-                            </children>
-                        </VBox>
-                        <Label styleClass="formControlLabel" text="%end" GridPane.columnIndex="1">
-                            <GridPane.margin>
-                                <Insets left="8.0" />
-                            </GridPane.margin>
-                        </Label>
-                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                            <children>
-                                <DatePicker fx:id="endDatePicker">
-                                    <VBox.margin>
-                                        <Insets bottom="8.0" />
-                                    </VBox.margin>
-                                </DatePicker>
-                                <HBox alignment="CENTER">
-                                    <children>
-                                        <ComboBox fx:id="endHourComboBox" minWidth="64.0" prefWidth="64.0">
-                                            <cellFactory>
-                                                <ZeroPadDigitListCellFactory />
-                                            </cellFactory>
-                                            <buttonCell>
-                                                <ZeroPadDigitListCell />
-                                            </buttonCell>
-                                        </ComboBox>
-                                        <Label text=":" />
-                                        <ComboBox fx:id="endMinuteComboBox" minWidth="64.0" prefWidth="64.0">
-                                            <cellFactory>
-                                                <ZeroPadDigitListCellFactory />
-                                            </cellFactory>
-                                            <buttonCell>
-                                                <ZeroPadDigitListCell />
-                                            </buttonCell>
-                                        </ComboBox>
-                                    </children>
-                                </HBox>
-                                <Label fx:id="endValidationLabel" styleClass="formControlValidationMessage" text="%required" />
-                            </children>
-                            <padding>
-                                <Insets left="8.0" right="8.0" />
-                            </padding>
-                        </VBox>
-                        <Label styleClass="formControlLabel" text="%timeZone" GridPane.columnIndex="2" />
-                        <VBox GridPane.columnIndex="2" GridPane.rowIndex="1" HBox.hgrow="SOMETIMES">
-                            <children>
-                                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+                                <ComboBox fx:id="startHourComboBox" minWidth="64.0" prefWidth="64.0">
                                     <cellFactory>
-                                        <TimeZoneListCellFactory />
+                                        <ZeroPadDigitListCellFactory />
                                     </cellFactory>
                                     <buttonCell>
-                                        <TimeZoneListCell />
+                                        <ZeroPadDigitListCell />
                                     </buttonCell>
                                 </ComboBox>
-                                <HBox>
-                                    <children>
-                                        <Label fx:id="currentTimeZoneLabel" style="-fx-label-padding: 0 4 0 0;" text="%currentTimeZone">
-                                            <styleClass>
-                                                <String fx:value="formControlLabel" />
-                                                <String fx:value="collapsed" />
-                                            </styleClass>
-                                        </Label>
-                                        <Label fx:id="currentTimeZoneValue" styleClass="collapsed" text="currentTimeZone" wrapText="true" />
-                                    </children>
-                                </HBox>
+                                <Label text=":" />
+                                <ComboBox fx:id="startMinuteComboBox" minWidth="64.0" prefWidth="64.0">
+                                    <cellFactory>
+                                        <ZeroPadDigitListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <ZeroPadDigitListCell />
+                                    </buttonCell>
+                                </ComboBox>
                             </children>
-                        </VBox>
+                        </HBox>
+                        <Label fx:id="startValidationLabel" styleClass="formControlValidationMessage" text="%required" />
                     </children>
+                </VBox>
+                <Label styleClass="formControlLabel" text="%end" GridPane.columnIndex="1">
                     <GridPane.margin>
-                        <Insets top="8.0" />
+                        <Insets left="8.0" />
                     </GridPane.margin>
-                </GridPane>
-                <HBox fx:id="showConflictsHBox" alignment="CENTER_LEFT" styleClass="collapsed" GridPane.columnSpan="4" GridPane.rowIndex="7">
+                </Label>
+                <VBox GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <children>
-                        <Label fx:id="conflictValidationLabel" styleClass="formControlValidationMessage" text="%conflictCustomer1User1" />
-                        <Button mnemonicParsing="false" onAction="#showConflictsButtonClick" text="%show">
-                            <HBox.margin>
-                                <Insets left="8.0" />
-                            </HBox.margin>
-                        </Button>
+                        <DatePicker fx:id="endDatePicker">
+                            <VBox.margin>
+                                <Insets bottom="8.0" />
+                            </VBox.margin>
+                        </DatePicker>
+                        <HBox alignment="CENTER">
+                            <children>
+                                <ComboBox fx:id="endHourComboBox" minWidth="64.0" prefWidth="64.0">
+                                    <cellFactory>
+                                        <ZeroPadDigitListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <ZeroPadDigitListCell />
+                                    </buttonCell>
+                                </ComboBox>
+                                <Label text=":" />
+                                <ComboBox fx:id="endMinuteComboBox" minWidth="64.0" prefWidth="64.0">
+                                    <cellFactory>
+                                        <ZeroPadDigitListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <ZeroPadDigitListCell />
+                                    </buttonCell>
+                                </ComboBox>
+                            </children>
+                        </HBox>
+                        <Label fx:id="endValidationLabel" styleClass="formControlValidationMessage" text="%required" />
                     </children>
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                </HBox>
-                <Label styleClass="formControlLabel" text="%type" GridPane.columnSpan="2" GridPane.rowIndex="8">
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <Label fx:id="locationLabel" styleClass="formControlLabel" text="%location" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="8">
-                    <GridPane.margin>
-                        <Insets left="8.0" top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="9" GridPane.valignment="TOP">
-                    <cellFactory>
-                        <AppointmentTypeListCellFactory />
-                    </cellFactory>
-                    <buttonCell>
-                        <AppointmentTypeListCell />
-                    </buttonCell>
-                </ComboBox>
-                <TextArea fx:id="locationTextArea" prefRowCount="4" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9">
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                </TextArea>
-                <TextField fx:id="phoneTextField" styleClass="collapsed" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9" GridPane.valignment="TOP">
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                </TextField>
-                <Label fx:id="implicitLocationLabel" styleClass="collapsed" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9" GridPane.valignment="TOP" />
-                <Label fx:id="locationValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="10">
-                    <GridPane.margin>
-                        <Insets left="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <Label fx:id="urlLabel" text="%meetingUrl" GridPane.columnSpan="4" GridPane.rowIndex="11">
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                    <styleClass>
-                        <String fx:value="formControlLabel" />
-                        <String fx:value="collapsed" />
-                    </styleClass>
-                </Label>
-                <TextField fx:id="urlTextField" styleClass="collapsed" GridPane.columnSpan="4" GridPane.rowIndex="12" />
-                <Label fx:id="urlValidationLabel" text="%invalidUrl" GridPane.columnSpan="4" GridPane.rowIndex="13">
-                    <styleClass>
-                        <String fx:value="formControlValidationMessage" />
-                        <String fx:value="collapsed" />
-                    </styleClass>
-                </Label>
-                <Label styleClass="formControlLabel" text="%pointOfContact" GridPane.columnSpan="4" GridPane.rowIndex="14">
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <TextField fx:id="contactTextField" GridPane.columnSpan="4" GridPane.rowIndex="15" />
-                <Label fx:id="contactValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnSpan="4" GridPane.rowIndex="16" />
-                <Label styleClass="formControlLabel" text="%description" GridPane.columnSpan="4" GridPane.rowIndex="17">
-                    <GridPane.margin>
-                        <Insets top="8.0" />
-                    </GridPane.margin>
-                </Label>
-                <TextArea fx:id="descriptionTextArea" prefRowCount="4" GridPane.columnSpan="4" GridPane.rowIndex="18" />
+                    <padding>
+                        <Insets left="8.0" right="8.0" />
+                    </padding>
+                </VBox>
+                <Label styleClass="formControlLabel" text="%timeZone" GridPane.columnIndex="2" />
+                <VBox GridPane.columnIndex="2" GridPane.rowIndex="1" HBox.hgrow="SOMETIMES">
+                    <children>
+                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+                            <cellFactory>
+                                <TimeZoneListCellFactory />
+                            </cellFactory>
+                            <buttonCell>
+                                <TimeZoneListCell />
+                            </buttonCell>
+                        </ComboBox>
+                        <HBox>
+                            <children>
+                                <Label fx:id="currentTimeZoneLabel" style="-fx-label-padding: 0 4 0 0;" text="%currentTimeZone">
+                                    <styleClass>
+                                        <String fx:value="formControlLabel" />
+                                        <String fx:value="collapsed" />
+                                    </styleClass>
+                                </Label>
+                                <Label fx:id="currentTimeZoneValue" styleClass="collapsed" text="currentTimeZone" wrapText="true" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
             </children>
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
         </GridPane>
-        <ButtonBar>
-            <buttons>
-                <Button fx:id="saveChangesButton" mnemonicParsing="false" text="%save" onAction="#saveChangesButtonClick" />
-                <Button fx:id="deleteButton" mnemonicParsing="false" text="%delete" onAction="#deleteButtonClick" />
-                <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" onAction="#cancelButtonClick" />
-            </buttons>
-        </ButtonBar>
+        <HBox fx:id="showConflictsHBox" alignment="CENTER_LEFT" styleClass="collapsed" GridPane.columnSpan="4" GridPane.rowIndex="7">
+            <children>
+                <Label fx:id="conflictValidationLabel" styleClass="formControlValidationMessage" text="%conflictCustomer1User1" />
+                <Button mnemonicParsing="false" onAction="#showConflictsButtonClick" text="%show">
+                    <HBox.margin>
+                        <Insets left="8.0" />
+                    </HBox.margin>
+                </Button>
+            </children>
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
+        </HBox>
+        <Label styleClass="formControlLabel" text="%type" GridPane.columnSpan="2" GridPane.rowIndex="8">
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
+        </Label>
+        <Label fx:id="locationLabel" styleClass="formControlLabel" text="%location" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="8">
+            <GridPane.margin>
+                <Insets left="8.0" top="8.0" />
+            </GridPane.margin>
+        </Label>
+        <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="9" GridPane.valignment="TOP">
+            <cellFactory>
+                <AppointmentTypeListCellFactory />
+            </cellFactory>
+            <buttonCell>
+                <AppointmentTypeListCell />
+            </buttonCell>
+        </ComboBox>
+        <TextArea fx:id="locationTextArea" prefRowCount="4" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9">
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
+        </TextArea>
+        <TextField fx:id="phoneTextField" styleClass="collapsed" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9" GridPane.valignment="TOP">
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
+        </TextField>
+        <Label fx:id="implicitLocationLabel" styleClass="collapsed" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9" GridPane.valignment="TOP" />
+        <Label fx:id="locationValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="10">
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
+        </Label>
+        <Label fx:id="urlLabel" text="%meetingUrl" GridPane.columnSpan="4" GridPane.rowIndex="11">
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
+            <styleClass>
+                <String fx:value="formControlLabel" />
+                <String fx:value="collapsed" />
+            </styleClass>
+        </Label>
+        <TextField fx:id="urlTextField" styleClass="collapsed" GridPane.columnSpan="4" GridPane.rowIndex="12" />
+        <Label fx:id="urlValidationLabel" text="%invalidUrl" GridPane.columnSpan="4" GridPane.rowIndex="13">
+            <styleClass>
+                <String fx:value="formControlValidationMessage" />
+                <String fx:value="collapsed" />
+            </styleClass>
+        </Label>
+        <Label styleClass="formControlLabel" text="%pointOfContact" GridPane.columnSpan="4" GridPane.rowIndex="14">
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
+        </Label>
+        <TextField fx:id="contactTextField" GridPane.columnSpan="4" GridPane.rowIndex="15" />
+        <Label fx:id="contactValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnSpan="4" GridPane.rowIndex="16" />
+        <Label styleClass="formControlLabel" text="%description" GridPane.columnSpan="4" GridPane.rowIndex="17">
+            <GridPane.margin>
+                <Insets top="8.0" />
+            </GridPane.margin>
+        </Label>
+        <TextArea fx:id="descriptionTextArea" prefRowCount="4" GridPane.columnSpan="4" GridPane.rowIndex="18" />
     </children>
-    <padding>
-        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-    </padding>
-</VBox>
+</GridPane>

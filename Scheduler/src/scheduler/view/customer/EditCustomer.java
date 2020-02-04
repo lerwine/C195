@@ -1,6 +1,5 @@
 package scheduler.view.customer;
 
-import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -9,8 +8,6 @@ import javafx.scene.control.TextField;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.dao.CustomerImpl;
-import scheduler.view.ItemController;
 import scheduler.view.address.AddressModel;
 /**
  * FXML Controller class
@@ -19,7 +16,7 @@ import scheduler.view.address.AddressModel;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
-public class EditCustomer extends ItemController<CustomerModel> {
+public class EditCustomer extends EditItem.EditController<CustomerModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
     /**
@@ -65,17 +62,8 @@ public class EditCustomer extends ItemController<CustomerModel> {
     private Label countryLabel;
     
     @Override
-    public BooleanExpression validProperty() {
+    protected void updateModelAndDao() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void accept(EditItem<CustomerModel> context) {
-//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCUSTOMER : RESOURCEKEY_EDITCUSTOMER));
-    }
-
-    @Override
-    public Boolean apply(EditItem<CustomerModel> t) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

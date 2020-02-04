@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
@@ -27,7 +26,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -36,15 +34,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import scheduler.dao.Address;
-import scheduler.dao.AppointmentImpl;
 import scheduler.dao.AppointmentFactory;
 import scheduler.dao.CustomerFactory;
 import scheduler.dao.UserFactory;
 import scheduler.util.DbConnector;
-import scheduler.util.Alerts;
-import scheduler.util.DB;
 import scheduler.view.EditItem;
-import scheduler.view.ItemController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.customer.CustomerModel;
@@ -58,7 +52,7 @@ import scheduler.view.address.CustomerAddress;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends ItemController<AppointmentModel> {
+public class EditAppointment extends EditItem.EditController<AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
@@ -99,43 +93,6 @@ public class EditAppointment extends ItemController<AppointmentModel> {
     public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
     public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
 
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Appointment type codes">
-    
-    /**
-     * Code for Phone Conference appointments, where the phone number is encoded into the URL field.
-     */
-    public static final String APPOINTMENT_CODE_PHONE = "phone";
-    /**
-     * Code for Virtual Meetings specified in the URL field.
-     */
-    public static final String APPOINTMENT_CODE_VIRTUAL = "virtual";
-    /**
-     * Code for appointments where the implicit location is at the Customer Site.
-     */
-    public static final String APPOINTMENT_CODE_CUSTOMER = "customer";
-    /**
-     * Code for appointments where the implicit location is at the Home Office.
-     */
-    public static final String APPOINTMENT_CODE_HOME = "home";
-    /**
-     * CCode for appointments where the implicit location is at the Germany Office.
-     */
-    public static final String APPOINTMENT_CODE_GERMANY = "germany";
-    /**
-     * Code for appointments where the implicit location is at the India Office.
-     */
-    public static final String APPOINTMENT_CODE_INDIA = "india";
-    /**
-     * Code for appointments where the implicit location is at the Honduras Office.
-     */
-    public static final String APPOINTMENT_CODE_HONDURAS = "honduras";
-    /**
-     * Code for appointments at other explicit physical locations.
-     */
-    public static final String APPOINTMENT_CODE_OTHER = "other";
-    
     //</editor-fold>
     
     //</editor-fold>
@@ -284,16 +241,9 @@ public class EditAppointment extends ItemController<AppointmentModel> {
     
     // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
-    private EditItem<AppointmentModel> parent;
     
     //</editor-fold>
 
-    @Override
-    public boolean isValid() { return valid.get(); }
-    
-    @Override
-    public BooleanExpression validProperty() { return valid; }
-    
     //</editor-fold>
     
     private int currentTimeZoneOffset;
@@ -376,9 +326,9 @@ public class EditAppointment extends ItemController<AppointmentModel> {
         TimeZoneChoice.getAllChoices(Locale.getDefault(Locale.Category.DISPLAY)).forEach((TimeZoneChoice c) -> timeZones.add(c));
         
         // Get appointment type options.
-        types = FXCollections.observableArrayList(APPOINTMENT_CODE_PHONE, APPOINTMENT_CODE_VIRTUAL, APPOINTMENT_CODE_CUSTOMER,
-                APPOINTMENT_CODE_HOME, APPOINTMENT_CODE_GERMANY, APPOINTMENT_CODE_INDIA, APPOINTMENT_CODE_HONDURAS,
-                APPOINTMENT_CODE_OTHER);
+        types = FXCollections.observableArrayList(AppointmentFactory.APPOINTMENTTYPE_PHONE, AppointmentFactory.APPOINTMENTTYPE_VIRTUAL,
+                AppointmentFactory.APPOINTMENTTYPE_CUSTOMER, AppointmentFactory.APPOINTMENTTYPE_HOME, AppointmentFactory.APPOINTMENTTYPE_GERMANY,
+                AppointmentFactory.APPOINTMENTTYPE_INDIA, AppointmentFactory.APPOINTMENTTYPE_HONDURAS, AppointmentFactory.APPOINTMENTTYPE_OTHER);
         
         LocalDateTime date = LocalDateTime.now().plusDays(1);
         startDatePicker.setValue(date.toLocalDate());
@@ -438,47 +388,6 @@ public class EditAppointment extends ItemController<AppointmentModel> {
     
     //</editor-fold>
 
-    @Override
-    public void accept(EditItem<AppointmentModel> context) {
-        parent = context;
-//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_ENDCANNOTBEBEFORESTART));
-    }
-
-    @Override
-    public Boolean apply(EditItem<AppointmentModel> context) {
-        if (!conflictLookupState.test()) {
-            String msg = conflictLookupState.conflictMessage.get();
-            if (msg.isEmpty())
-                return false;
-            Optional<ButtonType> response = Alerts.showWarningAlert(getResources().getString(RESOURCEKEY_APPOINTMENTCONFLICT),
-                    String.format("%s\n\n%s", msg, getResources().getString(RESOURCEKEY_SAVEANYWAY)), ButtonType.YES, ButtonType.NO);
-            if (!response.isPresent() || response.get() != ButtonType.YES)
-                return false;
-        }
-        try {
-            try (DbConnector dep = new DbConnector()) {
-                if (conflictLookupState.test(dep.getConnection())) {
-                    updateModel(context.getTarget()).saveChanges(dep.getConnection());
-                    return true;
-                }
-            }
-            String msg = conflictLookupState.conflictMessage.get();
-            if (msg.isEmpty())
-                return false;
-            Optional<ButtonType> response = Alerts.showWarningAlert(getResources().getString(RESOURCEKEY_APPOINTMENTCONFLICT),
-                    String.format("%s\n\n%s", msg, getResources().getString(RESOURCEKEY_SAVEANYWAY)), ButtonType.YES, ButtonType.NO);
-            if (!response.isPresent() || response.get() != ButtonType.YES)
-                return false;
-            try (DbConnector dep = new DbConnector()) {
-                updateModel(context.getTarget()).saveChanges(dep.getConnection());
-                return true;
-            }
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, null, ex);
-        }
-        return false;
-    }
-    
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
     
     @FXML
@@ -504,35 +413,12 @@ public class EditAppointment extends ItemController<AppointmentModel> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private AppointmentModel updateModel(AppointmentModel model) {
-        String type = typeComboBox.getValue();
-        AppointmentImpl row = model.getDataObject();
-        row.setContact(contactTextField.getText());
-        row.setCustomer(customerComboBox.getValue().getDataObject());
-        row.setDescription(descriptionTextArea.getText());
-        row.setEnd(DB.toUtcTimestamp(dateRangeValidation.endValidation.selectedDateTime.get()));
-        row.setStart(DB.toUtcTimestamp(dateRangeValidation.startValidation.selectedDateTime.get()));
-        row.setTitle(titleTextField.getText());
-        row.setType(type);
-        row.setUser(userComboBox.getValue().getDataObject());
-        if (type.equalsIgnoreCase(APPOINTMENT_CODE_OTHER))
-            row.setLocation(locationTextArea.getText());
-        else if (type.equalsIgnoreCase(APPOINTMENT_CODE_PHONE)) {
-            row.setLocation(phoneTextField.getText());
-        } else {
-            row.setLocation("");
-            if (type.equalsIgnoreCase(APPOINTMENT_CODE_VIRTUAL)) {
-                row.setUrl(urlTextField.getText());
-                model.refreshFromDAO();
-                return model;
-            }
-        }
-        row.setUrl("");
-        model.refreshFromDAO();
-        return model;
-    }
-    
     //</editor-fold>
+
+    @Override
+    protected void updateModelAndDao() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     //<editor-fold defaultstate="collapsed" desc="State management classes">
     
@@ -579,9 +465,9 @@ public class EditAppointment extends ItemController<AppointmentModel> {
             selectedTypeProperty = typeComboBox.valueProperty();
             selectedCustomerProperty = customerComboBox.valueProperty();
             // Set up boolean bindings
-            explicitLocation = selectedTypeProperty.isEqualTo(APPOINTMENT_CODE_OTHER);
-            phone = selectedTypeProperty.isEqualTo(APPOINTMENT_CODE_PHONE);
-            virtual = selectedTypeProperty.isEqualTo(APPOINTMENT_CODE_VIRTUAL);
+            explicitLocation = selectedTypeProperty.isEqualTo(AppointmentFactory.APPOINTMENTTYPE_OTHER);
+            phone = selectedTypeProperty.isEqualTo(AppointmentFactory.APPOINTMENTTYPE_PHONE);
+            virtual = selectedTypeProperty.isEqualTo(AppointmentFactory.APPOINTMENTTYPE_VIRTUAL);
             // Create binding for implicit location text (customer address).
             implicitLocationText = new StringBinding() {
                 { super.bind(selectedTypeProperty, selectedCustomerProperty); }
@@ -592,7 +478,7 @@ public class EditAppointment extends ItemController<AppointmentModel> {
                     // otherwise, return an emtpty string to indicate that the implicit location text label should not be shown.
                     String t = selectedTypeProperty.get();
                     CustomerModel c = selectedCustomerProperty.get();
-                    if (t.equals(APPOINTMENT_CODE_CUSTOMER) && c != null) {
+                    if (t.equals(AppointmentFactory.APPOINTMENTTYPE_CUSTOMER) && c != null) {
                         CustomerAddress<? extends Address> a = c.getAddress();
                         if (a != null && !(t = a.toString().trim()).isEmpty())
                             return t;
@@ -615,7 +501,7 @@ public class EditAppointment extends ItemController<AppointmentModel> {
                     // otherwise, return an emtpty string to indicate that the location field label should not be shown.
                     boolean e = explicitLocation.get();
                     String i = implicitLocationText.get();
-                    return (phone.get()) ? getResources().getString(RESOURCEKEY_PHONENUMBER) : ((e || !i.isEmpty()) ? getResources().getString(RESOURCEKEY_LOCATION) : "");
+                    return (phone.get()) ? getResourceString(RESOURCEKEY_PHONENUMBER) : ((e || !i.isEmpty()) ? getResourceString(RESOURCEKEY_LOCATION) : "");
                 }
                 @Override
                 public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(phone, explicitLocation, implicitLocationText); }
@@ -743,17 +629,17 @@ public class EditAppointment extends ItemController<AppointmentModel> {
                     int u = userConflictCount.get();
                     if (u == 1) {
                         if (c == 1)
-                            return getResources().getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN);
-                        return (c > 1) ? String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), c) : getResources().getString(RESOURCEKEY_CONFLICTUSER1);
+                            return getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1USERN);
+                        return (c > 1) ? String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), c) : getResourceString(RESOURCEKEY_CONFLICTUSER1);
                     }
                     if (u > 1){
                         if (c == 1)
-                            return String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), u);
-                        return (c > 1) ? String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), c, u) : String.format(getResources().getString(RESOURCEKEY_CONFLICTUSERN), u);
+                            return String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), u);
+                        return (c > 1) ? String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), c, u) : String.format(getResourceString(RESOURCEKEY_CONFLICTUSERN), u);
                     }
                     if (c == 1)
-                        return getResources().getString(RESOURCEKEY_CONFLICTCUSTOMER1);
-                    return (c > 0) ? String.format(getResources().getString(RESOURCEKEY_CONFLICTCUSTOMERN), c) : "";
+                        return getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1);
+                    return (c > 0) ? String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERN), c) : "";
                 }
                 @Override
                 public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(customerConflictCount, userConflictCount); }
@@ -885,7 +771,7 @@ public class EditAppointment extends ItemController<AppointmentModel> {
                 if (newValue)
                     collapseNode(locationValidationLabel);
                 else
-                    restoreLabeled(locationValidationLabel, getResources().getString(EditItem.RESOURCEKEY_REQUIRED));
+                    restoreLabeled(locationValidationLabel, getResourceString(EditItem.RESOURCEKEY_REQUIRED));
             });
         }
         
@@ -1009,13 +895,13 @@ public class EditAppointment extends ItemController<AppointmentModel> {
             if (value.isEmpty())
                 collapseNode(startValidationLabel);
             else
-                restoreLabeled(startValidationLabel, getResources().getString(value));
+                restoreLabeled(startValidationLabel, getResourceString(value));
         }
         final void endValidationMessageChanged(String value) {
             if (value.isEmpty())
                 collapseNode(endValidationLabel);
             else
-                restoreLabeled(endValidationLabel, getResources().getString(value));
+                restoreLabeled(endValidationLabel, getResourceString(value));
         }
         
         @Override
@@ -1040,7 +926,7 @@ public class EditAppointment extends ItemController<AppointmentModel> {
                 if (newValue.isEmpty())
                     collapseNode(urlValidationLabel);
                 else
-                    restoreLabeled(urlValidationLabel, getResources().getString(newValue));
+                    restoreLabeled(urlValidationLabel, getResourceString(newValue));
             });
         }
         @Override

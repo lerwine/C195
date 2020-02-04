@@ -1,15 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.controls;
 
 import javafx.scene.control.ListCell;
 
 /**
- *
- * @author Leonard T. Erwine
+ * Formats a zero-padded 2-digit integer.
+ * @author lerwi
  */
 public class ZeroPadDigitListCell extends ListCell<Integer> {
     @Override

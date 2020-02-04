@@ -3,7 +3,6 @@ package scheduler.dao;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import scheduler.view.country.CityCountry;
 
 /**
  *
@@ -56,8 +55,28 @@ public class CountryImpl extends DataObjectImpl implements Country {
     
     @Override
     public synchronized void delete(Connection connection) throws Exception {
-        assert (new CityFactory()).countByCountry(connection, getPrimaryKey()) == 0 : "Country is associated with one or more cities.";
+        assert canDelete(connection) : "Country is associated with one or more cities.";
         super.delete(connection);
+    }
+
+    @Override
+    public boolean canDelete(Connection connection) throws Exception {
+        return (new CityFactory()).countByCountry(connection, getPrimaryKey()) == 0;
+    }
+
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getValidationMessageForSave(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getValidationMessageForDelete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

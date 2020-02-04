@@ -1,32 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.controls;
 
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
+import scheduler.dao.AppointmentFactory;
 
 /**
  *
  * @author Leonard T. Erwine
- * @param <S>
+ * @param <S> The row item type.
  */
 public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
-    private final ObservableMap<String, String> map = scheduler.App.getCurrent().getAppointmentTypes();
-
+    private final ObservableMap<String, String> map = AppointmentFactory.getAppointmentTypes();
     @Override
-    public TableCell<S, String> call(TableColumn<S, String> param) {
-        return new TableCell<S, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(map.get(item));
-            }
-        };
-    }
-    
+    public TableCell<S, String> call(TableColumn<S, String> param) { return new AppointmentTypeTableCell(map); }
 }

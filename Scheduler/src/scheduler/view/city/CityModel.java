@@ -5,7 +5,6 @@
  */
 package scheduler.view.city;
 
-import scheduler.expressions.NonNullableStringProperty;
 import java.sql.Connection;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -41,17 +40,6 @@ public class CityModel extends scheduler.view.ItemModel<CityImpl> implements Add
         super(dao);
         name = new ReadOnlyStringWrapper(dao.getName());
         country = new ReadOnlyObjectWrapper<>(CityCountry.of(dao.getCountry()));
-    }
-
-    @Override
-    public void refreshFromDAO() {
-        super.refreshFromDAO(); //To change body of generated methods, choose Tools | Templates.
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean delete(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override

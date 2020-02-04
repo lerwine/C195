@@ -18,9 +18,9 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Window;
@@ -32,8 +32,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
 /**
- * Controller / Task for showing busy indicator while background process is running.
- * 
+ * Controller / Task for showing a {@link Popup} busy indicator while background process is running.
  * @author erwinel
  * @param <T> Type of value produced by the task.
  */
@@ -57,14 +56,29 @@ public abstract class TaskWaiter<T> extends Task<T> {
     @FXML
     private Button cancelButton;
 
+    /**
+     * Initializes a new TaskWaiter.
+     * @param owner The owner {@link Window} for the {@link Popup} that will be displayed while the task is executing.
+     */
     public TaskWaiter(Window owner) {
         this(owner, null);
     }
     
+    /**
+     * Initializes a new TaskWaiter.
+     * @param owner The owner {@link Window} for the {@link Popup} that will be displayed while the task is executing.
+     * @param operation The name of the operation to be displayed as the message text.
+     */
     public TaskWaiter(Window owner, String operation) {
         this(owner, operation, null);
     }
     
+    /**
+     * Initializes a new TaskWaiter.
+     * @param owner The owner {@link Window} for the {@link Popup} that will be displayed while the task is executing.
+     * @param operation The name of the operation to be displayed as the message text.
+     * @param heading The title to be displayed for the {@link Popup}.
+     */
     public TaskWaiter(Window owner, String operation, String heading) {
         super();
         this.owner = Objects.requireNonNull(owner);
@@ -78,6 +92,48 @@ public abstract class TaskWaiter<T> extends Task<T> {
         });
         updateTitle((null == heading) ? "" : heading);
         updateMessage((null == operation) ? "" : operation);
+    }
+    
+    /**
+     * Processes the result in the FX application thread.
+     * @param result The result value to process.
+     * @param owner The owner {@link Window} of the {@link Popup} that was displayed while the task was executing.
+     */
+    protected abstract void processResult(T result, Window owner);
+
+    /**
+     * Processes an exception in the FX application thread.
+     * @param ex The exception that was thrown.
+     * @param owner The owner {@link Window} of the {@link Popup} that was displayed while the task was executing.
+     */
+    protected abstract void processException(Throwable ex, Window owner);
+    
+    @Override
+    protected void succeeded() {
+        if (Platform.isFxApplicationThread())
+            try { processResult(getValue(), owner); }
+            catch (Exception ex) { processException(ex, owner); }
+        else
+            Platform.runLater(() -> {
+                try { processResult(getValue(), owner); }
+                catch (Exception ex) { processException(ex, owner); }
+            });
+        super.succeeded();
+    }
+        
+    @Override
+    protected void failed() {
+        if (Platform.isFxApplicationThread())
+            processException(getException(), owner);
+        else
+            Platform.runLater(() -> processException(getException(), owner));
+        super.failed();
+    }
+
+    @Override
+    protected void cancelled() {
+        LOG.log(Level.WARNING, String.format("\"%s\" operation cancelled", getTitle()));
+        super.cancelled();
     }
 
     private void updateHeadingLabel() {
@@ -100,6 +156,12 @@ public abstract class TaskWaiter<T> extends Task<T> {
             SchedulerController.restoreLabeled(operationLabel, s);
     }
     
+    /**
+     * Schedules a {@link TaskWaiter} for execution.
+     * @param task The {@link TaskWaiter} to execute after the specified delay.
+     * @param delay The time from now to delay execution.
+     * @param unit The time unit of the delay parameter.
+     */
     public static void schedule(TaskWaiter<?> task, long delay, TimeUnit unit) {
         ScheduledExecutorService svc = Executors.newSingleThreadScheduledExecutor();
         try {
@@ -109,6 +171,10 @@ public abstract class TaskWaiter<T> extends Task<T> {
         }
     }
     
+    /**
+     * Executes a {@link TaskWaiter} immediately.
+     * @param task The {@link TaskWaiter} to execute.
+     */
     public static void execute(TaskWaiter<?> task) {
         ExecutorService svc = Executors.newSingleThreadExecutor();
         try {
@@ -164,7 +230,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
                 Locale.getDefault(Locale.Category.DISPLAY));
         FXMLLoader loader = new FXMLLoader(TaskWaiter.class.getResource(SchedulerController.getFXMLResourceName(TaskWaiter.class)), rb);
         loader.setController(this);
-        final Parent newParent;
+        final AnchorPane newParent;
         try {
             newParent = loader.load();
         } catch (IOException ex) {
@@ -176,10 +242,14 @@ public abstract class TaskWaiter<T> extends Task<T> {
         popup.setAutoHide(false);
         popup.setAutoFix(true);
         popup.getContent().add(newParent);
-        popup.setAnchorLocation(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
         popup.show(owner);
         popup.setWidth(owner.getWidth());
         popup.setHeight(owner.getHeight());
+        popup.setAnchorX(owner.getX());
+        popup.setAnchorY(owner.getY());
+        newParent.setMinWidth(owner.getWidth());
+        newParent.setMinHeight(owner.getHeight());
+        popup.setAnchorLocation(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
     }
     
     private void hidePopup() {

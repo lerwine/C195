@@ -1,6 +1,7 @@
 package scheduler.view;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -127,8 +128,8 @@ public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<
      * @param dao The {@link DataObjectImpl} to be used for data access operations.
      */
     protected ItemModel(R dao) {
-        Objects.requireNonNull(dao, "Data access object cannot be null");
-        assert dao.getRowState() != DataObjectFactory.ROWSTATE_DELETED : String.format("%s has been deleted", dao.getClass().getName());
+        assert Objects.requireNonNull(dao, "Data access object cannot be null").getRowState() != DataObjectFactory.ROWSTATE_DELETED :
+                String.format("%s has been deleted", dao.getClass().getName());
         dataObject = dao;
         createDate = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getCreateDate()));
         createdBy = new ReadOnlyStringWrapper(dao.getCreatedBy());
@@ -137,15 +138,20 @@ public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<
         newItem = new ReadOnlyBooleanWrapper(dao.getRowState() == DataObjectFactory.ROWSTATE_NEW);
     }
     
-    public abstract boolean delete(Connection connection);
-    
-    public abstract void saveChanges(Connection connection);
-    
-    public void refreshFromDAO() {
+    public void saveChanges(Connection connection) throws SQLException {
+        dataObject.saveChanges(connection);
+        newItem.set(false);
         createDate.set(DB.fromUtcTimestamp(dataObject.getCreateDate()));
         createdBy.set(dataObject.getCreatedBy());
         lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
         lastModifiedBy.set(dataObject.getLastModifiedBy());
-        newItem.set(dataObject.getRowState() == DataObjectFactory.ROWSTATE_NEW);
     }
+
+//    public void refreshFromDAO() {
+//        createDate.set(DB.fromUtcTimestamp(dataObject.getCreateDate()));
+//        createdBy.set(dataObject.getCreatedBy());
+//        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
+//        lastModifiedBy.set(dataObject.getLastModifiedBy());
+//        newItem.set(dataObject.getRowState() == DataObjectFactory.ROWSTATE_NEW);
+//    }
 }

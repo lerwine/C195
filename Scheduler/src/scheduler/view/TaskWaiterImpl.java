@@ -10,8 +10,9 @@ import java.util.concurrent.Callable;
 import javafx.stage.Window;
 
 /**
- *
+ * Implementation of the {@link TaskWaiter} interface.
  * @author erwinel
+ * @param <T> The result type.
  */
 public class TaskWaiterImpl<T> extends TaskWaiter<T> {
     private final Callable<T> callable;
@@ -38,5 +39,11 @@ public class TaskWaiterImpl<T> extends TaskWaiter<T> {
     protected T getResult() throws Exception {
         return callable.call();
     }
+
+    @Override
+    protected void processResult(T result, Window owner) { }
+
+    @Override
+    protected void processException(Throwable ex, Window owner) { }
 
 }

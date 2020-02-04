@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import scheduler.view.user.AppointmentUser;
 
 /**
  *
@@ -106,8 +105,28 @@ public class UserImpl extends DataObjectImpl implements User {
     @Override
     public synchronized void delete(Connection connection) throws Exception {
         Objects.requireNonNull(connection, "Connection cannot be null");
-        assert (new AppointmentFactory()).countByUser(connection, getPrimaryKey()) == 0 : "User is associated with one or more appointments.";
+        assert canDelete(connection) : "User is associated with one or more appointments.";
         super.delete(connection);
+    }
+
+    @Override
+    public boolean canDelete(Connection connection) throws Exception {
+        return (new AppointmentFactory()).countByUser(connection, getPrimaryKey()) == 0;
+    }
+
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getValidationMessageForSave(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getValidationMessageForDelete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

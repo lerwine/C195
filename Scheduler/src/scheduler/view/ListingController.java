@@ -1,14 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view;
 
+import java.io.IOException;
+import java.sql.Connection;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,40 +19,46 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.App;
+import scheduler.dao.DataObjectImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
+import scheduler.util.DbConnector;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
  * @author Leonard T. Erwine
  * @param <M> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<M extends ItemModel<?>> extends SchedulerController {
+public abstract class ListingController<M extends ItemModel<?>> extends MainController.MainContentController {
     //<editor-fold defaultstate="collapsed" desc="itemsFilter">
     
-    private ModelFilter<M> itemsFilter = ModelFilter.empty();
+    private ModelFilter<M> filter;
+    
+    public ModelFilter<M> getFilter() { return filter; }
     
     /**
-     * Gets the {@link ModelFilter} that is used to filter items bound to the {@link #listingTableView}.
-     * @return The {@link javafx.collections.ObservableList} that is used to filter items bound to the {@link #listingTableView}.
+     * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
+     * @param value The new {@link ModelFilter}.
+     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
      */
-    protected ModelFilter<M> getItemsFilter() { return itemsFilter; }
-    
-    protected void setItemsFilter(ModelFilter<M> value) {
-        if (value == null) {
-            if (itemsFilter.isEmpty())
+    protected void changeFilter(ModelFilter<M> value, Stage owner) {
+        if (value.isEmpty()) {
+            if (filter != null && filter.isEmpty())
                 return;
-            itemsFilter = ModelFilter.empty();
-        } else {
-            if (value == itemsFilter)
-                return;
-            itemsFilter = value;
-        }
-        onItemsFilterChanged();
+        } else if (!filter.isEmpty() && filter == value)
+            return;
+        filter = value;
+        onFilterChanged(Objects.requireNonNull(owner));
     }
     
-    protected void onItemsFilterChanged() { }
+    /**
+     * This gets called whenever the current {@link #filter} has changed.
+     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+     */
+    protected abstract void onFilterChanged(Stage owner);
     
     //</editor-fold>
     
@@ -168,7 +172,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
      * @param event Contextual information about the event.
      * @param item The selected item to be edited.
      */
-    protected abstract void onEditItem(Event event, M item);
+    protected abstract CrudAction<M> onEditItem(Event event, M item);
 
     /**
      * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
@@ -226,12 +230,55 @@ public abstract class ListingController<M extends ItemModel<?>> extends Schedule
         return false;
     }
     
-    public static class Factory<M extends ItemModel<?>, C extends ListingController<M>, V extends Parent> extends MainController.ChildFactory<C, V> {
-        private ModelFilter<M> filter;
-        public ModelFilter<M> getFilter() { return filter; }
-        protected Factory(Class<C> controllerClass, ModelFilter<M> filter) {
-            super(controllerClass);
-            this.filter = filter;
-        }
+    protected static <M  extends ItemModel<?>, C extends ListingController<M>> void loadInto(Class<C> controllerClass, MainController mc,
+            Stage stage, ModelFilter<M> filter) throws IOException {
+        mc.setContent(controllerClass, stage, (Parent v, C c) -> {
+            c.changeFilter(filter, stage);
+        });
     }
+    
+    protected abstract class ItemsLoadTask<T extends DataObjectImpl> extends TaskWaiter<Iterable<T>> {
+        private final ModelFilter<M> currentFilter;
+        
+        protected ItemsLoadTask(Stage owner, String operation) {
+            super(owner, operation);
+            currentFilter = filter;
+        }
+        
+        protected abstract void processNullResult(Window owner);
+        
+        protected abstract M toModel(T result);
+        
+        protected void onItemsLoaded(ModelFilter<M> filter, Window owner) { }
+        
+        protected abstract Iterable<T> getResult(Connection connection, ModelFilter<M> filter) throws Exception;
+        
+        @Override
+        protected final Iterable<T> getResult() throws Exception {
+            try (DbConnector dep = new DbConnector()) {
+                return getResult(dep.getConnection(), filter);
+            }
+        }
+        
+        @Override
+        protected final void processResult(Iterable<T> result, Window owner) {
+            if (null == result) {
+                LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
+                processNullResult(owner);
+            } else {
+                itemsList.clear();
+                Iterator<T> it = result.iterator();
+                while (it.hasNext())
+                    itemsList.add(toModel(it.next()));
+                onItemsLoaded(currentFilter, owner);
+            }
+        }
+        
+        @Override
+        protected void processException(Throwable ex, Window owner) {
+            LOG.log(Level.SEVERE, String.format("\"%s\" operation error", getTitle()), ex);
+        }
+        
+    }
+    
 }

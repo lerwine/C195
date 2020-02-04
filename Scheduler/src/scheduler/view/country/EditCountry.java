@@ -1,12 +1,9 @@
 package scheduler.view.country;
 
-import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.view.EditItem;
-import scheduler.dao.CountryImpl;
-import scheduler.view.ItemController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -17,7 +14,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public class EditCountry extends ItemController<CountryModel> {
+public class EditCountry extends EditItem.EditController<CountryModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
     /**
@@ -40,24 +37,10 @@ public class EditCountry extends ItemController<CountryModel> {
     
     @FXML
     private Label nameError;
-    
+
     @Override
-    public boolean isValid() {
+    protected void updateModelAndDao() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public BooleanExpression validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void accept(EditItem<CountryModel> context) {
-//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCOUNTRY : RESOURCEKEY_EDITCOUNTRY));
-    }
-
-    @Override
-    public Boolean apply(EditItem<CountryModel> t) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

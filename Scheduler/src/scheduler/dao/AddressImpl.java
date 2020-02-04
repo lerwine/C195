@@ -160,8 +160,28 @@ public class AddressImpl extends DataObjectImpl implements Address {
     
     @Override
     public synchronized void delete(Connection connection) throws Exception {
-        assert (new CustomerFactory()).count(connection, CustomerFactory.addressIdIs(getPrimaryKey())) == 0 : "Address is associated with one or more addresses.";
+        assert canDelete(connection) : "Address is associated with one or more addresses.";
         super.delete(connection);
+    }
+
+    @Override
+    public boolean canDelete(Connection connection) throws Exception {
+        return (new CustomerFactory()).count(connection, CustomerFactory.addressIdIs(getPrimaryKey())) == 0;
+    }
+
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getValidationMessageForSave(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getValidationMessageForDelete(Connection connection) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

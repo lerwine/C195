@@ -4,14 +4,21 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
+import javafx.util.Pair;
+import scheduler.App;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.ValueAccessor;
+import scheduler.view.SchedulerController;
+import scheduler.view.user.EditUser;
 import scheduler.view.user.UserModel;
 
 /**
@@ -47,6 +54,26 @@ public class UserFactory extends DataObjectFactory<UserImpl, UserModel> {
                 assert (t >= STATUS_INACTIVE && t <= STATUS_ADMIN) : "Invalid user stsatus value";
             });
         return value;
+    }
+    
+    private static final ObservableMap<Integer, String> USER_STATUS_MAP = FXCollections.observableHashMap();
+    private static ObservableMap<Integer, String> userStatusMap = null;
+    private static String appointmentTypesLocale = null;
+    public static ObservableMap<Integer, String> getUserStatusMap() {
+        synchronized(USER_STATUS_MAP) {
+            if (null == userStatusMap)
+                userStatusMap = FXCollections.unmodifiableObservableMap(USER_STATUS_MAP);
+            else if (null != appointmentTypesLocale && appointmentTypesLocale.equals(Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag()))
+                return userStatusMap;
+            Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
+            appointmentTypesLocale = locale.toLanguageTag();
+            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(EditUser.class), locale);
+            Stream.of(new Pair<>((int)STATUS_INACTIVE, EditUser.RESOURCEKEY_INACTIVE), new Pair<>((int)STATUS_USER, EditUser.RESOURCEKEY_NORMALUSER),
+                    new Pair<>((int)STATUS_ADMIN, EditUser.RESOURCEKEY_ADMINISTRATIVEUSER)).forEach((Pair<Integer, String> p) -> {
+                    USER_STATUS_MAP.put(p.getKey(), (rb.containsKey(p.getValue())) ? rb.getString(p.getValue()) : p.getValue());
+                });
+        }
+        return userStatusMap;
     }
     
     //</editor-fold>

@@ -2,7 +2,6 @@ package scheduler.view.user;
 
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -21,9 +20,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import scheduler.view.EditItem;
-import scheduler.dao.UserImpl;
 import scheduler.dao.UserFactory;
-import scheduler.view.ItemController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -34,12 +31,12 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public class EditUser extends ItemController<UserModel> {
+public class EditUser extends EditItem.EditController<UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
 
 //    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
     public static final String RESOURCEKEY_ADDNEWUSER = "addNewUser";
-    public static final String RESOURCEKEY_ADMINSTRATIVEUSER = "adminstrativeUser";
+    public static final String RESOURCEKEY_ADMINISTRATIVEUSER = "administrativeUser";
 //    public static final String RESOURCEKEY_CHANGEPASSWORD = "changePassword";
 //    public static final String RESOURCEKEY_CONFIRMPASSWORD = "confirmPassword";
     public static final String RESOURCEKEY_EDITUSER = "editUser";
@@ -105,12 +102,6 @@ public class EditUser extends ItemController<UserModel> {
     
     private BooleanBinding valid;
     
-    @Override
-    public boolean isValid() { return valid.get(); }
-
-    @Override
-    public BooleanExpression validProperty() { return valid; }
-    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         userActiveStateOptions = FXCollections.observableArrayList(UserFactory.STATUS_USER, UserFactory.STATUS_ADMIN, UserFactory.STATUS_INACTIVE);
@@ -121,13 +112,13 @@ public class EditUser extends ItemController<UserModel> {
                 
                 switch (a) {
                     case 1:
-                        setText(getResources().getString(RESOURCEKEY_NORMALUSER));
+                        setText(getResourceString(RESOURCEKEY_NORMALUSER));
                         break;
                     case 2:
-                        setText(getResources().getString(RESOURCEKEY_ADMINSTRATIVEUSER));
+                        setText(getResourceString(RESOURCEKEY_ADMINISTRATIVEUSER));
                         break;
                     default:
-                        setText(getResources().getString(RESOURCEKEY_INACTIVE));
+                        setText(getResourceString(RESOURCEKEY_INACTIVE));
                         break;
                 }
             }
@@ -139,34 +130,39 @@ public class EditUser extends ItemController<UserModel> {
     }
 
     @Override
-    public void accept(EditItem<UserModel> context) {
-//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
-        if (context.getTarget().isNewItem()) {
-            originalUserName.set("");
-            changePasswordCheckBox.setText(getResources().getString(RESOURCEKEY_PASSWORD));
-            changePasswordCheckBox.setSelected(true);
-            changePasswordCheckBox.setDisable(true);
-            passwordField.setVisible(true);
-            confirmLabel.setVisible(true);
-            confirmPasswordField.setVisible(true);
-            passwordErrorMessage.onChangePasswordCheckCheckChanged(passwordErrorMessage.changePasswordProperty.get());
-            passwordErrorMessage.onPasswordMessageChanged(passwordErrorMessage.get());
-        } else {
-            changePasswordCheckBox.setSelected(false);
-            changePasswordCheckBox.setDisable(false);
-            confirmLabel.setVisible(false);
-            passwordField.setVisible(false);
-            confirmPasswordField.setVisible(false);
-            passwordErrorMessageLabel.setVisible(false);
-            originalUserName.set(context.getTarget().getUserName());
-            userNameTextField.setText(context.getTarget().getUserName());
-        }
-    }
-
-    @Override
-    public Boolean apply(EditItem<UserModel> t) {
+    protected void updateModelAndDao() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+//    @Override
+//    public void accept(EditItem<UserModel> context) {
+////        context.getChildViewManager().setWindowTitle(getResourceString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+//        if (context.getTarget().isNewItem()) {
+//            originalUserName.set("");
+//            changePasswordCheckBox.setText(getResourceString(RESOURCEKEY_PASSWORD));
+//            changePasswordCheckBox.setSelected(true);
+//            changePasswordCheckBox.setDisable(true);
+//            passwordField.setVisible(true);
+//            confirmLabel.setVisible(true);
+//            confirmPasswordField.setVisible(true);
+//            passwordErrorMessage.onChangePasswordCheckCheckChanged(passwordErrorMessage.changePasswordProperty.get());
+//            passwordErrorMessage.onPasswordMessageChanged(passwordErrorMessage.get());
+//        } else {
+//            changePasswordCheckBox.setSelected(false);
+//            changePasswordCheckBox.setDisable(false);
+//            confirmLabel.setVisible(false);
+//            passwordField.setVisible(false);
+//            confirmPasswordField.setVisible(false);
+//            passwordErrorMessageLabel.setVisible(false);
+//            originalUserName.set(context.getTarget().getUserName());
+//            userNameTextField.setText(context.getTarget().getUserName());
+//        }
+//    }
+//
+//    @Override
+//    public Boolean apply(EditItem<UserModel> t) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
 
     private class UserNameValidator extends StringBinding {
         private final StringProperty userNameProperty;
@@ -187,7 +183,7 @@ public class EditUser extends ItemController<UserModel> {
             if (value.isEmpty())
                 collapseNode(userNameErrorMessageLabel);
             else
-                restoreLabeled(userNameErrorMessageLabel, getResources().getString(value));
+                restoreLabeled(userNameErrorMessageLabel, getResourceString(value));
         }
         
         @Override
@@ -230,7 +226,7 @@ public class EditUser extends ItemController<UserModel> {
             if (value.isEmpty())
                 collapseNode(passwordErrorMessageLabel);
             else
-                restoreLabeled(passwordErrorMessageLabel, getResources().getString(value));
+                restoreLabeled(passwordErrorMessageLabel, getResourceString(value));
         }
         
         final void onChangePasswordCheckCheckChanged(boolean value) {

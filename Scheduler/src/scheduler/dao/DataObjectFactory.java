@@ -389,35 +389,4 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
         return 0;
     }
     
-    @Deprecated
-    public static <T extends DataObjectImpl> ArrayList<T> load(Connection connection, String baseQuery, ModelFilter<? extends ItemModel<T>> filter,
-            ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
-        return load(connection, baseQuery, filter, null, create);
-    }
-    
-    @Deprecated
-    public static <T extends DataObjectImpl> ArrayList<T> load(Connection connection, String baseQuery, ModelFilter<? extends ItemModel<T>> filter,
-            Iterable<OrderBy> orderBy, ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
-        ArrayList<T> result = new ArrayList<>();
-        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
-            builder.appendSql(baseQuery);
-            if (null != filter) {
-                String s = filter.get();
-                if (!s.isEmpty())
-                    builder.appendSql(" WHERE ").appendSql(s);
-                filter.setParameterValues(builder.finalizeSql());
-            }
-            if (null != orderBy) {
-                String s = OrderBy.toSqlClause(orderBy);
-                if (!s.isEmpty())
-                    builder.appendSql(" ").appendSql(s);
-            }
-            try (ResultSet rs = builder.getResult().executeQuery()) {
-                while (rs.next())
-                    result.add(create.apply(rs));
-            }
-        }
-        return result;
-    }
-    
 }

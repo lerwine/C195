@@ -7,16 +7,18 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
+import scheduler.App;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
-import scheduler.filter.SqlStatementBuilder;
 import scheduler.filter.ValueAccessor;
-import scheduler.view.ChildModel;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.customer.AppointmentCustomer;
 import scheduler.view.user.AppointmentUser;
@@ -96,6 +98,26 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
                 return APPOINTMENTTYPE_VIRTUAL;
         }
         return APPOINTMENTTYPE_OTHER;
+    }
+    
+    private static final ObservableMap<String, String> APPOINTMENT_TYPES = FXCollections.observableHashMap();
+    private static ObservableMap<String, String> appointmentTypes = null;
+    private static String appointmentTypesLocale = null;
+    public static ObservableMap<String, String> getAppointmentTypes() {
+        synchronized(APPOINTMENT_TYPES) {
+            if (null == appointmentTypes)
+                appointmentTypes = FXCollections.unmodifiableObservableMap(APPOINTMENT_TYPES);
+            else if (null != appointmentTypesLocale && appointmentTypesLocale.equals(Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag()))
+                return appointmentTypes;
+            Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
+            appointmentTypesLocale = locale.toLanguageTag();
+            ResourceBundle rb = ResourceBundle.getBundle(App.GLOBALIZATION_RESOURCE_NAME, locale);
+            Stream.of(APPOINTMENTTYPE_PHONE, APPOINTMENTTYPE_VIRTUAL, APPOINTMENTTYPE_CUSTOMER, APPOINTMENTTYPE_HOME, APPOINTMENTTYPE_GERMANY,
+                    APPOINTMENTTYPE_INDIA, APPOINTMENTTYPE_HONDURAS, APPOINTMENTTYPE_OTHER).forEach((String key) -> {
+                    APPOINTMENT_TYPES.put(key, (rb.containsKey(key)) ? rb.getString(key) : key);
+                });
+        }
+        return appointmentTypes;
     }
     
     //</editor-fold>
@@ -481,6 +503,14 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
     
     //</editor-fold>
     
+    public ArrayList<AppointmentImpl> load(Connection connection, int userId, int customerId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, userIdIs(userId).and(customerIdIs(customerId)), orderBy);
+    }
+    
+    public ArrayList<AppointmentImpl> load(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
+        return load(connection, userIdIs(userId), orderBy);
+    }
+    
     public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId, int customerId, Iterable<OrderBy> orderBy) throws Exception {
         return load(connection, todayAndFuture(userId, customerId), orderBy);
     }
@@ -543,14 +573,6 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentImpl, Appoi
     
     public ArrayList<AppointmentImpl> loadCustomerYesterdayAndPast(Connection connection, int customerId) throws Exception {
         return load(connection, customerYesterdayAndPast(customerId));
-    }
-    
-    public ArrayList<AppointmentImpl> load(Connection connection, int userId, int customerId, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, userIdIs(userId).and(customerIdIs(customerId)), orderBy);
-    }
-    
-    public ArrayList<AppointmentImpl> load(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, userIdIs(userId), orderBy);
     }
     
     public ArrayList<AppointmentImpl> loadByCustomer(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {

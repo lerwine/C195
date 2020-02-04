@@ -1,22 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.controls;
 
 import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;
+import scheduler.dao.AppointmentFactory;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author lerwi
  */
 public class AppointmentTypeListCell extends ListCell<String> {
-    private final ObservableMap<String, String> map = scheduler.App.getCurrent().getAppointmentTypes();
+    private final ObservableMap<String, String> map;
+    AppointmentTypeListCell(ObservableMap<String, String> map) { this.map = (null == map) ? AppointmentFactory.getAppointmentTypes() : map; }
+    public AppointmentTypeListCell() { this(null); }
     @Override
     protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
-        setText(map.get(item));
+        setText((null == item) ? "" : (map.containsKey(item)) ? map.get(item) : item);
     }
 }

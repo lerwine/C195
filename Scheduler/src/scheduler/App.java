@@ -1,31 +1,17 @@
 package scheduler;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.io.IOException;
 import java.util.Locale;
-import java.util.Map;
 import scheduler.util.DbConnector;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.UserImpl;
@@ -34,7 +20,6 @@ import scheduler.util.PwHash;
 import scheduler.view.MainController;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
-import scheduler.view.appointment.EditAppointment;
 import scheduler.view.login.LoginScene;
 
 /**
@@ -79,26 +64,26 @@ public class App extends Application {
      */
     public static final String GLOBALIZATION_RESOURCE_NAME = "scheduler/App";
     
-    /**
-     * The current application instance.
-     */
-    private static App current;
-    
-    public static final App getCurrent() { return current; }
+//    /**
+//     * The current application instance.
+//     */
+//    private static App current;
+//    
+//    public static final App getCurrent() { return current; }
     
     //<editor-fold defaultstate="collapsed" desc="Globalization Properties">
 
-    //<editor-fold defaultstate="collapsed" desc="allLanguages property">
-    
-    private ObservableList<Locale> allLanguages;
-    
-    /**
-     * Gets a list of {@link java.util.Locale} objects representing languages supported by the application.
-     * 
-     * @return
-     *          A list of {@link java.util.Locale} objects representing languages supported by the application.
-     */
-    public ObservableList<Locale> getAllLanguages() { return allLanguages; }
+//    //<editor-fold defaultstate="collapsed" desc="allLanguages property">
+//    
+//    private ObservableList<Locale> allLanguages;
+//    
+//    /**
+//     * Gets a list of {@link java.util.Locale} objects representing languages supported by the application.
+//     * 
+//     * @return
+//     *          A list of {@link java.util.Locale} objects representing languages supported by the application.
+//     */
+//    public ObservableList<Locale> getAllLanguages() { return allLanguages; }
     
     //</editor-fold>
     
@@ -145,19 +130,19 @@ public class App extends Application {
 //    
 //    //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="appointmentTypes property">
-    
-    private final AppointmentTypes appointmentTypes;
-    
-    /**
-     * Gets an observable map that maps the appointment type codes to the locale-specific display value.
-     * 
-     * @return
-     *          An observable map that maps the appointment type codes to the locale-specific display value.
-     */
-    public ObservableMap<String, String> getAppointmentTypes() { return appointmentTypes; }
-    
-    //</editor-fold>
+//    //<editor-fold defaultstate="collapsed" desc="appointmentTypes property">
+//    
+//    private final AppointmentTypes appointmentTypes;
+//    
+//    /**
+//     * Gets an observable map that maps the appointment type codes to the locale-specific display value.
+//     * 
+//     * @return
+//     *          An observable map that maps the appointment type codes to the locale-specific display value.
+//     */
+//    public ObservableMap<String, String> getAppointmentTypes() { return appointmentTypes; }
+//    
+//    //</editor-fold>
     
 //    //<editor-fold defaultstate="collapsed" desc="fullTimeFormatter property">
 //    
@@ -231,35 +216,22 @@ public class App extends Application {
         LOG = Logger.getLogger(App.class.getName());
     }
     
-    /**
-     * Sets the current application {@link java.util.Locale}.
-     * 
-     * @param value
-     *          The new application {@link java.util.Locale}.
-     */
-    public static void setCurrentLocale(Locale value) {
-        Locale.setDefault(Locale.Category.DISPLAY, value);
-        Locale.setDefault(Locale.Category.FORMAT, value);
-        if (current != null)
-            current.setResources(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, value));
-    }
-
-    private void setResources(ResourceBundle bundle) {
-//        resources = bundle;
-        appointmentTypes.load(bundle);
-//        Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
-//        fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
-//        fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
-//        shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
-//        fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
-    }
+//    private void setResources(ResourceBundle bundle) {
+////        resources = bundle;
+//        appointmentTypes.load(bundle);
+////        Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
+////        fullTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+////        fullDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+////        shortDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(ZoneId.systemDefault());
+////        fullDateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(ZoneId.systemDefault());
+//    }
     
-    public App() {
-        // Store the original locale settings so they can be restored when app ends
-//        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
-//        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
-        appointmentTypes = new AppointmentTypes();
-    }
+//    public App() {
+//        // Store the original locale settings so they can be restored when app ends
+////        originalDisplayLocale = Locale.getDefault(Locale.Category.DISPLAY);
+////        originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+//        appointmentTypes = new AppointmentTypes();
+//    }
     
     //<editor-fold defaultstate="collapsed" desc="App Lifecycle Members">
     
@@ -274,13 +246,12 @@ public class App extends Application {
     @Override
     @SuppressWarnings("UseSpecificCatch")
     public void start(Stage stage) throws Exception {
-        current = this;
-        
+//        current = this;
         // Ensure app config is freshly loaded.
         AppConfig.refresh();
-        
-        allLanguages = new AllLanguages(AppConfig.getLanguages());
-        SchedulerController.ViewControllerFactory.loadInto(LoginScene.class, stage, true);
+        LoginScene.loadInto(stage);
+//        allLanguages = new AllLanguages(AppConfig.getLanguages());
+//        SchedulerController.ViewControllerFactory.loadInto(LoginScene.class, stage, true);
     }
     
     @Override
@@ -294,36 +265,50 @@ public class App extends Application {
 
     //</editor-fold>
 
-    private class LoginTask extends TaskWaiter<UserImpl> {
+    private static class LoginTask extends TaskWaiter<UserImpl> {
         private final String userName, password;
-        
-        LoginTask(Window window, String userName, String password) {
-            this(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME), window, userName, password);
+        private final Consumer<Throwable> onNotSucceeded;
+        LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+            this(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY)), stage, userName, password, onNotSucceeded);
         }
-        private LoginTask(ResourceBundle rb, Window window, String userName, String password) {
-            super(window, rb.getString(RESOURCEKEY_CONNECTINGTODB), rb.getString(RESOURCEKEY_LOGGINGIN));
+        private LoginTask(ResourceBundle rb, Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+            super(stage, rb.getString(RESOURCEKEY_CONNECTINGTODB), rb.getString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;
+            this.onNotSucceeded = onNotSucceeded;
+        }
+
+        @Override
+        protected void processResult(UserImpl user, Window owner) {
+            if (null == user) {
+                if (null != onNotSucceeded)
+                    onNotSucceeded.accept(null);
+            } else if (Platform.isFxApplicationThread()) {
+                try {
+                    SchedulerController.load((Stage)owner, MainController.class, (Parent v, MainController c) -> {
+                        ((Stage)owner).setScene(new Scene(v));
+                    });
+                } catch (IOException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Window owner) {
+                if (null != onNotSucceeded)
+                    onNotSucceeded.accept(ex);
         }
 
         @Override
         protected UserImpl getResult() throws Exception {
-            LOG.log(Level.INFO, "Task getResult overload invoked");
             Optional<UserImpl> result;
+            LOG.log(Level.INFO, String.format("Looking up %s", userName));
             try (DbConnector dep = new DbConnector()) {
-                if (dep.getState() != DbConnector.STATE_CONNECTED) {
-                    LOG.log(Level.INFO, "Not connected");
-                    return null;
-                }
-                Platform.runLater(() -> {
-                    LOG.log(Level.INFO, "Updating message");
-                    updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB));
-                });
-                LOG.log(Level.INFO, "Invoking UserImpl.getByUserName");
+                Platform.runLater(() -> updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB)));
                 result = (new UserFactory()).findByUserName(dep.getConnection(), userName);
             }
             if (result.isPresent()) {
-                LOG.log(Level.INFO, "User found");
                 // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
                 // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
                 // as the stored password. If the password is correct, then the hash values will match.
@@ -331,13 +316,11 @@ public class App extends Application {
                 if (hash.test(password)) {
                     LOG.log(Level.INFO, "Password matched");
                     currentUser = result.get();
-                    LOG.log(Level.INFO, "Returning from tryLoginUser");
                     return result.get();
                 }
                 LOG.log(Level.WARNING, "Password mismatch");
             } else
                 LOG.log(Level.WARNING, "No matching userName found");
-            LOG.log(Level.INFO, "Returning from tryLoginUser");
             return null;
         }
         
@@ -351,268 +334,8 @@ public class App extends Application {
      * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions
      * and either the login was not found or the password hash did not match.
      */
-    public void tryLoginUser(Stage stage, String userName, String password, Consumer<Exception> onNotSucceeded) {
-        LoginTask task = new LoginTask(stage, userName, password);
-        EventHandler<WorkerStateEvent> handler = (event) -> {
-            LOG.log(Level.INFO, "Task completion handler invoked");
-            try {
-                UserImpl user = task.get();
-                if (user == null) {
-                    if (onNotSucceeded != null) {
-                        if (Platform.isFxApplicationThread())
-                            onNotSucceeded.accept(null);
-                        else
-                            Platform.runLater(() -> {
-                                onNotSucceeded.accept(null);
-                            });
-                    }
-                } else if (Platform.isFxApplicationThread())
-                    SchedulerController.ViewControllerFactory.loadInto(MainController.class, stage, false);
-                else
-                    Platform.runLater(() -> {
-                        try {
-                            SchedulerController.ViewControllerFactory.loadInto(MainController.class, stage, false);
-                        } catch (Exception ex) {
-                            LOG.log(Level.SEVERE, null, ex);
-                        }
-                    });
-            } catch (Exception ex) {
-                LOG.log(Level.SEVERE, null, ex);
-                if (onNotSucceeded != null) {
-                    if (Platform.isFxApplicationThread())
-                        onNotSucceeded.accept(ex);
-                    else
-                        Platform.runLater(() -> {
-                            onNotSucceeded.accept(ex);
-                        });
-                }
-            }
-        };
-        task.setOnCancelled(handler);
-        task.setOnFailed(handler);
-        task.setOnSucceeded(handler);
-        TaskWaiter.execute(task);
+    public static void tryLoginUser(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        TaskWaiter.execute(new LoginTask(stage, userName, password, onNotSucceeded));
     }
-    
-    private class AppointmentTypes implements ObservableMap<String, String> {
-        private final ObservableMap<String, String> backingMap;
-        private final ObservableMap<String, String> readOnlyMap;
-        AppointmentTypes()
-        {
-            backingMap = FXCollections.observableHashMap();
-            Stream.of(EditAppointment.APPOINTMENT_CODE_PHONE, EditAppointment.APPOINTMENT_CODE_VIRTUAL, EditAppointment.APPOINTMENT_CODE_CUSTOMER,
-                EditAppointment.APPOINTMENT_CODE_HOME, EditAppointment.APPOINTMENT_CODE_GERMANY, EditAppointment.APPOINTMENT_CODE_INDIA,
-                EditAppointment.APPOINTMENT_CODE_HONDURAS, EditAppointment.APPOINTMENT_CODE_OTHER).forEach((String key) -> {
-                    backingMap.put(key, key);
-                });
-            readOnlyMap = FXCollections.unmodifiableObservableMap(backingMap);
-        }
-        
-        private void load(ResourceBundle rb) {
-            backingMap.entrySet().forEach((Map.Entry<String, String> t) -> {
-                String key = "appointmentType_" + t.getKey();
-                t.setValue((rb.containsKey(key)) ? rb.getString(key) : t.getKey());
-            });
-        }
-
-        @Override
-        public void addListener(MapChangeListener<? super String, ? super String> listener) {
-            readOnlyMap.addListener(listener);
-        }
-
-        @Override
-        public void removeListener(MapChangeListener<? super String, ? super String> listener) {
-            readOnlyMap.removeListener(listener);
-        }
-
-        @Override
-        public int size() { return readOnlyMap.size(); }
-
-        @Override
-        public boolean isEmpty() { return readOnlyMap.isEmpty(); }
-
-        @Override
-        public boolean containsKey(Object key) {
-            return key != null && key instanceof String && backingMap.containsKey(((String)key).trim().toLowerCase());
-        }
-
-        @Override
-        public boolean containsValue(Object value) { return readOnlyMap.containsValue(value); }
-
-        @Override
-        public String get(Object key) {
-            String code;
-            if (key == null || !(key instanceof String) || (code = ((String)key).trim()).isEmpty())
-                return "";
-            String lc = code.toLowerCase();
-            return (backingMap.containsKey(lc)) ? backingMap.get(lc) : code;
-        }
-
-        @Override
-        public String put(String key, String value) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public String remove(Object key) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public void putAll(Map<? extends String, ? extends String> m) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public void clear() { throw new UnsupportedOperationException(); }
-
-        @Override
-        public Set<String> keySet() { return readOnlyMap.keySet(); }
-
-        @Override
-        public Collection<String> values() { return readOnlyMap.values(); }
-
-        @Override
-        public Set<Map.Entry<String, String>> entrySet() { return readOnlyMap.entrySet(); }
-
-        @Override
-        public void addListener(InvalidationListener listener) { readOnlyMap.addListener(listener); }
-
-        @Override
-        public void removeListener(InvalidationListener listener) { readOnlyMap.removeListener(listener); }
-    }
-    
-    private class AllLanguages implements ObservableList<Locale> {
-        final ObservableList<Locale> backingList;
-        final ObservableList<Locale> readOnlyList;
-
-        private AllLanguages(String[] languageIds) {
-            this.backingList = FXCollections.observableArrayList();
-            this.readOnlyList = FXCollections.unmodifiableObservableList(backingList);
-
-            // Attempt to find a match for the current display language amongst the languages supported by the app.
-            final String lt = Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag();
-            // First look for one that is an exact match with the language tag.
-            Optional<String> cl = Arrays.stream(languageIds).filter((String id) -> id.equals(lt)).findFirst();
-            if (!cl.isPresent()) {
-                // Look for one that matches the ISO3 language code.
-                final String iso3 = Locale.getDefault(Locale.Category.DISPLAY).getISO3Language();
-                cl = Arrays.stream(languageIds).filter((String id) -> id.equals(iso3)).findFirst();
-                if (!cl.isPresent()) {
-                    // Look for one that matches the ISO2 language code.
-                    final String ln = Locale.getDefault(Locale.Category.DISPLAY).getLanguage();
-                    cl = Arrays.stream(languageIds).filter((String id) -> id.equals(ln)).findFirst();
-                }
-            }
-
-            // Populate list of Locale objects.
-            Locale toSelect;
-            if (cl.isPresent()) {
-                for (String n : AppConfig.getLanguages())
-                    backingList.add((n.equals(cl.get())) ? Locale.getDefault(Locale.Category.DISPLAY) : new Locale(n));
-                toSelect = Locale.getDefault(Locale.Category.DISPLAY);
-            } else {
-                for (String n : AppConfig.getLanguages())
-                    backingList.add(new Locale(n));
-                toSelect = backingList.get(0);
-            }
-
-            setCurrentLocale(toSelect);
-        }
-        
-        @Override
-        public void addListener(ListChangeListener<? super Locale> listener) { readOnlyList.addListener(listener); }
-
-        @Override
-        public void removeListener(ListChangeListener<? super Locale> listener) { readOnlyList.removeListener(listener); }
-
-        @Override
-        public boolean addAll(Locale... elements) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean setAll(Locale... elements) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean setAll(Collection<? extends Locale> col) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean removeAll(Locale... elements) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean retainAll(Locale... elements) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public void remove(int from, int to) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public int size() { return backingList.size(); }
-
-        @Override
-        public boolean isEmpty() { return backingList.isEmpty(); }
-
-        @Override
-        public boolean contains(Object o) { return backingList.contains(o); }
-
-        @Override
-        public Iterator<Locale> iterator() { return backingList.iterator(); }
-
-        @Override
-        public Object[] toArray() { return backingList.toArray(); }
-
-        @Override
-        @SuppressWarnings("SuspiciousToArrayCall")
-        public <T> T[] toArray(T[] a) { return backingList.toArray(a); }
-
-        @Override
-        public boolean add(Locale e) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean remove(Object o) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean containsAll(Collection<?> c) { return backingList.containsAll(c); }
-
-        @Override
-        public boolean addAll(Collection<? extends Locale> c) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean addAll(int index, Collection<? extends Locale> c) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public void clear() { throw new UnsupportedOperationException(); }
-
-        @Override
-        public Locale get(int index) { return backingList.get(index); }
-
-        @Override
-        public Locale set(int index, Locale element) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public void add(int index, Locale element) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public Locale remove(int index) { throw new UnsupportedOperationException(); }
-
-        @Override
-        public int indexOf(Object o) { return backingList.indexOf(o); }
-
-        @Override
-        public int lastIndexOf(Object o) { return backingList.lastIndexOf(o); }
-
-        @Override
-        public ListIterator<Locale> listIterator() { return readOnlyList.listIterator(); }
-
-        @Override
-        public ListIterator<Locale> listIterator(int index) { return readOnlyList.listIterator(index); }
-
-        @Override
-        public List<Locale> subList(int fromIndex, int toIndex) { return readOnlyList.subList(fromIndex, toIndex); }
-
-        @Override
-        public void addListener(InvalidationListener listener) { readOnlyList.addListener(listener); }
-
-        @Override
-        public void removeListener(InvalidationListener listener) { readOnlyList.removeListener(listener); }
-    }
-    
+      
 }

@@ -1,14 +1,11 @@
 package scheduler.view.city;
 
-import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;
 import scheduler.view.EditItem;
-import scheduler.view.ItemController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -19,7 +16,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public class EditCity extends ItemController<CityModel> {
+public class EditCity extends EditItem.EditController<CityModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
     /**
@@ -50,24 +47,10 @@ public class EditCity extends ItemController<CityModel> {
     
     @FXML
     private ComboBox<CountryImpl> countryComboBox;
-    
+
     @Override
-    public boolean isValid() {
+    protected void updateModelAndDao() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public BooleanExpression validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void accept(EditItem<CityModel> context) {
-//        context.getChildViewManager().setWindowTitle(getResources().getString((context.getTarget().isNewItem()) ? RESOURCEKEY_ADDNEWCITY : RESOURCEKEY_EDITCITY));
-    }
-
-    @Override
-    public Boolean apply(EditItem<CityModel> t) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }
