@@ -79,9 +79,7 @@ public class AppointmentModel extends ItemModel<AppointmentImpl> {
 
     private final ReadOnlyObjectWrapper<LocalDateTime> end;
 
-    public LocalDateTime getEnd() {
-        return end.get();
-    }
+    public LocalDateTime getEnd() { return end.get(); }
 
     public ReadOnlyObjectProperty<LocalDateTime> endProperty() {
         return end.getReadOnlyProperty();

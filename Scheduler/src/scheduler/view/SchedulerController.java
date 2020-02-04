@@ -45,7 +45,7 @@ public abstract class SchedulerController {
     
     /**
      * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}.
-     * This value is specified using the {@link scene.annotations.FXMLResourceName} annotation.
+     * This value is specified using the {@link FXMLResource} annotation.
      * 
      * @param <C> The type of controller.
      * @param ctlClass The {@link java.lang.Class} for the target controller.
@@ -68,10 +68,10 @@ public abstract class SchedulerController {
     
     /**
      * Gets the name of the internationalization resource bundle to be loaded with the specified controller
-     * {@link java.lang.Class}.
-     * This value is specified using the {@link scene.annotations.GlobalizationResource} annotation.
+     * {@link Class}.
+     * This value is specified using the {@link GlobalizationResource} annotation.
      * @param <C> The type of controller.
-     * @param ctlClass The {@link java.lang.Class} for the target controller.
+     * @param ctlClass The {@link Class} for the target controller.
      * @return The name of the internationalization resource bundle to be loaded with the target controller.
      */
     public static final <C> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
@@ -112,7 +112,7 @@ public abstract class SchedulerController {
  
     /**
      * This gets called after view is loaded and the controller is initialized by the {@link FXMLLoader}.
-     * @param view The root {@link node} representing the view.
+     * @param view The root {@link Node} representing the view.
      */
     protected void onLoaded(Node view) { }
     

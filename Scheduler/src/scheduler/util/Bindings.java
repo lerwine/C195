@@ -84,17 +84,12 @@ public class Bindings {
     }
 
     /**
-     * Creates a new {@link javafx.beans.binding.BooleanBinding} that holds {@code true} if a given
-     * {@link javafx.beans.property.NonNullableLocalDateTimeProperty} is not null and contains at least one non-whitespace character.
-     *
-     * @param start
-     *         The start {@link javafx.beans.property.ObjectProperty} to test.
-     * @param end
-     *         The end {@link javafx.beans.property.ObjectProperty} to test.
-     * @return
-     *         The new {@link javafx.beans.binding.BooleanBinding}.
-     * @throws NullPointerException
-     *         A source {@link javafx.beans.property.ObjectProperty} was {@code null}.
+     * Creates a new {@link jBooleanBinding} that holds {@code true} if a given {@link ObjectExpression}
+     * of {@link LocalDateTime} is not null and start is not greater than end.
+     * @param start The start {@link ObjectExpression} of {@link LocalDateTime} to test.
+     * @param end The end {@link ObjectExpression} of {@link LocalDateTime} to test.
+     * @return The new {@link BooleanBinding}.
+     * @throws NullPointerException if either {@link ObjectExpression} was {@code null}.
      */
     public static BooleanBinding isRangeUndefinedOrValid(final ObjectExpression<LocalDateTime> start, final ObjectExpression<LocalDateTime> end) {
         if (start == null || end == null)

@@ -327,7 +327,7 @@ public final class DbConnector implements AutoCloseable {
      * Produces a result value using a {@link DbConnectedCallable}, providing the opened SQL connection.
      * @param <T> The return value type.
      * @param callable The task that produces the result value.
-     * @return The value produced by the {@link callable} delegate.
+     * @return The value produced by the {@link DbConnectedCallable} delegate.
      * @throws Exception if unable to open a connection or perform the operation.
      */
     public static <T> T call(DbConnectedCallable<T> callable) throws Exception {

@@ -67,7 +67,7 @@ public interface Appointment extends DataObject {
     /**
      * Gets the explicit location of the current appointment.
      * This corresponds to the "location" database column.
-     * If the appointment location is not a physical location or is an implicit location, then it will be encoded into the {@link url} field.
+     * If the appointment location is not a physical location or is an implicit location, then it will be encoded into the {@link #url} field.
      * Column definition: <code>`location` text NOT NULL</code>
      * @return The explicit location of the current appointment.
      */

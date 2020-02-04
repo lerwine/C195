@@ -18,7 +18,7 @@ public interface SqlConditional extends Supplier<String> {
 
     /**
      * Indicates whether this contains no conditional statement.
-     * @return {@code true} if this contains no conditional statement; otherwise, {@false}.
+     * @return {@code true} if this contains no conditional statement; otherwise, {@code false}.
      */
     default boolean isEmpty() { return false; }
 }

@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies the name of the resource bundle that contains the localized string value for the annotated controller type.
- * This is used by classes derived from {@link scene.Controller}.
+ * This is used by classes derived from {@link scheduler.view.SchedulerController}.
  * @author Leonard T. Erwine
  */
 @Retention(RetentionPolicy.RUNTIME)

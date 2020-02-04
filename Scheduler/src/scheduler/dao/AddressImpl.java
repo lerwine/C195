@@ -112,7 +112,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
     //</editor-fold>
     
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} address object.
+     * Initializes a {@link DataObjectFactory.ROWSTATE_NEW} address object.
      */
     public AddressImpl() {
         this.address1 = "";

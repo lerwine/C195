@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies the name of the resource that contains the FXML markup associated with the annotated controller.
- * This is used by classes derived from {@link scene.Controller}.
+ * This is used by classes derived from {@link scheduler.view.SchedulerController}.
  * @author Leonard T. Erwine
  */
 @Retention(RetentionPolicy.RUNTIME)
