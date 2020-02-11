@@ -28,7 +28,7 @@ import scheduler.AppConfig;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
-import scheduler.util.Bindings;
+import scheduler.util.ValueBindings;
 import scheduler.view.SchedulerController;
 
 /**
@@ -219,8 +219,8 @@ public class LoginScene extends SchedulerController {
         
         Validation() {
             languageValid = languageComboBox.valueProperty().isNotNull();
-            userNameValid = Bindings.notNullOrWhiteSpace(userNameTextField.textProperty());
-            passwordValid = Bindings.notNullOrWhiteSpace(passwordField.textProperty());
+            userNameValid = ValueBindings.notNullOrWhiteSpace(userNameTextField.textProperty());
+            passwordValid = ValueBindings.notNullOrWhiteSpace(passwordField.textProperty());
             super.bind(languageValid, userNameValid, passwordValid);
             languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
                 selectedLanaguageChanged(newValue);

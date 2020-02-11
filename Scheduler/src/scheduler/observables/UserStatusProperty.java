@@ -1,9 +1,10 @@
-package scheduler.expressions;
+package scheduler.observables;
 
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
 import scheduler.dao.UserFactory;
+import scheduler.util.Values;
 
 /**
  *
@@ -25,24 +26,24 @@ public class UserStatusProperty extends SimpleIntegerProperty {
         }
 
         public UserStatusProperty() {
-            this(UserFactory.STATUS_USER);
+            this(Values.USER_STATUS_NORMAL);
         }
 
         public UserStatusProperty(int initialValue) {
-            super(UserFactory.asValidStatus(initialValue));
+            super(Values.asValidUserStatus(initialValue));
         }
 
         public UserStatusProperty(Object bean, String name) {
-            this(bean, name, UserFactory.STATUS_USER);
+            this(bean, name, Values.USER_STATUS_NORMAL);
         }
 
         public UserStatusProperty(Object bean, String name, int initialValue) {
-            super(bean, name, UserFactory.asValidStatus(initialValue));
+            super(bean, name, Values.asValidUserStatus(initialValue));
         }
 
         @Override
         public void set(int newValue) {
-            super.set(UserFactory.asValidStatus(newValue));
+            super.set(Values.asValidUserStatus(newValue));
         }
 
         private class ReadOnlyPropertyImpl extends ReadOnlyIntegerPropertyBase {

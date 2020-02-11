@@ -1,11 +1,14 @@
 package scheduler.view.address;
 
+import java.sql.Connection;
+import javafx.beans.binding.BooleanExpression;
 import scheduler.view.EditItem;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.dao.City;
+import scheduler.dao.CustomerFactory;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.AddressCity;
@@ -18,17 +21,58 @@ import scheduler.view.city.AddressCity;
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public class EditAddress extends EditItem.EditController<AddressModel> {
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
-
+    
+    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
+    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Address"}.
      */
     public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
     
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Address"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address:"}.
+     */
+    public static final String RESOURCEKEY_ADDRESS = "address";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address cannot be empty."}.
+     */
+    public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "City:"}.
+     */
+    public static final String RESOURCEKEY_CITY = "city";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
+     */
+    public static final String RESOURCEKEY_COUNTRY = "country";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Address:"}.
      */
     public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
+     */
+    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code:"}.
+     */
+    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code cannot be empty."}.
+     */
+    public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That address is referenced by one or more customers and cannot be deleted."}.
+     */
+    public static final String RESOURCEKEY_ADDRESSHASCUSTOMERS = "addressHasCustomers";
 
     //</editor-fold>
     
@@ -57,9 +101,32 @@ public class EditAddress extends EditItem.EditController<AddressModel> {
     
     //</editor-fold>
 
+    @FXML // This method is called by the FXMLLoader when initialization is complete
+    protected void initialize() {
+        
+    }
+    
     @Override
-    protected void updateModelAndDao() {
+    protected void updateDao() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected BooleanExpression getValidationExpression() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected String getSaveConflictMessage(Connection connection) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
+        CustomerFactory factory = new CustomerFactory();
+        if (factory.count(connection, CustomerFactory.addressIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
+            return "";
+        return getResourceString(RESOURCEKEY_ADDRESSHASCUSTOMERS);
     }
 
 }

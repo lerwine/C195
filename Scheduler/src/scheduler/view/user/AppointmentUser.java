@@ -10,7 +10,7 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.User;
-import scheduler.dao.UserImpl;
+import scheduler.dao.UserFactory;
 import scheduler.view.ChildModel;
 
 /**
@@ -27,8 +27,8 @@ public interface AppointmentUser<T extends User> extends ChildModel<T> {
     public static AppointmentUser<?> of(User dao) {
         if (null == dao)
             return null;
-        if (dao instanceof UserImpl)
-            return new UserModel((UserImpl)dao);
+        if (dao instanceof UserFactory.UserImpl)
+            return new UserModel((UserFactory.UserImpl)dao);
         return new AppointmentUser<User>() {
             private final ReadOnlyStringWrapper userName = new ReadOnlyStringWrapper(dao.getUserName());
             @Override

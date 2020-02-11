@@ -14,7 +14,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import scheduler.expressions.NonNullableStringProperty;
+import scheduler.observables.NonNullableStringProperty;
 import scheduler.InternalException;
 
 /**

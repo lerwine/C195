@@ -3,6 +3,7 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.util.Values;
 
 /**
  * Represents a data row from the "city" database table.
@@ -55,7 +56,7 @@ public interface City extends DataObject {
             @Override
             public Country getCountry() { return country; }
             @Override
-            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return Values.ROWSTATE_UNMODIFIED; }
         };
     }
     

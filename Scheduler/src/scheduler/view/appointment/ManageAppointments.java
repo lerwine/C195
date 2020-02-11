@@ -10,7 +10,6 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.AppointmentFactory;
-import scheduler.dao.AppointmentImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
@@ -95,19 +94,24 @@ public class ManageAppointments extends ListingController<AppointmentModel> {
         TaskWaiter.execute(new AppointmentsLoadTask(owner));
     }
 
-    private class AppointmentsLoadTask extends ItemsLoadTask<AppointmentImpl> {
+    @Override
+    protected void onDeleteItem(Event event, AppointmentModel item) {
+        getMainController().deleteAppointment(event, item, (connection) -> "");
+    }
+
+    private class AppointmentsLoadTask extends ItemsLoadTask<AppointmentFactory.AppointmentImpl> {
         AppointmentsLoadTask(Stage owner) {
             super(owner, getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
         }
         
         @Override
-        protected Iterable<AppointmentImpl> getResult(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
+        protected Iterable<AppointmentFactory.AppointmentImpl> getResult(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
             LOG.log(Level.INFO, "Invoking AppointmentsLoadTask.getResult");
             return (new AppointmentFactory()).load(connection, filter);
         }
 
         @Override
-        protected AppointmentModel toModel(AppointmentImpl result) { return new AppointmentModel(result); }
+        protected AppointmentModel toModel(AppointmentFactory.AppointmentImpl result) { return new AppointmentModel(result); }
         
         @Override
         protected void processNullResult(Window owner) {
@@ -137,11 +141,6 @@ public class ManageAppointments extends ListingController<AppointmentModel> {
     @Override
     protected CrudAction<AppointmentModel> onEditItem(Event event, AppointmentModel item) {
         return getMainController().editAppointment(event, item);
-    }
-
-    @Override
-    protected void onDeleteItem(Event event, AppointmentModel item) {
-        getMainController().deleteAppointment(event, item);
     }
 
 }

@@ -13,7 +13,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.Address;
 import scheduler.dao.Customer;
-import scheduler.dao.CustomerImpl;
+import scheduler.dao.CustomerFactory;
 import scheduler.view.address.CustomerAddress;
 import scheduler.view.ChildModel;
 
@@ -33,8 +33,8 @@ public interface AppointmentCustomer<T extends Customer> extends ChildModel<T> {
     public static AppointmentCustomer<?> of(Customer dao) {
         if (null == dao)
             return null;
-        if (dao instanceof CustomerImpl)
-            return new CustomerModel((CustomerImpl)dao);
+        if (dao instanceof CustomerFactory.CustomerImpl)
+            return new CustomerModel((CustomerFactory.CustomerImpl)dao);
         return new AppointmentCustomer<Customer>() {
             private final ReadOnlyStringWrapper name = new ReadOnlyStringWrapper(dao.getName());
             @Override

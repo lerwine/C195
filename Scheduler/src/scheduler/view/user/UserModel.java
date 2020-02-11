@@ -5,19 +5,18 @@
  */
 package scheduler.view.user;
 
-import java.sql.Connection;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.UserImpl;
+import scheduler.dao.UserFactory;
 import scheduler.view.ItemModel;
 
 /**
  *
  * @author erwinel
  */
-public class UserModel extends ItemModel<UserImpl> implements AppointmentUser<UserImpl> {
+public class UserModel extends ItemModel<UserFactory.UserImpl> implements AppointmentUser<UserFactory.UserImpl> {
 
     private final ReadOnlyStringWrapper userName;
 
@@ -35,14 +34,15 @@ public class UserModel extends ItemModel<UserImpl> implements AppointmentUser<Us
     @Override
     public ReadOnlyIntegerProperty statusProperty() { return status.getReadOnlyProperty(); }
     
-    public UserModel(UserImpl dao) {
+    public UserModel(UserFactory.UserImpl dao) {
         super(dao);
         this.userName = new ReadOnlyStringWrapper(dao.getUserName());
         this.status = new ReadOnlyIntegerWrapper(dao.getStatus());
     }
 
     @Override
-    public void saveChanges(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void refreshFromDAO(UserFactory.UserImpl dao) {
+        userName.set(dao.getUserName());
+        status.set(dao.getStatus());
     }
 }

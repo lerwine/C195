@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
@@ -38,6 +39,7 @@ import scheduler.dao.AppointmentFactory;
 import scheduler.dao.CustomerFactory;
 import scheduler.dao.UserFactory;
 import scheduler.util.DbConnector;
+import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -57,41 +59,177 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Constants">
     
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
-
+    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Appointment"}.
+     */
     public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
-//    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current Time Zone:"}.
+     */
+    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer:"}.
+     */
     public static final String RESOURCEKEY_CUSTOMER = "customer";
-//    public static final String RESOURCEKEY_CUSTOMERNOTFOUND = "customerNotFound";
-//    public static final String RESOURCEKEY_DESCRIPTION = "description";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer not found..."}.
+     */
+    public static final String RESOURCEKEY_CUSTOMERNOTFOUND = "customerNotFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Description:"}.
+     */
+    public static final String RESOURCEKEY_DESCRIPTION = "description";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Appointment"}.
+     */
     public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
-//    public static final String RESOURCEKEY_END = "end";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End:"}.
+     */
+    public static final String RESOURCEKEY_END = "end";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End cannot be before Start."}.
+     */
     public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid URL format"}.
+     */
     public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Location:"}.
+     */
     public static final String RESOURCEKEY_LOCATION = "location";
-//    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
-//    public static final String RESOURCEKEY_SHOW = "show";
-//    public static final String RESOURCEKEY_START = "start";
-//    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
-//    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
-//    public static final String RESOURCEKEY_TITLE = "title";
-//    public static final String RESOURCEKEY_TYPE = "type";
-//    public static final String RESOURCEKEY_USER = "user";
-//    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Point of Contact:"}.
+     */
+    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Show"}.
+     */
+    public static final String RESOURCEKEY_SHOW = "show";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start:"}.
+     */
+    public static final String RESOURCEKEY_START = "start";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%s to %s"}.
+     */
+    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Time Zone:"}.
+     */
+    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title:"}.
+     */
+    public static final String RESOURCEKEY_TITLE = "title";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type:"}.
+     */
+    public static final String RESOURCEKEY_TYPE = "type";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User:"}.
+     */
+    public static final String RESOURCEKEY_USER = "user";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User not found..."}.
+     */
+    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
+     */
     public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-//    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Meeting URL:"}.
+     */
+    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid hour value"}.
+     */
     public static final String RESOURCEKEY_INVALIDHOUR = "invalidHour";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid minute value"}.
+     */
     public static final String RESOURCEKEY_INVALIDMINUTE = "invalidMinute";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This conflicts with %d customer appointments and %d user appointments..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This conflicts with %d customer appointments and 1 user appointment.."}.
+     */
     public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSER1 = "conflictCustomerNUser1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This conflicts with 1 customer appointment and %d user appointments..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTCUSTOMER1USERN = "conflictCustomer1UserN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This conflicts with 1 customer appointment and 1 user appointment..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTCUSTOMER1USER1 = "conflictCustomer1User1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This conflicts with %d customer appointments..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTCUSTOMERN = "conflictCustomerN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTCUSTOMER1 = "conflictCustomer1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d user appointments..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 user appointment..."}.
+     */
     public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Conflicts Found"}.
+     */
+    public static final String RESOURCEKEY_CONFLICTSFOUND = "conflictsFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointment Conflict"}.
+     */
     public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
-    public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
 
     //</editor-fold>
     
@@ -250,7 +388,7 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     
-    @FXML
+    @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         assert customerComboBox != null : String.format("fx:id=\"customerComboBox\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -326,9 +464,9 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
         TimeZoneChoice.getAllChoices(Locale.getDefault(Locale.Category.DISPLAY)).forEach((TimeZoneChoice c) -> timeZones.add(c));
         
         // Get appointment type options.
-        types = FXCollections.observableArrayList(AppointmentFactory.APPOINTMENTTYPE_PHONE, AppointmentFactory.APPOINTMENTTYPE_VIRTUAL,
-                AppointmentFactory.APPOINTMENTTYPE_CUSTOMER, AppointmentFactory.APPOINTMENTTYPE_HOME, AppointmentFactory.APPOINTMENTTYPE_GERMANY,
-                AppointmentFactory.APPOINTMENTTYPE_INDIA, AppointmentFactory.APPOINTMENTTYPE_HONDURAS, AppointmentFactory.APPOINTMENTTYPE_OTHER);
+        types = FXCollections.observableArrayList(Values.APPOINTMENTTYPE_PHONE, Values.APPOINTMENTTYPE_VIRTUAL,
+                Values.APPOINTMENTTYPE_CUSTOMER, Values.APPOINTMENTTYPE_HOME, Values.APPOINTMENTTYPE_GERMANY,
+                Values.APPOINTMENTTYPE_INDIA, Values.APPOINTMENTTYPE_HONDURAS, Values.APPOINTMENTTYPE_OTHER);
         
         LocalDateTime date = LocalDateTime.now().plusDays(1);
         startDatePicker.setValue(date.toLocalDate());
@@ -362,7 +500,7 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
             customers = FXCollections.observableArrayList();
             (new CustomerFactory()).loadByStatus(connection, true).forEach((c) -> customers.add(new CustomerModel(c)));
             users = FXCollections.observableArrayList();
-            (new UserFactory()).loadByStatus(connection, UserFactory.STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
+            (new UserFactory()).loadByStatus(connection, Values.USER_STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
         } catch (Exception ex) {
             if (customers == null)
                 customers = FXCollections.observableArrayList();
@@ -416,9 +554,22 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
     //</editor-fold>
 
     @Override
-    protected void updateModelAndDao() {
+    protected void updateDao() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    protected BooleanExpression getValidationExpression() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected String getSaveConflictMessage(Connection connection) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected String getDeleteDependencyMessage(Connection connection) throws Exception { return ""; }
 
     //<editor-fold defaultstate="collapsed" desc="State management classes">
     
@@ -465,9 +616,9 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
             selectedTypeProperty = typeComboBox.valueProperty();
             selectedCustomerProperty = customerComboBox.valueProperty();
             // Set up boolean bindings
-            explicitLocation = selectedTypeProperty.isEqualTo(AppointmentFactory.APPOINTMENTTYPE_OTHER);
-            phone = selectedTypeProperty.isEqualTo(AppointmentFactory.APPOINTMENTTYPE_PHONE);
-            virtual = selectedTypeProperty.isEqualTo(AppointmentFactory.APPOINTMENTTYPE_VIRTUAL);
+            explicitLocation = selectedTypeProperty.isEqualTo(Values.APPOINTMENTTYPE_OTHER);
+            phone = selectedTypeProperty.isEqualTo(Values.APPOINTMENTTYPE_PHONE);
+            virtual = selectedTypeProperty.isEqualTo(Values.APPOINTMENTTYPE_VIRTUAL);
             // Create binding for implicit location text (customer address).
             implicitLocationText = new StringBinding() {
                 { super.bind(selectedTypeProperty, selectedCustomerProperty); }
@@ -478,7 +629,7 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
                     // otherwise, return an emtpty string to indicate that the implicit location text label should not be shown.
                     String t = selectedTypeProperty.get();
                     CustomerModel c = selectedCustomerProperty.get();
-                    if (t.equals(AppointmentFactory.APPOINTMENTTYPE_CUSTOMER) && c != null) {
+                    if (t.equals(Values.APPOINTMENTTYPE_CUSTOMER) && c != null) {
                         CustomerAddress<? extends Address> a = c.getAddress();
                         if (a != null && !(t = a.toString().trim()).isEmpty())
                             return t;
@@ -771,7 +922,7 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
                 if (newValue)
                     collapseNode(locationValidationLabel);
                 else
-                    restoreLabeled(locationValidationLabel, getResourceString(EditItem.RESOURCEKEY_REQUIRED));
+                    restoreLabeled(locationValidationLabel, getResourceString(RESOURCEKEY_REQUIRED));
             });
         }
         
@@ -843,7 +994,7 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
             int h = hourProperty.get();
             int m = minuteProperty.get();
             if (dateProperty.get() == null)
-                return EditItem.RESOURCEKEY_REQUIRED;
+                return RESOURCEKEY_REQUIRED;
             if (h < 0 || h > 23)
                 return RESOURCEKEY_INVALIDHOUR;
             return (m < 0 || m > 59) ? RESOURCEKEY_INVALIDMINUTE : "";
@@ -934,7 +1085,7 @@ public class EditAppointment extends EditItem.EditController<AppointmentModel> {
             String text = urlTextProperty.get();
             if (typeSelectionState.virtual.get()) {
                 if (text.trim().isEmpty())
-                    return EditItem.RESOURCEKEY_REQUIRED;
+                    return RESOURCEKEY_REQUIRED;
                 URL url;
                 try {
                     url = new URL(text);

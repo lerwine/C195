@@ -3,6 +3,7 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.util.Values;
 
 /**
  * Represents a data row from the "user" database table.
@@ -67,7 +68,7 @@ public interface User extends DataObject {
             @Override
             public int getPrimaryKey() { return pk; }
             @Override
-            public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
+            public int getRowState() { return Values.ROWSTATE_UNMODIFIED; }
         };
     }
     
@@ -90,6 +91,6 @@ public interface User extends DataObject {
         if (resultSet.wasNull())
             password = "";
         int status = resultSet.getInt(UserFactory.COLNAME_ACTIVE);
-        return User.of(id, userName, password, (resultSet.wasNull()) ? UserFactory.STATUS_INACTIVE : UserFactory.asValidStatus(status));
+        return User.of(id, userName, password, (resultSet.wasNull()) ? Values.USER_STATUS_INACTIVE : Values.asValidUserStatus(status));
     }
 }

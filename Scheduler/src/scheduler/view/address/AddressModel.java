@@ -10,14 +10,14 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.AddressImpl;
+import scheduler.dao.AddressFactory;
 import scheduler.view.city.AddressCity;
 
 /**
  *
  * @author erwinel
  */
-public class AddressModel extends scheduler.view.ItemModel<AddressImpl> implements CustomerAddress<AddressImpl> {
+public class AddressModel extends scheduler.view.ItemModel<AddressFactory.AddressImpl> implements CustomerAddress<AddressFactory.AddressImpl> {
 
     private final ReadOnlyStringWrapper address1;
 
@@ -71,18 +71,22 @@ public class AddressModel extends scheduler.view.ItemModel<AddressImpl> implemen
     @Override
     public ReadOnlyStringProperty phoneProperty() { return phone.getReadOnlyProperty(); }
 
-    public AddressModel(AddressImpl dao) {
+    public AddressModel(AddressFactory.AddressImpl dao) {
         super(dao);
-        this.address1 = new ReadOnlyStringWrapper(dao.getAddress1());
-        this.address2 = new ReadOnlyStringWrapper(dao.getAddress2());
-        this.city = new ReadOnlyObjectWrapper<>(AddressCity.of(dao.getCity()));
-        this.postalCode = new ReadOnlyStringWrapper(dao.getPostalCode());
-        this.phone = new ReadOnlyStringWrapper(dao.getPhone());
+        address1 = new ReadOnlyStringWrapper(dao.getAddress1());
+        address2 = new ReadOnlyStringWrapper(dao.getAddress2());
+        city = new ReadOnlyObjectWrapper<>(AddressCity.of(dao.getCity()));
+        postalCode = new ReadOnlyStringWrapper(dao.getPostalCode());
+        phone = new ReadOnlyStringWrapper(dao.getPhone());
     }
 
     @Override
-    public void saveChanges(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void refreshFromDAO(AddressFactory.AddressImpl dao) {
+        address1.set(dao.getAddress1());
+        address2.set(dao.getAddress2());
+        city.set(AddressCity.of(dao.getCity()));
+        postalCode.set(dao.getPostalCode());
+        phone.set(dao.getPhone());
     }
     
 }

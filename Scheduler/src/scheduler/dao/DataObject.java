@@ -1,8 +1,9 @@
 package scheduler.dao;
 
+import scheduler.util.Values;
+
 /**
  * Base interface for all data objects representing a data row in the database.
- * 
  * @author erwinel
  */
 public interface DataObject {
@@ -24,5 +25,5 @@ public interface DataObject {
      * @return {@code true} if the row state is {@link DataObjectFactory#ROWSTATE_UNMODIFIED}, {@link DataObjectFactory#ROWSTATE_MODIFIED}, otherwise, {@code false} if
      * the row state is {@link DataObjectFactory#ROWSTATE_NEW} or {@link DataObjectFactory#ROWSTATE_DELETED}.
      */
-    default  boolean isExisting() { return getRowState() == DataObjectFactory.ROWSTATE_MODIFIED || getRowState() == DataObjectFactory.ROWSTATE_UNMODIFIED; }
+    default boolean isExisting() { return getRowState() == Values.ROWSTATE_MODIFIED || getRowState() == Values.ROWSTATE_UNMODIFIED; }
 }

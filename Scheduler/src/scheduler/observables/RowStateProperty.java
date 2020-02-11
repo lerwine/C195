@@ -3,16 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package scheduler.expressions;
+package scheduler.observables;
 
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.dao.DataObject;
 import scheduler.dao.DataObjectFactory;
+import scheduler.util.Values;
 
 /**
- *
+ * A {@link SimpleIntegerProperty} that represents a valid data rows state value.
+ * The value will be {@link DataObjectFactory#ROWSTATE_NEW}, {@link DataObjectFactory#ROWSTATE_UNMODIFIED},
+ * {@link DataObjectFactory#ROWSTATE_MODIFIED} or {@link DataObjectFactory#ROWSTATE_DELETED}.
  * @author erwinel
  */
 public class RowStateProperty extends SimpleIntegerProperty {
@@ -31,30 +33,23 @@ public class RowStateProperty extends SimpleIntegerProperty {
         }
 
         public RowStateProperty() {
-            this(DataObjectFactory.ROWSTATE_NEW);
+            this(Values.ROWSTATE_NEW);
         }
 
         public RowStateProperty(int initialValue) {
-            super(asValidValue(initialValue));
+            super(Values.asValidRowState(initialValue));
         }
 
         public RowStateProperty(Object bean, String name) {
-            this(bean, name, DataObjectFactory.ROWSTATE_NEW);
+            this(bean, name, Values.ROWSTATE_NEW);
         }
 
         public RowStateProperty(Object bean, String name, int initialValue) {
-            super(bean, name, asValidValue(initialValue));
+            super(bean, name, Values.asValidRowState(initialValue));
         }
 
-        public static int asValidValue(int value) {
-            return (value < DataObjectFactory.ROWSTATE_DELETED) ? DataObjectFactory.ROWSTATE_DELETED :
-                    ((value > DataObjectFactory.ROWSTATE_MODIFIED) ? DataObjectFactory.ROWSTATE_MODIFIED : value);
-        }
-        
         @Override
-        public void set(int newValue) {
-            super.set(asValidValue(newValue));
-        }
+        public void set(int newValue) { super.set(Values.asValidRowState(newValue)); }
 
         private class ReadOnlyPropertyImpl extends ReadOnlyIntegerPropertyBase {
 

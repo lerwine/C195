@@ -3,6 +3,7 @@ package scheduler.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Objects;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -12,13 +13,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.DataObjectImpl;
+import scheduler.dao.DataObjectFactory;
 
 /**
  *
  * @author erwinel
  */
-public class Bindings {
+public class ValueBindings {
     /**
      * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or
      * an empty string if the source value was null.
@@ -31,29 +32,32 @@ public class Bindings {
      *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
     public static StringBinding asTrimmedAndNotNull(final StringProperty stringProperty) {
-        if (stringProperty == null)
-            throw new NullPointerException("String binding cannot be null.");
-        
         return new StringBinding() {
-            { super.bind(stringProperty); }
-
+            { super.bind(Objects.requireNonNull(stringProperty)); }
             @Override
-            protected String computeValue() {
-                String s = stringProperty.get();
-                return (s != null) ? s.trim() : "";
-            }
-
+            protected String computeValue() { return Values.asNonNullAndTrimmed(stringProperty.get()); }
             @Override
             public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
-
+            @Override
+            public void dispose() { super.unbind(stringProperty); }
+        };
+    }
+    
+    public static StringBinding asNormalized(final StringProperty stringProperty) {
+        return new StringBinding() {
+            { super.bind(Objects.requireNonNull(stringProperty)); }
+            @Override
+            protected String computeValue() { return Values.asNonNullAndWsNormalized(stringProperty.get()); }
+            @Override
+            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
             @Override
             public void dispose() { super.unbind(stringProperty); }
         };
     }
 
     /**
-     * Creates a new {@link javafx.beans.binding.BooleanBinding} that holds {@code true} if a given
-     * {@link javafx.beans.property.StringProperty} is not null and contains at least one non-whitespace character.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given
+     * {@link StringProperty} is not null and contains at least one non-whitespace character.
      *
      * @param stringProperty
      *         The {@link javafx.beans.property.StringProperty} to test.
@@ -63,21 +67,37 @@ public class Bindings {
      *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
     public static BooleanBinding notNullOrWhiteSpace(final StringProperty stringProperty) {
-        if (stringProperty == null)
-            throw new NullPointerException("String binding cannot be null.");
-
+        Objects.requireNonNull(stringProperty, "String property cannot be null");
         return new BooleanBinding() {
             { super.bind(stringProperty); }
-
             @Override
-            protected boolean computeValue() {
-                String s = stringProperty.get();
-                return s != null && !s.trim().isEmpty();
-            }
-
+            protected boolean computeValue() { return !Values.isNullWhiteSpaceOrEmpty(stringProperty.get()); }
             @Override
             public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
+            @Override
+            public void dispose() { super.unbind(stringProperty); }
+        };
+    }
 
+    /**
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given
+     * {@link StringProperty} is null, empty or contains all whitespace characters.
+     *
+     * @param stringProperty
+     *         The {@link javafx.beans.property.StringProperty} to test.
+     * @return
+     *         The new {@link javafx.beans.binding.BooleanBinding}.
+     * @throws NullPointerException
+     *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
+     */
+    public static BooleanBinding isNullOrWhiteSpace(final StringProperty stringProperty) {
+        Objects.requireNonNull(stringProperty, "String property cannot be null");
+        return new BooleanBinding() {
+            { super.bind(stringProperty); }
+            @Override
+            protected boolean computeValue() { return Values.isNullWhiteSpaceOrEmpty(stringProperty.get()); }
+            @Override
+            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
             @Override
             public void dispose() { super.unbind(stringProperty); }
         };
@@ -158,7 +178,7 @@ public class Bindings {
         };
     }
 
-    public static <R extends DataObjectImpl> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
+    public static <R extends DataObjectFactory.DataObjectImpl> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
         if (recordProperty == null)
             throw new NullPointerException("Record binding cannot be null.");
         
@@ -167,7 +187,7 @@ public class Bindings {
 
             @Override
             protected int computeValue() {
-                DataObjectImpl record = recordProperty.get();
+                DataObjectFactory.DataObjectImpl record = recordProperty.get();
                 return (record == null) ? 0 : record.getPrimaryKey();
             }
         };

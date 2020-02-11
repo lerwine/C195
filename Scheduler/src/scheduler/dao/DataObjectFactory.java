@@ -4,18 +4,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
+import scheduler.App;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
 import scheduler.filter.SqlStatementBuilder;
 import scheduler.filter.ValueAccessor;
-import scheduler.util.ResultSetFunction;
-import scheduler.util.ThrowableFunction;
+import scheduler.util.DB;
+import scheduler.util.Values;
 import scheduler.view.ItemModel;
 
 /**
@@ -24,7 +26,7 @@ import scheduler.view.ItemModel;
  * @param <D> The Data Access Object type.
  * @param <M> The Java FX model type.
  */
-public abstract class DataObjectFactory<D extends DataObjectImpl, M extends ItemModel<D>> {
+public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectImpl, M extends ItemModel<D>> {
     
     //<editor-fold defaultstate="collapsed" desc="Database table names">
 
@@ -84,36 +86,6 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Row state values">
-    
-    /**
-     * Value of {@link #getRowState()} when the current data object has been deleted from the database.
-     */
-    public static final int ROWSTATE_DELETED = -1;
-    
-    /**
-     * Value of {@link #getRowState()} when the current data object has not yet been added to the database.
-     */
-    public static final int ROWSTATE_NEW = 0;
-    
-    /**
-     * Value of {@link #getRowState()} when the properties of the current data object has not been modified since it was last synchronized with the database.
-     */
-    public static final int ROWSTATE_UNMODIFIED = 1;
-    
-    /**
-     * Value of {@link #getRowState()} when the properties of the current data object differ from the data stored in the database.
-     */
-    public static final int ROWSTATE_MODIFIED = 2;
-    
-    public static int asValidRowState(int value) {
-        if (value < ROWSTATE_DELETED)
-            return ROWSTATE_DELETED;
-        return (value > ROWSTATE_MODIFIED) ? ROWSTATE_MODIFIED : value;
-    }
-    
-    //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Filter definitions">
     
     //<editor-fold defaultstate="collapsed" desc="ValueAccessor definitions">
@@ -161,6 +133,18 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
     };
     
     public final ValueAccessor<M, String> getLastModifiedByAccessor() { return lastModifiedByAccessor; }
+    
+    private final ValueAccessor<M, Integer> primaryKeyAccessor = new ValueAccessor<M, Integer>() {
+        @Override
+        public Integer apply(M t) { return t.getDataObject().getPrimaryKey(); }
+        @Override
+        public String get() { return getPrimaryKeyColName(); }
+        @Override
+        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
+        
+    };
+    
+    public final ValueAccessor<M, Integer> getPrimaryKeyAccessor() { return primaryKeyAccessor; }
     
     //</editor-fold>
     
@@ -214,85 +198,52 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
         return ModelFilter.columnIsNotEqualTo(getLastModifiedByAccessor(), ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
     }
     
+
+    public ModelFilter<M> wherePkIsNot(int value) {
+        return ModelFilter.columnIsNotEqualTo(getPrimaryKeyAccessor(), ModelFilter.COMPARATOR_INTEGER, value);
+    }
+    
     //</editor-fold>
     
     //</editor-fold>
-    
-    @Deprecated
-    protected static <T> ArrayList<T> toList(PreparedStatement ps, ResultSetFunction<T> factory) throws SQLException {
-        ArrayList<T> result = new ArrayList<>();
-        try (ResultSet rs = ps.getResultSet()) {
-            while (rs.next())
-                result.add(factory.apply(rs));
-        }
-        return result;
-    }
-    
-    @Deprecated
-    protected static <T> Optional<T> toOptional(PreparedStatement ps, ResultSetFunction<T> factory) throws SQLException {
-        try (ResultSet rs = ps.getResultSet()) {
-            if (rs.next())
-                return Optional.of(factory.apply(rs));
-        }
-        return Optional.empty();
-    }
     
     protected static Stream<String> getBaseFieldNames() {
         return Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY);
     }
     
-    /**
-     * Gets the name of the data table associated a DAO.
-     * @param <R> The type of DAO.
-     * @param rowClass The DAO class.
-     * @return The name of the data table associated with the specified DAO.
-     * @throws IllegalArgumentException if the table class name is not defined through the {@link TableName} annotation.
-     */
-    public static final <R extends DataObjectImpl> String getTableName(Class<R> rowClass) {
-        Class<TableName> tableNameClass = TableName.class;
-        if (rowClass.isAnnotationPresent(tableNameClass)) {
-            String n = rowClass.getAnnotation(tableNameClass).value();
-            if (n != null && !n.isEmpty())
-                return n;
-        }
-        throw new IllegalArgumentException("Table name not defined");
-    }
+//    /**
+//     * Gets the name of the data table associated a DAO.
+//     * @param <R> The type of DAO.
+//     * @param rowClass The DAO class.
+//     * @return The name of the data table associated with the specified DAO.
+//     * @throws IllegalArgumentException if the table class name is not defined through the {@link TableName} annotation.
+//     */
+//    public static final <R extends DataObjectImpl> String getTableName(Class<R> rowClass) {
+//        Class<TableName> tableNameClass = TableName.class;
+//        if (rowClass.isAnnotationPresent(tableNameClass)) {
+//            String n = rowClass.getAnnotation(tableNameClass).value();
+//            if (n != null && !n.isEmpty())
+//                return n;
+//        }
+//        throw new IllegalArgumentException("Table name not defined");
+//    }
     
-    /**
-     * Gets the name of the primary key column associated a DAO.
-     * @param <R> The type of DAO.
-     * @param rowClass The DAO class.
-     * @return The name of the primary key column associated with the specified DAO.
-     * @throws IllegalArgumentException if the primary key column is not defined through the {@link PrimaryKeyColumn} annotation.
-     */
-    public static final <R extends DataObjectImpl> String getPrimaryKeyColName(Class<R> rowClass) {
-        Class<PrimaryKeyColumn> pkClass = PrimaryKeyColumn.class;
-        if (rowClass.isAnnotationPresent(pkClass)) {
-            String n = rowClass.getAnnotation(pkClass).value();
-            if (n != null && !n.isEmpty())
-                return n;
-        }
-        throw new IllegalArgumentException("Primary key column name not defined");
-    }
-    
-    @Deprecated
-    public static <T extends DataObjectImpl> ArrayList<T> loadAll(Connection connection, String baseQuery,
-            ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
-        return loadAll(connection, baseQuery, null, create);
-    }
-    
-    @Deprecated
-    public static <T extends DataObjectImpl> ArrayList<T> loadAll(Connection connection, String baseQuery, Iterable<OrderBy> orderBy,
-            ThrowableFunction<ResultSet, T, SQLException> create) throws Exception {
-        ArrayList<T> result = new ArrayList<>();
-        try (PreparedStatement ps = OrderBy.prepareStatement(connection, baseQuery, orderBy)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next())
-                    result.add(create.apply(rs));
-            }
-        }
-        return result;
-    }
+//    /**
+//     * Gets the name of the primary key column associated a DAO.
+//     * @param <R> The type of DAO.
+//     * @param rowClass The DAO class.
+//     * @return The name of the primary key column associated with the specified DAO.
+//     * @throws IllegalArgumentException if the primary key column is not defined through the {@link PrimaryKeyColumn} annotation.
+//     */
+//    public static final <R extends DataObjectImpl> String getPrimaryKeyColName(Class<R> rowClass) {
+//        Class<PrimaryKeyColumn> pkClass = PrimaryKeyColumn.class;
+//        if (rowClass.isAnnotationPresent(pkClass)) {
+//            String n = rowClass.getAnnotation(pkClass).value();
+//            if (n != null && !n.isEmpty())
+//                return n;
+//        }
+//        throw new IllegalArgumentException("Primary key column name not defined");
+//    }
     
     protected abstract D fromResultSet(ResultSet resultSet) throws SQLException;
     
@@ -302,9 +253,90 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
     
     public abstract Class<? extends D> getDaoClass();
     
-    public final String getTableName() { return getTableName(getDaoClass()); }
+//    public final String getTableName() { return getTableName(getDaoClass()); }
+//    
+//    public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getDaoClass()); }
     
-    public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getDaoClass()); }
+    public abstract String getTableName();
+    
+    public abstract String getPrimaryKeyColName();
+    
+    public void delete(D dao, Connection connection) throws Exception {
+        Objects.requireNonNull(dao, "Data access object cannot be null");
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        synchronized (dao) {
+            assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has already been deleted", getClass().getName());
+            assert dao.getRowState() != Values.ROWSTATE_NEW : String.format("%s has not been inserted into the database", getClass().getName());
+            String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, dao.getPrimaryKey());
+                assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
+                        getTableName(), getPrimaryKeyColName(), dao.getPrimaryKey());
+            }
+            dao.setDeleted();
+        }
+    }
+    
+    protected abstract Stream<String> getExtendedColNames();
+    
+    protected abstract void setStatementValues(D dao, PreparedStatement ps) throws SQLException;
+    
+    public void save(D dao, Connection connection) throws Exception {
+        Objects.requireNonNull(dao, "Data access object cannot be null");
+        Objects.requireNonNull(connection, "Connection cannot be null");
+        synchronized (dao) {
+            assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has been deleted", getClass().getName());
+            StringBuilder sql = new StringBuilder();
+            String[] colNames;
+            dao.setAsModified();
+            if (dao.getRowState() == Values.ROWSTATE_NEW) {
+                colNames = Stream.concat(getExtendedColNames(), Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY))
+                        .toArray(String[]::new);
+                sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", colNames)).append("`) VALUES (%");
+                for (int i = 1; i < colNames.length; i++)
+                    sql.append(", %");
+                sql.append(")");
+            } else {
+                colNames = Stream.concat(getExtendedColNames(), Stream.of(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY)).toArray(String[]::new);
+                sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("`=%, `", colNames)).append("`=% WHERE `")
+                        .append(getPrimaryKeyColName()).append("=%");
+            }
+            
+            int pk;
+            try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+                setStatementValues(dao, ps);
+                int index;
+                if (dao.getRowState() == Values.ROWSTATE_NEW) {
+                    index = colNames.length - 4;
+                    ps.setTimestamp(++index, dao.getCreateDate());
+                    ps.setString(++index, dao.getCreatedBy());
+                    ps.setTimestamp(++index, dao.getCreateDate());
+                    ps.setString(++index, dao.getCreatedBy());
+                } else {
+                    index = colNames.length - 2;
+                    ps.setTimestamp(++index, dao.getLastModifiedDate());
+                    ps.setString(++index, dao.getLastModifiedBy());
+                    ps.setInt(++index, dao.getPrimaryKey());
+                }
+                ps.executeUpdate();
+                if (dao.getRowState() == Values.ROWSTATE_NEW)
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        pk = rs.getInt(1);
+                    }
+                else
+                    pk = dao.getPrimaryKey();
+            }
+            sql = new StringBuilder(getBaseQuery());
+            sql.append(" WHERE `").append(getPrimaryKeyColName()).append("`=%");
+            try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+                ps.setInt(1, pk);
+                try (ResultSet rs = ps.getResultSet()) {
+                    assert rs.next() : "Updated record not found";
+                    refresh(dao, rs);
+                }
+            }
+        }
+    }
     
     public ArrayList<D> load(Connection connection, ModelFilter<? extends M> filter, Iterable<OrderBy> orderBy) throws Exception {
         ArrayList<D> result = new ArrayList<>();
@@ -389,4 +421,254 @@ public abstract class DataObjectFactory<D extends DataObjectImpl, M extends Item
         return 0;
     }
     
+    private int assertBaseResultSetValid(DataObjectImpl target, ResultSet resultSet) throws SQLException {
+        Objects.requireNonNull(resultSet, "Result set cannot be null");
+        assert !resultSet.isClosed() : "Result set is closed.";
+        assert !(resultSet.isBeforeFirst() || resultSet.isAfterLast()) : "Result set is not positioned on a result row";
+        String pkColName = getPrimaryKeyColName();
+        int pk = resultSet.getInt(pkColName);
+        assert !resultSet.wasNull() : String.format("%s was null", pkColName);
+        assert resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName)).equals(getTableName()) : "Table name mismatch";
+        if (target.rowState != Values.ROWSTATE_NEW)
+            assert pk == target.getPrimaryKey() : "Primary key does not match";
+        return pk;
+    }
+
+    protected synchronized void refresh(DataObjectImpl target, ResultSet resultSet) throws SQLException {
+        assert target.rowState != Values.ROWSTATE_DELETED : "Associated row was already deleted";
+        int pk = assertBaseResultSetValid(target, resultSet);
+        if (target.rowState != Values.ROWSTATE_NEW)
+            assert pk == target.getPrimaryKey() : "Primary key does not match";
+        Timestamp cd = resultSet.getTimestamp(COLNAME_CREATEDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
+        String cb = resultSet.getString(COLNAME_CREATEDBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
+        Timestamp ud = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
+        String ub = resultSet.getString(COLNAME_LASTUPDATEBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
+        target.primaryKey = pk;
+        target.createDate = cd;
+        target.createdBy = cb;
+        target.lastModifiedDate = ud;
+        target.lastModifiedBy = ub;
+        target.rowState = Values.ROWSTATE_UNMODIFIED;
+    }
+    
+    /**
+     * Initializes a data access object from a {@link ResultSet}.
+     * @param resultSet The data retrieved from the database.
+     * @throws SQLException if not able to read data from the {@link ResultSet}.
+     */
+    protected void initializeDao(D target, ResultSet resultSet) throws SQLException {
+        ((DataObjectImpl)target).primaryKey = assertBaseResultSetValid(target, resultSet);
+        ((DataObjectImpl)target).createDate = resultSet.getTimestamp(COLNAME_CREATEDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
+        ((DataObjectImpl)target).createdBy = resultSet.getString(COLNAME_CREATEDBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
+        ((DataObjectImpl)target).lastModifiedDate = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
+        ((DataObjectImpl)target).lastModifiedBy = resultSet.getString(COLNAME_LASTUPDATEBY);
+        assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
+        ((DataObjectImpl)target).rowState = Values.ROWSTATE_UNMODIFIED;
+    }
+
+    /**
+    * The base DAO which contains properties and methods common to all DAO objects.
+    * @author erwinel
+    */
+   public static abstract class DataObjectImpl implements DataObject {
+       //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
+
+       //<editor-fold defaultstate="collapsed" desc="primaryKey property">
+
+       private int primaryKey;
+
+       /**
+        * {@inheritDoc}
+        */
+       @Override
+       public final int getPrimaryKey() { return primaryKey; }
+
+       //</editor-fold>
+
+       //<editor-fold defaultstate="collapsed" desc="createDate property">
+
+       /**
+        * The name of the 'createDate' property.
+        */
+       public static final String PROP_CREATEDATE = "createDate";
+
+       private Timestamp createDate;
+
+       /**
+        * Gets the timestamp when the data row associated with the current data object was inserted into the database.
+        * @return The timestamp when the data row associated with the current data object was inserted into the database.
+        */
+       public final Timestamp getCreateDate() { return createDate; }
+
+       //</editor-fold>
+
+       //<editor-fold defaultstate="collapsed" desc="createdBy property">
+
+       /**
+        * The name of the 'createdBy' property.
+        */
+       public static final String PROP_CREATEDBY = "createdBy";
+
+       private String createdBy;
+
+       /**
+        * Gets the user name of the person who inserted the data row associated with the current data object into the database.
+        * @return The user name of the person who inserted the data row associated with the current data object into the database.
+        */
+       public final String getCreatedBy() { return createdBy; }
+
+       //</editor-fold>
+
+       //<editor-fold defaultstate="collapsed" desc="lastModifiedDate property">
+
+       /**
+        * The name of the 'lastModifiedDate' property.
+        */
+       public static final String PROP_LASTMODIFIEDDATE = "lastModifiedDate";
+
+       private Timestamp lastModifiedDate;
+
+       /**
+        * Gets the timestamp when the data row associated with the current data object was last modified.
+        * @return The timestamp when the data row associated with the current data object was last modified.
+        */
+       public final Timestamp getLastModifiedDate() { return lastModifiedDate; }
+
+       //</editor-fold>
+
+       //<editor-fold defaultstate="collapsed" desc="lastModifiedBy property">
+
+       /**
+        * The name of the 'lastModifiedBy' property.
+        */
+       public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
+
+       private String lastModifiedBy;
+
+       /**
+        * Gets the user name of the person who last modified the data row associated with the current data object in the database.
+        * @return The user name of the person who last modified the data row associated with the current data object in the database.
+        */
+       public final String getLastModifiedBy() { return lastModifiedBy; }
+
+       //</editor-fold>
+
+       //<editor-fold defaultstate="collapsed" desc="rowState">
+
+       private int rowState;
+
+       /**
+        * {@inheritDoc}
+        */
+       @Override
+       public final int getRowState() { return rowState; }
+
+       final void setDeleted() { rowState = Values.ROWSTATE_DELETED; }
+
+       public final boolean isModified() { return rowState != Values.ROWSTATE_UNMODIFIED; }
+
+       synchronized final void setAsModified() {
+           assert rowState != Values.ROWSTATE_DELETED : "Row has been deleted.";
+           UserFactory.UserImpl currentUser = App.getCurrentUser();
+           lastModifiedBy = currentUser.getUserName();
+           lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
+           if (rowState != Values.ROWSTATE_NEW) {
+               rowState = Values.ROWSTATE_MODIFIED;
+               return;
+           }
+           createdBy = lastModifiedBy;
+           createDate = lastModifiedDate;
+       }
+
+       //</editor-fold>
+
+       //</editor-fold>
+
+       /**
+        * Initializes a {@link DataObject.ROWSTATE_NEW} data access object.
+        */
+       protected DataObjectImpl() {
+           primaryKey = 0;
+           lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+           lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
+           rowState = Values.ROWSTATE_NEW;
+       }
+
+       protected DataObjectImpl(int primaryKey, Timestamp createDate, String createdBy, Timestamp lastModifiedDate, String lastModifiedBy, int rowState) {
+           this.primaryKey = primaryKey;
+           this.createDate = createDate;
+           this.createdBy = createdBy;
+           this.lastModifiedDate = lastModifiedDate;
+           this.lastModifiedBy = lastModifiedBy;
+           this.rowState = Values.asValidRowState(rowState);
+       }
+
+//       /**
+//        * Initializes a data access object from a {@link ResultSet}.
+//        * @param resultSet The data retrieved from the database.
+//        * @throws SQLException if not able to read data from the {@link ResultSet}.
+//        */
+//       protected DataObjectImpl(ResultSet resultSet) throws SQLException {
+//           primaryKey = assertBaseResultSetValid(resultSet);
+//           createDate = resultSet.getTimestamp(COLNAME_CREATEDATE);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
+//           createdBy = resultSet.getString(COLNAME_CREATEDBY);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
+//           lastModifiedDate = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
+//           lastModifiedBy = resultSet.getString(COLNAME_LASTUPDATEBY);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
+//           rowState = Values.ROWSTATE_UNMODIFIED;
+//       }
+
+//       private int assertBaseResultSetValid(ResultSet resultSet) throws SQLException {
+//           Objects.requireNonNull(resultSet, "Result set cannot be null");
+//           assert !resultSet.isClosed() : "Result set is closed.";
+//           assert !(resultSet.isBeforeFirst() || resultSet.isAfterLast()) : "Result set is not positioned on a result row";
+//           String pkColName = getPrimaryKeyColName();
+//           int pk = resultSet.getInt(pkColName);
+//           assert !resultSet.wasNull() : String.format("%s was null", pkColName);
+//           assert resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName)).equals(getTableName()) : "Table name mismatch";
+//           if (rowState != Values.ROWSTATE_NEW)
+//               assert pk == getPrimaryKey() : "Primary key does not match";
+//           return pk;
+//       }
+//
+//       protected synchronized void refresh(ResultSet resultSet) throws SQLException {
+//           assert rowState != Values.ROWSTATE_DELETED : "Associated row was already deleted";
+//           int pk = assertBaseResultSetValid(resultSet);
+//           if (rowState != Values.ROWSTATE_NEW)
+//               assert pk == getPrimaryKey() : "Primary key does not match";
+//           Timestamp cd = resultSet.getTimestamp(COLNAME_CREATEDATE);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
+//           String cb = resultSet.getString(COLNAME_CREATEDBY);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
+//           Timestamp ud = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
+//           String ub = resultSet.getString(COLNAME_LASTUPDATEBY);
+//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
+//           primaryKey = pk;
+//           createDate = cd;
+//           createdBy = cb;
+//           lastModifiedDate = ud;
+//           lastModifiedBy = ub;
+//           rowState = Values.ROWSTATE_UNMODIFIED;
+//       }
+
+//       public final String getTableName() { return getTableName(getClass()); }
+//
+//       public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getClass()); }
+
+       public abstract void saveChanges(Connection connection) throws Exception;
+
+       public abstract void delete(Connection connection) throws Exception;
+
+   }
 }

@@ -10,7 +10,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.Address;
-import scheduler.dao.AddressImpl;
+import scheduler.dao.AddressFactory;
 import scheduler.dao.City;
 import scheduler.view.city.AddressCity;
 import scheduler.view.ChildModel;
@@ -39,8 +39,8 @@ public interface CustomerAddress<T extends Address> extends ChildModel<T> {
     public static CustomerAddress<?> of(Address dao) {
         if (null == dao)
             return null;
-        if (dao instanceof AddressImpl)
-            return new AddressModel((AddressImpl)dao);
+        if (dao instanceof AddressFactory.AddressImpl)
+            return new AddressModel((AddressFactory.AddressImpl)dao);
         return new CustomerAddress<Address>() {
             
             private final ReadOnlyStringWrapper address1 = new ReadOnlyStringWrapper(dao.getAddress1());

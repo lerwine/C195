@@ -21,11 +21,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import scheduler.dao.DataObject;
-import scheduler.dao.DataObjectImpl;
 import scheduler.dao.PrimaryKeyColumn;
 import scheduler.dao.TableName;
 import scheduler.dao.DataObjectFactory;
 import scheduler.util.DB;
+import scheduler.util.Values;
 import scheduler.view.ChildModel;
 import scheduler.view.ItemModel;
 
@@ -68,7 +68,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         filter = filter.and(ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString));
         String message = String.format("%s: %s ⊥ %s && %s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_ACTIVE,
@@ -124,7 +124,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         filter = filter.or(ModelFilter.columnIsNotEqualTo(ACCESSOR_TITLE, ModelFilter.COMPARATOR_STRING, testString));
         String message = String.format("%s: %s ⊥ %s || %s: \"%s\" ⊥ \"%s\"", TestParentDAO.COLNAME_ACTIVE,
@@ -432,7 +432,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         assertEquals(testBoolean, model.getDataObject().isActive());
         assertEquals(testBoolean, model.isActive());
         assertEquals(testString, model.getTitle());
@@ -542,7 +542,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsNotEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
         String expResult = String.format("`%s`<>?", TestParentDAO.COLNAME_ID);
@@ -647,7 +647,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsGreaterThan(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
         String expResult = String.format("`%s`>?", TestParentDAO.COLNAME_ID);
@@ -700,7 +700,7 @@ public class ModelFilterTest {
         assertTrue(message, filter.test(model));
         model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         testBoolean = true;
         filter = ModelFilter.columnIsGreaterThan(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
@@ -799,7 +799,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
         String expResult = String.format("`%s`>=?", TestParentDAO.COLNAME_ID);
@@ -852,7 +852,7 @@ public class ModelFilterTest {
         assertTrue(message, filter.test(model));
         model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         testBoolean = true;
         filter = ModelFilter.columnIsGreaterThanOrEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
@@ -951,7 +951,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsLessThan(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
         String expResult = String.format("`%s`<?", TestParentDAO.COLNAME_ID);
@@ -1004,7 +1004,7 @@ public class ModelFilterTest {
         assertFalse(message, filter.test(model));
         model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         testBoolean = true;
         filter = ModelFilter.columnIsLessThan(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
@@ -1103,7 +1103,7 @@ public class ModelFilterTest {
         LocalDateTime testDateTime = LocalDateTime.of(2019, Month.MARCH, 12, 5, 45, 00);
         TestParentModelImpl model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         ModelFilter<TestParentModelImpl> filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_ID, ModelFilter.COMPARATOR_INTEGER, testInt);
         String message = String.format("%s: %d ⊥ %d", TestParentDAO.COLNAME_ID, model.getDataObject().getPrimaryKey(), testInt);
         String expResult = String.format("`%s`<=?", TestParentDAO.COLNAME_ID);
@@ -1156,7 +1156,7 @@ public class ModelFilterTest {
         assertFalse(message, filter.test(model));
         model = new TestParentModelImpl(new TestParentDAOImpl(testInt /*id*/, testString /*title*/, testBoolean /*active*/,
                 12 /*rate*/, testChild /*child*/, DB.toUtcTimestamp(testDateTime) /*createDate*/, "he" /*createdBy*/,
-                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, DataObjectFactory.ROWSTATE_UNMODIFIED));
+                DB.toUtcTimestamp(testDateTime) /*lastModifiedDate*/, "she" /*lastModifiedBy*/, Values.ROWSTATE_UNMODIFIED));
         testBoolean = true;
         filter = ModelFilter.columnIsLessThanOrEqualTo(ACCESSOR_ACTIVE, ModelFilter.COMPARATOR_BOOLEAN, testBoolean);
         message = String.format("%s: %s ⊥ %s", TestParentDAO.COLNAME_ACTIVE, (model.isActive()) ? "true" : "false", (testBoolean) ? "true" : "false");
@@ -1268,7 +1268,7 @@ public class ModelFilterTest {
                 @Override
                 public int getPrimaryKey() { return pk; }
                 @Override
-                public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
+                public int getRowState() { return Values.ROWSTATE_UNMODIFIED; }
             };
         }
     }
@@ -1296,14 +1296,14 @@ public class ModelFilterTest {
                 @Override
                 public int getPrimaryKey() { return id; }
                 @Override
-                public int getRowState() { return DataObjectFactory.ROWSTATE_UNMODIFIED; }
+                public int getRowState() { return Values.ROWSTATE_UNMODIFIED; }
             };
         }
     }
     
     @TableName(TEST_TABLENAME_CHILD)
     @PrimaryKeyColumn(TestChildDAO.COLNAME_PK)
-    public static class TestChildDAOImpl extends DataObjectImpl implements TestChildDAO {
+    public static class TestChildDAOImpl extends DataObjectFactory.DataObjectImpl implements TestChildDAO {
         public TestChildDAOImpl(int id, String name, Timestamp createDate, String createdBy, Timestamp lastModifiedDate, String lastModifiedBy, int rowState) {
             super(id, createDate, createdBy, lastModifiedDate, lastModifiedBy, rowState);
             this.name = (name == null) ? "" : name;
@@ -1314,29 +1314,20 @@ public class ModelFilterTest {
         public void setName(String value) { name = (value == null) ? "" : value; }
 
         @Override
-        public boolean canDelete(Connection connection) throws Exception {
+        public void saveChanges(Connection connection) throws Exception {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public boolean isValid() {
+        public void delete(Connection connection) throws Exception {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
-        @Override
-        public String getValidationMessageForSave(Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public String getValidationMessageForDelete(Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
     }
     
     @TableName(TEST_TABLENAME_PARENT)
     @PrimaryKeyColumn(TestParentDAO.COLNAME_ID)
-    public static class TestParentDAOImpl extends DataObjectImpl implements TestParentDAO {
+    public static class TestParentDAOImpl extends DataObjectFactory.DataObjectImpl implements TestParentDAO {
         public TestParentDAOImpl(int id, String title, boolean active, int rate, TestChildDAO child, Timestamp createDate, String createdBy, Timestamp lastModifiedDate, String lastModifiedBy, int rowState) {
             super(id, createDate, createdBy, lastModifiedDate, lastModifiedBy, rowState);
             this.title = (title == null) ? "" : title;
@@ -1362,22 +1353,12 @@ public class ModelFilterTest {
         public void setChild(TestChildDAO value) { child = value; }
 
         @Override
-        public boolean canDelete(Connection connection) throws Exception {
+        public void saveChanges(Connection connection) throws Exception {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public boolean isValid() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public String getValidationMessageForSave(Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public String getValidationMessageForDelete(Connection connection) {
+        public void delete(Connection connection) throws Exception {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
@@ -1448,13 +1429,16 @@ public class ModelFilterTest {
             super(dao);
             name = new ReadOnlyStringWrapper(dao.getName());
         }
-        @Override
-        public void saveChanges(Connection connection) { throw new UnsupportedOperationException("Not supported yet."); }
         private final ReadOnlyStringWrapper name;
         @Override
         public String getName() { return name.get(); }
         @Override
         public ReadOnlyStringProperty nameProperty() { return name.getReadOnlyProperty(); }
+
+        @Override
+        protected void refreshFromDAO(TestChildDAOImpl dao) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
     
     public static class TestParentModelImpl extends ItemModel<TestParentDAOImpl> implements TestParentModel<TestParentDAOImpl> {
@@ -1465,8 +1449,6 @@ public class ModelFilterTest {
             rate = new ReadOnlyIntegerWrapper(dao.getRate());
             child = new ReadOnlyObjectWrapper<>(TestChildModel.of(dao.getChild()));
         }
-        @Override
-        public void saveChanges(Connection connection) { throw new UnsupportedOperationException("Not supported yet."); }
         private final ReadOnlyStringWrapper title;
         @Override
         public String getTitle() { return title.get(); }
@@ -1487,6 +1469,11 @@ public class ModelFilterTest {
         public TestChildModel<?> getChild() { return child.get(); }
         @Override
         public ReadOnlyObjectProperty<TestChildModel<?>> childProperty() { return child.getReadOnlyProperty(); }
+
+        @Override
+        protected void refreshFromDAO(TestParentDAOImpl dao) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
     
     public static final ValueAccessor<TestParentModelImpl, Integer> ACCESSOR_ID = new ValueAccessor<TestParentModelImpl, Integer>() {

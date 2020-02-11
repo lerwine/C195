@@ -5,16 +5,15 @@
  */
 package scheduler.view.country;
 
-import java.sql.Connection;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.CountryImpl;
+import scheduler.dao.CountryFactory;
 
 /**
  *
  * @author erwinel
  */
-public class CountryModel extends scheduler.view.ItemModel<CountryImpl> implements CityCountry<CountryImpl> {
+public class CountryModel extends scheduler.view.ItemModel<CountryFactory.CountryImpl> implements CityCountry<CountryFactory.CountryImpl> {
 
     private final ReadOnlyStringWrapper name;
 
@@ -24,13 +23,13 @@ public class CountryModel extends scheduler.view.ItemModel<CountryImpl> implemen
     @Override
     public ReadOnlyStringProperty nameProperty() { return name.getReadOnlyProperty(); }
 
-    public CountryModel(CountryImpl dao) {
+    public CountryModel(CountryFactory.CountryImpl dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(dao.getName());
     }
 
     @Override
-    public void saveChanges(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void refreshFromDAO(CountryFactory.CountryImpl dao) {
+        name.set(dao.getName());
     }
 }

@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package scheduler.expressions;
+package scheduler.observables;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;

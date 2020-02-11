@@ -22,7 +22,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
-import scheduler.dao.DataObjectImpl;
+import scheduler.dao.DataObjectFactory;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
@@ -139,7 +139,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             M item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = ResourceBundle.getBundle(App.GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY));
+                ResourceBundle rb = App.getResources();
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
             }
             else
@@ -149,7 +149,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             M item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = ResourceBundle.getBundle(App.GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY));
+                ResourceBundle rb = App.getResources();
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
             }
             else
@@ -237,7 +237,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         });
     }
     
-    protected abstract class ItemsLoadTask<T extends DataObjectImpl> extends TaskWaiter<Iterable<T>> {
+    protected abstract class ItemsLoadTask<T extends DataObjectFactory.DataObjectImpl> extends TaskWaiter<Iterable<T>> {
         private final ModelFilter<M> currentFilter;
         
         protected ItemsLoadTask(Stage owner, String operation) {

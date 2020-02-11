@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Predicate;
 import scheduler.util.ThrowableConsumer;
+import scheduler.util.Values;
 import scheduler.view.ChildModel;
 import scheduler.view.ItemModel;
 import scheduler.view.address.CustomerAddress;
@@ -193,10 +194,10 @@ public interface ModelFilter<M extends ItemModel<?>> extends SqlConditional, Pre
         if (o2 == null)
             return -1;
         if (o1.getDataObject().getPrimaryKey() == o2.getDataObject().getPrimaryKey()) {
-            if (o1.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_NEW) {
-                if (o2.getDataObject().getRowState() != DataObjectFactory.ROWSTATE_NEW)
+            if (o1.getDataObject().getRowState() == Values.ROWSTATE_NEW) {
+                if (o2.getDataObject().getRowState() != Values.ROWSTATE_NEW)
                     return -1;
-            } else if (o2.getDataObject().getRowState() == DataObjectFactory.ROWSTATE_NEW)
+            } else if (o2.getDataObject().getRowState() == Values.ROWSTATE_NEW)
                 return 1;
             return 0;
         }

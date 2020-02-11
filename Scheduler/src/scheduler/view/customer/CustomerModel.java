@@ -5,14 +5,13 @@
  */
 package scheduler.view.customer;
 
-import java.sql.Connection;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.CustomerImpl;
+import scheduler.dao.CustomerFactory;
 import scheduler.view.ItemModel;
 import scheduler.view.address.CustomerAddress;
 
@@ -20,7 +19,7 @@ import scheduler.view.address.CustomerAddress;
  *
  * @author erwinel
  */
-public class CustomerModel extends ItemModel<CustomerImpl> implements AppointmentCustomer<CustomerImpl> {
+public class CustomerModel extends ItemModel<CustomerFactory.CustomerImpl> implements AppointmentCustomer<CustomerFactory.CustomerImpl> {
 
     private final ReadOnlyStringWrapper name;
 
@@ -46,15 +45,18 @@ public class CustomerModel extends ItemModel<CustomerImpl> implements Appointmen
     @Override
     public ReadOnlyBooleanProperty activeProperty() { return active.getReadOnlyProperty(); }
     
-    public CustomerModel(CustomerImpl dao) {
+    public CustomerModel(CustomerFactory.CustomerImpl dao) {
         super(dao);
-        this.name = new ReadOnlyStringWrapper(dao.getName());
-        this.address = new ReadOnlyObjectWrapper<>(CustomerAddress.of(dao.getAddress()));
-        this.active = new ReadOnlyBooleanWrapper(dao.isActive());
+        name = new ReadOnlyStringWrapper(dao.getName());
+        address = new ReadOnlyObjectWrapper<>(CustomerAddress.of(dao.getAddress()));
+        active = new ReadOnlyBooleanWrapper(dao.isActive());
     }
 
     @Override
-    public void saveChanges(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void refreshFromDAO(CustomerFactory.CustomerImpl dao) {
+        name.set(dao.getName());
+        address.set(CustomerAddress.of(dao.getAddress()));
+        active.set(dao.isActive());
     }
+    
 }

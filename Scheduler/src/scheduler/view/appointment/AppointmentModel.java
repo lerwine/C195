@@ -5,23 +5,25 @@
  */
 package scheduler.view.appointment;
 
-import java.sql.Connection;
 import java.time.LocalDateTime;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.AppointmentImpl;
+import scheduler.App;
+import scheduler.dao.AppointmentFactory;
 import scheduler.util.DB;
+import scheduler.util.Values;
 import scheduler.view.ItemModel;
+import scheduler.view.address.CustomerAddress;
 import scheduler.view.customer.AppointmentCustomer;
 import scheduler.view.user.AppointmentUser;
 
 /**
- *
+ * List item model for {@link AppointmentFactory.AppointmentImpl} data access objects.
  * @author erwinel
  */
-public class AppointmentModel extends ItemModel<AppointmentImpl> {
+public class AppointmentModel extends ItemModel<AppointmentFactory.AppointmentImpl> {
 
     private final ReadOnlyObjectWrapper<AppointmentCustomer<?>> customer;
 
@@ -52,6 +54,12 @@ public class AppointmentModel extends ItemModel<AppointmentImpl> {
     public String getLocation() { return location.get(); }
 
     public ReadOnlyStringProperty locationProperty() { return location.getReadOnlyProperty(); }
+
+    private final ReadOnlyStringWrapper effectiveLocation;
+
+    public String getEffectiveLocation() { return effectiveLocation.get(); }
+
+    public ReadOnlyStringProperty effectiveLocationProperty() { return effectiveLocation.getReadOnlyProperty(); }
 
     private final ReadOnlyStringWrapper contact;
 
@@ -85,7 +93,7 @@ public class AppointmentModel extends ItemModel<AppointmentImpl> {
         return end.getReadOnlyProperty();
     }
 
-    public AppointmentModel(AppointmentImpl dao) {
+    public AppointmentModel(AppointmentFactory.AppointmentImpl dao) {
         super(dao);
         customer = new ReadOnlyObjectWrapper<>(AppointmentCustomer.of(dao.getCustomer()));
         user = new ReadOnlyObjectWrapper<>(AppointmentUser.of(dao.getUser()));
@@ -97,11 +105,99 @@ public class AppointmentModel extends ItemModel<AppointmentImpl> {
         url = new ReadOnlyStringWrapper(dao.getUrl());
         start = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getStart()));
         end = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getEnd()));
+        effectiveLocation = new ReadOnlyStringWrapper();
+        setEffectiveLocation();
+    }
+
+    private void setEffectiveLocation() {
+        String s;
+        switch (type.get()) {
+            case Values.APPOINTMENTTYPE_CUSTOMER:
+                AppointmentCustomer c = customer.get();
+                if (null == c)
+                    effectiveLocation.set("");
+                else {
+                    CustomerAddress a = c.getAddress();
+                    if (null == a)
+                        effectiveLocation.set("");
+                    else {
+                        StringBuilder sb = new StringBuilder();
+                        s = Values.asNonNullAndWsNormalized(a.getAddress1());
+                        if (!s.isEmpty())
+                            sb.append(s);
+                        s = Values.asNonNullAndWsNormalized(a.getAddress2());
+                        if (!s.isEmpty()) {
+                            if (sb.length() > 0)
+                                sb.append("\n");
+                            sb.append(s);
+                        }
+                        s = Values.asNonNullAndWsNormalized(a.getCityName());
+                        if (!s.isEmpty()) {
+                            if (sb.length() > 0)
+                                sb.append("\n");
+                            sb.append(s);
+                            s = Values.asNonNullAndWsNormalized(a.getPostalCode());
+                            if (!s.isEmpty())
+                                sb.append(" ").append(s);
+                        } else {
+                            if (sb.length() > 0)
+                                sb.append("\n");
+                            sb.append(s);
+                        }
+                        s = Values.asNonNullAndWsNormalized(a.getCountryName());
+                        if (!s.isEmpty()) {
+                            if (sb.length() > 0)
+                                sb.append("\n");
+                            sb.append(s);
+                        }
+                        s = Values.asNonNullAndWsNormalized(a.getPhone());
+                        if (!s.isEmpty()) {
+                            if (sb.length() > 0)
+                                sb.append("\n");
+                            sb.append(s);
+                        }
+                        
+                        effectiveLocation.set(sb.toString());
+                    }
+                }
+                break;
+            case Values.APPOINTMENTTYPE_VIRTUAL:
+                effectiveLocation.set(getUrl());
+                break;
+            case Values.APPOINTMENTTYPE_PHONE:
+                s = getUrl();
+                effectiveLocation.set((s.startsWith("tel:")) ? s.substring(4) : s);
+                break;
+            case Values.APPOINTMENTTYPE_GERMANY:
+                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_GERMANY));
+                break;
+            case Values.APPOINTMENTTYPE_HONDURAS:
+                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS));
+                break;
+            case Values.APPOINTMENTTYPE_INDIA:
+                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_INDIA));
+                break;
+            case Values.APPOINTMENTTYPE_HOME:
+                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_HOME));
+                break;
+            default:
+                effectiveLocation.set(getLocation());
+        }
     }
 
     @Override
-    public void saveChanges(Connection connection) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void refreshFromDAO(AppointmentFactory.AppointmentImpl dao) {
+        customer.set(AppointmentCustomer.of(dao.getCustomer()));
+        user.set(AppointmentUser.of(dao.getUser()));
+        title.set(dao.getTitle());
+        description.set(dao.getDescription());
+        location.set(dao.getLocation());
+        contact.set(dao.getContact());
+        type.set(dao.getType());
+        url.set(dao.getUrl());
+        start.set(DB.fromUtcTimestamp(dao.getStart()));
+        end.set(DB.fromUtcTimestamp(dao.getEnd()));
+        setEffectiveLocation();
     }
-
+    
 }

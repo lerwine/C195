@@ -8,7 +8,7 @@ package scheduler.view.country;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.Country;
-import scheduler.dao.CountryImpl;
+import scheduler.dao.CountryFactory;
 import scheduler.view.ChildModel;
 
 /**
@@ -23,8 +23,8 @@ public interface CityCountry<T extends Country> extends ChildModel<T> {
     public static CityCountry<?> of(Country dao) {
         if (null == dao)
             return null;
-        if (dao instanceof CountryImpl)
-            return new CountryModel((CountryImpl)dao);
+        if (dao instanceof CountryFactory.CountryImpl)
+            return new CountryModel((CountryFactory.CountryImpl)dao);
         return new CityCountry<Country>() {
             private final ReadOnlyStringWrapper name = new ReadOnlyStringWrapper(dao.getName());
             @Override

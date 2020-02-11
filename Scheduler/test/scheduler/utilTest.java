@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import scheduler.util.Bindings;
+import scheduler.util.ValueBindings;
 import testHelpers.FakeApp;
 
 /**
@@ -94,7 +94,7 @@ public class utilTest {
     public void testAsTrimmedAndNotNull() {
         System.out.println("asTrimmedAndNotNull: Initialize target controls for property binding");
         TextField targetControl = new TextField();
-        StringBinding targetBinding = Bindings.asTrimmedAndNotNull(targetControl.textProperty());
+        StringBinding targetBinding = ValueBindings.asTrimmedAndNotNull(targetControl.textProperty());
 
         System.out.println("asTrimmedAndNotNull: A string with extraneous whitespace should produce a string with the extraneous space removed.");
         String inputString = " test\r\n";
@@ -128,7 +128,7 @@ public class utilTest {
     public void testNotNullOrWhiteSpace() {
         System.out.println("notNullOrWhiteSpace: Initialize target controls for property binding");
         TextField targetControl = new TextField();
-        BooleanBinding targetBinding = Bindings.notNullOrWhiteSpace(targetControl.textProperty());
+        BooleanBinding targetBinding = ValueBindings.notNullOrWhiteSpace(targetControl.textProperty());
         
         System.out.println("notNullOrWhiteSpace: A string with a non-whitespace character should return true.");
         String inputString = "!";
@@ -179,7 +179,7 @@ public class utilTest {
         ComboBox<Integer> targetMinuteControl = new ComboBox();
         ObservableList<Integer> minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
         targetMinuteControl.setItems(minuteOptions);
-        ObjectBinding<LocalDateTime> targetBinding = Bindings.asLocalDateTime(targetDateControl.valueProperty(), targetHourControl.valueProperty(), targetMinuteControl.valueProperty());
+        ObjectBinding<LocalDateTime> targetBinding = ValueBindings.asLocalDateTime(targetDateControl.valueProperty(), targetHourControl.valueProperty(), targetMinuteControl.valueProperty());
         
         System.out.println("asLocalDateTime: When nothing is selected, a null value should be returned");
         LocalDateTime result = targetBinding.get();
@@ -233,7 +233,7 @@ public class utilTest {
         targetStartHourControl.setItems(hourOptions);
         ComboBox<Integer> targetStartMinuteControl = new ComboBox();
         targetStartMinuteControl.setItems(minuteOptions);
-        ObjectExpression<LocalDateTime> targetStartExpression = Bindings.asLocalDateTime(targetStartDateControl.valueProperty(), targetStartHourControl.valueProperty(), targetStartMinuteControl.valueProperty());
+        ObjectExpression<LocalDateTime> targetStartExpression = ValueBindings.asLocalDateTime(targetStartDateControl.valueProperty(), targetStartHourControl.valueProperty(), targetStartMinuteControl.valueProperty());
         
         System.out.println("isRangeUndefinedOrValid: Initialize range end target controls for property binding");
         DatePicker targetEndDateControl = new DatePicker();
@@ -241,10 +241,10 @@ public class utilTest {
         targetEndHourControl.setItems(hourOptions);
         ComboBox<Integer> targetEndMinuteControl = new ComboBox();
         targetEndMinuteControl.setItems(minuteOptions);
-        ObjectExpression<LocalDateTime> targetEndExpression = Bindings.asLocalDateTime(targetEndDateControl.valueProperty(), targetEndHourControl.valueProperty(), targetEndMinuteControl.valueProperty());
+        ObjectExpression<LocalDateTime> targetEndExpression = ValueBindings.asLocalDateTime(targetEndDateControl.valueProperty(), targetEndHourControl.valueProperty(), targetEndMinuteControl.valueProperty());
         
         System.out.println("isRangeUndefinedOrValid: Initialize target binding");
-        BooleanBinding targetBinding = Bindings.isRangeUndefinedOrValid(targetStartExpression, targetEndExpression);
+        BooleanBinding targetBinding = ValueBindings.isRangeUndefinedOrValid(targetStartExpression, targetEndExpression);
         
         System.out.println("isRangeUndefinedOrValid: Should produce a true value if nothing is selected");
         boolean expResult = true;

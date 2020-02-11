@@ -1,6 +1,8 @@
 package scheduler.view;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -21,16 +23,17 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
-import scheduler.dao.AddressImpl;
-import scheduler.dao.AppointmentImpl;
-import scheduler.dao.CityImpl;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl;
-import scheduler.dao.UserImpl;
+import scheduler.dao.AddressFactory.AddressImpl;
+import scheduler.dao.AppointmentFactory.AppointmentImpl;
+import scheduler.dao.CityFactory.CityImpl;
+import scheduler.dao.CountryFactory.CountryImpl;
+import scheduler.dao.CustomerFactory.CustomerImpl;
+import scheduler.dao.DataObjectFactory.DataObjectImpl;
+import scheduler.dao.UserFactory.UserImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
+import scheduler.util.ThrowableFunction;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -366,11 +369,12 @@ public final class MainController extends SchedulerController {
         return null;
     }
     
-    public void deleteAppointment(Event event, AppointmentModel item) {
+    public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
                 getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), (m) -> appointmentChanged.set(new CrudAction<>(m))));
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+                    (m) -> appointmentChanged.set(new CrudAction<>(m))));
     }
     
     //</editor-fold>
@@ -398,11 +402,12 @@ public final class MainController extends SchedulerController {
         return null;
     }
     
-    public void deleteCustomer(Event event, CustomerModel item) {
+    public void deleteCustomer(Event event, CustomerModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
                 getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), (m) -> customerChanged.set(new CrudAction<>(m))));
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+                    (m) -> customerChanged.set(new CrudAction<>(m))));
     }
     
     //</editor-fold>
@@ -430,11 +435,12 @@ public final class MainController extends SchedulerController {
         return null;
     }
     
-    public void deleteCountry(Event event, CountryModel item) {
+    public void deleteCountry(Event event, CountryModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
                 getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), (m) -> countryChanged.set(new CrudAction<>(m))));
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+                    (m) -> countryChanged.set(new CrudAction<>(m))));
     }
          
     //</editor-fold>
@@ -462,11 +468,12 @@ public final class MainController extends SchedulerController {
         return null;
     }
     
-    public void deleteCity(Event event, CityModel item) {
+    public void deleteCity(Event event, CityModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
                 getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), (m) -> cityChanged.set(new CrudAction<>(m))));
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+                    (m) -> cityChanged.set(new CrudAction<>(m))));
     }
     
     //</editor-fold>
@@ -494,11 +501,12 @@ public final class MainController extends SchedulerController {
         return null;
     }
     
-    public void deleteAddress(Event event, AddressModel item) {
+    public void deleteAddress(Event event, AddressModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
                 getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), (m) -> addressChanged.set(new CrudAction<>(m))));
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+                    (m) -> addressChanged.set(new CrudAction<>(m))));
     }
     
     //</editor-fold>
@@ -526,11 +534,12 @@ public final class MainController extends SchedulerController {
         return null;
     }
     
-    public void deleteUser(Event event, UserModel item) {
+    public void deleteUser(Event event, UserModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
                 getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), (m) -> userChanged.set(new CrudAction<>(m))));
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+                    (m) -> userChanged.set(new CrudAction<>(m))));
     }
     
     //</editor-fold>
@@ -565,10 +574,12 @@ public final class MainController extends SchedulerController {
         private final DataObjectImpl dao;
         private final M model;
         private final Consumer<M> onDeleted;
-        DeleteTask(M model, Stage stage, Consumer<M> onDeleted) {
+        private final ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage;
+        DeleteTask(M model, Stage stage, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage, Consumer<M> onDeleted) {
             super(stage, getResourceString(RESOURCEKEY_DELETINGRECORD));
             dao = (this.model = model).getDataObject();
             this.onDeleted = onDeleted;
+            this.getDeleteDependencyMessage = Objects.requireNonNull(getDeleteDependencyMessage);
         }
 
         @Override
@@ -588,7 +599,7 @@ public final class MainController extends SchedulerController {
         @Override
         protected String getResult() throws Exception {
             try (DbConnector dep = new DbConnector()) {
-                String message = dao.getValidationMessageForDelete(dep.getConnection());
+                String message = getDeleteDependencyMessage.apply(dep.getConnection());
                 if (null != message && !message.trim().isEmpty())
                     return message;
                 dao.delete(dep.getConnection());

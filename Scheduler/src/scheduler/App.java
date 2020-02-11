@@ -14,7 +14,6 @@ import javafx.scene.Scene;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.dao.UserImpl;
 import scheduler.dao.UserFactory;
 import scheduler.util.PwHash;
 import scheduler.view.MainController;
@@ -204,9 +203,9 @@ public class App extends Application {
     
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
     
-    private static UserImpl currentUser = null;
+    private static UserFactory.UserImpl currentUser = null;
     
-    public static UserImpl getCurrentUser() { return currentUser; }
+    public static UserFactory.UserImpl getCurrentUser() { return currentUser; }
     
     //</editor-fold>
     
@@ -265,7 +264,11 @@ public class App extends Application {
 
     //</editor-fold>
 
-    private static class LoginTask extends TaskWaiter<UserImpl> {
+    private static ResourceBundle resources;
+    
+    public static ResourceBundle getResources() { return resources; }
+    
+    private static class LoginTask extends TaskWaiter<UserFactory.UserImpl> {
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
         LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
@@ -273,13 +276,14 @@ public class App extends Application {
         }
         private LoginTask(ResourceBundle rb, Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, rb.getString(RESOURCEKEY_CONNECTINGTODB), rb.getString(RESOURCEKEY_LOGGINGIN));
+            App.resources = rb;
             this.userName = userName;
             this.password = password;
             this.onNotSucceeded = onNotSucceeded;
         }
 
         @Override
-        protected void processResult(UserImpl user, Window owner) {
+        protected void processResult(UserFactory.UserImpl user, Window owner) {
             if (null == user) {
                 if (null != onNotSucceeded)
                     onNotSucceeded.accept(null);
@@ -301,8 +305,8 @@ public class App extends Application {
         }
 
         @Override
-        protected UserImpl getResult() throws Exception {
-            Optional<UserImpl> result;
+        protected UserFactory.UserImpl getResult() throws Exception {
+            Optional<UserFactory.UserImpl> result;
             LOG.log(Level.INFO, String.format("Looking up %s", userName));
             try (DbConnector dep = new DbConnector()) {
                 Platform.runLater(() -> updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB)));

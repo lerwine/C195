@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package scheduler.expressions;
+package scheduler.observables;
 
 import scheduler.util.ThrowableFunction;
 import java.sql.PreparedStatement;

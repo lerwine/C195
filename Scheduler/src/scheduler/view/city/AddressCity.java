@@ -10,7 +10,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.City;
-import scheduler.dao.CityImpl;
+import scheduler.dao.CityFactory;
 import scheduler.dao.Country;
 import scheduler.view.country.CityCountry;
 import scheduler.view.ChildModel;
@@ -29,8 +29,8 @@ public interface AddressCity<T extends City> extends ChildModel<T> {
     public static AddressCity<?> of(City dao) {
         if (null == dao)
             return null;
-        if (dao instanceof CityImpl)
-            return new CityModel((CityImpl)dao);
+        if (dao instanceof CityFactory.CityImpl)
+            return new CityModel((CityFactory.CityImpl)dao);
         return new AddressCity<City>() {
             private final ReadOnlyStringWrapper name = new ReadOnlyStringWrapper(dao.getName());
             @Override

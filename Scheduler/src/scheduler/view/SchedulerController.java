@@ -13,6 +13,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Labeled;
 import javafx.stage.Stage;
+import scheduler.MergedResourceBundle;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -90,11 +91,12 @@ public abstract class SchedulerController {
     }
     
     public static <V extends Node, C extends SchedulerController> C load(Stage stage, Class<C> controllerClass, BiConsumer<V, C> onLoaded,
-            BiConsumer<V, C> show) throws IOException {
+            BiConsumer<V, C> show, ResourceBundle baseResources) throws IOException {
         Objects.requireNonNull(stage);
         Objects.requireNonNull(show);
         FXMLLoader loader = new FXMLLoader(controllerClass.getResource(getFXMLResourceName(controllerClass)),
-                ResourceBundle.getBundle(getGlobalizationResourceName(controllerClass), Locale.getDefault(Locale.Category.DISPLAY)));
+                (null == baseResources) ? ResourceBundle.getBundle(getGlobalizationResourceName(controllerClass), Locale.getDefault(Locale.Category.DISPLAY)) :
+                MergedResourceBundle.getBundle(getGlobalizationResourceName(controllerClass), Locale.getDefault(Locale.Category.DISPLAY), baseResources));
         V view = loader.load();
         C controller = loader.getController();
         controller.onLoaded(view);
@@ -105,9 +107,19 @@ public abstract class SchedulerController {
         return controller;
     }
     
+    public static <V extends Node, C extends SchedulerController> C load(Stage stage, Class<C> controllerClass, BiConsumer<V, C> onLoaded,
+            BiConsumer<V, C> show) throws IOException {
+        return load(stage, controllerClass, onLoaded, show, null);
+    }
+    
     public static <V extends Node, C extends SchedulerController> C load(Stage stage, Class<C> controllerClass,
             BiConsumer<V, C> show) throws IOException {
         return load(stage, controllerClass, null, show);
+    }
+ 
+    public static <V extends Node, C extends SchedulerController> C load(Stage stage, Class<C> controllerClass,
+            BiConsumer<V, C> show, ResourceBundle baseResources) throws IOException {
+        return load(stage, controllerClass, null, show, baseResources);
     }
  
     /**

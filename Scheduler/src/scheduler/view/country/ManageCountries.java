@@ -7,8 +7,8 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import scheduler.dao.CityFactory;
 import scheduler.dao.CountryFactory;
-import scheduler.dao.CountryImpl;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
@@ -28,25 +28,74 @@ public class ManageCountries extends ListingController<CountryModel> {
     
     private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
     
+    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
+    
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Countries"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit"}.
      */
-    public static final String RESOURCEKEY_MANAGECOUNTRIES = "manageCountries";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Countries"}.
-     */
-    public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
-
+    public static final String RESOURCEKEY_EDIT = "edit";
+    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Database Access Error"}.
      */
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
-
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete"}.
+     */
+    public static final String RESOURCEKEY_DELETE = "delete";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created By"}.
+     */
+    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created On"}.
+     */
+    public static final String RESOURCEKEY_CREATEDON = "createdOn";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Countries"}.
+     */
+    public static final String RESOURCEKEY_MANAGECOUNTRIES = "manageCountries";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name"}.
+     */
+    public static final String RESOURCEKEY_NAME = "name";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated By"}.
+     */
+    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated On"}.
+     */
+    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
+     */
+    public static final String RESOURCEKEY_NEW = "new";
+    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading countries..."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCOUNTRIES = "errorLoadingCountries";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Countries"}.
+     */
+    public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That country is referenced by one or more cities..."}.
+     */
+    public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
+
+    //</editor-fold>
 
     public static void loadInto(MainController mc, Stage stage, ModelFilter<CountryModel> filter) throws IOException {
         loadInto(ManageCountries.class, mc, stage, filter);
@@ -64,7 +113,12 @@ public class ManageCountries extends ListingController<CountryModel> {
 
     @Override
     protected void onDeleteItem(Event event, CountryModel item) {
-        getMainController().deleteCountry(event, item);
+        getMainController().deleteCountry(event, item, (connection) -> {
+            CityFactory factory = new CityFactory();
+            if (factory.count(connection, CityFactory.countryIdIs(item.getDataObject().getPrimaryKey())) == 0)
+                return "";
+            return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
+        });
     }
 
     @Override
@@ -72,7 +126,7 @@ public class ManageCountries extends ListingController<CountryModel> {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    private class CountriesLoadTask extends ItemsLoadTask<CountryImpl> {
+    private class CountriesLoadTask extends ItemsLoadTask<CountryFactory.CountryImpl> {
         CountriesLoadTask(Stage owner) {
             super(owner, getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
         }
@@ -84,10 +138,10 @@ public class ManageCountries extends ListingController<CountryModel> {
         }
 
         @Override
-        protected CountryModel toModel(CountryImpl result) { return new CountryModel(result); }
+        protected CountryModel toModel(CountryFactory.CountryImpl result) { return new CountryModel(result); }
 
         @Override
-        protected Iterable<CountryImpl> getResult(Connection connection, ModelFilter<CountryModel> filter) throws Exception {
+        protected Iterable<CountryFactory.CountryImpl> getResult(Connection connection, ModelFilter<CountryModel> filter) throws Exception {
             return (new CountryFactory()).load(connection, filter);
         }
         

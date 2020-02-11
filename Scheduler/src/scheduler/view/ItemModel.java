@@ -10,16 +10,16 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.DataObjectImpl;
 import scheduler.dao.DataObjectFactory;
 import scheduler.util.DB;
+import scheduler.util.Values;
 
 /**
  * Java FX object model for a {@link DataObjectImpl} object.
  * @author erwinel
  * @param <R> The type of {@link DataObjectImpl} to be used for data access operations.
  */
-public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<R> {
+public abstract class ItemModel<R extends DataObjectFactory.DataObjectImpl> implements ChildModel<R> {
     //<editor-fold defaultstate="collapsed" desc="Properties">
     
     //<editor-fold defaultstate="collapsed" desc="dataObject property">
@@ -128,30 +128,33 @@ public abstract class ItemModel<R extends DataObjectImpl> implements ChildModel<
      * @param dao The {@link DataObjectImpl} to be used for data access operations.
      */
     protected ItemModel(R dao) {
-        assert Objects.requireNonNull(dao, "Data access object cannot be null").getRowState() != DataObjectFactory.ROWSTATE_DELETED :
+        assert Objects.requireNonNull(dao, "Data access object cannot be null").getRowState() != Values.ROWSTATE_DELETED :
                 String.format("%s has been deleted", dao.getClass().getName());
         dataObject = dao;
         createDate = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getCreateDate()));
         createdBy = new ReadOnlyStringWrapper(dao.getCreatedBy());
         lastModifiedDate = new ReadOnlyObjectWrapper<>(DB.fromUtcTimestamp(dao.getLastModifiedDate()));
         lastModifiedBy = new ReadOnlyStringWrapper(dao.getLastModifiedBy());
-        newItem = new ReadOnlyBooleanWrapper(dao.getRowState() == DataObjectFactory.ROWSTATE_NEW);
+        newItem = new ReadOnlyBooleanWrapper(dao.getRowState() == Values.ROWSTATE_NEW);
     }
     
-    public void saveChanges(Connection connection) throws SQLException {
-        dataObject.saveChanges(connection);
-        newItem.set(false);
-        createDate.set(DB.fromUtcTimestamp(dataObject.getCreateDate()));
-        createdBy.set(dataObject.getCreatedBy());
-        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
-        lastModifiedBy.set(dataObject.getLastModifiedBy());
-    }
-
-//    public void refreshFromDAO() {
+//    public void saveChanges(Connection connection) throws SQLException {
+//        dataObject.saveChanges(connection);
+//        newItem.set(false);
 //        createDate.set(DB.fromUtcTimestamp(dataObject.getCreateDate()));
 //        createdBy.set(dataObject.getCreatedBy());
 //        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
 //        lastModifiedBy.set(dataObject.getLastModifiedBy());
-//        newItem.set(dataObject.getRowState() == DataObjectFactory.ROWSTATE_NEW);
 //    }
+
+    protected abstract void refreshFromDAO(R dao);
+    
+    void refreshFromDAO() {
+        createDate.set(DB.fromUtcTimestamp(dataObject.getCreateDate()));
+        createdBy.set(dataObject.getCreatedBy());
+        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
+        lastModifiedBy.set(dataObject.getLastModifiedBy());
+        newItem.set(dataObject.getRowState() == Values.ROWSTATE_NEW);
+        refreshFromDAO(dataObject);
+    }
 }

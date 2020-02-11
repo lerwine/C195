@@ -14,6 +14,7 @@
 
 .formInnerControlLabel {
     -fx-font-weight: bold;
+    -fx-padding: 0 0 0 6;
 }
 
 .formControlValidationMessage {
@@ -21,9 +22,7 @@
     -fx-wrap-text: true;
 }
 
-TextField.formLabeledControl,
-PasswordField.formLabeledControl,
-ComboBox.formLabeledControl {
+.formLabeledControl {
     -fx-min-height: 25;
 }
 

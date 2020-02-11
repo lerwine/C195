@@ -1,7 +1,7 @@
-package scheduler.expressions;
+package scheduler.observables;
 
 import java.util.Optional;
-import scheduler.dao.UserFactory;
+import scheduler.util.Values;
 
 /**
  *
@@ -14,7 +14,7 @@ public class OptionalUserStatusProperty extends OptionalValueProperty<Integer> {
     }
 
     public OptionalUserStatusProperty(Optional<Integer> initialValue) {
-        super(UserFactory.requireValidStatus(initialValue));
+        super(Values.requireValidUserStatus(initialValue, "Invalid initial value"));
     }
 
     public OptionalUserStatusProperty(Object bean, String name) {
@@ -22,12 +22,12 @@ public class OptionalUserStatusProperty extends OptionalValueProperty<Integer> {
     }
 
     public OptionalUserStatusProperty(Object bean, String name, Optional<Integer> initialValue) {
-        super(bean, name, UserFactory.requireValidStatus(initialValue));
+        super(bean, name, Values.requireValidUserStatus(initialValue, "Invalid initial value"));
     }
 
     @Override
     public void set(Optional<Integer> newValue) {
-        super.set(UserFactory.requireValidStatus(newValue));
+        super.set(Values.requireValidUserStatus(newValue, "Invalid initial value"));
     }
     
 }
