@@ -8,9 +8,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import scheduler.filter.ModelFilter;
-import scheduler.filter.ParameterConsumer;
-import scheduler.filter.ValueAccessor;
 import scheduler.view.country.CountryModel;
 
 /**
@@ -39,24 +36,9 @@ public class CountryFactory extends DataObjectFactory<CountryFactory.CountryImpl
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
-    
-    public static final ValueAccessor<CountryModel, String> ACCESSOR_NAME = new ValueAccessor<CountryModel, String>() {
-        @Override
-        public String get() { return COLNAME_COUNTRY; }
-        @Override
-        public String apply(CountryModel t) { return t.getName(); }
-        @Override
-        public void accept(String t, ParameterConsumer u) throws SQLException { u.setString(t); }
-    };
-    
-    public static ModelFilter<CountryModel> nameIs(String value) {
-        return ModelFilter.columnIsEqualTo(ACCESSOR_NAME, ModelFilter.COMPARATOR_STRING, value);
+    public Optional<CountryImpl> findByName(Connection connection, String value) throws Exception {
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
-    //</editor-fold>
-    
-    public Optional<CountryImpl> findByName(Connection connection, String value) throws Exception { return loadFirst(connection, nameIs(value)); }
     
     @Override
     protected CountryImpl fromResultSet(ResultSet resultSet) throws SQLException {

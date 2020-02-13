@@ -13,10 +13,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.util.Pair;
-import scheduler.filter.ModelFilter;
-import scheduler.filter.OrderBy;
-import scheduler.filter.ParameterConsumer;
-import scheduler.filter.ValueAccessor;
 import scheduler.util.Values;
 import scheduler.view.SchedulerController;
 import scheduler.view.user.EditUser;
@@ -70,84 +66,30 @@ public class UserFactory extends DataObjectFactory<UserFactory.UserImpl, UserMod
 
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
+//    /**
+//     * Loads {@link UserImpl} records according to the user status.
+//     * @param connection The {@link Connection} to use to retrieve the data.
+//     * @param status The user status value to match.
+//     * @param isNegated {@code true} to get all records whose status does not match; otherwise {@code false} to load matching records.
+//     * @param orderBy Specifies the Order-by clause to use.
+//     * @return {@link UserImpl} records loaded according to the user status.
+//     * @throws Exception if unable to perform database query.
+//     */
+//    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated, Iterable<OrderBy> orderBy) throws Exception {
+//        return load(connection, (isNegated) ? statusIsNot(status) : statusIs(status), orderBy);
+//    }
     
-    //<editor-fold defaultstate="collapsed" desc="Static ValueAccessor definitions">
-
-    public static final ValueAccessor<UserModel, Integer> ACCESSOR_STATUS = new ValueAccessor<UserModel, Integer>() {
-        @Override
-        public String get() { return COLNAME_ACTIVE; }
-        @Override
-        public Integer apply(UserModel t) {
-            return t.getStatus();
-        }
-        @Override
-        public void accept(Integer t, ParameterConsumer u) throws SQLException {
-            u.setInt(t);
-        }
-    };
-    
-    public static final ValueAccessor<UserModel, String> ACCESSOR_USERNAME = new ValueAccessor<UserModel, String>() {
-        @Override
-        public String get() { return COLNAME_USERNAME; }
-        @Override
-        public String apply(UserModel t) {
-            return t.getUserName();
-        }
-        @Override
-        public void accept(String t, ParameterConsumer u) throws SQLException {
-            u.setString(t);
-        }
-    };
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
-
-    public static ModelFilter<UserModel> statusIs(int value) {
-        return ModelFilter.columnIsEqualTo(ACCESSOR_STATUS, ModelFilter.COMPARATOR_INTEGER, value);
-    }
-    
-    public static ModelFilter<UserModel> statusIsNot(int value) {
-        return ModelFilter.columnIsNotEqualTo(ACCESSOR_STATUS, ModelFilter.COMPARATOR_INTEGER, value);
-    }
-    
-    public static ModelFilter<UserModel> userNameIs(String value) {
-        return ModelFilter.columnIsEqualTo(ACCESSOR_USERNAME, ModelFilter.COMPARATOR_STRING, value);
-    }
-    
-    public static ModelFilter<UserModel> userNameIsNot(String value) {
-        return ModelFilter.columnIsNotEqualTo(ACCESSOR_USERNAME, ModelFilter.COMPARATOR_STRING, value);
-    }
-    
-    //</editor-fold>
-    
-    //</editor-fold>
-    
-    /**
-     * Loads {@link UserImpl} records according to the user status.
-     * @param connection The {@link Connection} to use to retrieve the data.
-     * @param status The user status value to match.
-     * @param isNegated {@code true} to get all records whose status does not match; otherwise {@code false} to load matching records.
-     * @param orderBy Specifies the Order-by clause to use.
-     * @return {@link UserImpl} records loaded according to the user status.
-     * @throws Exception if unable to perform database query.
-     */
-    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, (isNegated) ? statusIsNot(status) : statusIs(status), orderBy);
-    }
-    
-    /**
-     * Loads {@link UserImpl} records according to the user status.
-     * @param connection The {@link Connection} to use to retrieve the data.
-     * @param status The user status value to match.
-     * @param orderBy Specifies the Order-by clause to use.
-     * @return {@link UserImpl} records loaded according to the user status.
-     * @throws Exception if unable to perform database query.
-     */
-    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, statusIs(status), orderBy);
-    }
+//    /**
+//     * Loads {@link UserImpl} records according to the user status.
+//     * @param connection The {@link Connection} to use to retrieve the data.
+//     * @param status The user status value to match.
+//     * @param orderBy Specifies the Order-by clause to use.
+//     * @return {@link UserImpl} records loaded according to the user status.
+//     * @throws Exception if unable to perform database query.
+//     */
+//    public ArrayList<UserImpl> loadByStatus(Connection connection, int status, Iterable<OrderBy> orderBy) throws Exception {
+//        return load(connection, statusIs(status), orderBy);
+//    }
     
     /**
      * Loads {@link UserImpl} records according to the user status.
@@ -158,7 +100,7 @@ public class UserFactory extends DataObjectFactory<UserFactory.UserImpl, UserMod
      * @throws Exception if unable to perform database query.
      */
     public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated) throws Exception {
-        return load(connection, (isNegated) ? statusIsNot(status) : statusIs(status));
+        throw new UnsupportedOperationException("Not implemented");
     }
     
     /**
@@ -169,7 +111,7 @@ public class UserFactory extends DataObjectFactory<UserFactory.UserImpl, UserMod
      * @throws Exception if unable to perform database query.
      */
     public ArrayList<UserImpl> loadByStatus(Connection connection, int status) throws Exception {
-        return load(connection, statusIs(status));
+        throw new UnsupportedOperationException("Not implemented");
     }
     
     /**
@@ -180,7 +122,7 @@ public class UserFactory extends DataObjectFactory<UserFactory.UserImpl, UserMod
      * @throws Exception if unable to perform database query.
      */
     public Optional<UserImpl> findByUserName(Connection connection, String userName) throws Exception {
-        return (null == userName || userName.trim().isEmpty()) ? Optional.empty() : loadFirst(connection, userNameIs(userName));
+        throw new UnsupportedOperationException("Not implemented");
     }
     
     @Override

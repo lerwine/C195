@@ -130,10 +130,11 @@ public final class EditCity extends EditItem.EditController<CityModel> {
 
     @Override
     protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        AddressFactory factory = new AddressFactory();
-        if (factory.count(connection, AddressFactory.getFilterWhereCityIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-            return "";
-        return getResourceString(RESOURCEKEY_CITYHASADDRESSES);
+        throw new UnsupportedOperationException("Not implemented");
+//        AddressFactory factory = new AddressFactory();
+//        if (factory.count(connection, AddressFactory.getFilterWhereCityIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
+//            return "";
+//        return getResourceString(RESOURCEKEY_CITYHASADDRESSES);
     }
 
 }

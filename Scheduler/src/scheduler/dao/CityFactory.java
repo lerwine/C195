@@ -9,10 +9,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import scheduler.filter.ModelFilter;
-import scheduler.filter.OrderBy;
-import scheduler.filter.ParameterConsumer;
-import scheduler.filter.ValueAccessor;
 import scheduler.view.city.CityModel;
 import scheduler.view.country.CityCountry;
 
@@ -58,77 +54,20 @@ public class CityFactory extends DataObjectFactory<CityFactory.CityImpl, CityMod
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
-    
-    //<editor-fold defaultstate="collapsed" desc="Static ValueAccessor definitions">
-
-    public static final ValueAccessor<CityModel, String> ACCESSOR_NAME = new ValueAccessor<CityModel, String>() {
-        @Override
-        public String get() { return COLNAME_CITY; }
-        @Override
-        public String apply(CityModel t) { return t.getName(); }
-        @Override
-        public void accept(String t, ParameterConsumer u) throws SQLException { u.setString(t); }
-    };
-    
-    public static final ValueAccessor<CityModel, Integer> ACCESSOR_COUNTRY_ID = new ValueAccessor<CityModel, Integer>() {
-        @Override
-        public String get() { return COLNAME_COUNTRYID; }
-        @Override
-        public Integer apply(CityModel t) {
-            CityCountry<?> c = t.getCountry();
-            return (null != c && c.getDataObject().isExisting()) ? c.getDataObject().getPrimaryKey() : Integer.MIN_VALUE;
-        }
-        @Override
-        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
-    };
-    
-    public static final ValueAccessor<CityModel, String> ACCESSOR_COUNTRY_NAME = new ValueAccessor<CityModel, String>() {
-        @Override
-        public String get() { return CountryFactory.COLNAME_COUNTRY; }
-        @Override
-        public String apply(CityModel t) {
-            CityCountry<?> c = t.getCountry();
-            return (null != c) ? c.getName() : "";
-        }
-        @Override
-        public void accept(String t, ParameterConsumer u) throws SQLException { u.setString(t); }
-    };
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Static ModelFilter definitions">
-
-    public static ModelFilter<CityModel> nameIs(String value) {
-        return ModelFilter.columnIsEqualTo(ACCESSOR_NAME, ModelFilter.COMPARATOR_STRING, value);
-    }
-    
-    public static ModelFilter<CityModel> countryIdIs(int value) {
-        return ModelFilter.columnIsEqualTo(ACCESSOR_COUNTRY_ID, ModelFilter.COMPARATOR_INTEGER, value);
-    }
-    
-    public static ModelFilter<CityModel> countryNameIs(String value) {
-        return ModelFilter.columnIsEqualTo(ACCESSOR_COUNTRY_NAME, ModelFilter.COMPARATOR_STRING, value);
-    }
-    
-    //</editor-fold>
-    
-    //</editor-fold>
-    
     public Optional<CityImpl> findByName(Connection connection, int countryId, String value) throws Exception {
-        return loadFirst(connection, countryIdIs(countryId).and(nameIs(value)));
+        throw new UnsupportedOperationException("Not implemented");
     }
     
-    public ArrayList<CityImpl> loadByCountryId(Connection connection, int countryId, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, countryIdIs(countryId), orderBy);
-    }
-    
-    public ArrayList<CityImpl> loadByCountryName(Connection connection, String value, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, countryNameIs(value), orderBy);
-    }
+//    public ArrayList<CityImpl> loadByCountryId(Connection connection, int countryId, Iterable<OrderBy> orderBy) throws Exception {
+//        return load(connection, countryIdIs(countryId), orderBy);
+//    }
+//    
+//    public ArrayList<CityImpl> loadByCountryName(Connection connection, String value, Iterable<OrderBy> orderBy) throws Exception {
+//        return load(connection, countryNameIs(value), orderBy);
+//    }
     
     public int countByCountry(Connection connection, int countryId) throws Exception {
-        return count(connection, countryIdIs(countryId));
+        throw new UnsupportedOperationException("Not implemented");
     }
     
     @Override

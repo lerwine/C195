@@ -16,7 +16,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import scheduler.dao.AppointmentFactory;
 import scheduler.dao.UserFactory;
-import scheduler.filter.ModelFilter;
 import scheduler.util.PwHash;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
@@ -279,21 +278,23 @@ public final class EditUser extends EditItem.EditController<UserModel> {
 
     @Override
     protected String getSaveConflictMessage(Connection connection) throws Exception {
-        UserFactory factory = new UserFactory();
-        ModelFilter<UserModel> filter = UserFactory.userNameIs(normalizedUserName.get());
-        if (!getModel().isNewItem())
-            filter = filter.and(factory.wherePkIsNot(getModel().getDataObject().getPrimaryKey()));
-        if (factory.count(connection, filter) == 0)
-            return "";
-        return getResourceString(RESOURCEKEY_USERNAMEINUSE);
+        throw new UnsupportedOperationException("Not implemented");
+//        UserFactory factory = new UserFactory();
+//        ModelFilter<UserModel> filter = UserFactory.userNameIs(normalizedUserName.get());
+//        if (!getModel().isNewItem())
+//            filter = filter.and(factory.wherePkIsNot(getModel().getDataObject().getPrimaryKey()));
+//        if (factory.count(connection, filter) == 0)
+//            return "";
+//        return getResourceString(RESOURCEKEY_USERNAMEINUSE);
     }
 
     @Override
     protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        AppointmentFactory factory = new AppointmentFactory();
-        if (factory.count(connection, AppointmentFactory.userIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-            return "";
-        return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
+        throw new UnsupportedOperationException("Not implemented");
+//        AppointmentFactory factory = new AppointmentFactory();
+//        if (factory.count(connection, AppointmentFactory.userIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
+//            return "";
+//        return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
     }
 
 }

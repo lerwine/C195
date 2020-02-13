@@ -3,7 +3,6 @@ package scheduler.view;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -23,7 +22,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
 import scheduler.dao.DataObjectFactory;
-import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
 
@@ -35,25 +33,25 @@ import scheduler.util.DbConnector;
 public abstract class ListingController<M extends ItemModel<?>> extends MainController.MainContentController {
     //<editor-fold defaultstate="collapsed" desc="itemsFilter">
     
-    private ModelFilter<M> filter;
-    
-    public ModelFilter<M> getFilter() { return filter; }
-    
-    /**
-     * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
-     * @param value The new {@link ModelFilter}.
-     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
-     */
-    protected void changeFilter(ModelFilter<M> value, Stage owner) {
-        if (value.isEmpty()) {
-            if (filter != null && filter.isEmpty())
-                return;
-        } else if (null != filter && !filter.isEmpty() && filter == value)
-            return;
-        filter = value;
-        onFilterChanged(Objects.requireNonNull(owner));
-    }
-    
+//    private ModelFilter<M> filter;
+//    
+//    public ModelFilter<M> getFilter() { return filter; }
+//    
+//    /**
+//     * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
+//     * @param value The new {@link ModelFilter}.
+//     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+//     */
+//    protected void changeFilter(ModelFilter<M> value, Stage owner) {
+//        if (value.isEmpty()) {
+//            if (filter != null && filter.isEmpty())
+//                return;
+//        } else if (null != filter && !filter.isEmpty() && filter == value)
+//            return;
+//        filter = value;
+//        onFilterChanged(Objects.requireNonNull(owner));
+//    }
+//    
     /**
      * This gets called whenever the current {@link #filter} has changed.
      * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
@@ -230,33 +228,34 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         return false;
     }
     
-    protected final static <M  extends ItemModel<?>, C extends ListingController<M>> void setContent(Class<C> controllerClass, MainController mc,
-            Stage stage, ModelFilter<M> filter) throws IOException {
-        mc.setContent(controllerClass, stage, (Parent v, C c) -> {
-            c.changeFilter(filter, stage);
-        });
-    }
+//    protected final static <M  extends ItemModel<?>, C extends ListingController<M>> void setContent(Class<C> controllerClass, MainController mc,
+//            Stage stage, ModelFilter<M> filter) throws IOException {
+//        mc.setContent(controllerClass, stage, (Parent v, C c) -> {
+//            c.changeFilter(filter, stage);
+//        });
+//    }
     
     protected abstract class ItemsLoadTask<T extends DataObjectFactory.DataObjectImpl> extends TaskWaiter<Iterable<T>> {
-        private final ModelFilter<M> currentFilter;
+//        private final ModelFilter<M> currentFilter;
         
         protected ItemsLoadTask(Stage owner, String operation) {
             super(owner, operation);
-            currentFilter = filter;
+//            currentFilter = filter;
         }
         
         protected abstract void processNullResult(Window owner);
         
         protected abstract M toModel(T result);
         
-        protected void onItemsLoaded(ModelFilter<M> filter, Window owner) { }
+//        protected void onItemsLoaded(ModelFilter<M> filter, Window owner) { }
         
-        protected abstract Iterable<T> getResult(Connection connection, ModelFilter<M> filter) throws Exception;
+//        protected abstract Iterable<T> getResult(Connection connection, ModelFilter<M> filter) throws Exception;
         
         @Override
         protected final Iterable<T> getResult() throws Exception {
             try (DbConnector dep = new DbConnector()) {
-                return getResult(dep.getConnection(), filter);
+//                return getResult(dep.getConnection(), filter);
+                throw new UnsupportedOperationException("Not implemented");
             }
         }
         
@@ -270,7 +269,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
                 Iterator<T> it = result.iterator();
                 while (it.hasNext())
                     itemsList.add(toModel(it.next()));
-                onItemsLoaded(currentFilter, owner);
+                throw new UnsupportedOperationException("Not implemented");
             }
         }
         

@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.AppointmentFactory;
 import scheduler.dao.UserFactory;
-import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
 import scheduler.view.ListingController;
@@ -102,9 +101,10 @@ public final class ManageUsers extends ListingController<UserModel> {
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 
     //</editor-fold>
-    public static void setContent(MainController mc, Stage stage, ModelFilter<UserModel> filter) throws IOException {
-        ListingController.setContent(ManageUsers.class, mc, stage, filter);
-    }
+    
+//    public static void setContent(MainController mc, Stage stage, ModelFilter<UserModel> filter) throws IOException {
+//        ListingController.setContent(ManageUsers.class, mc, stage, filter);
+//    }
     
     @Override
     protected void onAddNewItem(Event event) {
@@ -119,11 +119,11 @@ public final class ManageUsers extends ListingController<UserModel> {
     @Override
     protected void onDeleteItem(Event event, UserModel item) {
         getMainController().deleteUser(event, item, (connection) -> {
-            AppointmentFactory factory = new AppointmentFactory();
-            if (factory.count(connection, AppointmentFactory.userIdIs(item.getDataObject().getPrimaryKey())) == 0)
-                return "";
-            return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
-            
+            throw new UnsupportedOperationException("Not implemented");
+//            AppointmentFactory factory = new AppointmentFactory();
+//            if (factory.count(connection, AppointmentFactory.userIdIs(item.getDataObject().getPrimaryKey())) == 0)
+//                return "";
+//            return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
         });
     }
 
@@ -146,11 +146,6 @@ public final class ManageUsers extends ListingController<UserModel> {
         @Override
         protected UserModel toModel(UserFactory.UserImpl result) { return new UserModel(result); }
 
-        @Override
-        protected Iterable<UserFactory.UserImpl> getResult(Connection connection, ModelFilter<UserModel> filter) throws Exception {
-            return (new UserFactory()).load(connection, filter);
-        }
-        
         @Override
         protected void processException(Throwable ex, Window owner) {
             super.processException(ex, owner);

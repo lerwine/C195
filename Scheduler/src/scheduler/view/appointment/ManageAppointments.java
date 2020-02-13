@@ -11,7 +11,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
 import scheduler.dao.AppointmentFactory;
-import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
 import scheduler.view.annotations.FXMLResource;
@@ -251,9 +250,10 @@ public final class ManageAppointments extends ListingController<AppointmentModel
     
     //</editor-fold>
     
-    public static void setContent(MainController mc, Stage stage, AppointmentsViewOptions filter) throws IOException {
-        ListingController.setContent(ManageAppointments.class, mc, stage, filter);
-    }
+//    public static void setContent(MainController mc, Stage stage, AppointmentsViewOptions filter) throws IOException {
+//        throw new UnsupportedOperationException("Not implemented");
+////        ListingController.setContent(ManageAppointments.class, mc, stage, filter);
+//    }
     
     @Override
     protected void onFilterChanged(Stage owner) {
@@ -270,11 +270,11 @@ public final class ManageAppointments extends ListingController<AppointmentModel
             super(owner, getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
         }
         
-        @Override
-        protected Iterable<AppointmentFactory.AppointmentImpl> getResult(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
-            LOG.log(Level.INFO, "Invoking AppointmentsLoadTask.getResult");
-            return (new AppointmentFactory()).load(connection, filter);
-        }
+//        @Override
+//        protected Iterable<AppointmentFactory.AppointmentImpl> getResult(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
+//            LOG.log(Level.INFO, "Invoking AppointmentsLoadTask.getResult");
+//            return (new AppointmentFactory()).load(connection, filter);
+//        }
 
         @Override
         protected AppointmentModel toModel(AppointmentFactory.AppointmentImpl result) { return new AppointmentModel(result); }
@@ -285,11 +285,11 @@ public final class ManageAppointments extends ListingController<AppointmentModel
             Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
         
-        @Override
-        protected void onItemsLoaded(ModelFilter<AppointmentModel> filter, Window owner) {
-             super.onItemsLoaded(filter, owner);
-             ((Stage)owner).setTitle(((AppointmentsViewOptions)filter).getWindowTitle(getResources()));
-        }
+//        @Override
+//        protected void onItemsLoaded(ModelFilter<AppointmentModel> filter, Window owner) {
+//             super.onItemsLoaded(filter, owner);
+//             ((Stage)owner).setTitle(((AppointmentsViewOptions)filter).getWindowTitle(getResources()));
+//        }
         
         @Override
         protected void processException(Throwable ex, Window owner) {

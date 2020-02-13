@@ -13,11 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import scheduler.App;
-import scheduler.filter.ModelFilter;
-import scheduler.filter.OrderBy;
-import scheduler.filter.ParameterConsumer;
-import scheduler.filter.SqlStatementBuilder;
-import scheduler.filter.ValueAccessor;
 import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.ItemModel;
@@ -90,164 +85,9 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Filter definitions">
-    
-    //<editor-fold defaultstate="collapsed" desc="ValueAccessor definitions">
-    
-    private final ValueAccessor<M, LocalDateTime> createDateAccessor = new ValueAccessor<M, LocalDateTime>() {
-        @Override
-        public void accept(LocalDateTime t, ParameterConsumer u) throws SQLException { u.setDateTime(t); }
-        @Override
-        public LocalDateTime apply(M t) { return t.getCreateDate(); }
-        @Override
-        public String get() { return COLNAME_CREATEDATE; }
-    };
-    
-    public final ValueAccessor<M, LocalDateTime> getCreateDateAccessor() { return createDateAccessor; }
-    
-    private final ValueAccessor<M, String> createdByAccessor = new ValueAccessor<M, String>() {
-        @Override
-        public void accept(String t, ParameterConsumer u) throws SQLException { u.setString(t); }
-        @Override
-        public String apply(M t) { return t.getCreatedBy(); }
-        @Override
-        public String get() { return COLNAME_CREATEDBY; }
-    };
-    
-    public final ValueAccessor<M, String> getCreatedByAccessor() { return createdByAccessor; }
-    
-    private final ValueAccessor<M, LocalDateTime> lastModifiedDateAccessor = new ValueAccessor<M, LocalDateTime>() {
-        @Override
-        public void accept(LocalDateTime t, ParameterConsumer u) throws SQLException { u.setDateTime(t); }
-        @Override
-        public LocalDateTime apply(M t) { return t.getLastModifiedDate(); }
-        @Override
-        public String get() { return COLNAME_LASTUPDATE; }
-    };
-    
-    public final ValueAccessor<M, LocalDateTime> getLastModifiedDateAccessor() { return lastModifiedDateAccessor; }
-    
-    private final ValueAccessor<M, String> lastModifiedByAccessor = new ValueAccessor<M, String>() {
-        @Override
-        public void accept(String t, ParameterConsumer u) throws SQLException { u.setString(t); }
-        @Override
-        public String apply(M t) { return t.getLastModifiedBy(); }
-        @Override
-        public String get() { return COLNAME_LASTUPDATEBY; }
-    };
-    
-    public final ValueAccessor<M, String> getLastModifiedByAccessor() { return lastModifiedByAccessor; }
-    
-    private final ValueAccessor<M, Integer> primaryKeyAccessor = new ValueAccessor<M, Integer>() {
-        @Override
-        public Integer apply(M t) { return t.getDataObject().getPrimaryKey(); }
-        @Override
-        public String get() { return getPrimaryKeyColName(); }
-        @Override
-        public void accept(Integer t, ParameterConsumer u) throws SQLException { u.setInt(t); }
-        
-    };
-    
-    public final ValueAccessor<M, Integer> getPrimaryKeyAccessor() { return primaryKeyAccessor; }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="ModelFilter definitions">
-    
-    public ModelFilter<M> whereCreateDateIsGreaterThan(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThan(getCreateDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereCreateDateIsGreaterThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThanOrEqualTo(getCreateDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereCreateDateIsLessThan(LocalDateTime value) {
-        return ModelFilter.columnIsLessThan(getCreateDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereCreateDateIsLessThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsLessThanOrEqualTo(getCreateDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereCreatedByIs(String value) {
-        return ModelFilter.columnIsEqualTo(getCreatedByAccessor(), ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereCreatedByIsNot(String value) {
-        return ModelFilter.columnIsNotEqualTo(getCreatedByAccessor(), ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereLastModifiedDateIsGreaterThan(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThan(getLastModifiedDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereLastModifiedDateIsGreaterThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsGreaterThanOrEqualTo(getLastModifiedDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereLastModifiedDateIsLessThan(LocalDateTime value) {
-        return ModelFilter.columnIsLessThan(getLastModifiedDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereLastModifiedDateIsLessThanOrEqualTo(LocalDateTime value) {
-        return ModelFilter.columnIsLessThanOrEqualTo(getLastModifiedDateAccessor(), ModelFilter.COMPARATOR_LOCALDATETIME, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereLastModifiedByIs(String value) {
-        return ModelFilter.columnIsEqualTo(getLastModifiedByAccessor(), ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-    public ModelFilter<M> whereLastModifiedByIsNot(String value) {
-        return ModelFilter.columnIsNotEqualTo(getLastModifiedByAccessor(), ModelFilter.COMPARATOR_STRING, Objects.requireNonNull(value));
-    }
-    
-
-    public ModelFilter<M> wherePkIsNot(int value) {
-        return ModelFilter.columnIsNotEqualTo(getPrimaryKeyAccessor(), ModelFilter.COMPARATOR_INTEGER, value);
-    }
-    
-    //</editor-fold>
-    
-    //</editor-fold>
-    
     protected static Stream<String> getBaseFieldNames() {
         return Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY);
     }
-    
-//    /**
-//     * Gets the name of the data table associated a DAO.
-//     * @param <R> The type of DAO.
-//     * @param rowClass The DAO class.
-//     * @return The name of the data table associated with the specified DAO.
-//     * @throws IllegalArgumentException if the table class name is not defined through the {@link TableName} annotation.
-//     */
-//    public static final <R extends DataObjectImpl> String getTableName(Class<R> rowClass) {
-//        Class<TableName> tableNameClass = TableName.class;
-//        if (rowClass.isAnnotationPresent(tableNameClass)) {
-//            String n = rowClass.getAnnotation(tableNameClass).value();
-//            if (n != null && !n.isEmpty())
-//                return n;
-//        }
-//        throw new IllegalArgumentException("Table name not defined");
-//    }
-    
-//    /**
-//     * Gets the name of the primary key column associated a DAO.
-//     * @param <R> The type of DAO.
-//     * @param rowClass The DAO class.
-//     * @return The name of the primary key column associated with the specified DAO.
-//     * @throws IllegalArgumentException if the primary key column is not defined through the {@link PrimaryKeyColumn} annotation.
-//     */
-//    public static final <R extends DataObjectImpl> String getPrimaryKeyColName(Class<R> rowClass) {
-//        Class<PrimaryKeyColumn> pkClass = PrimaryKeyColumn.class;
-//        if (rowClass.isAnnotationPresent(pkClass)) {
-//            String n = rowClass.getAnnotation(pkClass).value();
-//            if (n != null && !n.isEmpty())
-//                return n;
-//        }
-//        throw new IllegalArgumentException("Primary key column name not defined");
-//    }
     
     protected abstract D fromResultSet(ResultSet resultSet) throws SQLException;
     
@@ -271,7 +111,7 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
         synchronized (dao) {
             assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has already been deleted", getClass().getName());
             assert dao.getRowState() != Values.ROWSTATE_NEW : String.format("%s has not been inserted into the database", getClass().getName());
-            String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
+            String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getTableName(), getPrimaryKeyColName());
             LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, dao.getPrimaryKey());
@@ -297,14 +137,14 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
             if (dao.getRowState() == Values.ROWSTATE_NEW) {
                 colNames = Stream.concat(getExtendedColNames(), Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY))
                         .toArray(String[]::new);
-                sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", colNames)).append("`) VALUES (%");
+                sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", colNames)).append("`) VALUES (?");
                 for (int i = 1; i < colNames.length; i++)
-                    sql.append(", %");
+                    sql.append(", ?");
                 sql.append(")");
             } else {
                 colNames = Stream.concat(getExtendedColNames(), Stream.of(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY)).toArray(String[]::new);
-                sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("`=%, `", colNames)).append("`=% WHERE `")
-                        .append(getPrimaryKeyColName()).append("=%");
+                sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("` = ?, `", colNames)).append("` = ? WHERE `")
+                        .append(getPrimaryKeyColName()).append(" = ?");
             }
             LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
             int pk;
@@ -344,63 +184,6 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
         }
     }
     
-    public ArrayList<D> load(Connection connection, ModelFilter<? extends M> filter, Iterable<OrderBy> orderBy) throws Exception {
-        ArrayList<D> result = new ArrayList<>();
-        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
-            builder.appendSql(getBaseQuery());
-            if (null != filter) {
-                String s = filter.get();
-                if (!s.isEmpty())
-                    builder.appendSql(" WHERE ").appendSql(s);
-                if (null != orderBy && !(s = OrderBy.toSqlClause(orderBy)).isEmpty())
-                        builder.appendSql(" ").appendSql(s);
-                LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", builder.getSql()));
-                filter.setParameterValues(builder.finalizeSql());
-            } else if (null != orderBy) {
-                String s = OrderBy.toSqlClause(orderBy);
-                if (!s.isEmpty())
-                    builder.appendSql(" ").appendSql(s);
-            }
-            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", builder.getSql()));
-            try (ResultSet rs = builder.getResult().executeQuery()) {
-                while (rs.next())
-                    result.add(fromResultSet(rs));
-            }
-        }
-        return result;
-    }
-    
-    public ArrayList<D> load(Connection connection, ModelFilter<? extends M> filter) throws Exception {
-        return load(connection, filter, null);
-    }
-    
-    public ArrayList<D> load(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        return load(connection, null, orderBy);
-    }
-    
-    public ArrayList<D> load(Connection connection) throws Exception {
-        return load(connection, (ModelFilter<? extends M>)null);
-    }
-    
-    public Optional<D> loadFirst(Connection connection, ModelFilter<? extends M> filter) throws Exception {
-        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
-            builder.appendSql(getBaseQuery());
-            if (null != filter) {
-                String s = filter.get();
-                if (!s.isEmpty())
-                    builder.appendSql(" WHERE ").appendSql(s);
-                LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", builder.getSql()));
-                filter.setParameterValues(builder.finalizeSql());
-            }
-            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", builder.getSql()));
-            try (ResultSet rs = builder.getResult().executeQuery()) {
-                if (rs.next())
-                    return Optional.of(fromResultSet(rs));
-            }
-        }
-        return Optional.empty();
-    }
-        
     public Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
         Objects.requireNonNull(connection, "Connection cannot be null");
         String sql = String.format("%s WHERE p.`%s`=?", getBaseQuery(), getPrimaryKeyColName());
@@ -415,26 +198,6 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
         return Optional.empty();
     }
 
-    public int count(Connection connection, ModelFilter<? extends M> filter) throws Exception {
-        ArrayList<M> result = new ArrayList<>();
-        try (SqlStatementBuilder<PreparedStatement> builder = SqlStatementBuilder.fromConnection(connection)) {
-            builder.appendSql("SELECT COUNT(`").appendSql(getPrimaryKeyColName()).appendSql("`) FROM `").appendSql(getTableName()).appendSql("`");
-            if (null != filter) {
-                String s = filter.get();
-                if (!s.isEmpty())
-                    builder.appendSql(" WHERE ").appendSql(s);
-                LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", builder.getSql()));
-                filter.setParameterValues(builder.finalizeSql());
-            }
-            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", builder.getSql()));
-            try (ResultSet rs = builder.getResult().executeQuery()) {
-                if (rs.next())
-                    return rs.getInt(1);
-            }
-        }
-        return 0;
-    }
-    
     private int assertBaseResultSetValid(DataObjectImpl target, ResultSet resultSet) throws SQLException {
         Objects.requireNonNull(resultSet, "Result set cannot be null");
         assert !resultSet.isClosed() : "Result set is closed.";

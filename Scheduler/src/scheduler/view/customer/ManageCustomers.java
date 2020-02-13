@@ -10,7 +10,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.AppointmentFactory;
 import scheduler.dao.CustomerFactory;
-import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
 import scheduler.view.ListingController;
@@ -135,9 +134,9 @@ public final class ManageCustomers extends ListingController<CustomerModel> {
         super.initialize();
     }
     
-    public static void setContent(MainController mc, Stage stage, ModelFilter<CustomerModel> filter) throws IOException {
-        ListingController.setContent(ManageCustomers.class, mc, stage, filter);
-    }
+//    public static void setContent(MainController mc, Stage stage, ModelFilter<CustomerModel> filter) throws IOException {
+//        ListingController.setContent(ManageCustomers.class, mc, stage, filter);
+//    }
     
     @Override
     protected void onAddNewItem(Event event) {
@@ -152,10 +151,11 @@ public final class ManageCustomers extends ListingController<CustomerModel> {
     @Override
     protected void onDeleteItem(Event event, CustomerModel item) {
         getMainController().deleteCustomer(event, item, (connection) -> {
-            AppointmentFactory factory = new AppointmentFactory();
-            if (factory.count(connection, AppointmentFactory.customerIdIs(item.getDataObject().getPrimaryKey())) == 0)
-                return "";
-            return getResourceString(RESOURCEKEY_CUSTOMERHASAPPOINTMENTS);
+            throw new UnsupportedOperationException("Not implemented");
+//            AppointmentFactory factory = new AppointmentFactory();
+//            if (factory.count(connection, AppointmentFactory.customerIdIs(item.getDataObject().getPrimaryKey())) == 0)
+//                return "";
+//            return getResourceString(RESOURCEKEY_CUSTOMERHASAPPOINTMENTS);
         });
     }
 
@@ -176,10 +176,10 @@ public final class ManageCustomers extends ListingController<CustomerModel> {
         @Override
         protected CustomerModel toModel(CustomerFactory.CustomerImpl result) { return new CustomerModel(result); }
 
-        @Override
-        protected Iterable<CustomerFactory.CustomerImpl> getResult(Connection connection, ModelFilter<CustomerModel> filter) throws Exception {
-            return (new CustomerFactory()).load(connection, filter);
-        }
+//        @Override
+//        protected Iterable<CustomerFactory.CustomerImpl> getResult(Connection connection, ModelFilter<CustomerModel> filter) throws Exception {
+//            return (new CustomerFactory()).load(connection, filter);
+//        }
         
         @Override
         protected void processException(Throwable ex, Window owner) {

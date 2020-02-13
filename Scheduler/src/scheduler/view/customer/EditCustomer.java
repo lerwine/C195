@@ -250,10 +250,11 @@ public final class EditCustomer extends EditItem.EditController<CustomerModel> {
 
     @Override
     protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        AppointmentFactory factory = new AppointmentFactory();
-        if (factory.count(connection, AppointmentFactory.customerIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-            return "";
-        return getResourceString(RESOURCEKEY_CUSTOMERHASAPPOINTMENTS);
+        throw new UnsupportedOperationException("Not implemented");
+//        AppointmentFactory factory = new AppointmentFactory();
+//        if (factory.count(connection, AppointmentFactory.customerIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
+//            return "";
+//        return getResourceString(RESOURCEKEY_CUSTOMERHASAPPOINTMENTS);
     }
 
 }

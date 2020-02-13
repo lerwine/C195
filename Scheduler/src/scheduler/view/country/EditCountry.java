@@ -89,9 +89,10 @@ ot be deleted."}.
 
     @Override
     protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        CityFactory factory = new CityFactory();
-        if (factory.count(connection, CityFactory.countryIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-            return "";
-        return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
+        throw new UnsupportedOperationException("Not implemented");
+//        CityFactory factory = new CityFactory();
+//        if (factory.count(connection, CityFactory.countryIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
+//            return "";
+//        return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
     }
 }

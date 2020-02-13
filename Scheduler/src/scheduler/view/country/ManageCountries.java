@@ -1,19 +1,14 @@
 package scheduler.view.country;
 
-import java.io.IOException;
-import java.sql.Connection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.dao.CityFactory;
 import scheduler.dao.CountryFactory;
-import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
 import scheduler.view.ListingController;
-import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -97,10 +92,6 @@ public final class ManageCountries extends ListingController<CountryModel> {
 
     //</editor-fold>
 
-    public static void setContent(MainController mc, Stage stage, ModelFilter<CountryModel> filter) throws IOException {
-        ListingController.setContent(ManageCountries.class, mc, stage, filter);
-    }
-    
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewCountry(event);
@@ -114,10 +105,11 @@ public final class ManageCountries extends ListingController<CountryModel> {
     @Override
     protected void onDeleteItem(Event event, CountryModel item) {
         getMainController().deleteCountry(event, item, (connection) -> {
-            CityFactory factory = new CityFactory();
-            if (factory.count(connection, CityFactory.countryIdIs(item.getDataObject().getPrimaryKey())) == 0)
-                return "";
-            return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
+            throw new UnsupportedOperationException("Not implemented");
+//            CityFactory factory = new CityFactory();
+//            if (factory.count(connection, CityFactory.countryIdIs(item.getDataObject().getPrimaryKey())) == 0)
+//                return "";
+//            return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
         });
     }
 
@@ -140,11 +132,6 @@ public final class ManageCountries extends ListingController<CountryModel> {
         @Override
         protected CountryModel toModel(CountryFactory.CountryImpl result) { return new CountryModel(result); }
 
-        @Override
-        protected Iterable<CountryFactory.CountryImpl> getResult(Connection connection, ModelFilter<CountryModel> filter) throws Exception {
-            return (new CountryFactory()).load(connection, filter);
-        }
-        
         @Override
         protected void processException(Throwable ex, Window owner) {
             super.processException(ex, owner);

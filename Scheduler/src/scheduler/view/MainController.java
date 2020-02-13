@@ -14,7 +14,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -29,7 +28,6 @@ import scheduler.dao.CountryFactory.CountryImpl;
 import scheduler.dao.CustomerFactory.CustomerImpl;
 import scheduler.dao.DataObjectFactory.DataObjectImpl;
 import scheduler.dao.UserFactory.UserImpl;
-import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
 import scheduler.util.ThrowableFunction;
@@ -38,19 +36,14 @@ import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.appointment.AppointmentsViewOptions;
 import scheduler.view.appointment.EditAppointment;
-import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.city.CityModel;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.EditCountry;
-import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.EditCustomer;
-import scheduler.view.customer.ManageCustomers;
 import scheduler.view.user.EditUser;
-import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModel;
 
 /**
@@ -349,11 +342,7 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageAppointments.setContent(MainController.this, (Stage)contentPane.getScene().getWindow(), AppointmentsViewOptions.all());
-            } catch (IOException ex) {
-                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading appointments", ex);
-            }
+            throw new UnsupportedOperationException("Not implemented");
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -361,11 +350,7 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCustomer(event));
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageCustomers.setContent(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
-            } catch (IOException ex) {
-                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading customers", ex);
-            }
+            throw new UnsupportedOperationException("Not implemented");
         });
         assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -377,11 +362,7 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAddress(event));
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageCountries.setContent(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
-            } catch (IOException ex) {
-                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading countries", ex);
-            }
+            throw new UnsupportedOperationException("Not implemented");
         });
         assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -389,27 +370,12 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewUser(event));
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageUsers.setContent(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
-            } catch (IOException ex) {
-                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading users", ex);
-            }
+            throw new UnsupportedOperationException("Not implemented");
         });
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
     }
 
-    @Override
-    protected void onBeforeShow(Node currentView, Stage stage) {
-        super.onBeforeShow(currentView, stage);
-        try {
-            ManageAppointments.setContent(this, stage, AppointmentsViewOptions.todayAndFuture());
-        } catch (IOException ex) {
-            Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading appointments", ex);
-        }
-    }
-
-    
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">

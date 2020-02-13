@@ -123,10 +123,11 @@ public final class EditAddress extends EditItem.EditController<AddressModel> {
 
     @Override
     protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        CustomerFactory factory = new CustomerFactory();
-        if (factory.count(connection, CustomerFactory.addressIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-            return "";
-        return getResourceString(RESOURCEKEY_ADDRESSHASCUSTOMERS);
+        throw new UnsupportedOperationException("Not implemented");
+//        CustomerFactory factory = new CustomerFactory();
+//        if (factory.count(connection, CustomerFactory.addressIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
+//            return "";
+//        return getResourceString(RESOURCEKEY_ADDRESSHASCUSTOMERS);
     }
 
 }
