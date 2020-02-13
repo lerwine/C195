@@ -120,22 +120,22 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentFactory.App
         if (null != baseSelectQuery)
             return baseSelectQuery;
         final StringBuilder sql = new StringBuilder("SELECT e.`");
-        sql.append(COLNAME_APPOINTMENTID).append("` AS ").append(COLNAME_APPOINTMENTID);
+        sql.append(COLNAME_APPOINTMENTID).append("` AS `").append(COLNAME_APPOINTMENTID);
         Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE,
                 COLNAME_LASTUPDATEBY, COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION,
                 COLNAME_CONTACT, COLNAME_TYPE, COLNAME_URL, COLNAME_START, COLNAME_END).forEach((t) -> {
-            sql.append(", e.`").append(t).append("` AS ").append(t);
+            sql.append("`, e.`").append(t).append("` AS `").append(t);
         });
-        sql.append(", p.`").append(CustomerFactory.COLNAME_CUSTOMERNAME).append("` AS ").append(CustomerFactory.COLNAME_CUSTOMERNAME)
-                .append(", p.`").append(CustomerFactory.COLNAME_ADDRESSID).append("` AS ").append(CustomerFactory.COLNAME_ADDRESSID);
+        sql.append("`, p.`").append(CustomerFactory.COLNAME_CUSTOMERNAME).append("` AS `").append(CustomerFactory.COLNAME_CUSTOMERNAME)
+                .append("`, p.`").append(CustomerFactory.COLNAME_ADDRESSID).append("` AS `").append(CustomerFactory.COLNAME_ADDRESSID);
         Stream.of(AddressFactory.COLNAME_ADDRESS, AddressFactory.COLNAME_ADDRESS2, AddressFactory.COLNAME_CITYID, AddressFactory.COLNAME_POSTALCODE,
                 AddressFactory.COLNAME_PHONE).forEach((t) -> {
-            sql.append(", a.`").append(t).append("` AS ").append(t);
+            sql.append("`, a.`").append(t).append("` AS `").append(t);
         });
-        baseSelectQuery = sql.append(", u.`").append(UserFactory.COLNAME_USERID).append("` AS ").append(UserFactory.COLNAME_USERID)
-                .append(", c.`").append(CityFactory.COLNAME_CITY).append("` AS ").append(CityFactory.COLNAME_CITY)
-                .append(", c.`").append(CityFactory.COLNAME_COUNTRYID).append("` AS ").append(CityFactory.COLNAME_COUNTRYID)
-                .append(", n.`").append(CountryFactory.COLNAME_COUNTRY).append("` AS ").append(CountryFactory.COLNAME_COUNTRY)
+        baseSelectQuery = sql.append("`, u.`").append(UserFactory.COLNAME_USERID).append("` AS `").append(UserFactory.COLNAME_USERID)
+                .append("`, c.`").append(CityFactory.COLNAME_CITY).append("` AS `").append(CityFactory.COLNAME_CITY)
+                .append("`, c.`").append(CityFactory.COLNAME_COUNTRYID).append("` AS `").append(CityFactory.COLNAME_COUNTRYID)
+                .append("`, n.`").append(CountryFactory.COLNAME_COUNTRY).append("` AS `").append(CountryFactory.COLNAME_COUNTRY)
                 .append("` FROM `").append((new AppointmentFactory()).getTableName())
                 .append("` e LEFT JOIN `").append((new CustomerFactory()).getTableName()).append("` p ON e.`").append(COLNAME_CUSTOMERID).append("`=p.`").append(CustomerFactory.COLNAME_CUSTOMERID)
                 .append("` LEFT JOIN `").append((new AddressFactory()).getTableName()).append("` a ON p.`").append(CustomerFactory.COLNAME_ADDRESSID).append("`=a.`").append(AddressFactory.COLNAME_ADDRESSID)
@@ -612,7 +612,7 @@ public class AppointmentFactory extends DataObjectFactory<AppointmentFactory.App
     */
    @TableName(DataObjectFactory.TABLENAME_APPOINTMENT)
    @PrimaryKeyColumn(AppointmentFactory.COLNAME_APPOINTMENTID)
-   public static final class AppointmentImpl extends DataObjectImpl implements Appointment {
+   public static final class AppointmentImpl extends DataObjectFactory.DataObjectImpl implements Appointment {
        //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
 
        //<editor-fold defaultstate="collapsed" desc="customer property">

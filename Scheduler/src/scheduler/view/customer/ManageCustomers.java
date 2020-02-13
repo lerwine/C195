@@ -26,7 +26,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public class ManageCustomers extends ListingController<CustomerModel> {
+public final class ManageCustomers extends ListingController<CustomerModel> {
     
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
     
@@ -135,8 +135,8 @@ public class ManageCustomers extends ListingController<CustomerModel> {
         super.initialize();
     }
     
-    public static void loadInto(MainController mc, Stage stage, ModelFilter<CustomerModel> filter) throws IOException {
-        loadInto(ManageCustomers.class, mc, stage, filter);
+    public static void setContent(MainController mc, Stage stage, ModelFilter<CustomerModel> filter) throws IOException {
+        ListingController.setContent(ManageCustomers.class, mc, stage, filter);
     }
     
     @Override

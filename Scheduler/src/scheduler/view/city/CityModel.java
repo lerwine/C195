@@ -17,7 +17,7 @@ import scheduler.view.country.CityCountry;
  *
  * @author erwinel
  */
-public class CityModel extends scheduler.view.ItemModel<CityFactory.CityImpl> implements AddressCity<CityFactory.CityImpl> {
+public final class CityModel extends scheduler.view.ItemModel<CityFactory.CityImpl> implements AddressCity<CityFactory.CityImpl> {
     
     private final ReadOnlyStringWrapper name;
 

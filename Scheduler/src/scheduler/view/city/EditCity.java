@@ -22,7 +22,7 @@ import scheduler.view.country.CountryModel;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public class EditCity extends EditItem.EditController<CityModel> {
+public final class EditCity extends EditItem.EditController<CityModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     

@@ -15,10 +15,38 @@ import java.sql.SQLException;
  * @param <T> The target type for the builder.
  */
 public interface SqlStatementBuilder<T extends AutoCloseable> extends AutoCloseable {
+
+    /**
+     * Gets the length of the SQL query string.
+     * @return The length of the SQL query string.
+     */
     int length();
+
+    /**
+     * Gets the SQL query string.
+     * @return The SQL query string.
+     */
     String getSql();
+
+    /**
+     * Appends text to the SQL string.
+     * @param sql The SQL query string text to append.
+     * @return the current SqlStatementBuilder.
+     */
     SqlStatementBuilder appendSql(String sql);
+
+    /**
+     * Creates internal {@link PreparedStatement} and prevents further modifications to the SQL query.
+     * @return A {@link ParameterConsumer} that can be used to populate the parameterized SQL query values.
+     * @throws SQLException
+     */
     ParameterConsumer finalizeSql() throws SQLException;
+
+    /**
+     * Ensures that this builder is finalized and gets the object that contains the results.
+     * @return The object that contains the results.
+     * @throws SQLException
+     */
     T getResult() throws SQLException;
     
     public static SqlStatementBuilder<PreparedStatement> fromConnection(Connection connection) {
@@ -31,7 +59,6 @@ public interface SqlStatementBuilder<T extends AutoCloseable> extends AutoClosea
             
             @Override
             public String getSql() {
-                
                 return stringBuilder.toString();
             }
 

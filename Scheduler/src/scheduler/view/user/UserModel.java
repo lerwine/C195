@@ -16,7 +16,7 @@ import scheduler.view.ItemModel;
  *
  * @author erwinel
  */
-public class UserModel extends ItemModel<UserFactory.UserImpl> implements AppointmentUser<UserFactory.UserImpl> {
+public final class UserModel extends ItemModel<UserFactory.UserImpl> implements AppointmentUser<UserFactory.UserImpl> {
 
     private final ReadOnlyStringWrapper userName;
 

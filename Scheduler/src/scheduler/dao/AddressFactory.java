@@ -357,7 +357,7 @@ public class AddressFactory extends DataObjectFactory<AddressFactory.AddressImpl
     */
 //   @TableName(DataObjectFactory.TABLENAME_ADDRESS)
 //   @PrimaryKeyColumn(AddressFactory.COLNAME_ADDRESSID)
-   public static final class AddressImpl extends DataObjectImpl implements Address {
+   public static final class AddressImpl extends DataObjectFactory.DataObjectImpl implements Address {
        //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
 
        //<editor-fold defaultstate="collapsed" desc="address1 property">

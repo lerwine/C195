@@ -12,7 +12,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import scheduler.dao.AppointmentFactory;
@@ -25,7 +24,6 @@ import scheduler.util.Values;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.city.CityModel;
 
 /**
  * FXML Controller class
@@ -34,7 +32,7 @@ import scheduler.view.city.CityModel;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public class EditUser extends EditItem.EditController<UserModel> {
+public final class EditUser extends EditItem.EditController<UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     
     /**

@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import scheduler.App;
 import scheduler.filter.ModelFilter;
@@ -27,6 +29,8 @@ import scheduler.view.ItemModel;
  * @param <M> The Java FX model type.
  */
 public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectImpl, M extends ItemModel<D>> {
+
+    private static final Logger LOG = Logger.getLogger(DataObjectFactory.class.getName());
     
     //<editor-fold defaultstate="collapsed" desc="Database table names">
 
@@ -268,6 +272,7 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
             assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has already been deleted", getClass().getName());
             assert dao.getRowState() != Values.ROWSTATE_NEW : String.format("%s has not been inserted into the database", getClass().getName());
             String sql = String.format("DELETE FROM `%s` WHERE `%s` = %%", getTableName(), getPrimaryKeyColName());
+            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, dao.getPrimaryKey());
                 assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
@@ -301,7 +306,7 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
                 sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("`=%, `", colNames)).append("`=% WHERE `")
                         .append(getPrimaryKeyColName()).append("=%");
             }
-            
+            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
             int pk;
             try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
                 setStatementValues(dao, ps);
@@ -328,6 +333,7 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
             }
             sql = new StringBuilder(getBaseQuery());
             sql.append(" WHERE `").append(getPrimaryKeyColName()).append("`=%");
+            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
             try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
                 ps.setInt(1, pk);
                 try (ResultSet rs = ps.getResultSet()) {
@@ -346,13 +352,16 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
                 String s = filter.get();
                 if (!s.isEmpty())
                     builder.appendSql(" WHERE ").appendSql(s);
+                if (null != orderBy && !(s = OrderBy.toSqlClause(orderBy)).isEmpty())
+                        builder.appendSql(" ").appendSql(s);
+                LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", builder.getSql()));
                 filter.setParameterValues(builder.finalizeSql());
-            }
-            if (null != orderBy) {
+            } else if (null != orderBy) {
                 String s = OrderBy.toSqlClause(orderBy);
                 if (!s.isEmpty())
                     builder.appendSql(" ").appendSql(s);
             }
+            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", builder.getSql()));
             try (ResultSet rs = builder.getResult().executeQuery()) {
                 while (rs.next())
                     result.add(fromResultSet(rs));
@@ -380,8 +389,10 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
                 String s = filter.get();
                 if (!s.isEmpty())
                     builder.appendSql(" WHERE ").appendSql(s);
+                LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", builder.getSql()));
                 filter.setParameterValues(builder.finalizeSql());
             }
+            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", builder.getSql()));
             try (ResultSet rs = builder.getResult().executeQuery()) {
                 if (rs.next())
                     return Optional.of(fromResultSet(rs));
@@ -392,7 +403,8 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
         
     public Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
         Objects.requireNonNull(connection, "Connection cannot be null");
-        String sql = String.format("%s WHERE p.`%s` = %%", getBaseQuery(), getPrimaryKeyColName());
+        String sql = String.format("%s WHERE p.`%s`=?", getBaseQuery(), getPrimaryKeyColName());
+        LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, pk);
             try (ResultSet rs = ps.executeQuery()) {
@@ -411,8 +423,10 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
                 String s = filter.get();
                 if (!s.isEmpty())
                     builder.appendSql(" WHERE ").appendSql(s);
+                LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", builder.getSql()));
                 filter.setParameterValues(builder.finalizeSql());
             }
+            LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", builder.getSql()));
             try (ResultSet rs = builder.getResult().executeQuery()) {
                 if (rs.next())
                     return rs.getInt(1);
@@ -609,62 +623,6 @@ public abstract class DataObjectFactory<D extends DataObjectFactory.DataObjectIm
            this.lastModifiedBy = lastModifiedBy;
            this.rowState = Values.asValidRowState(rowState);
        }
-
-//       /**
-//        * Initializes a data access object from a {@link ResultSet}.
-//        * @param resultSet The data retrieved from the database.
-//        * @throws SQLException if not able to read data from the {@link ResultSet}.
-//        */
-//       protected DataObjectImpl(ResultSet resultSet) throws SQLException {
-//           primaryKey = assertBaseResultSetValid(resultSet);
-//           createDate = resultSet.getTimestamp(COLNAME_CREATEDATE);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
-//           createdBy = resultSet.getString(COLNAME_CREATEDBY);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
-//           lastModifiedDate = resultSet.getTimestamp(COLNAME_LASTUPDATE);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
-//           lastModifiedBy = resultSet.getString(COLNAME_LASTUPDATEBY);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
-//           rowState = Values.ROWSTATE_UNMODIFIED;
-//       }
-
-//       private int assertBaseResultSetValid(ResultSet resultSet) throws SQLException {
-//           Objects.requireNonNull(resultSet, "Result set cannot be null");
-//           assert !resultSet.isClosed() : "Result set is closed.";
-//           assert !(resultSet.isBeforeFirst() || resultSet.isAfterLast()) : "Result set is not positioned on a result row";
-//           String pkColName = getPrimaryKeyColName();
-//           int pk = resultSet.getInt(pkColName);
-//           assert !resultSet.wasNull() : String.format("%s was null", pkColName);
-//           assert resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName)).equals(getTableName()) : "Table name mismatch";
-//           if (rowState != Values.ROWSTATE_NEW)
-//               assert pk == getPrimaryKey() : "Primary key does not match";
-//           return pk;
-//       }
-//
-//       protected synchronized void refresh(ResultSet resultSet) throws SQLException {
-//           assert rowState != Values.ROWSTATE_DELETED : "Associated row was already deleted";
-//           int pk = assertBaseResultSetValid(resultSet);
-//           if (rowState != Values.ROWSTATE_NEW)
-//               assert pk == getPrimaryKey() : "Primary key does not match";
-//           Timestamp cd = resultSet.getTimestamp(COLNAME_CREATEDATE);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
-//           String cb = resultSet.getString(COLNAME_CREATEDBY);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
-//           Timestamp ud = resultSet.getTimestamp(COLNAME_LASTUPDATE);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
-//           String ub = resultSet.getString(COLNAME_LASTUPDATEBY);
-//           assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
-//           primaryKey = pk;
-//           createDate = cd;
-//           createdBy = cb;
-//           lastModifiedDate = ud;
-//           lastModifiedBy = ub;
-//           rowState = Values.ROWSTATE_UNMODIFIED;
-//       }
-
-//       public final String getTableName() { return getTableName(getClass()); }
-//
-//       public final String getPrimaryKeyColName() { return getPrimaryKeyColName(getClass()); }
 
        public abstract void saveChanges(Connection connection) throws Exception;
 

@@ -54,7 +54,7 @@ import scheduler.view.address.CustomerAddress;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends EditItem.EditController<AppointmentModel> {
+public final class EditAppointment extends EditItem.EditController<AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
     //<editor-fold defaultstate="collapsed" desc="Constants">

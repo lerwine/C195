@@ -13,7 +13,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.util.Pair;
-import scheduler.App;
 import scheduler.filter.ModelFilter;
 import scheduler.filter.OrderBy;
 import scheduler.filter.ParameterConsumer;
@@ -261,7 +260,7 @@ public class UserFactory extends DataObjectFactory<UserFactory.UserImpl, UserMod
     */
 //   @TableName(DataObjectFactory.TABLENAME_USER)
 //   @PrimaryKeyColumn(UserFactory.COLNAME_USERID)
-   public static final class UserImpl extends DataObjectImpl implements User {
+   public static final class UserImpl extends DataObjectFactory.DataObjectImpl implements User {
        //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
 
        //<editor-fold defaultstate="collapsed" desc="userName property">

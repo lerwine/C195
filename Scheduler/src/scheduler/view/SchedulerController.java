@@ -63,7 +63,7 @@ public abstract class SchedulerController {
                     ctlClass.getName());
         } else
             message = String.format("Annotation scene.annotations.FXMLResourceName not present in type %s", ctlClass.getName());
-        LOG.log(Level.SEVERE, message);
+        LOG.logp(Level.SEVERE, SchedulerController.class.getName(), "getFXMLResourceName", message);
         return null;
     }
     
@@ -86,10 +86,25 @@ public abstract class SchedulerController {
                     ctlClass.getName());
         } else
             message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", ctlClass.getName());
-        LOG.log(Level.SEVERE, message);
+        LOG.logp(Level.SEVERE, SchedulerController.class.getName(), "getGlobalizationResourceName", message);
         return scheduler.App.GLOBALIZATION_RESOURCE_NAME;
     }
     
+    /**
+     * Loads a view and controller.
+     * The path of the view to load is identified by the {@link FXMLResource} annotation on the {@code controllerClass}.
+     * The {@link ResourceBundle} loaded with the controller is identified by the {@link GlobalizationResource} annotation on the {@code controllerClass}.
+     * @param <V> The type of {@link Node} that represents the view.
+     * @param <C> The type of {@link SchedulerController}.
+     * @param stage The {@link Stage} that will contain the view.
+     * @param controllerClass The {@link Class} of the {@link SchedulerController} to instantiate.
+     * @param onLoaded This gets called after the view is loaded and the controller is instantiated.
+     * @param show This gets called to insert the view into the {@link Stage}.
+     * @param baseResources The base {@link ResourceBundle} that will be merged with the {@link ResourceBundle} identified by the
+     *                      {@link GlobalizationResource} annotation on the {@code controllerClass}.
+     * @return The instantiated and initialized {@link SchedulerController}.
+     * @throws IOException if not able to load the view.
+     */
     public static <V extends Node, C extends SchedulerController> C load(Stage stage, Class<C> controllerClass, BiConsumer<V, C> onLoaded,
             BiConsumer<V, C> show, ResourceBundle baseResources) throws IOException {
         Objects.requireNonNull(stage);
@@ -107,6 +122,19 @@ public abstract class SchedulerController {
         return controller;
     }
     
+    /**
+     * Loads a view and controller.
+     * The path of the view to load is identified by the {@link FXMLResource} annotation on the {@code controllerClass}.
+     * The {@link ResourceBundle} loaded with the controller is identified by the {@link GlobalizationResource} annotation on the {@code controllerClass}.
+     * @param <V> The type of {@link Node} that represents the view.
+     * @param <C> The type of {@link SchedulerController}.
+     * @param stage The {@link Stage} that will contain the view.
+     * @param controllerClass The {@link Class} of the {@link SchedulerController} to instantiate.
+     * @param onLoaded This gets called after the view is loaded and the controller is instantiated.
+     * @param show This gets called to insert the view into the {@link Stage}.
+     * @return The instantiated and initialized {@link SchedulerController}.
+     * @throws IOException if not able to load the view.
+     */
     public static <V extends Node, C extends SchedulerController> C load(Stage stage, Class<C> controllerClass, BiConsumer<V, C> onLoaded,
             BiConsumer<V, C> show) throws IOException {
         return load(stage, controllerClass, onLoaded, show, null);

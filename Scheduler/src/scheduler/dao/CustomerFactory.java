@@ -368,7 +368,7 @@ public class CustomerFactory extends DataObjectFactory<CustomerFactory.CustomerI
     */
 //   @TableName(DataObjectFactory.TABLENAME_CUSTOMER)
 //   @PrimaryKeyColumn(CustomerFactory.COLNAME_CUSTOMERID)
-   public static final class CustomerImpl extends DataObjectImpl implements Customer {
+   public static final class CustomerImpl extends DataObjectFactory.DataObjectImpl implements Customer {
        //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
 
        //<editor-fold defaultstate="collapsed" desc="name property">

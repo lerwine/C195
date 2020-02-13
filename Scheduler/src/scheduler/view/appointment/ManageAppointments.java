@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import scheduler.App;
 import scheduler.dao.AppointmentFactory;
 import scheduler.filter.ModelFilter;
 import scheduler.util.Alerts;
@@ -20,45 +21,210 @@ import scheduler.view.MainController;
 import scheduler.view.TaskWaiter;
 
 /**
- * FXML Controller class
- *
+ * FXML Controller class for listing {@link AppointmentModel} items.
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public class ManageAppointments extends ListingController<AppointmentModel> {
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
-
-//    public static final String RESOURCEKEY_CUSTOMER = "customer";
-//    public static final String RESOURCEKEY_END = "end";
-//    public static final String RESOURCEKEY_START = "start";
-//    public static final String RESOURCEKEY_TITLE = "title";
-//    public static final String RESOURCEKEY_TYPE = "type";
-//    public static final String RESOURCEKEY_USER = "user";
-//    public static final String RESOURCEKEY_NEW = "new";
-    public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
-    public static final String RESOURCEKEY_MANAGEAPPOINTMENTS = "manageAppointments";
-    public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
-    public static final String RESOURCEKEY_CURRENTANDFUTUREAPPOINTMENTS = "currentAndFutureAppointments";
-    public static final String RESOURCEKEY_INRANGE = "inRange";
-    public static final String RESOURCEKEY_ONORAFTER = "onOrAfter";
-    public static final String RESOURCEKEY_ONORBEFORE = "onOrBefore";
-    public static final String RESOURCEKEY_ONDATE = "onDate";
-    public static final String RESOURCEKEY_APPOINTMENTSINRANGE = "appointmentsInRange";
-    public static final String RESOURCEKEY_APPOINTMENTSONORAFTER = "appointmentsOnOrAfter";
-    public static final String RESOURCEKEY_APPOINTMENTSONORBEFORE = "appointmentsOnOrBefore";
-    public static final String RESOURCEKEY_APPOINTMENTSONDATE = "appointmentsOnDate";
-    public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
-    public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
-    public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
-    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
-//    public static final String RESOURCEKEY_EDIT = "edit";
-//    public static final String RESOURCEKEY_DELETE = "delete";
-//    public static final String RESOURCEKEY_CREATEDON = "createdOn";
-//    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
-//    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
-//    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
+public final class ManageAppointments extends ListingController<AppointmentModel> {
     
+    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Appointment"}.
+     */
+    public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current Time Zone:"}.
+     */
+    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer:"}.
+     */
+    public static final String RESOURCEKEY_CUSTOMER = "customer";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer not found. Click "%s" button to add new customer."}.
+     */
+    public static final String RESOURCEKEY_CUSTOMERNOTFOUND = "customerNotFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Description:"}.
+     */
+    public static final String RESOURCEKEY_DESCRIPTION = "description";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Appointment"}.
+     */
+    public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End:"}.
+     */
+    public static final String RESOURCEKEY_END = "end";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End cannot be before Start."}.
+     */
+    public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid URL format"}.
+     */
+    public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Location:"}.
+     */
+    public static final String RESOURCEKEY_LOCATION = "location";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Point of Contact:"}.
+     */
+    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Show"}.
+     */
+    public static final String RESOURCEKEY_SHOW = "show";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start:"}.
+     */
+    public static final String RESOURCEKEY_START = "start";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%s to %s"}.
+     */
+    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Time Zone:"}.
+     */
+    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title:"}.
+     */
+    public static final String RESOURCEKEY_TITLE = "title";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type:"}.
+     */
+    public static final String RESOURCEKEY_TYPE = "type";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User:"}.
+     */
+    public static final String RESOURCEKEY_USER = "user";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User not found. Click "%s" button to add new user."}.
+     */
+    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
+     */
+    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Meeting URL:"}.
+     */
+    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid hour value"}.
+     */
+    public static final String RESOURCEKEY_INVALIDHOUR = "invalidHour";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid minute value"}.
+     */
+    public static final String RESOURCEKEY_INVALIDMINUTE = "invalidMinute";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d customer appointments and %d user appointments..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d customer appointments and 1 user appointment..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSER1 = "conflictCustomerNUser1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment and %d user appointments..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USERN = "conflictCustomer1UserN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment and 1 user appointment..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USER1 = "conflictCustomer1User1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d customer appointments..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERN = "conflictCustomerN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1 = "conflictCustomer1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d user appointments..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 user appointment..."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Conflicts Found"}.
+     */
+    public static final String RESOURCEKEY_CONFLICTSFOUND = "conflictsFound";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointment Conflict"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Appointments"}.
+     */
+    public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There was an error loading appointments..."}.
+     */
+    public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Appointments"}.
+     */
+    public static final String RESOURCEKEY_MANAGEAPPOINTMENTS = "manageAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and Future Appointments"}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments for User \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments for Customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
+
     //</editor-fold>
     
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
@@ -85,8 +251,8 @@ public class ManageAppointments extends ListingController<AppointmentModel> {
     
     //</editor-fold>
     
-    public static void loadInto(MainController mc, Stage stage, AppointmentsViewOptions filter) throws IOException {
-        loadInto(ManageAppointments.class, mc, stage, filter);
+    public static void setContent(MainController mc, Stage stage, AppointmentsViewOptions filter) throws IOException {
+        ListingController.setContent(ManageAppointments.class, mc, stage, filter);
     }
     
     @Override
@@ -116,7 +282,7 @@ public class ManageAppointments extends ListingController<AppointmentModel> {
         @Override
         protected void processNullResult(Window owner) {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
-            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
+            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
         
         @Override
@@ -128,7 +294,7 @@ public class ManageAppointments extends ListingController<AppointmentModel> {
         @Override
         protected void processException(Throwable ex, Window owner) {
             super.processException(ex, owner);
-            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
+            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
         
     }

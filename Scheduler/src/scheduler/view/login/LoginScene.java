@@ -37,7 +37,7 @@ import scheduler.view.SchedulerController;
  */
 @GlobalizationResource("scheduler/view/login/LoginScene")
 @FXMLResource("/scheduler/view/login/LoginScene.fxml")
-public class LoginScene extends SchedulerController {
+public final class LoginScene extends SchedulerController {
     private static final Logger LOG = Logger.getLogger(LoginScene.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
@@ -149,10 +149,10 @@ public class LoginScene extends SchedulerController {
         // Populate list of Locale objects.
         ObservableList<Locale> languages = FXCollections.observableArrayList();
         if (cl.isPresent())
-            for (String n : AppConfig.getLanguages())
+            for (String n : languageIds)
                 languages.add((n.equals(cl.get())) ? Locale.getDefault(Locale.Category.DISPLAY) : new Locale(n));
         else {
-            for (String n : AppConfig.getLanguages())
+            for (String n : languageIds)
                 languages.add(new Locale(n));
             Locale toSelect = languages.get(0);
             Locale.setDefault(Locale.Category.DISPLAY, toSelect);
@@ -195,23 +195,19 @@ public class LoginScene extends SchedulerController {
     
     @FXML
     void loginButtonClick(ActionEvent event) {
-        LOG.log(Level.INFO, "loginButtonClick invoked");
         App.tryLoginUser((Stage)userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null)
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-            else
+            else {
+                LOG.logp(Level.SEVERE, getClass().getName(), "loginButtonClick", "Error logging in user", ex);
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
+            }
         });
-        LOG.log(Level.INFO, "Exiting loginButtonClick");
     }
 
     @FXML
     void exitButtonClick(ActionEvent event) { languageComboBox.getScene().getWindow().hide(); }
 
-    public void setLanguages(ObservableList<Locale> languages) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     private class Validation extends BooleanBinding {
         private final BooleanBinding languageValid;
         private final BooleanBinding userNameValid;

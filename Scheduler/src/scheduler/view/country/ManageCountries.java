@@ -24,7 +24,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public class ManageCountries extends ListingController<CountryModel> {
+public final class ManageCountries extends ListingController<CountryModel> {
     
     private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
     
@@ -97,8 +97,8 @@ public class ManageCountries extends ListingController<CountryModel> {
 
     //</editor-fold>
 
-    public static void loadInto(MainController mc, Stage stage, ModelFilter<CountryModel> filter) throws IOException {
-        loadInto(ManageCountries.class, mc, stage, filter);
+    public static void setContent(MainController mc, Stage stage, ModelFilter<CountryModel> filter) throws IOException {
+        ListingController.setContent(ManageCountries.class, mc, stage, filter);
     }
     
     @Override

@@ -25,7 +25,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public class ManageUsers extends ListingController<UserModel> {
+public final class ManageUsers extends ListingController<UserModel> {
     
     private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
     
@@ -102,8 +102,8 @@ public class ManageUsers extends ListingController<UserModel> {
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 
     //</editor-fold>
-    public static void loadInto(MainController mc, Stage stage, ModelFilter<UserModel> filter) throws IOException {
-        loadInto(ManageUsers.class, mc, stage, filter);
+    public static void setContent(MainController mc, Stage stage, ModelFilter<UserModel> filter) throws IOException {
+        ListingController.setContent(ManageUsers.class, mc, stage, filter);
     }
     
     @Override

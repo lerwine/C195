@@ -2,7 +2,6 @@ package scheduler.view;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -55,42 +54,111 @@ import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModel;
 
 /**
- * Root FXML Controller class
+ * FXML Controller class for main application content.
  * This also serves as the hub for all CRUD operations.
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
 public final class MainController extends SchedulerController {
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
-
+    
+    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
+     */
     public static final String RESOURCEKEY_ADDRESS = "address";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Appointments"}.
+     */
     public static final String RESOURCEKEY_ALLAPPOINTMENTS = "allAppointments";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Countries"}.
+     */
     public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Customers"}.
+     */
     public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Users"}.
+     */
     public static final String RESOURCEKEY_ALLUSERS = "allUsers";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments"}.
+     */
     public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer"}.
+     */
     public static final String RESOURCEKEY_CUSTOMER = "customer";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customers"}.
+     */
     public static final String RESOURCEKEY_CUSTOMERS = "customers";
-    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Appointment"}.
+     */
     public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End"}.
+     */
     public static final String RESOURCEKEY_END = "end";
-    public static final String RESOURCEKEY_LOADINGDATA = "loadingData";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Current and Upcoming Appointments"}.
+     */
     public static final String RESOURCEKEY_MYCURRENTANDUPCOMING = "myCurrentAndUpcoming";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
+     */
     public static final String RESOURCEKEY_NEW = "new";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New Address"}.
+     */
     public static final String RESOURCEKEY_NEWADDRESS = "newAddress";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New City"}.
+     */
     public static final String RESOURCEKEY_NEWCITY = "newCity";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New Country"}.
+     */
     public static final String RESOURCEKEY_NEWCOUNTRY = "newCountry";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start"}.
+     */
     public static final String RESOURCEKEY_START = "start";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title"}.
+     */
     public static final String RESOURCEKEY_TITLE = "title";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type"}.
+     */
     public static final String RESOURCEKEY_TYPE = "type";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Users"}.
+     */
     public static final String RESOURCEKEY_USERS = "users";
-    public static final String RESOURCEKEY_DELETINGRECORD = "deletingRecord";
-    public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
-    public static final String RESOURCEKEY_ERRORDELETINGFROMDB = "errorDeletingFromDb";
-    public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
-    public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
-
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="FXML controls">
@@ -282,9 +350,9 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageAppointments.loadInto(MainController.this, (Stage)contentPane.getScene().getWindow(), AppointmentsViewOptions.all());
+                ManageAppointments.setContent(MainController.this, (Stage)contentPane.getScene().getWindow(), AppointmentsViewOptions.all());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error loading appointments", ex);
+                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading appointments", ex);
             }
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
@@ -294,9 +362,9 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageCustomers.loadInto(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
+                ManageCustomers.setContent(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error loading customers", ex);
+                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading customers", ex);
             }
         });
         assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
@@ -310,9 +378,9 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageCountries.loadInto(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
+                ManageCountries.setContent(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error loading countries", ex);
+                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading countries", ex);
             }
         });
         assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
@@ -322,22 +390,26 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageUsers.loadInto(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
+                ManageUsers.setContent(this, (Stage)contentPane.getScene().getWindow(), ModelFilter.empty());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error loading users", ex);
+                Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading users", ex);
             }
         });
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
     }
 
-    public static void loadInto(Stage stage) throws IOException {
-        MainController mc = SchedulerController.load(stage, MainController.class, (Parent v, MainController c) -> {
-            stage.setScene(new Scene(v));
-        });
-        ManageAppointments.loadInto(mc, stage, AppointmentsViewOptions.todayAndFuture(App.getCurrentUser()));
+    @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        super.onBeforeShow(currentView, stage);
+        try {
+            ManageAppointments.setContent(this, stage, AppointmentsViewOptions.todayAndFuture());
+        } catch (IOException ex) {
+            Alerts.logAndAlert(LOG, MainController.class, "initialize", "Error loading appointments", ex);
+        }
     }
 
+    
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
@@ -370,8 +442,8 @@ public final class MainController extends SchedulerController {
     }
     
     public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
-                getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> appointmentChanged.set(new CrudAction<>(m))));
@@ -403,8 +475,8 @@ public final class MainController extends SchedulerController {
     }
     
     public void deleteCustomer(Event event, CustomerModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
-                getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> customerChanged.set(new CrudAction<>(m))));
@@ -436,8 +508,8 @@ public final class MainController extends SchedulerController {
     }
     
     public void deleteCountry(Event event, CountryModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
-                getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> countryChanged.set(new CrudAction<>(m))));
@@ -469,8 +541,8 @@ public final class MainController extends SchedulerController {
     }
     
     public void deleteCity(Event event, CityModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
-                getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> cityChanged.set(new CrudAction<>(m))));
@@ -502,8 +574,8 @@ public final class MainController extends SchedulerController {
     }
     
     public void deleteAddress(Event event, AddressModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
-                getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> addressChanged.set(new CrudAction<>(m))));
@@ -535,8 +607,8 @@ public final class MainController extends SchedulerController {
     }
     
     public void deleteUser(Event event, UserModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(RESOURCEKEY_CONFIRMDELETE),
-                getResourceString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES)
             TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> userChanged.set(new CrudAction<>(m))));
@@ -576,7 +648,7 @@ public final class MainController extends SchedulerController {
         private final Consumer<M> onDeleted;
         private final ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage;
         DeleteTask(M model, Stage stage, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage, Consumer<M> onDeleted) {
-            super(stage, getResourceString(RESOURCEKEY_DELETINGRECORD));
+            super(stage, App.getResourceString(App.RESOURCEKEY_DELETINGRECORD));
             dao = (this.model = model).getDataObject();
             this.onDeleted = onDeleted;
             this.getDeleteDependencyMessage = Objects.requireNonNull(getDeleteDependencyMessage);
@@ -585,15 +657,15 @@ public final class MainController extends SchedulerController {
         @Override
         protected void processResult(String message, Window owner) {
             if (null != message && !message.trim().isEmpty())
-                Alerts.showWarningAlert(getResourceString(RESOURCEKEY_DELETEFAILURE), message);
+                Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), message);
             else if (null != onDeleted)
                 onDeleted.accept(model);
         }
 
         @Override
         protected void processException(Throwable ex, Window owner) {
-            Alerts.showWarningAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORDELETINGFROMDB));
-            LOG.log(Level.SEVERE, "Error deleting record", ex);
+            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
+            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 
         @Override

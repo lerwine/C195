@@ -111,7 +111,7 @@ public class CountryFactory extends DataObjectFactory<CountryFactory.CountryImpl
     */
 //   @TableName(DataObjectFactory.TABLENAME_COUNTRY)
 //   @PrimaryKeyColumn(CountryFactory.COLNAME_COUNTRYID)
-   public static final class CountryImpl extends DataObjectImpl implements Country {
+   public static final class CountryImpl extends DataObjectFactory.DataObjectImpl implements Country {
        //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
 
        //<editor-fold defaultstate="collapsed" desc="name property">

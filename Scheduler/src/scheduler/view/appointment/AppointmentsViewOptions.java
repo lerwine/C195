@@ -11,7 +11,7 @@ import scheduler.filter.ModelFilter;
 import scheduler.filter.ParameterConsumer;
 
 /**
- *
+ * Defines view options for displaying {@link AppointmentModel} items.
  * @author erwinel
  */
 public interface AppointmentsViewOptions extends ModelFilter<AppointmentModel> {

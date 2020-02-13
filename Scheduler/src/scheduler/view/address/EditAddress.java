@@ -20,7 +20,7 @@ import scheduler.view.city.AddressCity;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public class EditAddress extends EditItem.EditController<AddressModel> {
+public final class EditAddress extends EditItem.EditController<AddressModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     

@@ -19,7 +19,7 @@ import scheduler.view.address.CustomerAddress;
  *
  * @author erwinel
  */
-public class CustomerModel extends ItemModel<CustomerFactory.CustomerImpl> implements AppointmentCustomer<CustomerFactory.CustomerImpl> {
+public final class CustomerModel extends ItemModel<CustomerFactory.CustomerImpl> implements AppointmentCustomer<CustomerFactory.CustomerImpl> {
 
     private final ReadOnlyStringWrapper name;
 

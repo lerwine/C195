@@ -134,6 +134,17 @@ public class Values {
     }
     
     /**
+     * Ensures a string is not null and contains at least one non-whitespace character or else returns a default value.
+     * @param sourceValue The source {@link String} value.
+     * @param defaultValueSupplier The {@link Suppler} that returns the default value.
+     * @return {@code sourceValue} if it is not null or empty and contains at least one non-whitespace character;
+     * otherwise the result from the {@code defaultValueSupplier} is returned.
+     */
+    public static String nonWhitespaceOrDefault(String sourceValue, Supplier<String> defaultValueSupplier) {
+        return (isNullWhiteSpaceOrEmpty(sourceValue)) ? defaultValueSupplier.get() : sourceValue;
+    }
+    
+    /**
      * Composes a {@link Supplier} that returns the non-whitespace result of the source supplier or a supplied default value.
      * @param sourceSupplier The source {@link Suppler}.
      * @param defaultSupplier The {@link Suppler} to use if the {@code sourceSupplier} returns a null value or

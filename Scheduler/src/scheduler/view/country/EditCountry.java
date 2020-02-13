@@ -21,7 +21,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public class EditCountry extends EditItem.EditController<CountryModel> {
+public final class EditCountry extends EditItem.EditController<CountryModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     

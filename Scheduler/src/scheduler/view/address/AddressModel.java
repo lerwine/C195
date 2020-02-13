@@ -17,7 +17,7 @@ import scheduler.view.city.AddressCity;
  *
  * @author erwinel
  */
-public class AddressModel extends scheduler.view.ItemModel<AddressFactory.AddressImpl> implements CustomerAddress<AddressFactory.AddressImpl> {
+public final class AddressModel extends scheduler.view.ItemModel<AddressFactory.AddressImpl> implements CustomerAddress<AddressFactory.AddressImpl> {
 
     private final ReadOnlyStringWrapper address1;
 

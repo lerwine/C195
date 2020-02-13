@@ -23,7 +23,7 @@ import scheduler.view.user.AppointmentUser;
  * List item model for {@link AppointmentFactory.AppointmentImpl} data access objects.
  * @author erwinel
  */
-public class AppointmentModel extends ItemModel<AppointmentFactory.AppointmentImpl> {
+public final class AppointmentModel extends ItemModel<AppointmentFactory.AppointmentImpl> {
 
     private final ReadOnlyObjectWrapper<AppointmentCustomer<?>> customer;
 
@@ -169,16 +169,16 @@ public class AppointmentModel extends ItemModel<AppointmentFactory.AppointmentIm
                 effectiveLocation.set((s.startsWith("tel:")) ? s.substring(4) : s);
                 break;
             case Values.APPOINTMENTTYPE_GERMANY:
-                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_GERMANY));
+                effectiveLocation.set(App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_GERMANY));
                 break;
             case Values.APPOINTMENTTYPE_HONDURAS:
-                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS));
+                effectiveLocation.set(App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS));
                 break;
             case Values.APPOINTMENTTYPE_INDIA:
-                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_INDIA));
+                effectiveLocation.set(App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_INDIA));
                 break;
             case Values.APPOINTMENTTYPE_HOME:
-                effectiveLocation.set(App.getResources().getString(App.RESOURCEKEY_APPOINTMENTTYPE_HOME));
+                effectiveLocation.set(App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_HOME));
                 break;
             default:
                 effectiveLocation.set(getLocation());

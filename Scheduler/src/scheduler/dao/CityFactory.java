@@ -182,7 +182,7 @@ public class CityFactory extends DataObjectFactory<CityFactory.CityImpl, CityMod
     */
    @TableName(DataObjectFactory.TABLENAME_CITY)
    @PrimaryKeyColumn(CityFactory.COLNAME_CITYID)
-   public static final class CityImpl extends DataObjectImpl implements City {
+   public static final class CityImpl extends DataObjectFactory.DataObjectImpl implements City {
        //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
 
        //<editor-fold defaultstate="collapsed" desc="name property">

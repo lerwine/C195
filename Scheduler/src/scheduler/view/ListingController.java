@@ -48,7 +48,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         if (value.isEmpty()) {
             if (filter != null && filter.isEmpty())
                 return;
-        } else if (!filter.isEmpty() && filter == value)
+        } else if (null != filter && !filter.isEmpty() && filter == value)
             return;
         filter = value;
         onFilterChanged(Objects.requireNonNull(owner));
@@ -230,7 +230,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         return false;
     }
     
-    protected static <M  extends ItemModel<?>, C extends ListingController<M>> void loadInto(Class<C> controllerClass, MainController mc,
+    protected final static <M  extends ItemModel<?>, C extends ListingController<M>> void setContent(Class<C> controllerClass, MainController mc,
             Stage stage, ModelFilter<M> filter) throws IOException {
         mc.setContent(controllerClass, stage, (Parent v, C c) -> {
             c.changeFilter(filter, stage);
@@ -263,7 +263,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         @Override
         protected final void processResult(Iterable<T> result, Window owner) {
             if (null == result) {
-                LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
+                LOG.logp(Level.SEVERE, getClass().getName(), "processResult", String.format("\"%s\" operation returned null", getTitle()));
                 processNullResult(owner);
             } else {
                 itemsList.clear();
@@ -276,7 +276,8 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
         
         @Override
         protected void processException(Throwable ex, Window owner) {
-            LOG.log(Level.SEVERE, String.format("\"%s\" operation error", getTitle()), ex);
+            LOG.logp(Level.SEVERE, getClass().getName(), "processException", String.format("\"%s\" operation error", getTitle()), ex);
+            Alerts.showErrorAlert(ex);
         }
         
     }

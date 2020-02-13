@@ -13,7 +13,7 @@ import scheduler.dao.CountryFactory;
  *
  * @author erwinel
  */
-public class CountryModel extends scheduler.view.ItemModel<CountryFactory.CountryImpl> implements CityCountry<CountryFactory.CountryImpl> {
+public final class CountryModel extends scheduler.view.ItemModel<CountryFactory.CountryImpl> implements CityCountry<CountryFactory.CountryImpl> {
 
     private final ReadOnlyStringWrapper name;
 

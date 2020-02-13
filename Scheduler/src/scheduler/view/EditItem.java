@@ -22,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import scheduler.App;
 import scheduler.dao.DataObjectFactory;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
@@ -113,8 +114,8 @@ public final class EditItem extends SchedulerController {
         Objects.requireNonNull(deleteButton, String.format("fx:id=\"deleteButton\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             ResourceBundle rb = getResources();
-            Optional<ButtonType> response = Alerts.showWarningAlert(getResourceString(EditController.RESOURCEKEY_CONFIRMDELETE),
-                    getResourceString(EditController.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
+                    App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             if (response.isPresent() && response.get() == ButtonType.YES)
                 TaskWaiter.execute(new DeleteTask((Stage)deleteButton.getScene().getWindow()));
         });
@@ -126,6 +127,59 @@ public final class EditItem extends SchedulerController {
             result.fault = null;
             cancelButton.getScene().getWindow().hide();
         });
+    }
+    
+    /**
+     * This method is called from {@link #waitEdit(java.lang.Class, scheduler.view.ItemModel, javafx.stage.Stage)} after the view is loaded.
+     * @param view The view loaded by the {@link javafx.fxml.FXMLLoader}.
+     * @param model The {@link ItemModel} being edited.
+     */
+    private void onLoaded(Parent view, ItemModel<?> model) {
+        if (model.isNewItem()) {
+            collapseNode(deleteButton);
+            collapseNode(createdLabel);
+            collapseNode(createDateValue);
+            collapseNode(createdByLabel);
+            collapseNode(createdByValue);
+            collapseNode(lastUpdateByLabel);
+            collapseNode(lastUpdateByValue);
+            collapseNode(lastUpdateLabel);
+            collapseNode(lastUpdateValue);
+        } else {
+            DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+            Locale.getDefault(Locale.Category.DISPLAY);
+            createdByValue.setText(model.getCreatedBy());
+            createDateValue.setText(dtf.format(model.getCreateDate()));
+            lastUpdateByValue.setText(model.getLastModifiedBy());
+            lastUpdateValue.setText(dtf.format(model.getLastModifiedDate()));
+        }
+    }
+    
+    private <M extends ItemModel<?>, C extends EditController<M>> void onShow(Parent view, M model, Class<C> controllerClass, Stage parent) {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(parent);
+        stage.setScene(new Scene(view));
+        try {
+            load(stage, controllerClass, (Parent p, C c) -> {
+                contentController = c;
+                ((EditController<M>)c).model = model;
+            }, (Parent p, C c) -> {
+                contentBorderPane.setCenter(p);
+                c.getValidationExpression().addListener((observable) -> {
+                    saveChangesButton.setDisable(!c.getValidationExpression().get());
+                });
+                saveChangesButton.setDisable(!c.getValidationExpression().get());
+            }, getResources());
+        } catch (IOException ex) {
+            Alerts.logAndAlert(LOG, EditItem.class, "onShow", String.format("Error loading FXML for %s", controllerClass.getName()), ex);
+            result.fault = ex;
+            result.successful = false;
+            result.canceled = false;
+            result.deleteOperation = false;
+            return;
+        }
+        stage.showAndWait();
     }
     
     /**
@@ -142,56 +196,16 @@ public final class EditItem extends SchedulerController {
         try {
             load(parent, EditItem.class, (Parent v, EditItem ctrl) -> {
                 ctrl.result = result;
-                if (model.isNewItem()) {
-                    collapseNode(ctrl.deleteButton);
-                    collapseNode(ctrl.createdLabel);
-                    collapseNode(ctrl.createDateValue);
-                    collapseNode(ctrl.createdByLabel);
-                    collapseNode(ctrl.createdByValue);
-                    collapseNode(ctrl.lastUpdateByLabel);
-                    collapseNode(ctrl.lastUpdateByValue);
-                    collapseNode(ctrl.lastUpdateLabel);
-                    collapseNode(ctrl.lastUpdateValue);
-                } else {
-                    DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-                    Locale.getDefault(Locale.Category.DISPLAY);
-                    ctrl.createdByValue.setText(model.getCreatedBy());
-                    ctrl.createDateValue.setText(dtf.format(model.getCreateDate()));
-                    ctrl.lastUpdateByValue.setText(model.getLastModifiedBy());
-                    ctrl.lastUpdateValue.setText(dtf.format(model.getLastModifiedDate()));
-                }
+                ctrl.onLoaded(v, model);
             }, (Parent v, EditItem ctrl) -> {
-                Stage stage = new Stage();
-                stage.initModality(Modality.APPLICATION_MODAL);
-                stage.initOwner(parent);
-                stage.setScene(new Scene(v));
-                try {
-                    load(stage, controllerClass, (Parent p, C c) -> {
-                        ctrl.contentController = c;
-                        ((EditController<M>)c).model = model;
-                    }, (Parent p, C c) -> {
-                        ctrl.contentBorderPane.setCenter(p);
-                        c.getValidationExpression().addListener((observable) -> {
-                            ctrl.saveChangesButton.setDisable(!c.getValidationExpression().get());
-                        });
-                        ctrl.saveChangesButton.setDisable(!c.getValidationExpression().get());
-                    }, ctrl.getResources());
-                } catch (IOException ex) {
-                    Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, String.format("Error loading FXML for %s", controllerClass.getName()), ex);
-                    result.fault = ex;
-                    result.successful = false;
-                    result.canceled = false;
-                    result.deleteOperation = false;
-                    return;
-                }
-                stage.showAndWait();
+                ctrl.onShow(v, model, controllerClass, parent);
             });
         } catch (IOException ex) {
+            Alerts.logAndAlert(LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
             result.fault = ex;
             result.successful = false;
             result.canceled = false;
             result.deleteOperation = false;
-            Logger.getLogger(EditItem.class.getName()).log(Level.SEVERE, String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
         }
         return result;
     }
@@ -259,7 +273,7 @@ public final class EditItem extends SchedulerController {
     private class SaveTask extends TaskWaiter<String> {
         private final DataObjectFactory.DataObjectImpl dao;
         SaveTask(Stage stage) {
-            super(stage, getResourceString(EditController.RESOURCEKEY_SAVINGCHANGES));
+            super(stage, App.getResourceString(App.RESOURCEKEY_SAVINGCHANGES));
             dao = result.getTarget().getDataObject();
         }
         
@@ -273,13 +287,13 @@ public final class EditItem extends SchedulerController {
                 result.canceled = false;
                 owner.hide();
             } else
-                Alerts.showWarningAlert(getResourceString(EditController.RESOURCEKEY_SAVEFAILURE), message);
+                Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_SAVEFAILURE), message);
         }
         
         @Override
         protected void processException(Throwable ex, Window owner) {
-            Alerts.showWarningAlert(getResourceString(EditController.RESOURCEKEY_DBACCESSERROR), getResourceString(EditController.RESOURCEKEY_ERRORSAVINGCHANGES));
-            LOG.log(Level.SEVERE, "Error saving record", ex);
+            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error saving record", ex);
+            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_SAVEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
         }
         
         @Override
@@ -288,6 +302,7 @@ public final class EditItem extends SchedulerController {
                 String message = contentController.getSaveConflictMessage(dep.getConnection());
                 if (null != message && !message.trim().isEmpty())
                     return message;
+                LOG.logp(Level.WARNING, getClass().getName(), "getResult", "Not implemeted");
                 dao.saveChanges(dep.getConnection());
             }
             return null;
@@ -297,7 +312,7 @@ public final class EditItem extends SchedulerController {
     private class DeleteTask extends TaskWaiter<String> {
         private final DataObjectFactory.DataObjectImpl dao;
         DeleteTask(Stage stage) {
-            super(stage, getResourceString(EditController.RESOURCEKEY_DELETINGRECORD));
+            super(stage, App.getResourceString(App.RESOURCEKEY_DELETINGRECORD));
             dao = result.getTarget().getDataObject();
         }
         
@@ -310,13 +325,13 @@ public final class EditItem extends SchedulerController {
                 result.canceled = false;
                 owner.hide();
             } else
-                Alerts.showWarningAlert(getResourceString(EditController.RESOURCEKEY_DELETEFAILURE), message);
+                Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), message);
         }
         
         @Override
         protected void processException(Throwable ex, Window owner) {
-            Alerts.showWarningAlert(getResourceString(EditController.RESOURCEKEY_DBACCESSERROR), getResourceString(EditController.RESOURCEKEY_ERRORDELETINGFROMDB));
-            LOG.log(Level.SEVERE, "Error deleting record", ex);
+            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
+            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
         
         @Override
@@ -335,6 +350,7 @@ public final class EditItem extends SchedulerController {
     
     /**
      * Base class for item edit content controllers.
+     * 
      * @param <M> The type of model being edited.
      */
     public static abstract class EditController<M extends ItemModel<?>> extends SchedulerController {
@@ -391,70 +407,15 @@ public final class EditItem extends SchedulerController {
         public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
         
         /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Load Error"}.
-         */
-        public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unexpected error trying to load child window..."}.
-         */
-        public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
-        
-        /**
          * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This action cannot be undone!..."}.
          */
         public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
         
         /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Saving Changes"}.
-         */
-        public static final String RESOURCEKEY_SAVINGCHANGES = "savingChanges";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Deleting Record"}.
-         */
-        public static final String RESOURCEKEY_DELETINGRECORD = "deletingRecord";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete Failure"}.
-         */
-        public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error deleting record from database..."}.
-         */
-        public static final String RESOURCEKEY_ERRORDELETINGFROMDB = "errorDeletingFromDb";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Database Access Error"}.
-         */
-        public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "An database access error occurred while trying to save..."}.
-         */
-        public static final String RESOURCEKEY_ERRORSAVINGCHANGES = "errorSavingChanges";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unable to delete the record from the database..."}.
-         */
-        public static final String RESOURCEKEY_DELETEDEPENDENCYERROR = "deleteDependencyError";
-        
-        /**
          * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Validation Error"}.
          */
         public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unable to save the record to the database..."}.
-         */
-        public static final String RESOURCEKEY_SAVEDEPENDENCYERROR = "saveDependencyError";
-        
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Record Save Failure"}.
-         */
-        public static final String RESOURCEKEY_SAVEFAILURE = "saveFailure";
-        
+  
         //</editor-fold>
         
         private M model;
