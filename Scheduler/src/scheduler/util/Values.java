@@ -5,10 +5,16 @@
  */
 package scheduler.util;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+import scheduler.App;
 
 /**
  * Utility class for validating and normalizing values.
@@ -291,6 +297,28 @@ public class Values {
         return APPOINTMENTTYPE_OTHER;
     }
     
+    private static final ObservableMap<String, String> APPOINTMENT_TYPES = FXCollections.observableHashMap();
+    private static ObservableMap<String, String> appointmentTypes = null;
+    private static String appointmentTypesLocale = null;
+
+    public static ObservableMap<String, String> getAppointmentTypes() {
+        synchronized (APPOINTMENT_TYPES) {
+            if (null == appointmentTypes) {
+                appointmentTypes = FXCollections.unmodifiableObservableMap(APPOINTMENT_TYPES);
+            } else if (null != appointmentTypesLocale && appointmentTypesLocale.equals(Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag())) {
+                return appointmentTypes;
+            }
+            Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
+            appointmentTypesLocale = locale.toLanguageTag();
+            ResourceBundle rb = App.getResources();
+            Stream.of(Values.APPOINTMENTTYPE_PHONE, Values.APPOINTMENTTYPE_VIRTUAL, Values.APPOINTMENTTYPE_CUSTOMER, Values.APPOINTMENTTYPE_HOME,
+                    Values.APPOINTMENTTYPE_GERMANY, Values.APPOINTMENTTYPE_INDIA, Values.APPOINTMENTTYPE_HONDURAS,
+                    Values.APPOINTMENTTYPE_OTHER).forEach((String key) -> {
+                        APPOINTMENT_TYPES.put(key, (rb.containsKey(key)) ? rb.getString(key) : key);
+                    });
+        }
+        return appointmentTypes;
+    }
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Row state values">
@@ -386,6 +414,27 @@ public class Values {
                 return value;
         }
         return (value < USER_STATUS_INACTIVE) ? USER_STATUS_INACTIVE : USER_STATUS_NORMAL;
+    }
+    
+    public static String toUserStatusDisplay(int value) {
+        switch (value) {
+            case USER_STATUS_INACTIVE:
+                return App.getResourceString(App.RESOURCEKEY_INACTIVE);
+            case USER_STATUS_NORMAL:
+                return App.getResourceString(App.RESOURCEKEY_ACTIVE);
+            case USER_STATUS_ADMIN:
+                return App.getResourceString(App.RESOURCEKEY_AMINISTRATOR);
+        }
+        return String.format("%s: %d", App.getResourceString(App.RESOURCEKEY_UNKNOWN), value);
+    }
+    
+    public static String toAppointmentTypeDisplay(String type) {
+        if (null == type || (type = type.trim()).isEmpty())
+            return App.getResourceString(App.RESOURCEKEY_NONE);
+        ObservableMap<String, String> map = getAppointmentTypes();
+        if (map.containsKey(type))
+            return map.get(type);
+        return String.format("%s: %s", App.getResourceString(App.RESOURCEKEY_UNKNOWN), type);
     }
     
     /**

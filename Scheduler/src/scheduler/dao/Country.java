@@ -62,7 +62,7 @@ public interface Country extends DataObject {
         int id = resultSet.getInt(pkColName);
         if (resultSet.wasNull())
             return null;
-        String name = resultSet.getString(CountryFactory.COLNAME_COUNTRY);
+        String name = resultSet.getString(CountryImpl.COLNAME_COUNTRY);
         return of(id, (resultSet.wasNull()) ? "" : name);
     }
 }

@@ -1,19 +1,16 @@
 package scheduler.view.user;
 
-import java.io.IOException;
-import java.sql.Connection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.dao.AppointmentFactory;
-import scheduler.dao.UserFactory;
+import scheduler.dao.DataObjectImpl;
+import scheduler.dao.LookupFilter;
+import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
 import scheduler.view.ListingController;
-import scheduler.view.MainController;
-import scheduler.view.TaskWaiter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -24,7 +21,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends ListingController<UserModel> {
+public final class ManageUsers extends ListingController<UserImpl, UserModel> {
     
     private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
     
@@ -127,12 +124,25 @@ public final class ManageUsers extends ListingController<UserModel> {
         });
     }
 
-    @Override
-    protected void onFilterChanged(Stage owner) {
-        TaskWaiter.execute(new UsersLoadTask(owner));
-    }
+//    @Override
+//    protected void onFilterChanged(Stage owner) {
+//        TaskWaiter.execute(new UsersLoadTask(owner));
+//    }
     
-    private class UsersLoadTask extends ItemsLoadTask<UserFactory.UserImpl> {
+    @Override
+    protected UserModel toModel(UserImpl result) { return new UserModel(result); }
+
+    @Override
+    protected LookupFilter<UserImpl, UserModel> getDefaultFilter() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected DataObjectImpl.Factory<UserImpl> getDaoFactory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private class UsersLoadTask extends ItemsLoadTask {
         UsersLoadTask(Stage owner) {
             super(owner, getResourceString(RESOURCEKEY_LOADINGUSERS));
         }
@@ -142,9 +152,6 @@ public final class ManageUsers extends ListingController<UserModel> {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGUSERS));
         }
-
-        @Override
-        protected UserModel toModel(UserFactory.UserImpl result) { return new UserModel(result); }
 
         @Override
         protected void processException(Throwable ex, Window owner) {

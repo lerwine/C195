@@ -8,7 +8,8 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.AddressFactory;
+import scheduler.dao.CityImpl;
+import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.view.EditItem;
 import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
@@ -22,7 +23,7 @@ import scheduler.view.country.CountryModel;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends EditItem.EditController<CityModel> {
+public final class EditCity extends EditItem.EditController<CityImpl, CityModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     
@@ -114,11 +115,6 @@ public final class EditCity extends EditItem.EditController<CityModel> {
     }
     
     @Override
-    protected void updateDao() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     protected BooleanExpression getValidationExpression() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -136,5 +132,8 @@ public final class EditCity extends EditItem.EditController<CityModel> {
 //            return "";
 //        return getResourceString(RESOURCEKEY_CITYHASADDRESSES);
     }
+
+    @Override
+    protected Factory<CityImpl> getDaoFactory() { return CityImpl.getFactory(); }
 
 }

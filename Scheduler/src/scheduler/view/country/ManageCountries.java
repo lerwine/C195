@@ -5,7 +5,9 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.dao.CountryFactory;
+import scheduler.dao.CountryImpl;
+import scheduler.dao.DataObjectImpl;
+import scheduler.dao.LookupFilter;
 import scheduler.util.Alerts;
 import scheduler.view.CrudAction;
 import scheduler.view.ListingController;
@@ -19,7 +21,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends ListingController<CountryModel> {
+public final class ManageCountries extends ListingController<CountryImpl, CountryModel> {
     
     private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
     
@@ -113,12 +115,25 @@ public final class ManageCountries extends ListingController<CountryModel> {
         });
     }
 
+//    @Override
+//    protected void onFilterChanged(Stage owner) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
+    
     @Override
-    protected void onFilterChanged(Stage owner) {
+    protected CountryModel toModel(CountryImpl result) { return new CountryModel(result); }
+
+    @Override
+    protected LookupFilter<CountryImpl, CountryModel> getDefaultFilter() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    private class CountriesLoadTask extends ItemsLoadTask<CountryFactory.CountryImpl> {
+
+    @Override
+    protected DataObjectImpl.Factory<CountryImpl> getDaoFactory() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private class CountriesLoadTask extends ItemsLoadTask {
         CountriesLoadTask(Stage owner) {
             super(owner, getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
         }
@@ -128,9 +143,6 @@ public final class ManageCountries extends ListingController<CountryModel> {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCOUNTRIES));
         }
-
-        @Override
-        protected CountryModel toModel(CountryFactory.CountryImpl result) { return new CountryModel(result); }
 
         @Override
         protected void processException(Throwable ex, Window owner) {

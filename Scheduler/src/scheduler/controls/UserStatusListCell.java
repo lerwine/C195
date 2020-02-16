@@ -2,7 +2,7 @@ package scheduler.controls;
 
 import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;
-import scheduler.dao.UserFactory;
+import scheduler.dao.UserImpl;
 
 /**
  *
@@ -11,7 +11,7 @@ import scheduler.dao.UserFactory;
 public class UserStatusListCell extends ListCell<Integer> {
     private final ObservableMap<Integer, String> userStatusMap;
     UserStatusListCell(ObservableMap<Integer, String> userStatusMap) {
-        this.userStatusMap = (null == userStatusMap) ? UserFactory.getUserStatusMap() : userStatusMap;
+        this.userStatusMap = (null == userStatusMap) ? UserImpl.getUserStatusMap() : userStatusMap;
     }
     public UserStatusListCell() { this(null); }
     @Override

@@ -8,7 +8,6 @@ package scheduler.observables;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.dao.DataObjectFactory;
 import scheduler.util.Values;
 
 /**

@@ -1,8 +1,7 @@
 package scheduler.view;
 
-import java.io.IOException;
-import java.sql.Connection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -12,7 +11,6 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
@@ -21,42 +19,33 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
-import scheduler.dao.DataObjectFactory;
+import scheduler.dao.DataObjectImpl;
+import scheduler.dao.LookupFilter;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
  * @author Leonard T. Erwine
+ * @param <D>
  * @param <M> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<M extends ItemModel<?>> extends MainController.MainContentController {
+public abstract class ListingController<D extends DataObjectImpl, M extends ItemModel<D>> extends MainController.MainContentController {
     //<editor-fold defaultstate="collapsed" desc="itemsFilter">
     
-//    private ModelFilter<M> filter;
-//    
-//    public ModelFilter<M> getFilter() { return filter; }
-//    
-//    /**
-//     * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
-//     * @param value The new {@link ModelFilter}.
-//     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
-//     */
-//    protected void changeFilter(ModelFilter<M> value, Stage owner) {
-//        if (value.isEmpty()) {
-//            if (filter != null && filter.isEmpty())
-//                return;
-//        } else if (null != filter && !filter.isEmpty() && filter == value)
-//            return;
-//        filter = value;
-//        onFilterChanged(Objects.requireNonNull(owner));
-//    }
-//    
+    private LookupFilter<D, M> filter;
+    
     /**
-     * This gets called whenever the current {@link #filter} has changed.
-     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+     * Gets the current filter.
+     * @return The current filter.
      */
-    protected abstract void onFilterChanged(Stage owner);
+    public LookupFilter<D, M> getFilter() { return filter; }
+    
+    /**
+     * Gets the default filter.
+     * @return The default filter.
+     */
+    protected abstract LookupFilter<D, M> getDefaultFilter();
     
     //</editor-fold>
     
@@ -158,6 +147,28 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
     }
     
     /**
+     * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
+     * @param value The new {@link ModelFilter}.
+     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+     */
+    public void changeFilter(LookupFilter<D, M> value, Stage owner) {
+        if (null == value)
+            value = getDefaultFilter();
+        if (null != filter && value.equals(filter))
+            return;
+        filter = value;
+        onFilterChanged(Objects.requireNonNull(owner));
+    }
+    
+    /**
+     * This gets called whenever the current {@link #filter} has changed.
+     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+     */
+    private void onFilterChanged(Stage owner) {
+        TaskWaiter.execute(new ItemsLoadTask(owner, filter.getLoadingMessage()));
+    }
+    
+    /**
      * This gets called when the user clicks the {@link #newButton} control or types the {@link KeyCode#N} key while {@link KeyEvent#isMetaDown()}
      * or {@link KeyEvent#isControlDown()}.
      * @param event Contextual information about the event.
@@ -169,6 +180,7 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      * @param event Contextual information about the event.
      * @param item The selected item to be edited.
+     * @return 
      */
     protected abstract CrudAction<M> onEditItem(Event event, M item);
 
@@ -234,8 +246,12 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
 //            c.changeFilter(filter, stage);
 //        });
 //    }
+        
+    protected abstract DataObjectImpl.Factory<D> getDaoFactory();
     
-    protected abstract class ItemsLoadTask<T extends DataObjectFactory.DataObjectImpl> extends TaskWaiter<Iterable<T>> {
+    protected abstract M toModel(D result);
+        
+    protected class ItemsLoadTask extends TaskWaiter<List<D>> {
 //        private final ModelFilter<M> currentFilter;
         
         protected ItemsLoadTask(Stage owner, String operation) {
@@ -243,30 +259,30 @@ public abstract class ListingController<M extends ItemModel<?>> extends MainCont
 //            currentFilter = filter;
         }
         
-        protected abstract void processNullResult(Window owner);
-        
-        protected abstract M toModel(T result);
+        protected void processNullResult(Window owner) {
+            
+        }
         
 //        protected void onItemsLoaded(ModelFilter<M> filter, Window owner) { }
         
 //        protected abstract Iterable<T> getResult(Connection connection, ModelFilter<M> filter) throws Exception;
-        
+    
         @Override
-        protected final Iterable<T> getResult() throws Exception {
+        protected final List<D> getResult() throws Exception {
             try (DbConnector dep = new DbConnector()) {
-//                return getResult(dep.getConnection(), filter);
-                throw new UnsupportedOperationException("Not implemented");
+                DataObjectImpl.Factory<D> factory = getDaoFactory();
+                return filter.apply(dep.getConnection(), factory);
             }
         }
         
         @Override
-        protected final void processResult(Iterable<T> result, Window owner) {
+        protected final void processResult(List<D> result, Window owner) {
             if (null == result) {
                 LOG.logp(Level.SEVERE, getClass().getName(), "processResult", String.format("\"%s\" operation returned null", getTitle()));
                 processNullResult(owner);
             } else {
                 itemsList.clear();
-                Iterator<T> it = result.iterator();
+                Iterator<D> it = result.iterator();
                 while (it.hasNext())
                     itemsList.add(toModel(it.next()));
                 throw new UnsupportedOperationException("Not implemented");

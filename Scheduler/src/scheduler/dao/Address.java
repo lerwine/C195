@@ -48,7 +48,7 @@ public interface Address extends DataObject {
      * Key constraint definition: <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
      * @return The {@link City} for the current address.
      */
-    City getCity();
+    DataObjectReference<CityImpl, City> getCity();
     
     /**
      * Gets the postal code for the current address.
@@ -74,7 +74,7 @@ public interface Address extends DataObject {
      * @param phone The phone number associated with the current address.
      * @return The read-only Address object.
      */
-    public static Address of(int pk, String address1, String address2, City city, String postalCode, String phone) {
+    public static Address of(int pk, String address1, String address2, DataObjectReference<CityImpl, City> city, String postalCode, String phone) {
         Objects.requireNonNull(address1, "Address line 1 cannot be null");
         Objects.requireNonNull(address2, "Address line 2 cannot be null");
         Objects.requireNonNull(postalCode, "Postal Code cannot be null");
@@ -85,7 +85,7 @@ public interface Address extends DataObject {
             @Override
             public String getAddress2() { return address2; }
             @Override
-            public City getCity() { return city; }
+            public DataObjectReference<CityImpl, City> getCity() { return city; }
             @Override
             public String getPostalCode() { return postalCode; }
             @Override
@@ -110,17 +110,17 @@ public interface Address extends DataObject {
         if (resultSet.wasNull())
             return null;
         
-        String address1 = resultSet.getString(AddressFactory.COLNAME_ADDRESS);
+        String address1 = resultSet.getString(AddressImpl.COLNAME_ADDRESS);
         if (resultSet.wasNull())
             address1 = "";
-        String address2 = resultSet.getString(AddressFactory.COLNAME_ADDRESS2);
+        String address2 = resultSet.getString(AddressImpl.COLNAME_ADDRESS2);
         if (resultSet.wasNull())
             address2 = "";
-        City city = City.of(resultSet, AddressFactory.COLNAME_CITYID);
-        String postalCode = resultSet.getString(AddressFactory.COLNAME_POSTALCODE);
+        City city = City.of(resultSet, AddressImpl.COLNAME_CITYID);
+        String postalCode = resultSet.getString(AddressImpl.COLNAME_POSTALCODE);
         if (resultSet.wasNull())
             postalCode = "";
-        String phone = resultSet.getString(AddressFactory.COLNAME_PHONE);
-        return of(id, address1, address2, city, postalCode, (resultSet.wasNull()) ? "" : phone);
+        String phone = resultSet.getString(AddressImpl.COLNAME_PHONE);
+        return of(id, address1, address2, DataObjectReference.of(city), postalCode, (resultSet.wasNull()) ? "" : phone);
     }
 }

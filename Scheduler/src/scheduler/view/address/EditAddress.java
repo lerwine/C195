@@ -7,11 +7,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
-import scheduler.dao.CustomerFactory;
+import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.AddressCity;
+import scheduler.view.city.CityReferenceModel;
 
 /**
  * FXML Controller class
@@ -20,7 +21,7 @@ import scheduler.view.city.AddressCity;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public final class EditAddress extends EditItem.EditController<AddressModel> {
+public final class EditAddress extends EditItem.EditController<AddressImpl, AddressModel> {
     
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     
@@ -97,7 +98,7 @@ public final class EditAddress extends EditItem.EditController<AddressModel> {
     private TextField phoneTextField;
     
     @FXML
-    private ComboBox<AddressCity<? extends City>> cityComboBox;
+    private ComboBox<CityReferenceModel<? extends City>> cityComboBox;
     
     //</editor-fold>
 
@@ -106,11 +107,6 @@ public final class EditAddress extends EditItem.EditController<AddressModel> {
         
     }
     
-    @Override
-    protected void updateDao() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     @Override
     protected BooleanExpression getValidationExpression() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -129,5 +125,8 @@ public final class EditAddress extends EditItem.EditController<AddressModel> {
 //            return "";
 //        return getResourceString(RESOURCEKEY_ADDRESSHASCUSTOMERS);
     }
+
+    @Override
+    protected Factory<AddressImpl> getDaoFactory() { return AddressImpl.getFactory(); }
 
 }

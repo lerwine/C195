@@ -14,7 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.dao.UserFactory;
+import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.PwHash;
 import scheduler.view.MainController;
@@ -275,6 +275,31 @@ public class App extends Application {
      */
     public static final String RESOURCEKEY_LOGMESSAGE = "logMessage";
     
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active"}.
+     */
+    public static final String RESOURCEKEY_ACTIVE = "active";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Inactive"}.
+     */
+    public static final String RESOURCEKEY_INACTIVE = "inactive";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Administrator"}.
+     */
+    public static final String RESOURCEKEY_AMINISTRATOR = "administrator";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unknown"}.
+     */
+    public static final String RESOURCEKEY_UNKNOWN = "unknown";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "(none)"}.
+     */
+    public static final String RESOURCEKEY_NONE = "none";
+    
     //</editor-fold>
     
     /**
@@ -284,9 +309,9 @@ public class App extends Application {
     
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
     
-    private static UserFactory.UserImpl currentUser = null;
+    private static UserImpl currentUser = null;
     
-    public static UserFactory.UserImpl getCurrentUser() { return currentUser; }
+    public static UserImpl getCurrentUser() { return currentUser; }
     
     //</editor-fold>
     
@@ -323,7 +348,7 @@ public class App extends Application {
     
     public static String getResourceString(String key) { return resources.getString(key); }
     
-    private static class LoginTask extends TaskWaiter<UserFactory.UserImpl> {
+    private static class LoginTask extends TaskWaiter<UserImpl> {
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
         LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
@@ -338,7 +363,7 @@ public class App extends Application {
         }
 
         @Override
-        protected void processResult(UserFactory.UserImpl user, Window owner) {
+        protected void processResult(UserImpl user, Window owner) {
             if (null == user) {
                 if (null != onNotSucceeded)
                     onNotSucceeded.accept(null);
@@ -360,12 +385,12 @@ public class App extends Application {
         }
 
         @Override
-        protected UserFactory.UserImpl getResult() throws Exception {
-            Optional<UserFactory.UserImpl> result;
+        protected UserImpl getResult() throws Exception {
+            Optional<UserImpl> result;
             LOG.log(Level.INFO, String.format("Looking up %s", userName));
             try (DbConnector dep = new DbConnector()) {
                 Platform.runLater(() -> updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB)));
-                result = (new UserFactory()).findByUserName(dep.getConnection(), userName);
+                result = UserImpl.getFactory().findByUserName(dep.getConnection(), userName);
             }
             if (result.isPresent()) {
                 // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password

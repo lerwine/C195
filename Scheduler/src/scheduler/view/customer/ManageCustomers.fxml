@@ -9,11 +9,6 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.controls.CustomerAddressTableCellFactory?>
-<?import scheduler.controls.CustomerCityTableCellFactory?>
-<?import scheduler.controls.CustomerCountryTableCellFactory?>
-<?import scheduler.controls.CustomerPhoneTableCellFactory?>
-<?import scheduler.controls.CustomerPostalCodeTableCellFactory?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.ManageCustomers">
@@ -27,43 +22,28 @@
                 </TableColumn>
                 <TableColumn editable="false" text="%address">
                     <cellValueFactory>
-                        <PropertyValueFactory property="address" />
+                        <PropertyValueFactory property="addressLines" />
                     </cellValueFactory>
-                    <cellFactory>
-                        <CustomerAddressTableCellFactory />
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" text="%city">
                     <cellValueFactory>
-                        <PropertyValueFactory property="address" />
+                        <PropertyValueFactory property="cityName" />
                     </cellValueFactory>
-                    <cellFactory>
-                        <CustomerCityTableCellFactory />
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" text="%postalCode">
                     <cellValueFactory>
-                        <PropertyValueFactory property="address" />
+                        <PropertyValueFactory property="postalCode" />
                     </cellValueFactory>
-                    <cellFactory>
-                        <CustomerPostalCodeTableCellFactory />
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" text="%country">
                     <cellValueFactory>
-                        <PropertyValueFactory property="address" />
+                        <PropertyValueFactory property="countryName" />
                     </cellValueFactory>
-                    <cellFactory>
-                        <CustomerCountryTableCellFactory />
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" text="%phone">
                     <cellValueFactory>
-                        <PropertyValueFactory property="address" />
+                        <PropertyValueFactory property="phone" />
                     </cellValueFactory>
-                    <cellFactory>
-                        <CustomerPhoneTableCellFactory />
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" text="%active">
                     <cellValueFactory>

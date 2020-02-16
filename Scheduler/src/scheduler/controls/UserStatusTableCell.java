@@ -7,7 +7,7 @@ package scheduler.controls;
 
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableCell;
-import scheduler.dao.UserFactory;
+import scheduler.dao.UserImpl;
 
 /**
  *
@@ -17,7 +17,7 @@ import scheduler.dao.UserFactory;
 public class UserStatusTableCell<S> extends TableCell<S, Integer> {
     private final ObservableMap<Integer, String> userStatusMap;
     UserStatusTableCell(ObservableMap<Integer, String> userStatusMap) {
-        this.userStatusMap = (null == userStatusMap) ? UserFactory.getUserStatusMap() : userStatusMap;
+        this.userStatusMap = (null == userStatusMap) ? UserImpl.getUserStatusMap() : userStatusMap;
     }
     public UserStatusTableCell() { this(null); }
     @Override

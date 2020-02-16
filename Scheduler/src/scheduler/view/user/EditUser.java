@@ -14,9 +14,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.AppointmentFactory;
-import scheduler.dao.UserFactory;
-import scheduler.util.PwHash;
+import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.UserImpl;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
 import scheduler.util.Values;
@@ -31,7 +30,7 @@ import scheduler.view.appointment.AppointmentModel;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends EditItem.EditController<UserModel> {
+public final class EditUser extends EditItem.EditController<UserImpl, UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     
     /**
@@ -263,17 +262,6 @@ public final class EditUser extends EditItem.EditController<UserModel> {
     }
     
     @Override
-    protected void updateDao() {
-        UserFactory.UserImpl dao = getModel().getDataObject();
-        if (changePasswordCheckBox.isSelected()) {
-            PwHash pw = new PwHash(passwordField.getText(), true);
-            dao.setPassword(pw.toString());
-        }
-        dao.setUserName(normalizedUserName.get());
-        dao.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
-    }
-
-    @Override
     protected BooleanExpression getValidationExpression() { return validationExpression; }
 
     @Override
@@ -297,4 +285,7 @@ public final class EditUser extends EditItem.EditController<UserModel> {
 //        return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
     }
 
+    @Override
+    protected Factory<UserImpl> getDaoFactory() { return UserImpl.getFactory(); }
+    
 }

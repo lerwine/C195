@@ -37,7 +37,7 @@ public interface City extends DataObject {
      * 
      * @return The {@link Country} for the current city.
      */
-    Country getCountry();
+    DataObjectReference<CountryImpl, Country> getCountry();
 
     /**
      * Creates a read-only City object from object values.
@@ -46,7 +46,7 @@ public interface City extends DataObject {
      * @param country The country of the city.
      * @return The read-only City object.
      */
-    public static City of(int pk, String name, Country country) {
+    public static City of(int pk, String name, DataObjectReference<CountryImpl, Country> country) {
         Objects.requireNonNull(name, "Name cannot be null");
         return new City() {
             @Override
@@ -54,7 +54,7 @@ public interface City extends DataObject {
             @Override
             public int getPrimaryKey() { return pk; }
             @Override
-            public Country getCountry() { return country; }
+            public DataObjectReference<CountryImpl, Country> getCountry() { return country; }
             @Override
             public int getRowState() { return Values.ROWSTATE_UNMODIFIED; }
         };
@@ -73,8 +73,8 @@ public interface City extends DataObject {
         if (resultSet.wasNull())
             return null;
         
-        Country country = Country.of(resultSet, CityFactory.COLNAME_COUNTRYID);
-        String name = resultSet.getString(CityFactory.COLNAME_CITY);
-        return of(id, (resultSet.wasNull()) ? "" : name, country);
+        Country country = Country.of(resultSet, CityImpl.COLNAME_COUNTRYID);
+        String name = resultSet.getString(CityImpl.COLNAME_CITY);
+        return of(id, (resultSet.wasNull()) ? "" : name, DataObjectReference.of(country));
     }
 }

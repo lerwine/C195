@@ -5,44 +5,97 @@
  */
 package scheduler.view.user;
 
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
+import java.sql.SQLException;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.UserFactory;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.UserImpl;
+import scheduler.observables.UserStatusDisplayProperty;
+import scheduler.observables.UserStatusProperty;
 import scheduler.view.ItemModel;
 
 /**
  *
  * @author erwinel
  */
-public final class UserModel extends ItemModel<UserFactory.UserImpl> implements AppointmentUser<UserFactory.UserImpl> {
+public final class UserModel extends ItemModel<UserImpl> implements UserReferenceModel<UserImpl> {
 
-    private final ReadOnlyStringWrapper userName;
-
-    @Override
-    public String getUserName() { return userName.get(); }
-
-    @Override
-    public ReadOnlyStringProperty userNameProperty() { return userName.getReadOnlyProperty(); }
-    
-    private final ReadOnlyIntegerWrapper status;
+    private final SimpleStringProperty userName;
+    private final SimpleStringProperty password;
+    private final UserStatusProperty status;
+    private final UserStatusDisplayProperty statusDisplay;
 
     @Override
-    public int getStatus() { return status.get(); }
+    public String getUserName() {
+        return userName.get();
+    }
 
-    @Override
-    public ReadOnlyIntegerProperty statusProperty() { return status.getReadOnlyProperty(); }
-    
-    public UserModel(UserFactory.UserImpl dao) {
-        super(dao);
-        this.userName = new ReadOnlyStringWrapper(dao.getUserName());
-        this.status = new ReadOnlyIntegerWrapper(dao.getStatus());
+    public void setUserName(String value) {
+        userName.set(value);
     }
 
     @Override
-    protected void refreshFromDAO(UserFactory.UserImpl dao) {
+    public StringProperty userNameProperty() {
+        return userName;
+    }
+
+    @Override
+    public String getPassword() {
+        return password.get();
+    }
+
+    public void setPassword(String value) {
+        password.set(value);
+    }
+
+    @Override
+    public StringProperty passwordProperty() {
+        return password;
+    }
+
+    @Override
+    public int getStatus() {
+        return status.get();
+    }
+
+    public void setStatus(int value) {
+        status.set(value);
+    }
+
+    @Override
+    public UserStatusProperty statusProperty() {
+        return status;
+    }
+
+    @Override
+    public String getStatusDisplay() {
+        return statusDisplay.get();
+    }
+
+    @Override
+    public UserStatusDisplayProperty statusDisplayProperty() {
+        return statusDisplay;
+    }
+
+    public UserModel(UserImpl dao) {
+        super(dao);
+        userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
+        password = new ReadOnlyStringWrapper(this, "password", dao.getPassword());
+        status = new UserStatusProperty(this, "status", dao.getStatus());
+        statusDisplay = new UserStatusDisplayProperty(this, "statusDisplay", status);
+    }
+
+    @Override
+    protected void refreshFromDAO(UserImpl dao) throws SQLException, ClassNotFoundException {
         userName.set(dao.getUserName());
+        password.set(dao.getPassword());
         status.set(dao.getStatus());
     }
+
+    @Override
+    public Factory<UserImpl> getDaoFactory() {
+        return UserImpl.getFactory();
+    }
+
 }

@@ -84,13 +84,13 @@ public interface User extends DataObject {
         int id = resultSet.getInt(pkColName);
         if (resultSet.wasNull())
             return null;
-        String userName = resultSet.getString(UserFactory.COLNAME_USERNAME);
+        String userName = resultSet.getString(UserImpl.COLNAME_USERNAME);
         if (resultSet.wasNull())
             userName = "";
-        String password = resultSet.getString(UserFactory.COLNAME_PASSWORD);
+        String password = resultSet.getString(UserImpl.COLNAME_PASSWORD);
         if (resultSet.wasNull())
             password = "";
-        int status = resultSet.getInt(UserFactory.COLNAME_ACTIVE);
+        int status = resultSet.getInt(UserImpl.COLNAME_ACTIVE);
         return User.of(id, userName, password, (resultSet.wasNull()) ? Values.USER_STATUS_INACTIVE : Values.asValidUserStatus(status));
     }
 }

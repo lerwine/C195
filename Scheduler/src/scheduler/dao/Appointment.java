@@ -37,7 +37,7 @@ public interface Appointment extends DataObject {
      * Key constraint definition: <code>CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`customerId`) REFERENCES `customer` (`customerId`)</code>
      * @return The {@link Customer} for the current appointment.
      */
-    Customer getCustomer();
+    DataObjectReference<CustomerImpl, Customer> getCustomer();
     
     /**
      * Gets the {@link User} for the current appointment.
@@ -46,7 +46,7 @@ public interface Appointment extends DataObject {
      * Key constraint definition: <code>CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`)</code>
      * @return The {@link User} for the current appointment.
      */
-    User getUser();
+    DataObjectReference<UserImpl, User> getUser();
     
     /**
      * Gets the title of the current appointment.

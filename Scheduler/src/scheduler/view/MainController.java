@@ -2,6 +2,7 @@ package scheduler.view;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -21,13 +22,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
-import scheduler.dao.AddressFactory.AddressImpl;
-import scheduler.dao.AppointmentFactory.AppointmentImpl;
-import scheduler.dao.CityFactory.CityImpl;
-import scheduler.dao.CountryFactory.CountryImpl;
-import scheduler.dao.CustomerFactory.CustomerImpl;
-import scheduler.dao.DataObjectFactory.DataObjectImpl;
-import scheduler.dao.UserFactory.UserImpl;
+import scheduler.dao.AddressImpl;
+import scheduler.dao.AppointmentImpl;
+import scheduler.dao.CityImpl;
+import scheduler.dao.CountryImpl;
+import scheduler.dao.CustomerImpl;
+import scheduler.dao.DataObjectImpl;
+import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
 import scheduler.util.ThrowableFunction;
@@ -47,115 +48,112 @@ import scheduler.view.user.EditUser;
 import scheduler.view.user.UserModel;
 
 /**
- * FXML Controller class for main application content.
- * This also serves as the hub for all CRUD operations.
+ * FXML Controller class for main application content. This also serves as the hub for all CRUD operations.
+ *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
 public final class MainController extends SchedulerController {
-    
+
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
      */
     public static final String RESOURCEKEY_ADDRESS = "address";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Appointments"}.
      */
     public static final String RESOURCEKEY_ALLAPPOINTMENTS = "allAppointments";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Countries"}.
      */
     public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Customers"}.
      */
     public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Users"}.
      */
     public static final String RESOURCEKEY_ALLUSERS = "allUsers";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments"}.
      */
     public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer"}.
      */
     public static final String RESOURCEKEY_CUSTOMER = "customer";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customers"}.
      */
     public static final String RESOURCEKEY_CUSTOMERS = "customers";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Appointment"}.
      */
     public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End"}.
      */
     public static final String RESOURCEKEY_END = "end";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Current and Upcoming Appointments"}.
      */
     public static final String RESOURCEKEY_MYCURRENTANDUPCOMING = "myCurrentAndUpcoming";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
      */
     public static final String RESOURCEKEY_NEW = "new";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New Address"}.
      */
     public static final String RESOURCEKEY_NEWADDRESS = "newAddress";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New City"}.
      */
     public static final String RESOURCEKEY_NEWCITY = "newCity";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New Country"}.
      */
     public static final String RESOURCEKEY_NEWCOUNTRY = "newCountry";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start"}.
      */
     public static final String RESOURCEKEY_START = "start";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title"}.
      */
     public static final String RESOURCEKEY_TITLE = "title";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type"}.
      */
     public static final String RESOURCEKEY_TYPE = "type";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Users"}.
      */
     public static final String RESOURCEKEY_USERS = "users";
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="FXML controls">
-    
     @FXML
     private Menu appointmentsMenu;
 
@@ -201,130 +199,152 @@ public final class MainController extends SchedulerController {
     @FXML
     private BorderPane contentPane;
 
-    public BorderPane getContentPane() { return contentPane; }
-    
+    public BorderPane getContentPane() {
+        return contentPane;
+    }
+
     //</editor-fold>
-    
     private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
     private MainContentController contentController;
-    
+
     //<editor-fold defaultstate="collapsed" desc="JavaFX Properties">
-    
     //<editor-fold defaultstate="collapsed" desc="Create/Update/Delete operation properties">
-    
     //<editor-fold defaultstate="collapsed" desc="Appointment Create/Update/Delete op results">
-    
     private final ReadOnlyObjectWrapper<CrudAction<AppointmentModel>> appointmentChanged;
-    
+
     /**
      * Gets the last {@link AppointmentModel} that was added, modified or deleted.
+     *
      * @return The last {@link AppointmentModel} that was added, modified or deleted.
      */
-    public CrudAction<AppointmentModel> getAppointmentChanged() { return appointmentChanged.get(); }
-    
+    public CrudAction<AppointmentModel> getAppointmentChanged() {
+        return appointmentChanged.get();
+    }
+
     /**
      * Gets a JavaFX property that can be used to listen for when a {@link AppointmentModel} has been added, modified or deleted.
+     *
      * @return A JavaFX property that contains the last {@link AppointmentModel} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<AppointmentModel>> appointmentChangedProperty() { return appointmentChanged.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<CrudAction<AppointmentModel>> appointmentChangedProperty() {
+        return appointmentChanged.getReadOnlyProperty();
+    }
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Customer Create/Update/Delete op results">
-    
     private final ReadOnlyObjectWrapper<CrudAction<CustomerModel>> customerChanged;
-    
+
     /**
      * Gets the last {@link CustomerModel} that was added, modified or deleted.
+     *
      * @return The last {@link CustomerModel} that was added, modified or deleted.
      */
-    public CrudAction<CustomerModel> getCustomerChanged() { return customerChanged.get(); }
-    
+    public CrudAction<CustomerModel> getCustomerChanged() {
+        return customerChanged.get();
+    }
+
     /**
      * Gets a JavaFX property that can be used to listen for when a {@link CustomerModel} has been added, modified or deleted.
+     *
      * @return A JavaFX property that contains the last {@link CustomerModel} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<CustomerModel>> customerChangedProperty() { return customerChanged.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<CrudAction<CustomerModel>> customerChangedProperty() {
+        return customerChanged.getReadOnlyProperty();
+    }
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Country Create/Update/Delete op results">
-    
     private final ReadOnlyObjectWrapper<CrudAction<CountryModel>> countryChanged;
-    
+
     /**
      * Gets the last {@link CountryModel} that was added, modified or deleted.
+     *
      * @return The last {@link CountryModel} that was added, modified or deleted.
      */
-    public CrudAction<CountryModel> getCountryChanged() { return countryChanged.get(); }
-    
+    public CrudAction<CountryModel> getCountryChanged() {
+        return countryChanged.get();
+    }
+
     /**
      * Gets a JavaFX property that can be used to listen for when a {@link CountryModel} has been added, modified or deleted.
+     *
      * @return A JavaFX property that contains the last {@link CountryModel} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<CountryModel>> countryChangedProperty() { return countryChanged.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<CrudAction<CountryModel>> countryChangedProperty() {
+        return countryChanged.getReadOnlyProperty();
+    }
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="City Create/Update/Delete op results">
-    
     private final ReadOnlyObjectWrapper<CrudAction<CityModel>> cityChanged;
-    
+
     /**
      * Gets the last {@link CityModel} that was added, modified or deleted.
+     *
      * @return The last {@link CityModel} that was added, modified or deleted.
      */
-    public CrudAction<CityModel> getCityChanged() { return cityChanged.get(); }
-    
+    public CrudAction<CityModel> getCityChanged() {
+        return cityChanged.get();
+    }
+
     /**
      * Gets a JavaFX property that can be used to listen for when a {@link CityModel} has been added, modified or deleted.
+     *
      * @return A JavaFX property that contains the last {@link CityModel} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<CityModel>> cityChangedProperty() { return cityChanged.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<CrudAction<CityModel>> cityChangedProperty() {
+        return cityChanged.getReadOnlyProperty();
+    }
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Address Create/Update/Delete op results">
-    
     private final ReadOnlyObjectWrapper<CrudAction<AddressModel>> addressChanged;
-    
+
     /**
      * Gets the last {@link AddressModel} that was added, modified or deleted.
+     *
      * @return The last {@link AddressModel} that was added, modified or deleted.
      */
-    public CrudAction<AddressModel> getAddressChanged() { return addressChanged.get(); }
-    
+    public CrudAction<AddressModel> getAddressChanged() {
+        return addressChanged.get();
+    }
+
     /**
-     * Gets a JavaFX property that can be used to listen for when a {@linkAddressModel} has been added, modified or deleted.
+     * Gets a JavaFX property that can be used to listen for when a {
+     *
+     * @linkAddressModel} has been added, modified or deleted.
      * @return A JavaFX property that contains the last {@link AddressModel} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<AddressModel>> addressChangedProperty() { return addressChanged.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<CrudAction<AddressModel>> addressChangedProperty() {
+        return addressChanged.getReadOnlyProperty();
+    }
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="User Create/Update/Delete op results">
-    
     private final ReadOnlyObjectWrapper<CrudAction<UserModel>> userChanged;
-    
+
     /**
      * Gets the last {@link UserModel} that was added, modified or deleted.
+     *
      * @return The last {@link UserModel} that was added, modified or deleted.
      */
-    public CrudAction<UserModel> getUserChanged() { return userChanged.get(); }
-    
+    public CrudAction<UserModel> getUserChanged() {
+        return userChanged.get();
+    }
+
     /**
      * Gets a JavaFX property that can be used to listen for when a {@link UserModel} has been added, modified or deleted.
+     *
      * @return A JavaFX property that contains the last {@link UserModel} that was added, modified or deleted.
      */
-    public ReadOnlyObjectProperty<CrudAction<UserModel>> userChangedProperty() { return userChanged.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<CrudAction<UserModel>> userChangedProperty() {
+        return userChanged.getReadOnlyProperty();
+    }
+
     //</editor-fold>
-    
     //</editor-fold>
-    
     //</editor-fold>
-    
     public MainController() {
         appointmentChanged = new ReadOnlyObjectWrapper<>();
         customerChanged = new ReadOnlyObjectWrapper<>();
@@ -333,13 +353,21 @@ public final class MainController extends SchedulerController {
         addressChanged = new ReadOnlyObjectWrapper<>();
         userChanged = new ReadOnlyObjectWrapper<>();
     }
-    
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert appointmentsMenu != null : String.format("fx:id=\"appointmentsMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewAppointment(event);
+            } catch (SQLException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             throw new UnsupportedOperationException("Not implemented");
@@ -347,7 +375,15 @@ public final class MainController extends SchedulerController {
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCustomer(event));
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewCustomer(event);
+            } catch (SQLException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             throw new UnsupportedOperationException("Not implemented");
@@ -357,9 +393,25 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(newCountryMenuItem, String.format("fx:id=\"newCountryMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCountry(event));
         Objects.requireNonNull(newCityMenuItem, String.format("fx:id=\"newCityMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCity(event));
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewCity(event);
+            } catch (SQLException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         Objects.requireNonNull(newAddressMenuItem, String.format("fx:id=\"newAddressMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAddress(event));
+                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewAddress(event);
+            } catch (SQLException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             throw new UnsupportedOperationException("Not implemented");
@@ -377,213 +429,208 @@ public final class MainController extends SchedulerController {
     }
 
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
-    
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
-    
-    public AppointmentModel addNewAppointment(Event event) {
+    public AppointmentModel addNewAppointment(Event event) throws SQLException, ClassNotFoundException {
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class,
-                new AppointmentModel(new AppointmentImpl()), (Stage)contentPane.getScene().getWindow());
+                new AppointmentModel(new AppointmentImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             appointmentChanged.set(new CrudAction<>(result.getTarget(), true));
             return result.getTarget();
         }
         return null;
     }
-    
+
     /**
      * Opens an edit window to edit an {@link AppointmentModel}.
+     *
      * @param event Contextual information about the event.
      * @param item The {@link AppointmentModel} to be edited.
      * @return {@code CrudAction<AppointmentModel>} if the item was edited or deleted from the database; otherwise, {@code null} to indicate the edit operation was canceled.
      */
     public CrudAction<AppointmentModel> editAppointment(Event event, AppointmentModel item) {
-        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, item, (Stage)contentPane.getScene().getWindow());
+        EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            CrudAction<AppointmentModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget()) :
-                    new CrudAction<>(result.getTarget(), false);
+            CrudAction<AppointmentModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget())
+                    : new CrudAction<>(result.getTarget(), false);
             appointmentChanged.set(cr);
             return cr;
         }
         return null;
     }
-    
-    public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+
+    public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) throws SQLException, ClassNotFoundException {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> appointmentChanged.set(new CrudAction<>(m))));
+        }
     }
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="CustomerImpl operations">
-    
-    public CustomerModel addNewCustomer(Event event) {
+    public CustomerModel addNewCustomer(Event event) throws SQLException, ClassNotFoundException {
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class,
-                new CustomerModel(new CustomerImpl()), (Stage)contentPane.getScene().getWindow());
+                new CustomerModel(new CustomerImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             customerChanged.set(new CrudAction<>(result.getTarget(), true));
             return result.getTarget();
         }
         return null;
     }
-    
+
     public CrudAction<CustomerModel> editCustomer(Event event, CustomerModel item) {
-        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, item, (Stage)contentPane.getScene().getWindow());
+        EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            CrudAction<CustomerModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget()) :
-                    new CrudAction<>(result.getTarget(), false);
+            CrudAction<CustomerModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget())
+                    : new CrudAction<>(result.getTarget(), false);
             customerChanged.set(cr);
             return cr;
         }
         return null;
     }
-    
+
     public void deleteCustomer(Event event, CustomerModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> customerChanged.set(new CrudAction<>(m))));
+        }
     }
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="CountryImpl operations">
-    
     public CountryModel addNewCountry(Event event) {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class,
-                new CountryModel(new CountryImpl()), (Stage)contentPane.getScene().getWindow());
+                new CountryModel(new CountryImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             countryChanged.set(new CrudAction<>(result.getTarget(), true));
             return result.getTarget();
         }
         return null;
     }
-    
+
     public CrudAction<CountryModel> editCountry(Event event, CountryModel item) {
-        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class, item, (Stage)contentPane.getScene().getWindow());
+        EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            CrudAction<CountryModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget()) :
-                    new CrudAction<>(result.getTarget(), false);
+            CrudAction<CountryModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget())
+                    : new CrudAction<>(result.getTarget(), false);
             countryChanged.set(cr);
             return cr;
         }
         return null;
     }
-    
+
     public void deleteCountry(Event event, CountryModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> countryChanged.set(new CrudAction<>(m))));
+        }
     }
-         
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="CityImpl operations">
-    
-    public CityModel addNewCity(Event event) {
+    public CityModel addNewCity(Event event) throws SQLException, ClassNotFoundException {
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class,
-                new CityModel(new CityImpl()), (Stage)contentPane.getScene().getWindow());
+                new CityModel(new CityImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             cityChanged.set(new CrudAction<>(result.getTarget(), true));
             return result.getTarget();
         }
         return null;
     }
-    
+
     public CrudAction<CityModel> editCity(Event event, CityModel item) {
-        EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, item, (Stage)contentPane.getScene().getWindow());
+        EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            CrudAction<CityModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget()) :
-                    new CrudAction<>(result.getTarget(), false);
+            CrudAction<CityModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget())
+                    : new CrudAction<>(result.getTarget(), false);
             cityChanged.set(cr);
             return cr;
         }
         return null;
     }
-    
+
     public void deleteCity(Event event, CityModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> cityChanged.set(new CrudAction<>(m))));
+        }
     }
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="AddressImpl operations">
-    
-    public AddressModel addNewAddress(Event event) {
+    public AddressModel addNewAddress(Event event) throws SQLException, ClassNotFoundException {
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class,
-                new AddressModel(new AddressImpl()), (Stage)contentPane.getScene().getWindow());
+                new AddressModel(new AddressImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             addressChanged.set(new CrudAction<>(result.getTarget(), true));
             return result.getTarget();
         }
         return null;
     }
-    
+
     public CrudAction<AddressModel> editAddress(Event event, AddressModel item) {
-        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, item, (Stage)contentPane.getScene().getWindow());
+        EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            CrudAction<AddressModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget()) :
-                    new CrudAction<>(result.getTarget(), false);
+            CrudAction<AddressModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget())
+                    : new CrudAction<>(result.getTarget(), false);
             addressChanged.set(cr);
             return cr;
         }
         return null;
     }
-    
+
     public void deleteAddress(Event event, AddressModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> addressChanged.set(new CrudAction<>(m))));
+        }
     }
-    
+
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="UserImpl operations">
-    
     public UserModel addNewUser(Event event) {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class,
-                new UserModel(new UserImpl()), (Stage)contentPane.getScene().getWindow());
+                new UserModel(new UserImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             userChanged.set(new CrudAction<>(result.getTarget(), true));
             return result.getTarget();
         }
         return null;
     }
-    
+
     public CrudAction<UserModel> editUser(Event event, UserModel item) {
-        EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class, item, (Stage)contentPane.getScene().getWindow());
+        EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            CrudAction<UserModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget()) :
-                    new CrudAction<>(result.getTarget(), false);
+            CrudAction<UserModel> cr = (result.isDeleteOperation()) ? new CrudAction<>(result.getTarget())
+                    : new CrudAction<>(result.getTarget(), false);
             userChanged.set(cr);
             return cr;
         }
         return null;
     }
-    
+
     public void deleteUser(Event event, UserModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES)
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage)contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
                     (m) -> userChanged.set(new CrudAction<>(m))));
+        }
     }
-    
-    //</editor-fold>
 
+    //</editor-fold>
     /**
      * Loads content for the {@link #contentPane}.
+     *
      * @param <C> The type of controller for the contents of the {@link #contentPane}.
      * @param controllerClass The controller class for the contents of the {@link #contentPane}.
      * @param stage The {@link Stage} for the view associated with the current main controller.
@@ -592,40 +639,44 @@ public final class MainController extends SchedulerController {
      */
     public <C extends MainContentController> void setContent(Class<C> controllerClass, Stage stage, BiConsumer<Parent, C> onShown) throws IOException {
         load(stage, controllerClass, (Parent v, C c) -> {
-            ((MainContentController)c).mainController = MainController.this;
+            ((MainContentController) c).mainController = MainController.this;
         }, (Parent v, C c) -> {
             MainContentController oldController = contentController;
             Node oldView = contentPane.getCenter();
             contentController = c;
             contentPane.setCenter(v);
             try {
-                if (null != oldController)
+                if (null != oldController) {
                     oldController.onUnloaded(oldView);
+                }
             } finally {
-                if (null != onShown)
+                if (null != onShown) {
                     onShown.accept(v, c);
+                }
             }
         });
     }
-    
-    private class DeleteTask<M extends ItemModel<?>> extends TaskWaiter<String> {
-        private final DataObjectImpl dao;
+
+    private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
+
         private final M model;
         private final Consumer<M> onDeleted;
         private final ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage;
+
         DeleteTask(M model, Stage stage, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage, Consumer<M> onDeleted) {
             super(stage, App.getResourceString(App.RESOURCEKEY_DELETINGRECORD));
-            dao = (this.model = model).getDataObject();
+            this.model = model;
             this.onDeleted = onDeleted;
             this.getDeleteDependencyMessage = Objects.requireNonNull(getDeleteDependencyMessage);
         }
 
         @Override
         protected void processResult(String message, Window owner) {
-            if (null != message && !message.trim().isEmpty())
+            if (null != message && !message.trim().isEmpty()) {
                 Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), message);
-            else if (null != onDeleted)
+            } else if (null != onDeleted) {
                 onDeleted.accept(model);
+            }
         }
 
         @Override
@@ -638,14 +689,16 @@ public final class MainController extends SchedulerController {
         protected String getResult() throws Exception {
             try (DbConnector dep = new DbConnector()) {
                 String message = getDeleteDependencyMessage.apply(dep.getConnection());
-                if (null != message && !message.trim().isEmpty())
+                if (null != message && !message.trim().isEmpty()) {
                     return message;
-                dao.delete(dep.getConnection());
+                }
+
+                model.getDaoFactory().delete(model.getDataObject(), dep.getConnection());
             }
             return null;
         }
     }
-    
+
     /**
      * Base class for controllers that represent content views for the {@link MainController}.
      */
@@ -655,9 +708,12 @@ public final class MainController extends SchedulerController {
 
         /**
          * Gets the current {@link MainController}.
+         *
          * @return The current {@link MainController}.
          */
-        protected MainController getMainController() { return mainController; }
-        
+        protected MainController getMainController() {
+            return mainController;
+        }
+
     }
 }

@@ -1,122 +1,171 @@
 package scheduler.util;
 
+import com.sun.javafx.binding.ExpressionHelper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.DataObjectFactory;
+import scheduler.dao.DataObjectImpl;
 
 /**
  *
  * @author erwinel
  */
 public class ValueBindings {
+
     /**
-     * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or
-     * an empty string if the source value was null.
+     * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or an empty string if the source value was
+     * null.
      *
-     * @param stringProperty
-     *         The {@link javafx.beans.property.StringProperty} to trim.
-     * @return
-     *         The new {@link javafx.beans.binding.StringBinding}.
-     * @throws NullPointerException
-     *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
+     * @param stringProperty The {@link javafx.beans.property.StringProperty} to trim.
+     * @return The new {@link javafx.beans.binding.StringBinding}.
+     * @throws NullPointerException The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
     public static StringBinding asTrimmedAndNotNull(final StringProperty stringProperty) {
         return new StringBinding() {
-            { super.bind(Objects.requireNonNull(stringProperty)); }
+            {
+                super.bind(Objects.requireNonNull(stringProperty));
+            }
+
             @Override
-            protected String computeValue() { return Values.asNonNullAndTrimmed(stringProperty.get()); }
+            protected String computeValue() {
+                return Values.asNonNullAndTrimmed(stringProperty.get());
+            }
+
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(stringProperty);
+            }
+
             @Override
-            public void dispose() { super.unbind(stringProperty); }
+            public void dispose() {
+                super.unbind(stringProperty);
+            }
         };
     }
-    
+
     public static StringBinding asNormalized(final StringProperty stringProperty) {
         return new StringBinding() {
-            { super.bind(Objects.requireNonNull(stringProperty)); }
+            {
+                super.bind(Objects.requireNonNull(stringProperty));
+            }
+
             @Override
-            protected String computeValue() { return Values.asNonNullAndWsNormalized(stringProperty.get()); }
+            protected String computeValue() {
+                return Values.asNonNullAndWsNormalized(stringProperty.get());
+            }
+
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(stringProperty);
+            }
+
             @Override
-            public void dispose() { super.unbind(stringProperty); }
+            public void dispose() {
+                super.unbind(stringProperty);
+            }
         };
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given
-     * {@link StringProperty} is not null and contains at least one non-whitespace character.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is not null and contains at least one non-whitespace character.
      *
-     * @param stringProperty
-     *         The {@link javafx.beans.property.StringProperty} to test.
-     * @return
-     *         The new {@link javafx.beans.binding.BooleanBinding}.
-     * @throws NullPointerException
-     *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
+     * @param stringProperty The {@link javafx.beans.property.StringProperty} to test.
+     * @return The new {@link javafx.beans.binding.BooleanBinding}.
+     * @throws NullPointerException The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
     public static BooleanBinding notNullOrWhiteSpace(final StringProperty stringProperty) {
         Objects.requireNonNull(stringProperty, "String property cannot be null");
         return new BooleanBinding() {
-            { super.bind(stringProperty); }
+            {
+                super.bind(stringProperty);
+            }
+
             @Override
-            protected boolean computeValue() { return !Values.isNullWhiteSpaceOrEmpty(stringProperty.get()); }
+            protected boolean computeValue() {
+                return !Values.isNullWhiteSpaceOrEmpty(stringProperty.get());
+            }
+
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(stringProperty);
+            }
+
             @Override
-            public void dispose() { super.unbind(stringProperty); }
+            public void dispose() {
+                super.unbind(stringProperty);
+            }
         };
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given
-     * {@link StringProperty} is null, empty or contains all whitespace characters.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is null, empty or contains all whitespace characters.
      *
-     * @param stringProperty
-     *         The {@link javafx.beans.property.StringProperty} to test.
-     * @return
-     *         The new {@link javafx.beans.binding.BooleanBinding}.
-     * @throws NullPointerException
-     *         The source {@link javafx.beans.property.StringProperty} was {@code null}.
+     * @param stringProperty The {@link javafx.beans.property.StringProperty} to test.
+     * @return The new {@link javafx.beans.binding.BooleanBinding}.
+     * @throws NullPointerException The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
     public static BooleanBinding isNullOrWhiteSpace(final StringProperty stringProperty) {
         Objects.requireNonNull(stringProperty, "String property cannot be null");
         return new BooleanBinding() {
-            { super.bind(stringProperty); }
+            {
+                super.bind(stringProperty);
+            }
+
             @Override
-            protected boolean computeValue() { return Values.isNullWhiteSpaceOrEmpty(stringProperty.get()); }
+            protected boolean computeValue() {
+                return Values.isNullWhiteSpaceOrEmpty(stringProperty.get());
+            }
+
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(stringProperty); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(stringProperty);
+            }
+
             @Override
-            public void dispose() { super.unbind(stringProperty); }
+            public void dispose() {
+                super.unbind(stringProperty);
+            }
         };
     }
 
     /**
-     * Creates a new {@link jBooleanBinding} that holds {@code true} if a given {@link ObjectExpression}
-     * of {@link LocalDateTime} is not null and start is not greater than end.
+     * Creates a new {@link jBooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of {@link LocalDateTime} is not null and start is not greater than end.
+     *
      * @param start The start {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @param end The end {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @return The new {@link BooleanBinding}.
      * @throws NullPointerException if either {@link ObjectExpression} was {@code null}.
      */
     public static BooleanBinding isRangeUndefinedOrValid(final ObjectExpression<LocalDateTime> start, final ObjectExpression<LocalDateTime> end) {
-        if (start == null || end == null)
+        if (start == null || end == null) {
             throw new NullPointerException("LocalDateTime binding cannot be null.");
+        }
 
         return new BooleanBinding() {
-            { super.bind(start, end); }
+            {
+                super.bind(start, end);
+            }
 
             @Override
             protected boolean computeValue() {
@@ -126,19 +175,26 @@ public class ValueBindings {
             }
 
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(start, end); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.observableArrayList(start, end);
+            }
 
             @Override
-            public void dispose() { super.unbind(start, end); }
+            public void dispose() {
+                super.unbind(start, end);
+            }
         };
     }
 
     public static BooleanBinding isDateUndefinedOrValid(final ObjectExpression<LocalDateTime> value) {
-        if (value == null)
+        if (value == null) {
             throw new NullPointerException("LocalDateTime binding cannot be null.");
+        }
 
         return new BooleanBinding() {
-            { super.bind(value); }
+            {
+                super.bind(value);
+            }
 
             @Override
             protected boolean computeValue() {
@@ -147,20 +203,27 @@ public class ValueBindings {
             }
 
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.singletonObservableList(value); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.singletonObservableList(value);
+            }
 
             @Override
-            public void dispose() { super.unbind(value); }
+            public void dispose() {
+                super.unbind(value);
+            }
         };
     }
 
     public static ObjectBinding<LocalDateTime> asLocalDateTime(final ObjectExpression<LocalDate> date, final ObjectExpression<Integer> hour,
             final ObjectExpression<Integer> minute) {
-        if (date == null || hour == null || minute == null)
+        if (date == null || hour == null || minute == null) {
             throw new NullPointerException("Binding dependency cannot be null.");
+        }
 
         return new ObjectBinding<LocalDateTime>() {
-            { super.bind(date, hour, minute); }
+            {
+                super.bind(date, hour, minute);
+            }
 
             @Override
             protected LocalDateTime computeValue() {
@@ -171,26 +234,33 @@ public class ValueBindings {
             }
 
             @Override
-            public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(date, hour, minute); }
+            public ObservableList<?> getDependencies() {
+                return FXCollections.observableArrayList(date, hour, minute);
+            }
 
             @Override
-            public void dispose() { super.unbind(date, hour, minute); }
+            public void dispose() {
+                super.unbind(date, hour, minute);
+            }
         };
     }
 
-    public static <R extends DataObjectFactory.DataObjectImpl> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
-        if (recordProperty == null)
+    public static <R extends DataObjectImpl> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
+        if (recordProperty == null) {
             throw new NullPointerException("Record binding cannot be null.");
-        
+        }
+
         return new IntegerBinding() {
-            { super.bind(recordProperty); }
+            {
+                super.bind(recordProperty);
+            }
 
             @Override
             protected int computeValue() {
-                DataObjectFactory.DataObjectImpl record = recordProperty.get();
+                DataObjectImpl record = recordProperty.get();
                 return (record == null) ? 0 : record.getPrimaryKey();
             }
         };
     }
-    
+
 }

@@ -8,15 +8,8 @@ import scheduler.dao.DataObject;
  * @author erwinel
  * @param <R> The type of object that is used for data operations.
  */
-public interface ChildModel<R extends DataObject> {
+public interface ChildModel<R extends DataObject> extends DataObjectReferenceModel<R> {
 
-    /**
-     * Gets the {@link scheduler.dao.DataObjectImpl} to be used for data access operations.m the child model properties;
-     * otherwise, {@code false} to return the {@link DataObject} as-is.
-     * @return The {@link scheduler.dao.DataObjectImpl} to be used for data access operations.
-     */
-    R getDataObject();
-    
     /**
      * Checks that {@link DataObject#isExisting()} from {@link #getDataObject()} returns true, throwing an exception if otherwise.
      * @param <M> The type of {@link ChildModel} to check.

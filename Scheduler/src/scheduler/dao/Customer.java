@@ -38,7 +38,7 @@ public interface Customer extends DataObject {
      * 
      * @return The {@link Address} for the current customer.
      */
-    Address getAddress();
+    DataObjectReference<AddressImpl, Address> getAddress();
 
     /**
      * Gets a value that indicates whether the current customer is active.
@@ -56,13 +56,13 @@ public interface Customer extends DataObject {
      * @param active {@code true} if the current customer is active; otherwise, {@code false}.
      * @return The read-only Customer object.
      */
-    public static Customer of(int pk, String name, Address address, boolean active) {
+    public static Customer of(int pk, String name, DataObjectReference<AddressImpl, Address> address, boolean active) {
         Objects.requireNonNull(name, "Name cannot be null");
         return new Customer() {
             @Override
             public String getName() { return name; }
             @Override
-            public Address getAddress() { return address; }
+            public DataObjectReference<AddressImpl, Address> getAddress() { return address; }
             @Override
             public boolean isActive() { return active; }
             @Override
@@ -84,8 +84,9 @@ public interface Customer extends DataObject {
         int id = resultSet.getInt(pkColName);
         if (resultSet.wasNull())
             return null;
-        boolean active = resultSet.getBoolean(CustomerFactory.COLNAME_ACTIVE) && !resultSet.wasNull();
-        String name = resultSet.getString(CustomerFactory.COLNAME_CUSTOMERNAME);
-        return Customer.of(id, (resultSet.wasNull()) ? "" : name, Address.of(resultSet, CustomerFactory.COLNAME_ADDRESSID), active);
+        boolean active = resultSet.getBoolean(CustomerImpl.COLNAME_ACTIVE) && !resultSet.wasNull();
+        Address a = Address.of(resultSet, CustomerImpl.COLNAME_ADDRESSID);
+        String name = resultSet.getString(CustomerImpl.COLNAME_CUSTOMERNAME);
+        return Customer.of(id, (resultSet.wasNull()) ? "" : name, DataObjectReference.of(a), active);
     }
 }

@@ -23,6 +23,7 @@
         </data>
         <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
             <word>accessor</word>
+            <word>bindable</word>
             <word>internet</word>
             <word>url</word>
         </spellchecker-wordlist>

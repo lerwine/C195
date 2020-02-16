@@ -10,7 +10,7 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.DataObjectFactory;
+import scheduler.dao.DataObjectImpl;
 import scheduler.util.Values;
 
 /**
@@ -19,7 +19,7 @@ import scheduler.util.Values;
  * @param <T>
  */
 @Deprecated
-public class ReadOnlyDataRowProperty<T extends DataObjectFactory.DataObjectImpl> extends ReadOnlyObjectWrapper<T> {
+public class ReadOnlyDataRowProperty<T extends DataObjectImpl> extends ReadOnlyObjectWrapper<T> {
     private final BooleanBinding newRow;
 
     public BooleanBinding isNewRow() { return newRow; }
