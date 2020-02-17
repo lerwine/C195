@@ -9,7 +9,7 @@ import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
-import scheduler.view.CrudAction;
+import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -109,7 +109,7 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
     }
 
     @Override
-    protected CrudAction<UserModel> onEditItem(Event event, UserModel item) {
+    protected EditItem.ShowAndWaitResult<UserModel> onEditItem(Event event, UserModel item) {
         return getMainController().editUser(event, item);
     }
 

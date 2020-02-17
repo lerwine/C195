@@ -20,10 +20,12 @@ import scheduler.util.PwHash;
 import scheduler.view.MainController;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
-import scheduler.view.login.LoginScene;
+import scheduler.view.Login;
 
 /**
- * Application class for Scheduler
+ * Main Application class for Scheduler
+ * Upon startup, {@link Login} is loaded into the scene of the primary stage.
+ * After successful authentication, {@link MainController} is loaded into a new scene in the primary stage.
  * @author Leonard T. Erwine
  */
 public class App extends Application {
@@ -330,7 +332,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         AppConfig.refresh();
-        LoginScene.loadInto(stage);
+        Login.loadInto(stage);
         stage.show();
     }
     

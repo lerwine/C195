@@ -182,7 +182,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
      * @param item The selected item to be edited.
      * @return 
      */
-    protected abstract CrudAction<M> onEditItem(Event event, M item);
+    protected abstract EditItem.ShowAndWaitResult<M> onEditItem(Event event, M item);
 
     /**
      * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the

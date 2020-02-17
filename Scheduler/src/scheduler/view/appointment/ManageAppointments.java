@@ -13,7 +13,7 @@ import scheduler.dao.AppointmentImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
 import scheduler.util.Alerts;
-import scheduler.view.CrudAction;
+import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.ListingController;
@@ -315,17 +315,11 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 
     @Override
     protected void onAddNewItem(Event event) {
-        try {
-            getMainController().addNewAppointment(event);
-        } catch (SQLException ex) {
-            Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        getMainController().addNewAppointment(event);
     }
 
     @Override
-    protected CrudAction<AppointmentModel> onEditItem(Event event, AppointmentModel item) {
+    protected EditItem.ShowAndWaitResult<AppointmentModel> onEditItem(Event event, AppointmentModel item) {
         return getMainController().editAppointment(event, item);
     }
 

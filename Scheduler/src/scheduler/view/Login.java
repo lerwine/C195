@@ -1,4 +1,4 @@
-package scheduler.view.login;
+package scheduler.view;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,8 +37,8 @@ import scheduler.view.SchedulerController;
  */
 @GlobalizationResource("scheduler/view/login/LoginScene")
 @FXMLResource("/scheduler/view/login/LoginScene.fxml")
-public final class LoginScene extends SchedulerController {
-    private static final Logger LOG = Logger.getLogger(LoginScene.class.getName());
+public final class Login extends SchedulerController {
+    private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
     
@@ -159,7 +159,7 @@ public final class LoginScene extends SchedulerController {
             Locale.setDefault(Locale.Category.FORMAT, toSelect);
         }
 
-        SchedulerController.load(stage, LoginScene.class, (Parent v, LoginScene c) -> {
+        SchedulerController.load(stage, Login.class, (Parent v, Login c) -> {
             c.languageComboBox.setItems(languages);
             stage.setScene(new Scene(v));
         });
@@ -254,7 +254,7 @@ public final class LoginScene extends SchedulerController {
             Locale.setDefault(Locale.Category.DISPLAY, newValue);
             Locale.setDefault(Locale.Category.FORMAT, newValue);
             // Load resource bundle for new language
-            currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(LoginScene.class), newValue);
+            currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(Login.class), newValue);
             // Update field labels and button text.
             Scene scene = languageComboBox.getScene();
             if (null != scene) {

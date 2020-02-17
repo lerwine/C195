@@ -9,7 +9,7 @@ import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
 import scheduler.util.Alerts;
-import scheduler.view.CrudAction;
+import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -100,7 +100,7 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
     }
 
     @Override
-    protected CrudAction<CountryModel> onEditItem(Event event, CountryModel item) {
+    protected EditItem.ShowAndWaitResult<CountryModel> onEditItem(Event event, CountryModel item) {
         return getMainController().editCountry(event, item);
     }
 

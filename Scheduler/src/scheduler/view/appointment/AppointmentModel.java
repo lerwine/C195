@@ -6,6 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import scheduler.App;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.Customer;
 import scheduler.dao.CustomerImpl;

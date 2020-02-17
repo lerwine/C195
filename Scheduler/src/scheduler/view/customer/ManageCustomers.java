@@ -11,7 +11,7 @@ import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
 import scheduler.util.Alerts;
-import scheduler.view.CrudAction;
+import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -135,17 +135,11 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
 //    }
     @Override
     protected void onAddNewItem(Event event) {
-        try {
-            getMainController().addNewCustomer(event);
-        } catch (SQLException ex) {
-            Logger.getLogger(ManageCustomers.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ManageCustomers.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        getMainController().addNewCustomer(event);
     }
 
     @Override
-    protected CrudAction<CustomerModel> onEditItem(Event event, CustomerModel item) {
+    protected EditItem.ShowAndWaitResult<CustomerModel> onEditItem(Event event, CustomerModel item) {
         return getMainController().editCustomer(event, item);
     }
 
