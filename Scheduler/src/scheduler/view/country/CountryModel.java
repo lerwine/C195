@@ -6,9 +6,6 @@
 package scheduler.view.country;
 
 import java.sql.SQLException;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl.Factory;

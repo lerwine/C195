@@ -847,11 +847,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
             userConflictCount.set(0);
         }
 
-        @Deprecated
-        boolean test() {
-            throw new RuntimeException("This has been deprecated");
-        }
-
         /**
          * This is invoked when the user clicks the "Save" button, to see if there are no customer or user scheduling conflicts.
          *
@@ -868,8 +863,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                         UserModel u = selectedUserProperty.get();
                         if (u != null) {
                             AppointmentImpl.FactoryImpl factory = AppointmentImpl.getFactory();
-                            int cc = factory.countByCustomer(connection, c.getDataObject().getPrimaryKey(), start, end);
-                            int uc = factory.countByUser(connection, u.getDataObject().getPrimaryKey(), start, end);
+                            int cc = factory.countByCustomer(connection, c.getPrimaryKey(), start, end);
+                            int uc = factory.countByUser(connection, u.getPrimaryKey(), start, end);
                             customerConflictCount.set(cc);
                             userConflictCount.set(uc);
                             return cc == 0 && uc == 0;

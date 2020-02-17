@@ -28,7 +28,7 @@ import scheduler.dao.DataObjectImpl;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEventManager;
-import scheduler.util.ItemEventObject;
+import scheduler.util.ItemEvent;
 import scheduler.util.DbConnector;
 import scheduler.util.ThrowableFunction;
 import scheduler.view.address.AddressModel;
@@ -209,64 +209,64 @@ public final class MainController extends SchedulerController {
     private MainContentController contentController;
     //<editor-fold defaultstate="collapsed" desc="Event handler managers">
 
-    private final ItemEventManager<ItemEventObject<AppointmentModel>> appointmentAddManager;
-    private final ItemEventManager<ItemEventObject<AppointmentModel>> appointmentRemoveManager;
-    private final ItemEventManager<ItemEventObject<CustomerModel>> customerAddManager;
-    private final ItemEventManager<ItemEventObject<CustomerModel>> customerRemoveManager;
-    private final ItemEventManager<ItemEventObject<UserModel>> userAddManager;
-    private final ItemEventManager<ItemEventObject<UserModel>> userRemoveManager;
-    private final ItemEventManager<ItemEventObject<AddressModel>> addressAddManager;
-    private final ItemEventManager<ItemEventObject<AddressModel>> addressRemoveManager;
-    private final ItemEventManager<ItemEventObject<CityModel>> cityAddManager;
-    private final ItemEventManager<ItemEventObject<CityModel>> cityRemoveManager;
-    private final ItemEventManager<ItemEventObject<CountryModel>> countryAddManager;
-    private final ItemEventManager<ItemEventObject<CountryModel>> countryRemoveManager;
+    private final ItemEventManager<ItemEvent<AppointmentModel>> appointmentAddManager;
+    private final ItemEventManager<ItemEvent<AppointmentModel>> appointmentRemoveManager;
+    private final ItemEventManager<ItemEvent<CustomerModel>> customerAddManager;
+    private final ItemEventManager<ItemEvent<CustomerModel>> customerRemoveManager;
+    private final ItemEventManager<ItemEvent<UserModel>> userAddManager;
+    private final ItemEventManager<ItemEvent<UserModel>> userRemoveManager;
+    private final ItemEventManager<ItemEvent<AddressModel>> addressAddManager;
+    private final ItemEventManager<ItemEvent<AddressModel>> addressRemoveManager;
+    private final ItemEventManager<ItemEvent<CityModel>> cityAddManager;
+    private final ItemEventManager<ItemEvent<CityModel>> cityRemoveManager;
+    private final ItemEventManager<ItemEvent<CountryModel>> countryAddManager;
+    private final ItemEventManager<ItemEvent<CountryModel>> countryRemoveManager;
     
-    public ItemEventManager<ItemEventObject<AppointmentModel>> getAppointmentAddManager() {
+    public ItemEventManager<ItemEvent<AppointmentModel>> getAppointmentAddManager() {
         return appointmentAddManager;
     }
 
-    public ItemEventManager<ItemEventObject<AppointmentModel>> getAppointmentRemoveManager() {
+    public ItemEventManager<ItemEvent<AppointmentModel>> getAppointmentRemoveManager() {
         return appointmentRemoveManager;
     }
 
-    public ItemEventManager<ItemEventObject<CustomerModel>> getCustomerAddManager() {
+    public ItemEventManager<ItemEvent<CustomerModel>> getCustomerAddManager() {
         return customerAddManager;
     }
 
-    public ItemEventManager<ItemEventObject<CustomerModel>> getCustomerRemoveManager() {
+    public ItemEventManager<ItemEvent<CustomerModel>> getCustomerRemoveManager() {
         return customerRemoveManager;
     }
 
-    public ItemEventManager<ItemEventObject<UserModel>> getUserAddManager() {
+    public ItemEventManager<ItemEvent<UserModel>> getUserAddManager() {
         return userAddManager;
     }
 
-    public ItemEventManager<ItemEventObject<UserModel>> getUserRemoveManager() {
+    public ItemEventManager<ItemEvent<UserModel>> getUserRemoveManager() {
         return userRemoveManager;
     }
 
-    public ItemEventManager<ItemEventObject<AddressModel>> getAddressAddManager() {
+    public ItemEventManager<ItemEvent<AddressModel>> getAddressAddManager() {
         return addressAddManager;
     }
 
-    public ItemEventManager<ItemEventObject<AddressModel>> getAddressRemoveManager() {
+    public ItemEventManager<ItemEvent<AddressModel>> getAddressRemoveManager() {
         return addressRemoveManager;
     }
 
-    public ItemEventManager<ItemEventObject<CityModel>> getCityAddManager() {
+    public ItemEventManager<ItemEvent<CityModel>> getCityAddManager() {
         return cityAddManager;
     }
 
-    public ItemEventManager<ItemEventObject<CityModel>> getCityRemoveManager() {
+    public ItemEventManager<ItemEvent<CityModel>> getCityRemoveManager() {
         return cityRemoveManager;
     }
 
-    public ItemEventManager<ItemEventObject<CountryModel>> getCountryAddManager() {
+    public ItemEventManager<ItemEvent<CountryModel>> getCountryAddManager() {
         return countryAddManager;
     }
 
-    public ItemEventManager<ItemEventObject<CountryModel>> getCountryRemoveManager() {
+    public ItemEventManager<ItemEvent<CountryModel>> getCountryRemoveManager() {
         return countryRemoveManager;
     }
     
@@ -342,7 +342,7 @@ public final class MainController extends SchedulerController {
         }
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            appointmentAddManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            appointmentAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
             return result.getTarget();
         }
         return null;
@@ -358,7 +358,7 @@ public final class MainController extends SchedulerController {
     public EditItem.ShowAndWaitResult<AppointmentModel> editAppointment(Event event, AppointmentModel item) {
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation())
-            appointmentRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            appointmentRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
         return result;
     }
 
@@ -367,7 +367,7 @@ public final class MainController extends SchedulerController {
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
-                    (m) -> appointmentRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, m))));
+                    (m) -> appointmentRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 
@@ -384,7 +384,7 @@ public final class MainController extends SchedulerController {
         }
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            customerAddManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            customerAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
             return result.getTarget();
         }
         return null;
@@ -393,7 +393,7 @@ public final class MainController extends SchedulerController {
     public  EditItem.ShowAndWaitResult<CustomerModel> editCustomer(Event event, CustomerModel item) {
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation())
-            customerRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            customerRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
         return result;
     }
 
@@ -402,7 +402,7 @@ public final class MainController extends SchedulerController {
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
-                    (m) -> customerRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, m))));
+                    (m) -> customerRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 
@@ -412,7 +412,7 @@ public final class MainController extends SchedulerController {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class,
                 new CountryModel(new CountryImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            countryAddManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            countryAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
             return result.getTarget();
         }
         return null;
@@ -421,7 +421,7 @@ public final class MainController extends SchedulerController {
     public EditItem.ShowAndWaitResult<CountryModel> editCountry(Event event, CountryModel item) {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation())
-            countryRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            countryRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
         return result;
     }
 
@@ -430,7 +430,7 @@ public final class MainController extends SchedulerController {
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
-                    (m) -> countryRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, m))));
+                    (m) -> countryRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 
@@ -447,7 +447,7 @@ public final class MainController extends SchedulerController {
         }
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            cityAddManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            cityAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
             return result.getTarget();
         }
         return null;
@@ -456,7 +456,7 @@ public final class MainController extends SchedulerController {
     public EditItem.ShowAndWaitResult<CityModel> editCity(Event event, CityModel item) {
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation())
-            cityRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            cityRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
         return result;
     }
 
@@ -465,7 +465,7 @@ public final class MainController extends SchedulerController {
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
-                    (m) -> cityRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, m))));
+                    (m) -> cityRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 
@@ -482,7 +482,7 @@ public final class MainController extends SchedulerController {
         }
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            addressAddManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            addressAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
             return result.getTarget();
         }
         return null;
@@ -491,7 +491,7 @@ public final class MainController extends SchedulerController {
     public EditItem.ShowAndWaitResult<AddressModel> editAddress(Event event, AddressModel item) {
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation())
-            addressRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            addressRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
         return result;
     }
 
@@ -500,7 +500,7 @@ public final class MainController extends SchedulerController {
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
-                    (m) -> addressRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, m))));
+                    (m) -> addressRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 
@@ -510,7 +510,7 @@ public final class MainController extends SchedulerController {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class,
                 new UserModel(new UserImpl()), (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
-            userAddManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            userAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
             return result.getTarget();
         }
         return null;
@@ -519,7 +519,7 @@ public final class MainController extends SchedulerController {
     public EditItem.ShowAndWaitResult<UserModel> editUser(Event event, UserModel item) {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation())
-            userRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, result.getTarget()));
+            userRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
         return result;
     }
 
@@ -528,7 +528,7 @@ public final class MainController extends SchedulerController {
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
-                    (m) -> userRemoveManager.fireEvent(new ItemEventObject<>(MainController.this, m))));
+                    (m) -> userRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 

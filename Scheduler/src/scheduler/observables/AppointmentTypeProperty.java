@@ -6,7 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 import scheduler.util.Values;
 
 /**
- * A {@SimpleStringProperty} that contains appointment type code strings
+ * A {@link SimpleStringProperty} that contains appointment type code strings
  * @author erwinel
  */
 public class AppointmentTypeProperty extends SimpleStringProperty {

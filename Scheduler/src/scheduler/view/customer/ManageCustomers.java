@@ -5,11 +5,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.stage.Stage;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
-import scheduler.util.Alerts;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
@@ -129,9 +127,6 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
         super.initialize();
     }
 
-//    public static void setContent(MainController mc, Stage stage, ModelFilter<CustomerModel> filter) throws IOException {
-//        ListingController.setContent(ManageCustomers.class, mc, stage, filter);
-//    }
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewCustomer(event);
@@ -171,32 +166,6 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
     @Override
     protected DataObjectImpl.Factory<CustomerImpl> getDaoFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-//    @Override
-//    protected void onFilterChanged(Stage owner) { TaskWaiter.execute(new CustomersLoadTask(owner)); }
-    private class CustomersLoadTask extends ItemsLoadTask {
-
-        CustomersLoadTask(Stage owner) {
-            super(owner, getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
-        }
-
-        @Override
-        protected void processNullResult(Stage owner) {
-            LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
-            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCUSTOMERS));
-        }
-
-//        @Override
-//        protected Iterable<CustomerFactory.CustomerImpl> getResult(Connection connection, ModelFilter<CustomerModel> filter) throws Exception {
-//            return (new CustomerFactory()).load(connection, filter);
-//        }
-        @Override
-        protected void processException(Throwable ex, Stage owner) {
-            super.processException(ex, owner);
-            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCUSTOMERS));
-        }
-
     }
 
 }

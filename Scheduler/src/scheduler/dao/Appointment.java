@@ -67,7 +67,7 @@ public interface Appointment extends DataObject {
     /**
      * Gets the explicit location of the current appointment.
      * This corresponds to the "location" database column.
-     * If the appointment location is not a physical location or is an implicit location, then it will be encoded into the {@link #url} field.
+     * If the appointment location is not a physical location or is an implicit location, then it will be encoded into the url field.
      * Column definition: <code>`location` text NOT NULL</code>
      * @return The explicit location of the current appointment.
      */
@@ -85,8 +85,10 @@ public interface Appointment extends DataObject {
      * Gets the type of the current appointment.
      * This corresponds to the "type" database column.
      * Column definition: <code>`type` text NOT NULL</code>
-     * @return {@link #APPOINTMENTTYPE_PHONE}, {@link #APPOINTMENTTYPE_VIRTUAL}, {@link #APPOINTMENTTYPE_CUSTOMER}, {@link #APPOINTMENTTYPE_HOME},
-     * {@link #APPOINTMENTTYPE_GERMANY}, {@link #APPOINTMENTTYPE_INDIA}, {@link #APPOINTMENTTYPE_HONDURAS}, or {@link #APPOINTMENTTYPE_OTHER}.
+     * @return {@link scheduler.util.Values#APPOINTMENTTYPE_PHONE}, {@link scheduler.util.Values#APPOINTMENTTYPE_VIRTUAL},
+     * {@link scheduler.util.Values#APPOINTMENTTYPE_CUSTOMER}, {@link scheduler.util.Values#APPOINTMENTTYPE_HOME},
+     * {@link scheduler.util.Values#APPOINTMENTTYPE_GERMANY}, {@link scheduler.util.Values#APPOINTMENTTYPE_INDIA},
+     * {@link scheduler.util.Values#APPOINTMENTTYPE_HONDURAS}, or {@link scheduler.util.Values#APPOINTMENTTYPE_OTHER}.
      */
     String getType();
     

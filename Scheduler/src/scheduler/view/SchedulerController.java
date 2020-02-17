@@ -165,7 +165,7 @@ public abstract class SchedulerController {
     
     /**
      * This gets called after the view is removed from the hierarchy of the current {@link javafx.scene.Scene} or the current window is closed.
-     * @param view
+     * @param view The {@link Node} representing the view that was unloaded.
      */
     protected void onUnloaded(Node view) { }
     

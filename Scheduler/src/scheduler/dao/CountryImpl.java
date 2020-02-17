@@ -4,12 +4,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.stream.Stream;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import scheduler.observables.NonNullableStringProperty;
-import scheduler.view.country.CountryReferenceModel;
 
 public class CountryImpl extends DataObjectImpl implements Country {
 
@@ -46,7 +40,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} country object.
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} country object.
      */
     public CountryImpl() {
         super();

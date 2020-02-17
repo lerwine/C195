@@ -71,7 +71,7 @@ public class CityImpl extends DataObjectImpl implements City {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} city object.
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} city object.
      */
     public CityImpl() {
         super();

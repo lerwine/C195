@@ -1,13 +1,10 @@
 package scheduler.view.user;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
-import javafx.stage.Stage;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
 import scheduler.dao.UserImpl;
-import scheduler.util.Alerts;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
@@ -98,10 +95,6 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
 
     //</editor-fold>
     
-//    public static void setContent(MainController mc, Stage stage, ModelFilter<UserModel> filter) throws IOException {
-//        ListingController.setContent(ManageUsers.class, mc, stage, filter);
-//    }
-    
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewUser(event);
@@ -123,11 +116,6 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
         });
     }
 
-//    @Override
-//    protected void onFilterChanged(Stage owner) {
-//        TaskWaiter.execute(new UsersLoadTask(owner));
-//    }
-    
     @Override
     protected UserModel toModel(UserImpl result) { return new UserModel(result); }
 
@@ -139,25 +127,6 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
     @Override
     protected DataObjectImpl.Factory<UserImpl> getDaoFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private class UsersLoadTask extends ItemsLoadTask {
-        UsersLoadTask(Stage owner) {
-            super(owner, getResourceString(RESOURCEKEY_LOADINGUSERS));
-        }
-
-        @Override
-        protected void processNullResult(Stage owner) {
-            LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
-            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGUSERS));
-        }
-
-        @Override
-        protected void processException(Throwable ex, Stage owner) {
-            super.processException(ex, owner);
-            Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGUSERS));
-        }
-        
     }
 
 }

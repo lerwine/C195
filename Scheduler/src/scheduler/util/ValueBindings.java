@@ -1,28 +1,16 @@
 package scheduler.util;
 
-import com.sun.javafx.binding.ExpressionHelper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.DataObjectImpl;
@@ -150,8 +138,8 @@ public class ValueBindings {
     }
 
     /**
-     * Creates a new {@link jBooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of {@link LocalDateTime} is not null and start is not greater than end.
-     *
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of
+     * {@link LocalDateTime} is not null and start is not greater than end.
      * @param start The start {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @param end The end {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @return The new {@link BooleanBinding}.

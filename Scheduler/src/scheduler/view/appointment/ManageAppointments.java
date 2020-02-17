@@ -6,12 +6,9 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.stage.Stage;
-import scheduler.App;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
-import scheduler.util.Alerts;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -243,14 +240,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     }
 
     //</editor-fold>
-//    public static void setContent(MainController mc, Stage stage, AppointmentsViewOptions filter) throws IOException {
-//        throw new UnsupportedOperationException("Not implemented");
-////        ListingController.setContent(ManageAppointments.class, mc, stage, filter);
-//    }
-//    @Override
-//    protected void onFilterChanged(Stage owner) {
-//        TaskWaiter.execute(new AppointmentsLoadTask(owner));
-//    }
+    
     @Override
     protected void onDeleteItem(Event event, AppointmentModel item) {
         getMainController().deleteAppointment(event, item, (connection) -> "");
@@ -274,36 +264,6 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     @Override
     protected DataObjectImpl.Factory<AppointmentImpl> getDaoFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private class AppointmentsLoadTask extends ItemsLoadTask {
-
-        AppointmentsLoadTask(Stage owner) {
-            super(owner, getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-        }
-
-//        @Override
-//        protected Iterable<AppointmentFactory.AppointmentImpl> getResult(Connection connection, ModelFilter<AppointmentModel> filter) throws Exception {
-//            LOG.log(Level.INFO, "Invoking AppointmentsLoadTask.getResult");
-//            return (new AppointmentFactory()).load(connection, filter);
-//        }
-        @Override
-        protected void processNullResult(Stage owner) {
-            LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
-            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
-        }
-
-//        @Override
-//        protected void onItemsLoaded(ModelFilter<AppointmentModel> filter, Window owner) {
-//             super.onItemsLoaded(filter, owner);
-//             ((Stage)owner).setTitle(((AppointmentsViewOptions)filter).getWindowTitle(getResources()));
-//        }
-        @Override
-        protected void processException(Throwable ex, Stage owner) {
-            super.processException(ex, owner);
-            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
-        }
-
     }
 
     @Override

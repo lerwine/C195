@@ -12,13 +12,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.ResourceBundle;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
-import scheduler.App;
 import scheduler.util.DB;
 import scheduler.util.Values;
 
@@ -335,7 +330,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} appointment object.
+     * Initializes a {@link Values#ROWSTATE_NEW} appointment object.
      */
     public AppointmentImpl() {
         customer = null;

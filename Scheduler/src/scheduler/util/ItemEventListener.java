@@ -1,13 +1,16 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package scheduler.util;
 
-import java.util.EventListener;
-import java.util.function.Consumer;
-
 /**
- * Listens for {@link DaoEventManager}s.
+ *
  * @author lerwi
- * @param <T> The type of data access object.
+ * @param <T>
  */
 @FunctionalInterface
-public interface ItemEventListener<T extends ItemEventObject<?>> extends EventListener, Consumer<T> {
+public interface ItemEventListener<T extends ItemEvent<?>> extends java.util.EventListener {
+    void handle(T event);
 }

@@ -43,7 +43,7 @@ public interface User extends DataObject {
      * Gets a value that indicates the status of the current user.
      * This corresponds to the "active" database column.
      * 
-     * @return {@link #STATUS_USER}, {@link #STATUS_ADMIN} or {@link #STATUS_INACTIVE}.
+     * @return {@link Values#USER_STATUS_NORMAL}, {@link Values#USER_STATUS_ADMIN} or {@link Values#USER_STATUS_INACTIVE}.
      */
     int getStatus();
     

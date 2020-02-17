@@ -147,7 +147,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
     
     /**
      * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
-     * @param value The new {@link ModelFilter}.
+     * @param value The new {@link LookupFilter}.
      * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
      */
     public void changeFilter(LookupFilter<D, M> value, Stage owner) {
@@ -164,7 +164,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
      * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
      */
     private void onFilterChanged(Stage owner) {
-        TaskWaiter.execute(new ItemsLoadTask(owner, filter.getLoadingMessage()));
+        TaskWaiter.execute(new ItemsLoadTask(owner));
     }
     
     /**
@@ -196,7 +196,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         int index = -1;
         while (iterator.hasNext()) {
             ++index;
-            if (iterator.next().getDataObject().getPrimaryKey() == pk)
+            if (iterator.next().getPrimaryKey() == pk)
                 return index;
         }
         return -1;
@@ -206,7 +206,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         Iterator<M> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
             M item = iterator.next();
-            if (item.getDataObject().getPrimaryKey() == pk)
+            if (item.getPrimaryKey() == pk)
                 return item;
         }
         return null;
@@ -216,7 +216,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         Iterator<M> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
             M item = iterator.next();
-            if (item.getDataObject().getPrimaryKey() == pk) {
+            if (item.getPrimaryKey() == pk) {
                 iterator.remove();
                 return true;
             }
@@ -226,11 +226,11 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
     
     protected boolean updateListItem(M item) {
         Objects.requireNonNull(item);
-        int pk = item.getDataObject().getPrimaryKey();
+        int pk = item.getPrimaryKey();
         ObservableList<M> items = getItemsList();
         for (int i = 0; i < items.size(); i++) {
             M m = items.get(i);
-            if (m.getDataObject().getPrimaryKey() == pk) {
+            if (m.getPrimaryKey() == pk) {
                 if (m != item)
                     items.set(i, item);
                 return true;
@@ -238,39 +238,30 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         }
         return false;
     }
-    
-//    protected final static <M  extends ItemModel<?>, C extends ListingController<M>> void setContent(Class<C> controllerClass, MainController mc,
-//            Stage stage, ModelFilter<M> filter) throws IOException {
-//        mc.setContent(controllerClass, stage, (Parent v, C c) -> {
-//            c.changeFilter(filter, stage);
-//        });
-//    }
-        
+      
     protected abstract DataObjectImpl.Factory<D> getDaoFactory();
     
     protected abstract M toModel(D result);
         
     protected class ItemsLoadTask extends TaskWaiter<List<D>> {
-//        private final ModelFilter<M> currentFilter;
+        private final LookupFilter<D, M> currentFilter;
         
-        protected ItemsLoadTask(Stage owner, String operation) {
-            super(owner, operation);
-//            currentFilter = filter;
+        protected ItemsLoadTask(Stage owner) {
+            super(owner, filter.getLoadingMessage());
+            currentFilter = filter;
         }
         
         protected void processNullResult(Stage owner) {
             
         }
         
-//        protected void onItemsLoaded(ModelFilter<M> filter, Window owner) { }
+        protected void onItemsLoaded(LookupFilter<D, M> filter, Stage owner) { }
         
-//        protected abstract Iterable<T> getResult(Connection connection, ModelFilter<M> filter) throws Exception;
-    
         @Override
         protected final List<D> getResult() throws Exception {
             try (DbConnector dep = new DbConnector()) {
                 DataObjectImpl.Factory<D> factory = getDaoFactory();
-                return filter.apply(dep.getConnection(), factory);
+                return currentFilter.apply(dep.getConnection(), factory);
             }
         }
         
@@ -284,7 +275,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
                 Iterator<D> it = result.iterator();
                 while (it.hasNext())
                     itemsList.add(toModel(it.next()));
-                throw new UnsupportedOperationException("Not implemented");
+                onItemsLoaded(currentFilter, owner);
             }
         }
         

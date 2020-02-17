@@ -164,7 +164,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObjectImpl.ROWSTATE_NEW} address object.
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} address object.
      */
     public AddressImpl() {
         address1 = "";

@@ -16,14 +16,14 @@ public interface DataObject {
     
     /**
      * Gets a value which indicates the disposition of the current data object in relation to the corresponding data row in the database.
-     * @return {@link DataObjectFactory#ROWSTATE_UNMODIFIED}, {@link DataObjectFactory#ROWSTATE_MODIFIED}, {@link DataObjectFactory#ROWSTATE_NEW} or {@link DataObjectFactory#ROWSTATE_DELETED}.
+     * @return {@link Values#ROWSTATE_UNMODIFIED}, {@link Values#ROWSTATE_MODIFIED}, {@link Values#ROWSTATE_NEW} or {@link Values#ROWSTATE_DELETED}.
      */
     int getRowState();
     
     /**
      * Gets a value which indicates whether the current data object exists in the database.
-     * @return {@code true} if the row state is {@link DataObjectFactory#ROWSTATE_UNMODIFIED}, {@link DataObjectFactory#ROWSTATE_MODIFIED}, otherwise, {@code false} if
-     * the row state is {@link DataObjectFactory#ROWSTATE_NEW} or {@link DataObjectFactory#ROWSTATE_DELETED}.
+     * @return {@code true} if the row state is {@link Values#ROWSTATE_UNMODIFIED}, {@link Values#ROWSTATE_MODIFIED}, otherwise, {@code false} if
+     * the row state is {@link Values#ROWSTATE_NEW} or {@link Values#ROWSTATE_DELETED}.
      */
     default boolean isExisting() { return getRowState() == Values.ROWSTATE_MODIFIED || getRowState() == Values.ROWSTATE_UNMODIFIED; }
 }

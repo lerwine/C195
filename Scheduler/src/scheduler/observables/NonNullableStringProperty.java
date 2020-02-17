@@ -40,7 +40,7 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     
     /**
      * Gets a value that indicates whether this property trims extraneous whitespace when modified.
-     * @return {@code true} if this property trims extraneous whitespace when modified; otherwise, {@link false}.
+     * @return {@code true} if this property trims extraneous whitespace when modified; otherwise, {@code false}.
      */
     public boolean isTrimming() { return trimming; }
     

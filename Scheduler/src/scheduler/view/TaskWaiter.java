@@ -23,6 +23,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import scheduler.App;
 import scheduler.util.DbConnectedCallable;
 import scheduler.util.DbConnectionConsumer;
@@ -31,7 +32,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
 /**
- * Controller / Task for showing a {@link Popup} busy indicator while background process is running.
+ * Controller / Task for showing a busy indicator while background process is running.
  * @author erwinel
  * @param <T> Type of value produced by the task.
  */
@@ -39,7 +40,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/TaskWaiter.fxml")
 public abstract class TaskWaiter<T> extends Task<T> {
     private static final Logger LOG = Logger.getLogger(TaskWaiter.class.getName());
-    
+    private final EventHandler<WindowEvent> onHidden;
+    private EventHandler<WindowEvent> oldOnHidden;
     private final Stage owner;
     
     @FXML // ResourceBundle injected by the FXMLLoader
@@ -78,10 +80,20 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * Initializes a new TaskWaiter.
      * @param owner The owner {@link Stage} that will be masked while the task is executing.
      * @param operation The name of the operation to be displayed as the message text.
-     * @param heading The title to be displayed for the {@link Popup}.
+     * @param heading The text to be displayed for the {@link #headingLabel}.
      */
     public TaskWaiter(Stage owner, String operation, String heading) {
         super();
+        onHidden = (WindowEvent event) -> {
+            owner.setOnHidden(oldOnHidden);
+            try {
+                if (isRunning() && !isCancelled())
+                    cancel(true);
+            } finally {
+                if (null != oldOnHidden)
+                    oldOnHidden.handle(event);
+            }
+        };
         this.owner = Objects.requireNonNull(owner);
         titleProperty().addListener((observable) -> {
             if (headingLabel != null)
@@ -208,25 +220,25 @@ public abstract class TaskWaiter<T> extends Task<T> {
     protected T call() throws Exception {
         LOG.log(Level.INFO, "Task called");
         if (Platform.isFxApplicationThread())
-            showPopup();
+            showBusyView();
         else
             Platform.runLater(() -> {
-                showPopup();
+                showBusyView();
             });
         try {
             LOG.log(Level.INFO, "Getting result");
             return getResult();
         } finally {
             if (Platform.isFxApplicationThread())
-                hidePopup();
+                hideBusyView();
             else
                 Platform.runLater(() -> {
-                    hidePopup();
+                    hideBusyView();
                 });
         }
     }
 
-    private void showPopup() throws RuntimeException {
+    private void showBusyView() throws RuntimeException {
         LOG.log(Level.INFO, "showPopup called");
         if (!contentPane.getChildren().isEmpty())
             return;
@@ -244,10 +256,14 @@ public abstract class TaskWaiter<T> extends Task<T> {
         Parent oldParent = owner.getScene().getRoot();
         owner.getScene().setRoot(newParent);
         contentPane.getChildren().add(oldParent);
+        oldOnHidden = owner.getOnHidden();
+        owner.setOnHidden(onHidden);
     }
     
-    private void hidePopup() {
+    private void hideBusyView() {
         LOG.log(Level.INFO, "hidePopup called");
+        owner.setOnHidden(oldOnHidden);
+        oldOnHidden = null;
         cancelButton.setOnAction(null);
         if (contentPane.getChildren().isEmpty())
             return;

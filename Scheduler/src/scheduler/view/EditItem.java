@@ -454,9 +454,9 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         /**
-         * This gets called to get an instance of the {@link DataObjectFactory}.
+         * This gets called to get an instance of the {@link DataObjectImpl.Factory}.
          *
-         * @return An instance of the {@link DataObjectFactory}.
+         * @return An instance of the {@link DataObjectImpl.Factory}.
          */
         protected abstract DataObjectImpl.Factory<D> getDaoFactory();
 
@@ -470,7 +470,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         /**
          * Gets a message indicating whether any existing record conflicts with the proposed change.
          *
-         * @param connection The {@link Connect} to use to look for database conflicts.
+         * @param connection The {@link Connection} to use to look for database conflicts.
          * @return The human-readable conflict message or {@code null} if there are no conflicts.
          * @throws Exception if unable to check for conflicts.
          */
@@ -479,7 +479,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         /**
          * Gets a message indicating whether any other records have a dependency on the current record.
          *
-         * @param connection The {@link Connect} to use to look for dependencies.
+         * @param connection The {@link Connection} to use to look for dependencies.
          * @return The human-readable dependency message or {@code null} if there are no dependencies.
          * @throws Exception if unable to check for dependencies.
          */

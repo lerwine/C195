@@ -142,7 +142,7 @@ public class Values {
     /**
      * Ensures a string is not null and contains at least one non-whitespace character or else returns a default value.
      * @param sourceValue The source {@link String} value.
-     * @param defaultValueSupplier The {@link Suppler} that returns the default value.
+     * @param defaultValueSupplier The {@link Supplier} that returns the default value.
      * @return {@code sourceValue} if it is not null or empty and contains at least one non-whitespace character;
      * otherwise the result from the {@code defaultValueSupplier} is returned.
      */
@@ -152,8 +152,8 @@ public class Values {
     
     /**
      * Composes a {@link Supplier} that returns the non-whitespace result of the source supplier or a supplied default value.
-     * @param sourceSupplier The source {@link Suppler}.
-     * @param defaultSupplier The {@link Suppler} to use if the {@code sourceSupplier} returns a null value or
+     * @param sourceSupplier The source {@link Supplier}.
+     * @param defaultSupplier The {@link Supplier} to use if the {@code sourceSupplier} returns a null value or
      * does not contain any non-whitespace characters.
      * @return A {@link Supplier} that returns the non-whitespace result of the {@code sourceSupplier} or a value supplied by the {@code defaultSupplier}.
      */
@@ -180,8 +180,8 @@ public class Values {
     
     /**
      * Composes a {@link Supplier} that returns the non-whitespace, trimmed result of the source supplier or a supplied default value.
-     * @param sourceSupplier The source {@link Suppler}.
-     * @param defaultSupplier The {@link Suppler} to use if the {@code sourceSupplier} returns a null value or
+     * @param sourceSupplier The source {@link Supplier}.
+     * @param defaultSupplier The {@link Supplier} to use if the {@code sourceSupplier} returns a null value or
      * does not contain any non-whitespace characters.
      * @return A {@link Supplier} that returns the non-whitespace, trimmed result of the {@code sourceSupplier} or a value supplied
      * by the {@code defaultSupplier}.
@@ -229,51 +229,54 @@ public class Values {
     //<editor-fold defaultstate="collapsed" desc="Appointment type values">
     
     /**
-     * The value of {@link #getType()} when the appointment is a phone-based meeting.
-     * {@link #getUrl()} returns the telephone number encoded as a URL using the format "tel:+" + international_code + "-" + phone_number
-     * and {@link #getLocation()} returns an empty string for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is a phone-based meeting.
+     * {@link scheduler.dao.Appointment#getUrl()} returns the telephone number encoded as a URL using the format
+     * "tel:+" + international_code + "-" + phone_number and {@link scheduler.dao.Appointment#getLocation()}
+     * returns an empty string for this appointment type.
      */
     public static final String APPOINTMENTTYPE_PHONE = "phone";
     
     /**
-     * The value of {@link #getType()} when the appointment is an online virtual meeting.
-     * {@link #getUrl()} returns the internet address of the virtual meeting and {@link #getLocation()} returns an empty string for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is an online virtual meeting.
+     * {@link scheduler.dao.Appointment#getUrl()} returns the internet address of the virtual meeting and
+     * {@link scheduler.dao.Appointment#getLocation()} returns an empty string for this appointment type.
      */
     public static final String APPOINTMENTTYPE_VIRTUAL = "virtual";
     
     /**
-     * The value of {@link #getType()} when the appointment located at the customer address.
-     * {@link #getUrl()} and {@link #getLocation()} return empty strings for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment located at the customer address.
+     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
     public static final String APPOINTMENTTYPE_CUSTOMER = "customer";
     
     /**
-     * The value of {@link #getType()} when the appointment is at the home (USA) office.
-     * {@link #getUrl()} and {@link #getLocation()} return empty strings for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the home (USA) office.
+     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
     public static final String APPOINTMENTTYPE_HOME = "home";
     
     /**
-     * The value of {@link #getType()} when the appointment is at the Germany office.
-     * {@link #getUrl()} and {@link #getLocation()} return empty strings for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the Germany office.
+     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
     public static final String APPOINTMENTTYPE_GERMANY = "germany";
     
     /**
-     * The value of {@link #getType()} when the appointment is at the India office.
-     * {@link #getUrl()} and {@link #getLocation()} return empty strings for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the India office.
+     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
     public static final String APPOINTMENTTYPE_INDIA = "india";
     
     /**
-     * The value of {@link #getType()} when the appointment is at the Honduras office.
-     * {@link #getUrl()} and {@link #getLocation()} return empty strings for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the Honduras office.
+     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
     public static final String APPOINTMENTTYPE_HONDURAS = "honduras";
     
     /**
-     * The value of {@link #getType()} when the appointment is at an explicit address returned by {@link #getLocation()}.
-     * {@link #getUrl()} returns an empty string for this appointment type.
+     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at an explicit address returned by
+     * {@link scheduler.dao.Appointment#getLocation()}.
+     * {@link scheduler.dao.Appointment#getUrl()} returns an empty string for this appointment type.
      */
     public static final String APPOINTMENTTYPE_OTHER = "other";
     
@@ -324,22 +327,22 @@ public class Values {
     //<editor-fold defaultstate="collapsed" desc="Row state values">
     
     /**
-     * Value of {@link #getRowState()} when the current data object has been deleted from the database.
+     * Value of {@link scheduler.dao.DataObject#getRowState()} when the current data object has been deleted from the database.
      */
     public static final int ROWSTATE_DELETED = -1;
     
     /**
-     * Value of {@link #getRowState()} when the current data object has not yet been added to the database.
+     * Value of {@link scheduler.dao.DataObject#getRowState()} when the current data object has not yet been added to the database.
      */
     public static final int ROWSTATE_NEW = 0;
     
     /**
-     * Value of {@link #getRowState()} when the properties of the current data object has not been modified since it was last synchronized with the database.
+     * Value of {@link scheduler.dao.DataObject#getRowState()} when the properties of the current data object has not been modified since it was last synchronized with the database.
      */
     public static final int ROWSTATE_UNMODIFIED = 1;
     
     /**
-     * Value of {@link #getRowState()} when the properties of the current data object differ from the data stored in the database.
+     * Value of {@link scheduler.dao.DataObject#getRowState()} when the properties of the current data object differ from the data stored in the database.
      */
     public static final int ROWSTATE_MODIFIED = 2;
     

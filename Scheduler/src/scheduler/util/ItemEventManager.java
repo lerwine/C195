@@ -1,14 +1,15 @@
 package scheduler.util;
 
+
 /**
- * Manages a chain of {@link ItemEventObject} listeners.
+ * Manages a chain of {@link ItemEvent} listeners.
  * @author lerwi
  * @param <T> The type of event object.
  */
-public class ItemEventManager<T extends ItemEventObject<?>> {
+public class ItemEventManager<T extends ItemEvent<?>> {
     private Link first = null;
     private Link last = null;
-
+    
     /**
      * Fires an event on all listeners in the event listener chain.
      * @param event The event being raised.
@@ -77,6 +78,7 @@ public class ItemEventManager<T extends ItemEventObject<?>> {
         }
         return false;
     }
+
     // Represents a link in an event listener chain.
     private class Link {
         private Link previous;
@@ -98,7 +100,7 @@ public class ItemEventManager<T extends ItemEventObject<?>> {
                 if (null != p)
                     p.fireEvent(event);
             } finally {
-                listener.accept(event);
+                listener.handle(event);
             }
         }
     }

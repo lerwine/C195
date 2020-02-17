@@ -102,7 +102,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} customer object.
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} customer object.
      */
     public CustomerImpl() {
         super();

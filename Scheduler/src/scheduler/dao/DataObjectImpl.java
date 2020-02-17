@@ -201,7 +201,7 @@ public class DataObjectImpl implements DataObject {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} data access object.
+     * Initializes a {@link Values#ROWSTATE_NEW} data access object.
      */
     protected DataObjectImpl() {
         primaryKey = 0;

@@ -12,8 +12,8 @@ import scheduler.util.Values;
 
 /**
  * A {@link SimpleIntegerProperty} that represents a valid data rows state value.
- * The value will be {@link DataObjectFactory#ROWSTATE_NEW}, {@link DataObjectFactory#ROWSTATE_UNMODIFIED},
- * {@link DataObjectFactory#ROWSTATE_MODIFIED} or {@link DataObjectFactory#ROWSTATE_DELETED}.
+ * The value will be {@link Values#ROWSTATE_NEW}, {@link Values#ROWSTATE_UNMODIFIED},
+ * {@link Values#ROWSTATE_MODIFIED} or {@link Values#ROWSTATE_DELETED}.
  * @author erwinel
  */
 public class RowStateProperty extends SimpleIntegerProperty {

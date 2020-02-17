@@ -133,7 +133,7 @@ public class UserImpl extends DataObjectImpl implements User {
     //</editor-fold>
     //</editor-fold>
     /**
-     * Initializes a {@link DataObject.ROWSTATE_NEW} user object.
+     * Initializes a {@link Values#ROWSTATE_NEW} user object.
      */
     public UserImpl() {
         super();
