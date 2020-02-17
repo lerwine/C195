@@ -7,7 +7,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.App;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.DataObjectImpl;
@@ -254,13 +253,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 //    }
     @Override
     protected void onDeleteItem(Event event, AppointmentModel item) {
-        try {
-            getMainController().deleteAppointment(event, item, (connection) -> "");
-        } catch (SQLException ex) {
-            Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ManageAppointments.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        getMainController().deleteAppointment(event, item, (connection) -> "");
     }
 
     @Override
@@ -295,7 +288,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 //            return (new AppointmentFactory()).load(connection, filter);
 //        }
         @Override
-        protected void processNullResult(Window owner) {
+        protected void processNullResult(Stage owner) {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
             Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
@@ -306,7 +299,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 //             ((Stage)owner).setTitle(((AppointmentsViewOptions)filter).getWindowTitle(getResources()));
 //        }
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             super.processException(ex, owner);
             Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }

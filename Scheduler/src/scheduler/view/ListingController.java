@@ -17,7 +17,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.App;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
@@ -259,7 +258,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
 //            currentFilter = filter;
         }
         
-        protected void processNullResult(Window owner) {
+        protected void processNullResult(Stage owner) {
             
         }
         
@@ -276,7 +275,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         }
         
         @Override
-        protected final void processResult(List<D> result, Window owner) {
+        protected final void processResult(List<D> result, Stage owner) {
             if (null == result) {
                 LOG.logp(Level.SEVERE, getClass().getName(), "processResult", String.format("\"%s\" operation returned null", getTitle()));
                 processNullResult(owner);
@@ -290,7 +289,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         }
         
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", String.format("\"%s\" operation error", getTitle()), ex);
             Alerts.showErrorAlert(ex);
         }

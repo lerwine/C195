@@ -18,12 +18,11 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
-import javafx.stage.Window;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import scheduler.App;
 import scheduler.util.DbConnectedCallable;
 import scheduler.util.DbConnectionConsumer;
@@ -41,11 +40,13 @@ import scheduler.view.annotations.GlobalizationResource;
 public abstract class TaskWaiter<T> extends Task<T> {
     private static final Logger LOG = Logger.getLogger(TaskWaiter.class.getName());
     
-    private final Window owner;
-    private Popup popup;
+    private final Stage owner;
     
     @FXML // ResourceBundle injected by the FXMLLoader
     private ResourceBundle resources;
+
+    @FXML
+    private Pane contentPane;
 
     @FXML
     private Label headingLabel;
@@ -58,28 +59,28 @@ public abstract class TaskWaiter<T> extends Task<T> {
 
     /**
      * Initializes a new TaskWaiter.
-     * @param owner The owner {@link Window} for the {@link Popup} that will be displayed while the task is executing.
+     * @param owner The owner {@link Stage} that will be masked while the task is executing.
      */
-    public TaskWaiter(Window owner) {
+    public TaskWaiter(Stage owner) {
         this(owner, null);
     }
     
     /**
      * Initializes a new TaskWaiter.
-     * @param owner The owner {@link Window} for the {@link Popup} that will be displayed while the task is executing.
+     * @param owner The owner {@link Stage} that will be masked while the task is executing.
      * @param operation The name of the operation to be displayed as the message text.
      */
-    public TaskWaiter(Window owner, String operation) {
+    public TaskWaiter(Stage owner, String operation) {
         this(owner, operation, null);
     }
     
     /**
      * Initializes a new TaskWaiter.
-     * @param owner The owner {@link Window} for the {@link Popup} that will be displayed while the task is executing.
+     * @param owner The owner {@link Stage} that will be masked while the task is executing.
      * @param operation The name of the operation to be displayed as the message text.
      * @param heading The title to be displayed for the {@link Popup}.
      */
-    public TaskWaiter(Window owner, String operation, String heading) {
+    public TaskWaiter(Stage owner, String operation, String heading) {
         super();
         this.owner = Objects.requireNonNull(owner);
         titleProperty().addListener((observable) -> {
@@ -97,16 +98,16 @@ public abstract class TaskWaiter<T> extends Task<T> {
     /**
      * Processes the result in the FX application thread.
      * @param result The result value to process.
-     * @param owner The owner {@link Window} of the {@link Popup} that was displayed while the task was executing.
+     * @param owner The owner {@link Stage} that was masked while the task was executing.
      */
-    protected abstract void processResult(T result, Window owner);
+    protected abstract void processResult(T result, Stage owner);
 
     /**
      * Processes an exception in the FX application thread.
      * @param ex The exception that was thrown.
-     * @param owner The owner {@link Window} of the {@link Popup} that was displayed while the task was executing.
+     * @param owner The owner {@link Stage} that was masked while the task was executing.
      */
-    protected abstract void processException(Throwable ex, Window owner);
+    protected abstract void processException(Throwable ex, Stage owner);
     
     @Override
     protected void succeeded() {
@@ -186,6 +187,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
     
     @FXML
     void initialize() {
+        assert contentPane != null : "fx:id=\"contentPane\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert operationLabel != null : "fx:id=\"operationLabel\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
@@ -226,55 +228,51 @@ public abstract class TaskWaiter<T> extends Task<T> {
 
     private void showPopup() throws RuntimeException {
         LOG.log(Level.INFO, "showPopup called");
+        if (!contentPane.getChildren().isEmpty())
+            return;
         ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(TaskWaiter.class),
                 Locale.getDefault(Locale.Category.DISPLAY));
         FXMLLoader loader = new FXMLLoader(TaskWaiter.class.getResource(SchedulerController.getFXMLResourceName(TaskWaiter.class)), rb);
         loader.setController(this);
-        final AnchorPane newParent;
+        final Parent newParent;
         try {
             newParent = loader.load();
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading FXML", ex);
             throw new RuntimeException("Error loading FXML", ex);
         }
-        popup = new Popup();
-        popup.setHideOnEscape(false);
-        popup.setAutoHide(false);
-        popup.setAutoFix(true);
-        popup.getContent().add(newParent);
-        popup.show(owner);
-        popup.setWidth(owner.getWidth());
-        popup.setHeight(owner.getHeight());
-        popup.setAnchorX(owner.getX());
-        popup.setAnchorY(owner.getY());
-        newParent.setMinWidth(owner.getWidth());
-        newParent.setMinHeight(owner.getHeight());
-        popup.setAnchorLocation(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
+        Parent oldParent = owner.getScene().getRoot();
+        owner.getScene().setRoot(newParent);
+        contentPane.getChildren().add(oldParent);
     }
     
     private void hidePopup() {
         LOG.log(Level.INFO, "hidePopup called");
         cancelButton.setOnAction(null);
-        popup.hide();
+        if (contentPane.getChildren().isEmpty())
+            return;
+        Parent oldParent = (Parent) contentPane.getChildren().get(0);
+        contentPane.getChildren().clear();
+        owner.getScene().setRoot(oldParent);
     }
 
-    public static TaskWaiter<?> fromConsumer(Window window, DbConnectionConsumer consumer) {
-        return fromConsumer(window, null, consumer);
+    public static TaskWaiter<?> fromConsumer(Stage owner, DbConnectionConsumer consumer) {
+        return fromConsumer(owner, null, consumer);
     }
     
-    public static TaskWaiter<?> fromConsumer(Window window, String operation, DbConnectionConsumer consumer) {
-        return fromConsumer(window, operation, null, consumer);
+    public static TaskWaiter<?> fromConsumer(Stage owner, String operation, DbConnectionConsumer consumer) {
+        return fromConsumer(owner, operation, null, consumer);
     }
     
-    public static TaskWaiter<?> fromConsumer(Window window, String operation, String heading, DbConnectionConsumer consumer) {
-        return new TaskWaiterImpl<>(window, operation, heading, () -> {
+    public static TaskWaiter<?> fromConsumer(Stage owner, String operation, String heading, DbConnectionConsumer consumer) {
+        return new TaskWaiterImpl<>(owner, operation, heading, () -> {
            DbConnector.apply(consumer);
            return null;
         });
     }
     
-    public static void acceptAsync(Window window, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
-        TaskWaiter<?> task = fromConsumer(window, operation, heading, consumer);
+    public static void acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+        TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
                 task.get();
@@ -291,8 +289,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static void acceptAsync(Window window, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess) {
-        TaskWaiter<?> task = fromConsumer(window, operation, heading, consumer);
+    public static void acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess) {
+        TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
                 task.get();
@@ -308,8 +306,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static void acceptAsync(Window window, String operation, String heading, DbConnectionConsumer consumer, Consumer<Exception> onError) {
-        TaskWaiter<?> task = fromConsumer(window, operation, heading, consumer);
+    public static void acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+        TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
                 task.get();
@@ -324,58 +322,58 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static TaskWaiter<?> acceptAsync(Window window, String operation, String heading, DbConnectionConsumer consumer) {
-        TaskWaiter<?> task = fromConsumer(window, operation, heading, consumer);
+    public static TaskWaiter<?> acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer) {
+        TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         execute(task);
         return task;
     }
     
-    public static void acceptAsync(Window window, String operation, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
-        acceptAsync(window, operation, null, consumer, onSuccess, onError);
+    public static void acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+        acceptAsync(owner, operation, null, consumer, onSuccess, onError);
     }
     
-    public static void acceptAsync(Window window, String operation, DbConnectionConsumer consumer, Runnable onSuccess) {
-        acceptAsync(window, operation, null, consumer, onSuccess);
+    public static void acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer, Runnable onSuccess) {
+        acceptAsync(owner, operation, null, consumer, onSuccess);
     }
     
-    public static void acceptAsync(Window window, String operation, DbConnectionConsumer consumer, Consumer<Exception> onError) {
-        acceptAsync(window, operation, null, consumer, onError);
+    public static void acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+        acceptAsync(owner, operation, null, consumer, onError);
     }
     
-    public static TaskWaiter<?> acceptAsync(Window window, String operation, DbConnectionConsumer consumer) {
-        return acceptAsync(window, operation, null, consumer);
+    public static TaskWaiter<?> acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer) {
+        return acceptAsync(owner, operation, null, consumer);
     }
     
-    public static void acceptAsync(Window window, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
-        acceptAsync(window, null, consumer, onSuccess, onError);
+    public static void acceptAsync(Stage owner, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+        acceptAsync(owner, null, consumer, onSuccess, onError);
     }
     
-    public static void acceptAsync(Window window, DbConnectionConsumer consumer, Runnable onSuccess) {
-        acceptAsync(window, null, consumer, onSuccess);
+    public static void acceptAsync(Stage owner, DbConnectionConsumer consumer, Runnable onSuccess) {
+        acceptAsync(owner, null, consumer, onSuccess);
     }
     
-    public static void acceptAsync(Window window, DbConnectionConsumer consumer, Consumer<Exception> onError) {
-        acceptAsync(window, null, consumer, onError);
+    public static void acceptAsync(Stage owner, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+        acceptAsync(owner, null, consumer, onError);
     }
     
-    public static TaskWaiter<?> acceptAsync(Window window, DbConnectionConsumer consumer) {
-        return acceptAsync(window, null, consumer);
+    public static TaskWaiter<?> acceptAsync(Stage owner, DbConnectionConsumer consumer) {
+        return acceptAsync(owner, null, consumer);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Window window, DbConnectedCallable<T> callable) {
-        return fromCallable(window, null, callable);
+    public static <T> TaskWaiter<T> fromCallable(Stage owner, DbConnectedCallable<T> callable) {
+        return fromCallable(owner, null, callable);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Window window, String operation, DbConnectedCallable<T> callable) {
-        return fromCallable(window, operation, null, callable);
+    public static <T> TaskWaiter<T> fromCallable(Stage owner, String operation, DbConnectedCallable<T> callable) {
+        return fromCallable(owner, operation, null, callable);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Window window, String operation, String heading, DbConnectedCallable<T> callable) {
-        return new TaskWaiterImpl<>(window, operation, heading, () -> DbConnector.call(callable));
+    public static <T> TaskWaiter<T> fromCallable(Stage owner, String operation, String heading, DbConnectedCallable<T> callable) {
+        return new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
     }
 
-    public static <T> void callAsync(Window window, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(window, operation, heading, () -> DbConnector.call(callable));
+    public static <T> void callAsync(Stage owner, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             T result;
             try {
@@ -393,8 +391,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
 
-    public static <T> void callAsync(Window window, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(window, operation, heading, () -> DbConnector.call(callable));
+    public static <T> void callAsync(Stage owner, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
+        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             T result;
             try {
@@ -411,32 +409,32 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Window window, String operation, String heading, DbConnectedCallable<T> callable) {
-        return new TaskWaiterImpl<>(window, operation, heading, () -> DbConnector.call(callable));
+    public static <T> TaskWaiter<T> callAsync(Stage owner, String operation, String heading, DbConnectedCallable<T> callable) {
+        return new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
     }
 
-    public static <T> void callAsync(Window window, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        callAsync(window, operation, null, callable, onSuccess, onError);
+    public static <T> void callAsync(Stage owner, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        callAsync(owner, operation, null, callable, onSuccess, onError);
     }
 
-    public static <T> void callAsync(Window window, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        callAsync(window, operation, null, callable, onSuccess);
+    public static <T> void callAsync(Stage owner, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
+        callAsync(owner, operation, null, callable, onSuccess);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Window window, String operation, DbConnectedCallable<T> callable) {
-        return callAsync(window, operation, null, callable);
+    public static <T> TaskWaiter<T> callAsync(Stage owner, String operation, DbConnectedCallable<T> callable) {
+        return callAsync(owner, operation, null, callable);
     }
 
-    public static <T> void callAsync(Window window, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        callAsync(window, null, callable, onSuccess, onError);
+    public static <T> void callAsync(Stage owner, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        callAsync(owner, null, callable, onSuccess, onError);
     }
 
-    public static <T> void callAsync(Window window, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        callAsync(window, null, callable, onSuccess);
+    public static <T> void callAsync(Stage owner, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
+        callAsync(owner, null, callable, onSuccess);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Window window, DbConnectedCallable<T> callable) {
-        return callAsync(window, null, callable);
+    public static <T> TaskWaiter<T> callAsync(Stage owner, DbConnectedCallable<T> callable) {
+        return callAsync(owner, null, callable);
     }
 
     protected abstract T getResult() throws Exception;

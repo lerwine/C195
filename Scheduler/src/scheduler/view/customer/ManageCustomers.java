@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
@@ -183,7 +182,7 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
         }
 
         @Override
-        protected void processNullResult(Window owner) {
+        protected void processNullResult(Stage owner) {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCUSTOMERS));
         }
@@ -193,7 +192,7 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
 //            return (new CustomerFactory()).load(connection, filter);
 //        }
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             super.processException(ex, owner);
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCUSTOMERS));
         }

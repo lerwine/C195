@@ -7,7 +7,7 @@ package scheduler.view;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import javafx.stage.Window;
+import javafx.stage.Stage;
 
 /**
  * Implementation of the {@link TaskWaiter} interface.
@@ -17,19 +17,19 @@ import javafx.stage.Window;
 public class TaskWaiterImpl<T> extends TaskWaiter<T> {
     private final Callable<T> callable;
     
-    public TaskWaiterImpl(Window window, Callable<T> callable) {
+    public TaskWaiterImpl(Stage window, Callable<T> callable) {
         super(window);
         Objects.requireNonNull(callable);
         this.callable = callable;
     }
     
-    public TaskWaiterImpl(Window window, String operation, Callable<T> callable) {
+    public TaskWaiterImpl(Stage window, String operation, Callable<T> callable) {
         super(window, operation);
         Objects.requireNonNull(callable);
         this.callable = callable;
     }
     
-    public TaskWaiterImpl(Window window, String operation, String heading, Callable<T> callable) {
+    public TaskWaiterImpl(Stage window, String operation, String heading, Callable<T> callable) {
         super(window, operation, heading);
         Objects.requireNonNull(callable);
         this.callable = callable;
@@ -41,9 +41,9 @@ public class TaskWaiterImpl<T> extends TaskWaiter<T> {
     }
 
     @Override
-    protected void processResult(T result, Window owner) { }
+    protected void processResult(T result, Stage owner) { }
 
     @Override
-    protected void processException(Throwable ex, Window owner) { }
+    protected void processException(Throwable ex, Stage owner) { }
 
 }

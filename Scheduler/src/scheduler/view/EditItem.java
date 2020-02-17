@@ -21,7 +21,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.App;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
@@ -295,7 +294,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         @Override
-        protected void processResult(String message, Window owner) {
+        protected void processResult(String message, Stage owner) {
             if (null == message || message.trim().isEmpty()) {
                 try {
                     contentController.model.refreshFromDAO();
@@ -315,7 +314,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error saving record", ex);
             Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_SAVEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
         }
@@ -341,7 +340,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         @Override
-        protected void processResult(String message, Window owner) {
+        protected void processResult(String message, Stage owner) {
             if (null == message || message.trim().isEmpty()) {
                 result.successful = true;
                 result.deleteOperation = true;
@@ -354,7 +353,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
             Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }

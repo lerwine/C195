@@ -18,7 +18,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.App;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.AppointmentImpl;
@@ -363,7 +362,7 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) throws SQLException, ClassNotFoundException {
+    public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
@@ -577,7 +576,7 @@ public final class MainController extends SchedulerController {
         }
 
         @Override
-        protected void processResult(String message, Window owner) {
+        protected void processResult(String message, Stage owner) {
             if (null != message && !message.trim().isEmpty()) {
                 Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), message);
             } else if (null != onDeleted) {
@@ -586,7 +585,7 @@ public final class MainController extends SchedulerController {
         }
 
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
             Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }

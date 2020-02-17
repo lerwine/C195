@@ -4,7 +4,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
@@ -139,13 +138,13 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
         }
 
         @Override
-        protected void processNullResult(Window owner) {
+        protected void processNullResult(Stage owner) {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCOUNTRIES));
         }
 
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             super.processException(ex, owner);
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGCOUNTRIES));
         }

@@ -13,7 +13,6 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.PwHash;
@@ -365,7 +364,7 @@ public class App extends Application {
         }
 
         @Override
-        protected void processResult(UserImpl user, Window owner) {
+        protected void processResult(UserImpl user, Stage owner) {
             if (null == user) {
                 if (null != onNotSucceeded)
                     onNotSucceeded.accept(null);
@@ -381,7 +380,7 @@ public class App extends Application {
         }
 
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             if (null != onNotSucceeded)
                 onNotSucceeded.accept(ex);
         }

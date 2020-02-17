@@ -4,7 +4,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.LookupFilter;
 import scheduler.dao.UserImpl;
@@ -148,13 +147,13 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
         }
 
         @Override
-        protected void processNullResult(Window owner) {
+        protected void processNullResult(Stage owner) {
             LOG.log(Level.SEVERE, String.format("\"%s\" operation returned null", getTitle()));
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGUSERS));
         }
 
         @Override
-        protected void processException(Throwable ex, Window owner) {
+        protected void processException(Throwable ex, Stage owner) {
             super.processException(ex, owner);
             Alerts.showErrorAlert(getResourceString(RESOURCEKEY_DBACCESSERROR), getResourceString(RESOURCEKEY_ERRORLOADINGUSERS));
         }
