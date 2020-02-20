@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view;
 
 import java.io.IOException;
@@ -31,6 +26,7 @@ import scheduler.util.Values;
  * @author lerwi
  */
 public class ErrorDialogDetailController {
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
@@ -100,7 +96,7 @@ public class ErrorDialogDetailController {
         assert relatedExceptionsPane != null : "fx:id=\"relatedExceptionsPane\" was not injected: check your FXML file 'ErrorDialogDetail.fxml'.";
         assert causedByPane != null : "fx:id=\"causedByPane\" was not injected: check your FXML file 'ErrorDialogDetail.fxml'.";
     }
-    
+
     private void initialize(Throwable error, String message, int maxDepth, Optional<Boolean> ignoreCause) throws IOException {
         if (ignoreCause.isPresent()) {
             SchedulerController.collapseNode(logMessageLabel);
@@ -108,39 +104,43 @@ public class ErrorDialogDetailController {
             if (Values.isNullWhiteSpaceOrEmpty(message)) {
                 SchedulerController.collapseNode(typeLabel);
                 SchedulerController.collapseNode(typeTextField);
-            } else
+            } else {
                 typeTextField.setText(message);
+            }
         } else {
             if (Values.isNullWhiteSpaceOrEmpty(message)) {
                 SchedulerController.collapseNode(logMessageLabel);
                 SchedulerController.collapseNode(logMessageTextField);
-            } else
+            } else {
                 logMessageTextField.setText(message);
+            }
             typeTextField.setText(error.getClass().getName());
         }
         String s = error.getLocalizedMessage();
         if (Values.isNullWhiteSpaceOrEmpty(s)) {
             SchedulerController.collapseNode(messageLabel);
             SchedulerController.collapseNode(messgeTextField);
-        } else
+        } else {
             messgeTextField.setText(s);
+        }
         if (error instanceof SQLException) {
-            SQLException sqlException = (SQLException)error;
+            SQLException sqlException = (SQLException) error;
             errorCodeTextField.setText(NumberFormat.getIntegerInstance(Locale.getDefault(Locale.Category.DISPLAY)).format(sqlException.getErrorCode()));
             s = sqlException.getSQLState();
             if (Values.isNullWhiteSpaceOrEmpty(s)) {
                 SchedulerController.collapseNode(stateLabel);
                 SchedulerController.collapseNode(stateTextField);
-            } else
+            } else {
                 stateTextField.setText(s);
+            }
             SQLException ex;
-            if (maxDepth < 1 || (ignoreCause.isPresent() && !ignoreCause.get()) || null == (ex = sqlException.getNextException()))
+            if (maxDepth < 1 || (ignoreCause.isPresent() && !ignoreCause.get()) || null == (ex = sqlException.getNextException())) {
                 SchedulerController.collapseNode(relatedExceptionsPane);
-            else {
+            } else {
                 SQLException n;
-                if (maxDepth == 1 || null == (n = ex.getNextException()))
+                if (maxDepth == 1 || null == (n = ex.getNextException())) {
                     relatedExceptionsPane.setContent(load(ex, maxDepth - 1, false, ex.getClass().getName()));
-                else {
+                } else {
                     Accordion ra = new Accordion();
                     relatedExceptionsPane.setContent(ra);
                     TitledPane rp = new TitledPane();
@@ -152,8 +152,9 @@ public class ErrorDialogDetailController {
                         rp.setText(n.getClass().getName());
                         ra.getPanes().add(rp);
                         rp.setContent(load(n, i, false, null));
-                        if (null == (n = n.getNextException()))
+                        if (null == (n = n.getNextException())) {
                             break;
+                        }
                     }
                 }
             }
@@ -164,15 +165,15 @@ public class ErrorDialogDetailController {
             SchedulerController.collapseNode(stateTextField);
             SchedulerController.collapseNode(relatedExceptionsPane);
         }
-        
+
         Throwable causedBy;
-        if (maxDepth < 1 || (ignoreCause.isPresent() && ignoreCause.get()) || null == (causedBy = error.getCause()))
+        if (maxDepth < 1 || (ignoreCause.isPresent() && ignoreCause.get()) || null == (causedBy = error.getCause())) {
             SchedulerController.collapseNode(causedByPane);
-        else {
+        } else {
             Throwable c;
-            if (maxDepth == 1 || null == (c = causedBy.getCause()))
+            if (maxDepth == 1 || null == (c = causedBy.getCause())) {
                 causedByPane.setContent(load(causedBy, maxDepth - 1, true, causedBy.getClass().getName()));
-            else {
+            } else {
                 Accordion ca = new Accordion();
                 causedByPane.setContent(ca);
                 TitledPane cp = new TitledPane();
@@ -184,8 +185,9 @@ public class ErrorDialogDetailController {
                     cp.setText(c.getClass().getName());
                     ca.getPanes().add(cp);
                     cp.setContent(load(c, i, true, null));
-                    if (null == (c = c.getCause()))
+                    if (null == (c = c.getCause())) {
                         break;
+                    }
                 }
             }
         }
@@ -194,20 +196,20 @@ public class ErrorDialogDetailController {
         error.printStackTrace(pw);
         stackTraceTextArea.setText(sw.toString());
     }
-    
+
     private static GridPane load(Throwable error, int maxDepth, boolean ignoreCause, String message) throws IOException {
         FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
                 App.getResources());
         GridPane view = loader.load();
-        ((ErrorDialogDetailController)loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
+        ((ErrorDialogDetailController) loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
         return view;
     }
-    
+
     public static GridPane load(Throwable error, String logMessage) throws IOException {
         FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
                 App.getResources());
         GridPane view = loader.load();
-        ((ErrorDialogDetailController)loader.getController()).initialize(error, logMessage, 32, Optional.empty());
+        ((ErrorDialogDetailController) loader.getController()).initialize(error, logMessage, 32, Optional.empty());
         return view;
     }
 }

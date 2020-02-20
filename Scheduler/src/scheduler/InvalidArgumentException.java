@@ -5,21 +5,26 @@ package scheduler;
  * @author Leonard T. Erwine
  */
 public class InvalidArgumentException extends Exception {
+
     /**
      *
      */
     private static final long serialVersionUID = -3205896639957811389L;
     private final String name;
-    
+
     /**
      * Gets the name of the invalid argument.
-     * @return 
+     *
+     * @return
      */
-    public final String getName() { return name; }
-    
+    public final String getName() {
+        return name;
+    }
+
     /**
      * Constructs a new invalid argument exception with the specified argument name.
-     * @param name  The name of the invalid argument.
+     *
+     * @param name The name of the invalid argument.
      */
     public InvalidArgumentException(String name) {
         super((name == null || name.trim().length() == 0) ? "Invalid argument" : "Invalid argument: " + name);
@@ -28,8 +33,9 @@ public class InvalidArgumentException extends Exception {
 
     /**
      * Constructs a new invalid argument exception with the specified argument name and detail message.
-     * @param name      The name of the invalid argument.
-     * @param message   The detail message.
+     *
+     * @param name The name of the invalid argument.
+     * @param message The detail message.
      */
     public InvalidArgumentException(String name, String message) {
         super((message == null || message.trim().length() == 0) ? ((name == null || name.trim().length() == 0) ? "Invalid argument" : "Invalid argument: " + name) : message);
@@ -38,8 +44,9 @@ public class InvalidArgumentException extends Exception {
 
     /**
      * Constructs a new invalid argument exception with the specified argument name and cause.
-     * @param name      The name of the invalid argument.
-     * @param cause     The cause.
+     *
+     * @param name The name of the invalid argument.
+     * @param cause The cause.
      */
     public InvalidArgumentException(String name, Throwable cause) {
         super((name == null || name.trim().length() == 0) ? "Invalid argument" : "Invalid argument: " + name, cause);
@@ -48,9 +55,10 @@ public class InvalidArgumentException extends Exception {
 
     /**
      * Constructs a new invalid argument exception with the specified argument name, detail message and cause.
-     * @param name      The name of the invalid argument.
-     * @param message   The detail message.
-     * @param cause     The cause.
+     *
+     * @param name The name of the invalid argument.
+     * @param message The detail message.
+     * @param cause The cause.
      */
     public InvalidArgumentException(String name, String message, Throwable cause) {
         super((message == null || message.trim().length() == 0) ? ((name == null || name.trim().length() == 0) ? "Invalid argument" : "Invalid argument: " + name) : message, cause);

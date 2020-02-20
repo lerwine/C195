@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.util;
 
 import java.sql.ResultSet;
@@ -15,6 +10,7 @@ import java.sql.SQLException;
  */
 @FunctionalInterface
 public interface ResultSetFunction<R> {
+
     /**
      * Applies this function to the given argument.
      *

@@ -33,17 +33,17 @@ import scheduler.view.SchedulerController;
 
 /**
  * FXML Controller class for the application login screen.
+ *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/login/LoginScene")
 @FXMLResource("/scheduler/view/login/LoginScene.fxml")
 public final class Login extends SchedulerController {
+
     private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
-    
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
-
     public static final String RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN = "appointmentSchedulerLogin";
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
     public static final String RESOURCEKEY_EXIT = "exit";
@@ -57,78 +57,70 @@ public final class Login extends SchedulerController {
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
 
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
-    
     /**
      * The {@link ComboBox} that lets the user select their preferred language.
      */
     @FXML
     private ComboBox<Locale> languageComboBox;
-    
+
     /**
      * The {@link Label} for the User Name {@link TextField}.
      */
     @FXML
     private Label userNameLabel;
-    
+
     /**
      * The {@link TextField} where the user provides the User Name.
      */
     @FXML
     private TextField userNameTextField;
-    
+
     /**
      * The {@link Label} for the User Name validation message.
      */
     @FXML
     private Label userNameValidationLabel;
-    
+
     /**
      * The {@link Label} for the {@link PasswordField}.
      */
     @FXML
     private Label passwordLabel;
-    
+
     /**
      * The {@link PasswordField} where the user provides the password.
      */
     @FXML
     private PasswordField passwordField;
-    
+
     /**
      * The {@link Label} for the Password validation message.
      */
     @FXML
     private Label passwordValidationLabel;
-    
+
     /**
      * The {@link Button} which begins the login attempt.
      */
     @FXML
     private Button loginButton;
-    
+
     /**
      * The {@link Button} which cancels login and closes the application.
      */
     @FXML
     private Button exitButton;
-    
+
     //</editor-fold>
-    
     private ResourceBundle currentResourceBundle;
-    
+
     //<editor-fold defaultstate="collapsed" desc="Validation Bindings">
-    
     private Validation valid;
-    
-    
+
     //</editor-fold>
-    
     //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Initialization">
-    
     public static void loadInto(Stage stage) throws IOException {
         String[] languageIds = AppConfig.getLanguages();
         // Attempt to find a match for the current display language amongst the languages supported by the app.
@@ -145,15 +137,17 @@ public final class Login extends SchedulerController {
                 cl = Arrays.stream(languageIds).filter((String id) -> id.equals(ln)).findFirst();
             }
         }
-        
+
         // Populate list of Locale objects.
         ObservableList<Locale> languages = FXCollections.observableArrayList();
-        if (cl.isPresent())
-            for (String n : languageIds)
+        if (cl.isPresent()) {
+            for (String n : languageIds) {
                 languages.add((n.equals(cl.get())) ? Locale.getDefault(Locale.Category.DISPLAY) : new Locale(n));
-        else {
-            for (String n : languageIds)
+            }
+        } else {
+            for (String n : languageIds) {
                 languages.add(new Locale(n));
+            }
             Locale toSelect = languages.get(0);
             Locale.setDefault(Locale.Category.DISPLAY, toSelect);
             Locale.setDefault(Locale.Category.FORMAT, toSelect);
@@ -164,7 +158,7 @@ public final class Login extends SchedulerController {
             stage.setScene(new Scene(v));
         });
     }
-    
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'LoginScene.fxml'.";
@@ -178,7 +172,7 @@ public final class Login extends SchedulerController {
         assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
         currentResourceBundle = getResources();
     }
-    
+
     @Override
     protected void onBeforeShow(Node currentView, Stage stage) {
         stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
@@ -190,15 +184,14 @@ public final class Login extends SchedulerController {
         loginButton.setDisable(!valid.get());
         super.onBeforeShow(currentView, stage);
     }
-    
+
     //</editor-fold>
-    
     @FXML
     void loginButtonClick(ActionEvent event) {
-        App.tryLoginUser((Stage)userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
-            if (ex == null)
+        App.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
+            if (ex == null) {
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-            else {
+            } else {
                 LOG.logp(Level.SEVERE, getClass().getName(), "loginButtonClick", "Error logging in user", ex);
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
             }
@@ -206,13 +199,16 @@ public final class Login extends SchedulerController {
     }
 
     @FXML
-    void exitButtonClick(ActionEvent event) { languageComboBox.getScene().getWindow().hide(); }
+    void exitButtonClick(ActionEvent event) {
+        languageComboBox.getScene().getWindow().hide();
+    }
 
     private class Validation extends BooleanBinding {
+
         private final BooleanBinding languageValid;
         private final BooleanBinding userNameValid;
         private final BooleanBinding passwordValid;
-        
+
         Validation() {
             languageValid = languageComboBox.valueProperty().isNotNull();
             userNameValid = ValueBindings.notNullOrWhiteSpace(userNameTextField.textProperty());
@@ -233,23 +229,26 @@ public final class Login extends SchedulerController {
         }
 
         private void passwordValidationChanged(Boolean newValue) {
-            if (newValue)
+            if (newValue) {
                 collapseNode(passwordValidationLabel);
-            else
+            } else {
                 restoreNode(passwordValidationLabel);
+            }
         }
 
         private void userNameValidationChanged(Boolean newValue) {
-            if (newValue)
+            if (newValue) {
                 collapseNode(userNameValidationLabel);
-            else
+            } else {
                 restoreNode(userNameValidationLabel);
+            }
         }
 
         private void selectedLanaguageChanged(Locale newValue) {
             languageComboBox.getButtonCell().setItem(newValue);
-            if (newValue == null)
+            if (newValue == null) {
                 return;
+            }
             // Change the current application language;
             Locale.setDefault(Locale.Category.DISPLAY, newValue);
             Locale.setDefault(Locale.Category.FORMAT, newValue);
@@ -258,9 +257,10 @@ public final class Login extends SchedulerController {
             // Update field labels and button text.
             Scene scene = languageComboBox.getScene();
             if (null != scene) {
-                Window window = (Stage)scene.getWindow();
-                if (null != window && window instanceof Stage)
-                    ((Stage)window).setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+                Window window = (Stage) scene.getWindow();
+                if (null != window && window instanceof Stage) {
+                    ((Stage) window).setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+                }
             }
             userNameLabel.setText(currentResourceBundle.getString(RESOURCEKEY_USERNAME));
             passwordLabel.setText(currentResourceBundle.getString(RESOURCEKEY_PASSWORD));
@@ -276,10 +276,14 @@ public final class Login extends SchedulerController {
         }
 
         @Override
-        public ObservableList<?> getDependencies() { return FXCollections.observableArrayList(languageValid, userNameValid, passwordValid); }
+        public ObservableList<?> getDependencies() {
+            return FXCollections.observableArrayList(languageValid, userNameValid, passwordValid);
+        }
 
         @Override
-        public void dispose() { super.unbind(languageValid, userNameValid, passwordValid); }
+        public void dispose() {
+            super.unbind(languageValid, userNameValid, passwordValid);
+        }
     }
 
 }

@@ -33,9 +33,9 @@
                         </Label>
                         <Label fx:id="operationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%connectingToDb" textAlignment="CENTER" textFill="WHITE" wrapText="true" />
                     </children>
-               <effect>
-                  <DropShadow blurType="ONE_PASS_BOX" height="64.0" radius="31.5" spread="0.85" width="64.0" />
-               </effect>
+                    <effect>
+                        <DropShadow blurType="ONE_PASS_BOX" height="64.0" radius="31.5" spread="0.85" width="64.0" />
+                    </effect>
                 </VBox>
             </top>
             <center>

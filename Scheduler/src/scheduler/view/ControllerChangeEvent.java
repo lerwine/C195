@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -18,21 +13,33 @@ import javafx.event.EventType;
 public class ControllerChangeEvent extends Event {
 
     private final ReadOnlyObjectWrapper<SchedulerController> oldController;
-    public SchedulerController getOldController() { return oldController.get(); }
-    public ReadOnlyObjectProperty<SchedulerController> oldControllerProperty() { return oldController.getReadOnlyProperty(); }
-    
+
+    public SchedulerController getOldController() {
+        return oldController.get();
+    }
+
+    public ReadOnlyObjectProperty<SchedulerController> oldControllerProperty() {
+        return oldController.getReadOnlyProperty();
+    }
+
     private final ReadOnlyObjectWrapper<SchedulerController> newController;
-    public SchedulerController getNewController() { return newController.get(); }
-    public ReadOnlyObjectProperty<SchedulerController> newControllerProperty() { return newController.getReadOnlyProperty(); }
-    
+
+    public SchedulerController getNewController() {
+        return newController.get();
+    }
+
+    public ReadOnlyObjectProperty<SchedulerController> newControllerProperty() {
+        return newController.getReadOnlyProperty();
+    }
+
     public ControllerChangeEvent(Object source, SchedulerController oldController, SchedulerController newController, String name) {
         this(source, oldController, newController, null, name);
     }
-    
+
     public ControllerChangeEvent(Object source, SchedulerController oldController, SchedulerController newController, EventTarget target, String name) {
         super(source, target, new EventType<ControllerChangeEvent>(name));
         this.oldController = new ReadOnlyObjectWrapper<>(oldController);
         this.newController = new ReadOnlyObjectWrapper<>(newController);
     }
-    
+
 }

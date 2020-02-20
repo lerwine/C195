@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.sql.Connection;
@@ -146,14 +141,17 @@ public class UserImpl extends DataObjectImpl implements User {
     }
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
-    
-    public static FactoryImpl getFactory() { return FACTORY; }
-    
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl, UserModel> {
 
         // This is a singleton instance
-        private FactoryImpl() { }
-        
+        private FactoryImpl() {
+        }
+
         /**
          * Loads {@link UserImpl} records according to the user status.
          *
@@ -277,10 +275,12 @@ public class UserImpl extends DataObjectImpl implements User {
     }
 
     public static abstract class FilterImpl extends Filter<UserImpl> {
-        
+
         @Override
-        public FactoryImpl getFactory() { return FACTORY; }
-        
+        public FactoryImpl getFactory() {
+            return FACTORY;
+        }
+
     }
-    
+
 }

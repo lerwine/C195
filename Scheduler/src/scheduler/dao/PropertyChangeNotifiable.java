@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.beans.PropertyChangeEvent;
@@ -17,7 +12,9 @@ public class PropertyChangeNotifiable {
 
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupportImpl();
 
-    protected final PropertyChangeSupport getPropertyChangeSupport() { return propertyChangeSupport; }
+    protected final PropertyChangeSupport getPropertyChangeSupport() {
+        return propertyChangeSupport;
+    }
 
     /**
      * Add PropertyChangeListener.
@@ -37,10 +34,14 @@ public class PropertyChangeNotifiable {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
 
-    protected void onPropertyChange(PropertyChangeEvent event) { }
+    protected void onPropertyChange(PropertyChangeEvent event) {
+    }
 
     private class PropertyChangeSupportImpl extends PropertyChangeSupport {
-        PropertyChangeSupportImpl() { super(PropertyChangeNotifiable.this); }
+
+        PropertyChangeSupportImpl() {
+            super(PropertyChangeNotifiable.this);
+        }
 
         @Override
         public void firePropertyChange(PropertyChangeEvent event) {
@@ -50,14 +51,16 @@ public class PropertyChangeNotifiable {
 
         @Override
         public void fireIndexedPropertyChange(String propertyName, int index, Object oldValue, Object newValue) {
-            if (null != oldValue || null != newValue)
+            if (null != oldValue || null != newValue) {
                 super.fireIndexedPropertyChange(propertyName, index, oldValue, newValue);
+            }
         }
 
         @Override
         public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-            if (null != oldValue || null != newValue)
+            if (null != oldValue || null != newValue) {
                 super.firePropertyChange(propertyName, oldValue, newValue);
+            }
         }
 
     }

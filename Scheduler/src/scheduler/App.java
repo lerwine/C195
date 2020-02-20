@@ -24,45 +24,45 @@ import scheduler.view.TaskWaiter;
 import scheduler.view.Login;
 
 /**
- * Main Application class for Scheduler
- * Upon startup, {@link Login} is loaded into the scene of the primary stage.
- * After successful authentication, {@link MainController} is loaded into a new scene in the primary stage.
+ * Main Application class for Scheduler Upon startup, {@link Login} is loaded into the scene of the primary stage. After successful authentication, {@link MainController} is loaded
+ * into a new scene in the primary stage.
+ *
  * @author Leonard T. Erwine
  */
 public class App extends Application implements ApplicationResourceKeys {
-    
+
     /**
      * The name of the general application globalization resource bundle.
      */
     public static final String GLOBALIZATION_RESOURCE_NAME = "scheduler/App";
-    
+
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
-    
     private static UserImpl currentUser = null;
-    
-    public static UserImpl getCurrentUser() { return currentUser; }
-    
+
+    public static UserImpl getCurrentUser() {
+        return currentUser;
+    }
+
     //</editor-fold>
-    
     private static final Logger LOG = Logger.getLogger(App.class.getName());
-    
+
     //<editor-fold defaultstate="collapsed" desc="App Lifecycle Members">
-    
     /**
      * The application main entry point.
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         launch(args);
     }
-    
+
     @Override
     public void start(Stage stage) throws Exception {
         AppConfig.refresh();
         Login.loadInto(stage);
         stage.show();
     }
-    
+
     @Override
     public void stop() throws Exception {
         DbConnector.forceCloseAll();
@@ -70,19 +70,25 @@ public class App extends Application implements ApplicationResourceKeys {
     }
 
     //</editor-fold>
-
     private static ResourceBundle resources;
-    
-    public static ResourceBundle getResources() { return resources; }
-    
-    public static String getResourceString(String key) { return resources.getString(key); }
-    
+
+    public static ResourceBundle getResources() {
+        return resources;
+    }
+
+    public static String getResourceString(String key) {
+        return resources.getString(key);
+    }
+
     private static class LoginTask extends TaskWaiter<UserImpl> {
+
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
+
         LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             this(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY)), stage, userName, password, onNotSucceeded);
         }
+
         private LoginTask(ResourceBundle rb, Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, rb.getString(RESOURCEKEY_CONNECTINGTODB), rb.getString(RESOURCEKEY_LOGGINGIN));
             App.resources = rb;
@@ -94,12 +100,13 @@ public class App extends Application implements ApplicationResourceKeys {
         @Override
         protected void processResult(UserImpl user, Stage owner) {
             if (null == user) {
-                if (null != onNotSucceeded)
+                if (null != onNotSucceeded) {
                     onNotSucceeded.accept(null);
+                }
             } else {
                 try {
-                    SchedulerController.load((Stage)owner, MainController.class, (Parent v, MainController c) -> {
-                        ((Stage)owner).setScene(new Scene(v));
+                    SchedulerController.load((Stage) owner, MainController.class, (Parent v, MainController c) -> {
+                        ((Stage) owner).setScene(new Scene(v));
                     });
                 } catch (IOException ex) {
                     Alerts.logAndAlert(LOG, getClass(), "processResult", "Error loading main content", ex);
@@ -109,8 +116,9 @@ public class App extends Application implements ApplicationResourceKeys {
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            if (null != onNotSucceeded)
+            if (null != onNotSucceeded) {
                 onNotSucceeded.accept(ex);
+            }
         }
 
         @Override
@@ -130,23 +138,25 @@ public class App extends Application implements ApplicationResourceKeys {
                     return result.get();
                 }
                 LOG.log(Level.WARNING, "Password mismatch");
-            } else
+            } else {
                 LOG.log(Level.WARNING, "No matching userName found");
+            }
             return null;
         }
-        
+
     }
-    
+
     /**
      * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+     *
      * @param stage The stage
      * @param userName The login name for the user to look up.
      * @param password The raw password provided by the user.
-     * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions
-     * and either the login was not found or the password hash did not match.
+     * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was not found or the password hash
+     * did not match.
      */
     public static void tryLoginUser(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
         TaskWaiter.execute(new LoginTask(stage, userName, password, onNotSucceeded));
     }
-      
+
 }

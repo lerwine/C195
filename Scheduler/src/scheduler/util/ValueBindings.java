@@ -138,8 +138,8 @@ public class ValueBindings {
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of
-     * {@link LocalDateTime} is not null and start is not greater than end.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of {@link LocalDateTime} is not null and start is not greater than end.
+     *
      * @param start The start {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @param end The end {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @return The new {@link BooleanBinding}.

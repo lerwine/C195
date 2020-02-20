@@ -1,13 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.util;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -16,46 +10,68 @@ import java.util.function.Function;
  * @author lerwi
  */
 public final class BinaryOption<T, S> {
+
     private final Object value;
     private final boolean primary;
+
     private BinaryOption(Object obj, boolean primary) {
         value = obj;
         this.primary = primary;
     }
-    public boolean isPrimary() { return primary; }
+
+    public boolean isPrimary() {
+        return primary;
+    }
+
     public T getPrimary() {
-        if (!primary)
+        if (!primary) {
             throw new NoSuchElementException("No value present");
-        return (T)value;
+        }
+        return (T) value;
     }
+
     public S getSecondary() {
-        if (primary)
+        if (primary) {
             throw new NoSuchElementException("No value present");
-        return (S)value;
+        }
+        return (S) value;
     }
+
     public void ifPrimary(Consumer<? super T> consumer) {
-        if (primary)
-            consumer.accept((T)value);
+        if (primary) {
+            consumer.accept((T) value);
+        }
     }
+
     public void ifSecondary(Consumer<? super S> consumer) {
-        if (!primary)
-            consumer.accept((S)value);
+        if (!primary) {
+            consumer.accept((S) value);
+        }
     }
+
     public void accept(Consumer<? super T> primary, Consumer<? super S> secondary) {
-        if (this.primary)
-            primary.accept((T)value);
-        else
-            secondary.accept((S)value);
+        if (this.primary) {
+            primary.accept((T) value);
+        } else {
+            secondary.accept((S) value);
+        }
     }
+
     public <U> U map(Function<? super T, U> primary, Function<? super S, U> secondary) {
-        if (this.primary)
-            return primary.apply((T)value);
-        return secondary.apply((S)value);
+        if (this.primary) {
+            return primary.apply((T) value);
+        }
+        return secondary.apply((S) value);
     }
-    public BinaryOption<S, T> shift() { return new BinaryOption<>(value, !primary); }
+
+    public BinaryOption<S, T> shift() {
+        return new BinaryOption<>(value, !primary);
+    }
+
     public static <T, S> BinaryOption<T, S> ofPrimary(T t) {
         return new BinaryOption<>(Objects.requireNonNull(t), true);
     }
+
     public static <T, S> BinaryOption<T, S> ofSecondary(S s) {
         return new BinaryOption<>(Objects.requireNonNull(s), false);
     }

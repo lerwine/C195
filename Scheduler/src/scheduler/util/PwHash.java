@@ -19,63 +19,83 @@ import scheduler.InternalException;
 
 /**
  * Contains a password hashed intended to be stored (in string format) in the database.
+ *
  * @author Leonard T. Erwine
  */
 public final class PwHash {
+
     /**
      * The length of the password cipher hash as stored (minus salt).
      */
     public static final int HASH_LENGTH = 31;
-    
+
     /**
-    * Iteration count for generating the password cipher hash.
-    * A higher number makes it less suseptible to brute force attacks.
-    */
+     * Iteration count for generating the password cipher hash. A higher number makes it less suseptible to brute force attacks.
+     */
     public static final int CIPHER_ITERATION_COUNT = 1024;
     /**
      * The length of the salt sequence used in generating the password cipher.
      */
     public static final int SALT_LENGTH = 6;
-    
+
     /**
      * The length of the salt sequence when base-64 encoded.
      */
     public static final int SALT_STRING_LENGTH = 8;
-    
+
     /**
      * The length of the password hash when when base-64 encoded.
      */
     public static final int HASHED_STRING_LENGTH = 50;
-    
+
     private final NonNullableStringProperty encodedHash;
 
-    public String getEncodedHash() { return encodedHash.get(); }
+    public String getEncodedHash() {
+        return encodedHash.get();
+    }
 
-    public void setEncodedHash(String value) { encodedHash.set(value); }
+    public void setEncodedHash(String value) {
+        encodedHash.set(value);
+    }
 
-    public StringProperty encodedHashProperty() { return encodedHash; }
-    
+    public StringProperty encodedHashProperty() {
+        return encodedHash;
+    }
+
     private final ReadOnlyObjectWrapper<ObservableByteArrayList> salt;
 
-    public ObservableByteArrayList getSalt() { return salt.get(); }
+    public ObservableByteArrayList getSalt() {
+        return salt.get();
+    }
 
-    public ReadOnlyObjectProperty<ObservableByteArrayList> saltProperty() { return salt.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<ObservableByteArrayList> saltProperty() {
+        return salt.getReadOnlyProperty();
+    }
+
     private final ReadOnlyObjectWrapper<ObservableByteArrayList> hash;
 
-    public ObservableByteArrayList getHash() { return hash.get(); }
+    public ObservableByteArrayList getHash() {
+        return hash.get();
+    }
 
-    public ReadOnlyObjectProperty<ObservableByteArrayList> hashProperty() { return hash.getReadOnlyProperty(); }
-    
+    public ReadOnlyObjectProperty<ObservableByteArrayList> hashProperty() {
+        return hash.getReadOnlyProperty();
+    }
+
     private final ReadOnlyBooleanWrapper valid;
 
-    public boolean isValid() { return valid.get(); }
+    public boolean isValid() {
+        return valid.get();
+    }
 
-    public ReadOnlyBooleanProperty validProperty() { return valid.getReadOnlyProperty(); }
-    
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyProperty();
+    }
+
     private static boolean test(String password, byte[] salt, byte[] hash) {
-        if (salt == null || hash == null || password == null || password.isEmpty())
+        if (salt == null || hash == null || password == null || password.isEmpty()) {
             return false;
+        }
         try {
             // Generate new hash of the raw password.
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, CIPHER_ITERATION_COUNT, HASH_LENGTH * 8);
@@ -83,8 +103,9 @@ public final class PwHash {
             byte[] h = skf.generateSecret(spec).getEncoded();
             if (h.length == hash.length) {
                 for (int i = 0; i < h.length; i++) {
-                    if (h[i] != hash[i])
+                    if (h[i] != hash[i]) {
                         return false;
+                    }
                 }
                 return true;
             }
@@ -93,10 +114,10 @@ public final class PwHash {
             Logger.getLogger(PwHash.class.getName()).log(Level.SEVERE, null, ex);
             throw new InternalException("Unexpected error generating hash", ex);
         }
-        
+
         return false;
     }
-    
+
     public void setFromRawPassword(String password) {
         if (password.isEmpty()) {
             salt.set(null);
@@ -123,10 +144,11 @@ public final class PwHash {
             throw new InternalException("Unexpected error generating hash", ex);
         }
     }
-    
+
     /**
      * Constructs a new password hash.
-     * @param password      The password or a string containing the salt and password hash.
+     *
+     * @param password The password or a string containing the salt and password hash.
      * @param isRawPassword Indicates whether the password string is a new password or an encoded password hash string.
      */
     public PwHash(String password, boolean isRawPassword) {
@@ -158,8 +180,9 @@ public final class PwHash {
                             }
                         }
                     }
-                    if (notChanged)
+                    if (notChanged) {
                         return;
+                    }
                     salt.set(new ObservableByteArrayList(sb));
                     hash.set(new ObservableByteArrayList(hb));
                     valid.set(true);
@@ -172,43 +195,55 @@ public final class PwHash {
             hash.set(null);
             valid.set(false);
         });
-        if (isRawPassword)
+        if (isRawPassword) {
             setFromRawPassword(password);
-        else
+        } else {
             encodedHash.set(password);
+        }
     }
-    
+
     /**
      * Gets the salt and password hash as a sequence of hexadecimal character pairs.
+     *
      * @return The salt and password hash as a sequence of hexadecimal character pairs.
      */
     @Override
-    public String toString() { return encodedHash.get(); }
-    
+    public String toString() {
+        return encodedHash.get();
+    }
+
     /**
-     * Determines whether the hash for the specified password matches the current password hash.
-     * This uses the current salt sequence to generate a hash from the specified password and then
-     * compares the resulting bytes with the current hash.
-     * @param password  The password to check.
-     * @return  {@code true} if the hash of the specified password matches the current hash; otherwise, {@code false}.
+     * Determines whether the hash for the specified password matches the current password hash. This uses the current salt sequence to generate a hash from the specified password
+     * and then compares the resulting bytes with the current hash.
+     *
+     * @param password The password to check.
+     * @return {@code true} if the hash of the specified password matches the current hash; otherwise, {@code false}.
      */
     public boolean test(String password) {
         ObservableByteArrayList s = salt.get();
-        if (s == null)
+        if (s == null) {
             return false;
+        }
         ObservableByteArrayList h = hash.get();
-        return h!= null && test(password, s.bytes, h.bytes);
+        return h != null && test(password, s.bytes, h.bytes);
     }
-    
+
     public class ObservableByteArrayList extends javafx.collections.ObservableListBase<Byte> {
+
         private final byte[] bytes;
-        
-        public ObservableByteArrayList(byte[] bytes) { this.bytes = bytes; }
+
+        public ObservableByteArrayList(byte[] bytes) {
+            this.bytes = bytes;
+        }
 
         @Override
-        public Byte get(int index) { return bytes[index]; }
+        public Byte get(int index) {
+            return bytes[index];
+        }
 
         @Override
-        public int size() { return bytes.length; }
+        public int size() {
+            return bytes.length;
+        }
     }
 }

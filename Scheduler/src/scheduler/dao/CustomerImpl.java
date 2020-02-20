@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.sql.Connection;
@@ -13,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import scheduler.view.customer.CustomerModel;
 
 public class CustomerImpl extends DataObjectImpl implements Customer {
@@ -115,14 +109,17 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     }
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
-    
-    public static FactoryImpl getFactory() { return FACTORY; }
-    
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {
 
         // This is a singleton instance
-        private FactoryImpl() { }
-        
+        private FactoryImpl() {
+        }
+
         public Optional<CustomerImpl> findByName(Connection connection, String value) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
@@ -155,7 +152,6 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
         //    public ArrayList<CustomerImpl> loadByCountry(Connection connection, int countryId, Iterable<OrderBy> orderBy) throws Exception {
         //        return load(connection, countryIdIs(countryId), orderBy);
         //    }
-        
         public int countByAddress(Connection connection, int addressId) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
@@ -168,7 +164,6 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
         //        dao.address = (null == address) ? null : address.getDataObject();
         //        dao.active = model.isActive();
         //    }
-        
         @Override
         protected CustomerImpl fromResultSet(ResultSet resultSet) throws SQLException {
             CustomerImpl r = new CustomerImpl();
@@ -249,7 +244,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
                     postalCode = "";
                 }
                 String phone = resultSet.getString(AddressImpl.COLNAME_PHONE);
-                target.address = DataObjectReference.of(Address.of(addressId, address1, address2,  DataObjectReference.of(city), postalCode,
+                target.address = DataObjectReference.of(Address.of(addressId, address1, address2, DataObjectReference.of(city), postalCode,
                         (resultSet.wasNull()) ? "" : phone));
             }
 
@@ -282,10 +277,12 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     }
 
     public static abstract class FilterImpl extends Filter<CustomerImpl> {
-        
+
         @Override
-        public FactoryImpl getFactory() { return FACTORY; }
-        
+        public FactoryImpl getFactory() {
+            return FACTORY;
+        }
+
     }
-    
+
 }

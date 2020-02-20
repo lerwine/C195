@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 import scheduler.view.country.CountryModel;
 
 public class CountryImpl extends DataObjectImpl implements Country {
@@ -52,14 +51,17 @@ public class CountryImpl extends DataObjectImpl implements Country {
     }
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
-    
-    public static FactoryImpl getFactory() { return FACTORY; }
-    
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     public static final class FactoryImpl extends DataObjectImpl.Factory<CountryImpl, CountryModel> {
 
         // This is a singleton instance
-        private FactoryImpl() { }
-        
+        private FactoryImpl() {
+        }
+
         //    @Override
         //    protected void onApplyChanges(CountryModel model) {
         //        model.getDataObject().name = model.getName();
@@ -132,10 +134,12 @@ public class CountryImpl extends DataObjectImpl implements Country {
     }
 
     public static abstract class FilterImpl extends Filter<CountryImpl> {
-        
+
         @Override
-        public FactoryImpl getFactory() { return FACTORY; }
-        
+        public FactoryImpl getFactory() {
+            return FACTORY;
+        }
+
     }
-    
+
 }

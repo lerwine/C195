@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.sql.Connection;
@@ -17,7 +12,10 @@ import scheduler.view.ItemModel;
  * @param <T>
  */
 public interface RecordReader<T extends DataObjectImpl> extends ThrowableFunction<Connection, List<T>, SQLException> {
+
     String getWhereClause();
+
     String getLoadingMessage();
+
     DataObjectImpl.Factory<T, ? extends ItemModel<T>> getFactory();
 }

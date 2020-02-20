@@ -48,9 +48,8 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     public static void setContent(MainController mainController, Stage stage, ModelFilter<AppointmentImpl, AppointmentModel> filter) throws IOException {
         setContent(mainController, ManageAppointments.class, stage).changeFilter(filter, stage);
     }
-    
-    //</editor-fold>
 
+    //</editor-fold>
     @Override
     protected ItemEventManager<ItemEvent<AppointmentModel>> getItemAddManager(MainController mainController) {
         return getMainController().getAppointmentAddManager();

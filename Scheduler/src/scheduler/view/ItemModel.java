@@ -4,19 +4,21 @@ import scheduler.dao.DataObjectImpl;
 
 /**
  * Java FX object model for a {@link DataObjectImpl} object.
+ *
  * @author erwinel
  * @param <T> The type of {@link DataObjectImpl} to be used for data access operations.
  */
 public abstract class ItemModel<T extends DataObjectImpl> extends DataObjectImpl.DataObjectModel<T> implements ChildModel<T> {
-    
+
     /**
      * Initializes a new ModelBase object.
+     *
      * @param dao The {@link DataObjectImpl} to be used for data access operations.
      */
     protected ItemModel(T dao) {
         super(dao);
     }
-    
+
 //    public void saveChanges(Connection connection) throws SQLException {
 //        dataObject.saveChanges(connection);
 //        newItem.set(false);
@@ -25,5 +27,4 @@ public abstract class ItemModel<T extends DataObjectImpl> extends DataObjectImpl
 //        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
 //        lastModifiedBy.set(dataObject.getLastModifiedBy());
 //    }
-
 }

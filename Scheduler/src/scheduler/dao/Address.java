@@ -6,8 +6,7 @@ import java.util.Objects;
 import scheduler.util.Values;
 
 /**
- * Represents a data row from the "address" database table.
- * Table definition: <code>CREATE TABLE `address` (
+ * Represents a data row from the "address" database table. Table definition: <code>CREATE TABLE `address` (
  *   `addressId` int(10) NOT NULL AUTO_INCREMENT,
  *   `address` varchar(50) NOT NULL,
  *   `address2` varchar(50) NOT NULL,
@@ -22,50 +21,50 @@ import scheduler.util.Values;
  *   KEY `cityId` (`cityId`),
  *   CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)
  * ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;</code>
+ *
  * @author erwinel
  */
 public interface Address extends DataObject {
-    
+
     /**
-     * Gets the first line of the current address.
-     * Column definition: <code>`address` varchar(50) NOT NULL</code>
+     * Gets the first line of the current address. Column definition: <code>`address` varchar(50) NOT NULL</code>
+     *
      * @return the first line of the current address.
      */
     String getAddress1();
 
     /**
-     * Gets the second line of the current address.
-     * Column definition: <code>`address2` varchar(50) NOT NULL</code>
-     * 
+     * Gets the second line of the current address. Column definition: <code>`address2` varchar(50) NOT NULL</code>
+     *
      * @return the second line of the current address.
      */
     String getAddress2();
-    
+
     /**
-     * Gets the {@link City} for the current address.
-     * This corresponds to the "city" data row referenced by the "cityId" database column.
-     * Column definition: <code>`cityId` int(10) NOT NULL</code>
-     * Key constraint definition: <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
+     * Gets the {@link City} for the current address. This corresponds to the "city" data row referenced by the "cityId" database column. Column definition:
+     * <code>`cityId` int(10) NOT NULL</code> Key constraint definition: <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
+     *
      * @return The {@link City} for the current address.
      */
     DataObjectReference<CityImpl, City> getCity();
-    
+
     /**
-     * Gets the postal code for the current address.
-     * Column definition: <code>`postalCode` varchar(10) NOT NULL</code>
+     * Gets the postal code for the current address. Column definition: <code>`postalCode` varchar(10) NOT NULL</code>
+     *
      * @return the postal code for the current address.
      */
     String getPostalCode();
-    
+
     /**
-     * Gets the phone number associated with the current address.
-     * Column definition: <code>`phone` varchar(20) NOT NULL</code>
+     * Gets the phone number associated with the current address. Column definition: <code>`phone` varchar(20) NOT NULL</code>
+     *
      * @return the phone number associated with the current address.
      */
     String getPhone();
-    
+
     /**
      * Creates a read-only Address object from object values.
+     *
      * @param pk The value of the primary key.
      * @param address1 The first line of the current address.
      * @param address2 The second line of the current address.
@@ -81,24 +80,45 @@ public interface Address extends DataObject {
         Objects.requireNonNull(phone, "Phone cannot be null");
         return new Address() {
             @Override
-            public String getAddress1() { return address1; }
+            public String getAddress1() {
+                return address1;
+            }
+
             @Override
-            public String getAddress2() { return address2; }
+            public String getAddress2() {
+                return address2;
+            }
+
             @Override
-            public DataObjectReference<CityImpl, City> getCity() { return city; }
+            public DataObjectReference<CityImpl, City> getCity() {
+                return city;
+            }
+
             @Override
-            public String getPostalCode() { return postalCode; }
+            public String getPostalCode() {
+                return postalCode;
+            }
+
             @Override
-            public String getPhone() { return phone; }
+            public String getPhone() {
+                return phone;
+            }
+
             @Override
-            public int getPrimaryKey() { return pk; }
+            public int getPrimaryKey() {
+                return pk;
+            }
+
             @Override
-            public int getRowState() { return Values.ROWSTATE_UNMODIFIED; }
+            public int getRowState() {
+                return Values.ROWSTATE_UNMODIFIED;
+            }
         };
     }
-    
+
     /**
      * Creates a read-only Address object from a result set.
+     *
      * @param resultSet The data retrieved from the database.
      * @param pkColName The name of the column containing the value of the primary key.
      * @return The read-only Address object.
@@ -107,19 +127,23 @@ public interface Address extends DataObject {
     public static Address of(ResultSet resultSet, String pkColName) throws SQLException {
         Objects.requireNonNull(pkColName, "Primary key column name cannot be null");
         int id = resultSet.getInt(pkColName);
-        if (resultSet.wasNull())
+        if (resultSet.wasNull()) {
             return null;
-        
+        }
+
         String address1 = resultSet.getString(AddressImpl.COLNAME_ADDRESS);
-        if (resultSet.wasNull())
+        if (resultSet.wasNull()) {
             address1 = "";
+        }
         String address2 = resultSet.getString(AddressImpl.COLNAME_ADDRESS2);
-        if (resultSet.wasNull())
+        if (resultSet.wasNull()) {
             address2 = "";
+        }
         City city = City.of(resultSet, AddressImpl.COLNAME_CITYID);
         String postalCode = resultSet.getString(AddressImpl.COLNAME_POSTALCODE);
-        if (resultSet.wasNull())
+        if (resultSet.wasNull()) {
             postalCode = "";
+        }
         String phone = resultSet.getString(AddressImpl.COLNAME_PHONE);
         return of(id, address1, address2, DataObjectReference.of(city), postalCode, (resultSet.wasNull()) ? "" : phone);
     }

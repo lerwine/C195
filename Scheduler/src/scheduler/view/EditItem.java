@@ -327,7 +327,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
             }
             LOG.logp(Level.WARNING, getClass().getName(), "getResult", "Not implemeted");
             contentController.getDaoFactory().save(contentController.model.getDataObject(), connection);
-           
+
             return null;
         }
     }

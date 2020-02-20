@@ -224,12 +224,14 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         return rowState != Values.ROWSTATE_UNMODIFIED;
     }
 
-    protected boolean propertyChangeModifiesState(String propertyName) { return true; }
-    
+    protected boolean propertyChangeModifiesState(String propertyName) {
+        return true;
+    }
+
     @Override
     protected void onPropertyChange(PropertyChangeEvent event) {
         super.onPropertyChange(event);
-        if (null != event.getPropertyName())
+        if (null != event.getPropertyName()) {
             switch (event.getPropertyName()) {
                 case PROP_CREATEDATE:
                 case PROP_CREATEDBY:
@@ -252,6 +254,7 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
                     }
                     break;
             }
+        }
     }
 
     //</editor-fold>
@@ -449,7 +452,7 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
 
         public abstract String getPrimaryKeyColName();
 
-        protected abstract List <String> getExtendedColNames();
+        protected abstract List<String> getExtendedColNames();
 
         protected abstract void setSaveStatementValues(T dao, PreparedStatement ps) throws SQLException;
 
@@ -477,7 +480,7 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         protected abstract void onInitializeDao(T target, ResultSet resultSet) throws SQLException;
 
         private void initializeDao(T target, ResultSet resultSet) throws SQLException {
-            DataObjectImpl dao = (DataObjectImpl)target;
+            DataObjectImpl dao = (DataObjectImpl) target;
             dao.setPrimaryKey(assertBaseResultSetValid(target, resultSet));
             dao.setCreateDate(resultSet.getTimestamp(COLNAME_CREATEDATE));
             assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
@@ -502,7 +505,7 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
                 if (dao.getRowState() == Values.ROWSTATE_NEW) {
                     sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", extendedFields))
                             .append("`, `").append(String.join("`, `", Arrays.asList(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
-                                    COLNAME_CREATEDATE, COLNAME_CREATEDBY))).append("`) VALUES (?");
+                            COLNAME_CREATEDATE, COLNAME_CREATEDBY))).append("`) VALUES (?");
                     int e = extendedFields.size() + 4;
                     for (int i = 1; i < e; i++) {
                         sql.append(", ?");
@@ -579,20 +582,20 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
                 dao.setDeleted();
             }
         }
-        
+
         public abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
-        
+
         public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
-        
+
         public abstract ModelFilter<T, M> getAllItemsFilter();
-        
+
         public abstract ModelFilter<T, M> getDefaultFilter();
     }
-    
+
     public static abstract class Filter<T extends DataObjectImpl> extends PropertyChangeNotifiable implements RecordReader<T> {
 
         protected abstract void setSqlParameters(PreparedStatement ps);
-        
+
         @Override
         public List<T> apply(Connection t) throws SQLException {
             ArrayList<T> result = new ArrayList<>();
@@ -600,8 +603,9 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
             try (PreparedStatement ps = t.prepareStatement(getWhereClause())) {
                 setSqlParameters(ps);
                 try (ResultSet rs = ps.getResultSet()) {
-                    while (rs.next())
+                    while (rs.next()) {
                         result.add(factory.fromResultSet(rs));
+                    }
                 }
             }
             return result;

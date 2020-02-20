@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,9 +50,9 @@ import scheduler.view.user.UserModel;
 import scheduler.view.user.UserReferenceModelImpl;
 
 /**
- * FXML Controller class for main application content.
- * All application views are loaded into the {@link #contentPane}.
- * All Create, Update and Delete operations are initiated through this controller.
+ * FXML Controller class for main application content. All application views are loaded into the {@link #contentPane}. All Create, Update and Delete operations are initiated
+ * through this controller.
+ *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/Main")
@@ -225,7 +224,7 @@ public final class MainController extends SchedulerController {
     private final ItemEventManager<ItemEvent<CityModel>> cityRemoveManager;
     private final ItemEventManager<ItemEvent<CountryModel>> countryAddManager;
     private final ItemEventManager<ItemEvent<CountryModel>> countryRemoveManager;
-    
+
     public ItemEventManager<ItemEvent<AppointmentModel>> getAppointmentAddManager() {
         return appointmentAddManager;
     }
@@ -273,7 +272,7 @@ public final class MainController extends SchedulerController {
     public ItemEventManager<ItemEvent<CountryModel>> getCountryRemoveManager() {
         return countryRemoveManager;
     }
-    
+
     //</editor-fold>
     //</editor-fold>
     public MainController() {
@@ -300,7 +299,7 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageAppointments.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                ManageAppointments.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         AppointmentImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -313,7 +312,7 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageCustomers.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                ManageCustomers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CustomerImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -330,7 +329,7 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageCountries.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                ManageCountries.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CountryImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -343,7 +342,7 @@ public final class MainController extends SchedulerController {
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageUsers.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                ManageUsers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         UserImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -385,8 +384,9 @@ public final class MainController extends SchedulerController {
      */
     public EditItem.ShowAndWaitResult<AppointmentModel> editAppointment(Event event, AppointmentModel item) {
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, item, (Stage) contentPane.getScene().getWindow());
-        if (result.isSuccessful() && result.isDeleteOperation())
+        if (result.isSuccessful() && result.isDeleteOperation()) {
             appointmentRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
+        }
         return result;
     }
 
@@ -411,10 +411,11 @@ public final class MainController extends SchedulerController {
         return null;
     }
 
-    public  EditItem.ShowAndWaitResult<CustomerModel> editCustomer(Event event, CustomerModel item) {
+    public EditItem.ShowAndWaitResult<CustomerModel> editCustomer(Event event, CustomerModel item) {
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, item, (Stage) contentPane.getScene().getWindow());
-        if (result.isSuccessful() && result.isDeleteOperation())
+        if (result.isSuccessful() && result.isDeleteOperation()) {
             customerRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
+        }
         return result;
     }
 
@@ -441,8 +442,9 @@ public final class MainController extends SchedulerController {
 
     public EditItem.ShowAndWaitResult<CountryModel> editCountry(Event event, CountryModel item) {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class, item, (Stage) contentPane.getScene().getWindow());
-        if (result.isSuccessful() && result.isDeleteOperation())
+        if (result.isSuccessful() && result.isDeleteOperation()) {
             countryRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
+        }
         return result;
     }
 
@@ -469,8 +471,9 @@ public final class MainController extends SchedulerController {
 
     public EditItem.ShowAndWaitResult<CityModel> editCity(Event event, CityModel item) {
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, item, (Stage) contentPane.getScene().getWindow());
-        if (result.isSuccessful() && result.isDeleteOperation())
+        if (result.isSuccessful() && result.isDeleteOperation()) {
             cityRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
+        }
         return result;
     }
 
@@ -497,8 +500,9 @@ public final class MainController extends SchedulerController {
 
     public EditItem.ShowAndWaitResult<AddressModel> editAddress(Event event, AddressModel item) {
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, item, (Stage) contentPane.getScene().getWindow());
-        if (result.isSuccessful() && result.isDeleteOperation())
+        if (result.isSuccessful() && result.isDeleteOperation()) {
             addressRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
+        }
         return result;
     }
 
@@ -525,8 +529,9 @@ public final class MainController extends SchedulerController {
 
     public EditItem.ShowAndWaitResult<UserModel> editUser(Event event, UserModel item) {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class, item, (Stage) contentPane.getScene().getWindow());
-        if (result.isSuccessful() && result.isDeleteOperation())
+        if (result.isSuccessful() && result.isDeleteOperation()) {
             userRemoveManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
+        }
         return result;
     }
 
@@ -568,7 +573,6 @@ public final class MainController extends SchedulerController {
 //            }
 //        });
 //    }
-
     private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
 
         private final M model;
@@ -597,7 +601,7 @@ public final class MainController extends SchedulerController {
 
         @Override
         protected String getResult(Connection connection) throws SQLException {
-            String message =  model.getDaoFactory().getDeleteDependencyMessage(model.getDataObject(), connection);
+            String message = model.getDaoFactory().getDeleteDependencyMessage(model.getDataObject(), connection);
             if (null != message && !message.trim().isEmpty()) {
                 return message;
             }
@@ -622,6 +626,7 @@ public final class MainController extends SchedulerController {
         protected MainController getMainController() {
             return mainController;
         }
+
         /**
          * Loads content for the {@link #contentPane}.
          *
@@ -634,14 +639,14 @@ public final class MainController extends SchedulerController {
          */
         protected static <C extends MainContentController> C setContent(MainController mainController, Class<C> controllerClass,
                 Stage stage) throws IOException {
-           return load(stage, controllerClass, (Parent v, C c) -> {
-               ((MainContentController)c).mainController = mainController;
-           }, (Parent v, C c) -> {
-               MainContentController oldController = mainController.contentController;
-               Node oldView = mainController.contentPane.getCenter();
-               mainController.contentController = c;
-               mainController.contentPane.setCenter(v);
-           });
-       }
+            return load(stage, controllerClass, (Parent v, C c) -> {
+                ((MainContentController) c).mainController = mainController;
+            }, (Parent v, C c) -> {
+                MainContentController oldController = mainController.contentController;
+                Node oldView = mainController.contentPane.getCenter();
+                mainController.contentController = c;
+                mainController.contentPane.setCenter(v);
+            });
+        }
     }
 }

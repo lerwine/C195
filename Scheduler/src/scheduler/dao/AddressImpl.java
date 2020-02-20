@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.sql.Connection;
@@ -11,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 import scheduler.view.address.AddressModel;
 
 public class AddressImpl extends DataObjectImpl implements Address {
@@ -177,16 +171,19 @@ public class AddressImpl extends DataObjectImpl implements Address {
         postalCode = "";
         phone = "";
     }
-    
+
     private static final FactoryImpl FACTORY = new FactoryImpl();
-    
-    public static FactoryImpl getFactory() { return FACTORY; }
-    
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {
 
         // This is a singleton instance
-        private FactoryImpl() { }
-        
+        private FactoryImpl() {
+        }
+
         @Override
         protected AddressImpl fromResultSet(ResultSet resultSet) throws SQLException {
             AddressImpl r = new AddressImpl();
@@ -286,12 +283,14 @@ public class AddressImpl extends DataObjectImpl implements Address {
         }
 
     }
-    
+
     public static abstract class FilterImpl extends Filter<AddressImpl> {
-        
+
         @Override
-        public FactoryImpl getFactory() { return FACTORY; }
-                
+        public FactoryImpl getFactory() {
+            return FACTORY;
+        }
+
     }
-    
+
 }
