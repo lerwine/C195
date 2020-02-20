@@ -5,11 +5,7 @@
  */
 package scheduler.dao;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
 import java.util.function.Predicate;
-import scheduler.util.ThrowableBiFunction;
 import scheduler.view.ItemModel;
 
 /**
@@ -18,11 +14,7 @@ import scheduler.view.ItemModel;
  * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
  * @param <M>
  */
-public interface LookupFilter<D extends DataObjectImpl, M extends ItemModel<D>>
-        extends ThrowableBiFunction<Connection, DataObjectImpl.Factory<D>, List<D>, SQLException>,
-        Predicate<M> {
+public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D>, Predicate<M> {
     String getHeading();
     String getSubHeading();
-    String getLoadingMessage();
-    String getSql();
 }

@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
@@ -8,10 +7,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.Customer;
-import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.dao.User;
-import scheduler.dao.UserImpl;
 import scheduler.observables.AppointmentTypeDisplayProperty;
 import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.ChildPropertyWrapper;
@@ -57,9 +54,9 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     private final SimpleObjectProperty<LocalDateTime> end;
     private final EffectiveLocationProperty effectiveLocation;
 
-    public AppointmentModel(AppointmentImpl dao) throws SQLException, ClassNotFoundException {
+    public AppointmentModel(AppointmentImpl dao) {
         super(dao);
-        Customer c = dao.getCustomer().ensurePartial(CustomerImpl.getFactory());
+        Customer c = dao.getCustomer().getPartial();
         customer = new SimpleObjectProperty<>(this, "customer", (null == c) ? null : new CustomerReferenceModelImpl(c));
         customerName = new ChildPropertyWrapper<>(this, "customerName", customer, (t) -> t.nameProperty());
         customerAddress1 = new ChildPropertyWrapper<>(this, "customerAddress1", customer, (t) -> t.address1Property());
@@ -71,7 +68,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
         customerCityZipCountry = new ChildPropertyWrapper<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
         customerAddressText = new ChildPropertyWrapper<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
         customerActive = new ChildPropertyWrapper<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        User u = dao.getUser().ensurePartial(UserImpl.getFactory());
+        User u = dao.getUser().getPartial();
         user = new SimpleObjectProperty<>(this, "user", (null == u) ? null : new UserReferenceModelImpl(u));
         userName = new ChildPropertyWrapper<>(this, "userName", user, (t) -> t.userNameProperty());
         userStatus = new ChildPropertyWrapper<>(this, "userStatus", user, (t) -> t.statusProperty());
@@ -207,7 +204,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
         return user.get();
     }
 
-    public void setUser(UserReferenceModel<? extends Customer> value) {
+    public void setUser(UserReferenceModel<? extends User> value) {
         user.set(value);
     }
 
@@ -379,10 +376,10 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     }
 
     @Override
-    protected void refreshFromDAO(AppointmentImpl dao) throws SQLException, ClassNotFoundException {
-        Customer c = dao.getCustomer().ensurePartial(CustomerImpl.getFactory());
+    protected void refreshFromDAO(AppointmentImpl dao) {
+        Customer c = dao.getCustomer().getPartial();
         customer.set((null == c) ? null : new CustomerReferenceModelImpl(c));
-        User u = dao.getUser().ensurePartial(UserImpl.getFactory());
+        User u = dao.getUser().getPartial();
         user.set((null == u) ? null : new UserReferenceModelImpl(u));
         title.set(dao.getTitle());
         description.set(dao.getDescription());
@@ -395,7 +392,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     }
 
     @Override
-    public Factory<AppointmentImpl> getDaoFactory() {
+    public Factory<AppointmentImpl, AppointmentModel> getDaoFactory() {
         return AppointmentImpl.getFactory();
     }
 

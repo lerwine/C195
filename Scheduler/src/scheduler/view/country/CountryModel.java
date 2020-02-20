@@ -5,7 +5,6 @@
  */
 package scheduler.view.country;
 
-import java.sql.SQLException;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl.Factory;
@@ -40,10 +39,11 @@ public final class CountryModel extends ItemModel<CountryImpl> implements Countr
     }
 
     @Override
-    protected void refreshFromDAO(CountryImpl dao) throws SQLException, ClassNotFoundException {
+    protected void refreshFromDAO(CountryImpl dao) {
         name.set(dao.getName());
     }
 
     @Override
-    public Factory<CountryImpl> getDaoFactory() { return CountryImpl.getFactory(); }
+    public Factory<CountryImpl, CountryModel> getDaoFactory() { return CountryImpl.getFactory(); }
+    
 }

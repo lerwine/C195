@@ -1,6 +1,8 @@
 package scheduler.view;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -25,9 +27,9 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import scheduler.App;
-import scheduler.util.DbConnectedCallable;
-import scheduler.util.DbConnectionConsumer;
 import scheduler.util.DbConnector;
+import scheduler.util.ThrowableConsumer;
+import scheduler.util.ThrowableFunction;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -227,7 +229,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             });
         try {
             LOG.log(Level.INFO, "Getting result");
-            return getResult();
+            return DbConnector.apply((connection) -> getResult(connection));
         } finally {
             if (Platform.isFxApplicationThread())
                 hideBusyView();
@@ -272,22 +274,23 @@ public abstract class TaskWaiter<T> extends Task<T> {
         owner.getScene().setRoot(oldParent);
     }
 
-    public static TaskWaiter<?> fromConsumer(Stage owner, DbConnectionConsumer consumer) {
+    public static TaskWaiter<?> fromConsumer(Stage owner, ThrowableConsumer<Connection, SQLException> consumer) {
         return fromConsumer(owner, null, consumer);
     }
     
-    public static TaskWaiter<?> fromConsumer(Stage owner, String operation, DbConnectionConsumer consumer) {
+    public static TaskWaiter<?> fromConsumer(Stage owner, String operation, ThrowableConsumer<Connection, SQLException> consumer) {
         return fromConsumer(owner, operation, null, consumer);
     }
     
-    public static TaskWaiter<?> fromConsumer(Stage owner, String operation, String heading, DbConnectionConsumer consumer) {
-        return new TaskWaiterImpl<>(owner, operation, heading, () -> {
-           DbConnector.apply(consumer);
+    public static TaskWaiter<?> fromConsumer(Stage owner, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer) {
+        return new TaskWaiterImpl<>(owner, operation, heading, (connection) -> {
+           consumer.accept(connection);
            return null;
         });
     }
     
-    public static void acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+    public static void acceptAsync(Stage owner, String operation, String heading,  ThrowableConsumer<Connection, SQLException> consumer,
+            Runnable onSuccess, Consumer<Exception> onError) {
         TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
@@ -305,7 +308,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static void acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer, Runnable onSuccess) {
+    public static void acceptAsync(Stage owner, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer,
+            Runnable onSuccess) {
         TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
@@ -322,7 +326,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static void acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+    public static void acceptAsync(Stage owner, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
         TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             try {
@@ -338,58 +342,58 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
     
-    public static TaskWaiter<?> acceptAsync(Stage owner, String operation, String heading, DbConnectionConsumer consumer) {
+    public static TaskWaiter<?> acceptAsync(Stage owner, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer) {
         TaskWaiter<?> task = fromConsumer(owner, operation, heading, consumer);
         execute(task);
         return task;
     }
     
-    public static void acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+    public static void acceptAsync(Stage owner, String operation, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess, Consumer<Exception> onError) {
         acceptAsync(owner, operation, null, consumer, onSuccess, onError);
     }
     
-    public static void acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer, Runnable onSuccess) {
+    public static void acceptAsync(Stage owner, String operation, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess) {
         acceptAsync(owner, operation, null, consumer, onSuccess);
     }
     
-    public static void acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+    public static void acceptAsync(Stage owner, String operation, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
         acceptAsync(owner, operation, null, consumer, onError);
     }
     
-    public static TaskWaiter<?> acceptAsync(Stage owner, String operation, DbConnectionConsumer consumer) {
+    public static TaskWaiter<?> acceptAsync(Stage owner, String operation, ThrowableConsumer<Connection, SQLException> consumer) {
         return acceptAsync(owner, operation, null, consumer);
     }
     
-    public static void acceptAsync(Stage owner, DbConnectionConsumer consumer, Runnable onSuccess, Consumer<Exception> onError) {
+    public static void acceptAsync(Stage owner, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess, Consumer<Exception> onError) {
         acceptAsync(owner, null, consumer, onSuccess, onError);
     }
     
-    public static void acceptAsync(Stage owner, DbConnectionConsumer consumer, Runnable onSuccess) {
+    public static void acceptAsync(Stage owner, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess) {
         acceptAsync(owner, null, consumer, onSuccess);
     }
     
-    public static void acceptAsync(Stage owner, DbConnectionConsumer consumer, Consumer<Exception> onError) {
+    public static void acceptAsync(Stage owner, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
         acceptAsync(owner, null, consumer, onError);
     }
     
-    public static TaskWaiter<?> acceptAsync(Stage owner, DbConnectionConsumer consumer) {
+    public static TaskWaiter<?> acceptAsync(Stage owner, ThrowableConsumer<Connection, SQLException> consumer) {
         return acceptAsync(owner, null, consumer);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Stage owner, DbConnectedCallable<T> callable) {
-        return fromCallable(owner, null, callable);
+    public static <T> TaskWaiter<T> fromFunction(Stage owner, ThrowableFunction<Connection, T, SQLException> func) {
+        return fromFunction(owner, null, func);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Stage owner, String operation, DbConnectedCallable<T> callable) {
-        return fromCallable(owner, operation, null, callable);
+    public static <T> TaskWaiter<T> fromFunction(Stage owner, String operation, ThrowableFunction<Connection, T, SQLException> func) {
+        return fromFunction(owner, operation, null, func);
     }
     
-    public static <T> TaskWaiter<T> fromCallable(Stage owner, String operation, String heading, DbConnectedCallable<T> callable) {
-        return new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
+    public static <T> TaskWaiter<T> fromFunction(Stage owner, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func) {
+        return new TaskWaiterImpl<>(owner, operation, heading, func);
     }
 
-    public static <T> void callAsync(Stage owner, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
+    public static <T> void applyAsync(Stage owner, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(owner, operation, heading, func);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             T result;
             try {
@@ -407,8 +411,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
 
-    public static <T> void callAsync(Stage owner, String operation, String heading, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
+    public static <T> void applyAsync(Stage owner, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
+        TaskWaiterImpl<T> task = new TaskWaiterImpl<>(owner, operation, heading, func);
         EventHandler<WorkerStateEvent> onCompleted = (event) -> {
             T result;
             try {
@@ -425,33 +429,33 @@ public abstract class TaskWaiter<T> extends Task<T> {
         execute(task);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Stage owner, String operation, String heading, DbConnectedCallable<T> callable) {
-        return new TaskWaiterImpl<>(owner, operation, heading, () -> DbConnector.call(callable));
+    public static <T> TaskWaiter<T> applyAsync(Stage owner, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func) {
+        return new TaskWaiterImpl<>(owner, operation, heading, func);
     }
 
-    public static <T> void callAsync(Stage owner, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        callAsync(owner, operation, null, callable, onSuccess, onError);
+    public static <T> void applyAsync(Stage owner, String operation, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        applyAsync(owner, operation, null, func, onSuccess, onError);
     }
 
-    public static <T> void callAsync(Stage owner, String operation, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        callAsync(owner, operation, null, callable, onSuccess);
+    public static <T> void applyAsync(Stage owner, String operation, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
+        applyAsync(owner, operation, null, func, onSuccess);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Stage owner, String operation, DbConnectedCallable<T> callable) {
-        return callAsync(owner, operation, null, callable);
+    public static <T> TaskWaiter<T> applyAsync(Stage owner, String operation, ThrowableFunction<Connection, T, SQLException> func) {
+        return applyAsync(owner, operation, null, func);
     }
 
-    public static <T> void callAsync(Stage owner, DbConnectedCallable<T> callable, Consumer<T> onSuccess, Consumer<Exception> onError) {
-        callAsync(owner, null, callable, onSuccess, onError);
+    public static <T> void applyAsync(Stage owner, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
+        applyAsync(owner, null, func, onSuccess, onError);
     }
 
-    public static <T> void callAsync(Stage owner, DbConnectedCallable<T> callable, Consumer<T> onSuccess) {
-        callAsync(owner, null, callable, onSuccess);
+    public static <T> void applyAsync(Stage owner, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
+        applyAsync(owner, null, func, onSuccess);
     }
 
-    public static <T> TaskWaiter<T> callAsync(Stage owner, DbConnectedCallable<T> callable) {
-        return callAsync(owner, null, callable);
+    public static <T> TaskWaiter<T> applyAsync(Stage owner, ThrowableFunction<Connection, T, SQLException> func) {
+        return applyAsync(owner, null, func);
     }
 
-    protected abstract T getResult() throws Exception;
+    protected abstract T getResult(Connection connection) throws SQLException;
 }

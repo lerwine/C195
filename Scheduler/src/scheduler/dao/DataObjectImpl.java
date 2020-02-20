@@ -1,16 +1,20 @@
 package scheduler.dao;
 
+import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -24,8 +28,9 @@ import scheduler.App;
 import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.DataObjectReferenceModel;
+import scheduler.view.ItemModel;
 
-public class DataObjectImpl implements DataObject {
+public class DataObjectImpl extends PropertyChangeNotifiable implements DataObject {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
     //<editor-fold defaultstate="collapsed" desc="Database table names">
@@ -85,12 +90,17 @@ public class DataObjectImpl implements DataObject {
     //<editor-fold defaultstate="collapsed" desc="primaryKey property">
     private int primaryKey;
 
-    /**
-     * {@inheritDoc}
-     */
+    public static final String PROP_PRIMARYKEY = "primaryKey";
+
     @Override
-    public final int getPrimaryKey() {
+    public int getPrimaryKey() {
         return primaryKey;
+    }
+
+    private void setPrimaryKey(int primaryKey) {
+        int oldPrimaryKey = this.primaryKey;
+        this.primaryKey = primaryKey;
+        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, primaryKey);
     }
 
     //</editor-fold>
@@ -111,6 +121,12 @@ public class DataObjectImpl implements DataObject {
         return createDate;
     }
 
+    private void setCreateDate(Timestamp createDate) {
+        Timestamp oldCreateDate = this.createDate;
+        this.createDate = Objects.requireNonNull(createDate);
+        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldCreateDate, createDate);
+    }
+
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="createdBy property">
     /**
@@ -127,6 +143,12 @@ public class DataObjectImpl implements DataObject {
      */
     public final String getCreatedBy() {
         return createdBy;
+    }
+
+    private void setCreatedBy(String createdBy) {
+        String oldCreatedBy = this.createdBy;
+        this.createdBy = Objects.requireNonNull(createdBy);
+        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldCreatedBy, createdBy);
     }
 
     //</editor-fold>
@@ -147,6 +169,12 @@ public class DataObjectImpl implements DataObject {
         return lastModifiedDate;
     }
 
+    private void setLastModifiedDate(Timestamp lastModifiedDate) {
+        Timestamp oldModifiedDate = this.lastModifiedDate;
+        this.lastModifiedDate = Objects.requireNonNull(lastModifiedDate);
+        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldModifiedDate, lastModifiedDate);
+    }
+
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="lastModifiedBy property">
     /**
@@ -165,16 +193,27 @@ public class DataObjectImpl implements DataObject {
         return lastModifiedBy;
     }
 
+    private void setLastModifiedBy(String lastModifiedBy) {
+        String oldLastModifiedBy = this.lastModifiedBy;
+        this.lastModifiedBy = Objects.requireNonNull(lastModifiedBy);
+        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldLastModifiedBy, lastModifiedBy);
+    }
+
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="rowState">
     private int rowState;
 
-    /**
-     * {@inheritDoc}
-     */
+    public static final String PROP_ROWSTATE = "rowState";
+
     @Override
     public final int getRowState() {
         return rowState;
+    }
+
+    private void setRowState(int rowState) {
+        int oldRowState = this.rowState;
+        this.rowState = rowState;
+        getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
     }
 
     final void setDeleted() {
@@ -185,17 +224,34 @@ public class DataObjectImpl implements DataObject {
         return rowState != Values.ROWSTATE_UNMODIFIED;
     }
 
-    protected synchronized final void setAsModified() {
-        assert rowState != Values.ROWSTATE_DELETED : "Row has been deleted.";
-        UserImpl currentUser = App.getCurrentUser();
-        lastModifiedBy = currentUser.getUserName();
-        lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
-        if (rowState != Values.ROWSTATE_NEW) {
-            rowState = Values.ROWSTATE_MODIFIED;
-            return;
-        }
-        createdBy = lastModifiedBy;
-        createDate = lastModifiedDate;
+    protected boolean propertyChangeModifiesState(String propertyName) { return true; }
+    
+    @Override
+    protected void onPropertyChange(PropertyChangeEvent event) {
+        super.onPropertyChange(event);
+        if (null != event.getPropertyName())
+            switch (event.getPropertyName()) {
+                case PROP_CREATEDATE:
+                case PROP_CREATEDBY:
+                case PROP_LASTMODIFIEDBY:
+                case PROP_LASTMODIFIEDDATE:
+                case PROP_PRIMARYKEY:
+                case PROP_ROWSTATE:
+                    return;
+                default:
+                    if (propertyChangeModifiesState(event.getPropertyName())) {
+                        UserImpl currentUser = App.getCurrentUser();
+                        setLastModifiedBy(currentUser.getUserName());
+                        setLastModifiedDate(DB.toUtcTimestamp(LocalDateTime.now()));
+                        if (rowState != Values.ROWSTATE_NEW) {
+                            setRowState(Values.ROWSTATE_MODIFIED);
+                            return;
+                        }
+                        setCreatedBy(lastModifiedBy);
+                        setCreateDate(lastModifiedDate);
+                    }
+                    break;
+            }
     }
 
     //</editor-fold>
@@ -210,18 +266,18 @@ public class DataObjectImpl implements DataObject {
         rowState = Values.ROWSTATE_NEW;
     }
 
-    public static abstract class DataObjectReferenceModelImpl<D extends DataObject> implements DataObjectReferenceModel<D> {
+    public static abstract class DataObjectReferenceModelImpl<T extends DataObject> implements DataObjectReferenceModel<T> {
 
-        private final ReadOnlyObjectProperty<D> dataObject;
+        private final ReadOnlyObjectProperty<T> dataObject;
         private final ReadOnlyIntegerWrapper primaryKey;
 
         @Override
-        public final D getDataObject() {
+        public final T getDataObject() {
             return dataObject.get();
         }
 
         @Override
-        public final ReadOnlyObjectProperty<D> dataObjectProperty() {
+        public final ReadOnlyObjectProperty<T> dataObjectProperty() {
             return dataObject;
         }
 
@@ -235,11 +291,11 @@ public class DataObjectImpl implements DataObject {
             return primaryKey.getReadOnlyProperty();
         }
 
-        protected DataObjectReferenceModelImpl(D dao) {
+        protected DataObjectReferenceModelImpl(T dao) {
             Objects.requireNonNull(dao);
-            dataObject = new ReadOnlyObjectPropertyBase<D>() {
+            dataObject = new ReadOnlyObjectPropertyBase<T>() {
                 @Override
-                public D get() {
+                public T get() {
                     return dao;
                 }
 
@@ -364,9 +420,9 @@ public class DataObjectImpl implements DataObject {
             newItem = new ReadOnlyBooleanWrapper(this, "newItem", dao.getRowState() == Values.ROWSTATE_NEW);
         }
 
-        protected abstract void refreshFromDAO(T dao) throws SQLException, ClassNotFoundException;
+        protected abstract void refreshFromDAO(T dao);
 
-        public abstract DataObjectImpl.Factory<T> getDaoFactory();
+        public abstract DataObjectImpl.Factory<T, ? extends ItemModel<T>> getDaoFactory();
 
         public void refreshFromDAO() throws SQLException, ClassNotFoundException {
             T dao = getDataObject();
@@ -379,23 +435,23 @@ public class DataObjectImpl implements DataObject {
         }
     }
 
-    public static abstract class Factory<D extends DataObjectImpl> {
+    public static abstract class Factory<T extends DataObjectImpl, M extends ItemModel<T>> {
 
         private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
-        protected abstract D fromResultSet(ResultSet resultSet) throws SQLException;
+        protected abstract T fromResultSet(ResultSet resultSet) throws SQLException;
 
-        public abstract String getBaseQuery();
+        public abstract String getBaseSelectQuery();
 
-        public abstract Class<? extends D> getDaoClass();
+        public abstract Class<? extends T> getDaoClass();
 
         public abstract String getTableName();
 
         public abstract String getPrimaryKeyColName();
 
-        protected abstract Stream<String> getExtendedColNames();
+        protected abstract List <String> getExtendedColNames();
 
-        protected abstract void setStatementValues(D dao, PreparedStatement ps) throws SQLException;
+        protected abstract void setSaveStatementValues(T dao, PreparedStatement ps) throws SQLException;
 
         private int assertBaseResultSetValid(DataObjectImpl target, ResultSet resultSet) throws SQLException {
             Objects.requireNonNull(resultSet, "Result set cannot be null");
@@ -418,74 +474,57 @@ public class DataObjectImpl implements DataObject {
          * @param resultSet The data retrieved from the database.
          * @throws SQLException if not able to read data from the {@link ResultSet}.
          */
-        protected abstract void onInitializeDao(D target, ResultSet resultSet) throws SQLException;
+        protected abstract void onInitializeDao(T target, ResultSet resultSet) throws SQLException;
 
-        private void initializeDao(D target, ResultSet resultSet) throws SQLException {
-            ((DataObjectImpl) target).primaryKey = assertBaseResultSetValid(target, resultSet);
-            ((DataObjectImpl) target).createDate = resultSet.getTimestamp(COLNAME_CREATEDATE);
+        private void initializeDao(T target, ResultSet resultSet) throws SQLException {
+            DataObjectImpl dao = (DataObjectImpl)target;
+            dao.setPrimaryKey(assertBaseResultSetValid(target, resultSet));
+            dao.setCreateDate(resultSet.getTimestamp(COLNAME_CREATEDATE));
             assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
-            ((DataObjectImpl) target).createdBy = resultSet.getString(COLNAME_CREATEDBY);
+            dao.setCreatedBy(resultSet.getString(COLNAME_CREATEDBY));
             assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
-            ((DataObjectImpl) target).lastModifiedDate = resultSet.getTimestamp(COLNAME_LASTUPDATE);
+            dao.setLastModifiedDate(resultSet.getTimestamp(COLNAME_LASTUPDATE));
             assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
-            ((DataObjectImpl) target).lastModifiedBy = resultSet.getString(COLNAME_LASTUPDATEBY);
+            dao.setLastModifiedBy(resultSet.getString(COLNAME_LASTUPDATEBY));
             assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
             onInitializeDao(target, resultSet);
-            ((DataObjectImpl) target).rowState = Values.ROWSTATE_UNMODIFIED;
+            dao.setRowState(Values.ROWSTATE_UNMODIFIED);
         }
 
-        //    protected abstract void onApplyChanges(M model);
-        //    
-        //    public final void applyChanges(M model) {
-        //        D dao = model.getDataObject();
-        //        synchronized (dao) {
-        //            if (dao.getRowState() == Values.ROWSTATE_NEW) {
-        //                ((DataObjectImpl)dao).createDate = ((DataObjectImpl)dao).lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
-        //                ((DataObjectImpl)dao).createdBy = ((DataObjectImpl)dao).lastModifiedBy = App.getCurrentUser().getUserName();
-        //            } else {
-        //                ((DataObjectImpl)dao).lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
-        //                ((DataObjectImpl)dao).lastModifiedBy = App.getCurrentUser().getUserName();
-        //            }
-        //            onApplyChanges(model);
-        //        }
-        //    }
-        public void save(D dao, Connection connection) throws Exception {
+        public void save(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
             synchronized (dao) {
                 assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has been deleted", getClass().getName());
                 StringBuilder sql = new StringBuilder();
-                String[] colNames;
-                dao.setAsModified();
+                HashMap<String, Integer> indexes = new HashMap<>();
+                List<String> extendedFields = getExtendedColNames();
                 if (dao.getRowState() == Values.ROWSTATE_NEW) {
-                    colNames = Stream.concat(getExtendedColNames(), Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY))
-                            .toArray(String[]::new);
-                    sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", colNames)).append("`) VALUES (?");
-                    for (int i = 1; i < colNames.length; i++) {
+                    sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", extendedFields))
+                            .append("`, `").append(String.join("`, `", Arrays.asList(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
+                                    COLNAME_CREATEDATE, COLNAME_CREATEDBY))).append("`) VALUES (?");
+                    int e = extendedFields.size() + 4;
+                    for (int i = 1; i < e; i++) {
                         sql.append(", ?");
                     }
                     sql.append(")");
                 } else {
-                    colNames = Stream.concat(getExtendedColNames(), Stream.of(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY)).toArray(String[]::new);
-                    sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("` = ?, `", colNames)).append("` = ? WHERE `")
+                    sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("` = ?, `", extendedFields))
+                            .append("` = ?, `").append(COLNAME_LASTUPDATE).append("` = ?, `").append(COLNAME_LASTUPDATEBY).append("` = ? WHERE `")
                             .append(getPrimaryKeyColName()).append(" = ?");
                 }
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
                 int pk;
                 try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-                    setStatementValues(dao, ps);
-                    int index;
+                    setSaveStatementValues(dao, ps);
+                    int index = extendedFields.size();
+                    ps.setTimestamp(index++, dao.getLastModifiedDate());
+                    ps.setString(index++, dao.getLastModifiedBy());
                     if (dao.getRowState() == Values.ROWSTATE_NEW) {
-                        index = colNames.length - 4;
-                        ps.setTimestamp(++index, dao.getCreateDate());
-                        ps.setString(++index, dao.getCreatedBy());
-                        ps.setTimestamp(++index, dao.getCreateDate());
-                        ps.setString(++index, dao.getCreatedBy());
+                        ps.setTimestamp(index++, dao.getCreateDate());
+                        ps.setString(index, dao.getCreatedBy());
                     } else {
-                        index = colNames.length - 2;
-                        ps.setTimestamp(++index, dao.getLastModifiedDate());
-                        ps.setString(++index, dao.getLastModifiedBy());
-                        ps.setInt(++index, dao.getPrimaryKey());
+                        ps.setInt(index, dao.getPrimaryKey());
                     }
                     ps.executeUpdate();
                     if (dao.getRowState() == Values.ROWSTATE_NEW) {
@@ -496,7 +535,7 @@ public class DataObjectImpl implements DataObject {
                         pk = dao.getPrimaryKey();
                     }
                 }
-                sql = new StringBuilder(getBaseQuery());
+                sql = new StringBuilder(getBaseSelectQuery());
                 sql.append(" WHERE `").append(getPrimaryKeyColName()).append("`=%");
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
                 try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
@@ -509,9 +548,9 @@ public class DataObjectImpl implements DataObject {
             }
         }
 
-        public Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
+        public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
-            String sql = String.format("%s WHERE p.`%s`=?", getBaseQuery(), getPrimaryKeyColName());
+            String sql = String.format("%s WHERE p.`%s`=?", getBaseSelectQuery(), getPrimaryKeyColName());
             LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, pk);
@@ -524,7 +563,7 @@ public class DataObjectImpl implements DataObject {
             return Optional.empty();
         }
 
-        public void delete(D dao, Connection connection) throws Exception {
+        public void delete(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
             synchronized (dao) {
@@ -539,6 +578,33 @@ public class DataObjectImpl implements DataObject {
                 }
                 dao.setDeleted();
             }
+        }
+        
+        public abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
+        
+        public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
+        
+        public abstract ModelFilter<T, M> getAllItemsFilter();
+        
+        public abstract ModelFilter<T, M> getDefaultFilter();
+    }
+    
+    public static abstract class Filter<T extends DataObjectImpl> extends PropertyChangeNotifiable implements RecordReader<T> {
+
+        protected abstract void setSqlParameters(PreparedStatement ps);
+        
+        @Override
+        public List<T> apply(Connection t) throws SQLException {
+            ArrayList<T> result = new ArrayList<>();
+            Factory<T, ?> factory = getFactory();
+            try (PreparedStatement ps = t.prepareStatement(getWhereClause())) {
+                setSqlParameters(ps);
+                try (ResultSet rs = ps.getResultSet()) {
+                    while (rs.next())
+                        result.add(factory.fromResultSet(rs));
+                }
+            }
+            return result;
         }
 
     }

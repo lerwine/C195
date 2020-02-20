@@ -387,6 +387,19 @@ public class Values {
     
     //</editor-fold>
     
+    public static final String OPERATOR_EQUALS = "=";
+    public static final String OPERATOR_NOT_EQUALS = "<>";
+    public static final String OPERATOR_LIKE = "LIKE";
+    public static final String OPERATOR_NOT_LIKE = "NOT LIKE";
+    public static final String OPERATOR_STARTS_WITH = "LIKE ?%";
+    public static final String OPERATOR_ENDS_WITH = "LIKE %?";
+    public static final String OPERATOR_CONTAINS = "LIKE %?%";
+    public static final String OPERATOR_GREATER_THAN = ">";
+    public static final String OPERATOR_NOT_GREATER_THAN = "<=";
+    public static final String OPERATOR_LESS_THAN = "<";
+    public static final String OPERATOR_NOT_LESS_THAN = ">=";
+    public static final String OPERATOR_NONE = "";
+    
     //<editor-fold defaultstate="collapsed" desc="User Status values">
     
     /**

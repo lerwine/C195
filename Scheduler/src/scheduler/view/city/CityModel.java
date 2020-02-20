@@ -1,12 +1,10 @@
 package scheduler.view.city;
 
-import java.sql.SQLException;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CityImpl;
 import scheduler.dao.Country;
-import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
@@ -59,22 +57,22 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
         return countryName;
     }
 
-    public CityModel(CityImpl dao) throws SQLException, ClassNotFoundException {
+    public CityModel(CityImpl dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
-        Country c = dao.getCountry().ensurePartial(CountryImpl.getFactory());
+        Country c = dao.getCountry().getPartial();
         country = new SimpleObjectProperty<>(this, "country", (null == c) ? null : new CountryReferenceModelImpl(c));
         countryName = new ChildPropertyWrapper<>(this, "countryName", country, (t) -> t.nameProperty());
     }
 
     @Override
-    protected void refreshFromDAO(CityImpl dao) throws SQLException, ClassNotFoundException {
+    protected void refreshFromDAO(CityImpl dao) {
         name.set(dao.getName());
-        Country c = dao.getCountry().ensurePartial(CountryImpl.getFactory());
+        Country c = dao.getCountry().getPartial();
         country.set((null == c) ? null : new CountryReferenceModelImpl(c));
     }
 
     @Override
-    public Factory<CityImpl> getDaoFactory() { return CityImpl.getFactory(); }
+    public Factory<CityImpl, CityModel> getDaoFactory() { return CityImpl.getFactory(); }
     
 }

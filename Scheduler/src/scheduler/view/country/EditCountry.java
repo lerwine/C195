@@ -1,6 +1,5 @@
 package scheduler.view.country;
 
-import java.sql.Connection;
 import java.util.Objects;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
@@ -80,21 +79,7 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     }
 
     @Override
-    protected String getSaveConflictMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
-//        CityFactory factory = new CityFactory();
-//        if (factory.count(connection, CityFactory.countryIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-//            return "";
-//        return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
-    }
-
-    @Override
-    protected Factory<CountryImpl> getDaoFactory() {
+    protected Factory<CountryImpl, CountryModel> getDaoFactory() {
         return CountryImpl.getFactory();
     }
 }

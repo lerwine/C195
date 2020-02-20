@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -28,6 +29,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -35,14 +37,18 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import scheduler.App;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.dao.UserImpl;
+import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
+import scheduler.view.TaskWaiter;
 import scheduler.view.address.AddressReferenceModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -59,7 +65,6 @@ import scheduler.view.user.UserModel;
 public final class EditAppointment extends EditItem.EditController<AppointmentImpl, AppointmentModel> {
     //<editor-fold defaultstate="collapsed" desc="Fields">
 
-    //<editor-fold defaultstate="collapsed" desc="Constants">
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Appointment"}.
@@ -226,7 +231,15 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
      */
     public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
 
-    //</editor-fold>
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading customers"}.
+     */
+    public static final String RESOURCEKEY_LOADING_CUSTOMERS = "loadingCustomers";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading users"}.
+     */
+    public static final String RESOURCEKEY_LOADING_USERS = "loadingUsers";
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     @FXML // Customer selection control
@@ -375,7 +388,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     private int currentTimeZoneOffset;
 
     @Override
-    protected Factory<AppointmentImpl> getDaoFactory() {
+    protected Factory<AppointmentImpl, AppointmentModel> getDaoFactory() {
         return AppointmentImpl.getFactory();
     }
 
@@ -488,17 +501,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
         try (DbConnector dep = new DbConnector()) {
-            Connection connection = dep.getConnection();
-            customers = FXCollections.observableArrayList();
-            CustomerImpl.getFactory().loadByStatus(connection, true).forEach((c) -> {
-                try {
-                    customers.add(new CustomerModel(c));
-                } catch (SQLException | ClassNotFoundException ex) {
-                    Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
-            users = FXCollections.observableArrayList();
-            UserImpl.getFactory().loadByStatus(connection, Values.USER_STATUS_INACTIVE, true).forEach((u) -> users.add(new UserModel(u)));
         } catch (Exception ex) {
             if (customers == null) {
                 customers = FXCollections.observableArrayList();
@@ -508,8 +510,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
             }
             LOG.log(Level.SEVERE, null, ex);
         }
-        customerComboBox.setItems(customers);
-        userComboBox.setItems(users);
+        customers = FXCollections.observableArrayList();
+        users = FXCollections.observableArrayList();
         // Initialize validation and control state bindings
         typeSelectionState = new TypeSelectionState();
         dateRangeValidation = new DateRangeValidation();
@@ -524,6 +526,47 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                 .and(conflictLookupState.conflictMessage.isEmpty()).and(urlValidation.isEmpty());
     }
 
+    @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        TaskWaiter.execute(new ItemsLoadTask(stage));
+        super.onBeforeShow(currentView, stage);
+    }
+
+    private class ItemsLoadTask extends TaskWaiter<Boolean> {
+        private ArrayList<CustomerImpl> customerList;
+        private ArrayList<UserImpl> userList;
+        public ItemsLoadTask(Stage owner) {
+            super(owner, App.getResourceString(App.RESOURCEKEY_CONNECTINGTODB), App.getResourceString(App.RESOURCEKEY_INITIALIZING));
+            customerList = null;
+            userList = null;
+        }
+
+        @Override
+        protected void processResult(Boolean result, Stage owner) {
+            if (null != customerList && !customerList.isEmpty())
+                customerList.forEach((c) -> customers.add(new CustomerModel(c)));
+            if (null != userList && !userList.isEmpty())
+                userList.forEach((u) -> users.add(new UserModel(u)));
+            customerComboBox.setItems(customers);
+            userComboBox.setItems(users);
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage owner) {
+            Alerts.showErrorAlert(ex);
+            owner.close();
+        }
+        
+        @Override
+        protected Boolean getResult(Connection connection) throws SQLException {
+            updateMessage(getResourceString(RESOURCEKEY_LOADING_CUSTOMERS));
+            customerList = CustomerImpl.getFactory().loadByStatus(connection, true);
+            updateMessage(getResourceString(RESOURCEKEY_LOADING_USERS));
+            userList = UserImpl.getFactory().loadByStatus(connection, Values.USER_STATUS_INACTIVE, true);
+            return null == customerList || null == userList || customerList.isEmpty() || userList.isEmpty();
+        }
+        
+    }
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
     @FXML
@@ -553,16 +596,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @Override
     protected BooleanExpression getValidationExpression() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getSaveConflictMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        return "";
     }
 
     //<editor-fold defaultstate="collapsed" desc="State management classes">

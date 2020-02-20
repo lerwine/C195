@@ -5,10 +5,14 @@
  */
 package scheduler.dao;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
+import scheduler.view.city.CityModel;
 
 public class CityImpl extends DataObjectImpl implements City {
 
@@ -83,7 +87,7 @@ public class CityImpl extends DataObjectImpl implements City {
     
     public static FactoryImpl getFactory() { return FACTORY; }
     
-    public static final class FactoryImpl extends DataObjectImpl.Factory<CityImpl> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory<CityImpl, CityModel> {
 
         // This is a singleton instance
         private FactoryImpl() { }
@@ -103,7 +107,7 @@ public class CityImpl extends DataObjectImpl implements City {
         }
 
         @Override
-        public String getBaseQuery() {
+        public String getBaseSelectQuery() {
             return BASE_SELECT_SQL;
         }
 
@@ -123,12 +127,12 @@ public class CityImpl extends DataObjectImpl implements City {
         }
 
         @Override
-        protected Stream<String> getExtendedColNames() {
-            return Stream.of(COLNAME_CITY, COLNAME_COUNTRYID);
+        protected List<String> getExtendedColNames() {
+            return Arrays.asList(COLNAME_CITY, COLNAME_COUNTRYID);
         }
 
         @Override
-        protected void setStatementValues(CityImpl dao, PreparedStatement ps) throws SQLException {
+        protected void setSaveStatementValues(CityImpl dao, PreparedStatement ps) throws SQLException {
             ps.setString(1, dao.getName());
             ps.setInt(2, dao.getCountry().getPrimaryKey());
         }
@@ -148,6 +152,33 @@ public class CityImpl extends DataObjectImpl implements City {
             }
         }
 
-    }
+        @Override
+        public ModelFilter<CityImpl, CityModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
 
+        @Override
+        public ModelFilter<CityImpl, CityModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getDeleteDependencyMessage(CityImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getSaveConflictMessage(CityImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    }
+    
+    public static abstract class FilterImpl extends Filter<CityImpl> {
+        
+        @Override
+        public FactoryImpl getFactory() { return FACTORY; }
+        
+    }
+    
 }

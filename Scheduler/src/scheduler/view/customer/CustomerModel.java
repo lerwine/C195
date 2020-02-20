@@ -5,7 +5,6 @@
  */
 package scheduler.view.customer;
 
-import java.sql.SQLException;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
@@ -13,7 +12,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.Address;
-import scheduler.dao.AddressImpl;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.observables.AddressTextProperty;
@@ -137,10 +135,10 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
         return active;
     }
 
-    public CustomerModel(CustomerImpl dao) throws SQLException, ClassNotFoundException {
+    public CustomerModel(CustomerImpl dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
-        Address a = dao.getAddress().ensurePartial(AddressImpl.getFactory());
+        Address a = dao.getAddress().getPartial();
         address = new SimpleObjectProperty<>(this, "address", (null == a) ? null : new AddressReferenceModelImpl(a));
         address1 = new ChildPropertyWrapper<>(this, "address1", address, (c) -> c.address1Property());
         address2 = new ChildPropertyWrapper<>(this, "address2", address, (c) -> c.address2Property());
@@ -154,15 +152,15 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
     }
 
     @Override
-    protected void refreshFromDAO(CustomerImpl dao) throws SQLException, ClassNotFoundException {
+    protected void refreshFromDAO(CustomerImpl dao) {
         name.set(dao.getName());
-        Address a = dao.getAddress().ensurePartial(AddressImpl.getFactory());
+        Address a = dao.getAddress().getPartial();
         address.set((null == a) ? null : new AddressReferenceModelImpl(a));
         active.set(dao.isActive());
     }
 
     @Override
-    public Factory<CustomerImpl> getDaoFactory() {
+    public Factory<CustomerImpl, CustomerModel> getDaoFactory() {
         return CustomerImpl.getFactory();
     }
 

@@ -5,14 +5,12 @@
  */
 package scheduler.view.customer;
 
-import java.sql.SQLException;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.Address;
-import scheduler.dao.AddressImpl;
 import scheduler.dao.Customer;
 import scheduler.dao.DataObjectImpl;
 import scheduler.observables.AddressTextProperty;
@@ -38,10 +36,10 @@ public class CustomerReferenceModelImpl extends DataObjectImpl.DataObjectReferen
     private final AddressTextProperty addressText;
     private final ReadOnlyBooleanWrapper active;
     
-    public CustomerReferenceModelImpl(Customer dao) throws SQLException, ClassNotFoundException {
+    public CustomerReferenceModelImpl(Customer dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "address1", dao.getName());
-        Address a = dao.getAddress().ensurePartial(AddressImpl.getFactory());
+        Address a = dao.getAddress().getPartial();
         address = new ReadOnlyObjectWrapper<>(this, "address", (null == a) ? null : new AddressReferenceModelImpl(a));
         address1 = new ChildPropertyWrapper<>(this, "address1", address, (t) -> t.address1Property());
         address2 = new ChildPropertyWrapper<>(this, "address2", address, (t) -> t.address2Property());

@@ -5,7 +5,6 @@
  */
 package scheduler.view.address;
 
-import java.sql.SQLException;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
@@ -14,7 +13,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.Address;
 import scheduler.dao.City;
-import scheduler.dao.CityImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
@@ -38,12 +36,12 @@ public class AddressReferenceModelImpl extends DataObjectImpl.DataObjectReferenc
     private final ReadOnlyStringWrapper phone;
     private final CityZipCountryProperty cityZipCountry;
 
-    public AddressReferenceModelImpl(Address dao) throws SQLException, ClassNotFoundException {
+    public AddressReferenceModelImpl(Address dao) {
         super(dao);
         address1 = new ReadOnlyStringWrapper(this, "address1", dao.getAddress1());
         address2 = new ReadOnlyStringWrapper(this, "address2", dao.getAddress2());
         addressLines = new AddressLinesProperty();
-        City c = dao.getCity().ensurePartial(CityImpl.getFactory());
+        City c = dao.getCity().getPartial();
         city = new ReadOnlyObjectWrapper<>(this, "city", (null == c) ? null : new CityReferenceModelImpl(c));
         cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());

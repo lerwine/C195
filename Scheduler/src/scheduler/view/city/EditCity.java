@@ -1,6 +1,5 @@
 package scheduler.view.city;
 
-import java.sql.Connection;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -120,20 +119,6 @@ public final class EditCity extends EditItem.EditController<CityImpl, CityModel>
     }
 
     @Override
-    protected String getSaveConflictMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
-//        AddressFactory factory = new AddressFactory();
-//        if (factory.count(connection, AddressFactory.getFilterWhereCityIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-//            return "";
-//        return getResourceString(RESOURCEKEY_CITYHASADDRESSES);
-    }
-
-    @Override
-    protected Factory<CityImpl> getDaoFactory() { return CityImpl.getFactory(); }
+    protected Factory<CityImpl, CityModel> getDaoFactory() { return CityImpl.getFactory(); }
 
 }

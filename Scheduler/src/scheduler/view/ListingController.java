@@ -1,5 +1,8 @@
 package scheduler.view;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -11,6 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
@@ -19,44 +23,33 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import scheduler.App;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.LookupFilter;
 import scheduler.util.Alerts;
-import scheduler.util.DbConnector;
+import scheduler.util.ItemEvent;
+import scheduler.util.ItemEventListener;
+import scheduler.util.ItemEventManager;
+import scheduler.dao.ModelFilter;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
  * @author Leonard T. Erwine
- * @param <D>
- * @param <M> The type of model objects presented by the ListingController.
+ * @param <T>
+ * @param <S> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<D extends DataObjectImpl, M extends ItemModel<D>> extends MainController.MainContentController {
-    //<editor-fold defaultstate="collapsed" desc="itemsFilter">
+public abstract class ListingController<T extends DataObjectImpl, S extends ItemModel<T>> extends MainController.MainContentController {
+    private ItemEventListener<ItemEvent<S>> itemAddedListener;
+    private ItemEventListener<ItemEvent<S>> itemRemovedListener;
     
-    private LookupFilter<D, M> filter;
-    
-    /**
-     * Gets the current filter.
-     * @return The current filter.
-     */
-    public LookupFilter<D, M> getFilter() { return filter; }
-    
-    /**
-     * Gets the default filter.
-     * @return The default filter.
-     */
-    protected abstract LookupFilter<D, M> getDefaultFilter();
-    
-    //</editor-fold>
+    private ModelFilter<T, S> filter;
     
     //<editor-fold defaultstate="collapsed" desc="itemsList">
     
-    private final ObservableList<M> itemsList = FXCollections.observableArrayList();
+    private final ObservableList<S> itemsList = FXCollections.observableArrayList();
     
     /**
      * Gets the {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
      * @return The {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
      */
-    protected ObservableList<M> getItemsList() { return itemsList; }
+    protected ObservableList<S> getItemsList() { return itemsList; }
     
     //</editor-fold>
     
@@ -68,7 +61,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
      * The {@link TableView} control injected by the {@link FXMLLoader}.
      */
     @FXML
-    protected TableView<M> listingTableView;
+    protected TableView<S> listingTableView;
     
     //</editor-fold>
     
@@ -113,7 +106,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
             }
             if (event.isShiftDown())
                 return;
-            M item = listingTableView.getSelectionModel().getSelectedItem();
+            S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null)
                 return;
             if (event.getCode() == KeyCode.DELETE)
@@ -123,7 +116,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         });
         Objects.requireNonNull(editMenuItem, String.format("fx:id=\"editMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            M item = listingTableView.getSelectionModel().getSelectedItem();
+            S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = App.getResources();
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
@@ -133,7 +126,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         });
         Objects.requireNonNull(deleteMenuItem, String.format("fx:id=\"deleteMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            M item = listingTableView.getSelectionModel().getSelectedItem();
+            S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = App.getResources();
                 Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
@@ -143,16 +136,41 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         });
         Objects.requireNonNull(newButton, String.format("fx:id=\"newButton\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> onAddNewItem(event));
+        itemAddedListener = (event) -> {
+            if (null == filter || filter.test(event.getTarget()))
+                itemsList.add(event.getTarget());
+        };
+        itemRemovedListener = (event) -> {
+            removeListItemByPrimaryKey(event.getTarget().getPrimaryKey());
+        };
     }
     
+    protected abstract ItemEventManager<ItemEvent<S>> getItemAddManager(MainController mainController);
+    
+    protected abstract ItemEventManager<ItemEvent<S>> getItemRemoveManager(MainController mainController);
+    
+    @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        getItemAddManager(getMainController()).addListener(itemAddedListener);
+        getItemAddManager(getMainController()).addListener(itemRemovedListener);
+        super.onBeforeShow(currentView, stage);
+    }
+    
+    @Override
+    protected void onUnloaded(Node view) {
+        getItemAddManager(getMainController()).removeListener(itemAddedListener);
+        getItemAddManager(getMainController()).removeListener(itemRemovedListener);
+        super.onUnloaded(view); //To change body of generated methods, choose Tools | Templates.
+    }
+
     /**
      * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
-     * @param value The new {@link LookupFilter}.
+     * @param value The new {@link ModelFilter}.
      * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
      */
-    public void changeFilter(LookupFilter<D, M> value, Stage owner) {
+    public void changeFilter(ModelFilter<T, S> value, Stage owner) {
         if (null == value)
-            value = getDefaultFilter();
+            value = getDaoFactory().getDefaultFilter();
         if (null != filter && value.equals(filter))
             return;
         filter = value;
@@ -164,7 +182,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
      * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
      */
     private void onFilterChanged(Stage owner) {
-        TaskWaiter.execute(new ItemsLoadTask(owner));
+        TaskWaiter.execute(createItemsLoadTask(owner));
     }
     
     /**
@@ -181,7 +199,7 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
      * @param item The selected item to be edited.
      * @return 
      */
-    protected abstract EditItem.ShowAndWaitResult<M> onEditItem(Event event, M item);
+    protected abstract EditItem.ShowAndWaitResult<S> onEditItem(Event event, S item);
 
     /**
      * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
@@ -189,10 +207,10 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
      * @param event Contextual information about the event.
      * @param item The selected item to be deleted.
      */
-    protected abstract void onDeleteItem(Event event, M item);
+    protected abstract void onDeleteItem(Event event, S item);
     
     protected int indexOfListItemByPrimaryKey(int pk) {
-        Iterator<M> iterator = getItemsList().iterator();
+        Iterator<S> iterator = getItemsList().iterator();
         int index = -1;
         while (iterator.hasNext()) {
             ++index;
@@ -202,10 +220,10 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         return -1;
     }
     
-    protected M getListItemByPrimaryKey(int pk) {
-        Iterator<M> iterator = getItemsList().iterator();
+    protected S getListItemByPrimaryKey(int pk) {
+        Iterator<S> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
-            M item = iterator.next();
+            S item = iterator.next();
             if (item.getPrimaryKey() == pk)
                 return item;
         }
@@ -213,9 +231,9 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
     }
     
     protected boolean removeListItemByPrimaryKey(int pk) {
-        Iterator<M> iterator = getItemsList().iterator();
+        Iterator<S> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
-            M item = iterator.next();
+            S item = iterator.next();
             if (item.getPrimaryKey() == pk) {
                 iterator.remove();
                 return true;
@@ -224,12 +242,12 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         return false;
     }
     
-    protected boolean updateListItem(M item) {
+    protected boolean updateListItem(S item) {
         Objects.requireNonNull(item);
         int pk = item.getPrimaryKey();
-        ObservableList<M> items = getItemsList();
+        ObservableList<S> items = getItemsList();
         for (int i = 0; i < items.size(); i++) {
-            M m = items.get(i);
+            S m = items.get(i);
             if (m.getPrimaryKey() == pk) {
                 if (m != item)
                     items.set(i, item);
@@ -239,44 +257,38 @@ public abstract class ListingController<D extends DataObjectImpl, M extends Item
         return false;
     }
       
-    protected abstract DataObjectImpl.Factory<D> getDaoFactory();
+    protected abstract DataObjectImpl.Factory<T, S> getDaoFactory();
     
-    protected abstract M toModel(D result);
+    protected abstract S toModel(T result);
         
-    protected class ItemsLoadTask extends TaskWaiter<List<D>> {
-        private final LookupFilter<D, M> currentFilter;
+    protected void onItemsLoaded(ModelFilter<T, S> filter, Stage owner) { }
+    
+    protected ItemsLoadTask createItemsLoadTask(Stage owner) { return new ItemsLoadTask(owner); }
+    
+    protected class ItemsLoadTask extends TaskWaiter<List<T>> {
+        private final ModelFilter<T, S> currentFilter;
         
         protected ItemsLoadTask(Stage owner) {
             super(owner, filter.getLoadingMessage());
             currentFilter = filter;
         }
         
-        protected void processNullResult(Stage owner) {
-            
-        }
-        
-        protected void onItemsLoaded(LookupFilter<D, M> filter, Stage owner) { }
-        
         @Override
-        protected final List<D> getResult() throws Exception {
-            try (DbConnector dep = new DbConnector()) {
-                DataObjectImpl.Factory<D> factory = getDaoFactory();
-                return currentFilter.apply(dep.getConnection(), factory);
-            }
+        protected final List<T> getResult(Connection connection) throws SQLException {
+            return currentFilter.apply(connection);
         }
         
         @Override
-        protected final void processResult(List<D> result, Stage owner) {
-            if (null == result) {
+        protected final void processResult(List<T> result, Stage owner) {
+            if (null == result)
                 LOG.logp(Level.SEVERE, getClass().getName(), "processResult", String.format("\"%s\" operation returned null", getTitle()));
-                processNullResult(owner);
-            } else {
+            else {
                 itemsList.clear();
-                Iterator<D> it = result.iterator();
+                Iterator<T> it = result.iterator();
                 while (it.hasNext())
                     itemsList.add(toModel(it.next()));
-                onItemsLoaded(currentFilter, owner);
             }
+            onItemsLoaded(currentFilter, owner);
         }
         
         @Override

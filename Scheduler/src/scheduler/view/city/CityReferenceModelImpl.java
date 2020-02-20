@@ -5,14 +5,12 @@
  */
 package scheduler.view.city;
 
-import java.sql.SQLException;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.City;
 import scheduler.dao.Country;
-import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.country.CountryReferenceModel;
@@ -25,10 +23,10 @@ public class CityReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
     private final ReadOnlyObjectWrapper<CountryReferenceModel<? extends Country>> country;
     private final ChildPropertyWrapper<String, CountryReferenceModel<? extends Country>> countryName;
     
-    public CityReferenceModelImpl(City dao) throws SQLException, ClassNotFoundException {
+    public CityReferenceModelImpl(City dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "name", dao.getName());
-        Country c = dao.getCountry().ensurePartial(CountryImpl.getFactory());
+        Country c = dao.getCountry().getPartial();
         country = new ReadOnlyObjectWrapper<>(this, "country", (null == c) ? null : new CountryReferenceModelImpl(c));
         countryName = new ChildPropertyWrapper<>(this, "countryName", country, (t) -> t.nameProperty());
     }

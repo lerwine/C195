@@ -1,6 +1,7 @@
 package scheduler.view.user;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.FXCollections;
@@ -265,27 +266,6 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     protected BooleanExpression getValidationExpression() { return validationExpression; }
 
     @Override
-    protected String getSaveConflictMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
-//        UserFactory factory = new UserFactory();
-//        ModelFilter<UserModel> filter = UserFactory.userNameIs(normalizedUserName.get());
-//        if (!getModel().isNewItem())
-//            filter = filter.and(factory.wherePkIsNot(getModel().getDataObject().getPrimaryKey()));
-//        if (factory.count(connection, filter) == 0)
-//            return "";
-//        return getResourceString(RESOURCEKEY_USERNAMEINUSE);
-    }
-
-    @Override
-    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
-//        AppointmentFactory factory = new AppointmentFactory();
-//        if (factory.count(connection, AppointmentFactory.userIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-//            return "";
-//        return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
-    }
-
-    @Override
-    protected Factory<UserImpl> getDaoFactory() { return UserImpl.getFactory(); }
+    protected Factory<UserImpl, UserModel> getDaoFactory() { return UserImpl.getFactory(); }
     
 }

@@ -1,6 +1,8 @@
 package scheduler;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Locale;
 import scheduler.util.DbConnector;
 import java.util.Optional;
@@ -27,281 +29,7 @@ import scheduler.view.Login;
  * After successful authentication, {@link MainController} is loaded into a new scene in the primary stage.
  * @author Leonard T. Erwine
  */
-public class App extends Application {
-    
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointment Scheduler"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTSCHEDULER = "appointmentScheduler";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "File "%s" not found."}.
-     */
-    public static final String RESOURCEKEY_FILENOTFOUND = "fileNotFound";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Conference"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_PHONE = "appointmentType_phone";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Virtual Meeting"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL = "appointmentType_virtual";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer Site"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER = "appointmentType_customer";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Home Office"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_HOME = "appointmentType_home";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Germany Office"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_GERMANY = "appointmentType_germany";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "India Office"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_INDIA = "appointmentType_india";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Honduras Office"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_HONDURAS = "appointmentType_honduras";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Other in-person meeting"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_OTHER = "appointmentType_other";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "FXML Loader Error"}.
-     */
-    public static final String RESOURCEKEY_FXMLLOADERERRORTITLE = "fxmlLoaderErrorTitle";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading login scene content..."}.
-     */
-    public static final String RESOURCEKEY_FXMLLOADERERRORMESSAGE = "fxmlLoaderErrorMessage";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Nothing selected"}.
-     */
-    public static final String RESOURCEKEY_NOTHINGSELECTED = "nothingSelected";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "No item was selected."}.
-     */
-    public static final String RESOURCEKEY_NOITEMWASSELECTED = "noItemWasSelected";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Confirm Delete"}.
-     */
-    public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Working"}.
-     */
-    public static final String RESOURCEKEY_WORKING = "working";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Please wait..."}.
-     */
-    public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Abort"}.
-     */
-    public static final String RESOURCEKEY_ABORT = "abort";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cancel"}.
-     */
-    public static final String RESOURCEKEY_CANCEL = "cancel";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Connecting to database"}.
-     */
-    public static final String RESOURCEKEY_CONNECTINGTODB = "connectingToDb";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Logging in..."}.
-     */
-    public static final String RESOURCEKEY_LOGGINGIN = "loggingIn";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Connected to database"}.
-     */
-    public static final String RESOURCEKEY_CONNECTEDTODB = "connectedToDb";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Database access error"}.
-     */
-    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error reading data from database. See logs for details."}.
-     */
-    public static final String RESOURCEKEY_DBREADERROR = "dbReadError";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Getting appointments"}.
-     */
-    public static final String RESOURCEKEY_GETTINGAPPOINTMENTS = "gettingAppointments";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete"}.
-     */
-    public static final String RESOURCEKEY_DELETE = "delete";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This action cannot be undone!..."}.
-     */
-    public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unexpected Error"}.
-     */
-    public static final String RESOURCEKEY_UNEXPECTEDERRORTITLE = "unexpectedErrorTitle";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "An unexpected error has occurred."}.
-     */
-    public static final String RESOURCEKEY_UNEXPECTEDERRORHEADING = "unexpectedErrorHeading";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "See application logs for technical details."}.
-     */
-    public static final String RESOURCEKEY_UNEXPECTEDERRORDETAILS = "unexpectedErrorDetails";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type:"}.
-     */
-    public static final String RESOURCEKEY_TYPE = "type";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Message:"}.
-     */
-    public static final String RESOURCEKEY_MESSAGE = "message";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error Code:"}.
-     */
-    public static final String RESOURCEKEY_ERRORCODE = "errorCode";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "State:"}.
-     */
-    public static final String RESOURCEKEY_STATE = "state";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Related Exceptions:"}.
-     */
-    public static final String RESOURCEKEY_RELATEDEXCEPTIONS = "relatedExceptions";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Stack Trace:"}.
-     */
-    public static final String RESOURCEKEY_STACKTRACE = "stackTrace";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Caused By:"}.
-     */
-    public static final String RESOURCEKEY_CAUSEDBY = "causedBy";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Warning"}.
-     */
-    public static final String RESOURCEKEY_WARNING = "warning";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete Failure"}.
-     */
-    public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Deleting Record"}.
-     */
-    public static final String RESOURCEKEY_DELETINGRECORD = "deletingRecord";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error deleting record from database..."}.
-     */
-    public static final String RESOURCEKEY_ERRORDELETINGFROMDB = "errorDeletingFromDb";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "A database access error occurred while trying to save changes to the database..."}.
-     */
-    public static final String RESOURCEKEY_ERRORSAVINGCHANGES = "errorSavingChanges";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unable to delete the record from the database..."}.
-     */
-    public static final String RESOURCEKEY_DELETEDEPENDENCYERROR = "deleteDependencyError";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unable to save the record to the database..."}.
-     */
-    public static final String RESOURCEKEY_SAVEDEPENDENCYERROR = "saveDependencyError";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Record Save Failure"}.
-     */
-    public static final String RESOURCEKEY_SAVEFAILURE = "saveFailure";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Load Error"}.
-     */
-    public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unexpected error trying to load child window..."}.
-     */
-    public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Saving Changes"}.
-     */
-    public static final String RESOURCEKEY_SAVINGCHANGES = "savingChanges";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Log Message:"}.
-     */
-    public static final String RESOURCEKEY_LOGMESSAGE = "logMessage";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active"}.
-     */
-    public static final String RESOURCEKEY_ACTIVE = "active";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Inactive"}.
-     */
-    public static final String RESOURCEKEY_INACTIVE = "inactive";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Administrator"}.
-     */
-    public static final String RESOURCEKEY_AMINISTRATOR = "administrator";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unknown"}.
-     */
-    public static final String RESOURCEKEY_UNKNOWN = "unknown";
-    
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "(none)"}.
-     */
-    public static final String RESOURCEKEY_NONE = "none";
-    
-    //</editor-fold>
+public class App extends Application implements ApplicationResourceKeys {
     
     /**
      * The name of the general application globalization resource bundle.
@@ -337,7 +65,7 @@ public class App extends Application {
     
     @Override
     public void stop() throws Exception {
-        DbConnector.forceClose();
+        DbConnector.forceCloseAll();
         super.stop();
     }
 
@@ -386,13 +114,11 @@ public class App extends Application {
         }
 
         @Override
-        protected UserImpl getResult() throws Exception {
+        protected UserImpl getResult(Connection connection) throws SQLException {
             Optional<UserImpl> result;
             LOG.log(Level.INFO, String.format("Looking up %s", userName));
-            try (DbConnector dep = new DbConnector()) {
-                Platform.runLater(() -> updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB)));
-                result = UserImpl.getFactory().findByUserName(dep.getConnection(), userName);
-            }
+            Platform.runLater(() -> updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB)));
+            result = UserImpl.getFactory().findByUserName(connection, userName);
             if (result.isPresent()) {
                 // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
                 // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed

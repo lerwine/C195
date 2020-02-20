@@ -5,7 +5,6 @@
  */
 package scheduler.view.user;
 
-import java.sql.SQLException;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -87,14 +86,14 @@ public final class UserModel extends ItemModel<UserImpl> implements UserReferenc
     }
 
     @Override
-    protected void refreshFromDAO(UserImpl dao) throws SQLException, ClassNotFoundException {
+    protected void refreshFromDAO(UserImpl dao) {
         userName.set(dao.getUserName());
         password.set(dao.getPassword());
         status.set(dao.getStatus());
     }
 
     @Override
-    public Factory<UserImpl> getDaoFactory() {
+    public Factory<UserImpl, UserModel> getDaoFactory() {
         return UserImpl.getFactory();
     }
 

@@ -1,6 +1,5 @@
 package scheduler.view.address;
 
-import java.sql.SQLException;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
@@ -10,7 +9,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
-import scheduler.dao.CityImpl;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
@@ -145,12 +143,12 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
         return cityZipCountry;
     }
 
-    public AddressModel(AddressImpl dao) throws SQLException, ClassNotFoundException {
+    public AddressModel(AddressImpl dao) {
         super(dao);
         address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
         address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
         addressLines = new AddressLinesProperty();
-        City c = dao.getCity().ensurePartial(CityImpl.getFactory());
+        City c = dao.getCity().getPartial();
         city = new SimpleObjectProperty<>(this, "city", (null == c) ? null : new CityReferenceModelImpl(c));
         cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());
@@ -160,17 +158,17 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
     }
 
     @Override
-    protected void refreshFromDAO(AddressImpl dao) throws SQLException, ClassNotFoundException {
+    protected void refreshFromDAO(AddressImpl dao) {
         address1.set(dao.getAddress1());
         address2.set(dao.getAddress2());
-        City c = dao.getCity().ensurePartial(CityImpl.getFactory());
+        City c = dao.getCity().getPartial();
         city.set((null == c) ? null : new CityReferenceModelImpl(c));
         postalCode.set(dao.getPostalCode());
         phone.set(dao.getPhone());
     }
 
     @Override
-    public Factory<AddressImpl> getDaoFactory() {
+    public Factory<AddressImpl, AddressModel> getDaoFactory() {
         return AddressImpl.getFactory();
     }
 

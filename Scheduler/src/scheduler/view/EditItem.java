@@ -320,15 +320,14 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         @Override
-        protected String getResult() throws Exception {
-            try (DbConnector dep = new DbConnector()) {
-                String message = contentController.getSaveConflictMessage(dep.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                LOG.logp(Level.WARNING, getClass().getName(), "getResult", "Not implemeted");
-                contentController.getDaoFactory().save(contentController.model.getDataObject(), dep.getConnection());
+        protected String getResult(Connection connection) throws SQLException {
+            String message = contentController.getDaoFactory().getSaveConflictMessage(contentController.model.getDataObject(), connection);
+            if (null != message && !message.trim().isEmpty()) {
+                return message;
             }
+            LOG.logp(Level.WARNING, getClass().getName(), "getResult", "Not implemeted");
+            contentController.getDaoFactory().save(contentController.model.getDataObject(), connection);
+           
             return null;
         }
     }
@@ -359,14 +358,12 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         @Override
-        protected String getResult() throws Exception {
-            try (DbConnector dep = new DbConnector()) {
-                String message = contentController.getDeleteDependencyMessage(dep.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                contentController.getDaoFactory().delete(contentController.model.getDataObject(), dep.getConnection());
+        protected String getResult(Connection connection) throws SQLException {
+            String message = contentController.getDaoFactory().getDeleteDependencyMessage(contentController.model.getDataObject(), connection);
+            if (null != message && !message.trim().isEmpty()) {
+                return message;
             }
+            contentController.getDaoFactory().delete(contentController.model.getDataObject(), connection);
             return null;
         }
     }
@@ -458,7 +455,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
          *
          * @return An instance of the {@link DataObjectImpl.Factory}.
          */
-        protected abstract DataObjectImpl.Factory<D> getDaoFactory();
+        protected abstract DataObjectImpl.Factory<D, M> getDaoFactory();
 
         /**
          * Gets the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
@@ -466,24 +463,24 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
          * @return the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
          */
         protected abstract BooleanExpression getValidationExpression();
-
-        /**
-         * Gets a message indicating whether any existing record conflicts with the proposed change.
-         *
-         * @param connection The {@link Connection} to use to look for database conflicts.
-         * @return The human-readable conflict message or {@code null} if there are no conflicts.
-         * @throws Exception if unable to check for conflicts.
-         */
-        protected abstract String getSaveConflictMessage(Connection connection) throws Exception;
-
-        /**
-         * Gets a message indicating whether any other records have a dependency on the current record.
-         *
-         * @param connection The {@link Connection} to use to look for dependencies.
-         * @return The human-readable dependency message or {@code null} if there are no dependencies.
-         * @throws Exception if unable to check for dependencies.
-         */
-        protected abstract String getDeleteDependencyMessage(Connection connection) throws Exception;
+//
+//        /**
+//         * Gets a message indicating whether any existing record conflicts with the proposed change.
+//         *
+//         * @param connection The {@link Connection} to use to look for database conflicts.
+//         * @return The human-readable conflict message or {@code null} if there are no conflicts.
+//         * @throws SQLException if unable to check for conflicts.
+//         */
+//        protected abstract String getSaveConflictMessage(Connection connection) throws SQLException;
+//
+//        /**
+//         * Gets a message indicating whether any other records have a dependency on the current record.
+//         *
+//         * @param connection The {@link Connection} to use to look for dependencies.
+//         * @return The human-readable dependency message or {@code null} if there are no dependencies.
+//         * @throws SQLException if unable to check for dependencies.
+//         */
+//        protected abstract String getDeleteDependencyMessage(Connection connection) throws SQLException;
 
     }
 

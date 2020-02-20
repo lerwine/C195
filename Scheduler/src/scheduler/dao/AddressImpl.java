@@ -5,10 +5,14 @@
  */
 package scheduler.dao;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
+import scheduler.view.address.AddressModel;
 
 public class AddressImpl extends DataObjectImpl implements Address {
 
@@ -178,21 +182,11 @@ public class AddressImpl extends DataObjectImpl implements Address {
     
     public static FactoryImpl getFactory() { return FACTORY; }
     
-    public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {
 
         // This is a singleton instance
         private FactoryImpl() { }
         
-        //    @Override
-        //    protected void onApplyChanges(AddressModel model) {
-        //        AddressImpl dao = model.getDataObject();
-        //        dao.address1 = model.getAddress1();
-        //        dao.address2 = model.getAddress2();
-        //        AddressCity<?> city = model.getCity();
-        //        dao.city = (null == city) ? null : city.getDataObject();
-        //        dao.phone = model.getPhone();
-        //        dao.postalCode = model.getPostalCode();
-        //    }
         @Override
         protected AddressImpl fromResultSet(ResultSet resultSet) throws SQLException {
             AddressImpl r = new AddressImpl();
@@ -201,7 +195,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
         }
 
         @Override
-        public String getBaseQuery() {
+        public String getBaseSelectQuery() {
             return BASE_SELECT_SQL;
         }
 
@@ -221,12 +215,12 @@ public class AddressImpl extends DataObjectImpl implements Address {
         }
 
         @Override
-        protected Stream<String> getExtendedColNames() {
-            return Stream.of(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE);
+        protected List<String> getExtendedColNames() {
+            return Arrays.asList(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE);
         }
 
         @Override
-        protected void setStatementValues(AddressImpl dao, PreparedStatement ps) throws SQLException {
+        protected void setSaveStatementValues(AddressImpl dao, PreparedStatement ps) throws SQLException {
             ps.setString(1, dao.getAddress1());
             ps.setString(2, dao.getAddress2());
             ps.setInt(3, dao.getCity().getPrimaryKey());
@@ -271,5 +265,33 @@ public class AddressImpl extends DataObjectImpl implements Address {
             }
         }
 
+        @Override
+        public ModelFilter<AddressImpl, AddressModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public ModelFilter<AddressImpl, AddressModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getDeleteDependencyMessage(AddressImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getSaveConflictMessage(AddressImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
+    
+    public static abstract class FilterImpl extends Filter<AddressImpl> {
+        
+        @Override
+        public FactoryImpl getFactory() { return FACTORY; }
+                
+    }
+    
 }

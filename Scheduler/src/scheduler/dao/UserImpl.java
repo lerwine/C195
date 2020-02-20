@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -20,6 +22,7 @@ import javafx.util.Pair;
 import scheduler.util.Values;
 import scheduler.view.SchedulerController;
 import scheduler.view.user.EditUser;
+import scheduler.view.user.UserModel;
 
 public class UserImpl extends DataObjectImpl implements User {
 
@@ -146,7 +149,7 @@ public class UserImpl extends DataObjectImpl implements User {
     
     public static FactoryImpl getFactory() { return FACTORY; }
     
-    public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl, UserModel> {
 
         // This is a singleton instance
         private FactoryImpl() { }
@@ -158,9 +161,9 @@ public class UserImpl extends DataObjectImpl implements User {
          * @param status The user status value to match.
          * @param isNegated {@code true} to get all records whose status does not match; otherwise {@code false} to load matching records.
          * @return {@link UserImpl} records loaded according to the user status.
-         * @throws Exception if unable to perform database query.
+         * @throws SQLException if unable to perform database query.
          */
-        public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated) throws Exception {
+        public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -170,9 +173,9 @@ public class UserImpl extends DataObjectImpl implements User {
          * @param connection The {@link Connection} to use to retrieve the data.
          * @param status The user status value to match.
          * @return {@link UserImpl} records loaded according to the user status.
-         * @throws Exception if unable to perform database query.
+         * @throws SQLException if unable to perform database query.
          */
-        public ArrayList<UserImpl> loadByStatus(Connection connection, int status) throws Exception {
+        public ArrayList<UserImpl> loadByStatus(Connection connection, int status) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -182,9 +185,9 @@ public class UserImpl extends DataObjectImpl implements User {
          * @param connection The {@link Connection} to use to retrieve the data.
          * @param userName The user name value to match.
          * @return The first {@link UserImpl} record matching {@code userName} or {@link Optional#EMPTY} if no match was found..
-         * @throws Exception if unable to perform database query.
+         * @throws SQLException if unable to perform database query.
          */
-        public Optional<UserImpl> findByUserName(Connection connection, String userName) throws Exception {
+        public Optional<UserImpl> findByUserName(Connection connection, String userName) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -203,7 +206,7 @@ public class UserImpl extends DataObjectImpl implements User {
         }
 
         @Override
-        public String getBaseQuery() {
+        public String getBaseSelectQuery() {
             return String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE, COLNAME_CREATEDATE,
                     COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, getTableName());
         }
@@ -224,12 +227,12 @@ public class UserImpl extends DataObjectImpl implements User {
         }
 
         @Override
-        protected Stream<String> getExtendedColNames() {
-            return Stream.of(COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE);
+        protected List<String> getExtendedColNames() {
+            return Arrays.asList(COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE);
         }
 
         @Override
-        protected void setStatementValues(UserImpl dao, PreparedStatement ps) throws SQLException {
+        protected void setSaveStatementValues(UserImpl dao, PreparedStatement ps) throws SQLException {
             ps.setString(1, dao.getUserName());
             ps.setString(1, dao.getPassword());
             ps.setInt(3, dao.getStatus());
@@ -251,6 +254,33 @@ public class UserImpl extends DataObjectImpl implements User {
             }
         }
 
+        @Override
+        public ModelFilter<UserImpl, UserModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public ModelFilter<UserImpl, UserModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getSaveConflictMessage(UserImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        @Override
+        public String getDeleteDependencyMessage(UserImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
     }
 
+    public static abstract class FilterImpl extends Filter<UserImpl> {
+        
+        @Override
+        public FactoryImpl getFactory() { return FACTORY; }
+        
+    }
+    
 }

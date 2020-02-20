@@ -1,17 +1,20 @@
 package scheduler.view.customer;
 
-import java.sql.SQLException;
-import java.util.logging.Level;
+import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.stage.Stage;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.LookupFilter;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.dao.ModelFilter;
+import scheduler.util.ItemEvent;
+import scheduler.util.ItemEventManager;
+import scheduler.view.MainController;
 
 /**
  * FXML Controller class
@@ -127,6 +130,10 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
         super.initialize();
     }
 
+    public static void setContent(MainController mainController, Stage stage, ModelFilter<CustomerImpl, CustomerModel> filter) throws IOException {
+        setContent(mainController, ManageCustomers.class, stage).changeFilter(filter, stage);
+    }
+    
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewCustomer(event);
@@ -139,32 +146,26 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
 
     @Override
     protected void onDeleteItem(Event event, CustomerModel item) {
-        getMainController().deleteCustomer(event, item, (connection) -> {
-            throw new UnsupportedOperationException("Not implemented");
-//            AppointmentFactory factory = new AppointmentFactory();
-//            if (factory.count(connection, AppointmentFactory.customerIdIs(item.getDataObject().getPrimaryKey())) == 0)
-//                return "";
-//            return getResourceString(RESOURCEKEY_CUSTOMERHASAPPOINTMENTS);
-        });
+        getMainController().deleteCustomer(event, item);
     }
 
     @Override
     protected CustomerModel toModel(CustomerImpl result) {
-        try {
-            return new CustomerModel(result);
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(ManageCustomers.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        return new CustomerModel(result);
     }
 
     @Override
-    protected LookupFilter<CustomerImpl, CustomerModel> getDefaultFilter() {
+    protected DataObjectImpl.Factory<CustomerImpl, CustomerModel> getDaoFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected DataObjectImpl.Factory<CustomerImpl> getDaoFactory() {
+    protected ItemEventManager<ItemEvent<CustomerModel>> getItemAddManager(MainController mainController) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected ItemEventManager<ItemEvent<CustomerModel>> getItemRemoveManager(MainController mainController) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

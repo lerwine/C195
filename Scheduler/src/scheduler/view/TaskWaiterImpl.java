@@ -5,45 +5,48 @@
  */
 package scheduler.view;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import javafx.stage.Stage;
+import scheduler.util.ThrowableFunction;
 
 /**
  * Implementation of the {@link TaskWaiter} interface.
+ *
  * @author erwinel
  * @param <T> The result type.
  */
 public class TaskWaiterImpl<T> extends TaskWaiter<T> {
-    private final Callable<T> callable;
-    
-    public TaskWaiterImpl(Stage window, Callable<T> callable) {
+
+    private final ThrowableFunction<Connection, T, SQLException> func;
+
+    public TaskWaiterImpl(Stage window, ThrowableFunction<Connection, T, SQLException> func) {
         super(window);
-        Objects.requireNonNull(callable);
-        this.callable = callable;
+        this.func = Objects.requireNonNull(func);
     }
-    
-    public TaskWaiterImpl(Stage window, String operation, Callable<T> callable) {
+
+    public TaskWaiterImpl(Stage window, String operation, ThrowableFunction<Connection, T, SQLException> func) {
         super(window, operation);
-        Objects.requireNonNull(callable);
-        this.callable = callable;
+        this.func = Objects.requireNonNull(func);
     }
-    
-    public TaskWaiterImpl(Stage window, String operation, String heading, Callable<T> callable) {
+
+    public TaskWaiterImpl(Stage window, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func) {
         super(window, operation, heading);
-        Objects.requireNonNull(callable);
-        this.callable = callable;
+        this.func = Objects.requireNonNull(func);
     }
 
     @Override
-    protected T getResult() throws Exception {
-        return callable.call();
+    protected T getResult(Connection connection) throws SQLException {
+        return func.apply(connection);
     }
 
     @Override
-    protected void processResult(T result, Stage owner) { }
+    protected void processResult(T result, Stage owner) {
+    }
 
     @Override
-    protected void processException(Throwable ex, Stage owner) { }
+    protected void processException(Throwable ex, Stage owner) {
+    }
 
 }

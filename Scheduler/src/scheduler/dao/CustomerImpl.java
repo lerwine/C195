@@ -10,8 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import scheduler.view.customer.CustomerModel;
 
 public class CustomerImpl extends DataObjectImpl implements Customer {
 
@@ -115,33 +118,33 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     
     public static FactoryImpl getFactory() { return FACTORY; }
     
-    public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {
 
         // This is a singleton instance
         private FactoryImpl() { }
         
-        public Optional<CustomerImpl> findByName(Connection connection, String value) throws Exception {
+        public Optional<CustomerImpl> findByName(Connection connection, String value) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
         //    public ArrayList<CustomerImpl> loadByStatus(Connection connection, boolean isActive, Iterable<OrderBy> orderBy) throws Exception {
         //        return load(connection, activeIs(isActive), orderBy);
         //    }
-        public ArrayList<CustomerImpl> loadByStatus(Connection connection, boolean isActive) throws Exception {
+        public ArrayList<CustomerImpl> loadByStatus(Connection connection, boolean isActive) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
         //    public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, boolean isActive, Iterable<OrderBy> orderBy) throws Exception {
         //        return load(connection, activeIs(isActive).and(addressIdIs(addressId)), orderBy);
         //    }
-        public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, boolean isActive) throws Exception {
+        public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, boolean isActive) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
         //    public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, Iterable<OrderBy> orderBy) throws Exception {
         //        return load(connection, addressIdIs(addressId), orderBy);
         //    }
-        public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId) throws Exception {
+        public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -153,7 +156,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
         //        return load(connection, countryIdIs(countryId), orderBy);
         //    }
         
-        public int countByAddress(Connection connection, int addressId) throws Exception {
+        public int countByAddress(Connection connection, int addressId) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
@@ -174,7 +177,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
         }
 
         @Override
-        public String getBaseQuery() {
+        public String getBaseSelectQuery() {
             return BASE_SELECT_SQL;
         }
 
@@ -194,12 +197,12 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
         }
 
         @Override
-        protected Stream<String> getExtendedColNames() {
-            return Stream.of(COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ADDRESSID);
+        protected List<String> getExtendedColNames() {
+            return Arrays.asList(COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ADDRESSID);
         }
 
         @Override
-        protected void setStatementValues(CustomerImpl dao, PreparedStatement ps) throws SQLException {
+        protected void setSaveStatementValues(CustomerImpl dao, PreparedStatement ps) throws SQLException {
             ps.setString(1, dao.getName());
             ps.setBoolean(2, dao.isActive());
             ps.setInt(3, dao.getAddress().getPrimaryKey());
@@ -256,6 +259,33 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
             }
         }
 
+        @Override
+        public ModelFilter<CustomerImpl, CustomerModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public ModelFilter<CustomerImpl, CustomerModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getDeleteDependencyMessage(CustomerImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getSaveConflictMessage(CustomerImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
 
+    public static abstract class FilterImpl extends Filter<CustomerImpl> {
+        
+        @Override
+        public FactoryImpl getFactory() { return FACTORY; }
+        
+    }
+    
 }

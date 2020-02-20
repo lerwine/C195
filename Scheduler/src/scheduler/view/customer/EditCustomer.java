@@ -1,6 +1,5 @@
 package scheduler.view.customer;
 
-import java.sql.Connection;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.fxml.FXML;
@@ -241,21 +240,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
     }
 
     @Override
-    protected String getSaveConflictMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
-//        AppointmentFactory factory = new AppointmentFactory();
-//        if (factory.count(connection, AppointmentFactory.customerIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-//            return "";
-//        return getResourceString(RESOURCEKEY_CUSTOMERHASAPPOINTMENTS);
-    }
-
-    @Override
-    protected Factory<CustomerImpl> getDaoFactory() {
+    protected Factory<CustomerImpl, CustomerModel> getDaoFactory() {
         return CustomerImpl.getFactory();
     }
 

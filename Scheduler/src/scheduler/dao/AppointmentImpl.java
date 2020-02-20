@@ -10,12 +10,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
+import scheduler.App;
 import scheduler.util.DB;
 import scheduler.util.Values;
+import scheduler.view.ItemModel;
+import scheduler.view.appointment.AppointmentModel;
 
 public class AppointmentImpl extends DataObjectImpl implements Appointment {
 
@@ -77,7 +83,6 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     public static final String COLNAME_END = "end";
 
     //</editor-fold>
-
     //<editor-fold defaultstate="collapsed" desc="customer property">
     private DataObjectReference<CustomerImpl, Customer> customer;
 
@@ -202,8 +207,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
      * @param value new value of contact
      */
     public void setContact(String value) {
-        Objects.requireNonNull(value);
-        contact = value;
+        contact = (value == null) ? "" : value;
     }
 
     //</editor-fold>
@@ -245,8 +249,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
      * @param value new value of url
      */
     public void setUrl(String value) {
-        Objects.requireNonNull(value);
-        url = value;
+        url = (value == null) ? "" : value;
     }
 
     //</editor-fold>
@@ -295,13 +298,10 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
 
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
-    private static String baseSelectQuery = null;
+    private static final String BASE_SELECT_QUERY;
 
-    public static String getBaseSelectQuery() {
-        if (null != baseSelectQuery) {
-            return baseSelectQuery;
-        }
-        final StringBuilder sql = new StringBuilder("SELECT e.`");
+    static {
+        StringBuilder sql = new StringBuilder("SELECT e.`");
         sql.append(COLNAME_APPOINTMENTID).append("` AS `").append(COLNAME_APPOINTMENTID);
         Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE,
                 COLNAME_LASTUPDATEBY, COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION,
@@ -314,7 +314,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
                 AddressImpl.COLNAME_PHONE).forEach((t) -> {
                     sql.append("`, a.`").append(t).append("` AS `").append(t);
                 });
-        baseSelectQuery = sql.append("`, u.`").append(UserImpl.COLNAME_USERID).append("` AS `").append(UserImpl.COLNAME_USERID)
+        BASE_SELECT_QUERY = sql.append("`, u.`").append(UserImpl.COLNAME_USERID).append("` AS `").append(UserImpl.COLNAME_USERID)
                 .append("`, c.`").append(CityImpl.COLNAME_CITY).append("` AS `").append(CityImpl.COLNAME_CITY)
                 .append("`, c.`").append(CityImpl.COLNAME_COUNTRYID).append("` AS `").append(CityImpl.COLNAME_COUNTRYID)
                 .append("`, n.`").append(CountryImpl.COLNAME_COUNTRY).append("` AS `").append(CountryImpl.COLNAME_COUNTRY)
@@ -324,7 +324,6 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
                 .append("` LEFT JOIN `").append(CityImpl.getFactory().getTableName()).append("` c ON a.`").append(AddressImpl.COLNAME_CITYID).append("`=c.`").append(CityImpl.COLNAME_CITYID)
                 .append("` LEFT JOIN `").append(CountryImpl.getFactory().getTableName()).append("` n ON c.`").append(CityImpl.COLNAME_COUNTRYID).append("`=n.`").append(CountryImpl.COLNAME_COUNTRYID)
                 .append("` LEFT JOIN `").append(UserImpl.getFactory().getTableName()).append("` u ON e.`").append(COLNAME_USERID).append("`=u.`").append(UserImpl.COLNAME_USERID).toString();
-        return baseSelectQuery;
     }
 
     //</editor-fold>
@@ -348,103 +347,17 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     }
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
-    
-    public static FactoryImpl getFactory() { return FACTORY; }
-    
-    public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl> {
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
+    public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> {
 
         // This is a singleton instance
-        private FactoryImpl() { }
-        
-        public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId, int customerId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
+        private FactoryImpl() {
         }
 
-        //    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, int userId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadTodayAndFuture(Connection connection) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadCustomerTodayAndFuture(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadCustomerTodayAndFuture(Connection connection, int customerId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId, int customerId,
-        //            Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId, int customerId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, int userId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadYesterdayAndPast(Connection connection) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadCustomerYesterdayAndPast(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public ArrayList<AppointmentImpl> loadCustomerYesterdayAndPast(Connection connection, int customerId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<AppointmentImpl> loadByCustomer(Connection connection, int customerId, Iterable<OrderBy> orderBy) throws Exception {
-        //        throw new UnsupportedOperationException("Not implemented");
-        //    }
-        public int countByCustomer(Connection connection, int customerId, LocalDateTime start, LocalDateTime end) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        public int countByCustomer(Connection connection, int customerId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        public int countByUser(Connection connection, int userId, LocalDateTime start, LocalDateTime end) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        public int countByUser(Connection connection, int userId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    @Override
-        //    protected void onApplyChanges(AppointmentModel model) {
-        //        AppointmentImpl dao = model.getDataObject();
-        //        dao.contact = model.getContact();
-        //        AppointmentCustomer<?> customer = model.getCustomer();
-        //        dao.customer = (null == customer) ? null : customer.getDataObject();
-        //        dao.description = model.getDescription();
-        //        dao.end = (null == model.getEnd()) ? null : DB.toUtcTimestamp(model.getEnd());
-        //        dao.location = model.getLocation();
-        //        dao.start = (null == model.getStart()) ? null : DB.toUtcTimestamp(model.getStart());
-        //        dao.title = model.getTitle();
-        //        dao.type = model.getType();
-        //        dao.url = model.getUrl();
-        //        AppointmentUser<?> user = model.getUser();
-        //        dao.user = (null == user) ? null : user.getDataObject();
-        //    }
         @Override
         protected AppointmentImpl fromResultSet(ResultSet resultSet) throws SQLException {
             AppointmentImpl r = new AppointmentImpl();
@@ -453,8 +366,8 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         }
 
         @Override
-        public String getBaseQuery() {
-            return getBaseSelectQuery();
+        public String getBaseSelectQuery() {
+            return BASE_SELECT_QUERY;
         }
 
         @Override
@@ -473,13 +386,13 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         }
 
         @Override
-        protected Stream<String> getExtendedColNames() {
-            return Stream.of(COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION,
+        protected List<String> getExtendedColNames() {
+            return Arrays.asList(COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION,
                     COLNAME_CONTACT, COLNAME_TYPE, COLNAME_URL, COLNAME_START, COLNAME_END);
         }
 
         @Override
-        protected void setStatementValues(AppointmentImpl dao, PreparedStatement ps) throws SQLException {
+        protected void setSaveStatementValues(AppointmentImpl dao, PreparedStatement ps) throws SQLException {
             ps.setInt(1, dao.getCustomer().getPrimaryKey());
             ps.setInt(2, dao.getUser().getPrimaryKey());
             ps.setString(3, dao.getTitle());
@@ -535,6 +448,1170 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
                     target.end = target.start;
                 }
             }
+        }
+
+        //<editor-fold defaultstate="collapsed" desc="get*Filter methods">
+        //<editor-fold defaultstate="collapsed" desc="getAllItemsFilter overloads">
+        @Override
+        public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter() {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                @Override
+                public String getHeading() {
+                    return App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTS);
+                }
+
+                @Override
+                public String getSubHeading() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getWhereClause() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter(Customer customer) {
+            if (null == customer) {
+                return getAllItemsFilter();
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final int customerId = customer.getPrimaryKey();
+
+                @Override
+                public String getHeading() {
+                    return App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTSFOR);
+                }
+
+                @Override
+                public String getSubHeading() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getWhereClause() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId;
+                }
+
+            };
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter(int userId, String heading, String subHeading, String whereClause,
+                String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getUser().getPrimaryKey() == userId;
+                }
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter(User user) {
+            if (null == user) {
+                return getAllItemsFilter();
+            }
+            return getAllItemsFilter(user.getPrimaryKey(), App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTSFOR), "",
+                    String.format("`%s` = ?", COLNAME_USERID), App.getResourceString(App.RESOURCEKEY_LOADINGAPPOINTMENTS));
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter(User user, Customer customer) {
+            if (null == user) {
+                if (null == customer) {
+                    return getAllItemsFilter();
+                }
+                return getAllItemsFilter(customer);
+            }
+            if (null == customer) {
+                return getAllItemsFilter(user);
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final int userId = user.getPrimaryKey();
+                private final int customerId = customer.getPrimaryKey();
+
+                @Override
+                public String getHeading() {
+                    return App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTSFORBOTH);
+                }
+
+                @Override
+                public String getSubHeading() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getWhereClause() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId;
+                }
+
+            };
+        }
+
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="getBeforeItemsFilter overloads">
+        private ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(LocalDate end, String heading, String subHeading, String whereClause,
+                String loadingMessage) {
+            if (null == end) {
+                return getAllItemsFilter();
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getStart().compareTo(e) < 0;
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(LocalDate end) {
+            if (null == end) {
+                return getAllItemsFilter();
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSBEFORE
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getCustomerBeforeItemsFilter(int customerId, LocalDate end, String heading,
+                String subHeading, String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(e) < 0;
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(Customer customer, LocalDate end) {
+            if (null == customer) {
+                if (null == end) {
+                    return getAllItemsFilter();
+                }
+                return getBeforeItemsFilter(end);
+            }
+            if (null == end) {
+                return getAllItemsFilter(customer);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSBEFOREFOR
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(int userId, LocalDate end, String heading, String subHeading,
+                String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0;
+                }
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(User user, LocalDate end) {
+            if (null == user) {
+                if (null == end) {
+                    return getAllItemsFilter();
+                }
+                return getBeforeItemsFilter(end);
+            }
+            if (null == end) {
+                return getAllItemsFilter(user);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSBEFOREFOR
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(int userId, int customerId, LocalDate end, String heading,
+                String subHeading, String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0;
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getBeforeItemsFilter(User user, Customer customer, LocalDate end) {
+            if (null == user) {
+                return getBeforeItemsFilter(customer, end);
+            }
+            if (null == customer) {
+                return getBeforeItemsFilter(user, end);
+            }
+            if (null == end) {
+                return getAllItemsFilter(user, customer);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSBEFOREFORBOTH
+        }
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="getOnOrAfterItemsFilter overloads">
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(LocalDate start, String heading, String subHeading,
+                String whereClause, String loadingMessage) {
+            if (null == start) {
+                return getAllItemsFilter();
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getEnd().compareTo(s) >= 0;
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(LocalDate start) {
+            if (null == start) {
+                return getAllItemsFilter();
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSAFTER
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getCustomerOnOrAfterItemsFilter(int customerId, LocalDate start, String heading,
+                String subHeading, String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getEnd().compareTo(s) >= 0;
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(Customer customer, LocalDate start) {
+            if (null == customer) {
+                if (null == start) {
+                    return getAllItemsFilter();
+                }
+                return getOnOrAfterItemsFilter(start);
+            }
+            if (null == start) {
+                return getAllItemsFilter(customer);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSAFTERFOR
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(int userId, LocalDate start, String heading, String subHeading,
+                String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getUser().getPrimaryKey() == userId && t.getEnd().compareTo(s) >= 0;
+                }
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(User user, LocalDate start) {
+            if (null == user) {
+                if (null == start) {
+                    return getAllItemsFilter();
+                }
+                return getOnOrAfterItemsFilter(start);
+            }
+            if (null == start) {
+                return getAllItemsFilter(user);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSAFTERFOR
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(int userId, int customerId, LocalDate start, String heading,
+                String subHeading, String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getEnd().compareTo(s) >= 0;
+                }
+
+            };
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getOnOrAfterItemsFilter(User user, Customer customer, LocalDate start) {
+            if (null == user) {
+                return getOnOrAfterItemsFilter(customer, start);
+            }
+            if (null == customer) {
+                return getOnOrAfterItemsFilter(user, start);
+            }
+            if (null == start) {
+                return getAllItemsFilter(user, customer);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSAFTERFORBOTH
+        }
+
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="getRangeItemsFilter overloads">
+        private ModelFilter<AppointmentImpl, AppointmentModel> getRangeItemsFilter(LocalDate start, LocalDate end) {
+            if (null == start) {
+                if (null == end) {
+                    return getAllItemsFilter();
+                }
+                return getBeforeItemsFilter(end);
+            }
+            if (null == end) {
+                return getOnOrAfterItemsFilter(start);
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    // TODO: RESOURCEKEY_APPOINTMENTSBETWEEN
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getSubHeading() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getWhereClause() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+            };
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getRangeItemsFilter(Customer customer, LocalDate start, LocalDate end) {
+            if (null == customer) {
+                return getRangeItemsFilter(start, end);
+            }
+            if (null == start) {
+                return getBeforeItemsFilter(customer, end);
+            }
+            if (null == end) {
+                return getOnOrAfterItemsFilter(customer, start);
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final int customerId = customer.getPrimaryKey();
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    // TODO: RESOURCEKEY_APPOINTMENTSBETWEENFOR
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getSubHeading() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getWhereClause() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getEnd().compareTo(s) >= 0 && t.getStart().compareTo(e) < 0;
+                }
+
+            };
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getRangeItemsFilter(int userId, LocalDate start, LocalDate end, String heading,
+                String subHeading, String whereClause, String loadingMessage) {
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    return heading;
+                }
+
+                @Override
+                public String getSubHeading() {
+                    return subHeading;
+                }
+
+                @Override
+                public String getWhereClause() {
+                    return whereClause;
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    return loadingMessage;
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getUser().getPrimaryKey() == userId && t.getEnd().compareTo(s) >= 0 && t.getStart().compareTo(e) < 0;
+                }
+            };
+        }
+
+        private ModelFilter<AppointmentImpl, AppointmentModel> getRangeItemsFilter(User user, LocalDate start, LocalDate end) {
+            if (null == user) {
+                return getRangeItemsFilter(start, end);
+            }
+            if (null == start) {
+                return getBeforeItemsFilter(user, end);
+            }
+            if (null == end) {
+                return getOnOrAfterItemsFilter(user, start);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_APPOINTMENTSBETWEENFOR
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getRangeItemsFilter(User user, Customer customer, LocalDate start, LocalDate end) {
+            if (null == end) {
+                return getOnOrAfterItemsFilter(user, customer, start);
+            }
+            if (null == start) {
+                return getBeforeItemsFilter(user, customer, end);
+            }
+            if (null == customer) {
+                return getRangeItemsFilter(user, start, end);
+            }
+            if (null == user) {
+                return getRangeItemsFilter(customer, start, end);
+            }
+            return new ModelFilter<AppointmentImpl, AppointmentModel>() {
+                private final int userId = user.getPrimaryKey();
+                private final int customerId = customer.getPrimaryKey();
+                private final LocalDateTime s = start.atTime(0, 0, 0, 0);
+                private final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
+
+                @Override
+                public String getHeading() {
+                    // TODO: RESOURCEKEY_APPOINTMENTSBETWEENFORBOTH
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getSubHeading() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getWhereClause() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public String getLoadingMessage() {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+                    return FactoryImpl.this;
+                }
+
+                @Override
+                public List<AppointmentImpl> apply(Connection t) throws SQLException {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public boolean test(AppointmentModel t) {
+                    return t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getEnd().compareTo(s) >= 0
+                            && t.getStart().compareTo(e) < 0;
+                }
+
+            };
+        }
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="*TodayAndFutureFilter methods">
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getTodayAndFutureFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_CURRENTANDFUTURE
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getTodayAndFutureFilter(Customer customer) {
+            if (null == customer) {
+                return getTodayAndFutureFilter();
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_CURRENTANDFUTUREFOR
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getTodayAndFutureFilter(User user) {
+            if (null == user) {
+                return getTodayAndFutureFilter();
+            }
+            if (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey()) {
+                return getMyTodayAndFutureFilter();
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_CURRENTANDFUTUREFOR
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getTodayAndFutureFilter(User user, Customer customer) {
+            if (null == customer) {
+                return getTodayAndFutureFilter(user);
+            }
+            if (null == user) {
+                return getTodayAndFutureFilter(customer);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: cRESOURCEKEY_CURRENTANDFUTUREFORBOTH
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getMyTodayAndFutureFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_MYCURRENTANDFUTURE
+        }
+//</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="*YesterdayAndPastFilter methods">
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getYesterdayAndPastFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_PASTAPPOINTMENTS
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getYesterdayAndPastFilter(Customer customer) {
+            if (null == customer) {
+                return getYesterdayAndPastFilter();
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_PASTAPPOINTMENTSFOR
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getYesterdayAndPastFilter(User user) {
+            if (null == user) {
+                return getYesterdayAndPastFilter();
+            }
+            if (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey()) {
+                return getMyYesterdayAndPastFilter();
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_PASTAPPOINTMENTSFOR
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getYesterdayAndPastFilter(User user, Customer customer) {
+            if (null == customer) {
+                return getYesterdayAndPastFilter(user);
+            }
+            if (null == user) {
+                return getYesterdayAndPastFilter(customer);
+            }
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_PASTAPPOINTMENTSFORBOTH
+        }
+
+        public ModelFilter<AppointmentImpl, AppointmentModel> getMyYesterdayAndPastFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: RESOURCEKEY_MYPASTAPPOINTMENTS
+        }
+        //</editor-fold>
+
+        @Override
+        public ModelFilter<AppointmentImpl, AppointmentModel> getDefaultFilter() {
+            return getMyTodayAndFutureFilter();
+        }
+
+        //</editor-fold>
+        public int countByCustomer(Connection connection, int customerId, LocalDateTime start, LocalDateTime end) throws Exception {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        public int countByCustomer(Connection connection, int customerId) throws Exception {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        public int countByUser(Connection connection, int userId, LocalDateTime start, LocalDateTime end) throws Exception {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        public int countByUser(Connection connection, int userId) throws Exception {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        @Override
+        public String getDeleteDependencyMessage(AppointmentImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getSaveConflictMessage(AppointmentImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    }
+
+    public static final class AddressFieldFilter extends PropertyChangeNotifiable {
+
+        private StringFilter address1 = StringFilter.empty();
+
+        public static final String PROP_ADDRESS1 = "address1";
+
+        /**
+         * Get the value of address1
+         *
+         * @return the value of address1
+         */
+        public StringFilter getAddress1() {
+            return address1;
+        }
+
+        /**
+         * Set the value of address1
+         *
+         * @param address1 new value of address1
+         */
+        public void setAddress1(StringFilter address1) {
+            if (null == address1) {
+                address1 = StringFilter.empty();
+            }
+            StringFilter oldAddress1 = this.address1;
+            this.address1 = address1;
+            getPropertyChangeSupport().firePropertyChange(PROP_ADDRESS1, oldAddress1, address1);
+        }
+
+        private StringFilter address2 = StringFilter.empty();
+
+        public static final String PROP_ADDRESS2 = "address2";
+
+        /**
+         * Get the value of address2
+         *
+         * @return the value of address2
+         */
+        public StringFilter getAddress2() {
+            return address1;
+        }
+
+        /**
+         * Set the value of address2
+         *
+         * @param address2 new value of address2
+         */
+        public void setAddress2(StringFilter address2) {
+            if (null == address2) {
+                address2 = StringFilter.empty();
+            }
+            StringFilter oldAddress2 = this.address2;
+            this.address2 = address2;
+            getPropertyChangeSupport().firePropertyChange(PROP_ADDRESS2, oldAddress2, address2);
+        }
+
+        private StringFilter postalCode = StringFilter.empty();
+
+        public static final String PROP_POSTALCODE = "postalCode";
+
+        /**
+         * Get the value of postalCode
+         *
+         * @return the value of postalCode
+         */
+        public StringFilter getPostalCode() {
+            return postalCode;
+        }
+
+        /**
+         * Set the value of postalCode
+         *
+         * @param postalCode new value of postalCode
+         */
+        public void setPostalCode(StringFilter postalCode) {
+            if (null == postalCode) {
+                postalCode = StringFilter.empty();
+            }
+            StringFilter oldPostalCode = this.postalCode;
+            this.postalCode = postalCode;
+            getPropertyChangeSupport().firePropertyChange(PROP_POSTALCODE, oldPostalCode, postalCode);
+        }
+
+        private StringFilter phone = StringFilter.empty();
+
+        public static final String PROP_PHONE = "phone";
+
+        /**
+         * Get the value of phone
+         *
+         * @return the value of phone
+         */
+        public StringFilter getPhone() {
+            return phone;
+        }
+
+        /**
+         * Set the value of phone
+         *
+         * @param phone new value of phone
+         */
+        public void setPhone(StringFilter phone) {
+            if (null == phone) {
+                phone = StringFilter.empty();
+            }
+            StringFilter oldPhone = this.phone;
+            this.phone = phone;
+            getPropertyChangeSupport().firePropertyChange(PROP_PHONE, oldPhone, phone);
+        }
+
+    }
+
+    public static final class CustomerFieldFilter extends PropertyChangeNotifiable {
+
+        private StringFilter name = StringFilter.empty();
+
+        public static final String PROP_NAME = "name";
+
+        /**
+         * Get the value of name
+         *
+         * @return the value of name
+         */
+        public StringFilter getName() {
+            return name;
+        }
+
+        /**
+         * Set the value of name
+         *
+         * @param name new value of name
+         */
+        public void setName(StringFilter name) {
+            if (null == name) {
+                name = StringFilter.empty();
+            }
+            StringFilter oldName = this.name;
+            this.name = name;
+            getPropertyChangeSupport().firePropertyChange(PROP_NAME, oldName, name);
+        }
+
+        private Optional<Boolean> active = Optional.empty();
+
+        public static final String PROP_ACTIVE = "active";
+
+        /**
+         * Get the value of active
+         *
+         * @return the value of active
+         */
+        public Optional<Boolean> isActive() {
+            return active;
+        }
+
+        /**
+         * Set the value of active
+         *
+         * @param active new value of active
+         */
+        public void setActive(Optional<Boolean> active) {
+            if (null == active) {
+                if (!this.isActive().isPresent()) {
+                    return;
+                }
+                active = Optional.empty();
+            }
+            Optional<Boolean> oldActive = this.active;
+            this.active = active;
+            getPropertyChangeSupport().firePropertyChange(PROP_ACTIVE, oldActive, active);
+        }
+
+    }
+
+    public static abstract class FilterImpl extends Filter<AppointmentImpl> {
+
+        @Override
+        public FactoryImpl getFactory() {
+            return FACTORY;
         }
 
     }

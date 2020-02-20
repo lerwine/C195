@@ -1,9 +1,13 @@
 package scheduler.dao;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
+import scheduler.view.country.CountryModel;
 
 public class CountryImpl extends DataObjectImpl implements Country {
 
@@ -51,7 +55,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
     
     public static FactoryImpl getFactory() { return FACTORY; }
     
-    public static final class FactoryImpl extends DataObjectImpl.Factory<CountryImpl> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory<CountryImpl, CountryModel> {
 
         // This is a singleton instance
         private FactoryImpl() { }
@@ -68,7 +72,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        public String getBaseQuery() {
+        public String getBaseSelectQuery() {
             return BASE_SELECT_SQL;
         }
 
@@ -88,12 +92,12 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        protected Stream<String> getExtendedColNames() {
-            return Stream.of(COLNAME_COUNTRY);
+        protected List<String> getExtendedColNames() {
+            return Arrays.asList(COLNAME_COUNTRY);
         }
 
         @Override
-        protected void setStatementValues(CountryImpl dao, PreparedStatement ps) throws SQLException {
+        protected void setSaveStatementValues(CountryImpl dao, PreparedStatement ps) throws SQLException {
             ps.setString(1, dao.getName());
         }
 
@@ -105,6 +109,33 @@ public class CountryImpl extends DataObjectImpl implements Country {
             }
         }
 
+        @Override
+        public ModelFilter<CountryImpl, CountryModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public ModelFilter<CountryImpl, CountryModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getDeleteDependencyMessage(CountryImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public String getSaveConflictMessage(CountryImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
 
+    public static abstract class FilterImpl extends Filter<CountryImpl> {
+        
+        @Override
+        public FactoryImpl getFactory() { return FACTORY; }
+        
+    }
+    
 }

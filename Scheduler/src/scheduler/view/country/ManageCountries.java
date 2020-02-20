@@ -1,14 +1,19 @@
 package scheduler.view.country;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.Event;
+import javafx.stage.Stage;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.LookupFilter;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.dao.ModelFilter;
+import scheduler.util.ItemEvent;
+import scheduler.util.ItemEventManager;
+import scheduler.view.MainController;
 
 /**
  * FXML Controller class
@@ -90,6 +95,10 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
 
     //</editor-fold>
 
+    public static void setContent(MainController mainController, Stage stage, ModelFilter<CountryImpl, CountryModel> filter) throws IOException {
+        setContent(mainController, ManageCountries.class, stage).changeFilter(filter, stage);
+    }
+    
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewCountry(event);
@@ -102,25 +111,24 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
 
     @Override
     protected void onDeleteItem(Event event, CountryModel item) {
-        getMainController().deleteCountry(event, item, (connection) -> {
-            throw new UnsupportedOperationException("Not implemented");
-//            CityFactory factory = new CityFactory();
-//            if (factory.count(connection, CityFactory.countryIdIs(item.getDataObject().getPrimaryKey())) == 0)
-//                return "";
-//            return getResourceString(RESOURCEKEY_COUNTRYHASCITIES);
-        });
+        getMainController().deleteCountry(event, item);
     }
 
     @Override
     protected CountryModel toModel(CountryImpl result) { return new CountryModel(result); }
 
     @Override
-    protected LookupFilter<CountryImpl, CountryModel> getDefaultFilter() {
+    protected DataObjectImpl.Factory<CountryImpl, CountryModel> getDaoFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected DataObjectImpl.Factory<CountryImpl> getDaoFactory() {
+    protected ItemEventManager<ItemEvent<CountryModel>> getItemAddManager(MainController mainController) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected ItemEventManager<ItemEvent<CountryModel>> getItemRemoveManager(MainController mainController) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

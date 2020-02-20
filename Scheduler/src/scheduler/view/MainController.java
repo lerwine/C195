@@ -29,7 +29,6 @@ import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEventManager;
 import scheduler.util.ItemEvent;
-import scheduler.util.DbConnector;
 import scheduler.util.ThrowableFunction;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
@@ -37,14 +36,19 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.EditAppointment;
+import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.city.CityModel;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.EditCountry;
+import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.EditCustomer;
+import scheduler.view.customer.ManageCustomers;
 import scheduler.view.user.EditUser;
+import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModel;
+import scheduler.view.user.UserReferenceModelImpl;
 
 /**
  * FXML Controller class for main application content.
@@ -295,7 +299,12 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            throw new UnsupportedOperationException("Not implemented");
+            try {
+                ManageAppointments.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                        AppointmentImpl.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -303,7 +312,12 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCustomer(event));
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            throw new UnsupportedOperationException("Not implemented");
+            try {
+                ManageCustomers.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                        CustomerImpl.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -315,7 +329,12 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAddress(event));
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            throw new UnsupportedOperationException("Not implemented");
+            try {
+                ManageCountries.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                        CountryImpl.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
@@ -323,23 +342,32 @@ public final class MainController extends SchedulerController {
                 getFXMLResourceName(getClass()))).setOnAction((event) -> addNewUser(event));
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            throw new UnsupportedOperationException("Not implemented");
+            try {
+                ManageUsers.setContent(MainController.this, (Stage)((MenuItem)event.getSource()).getGraphic().getScene().getWindow(),
+                        UserImpl.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()));
     }
 
+    @Override
+    protected void onBeforeShow(Node currentView, Stage stage) {
+        super.onBeforeShow(currentView, stage);
+        try {
+            ManageAppointments.setContent(MainController.this, stage, AppointmentImpl.getFactory().getDefaultFilter());
+        } catch (IOException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
     public AppointmentModel addNewAppointment(Event event) {
-        AppointmentModel model;
-        try {
-            model = new AppointmentModel(new AppointmentImpl());
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error creating new model", ex);
-            Alerts.showErrorAlert(ex);
-            return null;
-        }
+        AppointmentModel model = new AppointmentModel(new AppointmentImpl());
+        model.setUser(new UserReferenceModelImpl(App.getCurrentUser()));
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             appointmentAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
@@ -362,11 +390,11 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteAppointment(Event event, AppointmentModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+    public void deleteAppointment(Event event, AppointmentModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> appointmentRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
@@ -374,14 +402,7 @@ public final class MainController extends SchedulerController {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="CustomerImpl operations">
     public CustomerModel addNewCustomer(Event event) {
-        CustomerModel model;
-        try {
-            model = new CustomerModel(new CustomerImpl());
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error creating new model", ex);
-            Alerts.showErrorAlert(ex);
-            return null;
-        }
+        CustomerModel model = new CustomerModel(new CustomerImpl());
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             customerAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
@@ -397,11 +418,11 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteCustomer(Event event, CustomerModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+    public void deleteCustomer(Event event, CustomerModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> customerRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
@@ -425,11 +446,11 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteCountry(Event event, CountryModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+    public void deleteCountry(Event event, CountryModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> countryRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
@@ -437,14 +458,7 @@ public final class MainController extends SchedulerController {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="CityImpl operations">
     public CityModel addNewCity(Event event) {
-        CityModel model;
-        try {
-            model = new CityModel(new CityImpl());
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error creating new model", ex);
-            Alerts.showErrorAlert(ex);
-            return null;
-        }
+        CityModel model = new CityModel(new CityImpl());
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             cityAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
@@ -460,11 +474,11 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteCity(Event event, CityModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+    public void deleteCity(Event event, CityModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> cityRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
@@ -472,14 +486,7 @@ public final class MainController extends SchedulerController {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="AddressImpl operations">
     public AddressModel addNewAddress(Event event) {
-        AddressModel model;
-        try {
-            model = new AddressModel(new AddressImpl());
-        } catch (SQLException | ClassNotFoundException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error creating new model", ex);
-            Alerts.showErrorAlert(ex);
-            return null;
-        }
+        AddressModel model = new AddressModel(new AddressImpl());
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             addressAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
@@ -495,11 +502,11 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteAddress(Event event, AddressModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+    public void deleteAddress(Event event, AddressModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> addressRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
@@ -523,56 +530,54 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
-    public void deleteUser(Event event, UserModel item, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage) {
+    public void deleteUser(Event event, UserModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), getDeleteDependencyMessage,
+            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> userRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
         }
     }
 
     //</editor-fold>
-    /**
-     * Loads content for the {@link #contentPane}.
-     *
-     * @param <C> The type of controller for the contents of the {@link #contentPane}.
-     * @param controllerClass The controller class for the contents of the {@link #contentPane}.
-     * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param onShown This gets called after the loaded view has been added to the {@link #contentPane}.
-     * @throws IOException If unable to load the new view and controller.
-     */
-    public <C extends MainContentController> void setContent(Class<C> controllerClass, Stage stage, BiConsumer<Parent, C> onShown) throws IOException {
-        load(stage, controllerClass, (Parent v, C c) -> {
-            ((MainContentController) c).mainController = MainController.this;
-        }, (Parent v, C c) -> {
-            MainContentController oldController = contentController;
-            Node oldView = contentPane.getCenter();
-            contentController = c;
-            contentPane.setCenter(v);
-            try {
-                if (null != oldController) {
-                    oldController.onUnloaded(oldView);
-                }
-            } finally {
-                if (null != onShown) {
-                    onShown.accept(v, c);
-                }
-            }
-        });
-    }
+//    /**
+//     * Loads content for the {@link #contentPane}.
+//     *
+//     * @param <C> The type of controller for the contents of the {@link #contentPane}.
+//     * @param controllerClass The controller class for the contents of the {@link #contentPane}.
+//     * @param stage The {@link Stage} for the view associated with the current main controller.
+//     * @param onShown This gets called after the loaded view has been added to the {@link #contentPane}.
+//     * @throws IOException If unable to load the new view and controller.
+//     */
+//    public <C extends MainContentController> void setContent(Class<C> controllerClass, Stage stage, BiConsumer<Parent, C> onShown) throws IOException {
+//        load(stage, controllerClass, (Parent v, C c) -> {
+//            ((MainContentController) c).mainController = MainController.this;
+//        }, (Parent v, C c) -> {
+//            MainContentController oldController = contentController;
+//            Node oldView = contentPane.getCenter();
+//            contentController = c;
+//            contentPane.setCenter(v);
+//            try {
+//                if (null != oldController) {
+//                    oldController.onUnloaded(oldView);
+//                }
+//            } finally {
+//                if (null != onShown) {
+//                    onShown.accept(v, c);
+//                }
+//            }
+//        });
+//    }
 
     private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
 
         private final M model;
         private final Consumer<M> onDeleted;
-        private final ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage;
 
-        DeleteTask(M model, Stage stage, ThrowableFunction<Connection, String, Exception> getDeleteDependencyMessage, Consumer<M> onDeleted) {
+        DeleteTask(M model, Stage stage, Consumer<M> onDeleted) {
             super(stage, App.getResourceString(App.RESOURCEKEY_DELETINGRECORD));
             this.model = model;
             this.onDeleted = onDeleted;
-            this.getDeleteDependencyMessage = Objects.requireNonNull(getDeleteDependencyMessage);
         }
 
         @Override
@@ -591,15 +596,13 @@ public final class MainController extends SchedulerController {
         }
 
         @Override
-        protected String getResult() throws Exception {
-            try (DbConnector dep = new DbConnector()) {
-                String message = getDeleteDependencyMessage.apply(dep.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-
-                model.getDaoFactory().delete(model.getDataObject(), dep.getConnection());
+        protected String getResult(Connection connection) throws SQLException {
+            String message =  model.getDaoFactory().getDeleteDependencyMessage(model.getDataObject(), connection);
+            if (null != message && !message.trim().isEmpty()) {
+                return message;
             }
+
+            model.getDaoFactory().delete(model.getDataObject(), connection);
             return null;
         }
     }
@@ -619,6 +622,26 @@ public final class MainController extends SchedulerController {
         protected MainController getMainController() {
             return mainController;
         }
-
+        /**
+         * Loads content for the {@link #contentPane}.
+         *
+         * @param <C> The type of controller for the contents of the {@link #contentPane}.
+         * @param mainController The parent controller for the content.
+         * @param controllerClass The controller class for the contents of the {@link #contentPane}.
+         * @param stage The {@link Stage} for the view associated with the current main controller.
+         * @return The instantiated controller.
+         * @throws IOException If unable to load the new view and controller.
+         */
+        protected static <C extends MainContentController> C setContent(MainController mainController, Class<C> controllerClass,
+                Stage stage) throws IOException {
+           return load(stage, controllerClass, (Parent v, C c) -> {
+               ((MainContentController)c).mainController = mainController;
+           }, (Parent v, C c) -> {
+               MainContentController oldController = mainController.contentController;
+               Node oldView = mainController.contentPane.getCenter();
+               mainController.contentController = c;
+               mainController.contentPane.setCenter(v);
+           });
+       }
     }
 }

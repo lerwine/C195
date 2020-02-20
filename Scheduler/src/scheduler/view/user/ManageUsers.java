@@ -1,14 +1,19 @@
 package scheduler.view.user;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.Event;
+import javafx.stage.Stage;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.LookupFilter;
 import scheduler.dao.UserImpl;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.dao.ModelFilter;
+import scheduler.util.ItemEvent;
+import scheduler.util.ItemEventManager;
+import scheduler.view.MainController;
 
 /**
  * FXML Controller class
@@ -95,6 +100,10 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
 
     //</editor-fold>
     
+    public static void setContent(MainController mainController, Stage stage, ModelFilter<UserImpl, UserModel> filter) throws IOException {
+        setContent(mainController, ManageUsers.class, stage).changeFilter(filter, stage);
+    }
+    
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewUser(event);
@@ -107,25 +116,24 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> {
 
     @Override
     protected void onDeleteItem(Event event, UserModel item) {
-        getMainController().deleteUser(event, item, (connection) -> {
-            throw new UnsupportedOperationException("Not implemented");
-//            AppointmentFactory factory = new AppointmentFactory();
-//            if (factory.count(connection, AppointmentFactory.userIdIs(item.getDataObject().getPrimaryKey())) == 0)
-//                return "";
-//            return getResourceString(RESOURCEKEY_USERHASAPPOINTMENTS);
-        });
+        getMainController().deleteUser(event, item);
     }
 
     @Override
     protected UserModel toModel(UserImpl result) { return new UserModel(result); }
 
     @Override
-    protected LookupFilter<UserImpl, UserModel> getDefaultFilter() {
+    protected DataObjectImpl.Factory<UserImpl, UserModel> getDaoFactory() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected DataObjectImpl.Factory<UserImpl> getDaoFactory() {
+    protected ItemEventManager<ItemEvent<UserModel>> getItemAddManager(MainController mainController) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected ItemEventManager<ItemEvent<UserModel>> getItemRemoveManager(MainController mainController) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

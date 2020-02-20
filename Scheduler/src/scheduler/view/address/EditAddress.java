@@ -1,6 +1,5 @@
 package scheduler.view.address;
 
-import java.sql.Connection;
 import javafx.beans.binding.BooleanExpression;
 import scheduler.view.EditItem;
 import javafx.fxml.FXML;
@@ -113,20 +112,6 @@ public final class EditAddress extends EditItem.EditController<AddressImpl, Addr
     }
 
     @Override
-    protected String getSaveConflictMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getDeleteDependencyMessage(Connection connection) throws Exception {
-        throw new UnsupportedOperationException("Not implemented");
-//        CustomerFactory factory = new CustomerFactory();
-//        if (factory.count(connection, CustomerFactory.addressIdIs(getModel().getDataObject().getPrimaryKey())) == 0)
-//            return "";
-//        return getResourceString(RESOURCEKEY_ADDRESSHASCUSTOMERS);
-    }
-
-    @Override
-    protected Factory<AddressImpl> getDaoFactory() { return AddressImpl.getFactory(); }
+    protected Factory<AddressImpl, AddressModel> getDaoFactory() { return AddressImpl.getFactory(); }
 
 }
