@@ -284,13 +284,4 @@ public class AddressImpl extends DataObjectImpl implements Address {
 
     }
 
-    public static abstract class FilterImpl extends Filter<AddressImpl> {
-
-        @Override
-        public FactoryImpl getFactory() {
-            return FACTORY;
-        }
-
-    }
-
 }

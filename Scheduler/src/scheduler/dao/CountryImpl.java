@@ -133,13 +133,4 @@ public class CountryImpl extends DataObjectImpl implements Country {
 
     }
 
-    public static abstract class FilterImpl extends Filter<CountryImpl> {
-
-        @Override
-        public FactoryImpl getFactory() {
-            return FACTORY;
-        }
-
-    }
-
 }

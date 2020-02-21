@@ -293,7 +293,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
 
         @Override
         protected final List<T> getResult(Connection connection) throws SQLException {
-            return currentFilter.apply(connection);
+            return currentFilter.get(connection);
         }
 
         @Override

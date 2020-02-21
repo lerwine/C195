@@ -276,13 +276,4 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
 
     }
 
-    public static abstract class FilterImpl extends Filter<CustomerImpl> {
-
-        @Override
-        public FactoryImpl getFactory() {
-            return FACTORY;
-        }
-
-    }
-
 }

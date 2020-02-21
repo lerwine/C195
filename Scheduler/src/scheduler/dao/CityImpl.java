@@ -171,13 +171,4 @@ public class CityImpl extends DataObjectImpl implements City {
 
     }
 
-    public static abstract class FilterImpl extends Filter<CityImpl> {
-
-        @Override
-        public FactoryImpl getFactory() {
-            return FACTORY;
-        }
-
-    }
-
 }

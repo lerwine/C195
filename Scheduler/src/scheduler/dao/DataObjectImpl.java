@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -592,24 +591,4 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         public abstract ModelFilter<T, M> getDefaultFilter();
     }
 
-    public static abstract class Filter<T extends DataObjectImpl> extends PropertyChangeNotifiable implements RecordReader<T> {
-
-        protected abstract void setSqlParameters(PreparedStatement ps);
-
-        @Override
-        public List<T> apply(Connection t) throws SQLException {
-            ArrayList<T> result = new ArrayList<>();
-            Factory<T, ?> factory = getFactory();
-            try (PreparedStatement ps = t.prepareStatement(getWhereClause())) {
-                setSqlParameters(ps);
-                try (ResultSet rs = ps.getResultSet()) {
-                    while (rs.next()) {
-                        result.add(factory.fromResultSet(rs));
-                    }
-                }
-            }
-            return result;
-        }
-
-    }
 }

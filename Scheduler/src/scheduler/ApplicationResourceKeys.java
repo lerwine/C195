@@ -387,4 +387,19 @@ public interface ApplicationResourceKeys {
      */
     public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
 
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All of my appointments"}.
+     */
+    public static final String RESOURCEKEY_ALLMYAPPOINTMENTS = "allMyAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %s"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSON = "appointmentsOn";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %s for %s"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSONFOR = "appointmentsOnFor";
+
 }
