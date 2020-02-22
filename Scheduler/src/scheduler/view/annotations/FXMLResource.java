@@ -6,15 +6,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies the name of the resource that contains the FXML markup associated with the annotated controller.
- * This is used by classes derived from {@link scheduler.view.SchedulerController}.
+ * Specifies the name of the resource that contains the FXML markup associated with the annotated controller. This is used by classes derived from
+ * {@link scheduler.view.SchedulerController}.
+ *
  * @author Leonard T. Erwine
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface FXMLResource {
+
     /**
      * Gets the name of the resource that contains the FXML markup.
+     *
      * @return The name of the resource that contains the FXML markup.
      */
     public String value();

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.observables;
 
 import java.sql.Timestamp;
@@ -16,18 +11,21 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author erwinel
  */
 public class NonNullableTimestampProperty extends SimpleObjectProperty<Timestamp> {
+
     ReadOnlyObjectProperty<Timestamp> readOnlyProperty;
-    
+
     /**
      * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
      *
      * @return the readonly property
      */
     public ReadOnlyObjectProperty<Timestamp> getReadOnlyProperty() {
-        if (readOnlyProperty == null)
+        if (readOnlyProperty == null) {
             readOnlyProperty = new NonNullableTimestampProperty.ReadOnlyPropertyImpl();
+        }
         return readOnlyProperty;
     }
+
     public NonNullableTimestampProperty() {
         super(Timestamp.valueOf(LocalDateTime.now()));
     }
@@ -48,17 +46,23 @@ public class NonNullableTimestampProperty extends SimpleObjectProperty<Timestamp
     public void set(Timestamp newValue) {
         super.set((newValue == null) ? Timestamp.valueOf(LocalDateTime.now()) : newValue);
     }
-    
+
     private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<Timestamp> {
 
         @Override
-        public Timestamp get() { return NonNullableTimestampProperty.this.get(); }
+        public Timestamp get() {
+            return NonNullableTimestampProperty.this.get();
+        }
 
         @Override
-        public Object getBean() { return NonNullableTimestampProperty.this.getBean(); }
+        public Object getBean() {
+            return NonNullableTimestampProperty.this.getBean();
+        }
 
         @Override
-        public String getName() { return NonNullableTimestampProperty.this.getName(); }
+        public String getName() {
+            return NonNullableTimestampProperty.this.getName();
+        }
 
         private ReadOnlyPropertyImpl() {
             NonNullableTimestampProperty.this.addListener((observable, oldValue, newValue) -> {

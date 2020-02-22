@@ -16,13 +16,15 @@ import scheduler.view.country.CountryReferenceModelImpl;
  * @author erwinel
  */
 public final class CityModel extends scheduler.view.ItemModel<CityImpl> implements CityReferenceModel<CityImpl> {
-    
+
     private final NonNullableStringProperty name;
     private final SimpleObjectProperty<CountryReferenceModel<? extends Country>> country;
     private final ChildPropertyWrapper<String, CountryReferenceModel<? extends Country>> countryName;
 
     @Override
-    public String getName() { return name.get(); }
+    public String getName() {
+        return name.get();
+    }
 
     public void setName(String value) {
         name.set(value);
@@ -46,7 +48,7 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
     public ObjectProperty<CountryReferenceModel<? extends Country>> countryProperty() {
         return country;
     }
-    
+
     @Override
     public String getCountryName() {
         return countryName.get();
@@ -73,6 +75,8 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
     }
 
     @Override
-    public Factory<CityImpl, CityModel> getDaoFactory() { return CityImpl.getFactory(); }
-    
+    public Factory<CityImpl, CityModel> getDaoFactory() {
+        return CityImpl.getFactory();
+    }
+
 }

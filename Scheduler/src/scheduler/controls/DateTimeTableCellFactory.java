@@ -16,7 +16,11 @@ import javafx.util.Callback;
  * @param <T> The cell item type.
  */
 public class DateTimeTableCellFactory<S, T extends TemporalAccessor> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
+
     private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
+
     @Override
-    public TableCell<S, T> call(TableColumn<S, T> param) { return new DateTimeTableCell<>(fmt); }
+    public TableCell<S, T> call(TableColumn<S, T> param) {
+        return new DateTimeTableCell<>(fmt);
+    }
 }

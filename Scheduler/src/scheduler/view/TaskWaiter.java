@@ -269,8 +269,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
     }
 
     private void showBusyView() throws RuntimeException {
-        LOG.log(Level.INFO, "showPopup called");
-        if (!contentPane.getChildren().isEmpty()) {
+        LOG.log(Level.INFO, "showBusyView called");
+        if (null != contentPane) {
             return;
         }
         ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(TaskWaiter.class),
@@ -292,7 +292,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
     }
 
     private void hideBusyView() {
-        LOG.log(Level.INFO, "hidePopup called");
+        LOG.log(Level.INFO, "hideBusyView called");
         owner.setOnHidden(oldOnHidden);
         oldOnHidden = null;
         cancelButton.setOnAction(null);

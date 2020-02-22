@@ -5,15 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import scheduler.App;
 import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModel;
@@ -356,7 +352,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         @Override
         protected AppointmentImpl fromResultSet(ResultSet resultSet) throws SQLException {
             AppointmentImpl r = new AppointmentImpl();
-            onInitializeDao(r, resultSet);
+            initializeDao(r, resultSet);
             return r;
         }
 
@@ -449,7 +445,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter() {
             return AppointmentFilter.all();
         }
-        
+
         @Override
         public ModelFilter<AppointmentImpl, AppointmentModel> getDefaultFilter() {
             return AppointmentFilter.myCurrentAndFuture();

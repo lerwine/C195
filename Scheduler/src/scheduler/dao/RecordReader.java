@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import scheduler.App;
 import scheduler.view.ItemModel;
 
 /**
@@ -59,12 +62,13 @@ public interface RecordReader<T extends DataObjectImpl> {
         sb.append(f.getBaseSelectQuery());
         String w = getSqlFilterExpr();
         if (null != w && !(w = w.trim()).isEmpty()) {
-            sb.append(" ").append(w);
+            sb.append(" WHERE ").append(w);
         }
+        Logger.getLogger(App.class.getName()).log(Level.SEVERE, "Executing query \"%s\"", w);
         ArrayList<T> result = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
             apply(ps, 1);
-            try (ResultSet rs = ps.getResultSet()) {
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     result.add(f.fromResultSet(rs));
                 }

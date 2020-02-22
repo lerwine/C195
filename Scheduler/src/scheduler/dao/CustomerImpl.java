@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -124,50 +123,14 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        //    public ArrayList<CustomerImpl> loadByStatus(Connection connection, boolean isActive, Iterable<OrderBy> orderBy) throws Exception {
-        //        return load(connection, activeIs(isActive), orderBy);
-        //    }
-        public ArrayList<CustomerImpl> loadByStatus(Connection connection, boolean isActive) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, boolean isActive, Iterable<OrderBy> orderBy) throws Exception {
-        //        return load(connection, activeIs(isActive).and(addressIdIs(addressId)), orderBy);
-        //    }
-        public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, boolean isActive) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId, Iterable<OrderBy> orderBy) throws Exception {
-        //        return load(connection, addressIdIs(addressId), orderBy);
-        //    }
-        public ArrayList<CustomerImpl> loadByAddress(Connection connection, int addressId) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        //    public ArrayList<CustomerImpl> loadByCity(Connection connection, int cityId, Iterable<OrderBy> orderBy) throws Exception {
-        //        return load(connection, cityIdIs(cityId), orderBy);
-        //    }
-        //    
-        //    public ArrayList<CustomerImpl> loadByCountry(Connection connection, int countryId, Iterable<OrderBy> orderBy) throws Exception {
-        //        return load(connection, countryIdIs(countryId), orderBy);
-        //    }
         public int countByAddress(Connection connection, int addressId) throws SQLException {
             throw new UnsupportedOperationException("Not implemented");
         }
 
-        //    @Override
-        //    protected void onApplyChanges(CustomerModel model) {
-        //        CustomerImpl dao = model.getDataObject();
-        //        dao.name = model.getName();
-        //        CustomerAddress<?> address = model.getAddress();
-        //        dao.address = (null == address) ? null : address.getDataObject();
-        //        dao.active = model.isActive();
-        //    }
         @Override
         protected CustomerImpl fromResultSet(ResultSet resultSet) throws SQLException {
             CustomerImpl r = new CustomerImpl();
-            onInitializeDao(r, resultSet);
+            initializeDao(r, resultSet);
             return r;
         }
 

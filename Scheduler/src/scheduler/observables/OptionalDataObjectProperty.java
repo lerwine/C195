@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.observables;
 
 import java.util.Optional;
@@ -34,12 +29,13 @@ public class OptionalDataObjectProperty<T extends DataObject> extends OptionalVa
     public void set(Optional<T> newValue) {
         super.set(requireExisting(newValue, "Object does not exist")); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     private static <V extends DataObject> Optional<V> requireExisting(Optional<V> value, String message) {
-        if (value != null)
+        if (value != null) {
             value.ifPresent((t) -> {
                 assert t.isExisting() : message;
             });
+        }
         return value;
     }
 }

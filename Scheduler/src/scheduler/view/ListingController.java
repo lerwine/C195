@@ -171,13 +171,13 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
      * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
      *
      * @param value The new {@link ModelFilter}.
-     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+     * @param owner The owner {@link Stage} to whose content is to be masked while items are loaded from the database.
      */
-    public void changeFilter(ModelFilter<T, S> value, Stage owner) {
+    public synchronized void changeFilter(ModelFilter<T, S> value, Stage owner) {
         if (null == value) {
             value = getDaoFactory().getDefaultFilter();
         }
-        if (null != filter && value.equals(filter)) {
+        if (null != filter && ModelFilter.areEqual(value, filter)) {
             return;
         }
         filter = value;

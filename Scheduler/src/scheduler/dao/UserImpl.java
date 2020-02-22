@@ -4,12 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.SQLWarning;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
@@ -152,30 +154,7 @@ public class UserImpl extends DataObjectImpl implements User {
         private FactoryImpl() {
         }
 
-        /**
-         * Loads {@link UserImpl} records according to the user status.
-         *
-         * @param connection The {@link Connection} to use to retrieve the data.
-         * @param status The user status value to match.
-         * @param isNegated {@code true} to get all records whose status does not match; otherwise {@code false} to load matching records.
-         * @return {@link UserImpl} records loaded according to the user status.
-         * @throws SQLException if unable to perform database query.
-         */
-        public ArrayList<UserImpl> loadByStatus(Connection connection, int status, boolean isNegated) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        /**
-         * Loads {@link UserImpl} records according to the user status.
-         *
-         * @param connection The {@link Connection} to use to retrieve the data.
-         * @param status The user status value to match.
-         * @return {@link UserImpl} records loaded according to the user status.
-         * @throws SQLException if unable to perform database query.
-         */
-        public ArrayList<UserImpl> loadByStatus(Connection connection, int status) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         /**
          * Loads the first {@link UserImpl} record matching the specified user name.
@@ -186,27 +165,38 @@ public class UserImpl extends DataObjectImpl implements User {
          * @throws SQLException if unable to perform database query.
          */
         public Optional<UserImpl> findByUserName(Connection connection, String userName) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
+            String sql = String.format("%s WHERE `%s` = ?", getBaseSelectQuery(), COLNAME_USERNAME);
+            LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Executing query \"%s\"", sql));
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Set first parametr to \"%s\"", userName));
+                ps.setString(1, userName);
+                //ps.setShort(2, Values.USER_STATUS_INACTIVE);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (null != rs && rs.next()) {
+                        return Optional.of(fromResultSet(rs));
+                    }
+                    SQLWarning w = connection.getWarnings();
+                    if (null == w) {
+                        LOG.logp(Level.WARNING, getClass().getName(), "findByUserName", "Null results, no warnings.");
+                    } else {
+                        LOG.logp(Level.WARNING, getClass().getName(), "findByUserName", "Encountered warning", w);
+                    }
+                }
+            }
+            return Optional.empty();
         }
 
-        //    @Override
-        //    protected void onApplyChanges(UserModel model) {
-        //        UserImpl dao = model.getDataObject();
-        //        dao.userName = model.getUserName();
-        //        dao.status = model.getStatus();
-        //        dao.password = model.getPasswordHash();
-        //    }
         @Override
         protected UserImpl fromResultSet(ResultSet resultSet) throws SQLException {
             UserImpl r = new UserImpl();
-            onInitializeDao(r, resultSet);
+            initializeDao(r, resultSet);
             return r;
         }
 
         @Override
         public String getBaseSelectQuery() {
-            return String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE, COLNAME_CREATEDATE,
-                    COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, getTableName());
+            return String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_USERID, COLNAME_USERNAME,
+                    COLNAME_PASSWORD, COLNAME_ACTIVE, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, getTableName());
         }
 
         @Override

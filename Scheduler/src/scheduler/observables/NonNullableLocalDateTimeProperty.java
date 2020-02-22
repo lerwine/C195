@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.observables;
 
 import java.time.LocalDateTime;
@@ -15,19 +10,21 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author Leonard T. Erwine
  */
 public class NonNullableLocalDateTimeProperty extends SimpleObjectProperty<LocalDateTime> {
+
     ReadOnlyObjectProperty<LocalDateTime> readOnlyProperty;
-    
+
     /**
      * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
      *
      * @return the readonly property
      */
     public ReadOnlyObjectProperty<LocalDateTime> getReadOnlyProperty() {
-        if (readOnlyProperty == null)
+        if (readOnlyProperty == null) {
             readOnlyProperty = new NonNullableLocalDateTimeProperty.ReadOnlyPropertyImpl();
+        }
         return readOnlyProperty;
     }
-    
+
     public NonNullableLocalDateTimeProperty() {
         super(LocalDateTime.now());
     }
@@ -48,17 +45,23 @@ public class NonNullableLocalDateTimeProperty extends SimpleObjectProperty<Local
     public void set(LocalDateTime newValue) {
         super.set((newValue == null) ? LocalDateTime.MIN : newValue);
     }
-    
+
     private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<LocalDateTime> {
 
         @Override
-        public LocalDateTime get() { return NonNullableLocalDateTimeProperty.this.get(); }
+        public LocalDateTime get() {
+            return NonNullableLocalDateTimeProperty.this.get();
+        }
 
         @Override
-        public Object getBean() { return NonNullableLocalDateTimeProperty.this.getBean(); }
+        public Object getBean() {
+            return NonNullableLocalDateTimeProperty.this.getBean();
+        }
 
         @Override
-        public String getName() { return NonNullableLocalDateTimeProperty.this.getName(); }
+        public String getName() {
+            return NonNullableLocalDateTimeProperty.this.getName();
+        }
 
         private ReadOnlyPropertyImpl() {
             NonNullableLocalDateTimeProperty.this.addListener((observable, oldValue, newValue) -> {

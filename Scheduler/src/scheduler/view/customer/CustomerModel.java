@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.customer;
 
 import javafx.beans.property.BooleanProperty;
@@ -44,8 +39,10 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
         return name.get();
     }
 
-    public void setName(String value) { name.set(value); }
-    
+    public void setName(String value) {
+        name.set(value);
+    }
+
     @Override
     public StringProperty nameProperty() {
         return name;
@@ -56,8 +53,10 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
         return address.get();
     }
 
-    public void setAddress(AddressReferenceModel<? extends Address> value) { address.set(value); }
-    
+    public void setAddress(AddressReferenceModel<? extends Address> value) {
+        address.set(value);
+    }
+
     @Override
     public ObjectProperty<AddressReferenceModel<? extends Address>> addressProperty() {
         return address;
@@ -128,8 +127,10 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
         return active.get();
     }
 
-    public void setActive(boolean value) { active.set(value); }
-    
+    public void setActive(boolean value) {
+        active.set(value);
+    }
+
     @Override
     public BooleanProperty activeProperty() {
         return active;

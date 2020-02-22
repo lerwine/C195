@@ -12,15 +12,23 @@ import javafx.scene.control.ListCell;
  * @author lerwi
  */
 public class TimeZoneListCell extends ListCell<ZoneId> {
+
     private final Locale locale;
-    TimeZoneListCell(Locale locale) { this.locale = (null == locale) ? Locale.getDefault(Locale.Category.DISPLAY) : locale; }
-    public TimeZoneListCell() { this(null); }
+
+    TimeZoneListCell(Locale locale) {
+        this.locale = (null == locale) ? Locale.getDefault(Locale.Category.DISPLAY) : locale;
+    }
+
+    public TimeZoneListCell() {
+        this(null);
+    }
+
     @Override
     protected void updateItem(ZoneId item, boolean empty) {
         super.updateItem(item, empty);
-        if (item == null)
+        if (item == null) {
             setText("");
-        else {
+        } else {
             ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(item);
             if (zonedDateTime != null) {
                 String zoneOffset = zonedDateTime.getOffset().getId();

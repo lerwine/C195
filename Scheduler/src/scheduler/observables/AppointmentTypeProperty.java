@@ -7,18 +7,22 @@ import scheduler.util.Values;
 
 /**
  * A {@link SimpleStringProperty} that contains appointment type code strings
+ *
  * @author erwinel
  */
 public class AppointmentTypeProperty extends SimpleStringProperty {
+
     ReadOnlyStringProperty readOnlyProperty;
-    
+
     /**
      * Returns the readonly property, that is synchronized with this {@code AppointmentTypeProperty}.
+     *
      * @return the readonly property
      */
     public ReadOnlyStringProperty getReadOnlyProperty() {
-        if (readOnlyProperty == null)
+        if (readOnlyProperty == null) {
             readOnlyProperty = new AppointmentTypeProperty.ReadOnlyPropertyImpl();
+        }
         return readOnlyProperty;
     }
 
@@ -37,17 +41,29 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
     public AppointmentTypeProperty(Object bean, String name, String initialValue) {
         super(bean, name, Values.asValidAppointmentType(initialValue));
     }
-    
+
     @Override
-    public void set(String newValue) { super.set(Values.asValidAppointmentType(newValue)); }
+    public void set(String newValue) {
+        super.set(Values.asValidAppointmentType(newValue));
+    }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyStringPropertyBase {
+
         @Override
-        public String get() { return AppointmentTypeProperty.this.get(); }
+        public String get() {
+            return AppointmentTypeProperty.this.get();
+        }
+
         @Override
-        public Object getBean() { return AppointmentTypeProperty.this.getBean(); }
+        public Object getBean() {
+            return AppointmentTypeProperty.this.getBean();
+        }
+
         @Override
-        public String getName() { return AppointmentTypeProperty.this.getName(); }
+        public String getName() {
+            return AppointmentTypeProperty.this.getName();
+        }
+
         private ReadOnlyPropertyImpl() {
             AppointmentTypeProperty.this.addListener((observable, oldValue, newValue) -> {
                 super.fireValueChangedEvent();

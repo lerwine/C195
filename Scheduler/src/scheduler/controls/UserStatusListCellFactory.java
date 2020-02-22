@@ -11,7 +11,11 @@ import scheduler.dao.UserImpl;
  * @author lerwi
  */
 public class UserStatusListCellFactory implements Callback<ListView<Integer>, ListCell<Integer>> {
+
     private final ObservableMap<Integer, String> userStatusMap = UserImpl.getUserStatusMap();
+
     @Override
-    public ListCell<Integer> call(ListView<Integer> param) { return new UserStatusListCell(userStatusMap); }
+    public ListCell<Integer> call(ListView<Integer> param) {
+        return new UserStatusListCell(userStatusMap);
+    }
 }

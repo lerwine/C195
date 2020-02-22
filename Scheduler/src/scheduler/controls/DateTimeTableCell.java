@@ -14,12 +14,18 @@ import javafx.scene.control.TableCell;
  * @param <T> The cell item type.
  */
 public class DateTimeTableCell<S, T extends TemporalAccessor> extends TableCell<S, T> {
+
     private final DateTimeFormatter fmt;
+
     DateTimeTableCell(DateTimeFormatter fmt) {
         this.fmt = (null == fmt) ? DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                 .withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault()) : fmt;
     }
-    public DateTimeTableCell() { this(null); }
+
+    public DateTimeTableCell() {
+        this(null);
+    }
+
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);

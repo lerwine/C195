@@ -28,7 +28,6 @@ import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEventManager;
 import scheduler.util.ItemEvent;
-import scheduler.util.ThrowableFunction;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -362,6 +361,14 @@ public final class MainController extends SchedulerController {
         }
     }
 
+    @Override
+    protected void onUnloaded(Node view) {
+        super.onUnloaded(view);
+        if (null != contentController) {
+            contentController.onUnloaded(contentPane.getCenter());
+        }
+    }
+
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
     public AppointmentModel addNewAppointment(Event event) {
@@ -644,8 +651,14 @@ public final class MainController extends SchedulerController {
             }, (Parent v, C c) -> {
                 MainContentController oldController = mainController.contentController;
                 Node oldView = mainController.contentPane.getCenter();
-                mainController.contentController = c;
-                mainController.contentPane.setCenter(v);
+                try {
+                    mainController.contentController = c;
+                    mainController.contentPane.setCenter(v);
+                } finally {
+                    if (null != oldController) {
+                        oldController.onUnloaded(oldView);
+                    }
+                }
             });
         }
     }

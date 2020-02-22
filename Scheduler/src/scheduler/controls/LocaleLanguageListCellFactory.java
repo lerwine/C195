@@ -10,6 +10,9 @@ import javafx.util.Callback;
  * @author Leonard T. Erwine
  */
 public class LocaleLanguageListCellFactory implements Callback<ListView<Locale>, ListCell<Locale>> {
+
     @Override
-    public ListCell<Locale> call(ListView<Locale> param) { return new LocaleLanguageListCell(); }
+    public ListCell<Locale> call(ListView<Locale> param) {
+        return new LocaleLanguageListCell();
+    }
 }

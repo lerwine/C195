@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.sql.PreparedStatement;
@@ -230,7 +225,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerAndUserBeforeDate(Customer customer, User user, LocalDate date) {
         return byCustomerAndUserBeforeDate(customer.getPrimaryKey(), user.getPrimaryKey(), date,
                 String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBEFOREFORBOTH),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName(), user.getUserName()));
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName(), user.getUserName()));
     }
 
     public static AppointmentFilter onOrAfterDate(LocalDate date, String heading) {
@@ -310,7 +305,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerAndUserOnOrAfterDate(Customer customer, User user, LocalDate date) {
         return byCustomerAndUserOnOrAfterDate(customer.getPrimaryKey(), user.getPrimaryKey(), date,
                 String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSAFTERFORBOTH),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName(), user.getUserName()));
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName(), user.getUserName()));
     }
 
     public static AppointmentFilter range(LocalDate start, LocalDate end, String heading) {
@@ -373,8 +368,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
         return AppointmentFilter.of(Objects.requireNonNull(heading),
                 // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0 &&
-                        t.getEnd().compareTo(s) >= 0,
+                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0
+                && t.getEnd().compareTo(s) >= 0,
                 // sqlFilterExpr
                 String.format("`%s` = ? AND `%s` = ? AND `%s` < ? AND `%s` >= ?", COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_START, COLNAME_END),
                 // applyValues
@@ -391,7 +386,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         return range(date, date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSON),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))));
     }
-    
+
     public static AppointmentFilter byCustomerOn(Customer customer, LocalDate date) {
         return byCustomerWithin(customer.getPrimaryKey(), date, date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSONFOR),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName()));
@@ -413,53 +408,53 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         return byUserWithin(user.getPrimaryKey(), start, end, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBETWEENFOR),
                 df.format(Objects.requireNonNull(start)), df.format(Objects.requireNonNull(end)), user.getUserName()));
     }
-    
+
     public static AppointmentFilter currentAndFuture() {
         return onOrAfterDate(LocalDate.now(), App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTURE));
     }
-    
+
     public static AppointmentFilter byCustomerCurrentAndFuture(Customer customer) {
         return byCustomerOnOrAfterDate(customer.getPrimaryKey(), LocalDate.now(),
                 String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFOR), customer.getName()));
     }
-    
+
     public static AppointmentFilter byUserCurrentAndFuture(User user) {
-        return byUserOnOrAfterDate(user.getPrimaryKey(), LocalDate.now(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey()) ?
-                App.getResourceString(App.RESOURCEKEY_MYCURRENTANDFUTURE) :
-                String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFOR), user.getUserName()));
+        return byUserOnOrAfterDate(user.getPrimaryKey(), LocalDate.now(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey())
+                ? App.getResourceString(App.RESOURCEKEY_MYCURRENTANDFUTURE)
+                : String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFOR), user.getUserName()));
     }
-    
+
     public static AppointmentFilter byCustomerAndUserCurrentAndFuture(Customer customer, User user) {
         return byCustomerAndUserOnOrAfterDate(customer.getPrimaryKey(), user.getPrimaryKey(), LocalDate.now(),
                 String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFORBOTH), customer.getName(), user.getUserName()));
     }
-    
+
     public static AppointmentFilter myCurrentAndFuture() {
         return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(), App.getResourceString(App.RESOURCEKEY_MYCURRENTANDFUTURE));
     }
-    
+
     public static AppointmentFilter past() {
         return beforeDate(LocalDate.now(), App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTS));
     }
-    
+
     public static AppointmentFilter byCustomerPast(Customer customer) {
         return byCustomerBeforeDate(customer.getPrimaryKey(), LocalDate.now(),
                 String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFOR), customer.getName()));
     }
-    
+
     public static AppointmentFilter byUserPast(User user) {
-        return byUserBeforeDate(user.getPrimaryKey(), LocalDate.now(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey()) ?
-                App.getResourceString(App.RESOURCEKEY_MYPASTAPPOINTMENTS) :
-                String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFOR), user.getUserName()));
+        return byUserBeforeDate(user.getPrimaryKey(), LocalDate.now(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey())
+                ? App.getResourceString(App.RESOURCEKEY_MYPASTAPPOINTMENTS)
+                : String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFOR), user.getUserName()));
     }
-    
+
     public static AppointmentFilter byCustomerAndUserPast(Customer customer, User user) {
         return byCustomerAndUserBeforeDate(customer.getPrimaryKey(), user.getPrimaryKey(), LocalDate.now(),
                 String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFORBOTH), customer.getName(), user.getUserName()));
     }
-    
+
     public static AppointmentFilter myPast() {
         return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(), App.getResourceString(App.RESOURCEKEY_MYPASTAPPOINTMENTS));
     }
-    
+
 }

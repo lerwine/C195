@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.city;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -16,13 +11,12 @@ import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.country.CountryReferenceModel;
 import scheduler.view.country.CountryReferenceModelImpl;
 
-
 public class CityReferenceModelImpl extends DataObjectImpl.DataObjectReferenceModelImpl<City> implements CityReferenceModel<City> {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyObjectWrapper<CountryReferenceModel<? extends Country>> country;
     private final ChildPropertyWrapper<String, CountryReferenceModel<? extends Country>> countryName;
-    
+
     public CityReferenceModelImpl(City dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "name", dao.getName());
@@ -30,7 +24,7 @@ public class CityReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
         country = new ReadOnlyObjectWrapper<>(this, "country", (null == c) ? null : new CountryReferenceModelImpl(c));
         countryName = new ChildPropertyWrapper<>(this, "countryName", country, (t) -> t.nameProperty());
     }
-    
+
     @Override
     public String getName() {
         return name.get();

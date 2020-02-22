@@ -69,7 +69,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
         @Override
         protected CountryImpl fromResultSet(ResultSet resultSet) throws SQLException {
             CountryImpl result = new CountryImpl();
-            onInitializeDao(result, resultSet);
+            initializeDao(result, resultSet);
             return result;
         }
 

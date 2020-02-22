@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.observables;
 
 import java.util.function.Predicate;
@@ -20,21 +15,30 @@ import scheduler.util.Values;
  */
 @Deprecated
 public class ReadOnlyDataRowProperty<T extends DataObjectImpl> extends ReadOnlyObjectWrapper<T> {
+
     private final BooleanBinding newRow;
 
-    public BooleanBinding isNewRow() { return newRow; }
+    public BooleanBinding isNewRow() {
+        return newRow;
+    }
 
     private final BooleanBinding deleted;
 
-    public BooleanBinding isDeleted() { return deleted; }
+    public BooleanBinding isDeleted() {
+        return deleted;
+    }
 
     private final BooleanBinding modified;
 
-    public BooleanBinding isModified() { return modified; }
+    public BooleanBinding isModified() {
+        return modified;
+    }
 
     private final BooleanBinding saved;
 
-    public BooleanBinding isSaved() { return saved; }
+    public BooleanBinding isSaved() {
+        return saved;
+    }
 
     public ReadOnlyDataRowProperty() {
         super();
@@ -67,13 +71,16 @@ public class ReadOnlyDataRowProperty<T extends DataObjectImpl> extends ReadOnlyO
         modified = new PredicateBinding((T value) -> value.getRowState() == Values.ROWSTATE_MODIFIED);
         saved = new PredicateBinding((T value) -> value.getRowState() == Values.ROWSTATE_UNMODIFIED);
     }
-    
+
     protected class PredicateBinding extends BooleanBinding {
+
         private final Predicate<T> predicate;
+
         PredicateBinding(Predicate<T> predicate) {
             super.bind(ReadOnlyDataRowProperty.this);
             this.predicate = predicate;
         }
+
         @Override
         protected boolean computeValue() {
             T value = ReadOnlyDataRowProperty.this.get();

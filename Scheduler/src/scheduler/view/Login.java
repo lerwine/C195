@@ -36,8 +36,8 @@ import scheduler.view.SchedulerController;
  *
  * @author Leonard T. Erwine
  */
-@GlobalizationResource("scheduler/view/login/LoginScene")
-@FXMLResource("/scheduler/view/login/LoginScene.fxml")
+@GlobalizationResource("scheduler/view/Login")
+@FXMLResource("/scheduler/view/Login.fxml")
 public final class Login extends SchedulerController {
 
     private static final Logger LOG = Logger.getLogger(Login.class.getName());

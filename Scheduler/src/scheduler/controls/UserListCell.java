@@ -8,6 +8,7 @@ import javafx.scene.control.ListCell;
  * @param <T> The item type.
  */
 public class UserListCell<T extends scheduler.view.user.UserReferenceModel<?>> extends ListCell<T> {
+
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);

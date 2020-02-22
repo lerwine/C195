@@ -1,7 +1,5 @@
 package scheduler.view.user;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.FXCollections;
@@ -33,82 +31,82 @@ import scheduler.view.appointment.AppointmentModel;
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
 public final class EditUser extends EditItem.EditController<UserImpl, UserModel> {
     //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active State:"}.
      */
     public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New User"}.
      */
     public static final String RESOURCEKEY_ADDNEWUSER = "addNewUser";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Administrative User"}.
      */
     public static final String RESOURCEKEY_ADMINISTRATIVEUSER = "administrativeUser";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Change Password:"}.
      */
     public static final String RESOURCEKEY_CHANGEPASSWORD = "changePassword";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Confirm Password:"}.
      */
     public static final String RESOURCEKEY_CONFIRMPASSWORD = "confirmPassword";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit User "%s""}.
      */
     public static final String RESOURCEKEY_EDITUSER = "editUser";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Field "%s" is invalid."}.
      */
     public static final String RESOURCEKEY_FIELDVALIDATIONFAILED = "fieldValidationFailed";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Inactive"}.
      */
     public static final String RESOURCEKEY_INACTIVE = "inactive";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Normal User"}.
      */
     public static final String RESOURCEKEY_NORMALUSER = "normalUser";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Password:"}.
      */
     public static final String RESOURCEKEY_PASSWORD = "password";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Password cannot be empty."}.
      */
     public static final String RESOURCEKEY_PASSWORDCANNOTBEEMPTY = "passwordCannotBeEmpty";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Password and confirmation do not match."}.
      */
     public static final String RESOURCEKEY_PASSWORDMISMATCH = "passwordMismatch";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User Name:"}.
      */
     public static final String RESOURCEKEY_USERNAME = "userName";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User Name cannot be empty."}.
      */
     public static final String RESOURCEKEY_USERNAMECANNOTBEEMPTY = "userNameCannotBeEmpty";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That user name is already in use."}.
      */
     public static final String RESOURCEKEY_USERNAMEINUSE = "userNameInUse";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading customers...}.
      */
@@ -118,9 +116,8 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That user is referenced in one or more appointments...}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
-    
+
     //</editor-fold>
-    
     @FXML // fx:id="userNameTextField"
     private TextField userNameTextField; // Value injected by FXMLLoader
 
@@ -158,7 +155,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     private Button addAppointmentButton; // Value injected by FXMLLoader
 
     private ObservableList<Short> userActiveStateOptions;
-    
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
@@ -179,7 +176,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
             @Override
             protected void updateItem(Short a, boolean bln) {
                 super.updateItem(a, bln);
-                
+
                 switch (a) {
                     case 1:
                         setText(getResourceString(RESOURCEKEY_NORMALUSER));
@@ -197,24 +194,31 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
         if (getModel().isNewItem()) {
             changePasswordCheckBox.setSelected(true);
             changePasswordCheckBox.setDisable(true);
-        } else
+        } else {
             changePasswordCheckBox.selectedProperty().addListener((observable) -> changePasswordSelectedChanged());
+        }
         normalizedUserName = ValueBindings.asNormalized(userNameTextField.textProperty());
         normalizedUserName.isEmpty().addListener((observable) -> userNameEmptyChanged());
         passwordErrorMessageBinding = new StringBinding() {
-            { super.bind(FXCollections.observableArrayList(changePasswordCheckBox.selectedProperty(), passwordField.textProperty(), confirmPasswordField.textProperty())); }
+            {
+                super.bind(FXCollections.observableArrayList(changePasswordCheckBox.selectedProperty(), passwordField.textProperty(), confirmPasswordField.textProperty()));
+            }
+
             @Override
             protected String computeValue() {
                 String p = passwordField.textProperty().get();
                 String c = confirmPasswordField.textProperty().get();
                 if (!changePasswordCheckBox.selectedProperty().get()) {
-                    if (Values.isNullWhiteSpaceOrEmpty(p))
+                    if (Values.isNullWhiteSpaceOrEmpty(p)) {
                         return getResourceString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
-                    if (!p.equals(c))
+                    }
+                    if (!p.equals(c)) {
                         return getResourceString(RESOURCEKEY_PASSWORDMISMATCH);
+                    }
                 }
                 return "";
             }
+
             @Override
             public void dispose() {
                 super.unbind(FXCollections.observableArrayList(changePasswordCheckBox.selectedProperty(), passwordField.textProperty(), confirmPasswordField.textProperty()));
@@ -228,11 +232,11 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     }
 
     private StringBinding normalizedUserName;
-    
+
     private StringBinding passwordErrorMessageBinding;
-    
+
     private BooleanExpression validationExpression;
-    
+
     private void changePasswordSelectedChanged() {
         if (changePasswordCheckBox.selectedProperty().get()) {
             restoreNode(passwordField);
@@ -246,26 +250,32 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
             collapseNode(passwordErrorMessageLabel);
         }
     }
-    
+
     private void userNameEmptyChanged() {
-        if (normalizedUserName.isEmpty().get())
+        if (normalizedUserName.isEmpty().get()) {
             restoreNode(userNameErrorMessageLabel);
-        else
+        } else {
             collapseNode(userNameErrorMessageLabel);
+        }
     }
-    
+
     private void passwordValidationChanged() {
         String message = passwordErrorMessageBinding.get();
-        if (message.isEmpty())
+        if (message.isEmpty()) {
             collapseNode(passwordErrorMessageLabel);
-        else
+        } else {
             restoreLabeled(passwordErrorMessageLabel, message);
+        }
     }
-    
-    @Override
-    protected BooleanExpression getValidationExpression() { return validationExpression; }
 
     @Override
-    protected Factory<UserImpl, UserModel> getDaoFactory() { return UserImpl.getFactory(); }
-    
+    protected BooleanExpression getValidationExpression() {
+        return validationExpression;
+    }
+
+    @Override
+    protected Factory<UserImpl, UserModel> getDaoFactory() {
+        return UserImpl.getFactory();
+    }
+
 }

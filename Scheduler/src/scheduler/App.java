@@ -29,12 +29,9 @@ import scheduler.view.Login;
  *
  * @author Leonard T. Erwine
  */
-public class App extends Application implements ApplicationResourceKeys {
+public final class App extends Application implements AppConstants {
 
-    /**
-     * The name of the general application globalization resource bundle.
-     */
-    public static final String GLOBALIZATION_RESOURCE_NAME = "scheduler/App";
+    private static final Logger LOG = Logger.getLogger(App.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
     private static UserImpl currentUser = null;
@@ -44,8 +41,6 @@ public class App extends Application implements ApplicationResourceKeys {
     }
 
     //</editor-fold>
-    private static final Logger LOG = Logger.getLogger(App.class.getName());
-
     //<editor-fold defaultstate="collapsed" desc="App Lifecycle Members">
     /**
      * The application main entry point.

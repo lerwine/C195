@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.observables;
 
 import javafx.beans.binding.StringBinding;
@@ -18,6 +13,7 @@ import scheduler.view.address.AddressReferenceModel;
  * @author lerwi
  */
 public class CityZipCountryProperty extends StringBinding implements ReadOnlyProperty<String> {
+
     private final Object bean;
     private final String name;
     private final ReadOnlyProperty<String> postalCode;
@@ -32,20 +28,23 @@ public class CityZipCountryProperty extends StringBinding implements ReadOnlyPro
         postalCode = address.postalCodeProperty();
         super.bind(cityName, countryName, postalCode);
     }
+
     @Override
     protected String computeValue() {
         String n = Values.asNonNullAndWsNormalized(cityName.getValue());
         String c = Values.asNonNullAndWsNormalized(countryName.getValue());
         String p = Values.asNonNullAndWsNormalized(postalCode.getValue());
         if (c.isEmpty()) {
-            if (p.isEmpty())
+            if (p.isEmpty()) {
                 return n;
+            }
             return (n.isEmpty()) ? p : String.format("%s %s", n, p);
         }
-        
-        if (p.isEmpty())
+
+        if (p.isEmpty()) {
             return (n.isEmpty()) ? c : String.format("%s, %s", n, c);
-        
+        }
+
         return (n.isEmpty()) ? String.format("%s, %s", p, c) : String.format("%s %s, %s", n, p, c);
     }
 

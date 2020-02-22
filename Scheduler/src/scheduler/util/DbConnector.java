@@ -228,7 +228,7 @@ public final class DbConnector implements AutoCloseable {
                 CONNECTION = null;
                 CURRENT_STATE = STATE_NOT_CONNECTED;
             }
-            LOG.logp(Level.INFO, DbConnector.class.getName(), "checkClose", "Disconnected from %s", AppConfig.getDbServerName());
+            LOG.logp(Level.INFO, DbConnector.class.getName(), "checkClose", String.format("Disconnected from %s", AppConfig.getDbServerName()));
         }
         return true;
     }

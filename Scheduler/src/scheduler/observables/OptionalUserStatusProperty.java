@@ -29,5 +29,5 @@ public class OptionalUserStatusProperty extends OptionalValueProperty<Integer> {
     public void set(Optional<Integer> newValue) {
         super.set(Values.requireValidUserStatus(newValue, "Invalid initial value"));
     }
-    
+
 }

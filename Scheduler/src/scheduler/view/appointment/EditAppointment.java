@@ -41,8 +41,10 @@ import javafx.stage.Stage;
 import scheduler.App;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
+import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.UserFilter;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.DbConnector;
@@ -235,7 +237,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading customers"}.
      */
     public static final String RESOURCEKEY_LOADING_CUSTOMERS = "loadingCustomers";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading users"}.
      */
@@ -533,8 +535,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     }
 
     private class ItemsLoadTask extends TaskWaiter<Boolean> {
+
         private ArrayList<CustomerImpl> customerList;
         private ArrayList<UserImpl> userList;
+
         public ItemsLoadTask(Stage owner) {
             super(owner, App.getResourceString(App.RESOURCEKEY_CONNECTINGTODB), App.getResourceString(App.RESOURCEKEY_INITIALIZING));
             customerList = null;
@@ -543,10 +547,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         @Override
         protected void processResult(Boolean result, Stage owner) {
-            if (null != customerList && !customerList.isEmpty())
+            if (null != customerList && !customerList.isEmpty()) {
                 customerList.forEach((c) -> customers.add(new CustomerModel(c)));
-            if (null != userList && !userList.isEmpty())
+            }
+            if (null != userList && !userList.isEmpty()) {
                 userList.forEach((u) -> users.add(new UserModel(u)));
+            }
             customerComboBox.setItems(customers);
             userComboBox.setItems(users);
         }
@@ -556,17 +562,20 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
             Alerts.showErrorAlert(ex);
             owner.close();
         }
-        
+
         @Override
         protected Boolean getResult(Connection connection) throws SQLException {
-            updateMessage(getResourceString(RESOURCEKEY_LOADING_CUSTOMERS));
-            customerList = CustomerImpl.getFactory().loadByStatus(connection, true);
-            updateMessage(getResourceString(RESOURCEKEY_LOADING_USERS));
-            userList = UserImpl.getFactory().loadByStatus(connection, Values.USER_STATUS_INACTIVE, true);
+            CustomerFilter cf = CustomerFilter.active(true);
+            updateMessage(cf.getLoadingMessage());
+            customerList = cf.get(connection);
+            UserFilter uf = UserFilter.active(true);
+            updateMessage(uf.getLoadingMessage());
+            userList = uf.get(connection);
             return null == customerList || null == userList || customerList.isEmpty() || userList.isEmpty();
         }
-        
+
     }
+
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Event handler methods">
     @FXML

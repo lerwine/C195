@@ -470,7 +470,8 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         }
 
         /**
-         * Initializes a data access object from a {@link ResultSet}.
+         * Finishes updating a data access object from a {@link ResultSet}. Do not call this directly. User
+         * {@link #initializeDao(scheduler.dao.DataObjectImpl, java.sql.ResultSet)}, instead.
          *
          * @param target The {@link DataObjectImpl} to be initialized.
          * @param resultSet The data retrieved from the database.
@@ -478,7 +479,14 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
          */
         protected abstract void onInitializeDao(T target, ResultSet resultSet) throws SQLException;
 
-        private void initializeDao(T target, ResultSet resultSet) throws SQLException {
+        /**
+         * Initializes a data access object from a {@link ResultSet}.
+         *
+         * @param target The {@link DataObjectImpl} to be initialized.
+         * @param resultSet The data retrieved from the database.
+         * @throws SQLException if not able to read data from the {@link ResultSet}.
+         */
+        protected void initializeDao(T target, ResultSet resultSet) throws SQLException {
             DataObjectImpl dao = (DataObjectImpl) target;
             dao.setPrimaryKey(assertBaseResultSetValid(target, resultSet));
             dao.setCreateDate(resultSet.getTimestamp(COLNAME_CREATEDATE));

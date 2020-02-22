@@ -133,7 +133,7 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
     public static void setContent(MainController mainController, Stage stage, ModelFilter<CustomerImpl, CustomerModel> filter) throws IOException {
         setContent(mainController, ManageCustomers.class, stage).changeFilter(filter, stage);
     }
-    
+
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewCustomer(event);

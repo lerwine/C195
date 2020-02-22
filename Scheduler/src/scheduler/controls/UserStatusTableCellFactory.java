@@ -12,7 +12,11 @@ import scheduler.dao.UserImpl;
  * @param <S> The item type.
  */
 public class UserStatusTableCellFactory<S> implements Callback<TableColumn<S, Integer>, TableCell<S, Integer>> {
+
     private final ObservableMap<Integer, String> userStatusMap = UserImpl.getUserStatusMap();
+
     @Override
-    public TableCell<S, Integer> call(TableColumn<S, Integer> param) { return new UserStatusTableCell(userStatusMap); }
+    public TableCell<S, Integer> call(TableColumn<S, Integer> param) {
+        return new UserStatusTableCell(userStatusMap);
+    }
 }

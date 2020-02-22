@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.customer;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -35,7 +30,7 @@ public class CustomerReferenceModelImpl extends DataObjectImpl.DataObjectReferen
     private final ChildPropertyWrapper<String, AddressReferenceModel<? extends Address>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final ReadOnlyBooleanWrapper active;
-    
+
     public CustomerReferenceModelImpl(Customer dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "address1", dao.getName());
@@ -51,7 +46,7 @@ public class CustomerReferenceModelImpl extends DataObjectImpl.DataObjectReferen
         addressText = new AddressTextProperty(this, "addressText", this);
         active = new ReadOnlyBooleanWrapper(this, "active", dao.isActive());
     }
-    
+
     @Override
     public String getName() {
         return name.get();
@@ -59,7 +54,7 @@ public class CustomerReferenceModelImpl extends DataObjectImpl.DataObjectReferen
 
     @Override
     public ReadOnlyProperty<String> nameProperty() {
-        return  name.getReadOnlyProperty();
+        return name.getReadOnlyProperty();
     }
 
     @Override

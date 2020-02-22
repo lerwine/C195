@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.appointment;
 
 /**
@@ -10,7 +5,7 @@ package scheduler.view.appointment;
  * @author lerwi
  */
 interface ManageAppointmentsResourceKeys {
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Appointment"}.
      */

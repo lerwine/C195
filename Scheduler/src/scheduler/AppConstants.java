@@ -4,8 +4,14 @@ package scheduler;
  *
  * @author lerwi
  */
-public interface ApplicationResourceKeys {
+public interface AppConstants {
 
+    /**
+     * The name of the general application globalization resource bundle.
+     */
+    public static final String GLOBALIZATION_RESOURCE_NAME = "scheduler/App";
+
+    //<editor-fold defaultstate="collapsed" desc="Resource file keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointment Scheduler"}.
      */
@@ -402,4 +408,45 @@ public interface ApplicationResourceKeys {
      */
     public static final String RESOURCEKEY_APPOINTMENTSONFOR = "appointmentsOnFor";
 
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading customers, please wait..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading users, please wait..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Customers"}.
+     */
+    public static final String ALL_CUSTOMERS = "allCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active Customers"}.
+     */
+    public static final String ACTIVE_CUSTOMERS = "activeCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Inactive Customers"}.
+     */
+    public static final String INACTIVE_CUSTOMERS = "inactiveCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Users"}.
+     */
+    public static final String ALL_USERS = "allUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active Users"}.
+     */
+    public static final String ACTIVE_USERS = "activeUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Inactive Users"}.
+     */
+    public static final String INACTIVE_USERS = "inactiveUsers";
+
+    //</editor-fold>
 }

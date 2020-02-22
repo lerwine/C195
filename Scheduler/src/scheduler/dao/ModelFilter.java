@@ -17,44 +17,67 @@ public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> e
 
     /**
      * Gets the heading to display in the items listing view.
+     *
      * @return The heading to display in the items listing view.
      */
     String getHeading();
 
     /**
      * Gets the sub-heading to display in the items listing view.
+     *
      * @return The sub-heading to display in the items listing view.
      */
     String getSubHeading();
-    
+
+    public static <D extends DataObjectImpl, M extends ItemModel<D>> boolean areEqual(ModelFilter<D, M> x, ModelFilter<D, M> y) {
+        String a, b;
+        return ((null == x || null == (a = x.getSqlFilterExpr())) ? "" : a.trim())
+                .equals((null == y || null == (b = y.getSqlFilterExpr())) ? "" : b.trim());
+    }
+
     public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelFilter<D, M> all(DataObjectImpl.Factory<D, ? extends ItemModel<D>> factory,
             String loadingMessage, String heading, String subHeading) {
-        if (null == subHeading)
+        if (null == subHeading) {
             return all(factory, loadingMessage, heading, "");
+        }
         Objects.requireNonNull(loadingMessage);
         Objects.requireNonNull(heading);
         return new ModelFilter<D, M>() {
             @Override
-            public String getHeading() { return heading; }
+            public String getHeading() {
+                return heading;
+            }
 
             @Override
-            public String getSubHeading() { return subHeading; }
+            public String getSubHeading() {
+                return subHeading;
+            }
 
             @Override
-            public String getLoadingMessage() { return subHeading; }
+            public String getLoadingMessage() {
+                return subHeading;
+            }
 
             @Override
-            public String getSqlFilterExpr() { return ""; }
+            public String getSqlFilterExpr() {
+                return "";
+            }
 
             @Override
-            public DataObjectImpl.Factory<D, ? extends ItemModel<D>> getFactory() { return factory; }
+            public DataObjectImpl.Factory<D, ? extends ItemModel<D>> getFactory() {
+                return factory;
+            }
 
             @Override
-            public int apply(PreparedStatement ps, int index) throws SQLException { return index; }
+            public int apply(PreparedStatement ps, int index) throws SQLException {
+                return index;
+            }
 
             @Override
-            public boolean test(M t) { return true; }
-            
+            public boolean test(M t) {
+                return true;
+            }
+
         };
     }
 

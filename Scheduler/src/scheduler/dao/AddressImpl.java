@@ -187,7 +187,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
         @Override
         protected AddressImpl fromResultSet(ResultSet resultSet) throws SQLException {
             AddressImpl r = new AddressImpl();
-            onInitializeDao(r, resultSet);
+            initializeDao(r, resultSet);
             return r;
         }
 

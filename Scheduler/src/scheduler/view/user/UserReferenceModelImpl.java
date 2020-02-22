@@ -18,7 +18,7 @@ public class UserReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
     private final ReadOnlyStringWrapper password;
     private final UserStatusProperty status;
     private final UserStatusDisplayProperty statusDisplay;
-    
+
     public UserReferenceModelImpl(User dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
@@ -26,7 +26,7 @@ public class UserReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
         status = new UserStatusProperty(this, "status", dao.getStatus());
         statusDisplay = new UserStatusDisplayProperty(this, "statusDisplay", status);
     }
-    
+
     @Override
     public String getUserName() {
         return userName.get();
@@ -66,5 +66,5 @@ public class UserReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
     public UserStatusDisplayProperty statusDisplayProperty() {
         return statusDisplay;
     }
-    
+
 }
