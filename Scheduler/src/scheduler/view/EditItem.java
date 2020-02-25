@@ -174,7 +174,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 saveChangesButton.setDisable(!c.getValidationExpression().get());
             }, getResources());
         } catch (IOException ex) {
-            Alerts.logAndAlert(LOG, EditItem.class, "onShow", String.format("Error loading FXML for %s", controllerClass.getName()), ex);
+            Alerts.logAndAlertError(LOG, EditItem.class, "onShow", String.format("Error loading FXML for %s", controllerClass.getName()), ex);
             result.fault = ex;
             result.successful = false;
             result.canceled = false;
@@ -205,7 +205,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 ctrl.onShow(v, model, controllerClass, parent);
             });
         } catch (IOException ex) {
-            Alerts.logAndAlert(LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
+            Alerts.logAndAlertError(LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
             result.fault = ex;
             result.successful = false;
             result.canceled = false;

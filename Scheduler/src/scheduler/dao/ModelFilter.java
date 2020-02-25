@@ -35,6 +35,16 @@ public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> e
                 .equals((null == y || null == (b = y.getSqlFilterExpr())) ? "" : b.trim());
     }
 
+    /**
+     * Creates a {@link ModelFilter} that returns all items.
+     * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
+     * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
+     * @param factory The {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
+     * @param loadingMessage The message to display while data is being loaded from the database.
+     * @param heading The heading to display in the items listing view.
+     * @param subHeading The sub-heading to display in the items listing view.
+     * @return The new {@link ModelFilter}.
+     */
     public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelFilter<D, M> all(DataObjectImpl.Factory<D, ? extends ItemModel<D>> factory,
             String loadingMessage, String heading, String subHeading) {
         if (null == subHeading) {

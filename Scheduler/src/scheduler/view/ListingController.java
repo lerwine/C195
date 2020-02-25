@@ -1,11 +1,13 @@
 package scheduler.view;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -29,10 +31,11 @@ import scheduler.util.ItemEventManager;
 import scheduler.dao.ModelFilter;
 
 /**
- * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
+ * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects. This is loaded as the content of
+ * {@link MainController} using {@link #setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage, scheduler.dao.ModelFilter)}.
  *
  * @author Leonard T. Erwine
- * @param <T>
+ * @param <T> The type of data access object that corresponds to the model object type.
  * @param <S> The type of model objects presented by the ListingController.
  */
 public abstract class ListingController<T extends DataObjectImpl, S extends ItemModel<T>> extends MainController.MainContentController {
@@ -65,15 +68,15 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
 
     //</editor-fold>
     /**
-     * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link ItemModel}. This is defined within the {@link javafx.scene.control.ContextMenu} for the
-     * {@link #listingTableView} control.
+     * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link ItemModel}. This is defined within the
+     * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      */
     @FXML
     protected MenuItem editMenuItem;
 
     /**
-     * The {@link MenuItem} injected by the {@link FXMLLoader} for deleting an {@link ItemModel}. This is defined within the {@link javafx.scene.control.ContextMenu} for the
-     * {@link #listingTableView} control.
+     * The {@link MenuItem} injected by the {@link FXMLLoader} for deleting an {@link ItemModel}. This is defined within the
+     * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      */
     @FXML
     protected MenuItem deleteMenuItem;
@@ -149,48 +152,74 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         };
     }
 
-    protected abstract ItemEventManager<ItemEvent<S>> getItemAddManager(MainController mainController);
+    /**
+     * Gets the {@link ItemEventManager} from the {@link MainController} that emits an event whenever a new item has been inserted into the database.
+     *
+     * @return The {@link ItemEventManager} from the {@link MainController}.
+     */
+    protected abstract ItemEventManager<ItemEvent<S>> getItemAddManager();
 
-    protected abstract ItemEventManager<ItemEvent<S>> getItemRemoveManager(MainController mainController);
+    /**
+     * Gets the {@link ItemEventManager} from the {@link MainController} that emits an event whenever an item has been removed into the database.
+     *
+     * @return The {@link ItemEventManager} from the {@link MainController}.
+     */
+    protected abstract ItemEventManager<ItemEvent<S>> getItemRemoveManager();
 
     @Override
     protected void onBeforeShow(Node currentView, Stage stage) {
-        getItemAddManager(getMainController()).addListener(itemAddedListener);
-        getItemAddManager(getMainController()).addListener(itemRemovedListener);
+        getItemAddManager().addListener(itemAddedListener);
+        getItemAddManager().addListener(itemRemovedListener);
         super.onBeforeShow(currentView, stage);
     }
 
     @Override
     protected void onUnloaded(Node view) {
-        getItemAddManager(getMainController()).removeListener(itemAddedListener);
-        getItemAddManager(getMainController()).removeListener(itemRemovedListener);
-        super.onUnloaded(view); //To change body of generated methods, choose Tools | Templates.
+        getItemAddManager().removeListener(itemAddedListener);
+        getItemAddManager().removeListener(itemRemovedListener);
+        super.onUnloaded(view);
+    }
+
+    public static <T extends DataObjectImpl, S extends ItemModel<T>> ListingController<T, S> setContent(MainController mainController,
+            Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelFilter<T, S> filter) throws IOException {
+        ListingController<T, S> controller = setContent(mainController, controllerClass, stage);
+        controller.changeFilter(filter, stage, null);
+        return controller;
     }
 
     /**
      * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
      *
      * @param value The new {@link ModelFilter}.
-     * @param owner The owner {@link Stage} to whose content is to be masked while items are loaded from the database.
+     * @param stage The {@link Stage} to whose content is to be masked while items are loaded from the database.
+     * @param onChangeComplete The {@link Consumer} to invoke after the filter has been changed and items have been loaded. This will contain a
+     * {@code true} parameter if the filter required items to be reloaded from the database or {@code false} if the filter was the same and no action
+     * was needed. This can also pass a @code false} value if the filter is changed again before the items load task is finished.
      */
-    public synchronized void changeFilter(ModelFilter<T, S> value, Stage owner) {
+    public synchronized void changeFilter(ModelFilter<T, S> value, Stage stage, Consumer<Boolean> onChangeComplete) {
+        Objects.requireNonNull(stage);
         if (null == value) {
             value = getDaoFactory().getDefaultFilter();
         }
         if (null != filter && ModelFilter.areEqual(value, filter)) {
+            if (null != onChangeComplete) {
+                onChangeComplete.accept(Boolean.FALSE);
+            }
             return;
         }
         filter = value;
-        onFilterChanged(Objects.requireNonNull(owner));
+        TaskWaiter.execute(createItemsLoadTask(stage, onChangeComplete));
     }
 
     /**
-     * This gets called whenever the current {@link #filter} has changed.
+     * Creates a new {@link ItemsLoadTask} for loading items from the database asynchronously.
      *
-     * @param owner The owner {@link Stage} to use when showing the {@link javafx.stage.Popup} window.
+     * @param stage The {@link Stage} to whose content is to be masked while items are loaded from the database.
+     * @param onChangeComplete The {@link Consumer} to invoke after the filter has been changed and items have been loaded. This can be null.
+     * @return The new {@link ItemsLoadTask}.
      */
-    private void onFilterChanged(Stage owner) {
-        TaskWaiter.execute(createItemsLoadTask(owner));
+    protected ItemsLoadTask createItemsLoadTask(Stage stage, Consumer<Boolean> onChangeComplete) {
+        return new ItemsLoadTask(stage, onChangeComplete);
     }
 
     /**
@@ -202,8 +231,8 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     protected abstract void onAddNewItem(Event event);
 
     /**
-     * This gets called when the user types the {@link KeyCode#ENTER} key or clicks the {@link #editMenuItem} in the {@link javafx.scene.control.ContextMenu} for the
-     * {@link #listingTableView} control.
+     * This gets called when the user types the {@link KeyCode#ENTER} key or clicks the {@link #editMenuItem} in the
+     * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      *
      * @param event Contextual information about the event.
      * @param item The selected item to be edited.
@@ -212,14 +241,21 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     protected abstract EditItem.ShowAndWaitResult<S> onEditItem(Event event, S item);
 
     /**
-     * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the {@link javafx.scene.control.ContextMenu} for the
-     * {@link #listingTableView} control.
+     * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
+     * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      *
      * @param event Contextual information about the event.
      * @param item The selected item to be deleted.
      */
     protected abstract void onDeleteItem(Event event, S item);
 
+    /**
+     * Gets the index of the {@link ItemModel} in the current {@link #itemsList} where the {@link ItemModel#primaryKeyProperty()} matches the given
+     * value.
+     *
+     * @param pk The value of the primary key.
+     * @return The index of the list item whose {@link ItemModel#primaryKeyProperty()} matches {@code pk} or {@code -1} if no match was found.
+     */
     protected int indexOfListItemByPrimaryKey(int pk) {
         Iterator<S> iterator = getItemsList().iterator();
         int index = -1;
@@ -232,6 +268,12 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         return -1;
     }
 
+    /**
+     * Gets the {@link ItemModel} in the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value.
+     *
+     * @param pk The value of the primary key.
+     * @return The {@link ItemModel} whose {@link ItemModel#primaryKeyProperty()} matches the given value or {@code null} if no match was found.
+     */
     protected S getListItemByPrimaryKey(int pk) {
         Iterator<S> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
@@ -243,6 +285,13 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         return null;
     }
 
+    /**
+     * Removes the {@link ItemModel} from the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value. This
+     * does not delete the item from the database.
+     *
+     * @param pk The value of the primary key.
+     * @return {@code true} if the item was removed or {@code false} if no match was found.
+     */
     protected boolean removeListItemByPrimaryKey(int pk) {
         Iterator<S> iterator = getItemsList().iterator();
         while (iterator.hasNext()) {
@@ -255,8 +304,15 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         return false;
     }
 
+    /**
+     * Replaces an {@link ItemModel} in the current {@link #itemsList} a matching {@link ItemModel#primaryKeyProperty()}. This does not update any
+     * item in the database.
+     *
+     * @param item The {@link ItemModel} to replace into the list.
+     * @return {@code true} if an item with a matching {@link ItemModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if no
+     * match was found.
+     */
     protected boolean updateListItem(S item) {
-        Objects.requireNonNull(item);
         int pk = item.getPrimaryKey();
         ObservableList<S> items = getItemsList();
         for (int i = 0; i < items.size(); i++) {
@@ -271,24 +327,82 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         return false;
     }
 
+    /**
+     * Inserts an {@link ItemModel} into the current {@link #itemsList}, replacing any with a matching {@link ItemModel#primaryKeyProperty()}. This
+     * does not insert or update any item in the database.
+     *
+     * @param item The {@link ItemModel} to insert into the list.
+     * @return {@code true} if the {@code item} was appended to the list; otherwise, {@code false} if it replaced one with a matching
+     * {@link ItemModel#primaryKeyProperty()}.
+     */
+    protected boolean upsertListItem(S item) {
+        int pk = item.getPrimaryKey();
+        ObservableList<S> items = getItemsList();
+        for (int i = 0; i < items.size(); i++) {
+            S m = items.get(i);
+            if (m.getPrimaryKey() == pk) {
+                if (m != item) {
+                    items.set(i, item);
+                }
+                return false;
+            }
+        }
+        items.add(item);
+        return true;
+    }
+
+    /**
+     * Gets the {@link DataObjectImpl.Factory} to be used with this listing.
+     *
+     * @return The {@link DataObjectImpl.Factory} to be used with this listing.
+     */
     protected abstract DataObjectImpl.Factory<T, S> getDaoFactory();
 
-    protected abstract S toModel(T result);
+    /**
+     * Creates an {@link ItemModel} from a {@link DataObjectImpl}.
+     *
+     * @param dao The data access object.
+     * @return The new {@link ItemModel}.
+     */
+    protected abstract S toModel(T dao);
 
+    /**
+     * This gets called after the filter has been changed and the items have been loaded into the current {@link #itemsList}.
+     *
+     * @param filter The new {@link ModelFilter} being applied.
+     * @param owner The {@link Stage} for the {@link javafx.event.ActionEvent} that triggered the filter change.
+     */
     protected void onItemsLoaded(ModelFilter<T, S> filter, Stage owner) {
     }
 
-    protected ItemsLoadTask createItemsLoadTask(Stage owner) {
-        return new ItemsLoadTask(owner);
-    }
-
+    /**
+     * A {@link TaskWaiter} that asynchronously retrieves data from the database, using a {@link ModelFilter}.
+     */
     protected class ItemsLoadTask extends TaskWaiter<List<T>> {
 
         private final ModelFilter<T, S> currentFilter;
+        private final Consumer<Boolean> onComplete;
 
-        protected ItemsLoadTask(Stage owner) {
-            super(owner, filter.getLoadingMessage());
+        /**
+         * Creates a new items loader task.
+         *
+         * @param stage The {@link Stage} to whose content is to be masked while items are loaded from the database.
+         * @param onComplete The {@link Consumer} to invoke after the task is completed. This will pass a {@code true} value if the items have been
+         * loaded; otherwise, {@code false} if this task was superceded by another.
+         */
+        protected ItemsLoadTask(Stage stage, Consumer<Boolean> onComplete) {
+            super(stage, filter.getLoadingMessage());
             currentFilter = filter;
+            this.onComplete = onComplete;
+        }
+
+        /**
+         * Creates a new items loader task.
+         *
+         * @param stage The {@link Stage} to whose content is to be masked while items are loaded from the database.
+         */
+        protected ItemsLoadTask(Stage stage) {
+            this(stage, null);
         }
 
         @Override
@@ -297,17 +411,29 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         }
 
         @Override
-        protected final void processResult(List<T> result, Stage owner) {
-            if (null == result) {
-                LOG.logp(Level.SEVERE, getClass().getName(), "processResult", String.format("\"%s\" operation returned null", getTitle()));
-            } else {
-                itemsList.clear();
-                Iterator<T> it = result.iterator();
-                while (it.hasNext()) {
-                    itemsList.add(toModel(it.next()));
+        protected synchronized final void processResult(List<T> result, Stage owner) {
+            if (null != filter && filter != currentFilter) {
+                if (null != onComplete) {
+                    onComplete.accept(false);
+                }
+                return;
+            }
+            try {
+                if (null == result) {
+                    LOG.logp(Level.SEVERE, getClass().getName(), "processResult", String.format("\"%s\" operation returned null", getTitle()));
+                } else {
+                    itemsList.clear();
+                    Iterator<T> it = result.iterator();
+                    while (it.hasNext()) {
+                        itemsList.add(toModel(it.next()));
+                    }
+                }
+                onItemsLoaded(currentFilter, owner);
+            } finally {
+                if (null != onComplete) {
+                    onComplete.accept(true);
                 }
             }
-            onItemsLoaded(currentFilter, owner);
         }
 
         @Override

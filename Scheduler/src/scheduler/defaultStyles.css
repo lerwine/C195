@@ -4,26 +4,26 @@
     -fx-background-color: #ffffff;
 }
 
-.formControlLabel {
+.topControlLabel {
     -fx-font-weight: bold;
+    -fx-alignment: bottom-left;
 }
 
-.formLeftControlLabel {
-    -fx-font-weight: bold;
+.topLabeledControl {
+    -fx-alignment: top-left;
 }
 
-.formInnerControlLabel {
+.leftControlLabel {
     -fx-font-weight: bold;
-    -fx-padding: 0 0 0 6;
+    -fx-alignment: top-right;
 }
 
-.formControlValidationMessage {
-    -fx-text-fill: red;
+.leftLabeledControl {
+    -fx-alignment: top-left;
+}
+
+Labeled.leftLabeledControl {
     -fx-wrap-text: true;
-}
-
-.formLabeledControl {
-    -fx-min-height: 25;
 }
 
 HBox.header-section {
@@ -55,9 +55,10 @@ HBox.header-section {
 }
 
 .error Label, Label.error {
+    -fx-alignment: top-left;
     -fx-padding: 0px 0px 0px 0px;
-    -fx-text-fill: #7f0000;
-    -fx-font-weight: bold;
+    -fx-text-fill: red;
+    -fx-wrap-text: true;
 }
 
 .content-section {
@@ -65,7 +66,7 @@ HBox.header-section {
 }
 
 GridPane.content-section Label.error {
-    -fx-alignment: TOP_LEFT;
+    -fx-alignment: top-left;
 }
 
 GridPane.content-section {
@@ -77,7 +78,7 @@ GridPane.content-section Label.hLeftFieldLabel,
 GridPane.content-section Label.hInnerFieldLabel {
     -fx-font-weight: bold;
     -fx-text-alignment: right;
-    -fx-alignment: TOP_RIGHT;
+    -fx-alignment: top-right;
 }
 
 GridPane.content-section Label.hInnerFieldLabel {
@@ -88,7 +89,7 @@ GridPane.content-section .hFieldControl {
     -fx-padding: 0px 0px 0px 0px;
     -fx-alignment: bottom-left;
     -fx-fit-to-width: true;
-    -fx-alignment: TOP_LEFT;
+    -fx-alignment: top-left;
 }
 
 ButtonBar.command-section {

@@ -49,112 +49,17 @@ import scheduler.view.user.UserModel;
 import scheduler.view.user.UserReferenceModelImpl;
 
 /**
- * FXML Controller class for main application content. All application views are loaded into the {@link #contentPane}. All Create, Update and Delete operations are initiated
- * through this controller.
+ * FXML Controller class for main application content. All application views are loaded into the {@link #contentPane} using
+ * {@link MainContentController#setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage)}. The initial content is loaded using
+ * {@link ManageAppointments#setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.ModelFilter)}. All Create, Update and Delete
+ * operations on {@link ItemModel} objects are initiated through this controller.
  *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
-public final class MainController extends SchedulerController {
+public final class MainController extends SchedulerController implements MainControllerConstants {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
-     */
-    public static final String RESOURCEKEY_ADDRESS = "address";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Appointments"}.
-     */
-    public static final String RESOURCEKEY_ALLAPPOINTMENTS = "allAppointments";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Countries"}.
-     */
-    public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Customers"}.
-     */
-    public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Users"}.
-     */
-    public static final String RESOURCEKEY_ALLUSERS = "allUsers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer"}.
-     */
-    public static final String RESOURCEKEY_CUSTOMER = "customer";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customers"}.
-     */
-    public static final String RESOURCEKEY_CUSTOMERS = "customers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Appointment"}.
-     */
-    public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End"}.
-     */
-    public static final String RESOURCEKEY_END = "end";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Current and Upcoming Appointments"}.
-     */
-    public static final String RESOURCEKEY_MYCURRENTANDUPCOMING = "myCurrentAndUpcoming";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
-     */
-    public static final String RESOURCEKEY_NEW = "new";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New Address"}.
-     */
-    public static final String RESOURCEKEY_NEWADDRESS = "newAddress";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New City"}.
-     */
-    public static final String RESOURCEKEY_NEWCITY = "newCity";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New Country"}.
-     */
-    public static final String RESOURCEKEY_NEWCOUNTRY = "newCountry";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start"}.
-     */
-    public static final String RESOURCEKEY_START = "start";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title"}.
-     */
-    public static final String RESOURCEKEY_TITLE = "title";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type"}.
-     */
-    public static final String RESOURCEKEY_TYPE = "type";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Users"}.
-     */
-    public static final String RESOURCEKEY_USERS = "users";
-
-    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="FXML controls">
     @FXML
     private Menu appointmentsMenu;
@@ -371,6 +276,12 @@ public final class MainController extends SchedulerController {
 
     //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
     //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @return The newly added {@link AppointmentModel} or {@link null} if the operation was canceled.
+     */
     public AppointmentModel addNewAppointment(Event event) {
         AppointmentModel model = new AppointmentModel(new AppointmentImpl());
         model.setUser(new UserReferenceModelImpl(App.getCurrentUser()));
@@ -383,11 +294,11 @@ public final class MainController extends SchedulerController {
     }
 
     /**
-     * Opens an edit window to edit an {@link AppointmentModel}.
+     * Opens an {@link EditItem} window to edit an {@link AppointmentModel}.
      *
-     * @param event Contextual information about the event.
+     * @param event Contextual information about the initiating event.
      * @param item The {@link AppointmentModel} to be edited.
-     * @return {@code CrudAction<AppointmentModel>} if the item was edited or deleted from the database; otherwise, {@code null} to indicate the edit operation was canceled.
+     * @return A {@code EditItem.ShowAndWaitResult<AppointmentModel>} object that contains the operation results.
      */
     public EditItem.ShowAndWaitResult<AppointmentModel> editAppointment(Event event, AppointmentModel item) {
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, item, (Stage) contentPane.getScene().getWindow());
@@ -397,6 +308,12 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
+    /**
+     * Deletes an {@link AppointmentModel} item after confirming with user.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link AppointmentModel} to be deleted.
+     */
     public void deleteAppointment(Event event, AppointmentModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -408,6 +325,12 @@ public final class MainController extends SchedulerController {
 
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="CustomerImpl operations">
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @return The newly added {@link CustomerModel} or {@link null} if the operation was canceled.
+     */
     public CustomerModel addNewCustomer(Event event) {
         CustomerModel model = new CustomerModel(new CustomerImpl());
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, model, (Stage) contentPane.getScene().getWindow());
@@ -418,6 +341,13 @@ public final class MainController extends SchedulerController {
         return null;
     }
 
+    /**
+     * Opens an {@link EditItem} window to edit a {@link CustomerModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link CustomerModel} to be edited.
+     * @return A {@code EditItem.ShowAndWaitResult<CustomerModel>} object that contains the operation results.
+     */
     public EditItem.ShowAndWaitResult<CustomerModel> editCustomer(Event event, CustomerModel item) {
         EditItem.ShowAndWaitResult<CustomerModel> result = EditItem.waitEdit(EditCustomer.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation()) {
@@ -426,6 +356,12 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
+    /**
+     * Deletes a {@link CustomerModel} item after confirming with user.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link CustomerModel} to be deleted.
+     */
     public void deleteCustomer(Event event, CustomerModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -437,6 +373,12 @@ public final class MainController extends SchedulerController {
 
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="CountryImpl operations">
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link CountryModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @return The newly added {@link CountryModel} or {@link null} if the operation was canceled.
+     */
     public CountryModel addNewCountry(Event event) {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class,
                 new CountryModel(new CountryImpl()), (Stage) contentPane.getScene().getWindow());
@@ -447,6 +389,13 @@ public final class MainController extends SchedulerController {
         return null;
     }
 
+    /**
+     * Opens an {@link EditItem} window to edit a {@link CountryModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link CountryModel} to be edited.
+     * @return A {@code EditItem.ShowAndWaitResult<CountryModel>} object that contains the operation results.
+     */
     public EditItem.ShowAndWaitResult<CountryModel> editCountry(Event event, CountryModel item) {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation()) {
@@ -455,6 +404,12 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
+    /**
+     * Deletes a {@link CountryModel} item after confirming with user.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link CountryModel} to be deleted.
+     */
     public void deleteCountry(Event event, CountryModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -466,6 +421,12 @@ public final class MainController extends SchedulerController {
 
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="CityImpl operations">
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link CityModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @return The newly added {@link CityModel} or {@link null} if the operation was canceled.
+     */
     public CityModel addNewCity(Event event) {
         CityModel model = new CityModel(new CityImpl());
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, model, (Stage) contentPane.getScene().getWindow());
@@ -476,6 +437,13 @@ public final class MainController extends SchedulerController {
         return null;
     }
 
+    /**
+     * Opens an {@link EditItem} window to edit a {@link CityModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link CityModel} to be edited.
+     * @return A {@code EditItem.ShowAndWaitResult<CityModel>} object that contains the operation results.
+     */
     public EditItem.ShowAndWaitResult<CityModel> editCity(Event event, CityModel item) {
         EditItem.ShowAndWaitResult<CityModel> result = EditItem.waitEdit(EditCity.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation()) {
@@ -484,6 +452,12 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
+    /**
+     * Deletes a {@link CityModel} item after confirming with user.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link CityModel} to be deleted.
+     */
     public void deleteCity(Event event, CityModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -495,6 +469,12 @@ public final class MainController extends SchedulerController {
 
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="AddressImpl operations">
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @return The newly added {@link AddressModel} or {@link null} if the operation was canceled.
+     */
     public AddressModel addNewAddress(Event event) {
         AddressModel model = new AddressModel(new AddressImpl());
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, model, (Stage) contentPane.getScene().getWindow());
@@ -505,6 +485,13 @@ public final class MainController extends SchedulerController {
         return null;
     }
 
+    /**
+     * Opens an {@link EditItem} window to edit an {@link AddressModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link AddressModel} to be edited.
+     * @return A {@code EditItem.ShowAndWaitResult<AddressModel>} object that contains the operation results.
+     */
     public EditItem.ShowAndWaitResult<AddressModel> editAddress(Event event, AddressModel item) {
         EditItem.ShowAndWaitResult<AddressModel> result = EditItem.waitEdit(EditAddress.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation()) {
@@ -513,6 +500,12 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
+    /**
+     * Deletes an {@link AddressModel} item after confirming with user.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link AddressModel} to be deleted.
+     */
     public void deleteAddress(Event event, AddressModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -523,7 +516,13 @@ public final class MainController extends SchedulerController {
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="UserImpl operations">
+    //<editor-fold defaultstate="collapsed" desc="UserModel operations">
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link UserModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @return The newly added {@link UserModel} or {@link null} if the operation was canceled.
+     */
     public UserModel addNewUser(Event event) {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class,
                 new UserModel(new UserImpl()), (Stage) contentPane.getScene().getWindow());
@@ -534,6 +533,13 @@ public final class MainController extends SchedulerController {
         return null;
     }
 
+    /**
+     * Opens an {@link EditItem} window to edit a {@link UserModel}.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link UserModel} to be edited.
+     * @return A {@code EditItem.ShowAndWaitResult<UserModel>} object that contains the operation results.
+     */
     public EditItem.ShowAndWaitResult<UserModel> editUser(Event event, UserModel item) {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class, item, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful() && result.isDeleteOperation()) {
@@ -542,6 +548,12 @@ public final class MainController extends SchedulerController {
         return result;
     }
 
+    /**
+     * Deletes a {@link UserModel} item after confirming with user.
+     *
+     * @param event Contextual information about the initiating event.
+     * @param item The {@link UserModel} to be deleted.
+     */
     public void deleteUser(Event event, UserModel item) {
         Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
                 App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -552,34 +564,7 @@ public final class MainController extends SchedulerController {
     }
 
     //</editor-fold>
-//    /**
-//     * Loads content for the {@link #contentPane}.
-//     *
-//     * @param <C> The type of controller for the contents of the {@link #contentPane}.
-//     * @param controllerClass The controller class for the contents of the {@link #contentPane}.
-//     * @param stage The {@link Stage} for the view associated with the current main controller.
-//     * @param onShown This gets called after the loaded view has been added to the {@link #contentPane}.
-//     * @throws IOException If unable to load the new view and controller.
-//     */
-//    public <C extends MainContentController> void setContent(Class<C> controllerClass, Stage stage, BiConsumer<Parent, C> onShown) throws IOException {
-//        load(stage, controllerClass, (Parent v, C c) -> {
-//            ((MainContentController) c).mainController = MainController.this;
-//        }, (Parent v, C c) -> {
-//            MainContentController oldController = contentController;
-//            Node oldView = contentPane.getCenter();
-//            contentController = c;
-//            contentPane.setCenter(v);
-//            try {
-//                if (null != oldController) {
-//                    oldController.onUnloaded(oldView);
-//                }
-//            } finally {
-//                if (null != onShown) {
-//                    onShown.accept(v, c);
-//                }
-//            }
-//        });
-//    }
+    //</editor-fold>
     private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
 
         private final M model;

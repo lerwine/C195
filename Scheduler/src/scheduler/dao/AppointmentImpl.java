@@ -442,12 +442,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         }
 
         @Override
-        public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter() {
+        public AppointmentFilter getAllItemsFilter() {
             return AppointmentFilter.all();
         }
 
         @Override
-        public ModelFilter<AppointmentImpl, AppointmentModel> getDefaultFilter() {
+        public AppointmentFilter getDefaultFilter() {
             return AppointmentFilter.myCurrentAndFuture();
         }
 

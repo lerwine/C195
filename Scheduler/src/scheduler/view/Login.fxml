@@ -14,9 +14,9 @@
 <?import scheduler.controls.LocaleLanguageListCell?>
 <?import scheduler.controls.LocaleLanguageListCellFactory?>
 
-<VBox styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.Login">
+<VBox styleClass="outerContainer" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.Login">
     <children>
-        <GridPane>
+        <GridPane hgap="4.0" vgap="4.0">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" />
                 <ColumnConstraints hgrow="ALWAYS" />
@@ -28,56 +28,45 @@
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints />
             </rowConstraints>
-            <Label styleClass="formControlLabel" text="Language / Lengua / Sprache / भाषा:" wrapText="true" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
-                <GridPane.margin>
-                    <Insets left="8.0" right="4.0" top="8.0" />
-                </GridPane.margin>
-            </Label>
-            <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache / भाषा" minWidth="240.0" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER">
-                <GridPane.margin>
-                    <Insets top="8.0" />
-                </GridPane.margin>
+            <Label maxWidth="1.7976931348623157E308" styleClass="leftControlLabel" text="Language / Lengua / Sprache / भाषा:" />
+            <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache / भाषा" minWidth="240.0" styleClass="formLabeledControl" GridPane.columnIndex="1">
                 <cellFactory>
                     <LocaleLanguageListCellFactory />
                 </cellFactory>
                 <buttonCell>
-                    <LocaleLanguageListCell />
+                    <LocaleLanguageListCell styleClass="leftLabeledControl" />
                 </buttonCell>
             </ComboBox>
-            <Label fx:id="userNameLabel" styleClass="formControlLabel" text="%userName" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                <GridPane.margin>
-                    <Insets left="8.0" right="4.0" top="8.0" />
-                </GridPane.margin>
-            </Label>
-            <TextField fx:id="userNameTextField" minWidth="240.0" styleClass="formLabeledControl" text="test" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                <GridPane.margin>
-                    <Insets top="8.0" />
-                </GridPane.margin>
-            </TextField>
-            <Label fx:id="userNameValidationLabel" styleClass="formControlValidationMessage" text="%emptyUserName" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-            <Label fx:id="passwordLabel" styleClass="formControlLabel" text="%password" GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="CENTER">
-                <GridPane.margin>
-                    <Insets left="8.0" right="4.0" top="8.0" />
-                </GridPane.margin>
-            </Label>
-            <PasswordField fx:id="passwordField" minWidth="240.0" styleClass="formLabeledControl" text="test" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
-                <GridPane.margin>
-                    <Insets top="8.0" />
-                </GridPane.margin>
-            </PasswordField>
-            <Label fx:id="passwordValidationLabel" styleClass="formControlValidationMessage" text="%emptyPassword" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-            <padding>
-                <Insets bottom="8.0" right="8.0" />
-            </padding>
+            <Label fx:id="userNameLabel" maxWidth="1.7976931348623157E308" styleClass="leftControlLabel" text="%userName" GridPane.rowIndex="1">
+            <GridPane.margin>
+               <Insets top="4.0" />
+            </GridPane.margin></Label>
+            <TextField fx:id="userNameTextField" minWidth="240.0" styleClass="leftLabeledControl" text="test" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <GridPane.margin>
+               <Insets top="4.0" />
+            </GridPane.margin></TextField>
+            <Label fx:id="userNameValidationLabel" styleClass="error" text="%emptyUserName" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label fx:id="passwordLabel" maxWidth="1.7976931348623157E308" styleClass="leftControlLabel" text="%password" GridPane.rowIndex="3">
+            <GridPane.margin>
+               <Insets top="4.0" />
+            </GridPane.margin></Label>
+            <PasswordField fx:id="passwordField" minWidth="240.0" styleClass="leftLabeledControl" text="test" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <GridPane.margin>
+               <Insets top="4.0" />
+            </GridPane.margin></PasswordField>
+            <Label fx:id="passwordValidationLabel" styleClass="error" text="%emptyPassword" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+         <VBox.margin>
+            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+         </VBox.margin>
         </GridPane>
         <ButtonBar>
             <buttons>
                 <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#loginButtonClick" prefWidth="100.0" text="Login" />
                 <Button fx:id="exitButton" minWidth="100.0" mnemonicParsing="false" onAction="#exitButtonClick" prefWidth="100.0" text="Exit" />
             </buttons>
-            <padding>
-                <Insets bottom="8.0" right="8.0" />
-            </padding>
+         <VBox.margin>
+            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+         </VBox.margin>
         </ButtonBar>
     </children>
 </VBox>

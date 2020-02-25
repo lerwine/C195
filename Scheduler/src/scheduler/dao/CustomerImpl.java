@@ -218,13 +218,13 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
         }
 
         @Override
-        public ModelFilter<CustomerImpl, CustomerModel> getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public CustomerFilter getAllItemsFilter() {
+            return CustomerFilter.all();
         }
 
         @Override
-        public ModelFilter<CustomerImpl, CustomerModel> getDefaultFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public CustomerFilter getDefaultFilter() {
+            return CustomerFilter.active(true);
         }
 
         @Override

@@ -1,6 +1,7 @@
 package scheduler.view;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -27,7 +28,19 @@ public abstract class SchedulerController {
 
     private static final Logger LOG = Logger.getLogger(SchedulerController.class.getName());
 
-    @FXML
+    @FXML // URL location of the FXML file that was given to the FXMLLoader
+    private URL location;
+
+    /**
+     * Gets the {@link java.net.URL} injected by the {@link javafx.fxml.FXMLLoader}.
+     *
+     * @return The {@link java.net.URL} injected by the {@link javafx.fxml.FXMLLoader}.
+     */
+    protected final URL getLocation() {
+        return location;
+    }
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
     /**

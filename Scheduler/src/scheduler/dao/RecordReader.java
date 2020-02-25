@@ -26,7 +26,7 @@ public interface RecordReader<T extends DataObjectImpl> {
     String getLoadingMessage();
 
     /**
-     * The WHERE clause sub-expression for filtering results.
+     * Gets the WHERE clause sub-expression for filtering results.
      *
      * @return The WHERE clause sub-expression for filtering results.
      */

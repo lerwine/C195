@@ -14,7 +14,7 @@ import scheduler.AppConfig;
 
 /**
  * Manages SQL {@link java.sql.Connection} dependencies. SQL connections are opened when needed, and then closes the connection after there have been no dependencies after a
- * predetermined delay. This allows nested method calls to use the same database connection without having to open several different connections.
+ * predetermined delay. This allows nested method calls to use the same database connection without having to pass the connection instance.
  *
  * @author Leonard T. Erwine
  */

@@ -24,9 +24,10 @@ import scheduler.view.TaskWaiter;
 import scheduler.view.Login;
 
 /**
- * Main Application class for Scheduler Upon startup, {@link Login} is loaded into the scene of the primary stage. After successful authentication, {@link MainController} is loaded
- * into a new scene in the primary stage.
- *
+ * Main Application class for Scheduler.
+ * Upon startup, {@link Login#loadInto(javafx.stage.Stage)} is called to load the Login form into the scene of the primary stage
+ * After successful authentication, the current user data object is stored in {@link App#currentUser}, and the view for {@link MainController} is loaded into the primary stage using
+ * {@link SchedulerController#load(javafx.stage.Stage, java.lang.Class, java.util.function.BiConsumer)}.
  * @author Leonard T. Erwine
  */
 public final class App extends Application implements AppConstants {
@@ -36,6 +37,10 @@ public final class App extends Application implements AppConstants {
     //<editor-fold defaultstate="collapsed" desc="currentUser property">
     private static UserImpl currentUser = null;
 
+    /**
+     * Gets the currently logged in user.
+     * @return The {@link UserImpl} object representing the currently logged in user.
+     */
     public static UserImpl getCurrentUser() {
         return currentUser;
     }
@@ -67,6 +72,10 @@ public final class App extends Application implements AppConstants {
     //</editor-fold>
     private static ResourceBundle resources;
 
+    /**
+     * Gets the application {@link ResourceBundle}.
+     * @return The application {@link ResourceBundle} for the current {@link Locale#defaultDisplayLocale}.
+     */
     public static ResourceBundle getResources() {
         return resources;
     }
@@ -104,7 +113,7 @@ public final class App extends Application implements AppConstants {
                         ((Stage) owner).setScene(new Scene(v));
                     });
                 } catch (IOException ex) {
-                    Alerts.logAndAlert(LOG, getClass(), "processResult", "Error loading main content", ex);
+                    Alerts.logAndAlertError(LOG, getClass(), "processResult", "Error loading main content", ex);
                 }
             }
         }
@@ -119,7 +128,7 @@ public final class App extends Application implements AppConstants {
         @Override
         protected UserImpl getResult(Connection connection) throws SQLException {
             Optional<UserImpl> result;
-            LOG.log(Level.INFO, String.format("Looking up %s", userName));
+            LOG.logp(Level.INFO, getClass().getName(), "getResult", String.format("Looking up %s", userName));
             Platform.runLater(() -> updateMessage(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME).getString(RESOURCEKEY_CONNECTEDTODB)));
             result = UserImpl.getFactory().findByUserName(connection, userName);
             if (result.isPresent()) {
@@ -128,13 +137,13 @@ public final class App extends Application implements AppConstants {
                 // as the stored password. If the password is correct, then the hash values will match.
                 PwHash hash = new PwHash(result.get().getPassword(), false);
                 if (hash.test(password)) {
-                    LOG.log(Level.INFO, "Password matched");
+                    LOG.logp(Level.INFO, getClass().getName(), "getResult", "Password matched");
                     currentUser = result.get();
                     return result.get();
                 }
-                LOG.log(Level.WARNING, "Password mismatch");
+                LOG.logp(Level.WARNING, getClass().getName(), "getResult", "Password mismatch");
             } else {
-                LOG.log(Level.WARNING, "No matching userName found");
+                LOG.logp(Level.WARNING, getClass().getName(), "getResult", "No matching userName found");
             }
             return null;
         }

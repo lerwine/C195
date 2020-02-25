@@ -35,7 +35,7 @@ public class Alerts {
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> logAndAlert(Logger logger, Class<?> sourceClass, String sourceMethod, String logMessage, Throwable error, ButtonType... buttons) {
+    public static Optional<ButtonType> logAndAlertError(Logger logger, Class<?> sourceClass, String sourceMethod, String logMessage, Throwable error, ButtonType... buttons) {
         logger.logp(Level.SEVERE, sourceClass.getName(), sourceMethod, logMessage, error);
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};

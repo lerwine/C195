@@ -160,31 +160,32 @@ public final class PwHash {
             if (newValue.length() == HASHED_STRING_LENGTH) {
                 Base64.Decoder dec = Base64.getDecoder();
                 try {
-                    byte[] sb = dec.decode(newValue.substring(0, SALT_STRING_LENGTH));
-                    byte[] hb = dec.decode(newValue.substring(SALT_STRING_LENGTH) + "==");
+                    byte[] saltBytes = dec.decode(newValue.substring(0, SALT_STRING_LENGTH));
+                    byte[] hashBytes = dec.decode(newValue.substring(SALT_STRING_LENGTH) + "==");
                     ObservableByteArrayList b = salt.get();
-                    boolean notChanged = b != null;
-                    if (notChanged) {
+                    if (null != b) {
+                        boolean notChanged = true;
                         for (int i = 0; i < SALT_LENGTH; i++) {
-                            if (sb[i] != b.get(i)) {
+                            if (saltBytes[i] != b.get(i)) {
                                 notChanged = false;
                                 break;
                             }
                         }
                         if (notChanged) {
-                            for (int i = 0; i < hb.length; i++) {
-                                if (hb[i] != b.get(i)) {
+                            b = hash.get();
+                            for (int i = 0; i < hashBytes.length; i++) {
+                                if (hashBytes[i] != b.get(i)) {
                                     notChanged = false;
                                     break;
                                 }
                             }
+                            if (notChanged) {
+                                return;
+                            }
                         }
                     }
-                    if (notChanged) {
-                        return;
-                    }
-                    salt.set(new ObservableByteArrayList(sb));
-                    hash.set(new ObservableByteArrayList(hb));
+                    salt.set(new ObservableByteArrayList(saltBytes));
+                    hash.set(new ObservableByteArrayList(hashBytes));
                     valid.set(true);
                     return;
                 } catch (Exception ex) {

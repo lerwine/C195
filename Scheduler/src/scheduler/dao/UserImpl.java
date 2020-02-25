@@ -243,13 +243,13 @@ public class UserImpl extends DataObjectImpl implements User {
         }
 
         @Override
-        public ModelFilter<UserImpl, UserModel> getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public UserFilter getAllItemsFilter() {
+            return UserFilter.all();
         }
 
         @Override
-        public ModelFilter<UserImpl, UserModel> getDefaultFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public UserFilter getDefaultFilter() {
+            return UserFilter.active(true);
         }
 
         @Override

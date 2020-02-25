@@ -10,7 +10,6 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
-<?import scheduler.controls.UserStatusTableCellFactory?>
 
 <VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.ManageUsers">
     <children>
@@ -23,11 +22,8 @@
                 </TableColumn>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%status">
                     <cellValueFactory>
-                        <PropertyValueFactory property="status" />
+                        <PropertyValueFactory property="statusDisplay" />
                     </cellValueFactory>
-                    <cellFactory>
-                        <UserStatusTableCellFactory />
-                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%createdOn">
                     <cellValueFactory>

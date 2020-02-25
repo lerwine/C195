@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import scheduler.App;
 import scheduler.view.country.CountryModel;
 
 public class CountryImpl extends DataObjectImpl implements Country {
@@ -113,12 +114,13 @@ public class CountryImpl extends DataObjectImpl implements Country {
 
         @Override
         public ModelFilter<CountryImpl, CountryModel> getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return ModelFilter.all(this, App.getResourceString(App.RESOURCEKEY_LOADINGCOUNTRIES),
+                    App.getResourceString(App.RESOURCEKEY_ALLCOUNTRIES), null);
         }
 
         @Override
         public ModelFilter<CountryImpl, CountryModel> getDefaultFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return getAllItemsFilter();
         }
 
         @Override

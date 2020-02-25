@@ -5,133 +5,44 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
+import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.dao.ModelFilter;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
 import scheduler.view.MainController;
 
 /**
- * FXML Controller class
+ * FXML Controller class for viewing a list of {@link CustomerModel} items. This is loaded as content of {@link MainController} using
+ * {@link #setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.CustomerFilter)}.
  *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends ListingController<CustomerImpl, CustomerModel> {
+public final class ManageCustomers extends ListingController<CustomerImpl, CustomerModel> implements ManageCustomersConstants {
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit"}.
-     */
-    public static final String RESOURCEKEY_EDIT = "edit";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Database Access Error"}.
-     */
-    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete"}.
-     */
-    public static final String RESOURCEKEY_DELETE = "delete";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active"}.
-     */
-    public static final String RESOURCEKEY_ACTIVE = "active";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
-     */
-    public static final String RESOURCEKEY_ADDRESS = "address";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created By"}.
-     */
-    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created On"}.
-     */
-    public static final String RESOURCEKEY_CREATEDON = "createdOn";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer Name"}.
-     */
-    public static final String RESOURCEKEY_CUSTOMERNAME = "customerName";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Customers"}.
-     */
-    public static final String RESOURCEKEY_MANAGECUSTOMERS = "manageCustomers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated By"}.
-     */
-    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated On"}.
-     */
-    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
-     */
-    public static final String RESOURCEKEY_NEW = "new";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "City"}.
-     */
-    public static final String RESOURCEKEY_CITY = "city";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code"}.
-     */
-    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country"}.
-     */
-    public static final String RESOURCEKEY_COUNTRY = "country";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone"}.
-     */
-    public static final String RESOURCEKEY_PHONE = "phone";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Customers"}.
-     */
-    public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading customers..."}.
-     */
-    public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That customer is referenced in one or more appointments..."}.
-     */
-    public static final String RESOURCEKEY_CUSTOMERHASAPPOINTMENTS = "customerHasAppointments";
-
-    //</editor-fold>
     @FXML
     @Override
     protected void initialize() {
         super.initialize();
     }
 
-    public static void setContent(MainController mainController, Stage stage, ModelFilter<CustomerImpl, CustomerModel> filter) throws IOException {
-        setContent(mainController, ManageCustomers.class, stage).changeFilter(filter, stage);
+    /**
+     * Loads {@link CustomerModel} listing view and controller into the {@link MainController}.
+     *
+     * @param mainController The {@link MainController} to contain the {@link CustomerModel} listing.
+     * @param stage The {@link Stage} for the view associated with the current main controller.
+     * @param filter The {@link CustomerFilter} to use for loading and filtering {@link CustomerModel} items.
+     * @throws IOException if unable to load the view.
+     */
+    public static void setContent(MainController mainController, Stage stage, CustomerFilter filter) throws IOException {
+        setContent(mainController, ManageCustomers.class, stage, filter);
     }
 
     @Override
@@ -150,23 +61,23 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
     }
 
     @Override
-    protected CustomerModel toModel(CustomerImpl result) {
-        return new CustomerModel(result);
+    protected CustomerModel toModel(CustomerImpl dao) {
+        return new CustomerModel(dao);
     }
 
     @Override
-    protected DataObjectImpl.Factory<CustomerImpl, CustomerModel> getDaoFactory() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected CustomerImpl.FactoryImpl getDaoFactory() {
+        return CustomerImpl.getFactory();
     }
 
     @Override
-    protected ItemEventManager<ItemEvent<CustomerModel>> getItemAddManager(MainController mainController) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected ItemEventManager<ItemEvent<CustomerModel>> getItemAddManager() {
+        return getMainController().getCustomerAddManager();
     }
 
     @Override
-    protected ItemEventManager<ItemEvent<CustomerModel>> getItemRemoveManager(MainController mainController) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected ItemEventManager<ItemEvent<CustomerModel>> getItemRemoveManager() {
+        return getMainController().getCustomerRemoveManager();
     }
 
 }
