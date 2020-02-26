@@ -454,6 +454,11 @@ public interface AppConstants {
     public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
 
     /**
+     * Resource key in {@link App#resources} that contains the text for {@code "Loading cities, please wait..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
+
+    /**
      * Resource key in {@link App#resources} that contains the text for {@code "All Countries"}.
      */
     public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";
@@ -523,5 +528,15 @@ public interface AppConstants {
      */
     public static final String RESOURCEKEY_BYRANGE = "byRange";
 
+    /**
+     * Resource key in {@link App#resources} that contains the text for {@code "By Range"}.
+     */
+    public static final String RESOURCEKEY_CREATEDBYON = "createdByOn";
+    
+    /**
+     * Resource key in {@link App#resources} that contains the text for {@code "By Range"}.
+     */
+    public static final String RESOURCEKEY_MODIFIEDBYON = "modifiedByOn";
+    
     //</editor-fold>
 }

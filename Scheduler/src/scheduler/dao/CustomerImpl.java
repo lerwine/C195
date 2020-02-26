@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -234,6 +235,30 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
 
         @Override
         public String getSaveConflictMessage(CustomerImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CustomerImpl> getAll(Connection connection) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CustomerImpl> getByStatus(Connection connection, boolean isActive) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CustomerImpl> getByCountry(Connection connection, int countryId) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CustomerImpl> getByCountry(Connection connection, int countryId, boolean isActive) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CustomerImpl> getByCity(Connection connection, int cityId) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CustomerImpl> getByCity(Connection connection, int cityId, boolean isActive) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 

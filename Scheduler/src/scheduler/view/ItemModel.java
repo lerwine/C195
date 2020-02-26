@@ -27,4 +27,19 @@ public abstract class ItemModel<T extends DataObjectImpl> extends DataObjectImpl
 //        lastModifiedDate.set(DB.fromUtcTimestamp(dataObject.getLastModifiedDate()));
 //        lastModifiedBy.set(dataObject.getLastModifiedBy());
 //    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (null != obj && getClass().isAssignableFrom(obj.getClass())) {
+            DataObjectImpl other = (DataObjectImpl)obj;
+            return getPrimaryKey() == other.getPrimaryKey();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return getPrimaryKey();
+    }
+
 }

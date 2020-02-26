@@ -79,4 +79,9 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
         return CityImpl.getFactory();
     }
 
+    @Override
+    public String toString() {
+        return name.get();
+    }
+
 }

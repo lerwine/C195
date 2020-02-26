@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import scheduler.view.city.CityModel;
@@ -166,6 +167,10 @@ public class CityImpl extends DataObjectImpl implements City {
 
         @Override
         public String getSaveConflictMessage(CityImpl dao, Connection connection) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public ArrayList<CityImpl> getByCountry(Connection connection, int countryId) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 

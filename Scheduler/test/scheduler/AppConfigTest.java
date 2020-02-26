@@ -5,12 +5,6 @@
  */
 package scheduler;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.application.Application;
-import javafx.stage.Stage;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -100,15 +94,4 @@ public class AppConfigTest {
         assertEquals(expResult, result);
     }
 
-    /**
-     * Test of getLanguages method, of class AppConfig.
-     */
-    @Test
-    public void testGetLanguages() {
-        System.out.println("getLanguages");
-        String[] expResult = new String[] { "en", "de", "hi", "es" };
-        String[] result = AppConfig.getLanguages();
-        assertArrayEquals(expResult, result);
-    }
-    
 }

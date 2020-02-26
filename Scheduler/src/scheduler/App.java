@@ -3,6 +3,9 @@ package scheduler;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Locale;
 import scheduler.util.DbConnector;
 import java.util.Optional;
@@ -70,6 +73,10 @@ public final class App extends Application implements AppConstants {
     }
 
     //</editor-fold>
+    private static boolean altStringPlaceholderOrder;
+    
+    public static boolean isAltStringPlaceholderOrder() { return altStringPlaceholderOrder; }
+    
     private static ResourceBundle resources;
 
     /**
@@ -84,18 +91,35 @@ public final class App extends Application implements AppConstants {
         return resources.getString(key);
     }
 
+    public static String formatCreatedByOn(String createdBy, LocalDateTime createDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+        if (altStringPlaceholderOrder)
+            return String.format(resources.getString(RESOURCEKEY_CREATEDBYON), formatter.format(createDate), createdBy);
+        return String.format(resources.getString(RESOURCEKEY_CREATEDBYON), createdBy, formatter.format(createDate));
+    }
+    
+    public static String formatModifiedByOn(String modifiedBy, LocalDateTime lastModifiedDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+        if (altStringPlaceholderOrder)
+            return String.format(resources.getString(RESOURCEKEY_CREATEDBYON), formatter.format(lastModifiedDate), modifiedBy);
+        return String.format(resources.getString(RESOURCEKEY_CREATEDBYON), modifiedBy, formatter.format(lastModifiedDate));
+    }
+    
     private static class LoginTask extends TaskWaiter<UserImpl> {
 
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
 
-        LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
-            this(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY)), stage, userName, password, onNotSucceeded);
+        LoginTask(Stage stage, String userName, String password, boolean useAltStringPlaceholderOrder, Consumer<Throwable> onNotSucceeded) {
+            this(ResourceBundle.getBundle(GLOBALIZATION_RESOURCE_NAME, Locale.getDefault(Locale.Category.DISPLAY)), stage, userName, password,
+                    useAltStringPlaceholderOrder, onNotSucceeded);
         }
 
-        private LoginTask(ResourceBundle rb, Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        private LoginTask(ResourceBundle rb, Stage stage, String userName, String password, boolean useAltStringPlaceholderOrder,
+                Consumer<Throwable> onNotSucceeded) {
             super(stage, rb.getString(RESOURCEKEY_CONNECTINGTODB), rb.getString(RESOURCEKEY_LOGGINGIN));
             App.resources = rb;
+            App.altStringPlaceholderOrder = useAltStringPlaceholderOrder;
             this.userName = userName;
             this.password = password;
             this.onNotSucceeded = onNotSucceeded;
@@ -156,11 +180,13 @@ public final class App extends Application implements AppConstants {
      * @param stage The stage
      * @param userName The login name for the user to look up.
      * @param password The raw password provided by the user.
+     * @param useAltStringPlaceholderOrder Whether certain string format parameter orders are to be reversed.
      * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was not found or the password hash
      * did not match.
      */
-    public static void tryLoginUser(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
-        TaskWaiter.execute(new LoginTask(stage, userName, password, onNotSucceeded));
+    public static void tryLoginUser(Stage stage, String userName, String password, boolean useAltStringPlaceholderOrder,
+            Consumer<Throwable> onNotSucceeded) {
+        TaskWaiter.execute(new LoginTask(stage, userName, password, useAltStringPlaceholderOrder, onNotSucceeded));
     }
 
 }

@@ -185,4 +185,9 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
         return addressText;
     }
 
+    @Override
+    public String toString() {
+        return name.get();
+    }
+
 }

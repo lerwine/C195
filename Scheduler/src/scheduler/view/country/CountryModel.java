@@ -43,4 +43,9 @@ public final class CountryModel extends ItemModel<CountryImpl> implements Countr
         return CountryImpl.getFactory();
     }
 
+    @Override
+    public String toString() {
+        return name.get();
+    }
+
 }
