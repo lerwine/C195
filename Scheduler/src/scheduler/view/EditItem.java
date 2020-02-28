@@ -24,7 +24,6 @@ import javafx.stage.Stage;
 import scheduler.App;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
-import scheduler.util.DbConnector;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -172,7 +171,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                     saveChangesButton.setDisable(!c.getValidationExpression().get());
                 });
                 saveChangesButton.setDisable(!c.getValidationExpression().get());
-            }, getResources());
+            }, EditItem.class);
         } catch (IOException ex) {
             Alerts.logAndAlertError(LOG, EditItem.class, "onShow", String.format("Error loading FXML for %s", controllerClass.getName()), ex);
             result.fault = ex;

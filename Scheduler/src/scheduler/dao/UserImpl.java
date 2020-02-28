@@ -16,36 +16,14 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.util.Pair;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.util.Values;
-import scheduler.view.SchedulerController;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.UserModel;
 
-public class UserImpl extends DataObjectImpl implements User {
+public class UserImpl extends DataObjectImpl implements User, UserColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    /**
-     * The name of the database column that is mapped to the {@link DataObjectImpl#primaryKey} property.
-     */
-    public static final String COLNAME_USERID = "userId";
-
-    /**
-     * The name of the database column that is mapped to {@link UserImpl#userName} property.
-     */
-    public static final String COLNAME_USERNAME = "userName";
-
-    /**
-     * The name of the database column that is mapped to {@link UserImpl#password} property.
-     */
-    public static final String COLNAME_PASSWORD = "password";
-
-    /**
-     * The name of the database column that is mapped to {@link UserImpl#status} property.
-     */
-    public static final String COLNAME_ACTIVE = "active";
-
-    //</editor-fold>
     private static final ObservableMap<Integer, String> USER_STATUS_MAP = FXCollections.observableHashMap();
     private static ObservableMap<Integer, String> userStatusMap = null;
     private static String appointmentTypesLocale = null;
@@ -59,7 +37,7 @@ public class UserImpl extends DataObjectImpl implements User {
             }
             Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
             appointmentTypesLocale = locale.toLanguageTag();
-            ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(EditUser.class), locale);
+            ResourceBundle rb = ResourceBundleLoader.getBundle(EditUser.class);
             Stream.of(new Pair<>((int) Values.USER_STATUS_INACTIVE, EditUser.RESOURCEKEY_INACTIVE), new Pair<>((int) Values.USER_STATUS_NORMAL, EditUser.RESOURCEKEY_NORMALUSER),
                     new Pair<>((int) Values.USER_STATUS_ADMIN, EditUser.RESOURCEKEY_ADMINISTRATIVEUSER)).forEach((Pair<Integer, String> p) -> {
                         USER_STATUS_MAP.put(p.getKey(), (rb.containsKey(p.getValue())) ? rb.getString(p.getValue()) : p.getValue());
@@ -131,6 +109,10 @@ public class UserImpl extends DataObjectImpl implements User {
     }
 
     //</editor-fold>
+    
+    private static final String BASE_SELECT_QUERY = String.format("SELECT %s, %s, %s, %s as %s, %s, %s, %s, %s FROM %s", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD,
+                    COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
+                    TABLENAME_USER);
     //</editor-fold>
     /**
      * Initializes a {@link Values#ROWSTATE_NEW} user object.
@@ -195,8 +177,7 @@ public class UserImpl extends DataObjectImpl implements User {
 
         @Override
         public String getBaseSelectQuery() {
-            return String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_USERID, COLNAME_USERNAME,
-                    COLNAME_PASSWORD, COLNAME_ACTIVE, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, getTableName());
+            return BASE_SELECT_QUERY;
         }
 
         @Override
@@ -216,7 +197,7 @@ public class UserImpl extends DataObjectImpl implements User {
 
         @Override
         protected List<String> getExtendedColNames() {
-            return Arrays.asList(COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE);
+            return Arrays.asList(COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE_STATUS);
         }
 
         @Override
@@ -228,15 +209,15 @@ public class UserImpl extends DataObjectImpl implements User {
 
         @Override
         protected void onInitializeDao(UserImpl target, ResultSet resultSet) throws SQLException {
-            target.userName = resultSet.getString(UserImpl.COLNAME_USERNAME);
+            target.userName = resultSet.getString(COLNAME_USERNAME);
             if (resultSet.wasNull()) {
                 target.userName = "";
             }
-            target.password = resultSet.getString(UserImpl.COLNAME_PASSWORD);
+            target.password = resultSet.getString(COLNAME_PASSWORD);
             if (resultSet.wasNull()) {
                 target.password = "";
             }
-            target.status = Values.asValidUserStatus(resultSet.getInt(UserImpl.COLNAME_ACTIVE));
+            target.status = Values.asValidUserStatus(resultSet.getInt(COLNAME_ACTIVE_STATUS));
             if (resultSet.wasNull()) {
                 target.status = Values.USER_STATUS_INACTIVE;
             }

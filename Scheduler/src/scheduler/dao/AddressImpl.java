@@ -8,52 +8,18 @@ import java.util.Arrays;
 import java.util.List;
 import scheduler.view.address.AddressModel;
 
-public class AddressImpl extends DataObjectImpl implements Address {
+public class AddressImpl extends DataObjectImpl implements Address, AddressColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    /**
-     * The name of the 'addressId' column in the 'address' table, which is also the primary key.
-     */
-    public static final String COLNAME_ADDRESSID = "addressId";
-
-    /**
-     * The name of the 'address' column in the 'address' table.
-     */
-    public static final String COLNAME_ADDRESS = "address";
-
-    /**
-     * The name of the 'address2' column in the 'address' table.
-     */
-    public static final String COLNAME_ADDRESS2 = "address2";
-
-    /**
-     * The name of the 'cityId' column in the 'address' table.
-     */
-    public static final String COLNAME_CITYID = "cityId";
-
-    /**
-     * The name of the 'postalCode' column in the 'address' table.
-     */
-    public static final String COLNAME_POSTALCODE = "postalCode";
-
-    /**
-     * The name of the 'phone' column in the 'address' table.
-     */
-    public static final String COLNAME_PHONE = "phone";
-
-    //</editor-fold>
     private static final String BASE_SELECT_SQL = String.format("SELECT a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, c.`%s` AS `%s`,"
             + " c.`%s` AS `%s`, n.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`"
             + " FROM `%s` a"
             + " LEFT JOIN `%s` c ON a.`%s`=c.`%s`"
-            + " LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_ADDRESSID, COLNAME_ADDRESSID, COLNAME_ADDRESS, COLNAME_ADDRESS,
-            COLNAME_ADDRESS2, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_CITYID, CityImpl.COLNAME_CITY, CityImpl.COLNAME_CITY,
-            CityImpl.COLNAME_COUNTRYID, CityImpl.COLNAME_COUNTRYID, CountryImpl.COLNAME_COUNTRY, CountryImpl.COLNAME_COUNTRY,
-            COLNAME_POSTALCODE, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_PHONE, COLNAME_CREATEDATE, COLNAME_CREATEDATE,
+            + " LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_ADDRESSID, COLNAME_ADDRESSID, COLNAME_ADDRESS, COLNAME_ADDRESS, COLNAME_ADDRESS2,
+            COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_CITYID, COLNAME_CITY, COLNAME_CITY, COLNAME_COUNTRYID, COLNAME_COUNTRYID, COLNAME_COUNTRY,
+            COLNAME_COUNTRY, COLNAME_POSTALCODE, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_PHONE, COLNAME_CREATEDATE, COLNAME_CREATEDATE,
             COLNAME_CREATEDBY, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
-            TABLENAME_ADDRESS, TABLENAME_CITY, COLNAME_CITYID, CityImpl.COLNAME_CITYID, TABLENAME_COUNTRY,
-            CityImpl.COLNAME_COUNTRYID, CountryImpl.COLNAME_COUNTRYID);
+            TABLENAME_ADDRESS, TABLENAME_CITY, COLNAME_CITYID, COLNAME_CITYID, TABLENAME_COUNTRY, COLNAME_COUNTRYID, COLNAME_COUNTRYID);
 
     //<editor-fold defaultstate="collapsed" desc="address1 property">
     private String address1;
@@ -239,15 +205,15 @@ public class AddressImpl extends DataObjectImpl implements Address {
             if (resultSet.wasNull()) {
                 target.city = null;
             } else {
-                String cityName = resultSet.getString(CityImpl.COLNAME_CITY);
+                String cityName = resultSet.getString(COLNAME_CITY);
                 if (resultSet.wasNull()) {
                     cityName = "";
                 }
-                int countryId = resultSet.getInt(CityImpl.COLNAME_COUNTRYID);
+                int countryId = resultSet.getInt(COLNAME_COUNTRYID);
                 if (resultSet.wasNull()) {
                     target.city = DataObjectReference.of(City.of(cityId, cityName, null));
                 } else {
-                    String countryName = resultSet.getString(CountryImpl.COLNAME_COUNTRY);
+                    String countryName = resultSet.getString(COLNAME_COUNTRY);
                     target.city = DataObjectReference.of(City.of(cityId, cityName,
                             DataObjectReference.of(Country.of(countryId, resultSet.wasNull() ? "" : countryName))));
                 }

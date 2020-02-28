@@ -45,7 +45,9 @@ import scheduler.view.MainController;
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
 public final class ManageAppointments extends ListingController<AppointmentImpl, AppointmentModel> implements ManageAppointmentsResourceKeys {
-    
+
+    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
+
     private final ObservableList<FilterType> filters;
     private final BooleanProperty allItems;
     private final ObjectProperty<CustomerImpl> filterCustomer;
@@ -54,6 +56,17 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     private final ObjectProperty<LocalDate> end;
     private final RangeFilterType rangeFilter;
 
+    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
+    @FXML
+    private Label headingLabel;
+
+    @FXML // fx:id="filterTypeComboBox"
+    private ComboBox<FilterType> filterTypeComboBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="filterButton"
+    private Button filterButton; // Value injected by FXMLLoader
+
+    //</editor-fold>
     public LocalDate getStart() {
         return start.get();
     }
@@ -98,7 +111,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         filterCustomer.set(value);
     }
 
-    public ObjectProperty filterCustomerProperty() {
+    public ObjectProperty<CustomerImpl> filterCustomerProperty() {
         return filterCustomer;
     }
 
@@ -113,18 +126,6 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     public ObjectProperty filterUserProperty() {
         return filterUser;
     }
-
-    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
-
-    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
-    @FXML
-    private Label headingLabel;
-
-    @FXML // fx:id="filterTypeComboBox"
-    private ComboBox<FilterType> filterTypeComboBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="filterButton"
-    private Button filterButton; // Value injected by FXMLLoader
 
     @FXML
     void filterTypeChanged(ActionEvent event) {
@@ -141,7 +142,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         allItems = new SimpleBooleanProperty(false);
         filterCustomer = new SimpleObjectProperty<>(null);
         filterUser = new SimpleObjectProperty<>(App.getCurrentUser());
-        filters = FXCollections.observableArrayList(new FilterType(App.getResourceString(App.RESOURCEKEY_CURRENT)) {
+        filters = FXCollections.observableArrayList(new FilterType(getResourceString(RESOURCEKEY_CURRENT)) {
             @Override
             AppointmentFilter getMyFilter() {
                 return AppointmentFilter.myCurrent();
@@ -150,17 +151,18 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
             @Override
             AppointmentFilter getFilter(CustomerImpl customer, UserImpl user) {
                 if (null == customer) {
-                    if (null == user)
+                    if (null == user) {
                         return AppointmentFilter.current();
+                    }
                     return AppointmentFilter.byUserCurrent(user);
                 }
-                    
-                if (null == user)
+
+                if (null == user) {
                     return AppointmentFilter.byCustomerCurrent(customer);
+                }
                 return AppointmentFilter.byCustomerAndUserCurrent(customer, user);
             }
-        },
-        new FilterType(App.getResourceString(App.RESOURCEKEY_ALLCURRENTANDFUTURE)) {
+        }, new FilterType(getResourceString(RESOURCEKEY_ALLCURRENTANDFUTURE)) {
             @Override
             AppointmentFilter getMyFilter() {
                 return AppointmentFilter.myCurrentAndFuture();
@@ -169,17 +171,18 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
             @Override
             AppointmentFilter getFilter(CustomerImpl customer, UserImpl user) {
                 if (null == customer) {
-                    if (null == user)
+                    if (null == user) {
                         return AppointmentFilter.currentAndFuture();
+                    }
                     return AppointmentFilter.byUserCurrentAndFuture(user);
                 }
-                    
-                if (null == user)
+
+                if (null == user) {
                     return AppointmentFilter.byCustomerCurrentAndFuture(customer);
+                }
                 return AppointmentFilter.byCustomerAndUserCurrentAndFuture(customer, user);
             }
-        },
-        new FilterType(App.getResourceString(App.RESOURCEKEY_PAST)) {
+        }, new FilterType(getResourceString(RESOURCEKEY_PAST)) {
             @Override
             AppointmentFilter getMyFilter() {
                 return AppointmentFilter.myPast();
@@ -188,17 +191,18 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
             @Override
             AppointmentFilter getFilter(CustomerImpl customer, UserImpl user) {
                 if (null == customer) {
-                    if (null == user)
+                    if (null == user) {
                         return AppointmentFilter.past();
+                    }
                     return AppointmentFilter.byUserPast(user);
                 }
-                    
-                if (null == user)
+
+                if (null == user) {
                     return AppointmentFilter.byCustomerPast(customer);
+                }
                 return AppointmentFilter.byCustomerAndUserPast(customer, user);
             }
-        },
-        new FilterType(App.getResourceString(App.RESOURCEKEY_ALL)) {
+        }, new FilterType(getResourceString(RESOURCEKEY_ALLAPPOINTMENTS)) {
             @Override
             AppointmentFilter getMyFilter() {
                 return AppointmentFilter.allMyItems();
@@ -207,20 +211,21 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
             @Override
             AppointmentFilter getFilter(CustomerImpl customer, UserImpl user) {
                 if (null == customer) {
-                    if (null == user)
+                    if (null == user) {
                         return AppointmentFilter.all();
+                    }
                     return AppointmentFilter.byUser(user);
                 }
-                    
-                if (null == user)
+
+                if (null == user) {
                     return AppointmentFilter.byCustomer(customer);
+                }
                 return AppointmentFilter.byCustomerAndUser(customer, user);
             }
         });
         rangeFilter = new RangeFilterType();
     }
 
-    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     @FXML // This method is called by the FXMLLoader when initialization is complete
     @Override
@@ -252,6 +257,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 
     /**
      * Loads {@link AppointmentModel} listing view and controller into the {@link MainController}.
+     *
      * @param mainController The {@link MainController} to contain the {@link CountryModel} listing.
      * @param stage The {@link Stage} for the view associated with the current main controller.
      * @param filter The {@link AppointmentFilter} to use for loading and filtering {@link CountryModel} items.
@@ -298,10 +304,12 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     }
 
     public static abstract class FilterType {
-        protected FilterType(String displaText) {
-            
+
+        private final ReadOnlyStringWrapper displayText;
+
+        protected FilterType(String displayText) {
+            this.displayText = new ReadOnlyStringWrapper(displayText);
         }
-        private final ReadOnlyStringWrapper displayText = new ReadOnlyStringWrapper();
 
         public String getDisplayText() {
             return displayText.get();
@@ -319,15 +327,16 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         public ReadOnlyBooleanProperty disabledProperty() {
             return disabled.getReadOnlyProperty();
         }
-        
+
         abstract AppointmentFilter getMyFilter();
+
         abstract AppointmentFilter getFilter(CustomerImpl customer, UserImpl user);
     }
-    
+
     public class RangeFilterType extends FilterType {
 
         public RangeFilterType() {
-            super(App.getResourceString(App.RESOURCEKEY_BYRANGE));
+            super(getResourceString(RESOURCEKEY_APPOINTMENTSINRANGE));
         }
 
         @Override
@@ -335,12 +344,14 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
             LocalDate s = start.get();
             LocalDate e = end.get();
             if (null == s) {
-                if (null == e)
+                if (null == e) {
                     return AppointmentFilter.myCurrent();
+                }
                 return AppointmentFilter.myBeforeDate(e);
             }
-            if (null == e)
+            if (null == e) {
                 return AppointmentFilter.myOnOrAfterDate(s);
+            }
             return AppointmentFilter.myWithin(s, e);
         }
 
@@ -348,7 +359,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         AppointmentFilter getFilter(CustomerImpl customer, UserImpl user) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
-        
+
     }
-    
+
 }

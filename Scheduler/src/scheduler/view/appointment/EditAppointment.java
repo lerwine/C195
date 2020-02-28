@@ -565,7 +565,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         @Override
         protected Boolean getResult(Connection connection) throws SQLException {
-            CustomerFilter cf = CustomerFilter.active(true);
+            CustomerFilter cf = CustomerFilter.byStatus(true);
             updateMessage(cf.getLoadingMessage());
             customerList = cf.get(connection);
             UserFilter uf = UserFilter.active(true);

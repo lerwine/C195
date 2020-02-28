@@ -472,7 +472,7 @@ public class Values {
             case USER_STATUS_NORMAL:
                 return App.getResourceString(App.RESOURCEKEY_ACTIVE);
             case USER_STATUS_ADMIN:
-                return App.getResourceString(App.RESOURCEKEY_AMINISTRATOR);
+                return App.getResourceString(App.RESOURCEKEY_ADMINISTRATOR);
         }
         return String.format("%s: %d", App.getResourceString(App.RESOURCEKEY_UNKNOWN), value);
     }

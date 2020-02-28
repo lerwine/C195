@@ -1,7 +1,6 @@
 package scheduler.view;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Optional;
@@ -28,6 +27,7 @@ import scheduler.App;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ValueBindings;
 
 /**
@@ -265,7 +265,7 @@ public final class Login extends SchedulerController {
             Locale.setDefault(Locale.Category.DISPLAY, newValue);
             Locale.setDefault(Locale.Category.FORMAT, newValue);
             // Load resource bundle for new language
-            currentResourceBundle = ResourceBundle.getBundle(getGlobalizationResourceName(Login.class), newValue);
+            currentResourceBundle = ResourceBundleLoader.getBundle(Login.class);
             // Update field labels and button text.
             Scene scene = languageComboBox.getScene();
             if (null != scene) {

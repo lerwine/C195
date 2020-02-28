@@ -10,29 +10,20 @@ import java.util.List;
 import java.util.Optional;
 import scheduler.view.customer.CustomerModel;
 
-public class CustomerImpl extends DataObjectImpl implements Customer {
+public class CustomerImpl extends DataObjectImpl implements Customer, CustomerColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    public static final String COLNAME_CUSTOMERID = "customerId";
-
-    public static final String COLNAME_CUSTOMERNAME = "customerName";
-
-    public static final String COLNAME_ADDRESSID = "addressId";
-
-    public static final String COLNAME_ACTIVE = "active";
-
-    //</editor-fold>
+    
     private static final String BASE_SELECT_SQL = String.format("SELECT p.`%s` AS `%s`, p.`%s` AS `%s`, p.`%s` AS `%s`, p.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`,"
             + "a.`%s` AS `%s`, c.`%s` AS `%s`, c.`%s` AS `%s`, n.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`"
             + " FROM `%s` p LEFT JOIN `%s` a ON p.`%s`=a.`%s` LEFT JOIN `%s` c ON a.`%s`=c.`%s` LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_CUSTOMERID, COLNAME_CUSTOMERID,
-            COLNAME_CUSTOMERNAME, COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_ADDRESSID, AddressImpl.COLNAME_ADDRESS,
-            AddressImpl.COLNAME_ADDRESS, AddressImpl.COLNAME_ADDRESS2, AddressImpl.COLNAME_ADDRESS2, AddressImpl.COLNAME_CITYID, AddressImpl.COLNAME_CITYID,
-            CityImpl.COLNAME_CITY, CityImpl.COLNAME_CITY, CityImpl.COLNAME_COUNTRYID, CityImpl.COLNAME_COUNTRYID, CountryImpl.COLNAME_COUNTRY,
-            CountryImpl.COLNAME_COUNTRY, AddressImpl.COLNAME_POSTALCODE, AddressImpl.COLNAME_POSTALCODE, AddressImpl.COLNAME_PHONE, AddressImpl.COLNAME_PHONE,
+            COLNAME_CUSTOMERNAME, COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_ADDRESSID, COLNAME_ADDRESS,
+            COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_CITYID,
+            COLNAME_CITY, COLNAME_CITY, COLNAME_COUNTRYID, COLNAME_COUNTRYID, COLNAME_COUNTRY,
+            COLNAME_COUNTRY, COLNAME_POSTALCODE, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_PHONE,
             COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
-            TABLENAME_CUSTOMER, TABLENAME_ADDRESS, COLNAME_ADDRESSID, AddressImpl.COLNAME_ADDRESSID, TABLENAME_CITY, AddressImpl.COLNAME_CITYID, CityImpl.COLNAME_CITYID,
-            TABLENAME_COUNTRY, CityImpl.COLNAME_COUNTRYID, CountryImpl.COLNAME_COUNTRYID);
+            TABLENAME_CUSTOMER, TABLENAME_ADDRESS, COLNAME_ADDRESSID, COLNAME_ADDRESSID, TABLENAME_CITY, COLNAME_CITYID, COLNAME_CITYID,
+            TABLENAME_COUNTRY, COLNAME_COUNTRYID, COLNAME_COUNTRYID);
 
     //<editor-fold defaultstate="collapsed" desc="name property">
     private String name;
@@ -178,36 +169,36 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
             if (resultSet.wasNull()) {
                 target.address = null;
             } else {
-                String address1 = resultSet.getString(AddressImpl.COLNAME_ADDRESS);
+                String address1 = resultSet.getString(COLNAME_ADDRESS);
                 if (resultSet.wasNull()) {
                     address1 = "";
                 }
-                String address2 = resultSet.getString(AddressImpl.COLNAME_ADDRESS2);
+                String address2 = resultSet.getString(COLNAME_ADDRESS2);
                 if (resultSet.wasNull()) {
                     address2 = "";
                 }
                 City city;
-                int cityId = resultSet.getInt(AddressImpl.COLNAME_CITYID);
+                int cityId = resultSet.getInt(COLNAME_CITYID);
                 if (resultSet.wasNull()) {
                     city = null;
                 } else {
-                    String cityName = resultSet.getString(CityImpl.COLNAME_CITY);
+                    String cityName = resultSet.getString(COLNAME_CITY);
                     if (resultSet.wasNull()) {
                         cityName = "";
                     }
-                    int countryId = resultSet.getInt(CityImpl.COLNAME_COUNTRYID);
+                    int countryId = resultSet.getInt(COLNAME_COUNTRYID);
                     if (resultSet.wasNull()) {
                         city = City.of(cityId, cityName, null);
                     } else {
-                        String countryName = resultSet.getString(CountryImpl.COLNAME_COUNTRY);
+                        String countryName = resultSet.getString(COLNAME_COUNTRY);
                         city = City.of(cityId, cityName, DataObjectReference.of(Country.of(countryId, resultSet.wasNull() ? "" : countryName)));
                     }
                 }
-                String postalCode = resultSet.getString(AddressImpl.COLNAME_POSTALCODE);
+                String postalCode = resultSet.getString(COLNAME_POSTALCODE);
                 if (resultSet.wasNull()) {
                     postalCode = "";
                 }
-                String phone = resultSet.getString(AddressImpl.COLNAME_PHONE);
+                String phone = resultSet.getString(COLNAME_PHONE);
                 target.address = DataObjectReference.of(Address.of(addressId, address1, address2, DataObjectReference.of(city), postalCode,
                         (resultSet.wasNull()) ? "" : phone));
             }
@@ -225,7 +216,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
 
         @Override
         public CustomerFilter getDefaultFilter() {
-            return CustomerFilter.active(true);
+            return CustomerFilter.byStatus(true);
         }
 
         @Override

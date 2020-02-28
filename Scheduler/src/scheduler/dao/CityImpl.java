@@ -9,22 +9,14 @@ import java.util.Arrays;
 import java.util.List;
 import scheduler.view.city.CityModel;
 
-public class CityImpl extends DataObjectImpl implements City {
+public class CityImpl extends DataObjectImpl implements City, CityColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    public static final String COLNAME_CITYID = "cityId";
-
-    public static final String COLNAME_CITY = "city";
-
-    public static final String COLNAME_COUNTRYID = "countryId";
-
-    //</editor-fold>
     private static final String BASE_SELECT_SQL = String.format("SELECT c.`%s` AS `%s`, c.`%s` AS `%s`, c.`%s` AS `%s`, n.`%s` AS `%s` FROM `%s` c"
             + " LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_CITYID, COLNAME_CITYID, COLNAME_CITY, COLNAME_CITY, COLNAME_COUNTRYID,
-            COLNAME_COUNTRYID, CountryImpl.COLNAME_COUNTRY, CountryImpl.COLNAME_COUNTRY, COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
+            COLNAME_COUNTRYID, COLNAME_COUNTRY, COLNAME_COUNTRY, COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
             COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY, TABLENAME_CITY, TABLENAME_COUNTRY,
-            COLNAME_COUNTRYID, CountryImpl.COLNAME_COUNTRYID);
+            COLNAME_COUNTRYID, COLNAME_COUNTRYID);
 
     //<editor-fold defaultstate="collapsed" desc="name property">
     private String name;
@@ -137,15 +129,15 @@ public class CityImpl extends DataObjectImpl implements City {
 
         @Override
         protected void onInitializeDao(CityImpl target, ResultSet resultSet) throws SQLException {
-            target.name = resultSet.getString(CityImpl.COLNAME_CITY);
+            target.name = resultSet.getString(COLNAME_CITY);
             if (resultSet.wasNull()) {
                 target.name = "";
             }
-            int countryId = resultSet.getInt(CityImpl.COLNAME_COUNTRYID);
+            int countryId = resultSet.getInt(COLNAME_COUNTRYID);
             if (resultSet.wasNull()) {
                 target.country = new DataObjectReference<>();
             } else {
-                String countryName = resultSet.getString(CountryImpl.COLNAME_COUNTRY);
+                String countryName = resultSet.getString(COLNAME_COUNTRY);
                 target.country = DataObjectReference.of(Country.of(countryId, resultSet.wasNull() ? "" : countryName));
             }
         }

@@ -105,7 +105,7 @@ public interface User extends DataObject {
         if (resultSet.wasNull()) {
             password = "";
         }
-        int status = resultSet.getInt(UserImpl.COLNAME_ACTIVE);
+        int status = resultSet.getInt(UserColumns.COLALIAS_ACTIVE_STATUS);
         return User.of(id, userName, password, (resultSet.wasNull()) ? Values.USER_STATUS_INACTIVE : Values.asValidUserStatus(status));
     }
 }

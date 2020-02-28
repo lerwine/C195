@@ -29,63 +29,9 @@ import scheduler.util.Values;
 import scheduler.view.DataObjectReferenceModel;
 import scheduler.view.ItemModel;
 
-public class DataObjectImpl extends PropertyChangeNotifiable implements DataObject {
+public class DataObjectImpl extends PropertyChangeNotifiable implements DataObject, TableNames, DataObjectColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Database table names">
-    /**
-     * The name of the {@link User} database table.
-     */
-    public static final String TABLENAME_USER = "user";
-
-    /**
-     * The name of the {@link Country} database table.
-     */
-    public static final String TABLENAME_COUNTRY = "country";
-
-    /**
-     * The name of the {@link City} database table.
-     */
-    public static final String TABLENAME_CITY = "city";
-
-    /**
-     * The name of the {@link Address} database table.
-     */
-    public static final String TABLENAME_ADDRESS = "address";
-
-    /**
-     * The name of the {@link Customer} database table.
-     */
-    public static final String TABLENAME_CUSTOMER = "customer";
-
-    /**
-     * The name of the {@link Appointment} database table.
-     */
-    public static final String TABLENAME_APPOINTMENT = "appointment";
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    /**
-     * The name of the 'createDate' column.
-     */
-    public static final String COLNAME_CREATEDATE = "createDate";
-
-    /**
-     * The name of the 'createdBy' column.
-     */
-    public static final String COLNAME_CREATEDBY = "createdBy";
-
-    /**
-     * The name of the 'lastUpdate' column.
-     */
-    public static final String COLNAME_LASTUPDATE = "lastUpdate";
-
-    /**
-     * The name of the 'lastUpdateBy' column.
-     */
-    public static final String COLNAME_LASTUPDATEBY = "lastUpdateBy";
-
-    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="primaryKey property">
     private int primaryKey;
 

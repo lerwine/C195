@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 import java.sql.PreparedStatement;
@@ -23,8 +18,10 @@ import static scheduler.dao.AppointmentImpl.COLNAME_START;
 import static scheduler.dao.AppointmentImpl.COLNAME_USERID;
 import scheduler.util.DB;
 import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.user.UserModel;
+import scheduler.util.ResourceBundleLoader;
 
 /**
  *
@@ -41,7 +38,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
 
     @Override
     public default String getLoadingMessage() {
-        return App.getResourceString(App.RESOURCEKEY_LOADINGAPPOINTMENTS);
+        return ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_LOADINGAPPOINTMENTS);
     }
 
     /**
@@ -126,7 +123,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter all() {
         return AppointmentFilter.of(
                 // heading
-                App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTS),
+                ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTS),
                 // predicate
                 (m) -> true,
                 // sqlFilterExpr
@@ -167,7 +164,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show all appointments for a specific customer.
      */
     public static AppointmentFilter byCustomer(CustomerImpl customer) {
-        return byCustomer(customer.getPrimaryKey(), String.format(App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTSFOR), customer.getName()),
+        return byCustomer(customer.getPrimaryKey(), String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTSFOR), customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(App.getCurrentUser()));
@@ -205,7 +203,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUser(UserImpl user) {
         return byUser(user.getPrimaryKey(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey())
-                ? App.getResourceString(App.RESOURCEKEY_ALLMYAPPOINTMENTS) : String.format(App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTSFOR),
+                ? ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLMYAPPOINTMENTS) :
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTSFOR),
                 user.getUserName()), (m) -> m.setUser(new UserModel(user)));
     }
 
@@ -215,7 +214,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show all appointments for the current user.
      */
     public static AppointmentFilter allMyItems() {
-        return byUser(App.getCurrentUser().getPrimaryKey(), App.getResourceString(App.RESOURCEKEY_ALLMYAPPOINTMENTS),
+        return byUser(App.getCurrentUser().getPrimaryKey(), ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_ALLMYAPPOINTMENTS),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
@@ -253,7 +253,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerAndUser(CustomerImpl customer, UserImpl user) {
         return byCustomerAndUser(user.getPrimaryKey(), customer.getPrimaryKey(),
-                String.format(App.getResourceString(App.RESOURCEKEY_ALLAPPOINTMENTSFORBOTH), customer.getName(), user.getUserName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTSFORBOTH),
+                        customer.getName(), user.getUserName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(user));
@@ -290,7 +291,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments that have ended before a specified date.
      */
     public static AppointmentFilter beforeDate(LocalDate date) {
-        return beforeDate(date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBEFORE),
+        return beforeDate(date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFORE),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))));
     }
 
@@ -328,7 +330,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for a specified customer that have ended before a specified date.
      */
     public static AppointmentFilter byCustomerBeforeDate(CustomerImpl customer, LocalDate date) {
-        return byCustomerBeforeDate(customer.getPrimaryKey(), date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBEFOREFOR),
+        return byCustomerBeforeDate(customer.getPrimaryKey(), date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREFOR),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
@@ -370,7 +373,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for a specified user that have ended before a specified date.
      */
     public static AppointmentFilter byUserBeforeDate(UserImpl user, LocalDate date) {
-        return byCustomerBeforeDate(user.getPrimaryKey(), date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBEFOREFOR),
+        return byCustomerBeforeDate(user.getPrimaryKey(), date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREFOR),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
@@ -383,8 +387,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter myBeforeDate(LocalDate date) {
         return byCustomerBeforeDate(App.getCurrentUser().getPrimaryKey(), date,
-                String.format(App.getResourceString(App.RESOURCEKEY_MYAPPOINTMENTSBEFORE),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYAPPOINTMENTSBEFORE),
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
@@ -426,7 +430,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerAndUserBeforeDate(CustomerImpl customer, UserImpl user, LocalDate date) {
         return byCustomerAndUserBeforeDate(customer.getPrimaryKey(), user.getPrimaryKey(), date,
-                String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBEFOREFORBOTH),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                        ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREFORBOTH),
                         DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName(),
                         user.getUserName()),
                 (m) -> {
@@ -465,7 +470,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments that end on or after a specified date.
      */
     public static AppointmentFilter onOrAfterDate(LocalDate date) {
-        return onOrAfterDate(date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSAFTER),
+        return onOrAfterDate(date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSAFTER),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))));
     }
 
@@ -504,7 +510,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for a specified customer that end on or after a specified date.
      */
     public static AppointmentFilter byCustomerOnOrAfterDate(CustomerImpl customer, LocalDate date) {
-        return byCustomerOnOrAfterDate(customer.getPrimaryKey(), date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSAFTERFOR),
+        return byCustomerOnOrAfterDate(customer.getPrimaryKey(), date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSAFTERFOR),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
@@ -546,7 +553,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for a specified user that end on or after a specified date.
      */
     public static AppointmentFilter byUserOnOrAfterDate(UserImpl user, LocalDate date) {
-        return byUserOnOrAfterDate(user.getPrimaryKey(), date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSAFTERFOR),
+        return byUserOnOrAfterDate(user.getPrimaryKey(), date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSAFTERFOR),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
@@ -559,8 +567,9 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter myOnOrAfterDate(LocalDate date) {
         return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), date,
-                String.format(App.getResourceString(App.RESOURCEKEY_MYAPPOINTMENTSONORAFTER),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                        ManageAppointments.RESOURCEKEY_MYAPPOINTMENTSONORAFTER),
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
@@ -602,7 +611,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerAndUserOnOrAfterDate(CustomerImpl customer, UserImpl user, LocalDate date) {
         return byCustomerAndUserOnOrAfterDate(customer.getPrimaryKey(), user.getPrimaryKey(), date,
-                String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSAFTERFORBOTH),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                        ManageAppointments.RESOURCEKEY_APPOINTMENTSAFTERFORBOTH),
                         DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName(),
                         user.getUserName()),
                 (m) -> {
@@ -646,7 +656,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter range(LocalDate start, LocalDate end) {
         DateTimeFormatter df = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
-        return range(start, end, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBETWEEN), df.format(start), df.format(end)));
+        return range(start, end, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSBETWEEN), df.format(start), df.format(end)));
     }
 
     /**
@@ -749,7 +760,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments whose range occurs a specific date ranges.
      */
     public static AppointmentFilter on(LocalDate date) {
-        return range(date, date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSON),
+        return range(date, date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSONDATE),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))));
     }
 
@@ -761,12 +773,16 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for a specific customer whose range occurs a specific date ranges.
      */
     public static AppointmentFilter byCustomerOn(CustomerImpl customer, LocalDate date) {
-        return byCustomerWithin(customer.getPrimaryKey(), date, date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSONFOR),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName()),
-                (m) -> {
-                    m.setCustomer(new CustomerModel(customer));
-                    m.setUser(new UserModel(App.getCurrentUser()));
-                });
+        // TODO: Reverse string format order for hindi
+        String heading = (App.isAltStringPlaceholderOrder()) ? String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
+                customer.getName(), DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))) :
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName());
+        return byCustomerWithin(customer.getPrimaryKey(), date, date, heading, (m) -> {
+            m.setCustomer(new CustomerModel(customer));
+            m.setUser(new UserModel(App.getCurrentUser()));
+        });
     }
 
     /**
@@ -777,7 +793,9 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for a specific user whose range occurs a specific date ranges.
      */
     public static AppointmentFilter byUserOn(UserImpl user, LocalDate date) {
-        return byUserWithin(user.getPrimaryKey(), date, date, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSONFOR),
+        // TODO: Reverse string format order for hindi
+        return byUserWithin(user.getPrimaryKey(), date, date, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
@@ -789,7 +807,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for the current user whose range occurs a specific date ranges.
      */
     public static AppointmentFilter myOn(LocalDate date) {
-        return byUserWithin(App.getCurrentUser().getPrimaryKey(), date, date, String.format(App.getResourceString(App.RESOURCEKEY_MYAPPOINTMENTSON),
+        return byUserWithin(App.getCurrentUser().getPrimaryKey(), date, date,
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYAPPOINTMENTSON),
                 DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
@@ -804,7 +823,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerWithin(CustomerImpl customer, LocalDate start, LocalDate end) {
         DateTimeFormatter df = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
-        return byCustomerWithin(customer.getPrimaryKey(), start, end, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBETWEENFOR),
+        return byCustomerWithin(customer.getPrimaryKey(), start, end, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSBETWEENFOR),
                 df.format(Objects.requireNonNull(start)), df.format(Objects.requireNonNull(end)), customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
@@ -822,7 +842,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUserWithin(UserImpl user, LocalDate start, LocalDate end) {
         DateTimeFormatter df = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
-        return byUserWithin(user.getPrimaryKey(), start, end, String.format(App.getResourceString(App.RESOURCEKEY_APPOINTMENTSBETWEENFOR),
+        return byUserWithin(user.getPrimaryKey(), start, end, String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_APPOINTMENTSBETWEENFOR),
                 df.format(Objects.requireNonNull(start)), df.format(Objects.requireNonNull(end)), user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
@@ -837,8 +858,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter myWithin(LocalDate start, LocalDate end) {
         DateTimeFormatter df = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
         return byUserWithin(App.getCurrentUser().getPrimaryKey(), start, end,
-                String.format(App.getResourceString(App.RESOURCEKEY_MYAPPOINTMENTSBETWEEN),
-                df.format(Objects.requireNonNull(start)), df.format(Objects.requireNonNull(end))),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYAPPOINTMENTSBETWEEN),
+                        df.format(Objects.requireNonNull(start)), df.format(Objects.requireNonNull(end))),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
@@ -851,7 +872,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter current() {
         LocalDate date = LocalDate.now();
-        return range(date, date, App.getResourceString(App.RESOURCEKEY_CURRENTAPPOINTMENTS));
+        return range(date, date, ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_CURRENTAPPOINTMENTS));
     }
 
     /**
@@ -865,7 +887,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerCurrent(CustomerImpl customer) {
         LocalDate date = LocalDate.now();
         return byCustomerWithin(customer.getPrimaryKey(), date, date,
-                String.format(App.getResourceString(App.RESOURCEKEY_CURRENTFOR), customer.getName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_CURRENTFOR),
+                        customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(App.getCurrentUser()));
@@ -883,7 +906,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byUserCurrent(UserImpl user) {
         LocalDate date = LocalDate.now();
         return byUserWithin(user.getPrimaryKey(), date, date,
-                String.format(App.getResourceString(App.RESOURCEKEY_CURRENTFOR), user.getUserName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_CURRENTFOR),
+                        user.getUserName()),
                 (m) -> {
                     m.setUser(new UserModel(App.getCurrentUser()));
                 });
@@ -901,7 +925,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerAndUserCurrent(CustomerImpl customer, UserImpl user) {
         LocalDate date = LocalDate.now();
         return byCustomerAndUserWithin(customer.getPrimaryKey(), user.getPrimaryKey(), date, date,
-                String.format(App.getResourceString(App.RESOURCEKEY_CURRENTFORBOTH), customer.getName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_CURRENTFORBOTH),
+                        customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(App.getCurrentUser()));
@@ -918,7 +943,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter myCurrent() {
         LocalDate date = LocalDate.now();
         return byUserWithin(App.getCurrentUser().getPrimaryKey(), date, date,
-                App.getResourceString(App.RESOURCEKEY_MYCURRENT),
+                ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYCURRENT),
                 (m) -> {
                     m.setUser(new UserModel(App.getCurrentUser()));
                 });
@@ -930,7 +955,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments whose end date is on after the current date.
      */
     public static AppointmentFilter currentAndFuture() {
-        return onOrAfterDate(LocalDate.now(), App.getResourceString(App.RESOURCEKEY_ALLCURRENTANDFUTURE));
+        return onOrAfterDate(LocalDate.now(), ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_ALLCURRENTANDFUTURE));
     }
 
     /**
@@ -941,7 +967,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerCurrentAndFuture(CustomerImpl customer) {
         return byCustomerOnOrAfterDate(customer.getPrimaryKey(), LocalDate.now(),
-                String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFOR), customer.getName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_CURRENTANDFUTUREFOR),
+                        customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(App.getCurrentUser()));
@@ -956,8 +983,9 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUserCurrentAndFuture(UserImpl user) {
         return byUserOnOrAfterDate(user.getPrimaryKey(), LocalDate.now(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey())
-                ? App.getResourceString(App.RESOURCEKEY_MYCURRENTANDFUTURE)
-                : String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFOR), user.getUserName()),
+                ? ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYCURRENTANDFUTURE)
+                : String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_CURRENTANDFUTUREFOR),
+                        user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
 
@@ -970,7 +998,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerAndUserCurrentAndFuture(CustomerImpl customer, UserImpl user) {
         return byCustomerAndUserOnOrAfterDate(customer.getPrimaryKey(), user.getPrimaryKey(), LocalDate.now(),
-                String.format(App.getResourceString(App.RESOURCEKEY_CURRENTANDFUTUREFORBOTH), customer.getName(), user.getUserName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                        ManageAppointments.RESOURCEKEY_CURRENTANDFUTUREFORBOTH), customer.getName(), user.getUserName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(user));
@@ -983,7 +1012,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments for the current user whose end date is on after the current date.
      */
     public static AppointmentFilter myCurrentAndFuture() {
-        return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(), App.getResourceString(App.RESOURCEKEY_MYCURRENTANDFUTURE),
+        return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(),
+                ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYCURRENTANDFUTURE),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
@@ -993,7 +1023,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      * @return An appointment filter to show appointments whose end date is before the current date.
      */
     public static AppointmentFilter past() {
-        return beforeDate(LocalDate.now(), App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTS));
+        return beforeDate(LocalDate.now(), ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                ManageAppointments.RESOURCEKEY_PASTAPPOINTMENTS));
     }
 
     /**
@@ -1004,7 +1035,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerPast(CustomerImpl customer) {
         return byCustomerBeforeDate(customer.getPrimaryKey(), LocalDate.now(),
-                String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFOR), customer.getName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_PASTAPPOINTMENTSFOR),
+                        customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(App.getCurrentUser()));
@@ -1019,8 +1051,9 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUserPast(UserImpl user) {
         return byUserBeforeDate(user.getPrimaryKey(), LocalDate.now(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey())
-                ? App.getResourceString(App.RESOURCEKEY_MYPASTAPPOINTMENTS)
-                : String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFOR), user.getUserName()),
+                ? ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYPASTAPPOINTMENTS)
+                : String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_PASTAPPOINTMENTSFOR),
+                        user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
 
@@ -1033,7 +1066,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerAndUserPast(CustomerImpl customer, UserImpl user) {
         return byCustomerAndUserBeforeDate(customer.getPrimaryKey(), user.getPrimaryKey(), LocalDate.now(),
-                String.format(App.getResourceString(App.RESOURCEKEY_PASTAPPOINTMENTSFORBOTH), customer.getName(), user.getUserName()),
+                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+                        ManageAppointments.RESOURCEKEY_PASTAPPOINTMENTSFORBOTH), customer.getName(), user.getUserName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(user));
@@ -1041,7 +1075,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     }
 
     public static AppointmentFilter myPast() {
-        return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(), App.getResourceString(App.RESOURCEKEY_MYPASTAPPOINTMENTS),
+        return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(),
+                ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYPASTAPPOINTMENTS),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 

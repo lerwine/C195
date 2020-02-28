@@ -9,71 +9,13 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModel;
 
-public class AppointmentImpl extends DataObjectImpl implements Appointment {
+public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns, UserColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    /**
-     * The name of the 'appointmentId' column in the 'appointment' table, which is also the primary key.
-     */
-    public static final String COLNAME_APPOINTMENTID = "appointmentId";
-
-    /**
-     * The name of the 'customerId' column in the 'appointment' table.
-     */
-    public static final String COLNAME_CUSTOMERID = "customerId";
-
-    /**
-     * The name of the 'userId' column in the 'appointment' table.
-     */
-    public static final String COLNAME_USERID = "userId";
-
-    /**
-     * The name of the 'title' column in the 'appointment' table.
-     */
-    public static final String COLNAME_TITLE = "title";
-
-    /**
-     * The name of the 'description' column in the 'appointment' table.
-     */
-    public static final String COLNAME_DESCRIPTION = "description";
-
-    /**
-     * The name of the 'location' column in the 'appointment' table.
-     */
-    public static final String COLNAME_LOCATION = "location";
-
-    /**
-     * The name of the 'contact' column in the 'appointment' table.
-     */
-    public static final String COLNAME_CONTACT = "contact";
-
-    /**
-     * The name of the 'type' column in the 'appointment' table.
-     */
-    public static final String COLNAME_TYPE = "type";
-
-    /**
-     * The name of the 'url' column in the 'appointment' table.
-     */
-    public static final String COLNAME_URL = "url";
-
-    /**
-     * The name of the 'start' column in the 'appointment' table.
-     */
-    public static final String COLNAME_START = "start";
-
-    /**
-     * The name of the 'end' column in the 'appointment' table.
-     */
-    public static final String COLNAME_END = "end";
-
-    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="customer property">
     private DataObjectReference<CustomerImpl, Customer> customer;
 
@@ -288,36 +230,22 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     }
 
     //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="static baseSelectQuery property">
-    private static final String BASE_SELECT_QUERY;
+    
+    private static final String BASE_SELECT_QUERY = String.format("SELECT %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, "
+            + "%s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s FROM %s %s "
+            + "LEFT JOIN %s %s on %s.%s = %s.%s LEFT JOIN %s %s on %s.%s = %s.%s %s",
+            TABLEALIAS_APPOINTMENT, COLNAME_APPOINTMENTID, COLNAME_APPOINTMENTID, TABLEALIAS_APPOINTMENT, COLNAME_TITLE, COLNAME_TITLE,
+            TABLEALIAS_APPOINTMENT, COLNAME_DESCRIPTION, COLNAME_DESCRIPTION, TABLEALIAS_APPOINTMENT, COLNAME_LOCATION, COLNAME_LOCATION,
+            TABLEALIAS_APPOINTMENT, COLNAME_CONTACT, COLNAME_CONTACT, TABLEALIAS_APPOINTMENT, COLNAME_TYPE, COLNAME_TYPE,
+            TABLEALIAS_APPOINTMENT, COLNAME_URL, COLNAME_URL, TABLEALIAS_APPOINTMENT, COLNAME_START, COLNAME_START,
+            TABLEALIAS_APPOINTMENT, COLNAME_END, COLNAME_END, TABLEALIAS_APPOINTMENT, SQL_CUSTOMER_SELECT_FIELDS,
+            TABLEALIAS_APPOINTMENT, COLNAME_USERID, COLNAME_USERID, TABLEALIAS_USER, COLNAME_USERNAME, COLNAME_USERNAME,
+            TABLEALIAS_USER, COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, TABLEALIAS_APPOINTMENT, SQL_CUSTOMER_SELECT_FIELDS,
+            DataObjectColumns.getDataObjectSelectFields(TABLEALIAS_APPOINTMENT),
+            TABLENAME_APPOINTMENT, TABLEALIAS_APPOINTMENT, TABLENAME_USER, TABLEALIAS_USER, TABLEALIAS_APPOINTMENT, COLNAME_USERID,
+            TABLEALIAS_USER, COLNAME_USERID, TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID,
+            TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERID, SQL_JOIN_ADDRESS);
 
-    static {
-        StringBuilder sql = new StringBuilder("SELECT e.`");
-        sql.append(COLNAME_APPOINTMENTID).append("` AS `").append(COLNAME_APPOINTMENTID);
-        Stream.of(COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE,
-                COLNAME_LASTUPDATEBY, COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION,
-                COLNAME_CONTACT, COLNAME_TYPE, COLNAME_URL, COLNAME_START, COLNAME_END).forEach((t) -> {
-                    sql.append("`, e.`").append(t).append("` AS `").append(t);
-                });
-        sql.append("`, p.`").append(CustomerImpl.COLNAME_CUSTOMERNAME).append("` AS `").append(CustomerImpl.COLNAME_CUSTOMERNAME)
-                .append("`, p.`").append(CustomerImpl.COLNAME_ADDRESSID).append("` AS `").append(CustomerImpl.COLNAME_ADDRESSID);
-        Stream.of(AddressImpl.COLNAME_ADDRESS, AddressImpl.COLNAME_ADDRESS2, AddressImpl.COLNAME_CITYID, AddressImpl.COLNAME_POSTALCODE,
-                AddressImpl.COLNAME_PHONE).forEach((t) -> {
-                    sql.append("`, a.`").append(t).append("` AS `").append(t);
-                });
-        BASE_SELECT_QUERY = sql.append("`, u.`").append(UserImpl.COLNAME_USERID).append("` AS `").append(UserImpl.COLNAME_USERID)
-                .append("`, c.`").append(CityImpl.COLNAME_CITY).append("` AS `").append(CityImpl.COLNAME_CITY)
-                .append("`, c.`").append(CityImpl.COLNAME_COUNTRYID).append("` AS `").append(CityImpl.COLNAME_COUNTRYID)
-                .append("`, n.`").append(CountryImpl.COLNAME_COUNTRY).append("` AS `").append(CountryImpl.COLNAME_COUNTRY)
-                .append("` FROM `").append((new AppointmentImpl.FactoryImpl()).getTableName())
-                .append("` e LEFT JOIN `").append(CustomerImpl.getFactory().getTableName()).append("` p ON e.`").append(COLNAME_CUSTOMERID).append("`=p.`").append(CustomerImpl.COLNAME_CUSTOMERID)
-                .append("` LEFT JOIN `").append(AddressImpl.getFactory().getTableName()).append("` a ON p.`").append(CustomerImpl.COLNAME_ADDRESSID).append("`=a.`").append(AddressImpl.COLNAME_ADDRESSID)
-                .append("` LEFT JOIN `").append(CityImpl.getFactory().getTableName()).append("` c ON a.`").append(AddressImpl.COLNAME_CITYID).append("`=c.`").append(CityImpl.COLNAME_CITYID)
-                .append("` LEFT JOIN `").append(CountryImpl.getFactory().getTableName()).append("` n ON c.`").append(CityImpl.COLNAME_COUNTRYID).append("`=n.`").append(CountryImpl.COLNAME_COUNTRYID)
-                .append("` LEFT JOIN `").append(UserImpl.getFactory().getTableName()).append("` u ON e.`").append(COLNAME_USERID).append("`=u.`").append(UserImpl.COLNAME_USERID).toString();
-    }
-
-    //</editor-fold>
     //</editor-fold>
     /**
      * Initializes a {@link Values#ROWSTATE_NEW} appointment object.
@@ -398,43 +326,43 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
 
         @Override
         protected void onInitializeDao(AppointmentImpl target, ResultSet resultSet) throws SQLException {
-            target.customer = DataObjectReference.of(Customer.of(resultSet, AppointmentImpl.COLNAME_CUSTOMERID));
-            target.user = DataObjectReference.of(User.of(resultSet, AppointmentImpl.COLNAME_USERID));
-            target.title = resultSet.getString(AppointmentImpl.COLNAME_TITLE);
+            target.customer = DataObjectReference.of(Customer.of(resultSet, COLNAME_CUSTOMERID));
+            target.user = DataObjectReference.of(User.of(resultSet, COLNAME_USERID));
+            target.title = resultSet.getString(COLNAME_TITLE);
             if (resultSet.wasNull()) {
                 target.title = "";
             }
-            target.description = resultSet.getString(AppointmentImpl.COLNAME_DESCRIPTION);
+            target.description = resultSet.getString(COLNAME_DESCRIPTION);
             if (resultSet.wasNull()) {
                 target.description = "";
             }
-            target.location = resultSet.getString(AppointmentImpl.COLNAME_LOCATION);
+            target.location = resultSet.getString(COLNAME_LOCATION);
             if (resultSet.wasNull()) {
                 target.location = "";
             }
-            target.contact = resultSet.getString(AppointmentImpl.COLNAME_CONTACT);
+            target.contact = resultSet.getString(COLNAME_CONTACT);
             if (resultSet.wasNull()) {
                 target.contact = "";
             }
-            target.type = resultSet.getString(AppointmentImpl.COLNAME_TYPE);
+            target.type = resultSet.getString(COLNAME_TYPE);
             if (resultSet.wasNull()) {
                 target.type = Values.APPOINTMENTTYPE_OTHER;
             } else {
                 target.type = Values.asValidAppointmentType(target.type);
             }
-            target.url = resultSet.getString(AppointmentImpl.COLNAME_URL);
+            target.url = resultSet.getString(COLNAME_URL);
             if (resultSet.wasNull()) {
                 target.url = "";
             }
-            target.start = resultSet.getTimestamp(AppointmentImpl.COLNAME_START);
+            target.start = resultSet.getTimestamp(COLNAME_START);
             if (resultSet.wasNull()) {
-                target.end = resultSet.getTimestamp(AppointmentImpl.COLNAME_END);
+                target.end = resultSet.getTimestamp(COLNAME_END);
                 if (resultSet.wasNull()) {
                     target.end = DB.toUtcTimestamp(LocalDateTime.now());
                 }
                 target.start = target.end;
             } else {
-                target.end = resultSet.getTimestamp(AppointmentImpl.COLNAME_END);
+                target.end = resultSet.getTimestamp(COLNAME_END);
                 if (resultSet.wasNull()) {
                     target.end = target.start;
                 }

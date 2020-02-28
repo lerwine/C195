@@ -10,15 +10,9 @@ import java.util.List;
 import scheduler.App;
 import scheduler.view.country.CountryModel;
 
-public class CountryImpl extends DataObjectImpl implements Country {
+public class CountryImpl extends DataObjectImpl implements Country, CountryColumns {
 
     //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="Column names">
-    public static final String COLNAME_COUNTRYID = "countryId";
-
-    public static final String COLNAME_COUNTRY = "country";
-
-    //</editor-fold>
     private static final String BASE_SELECT_SQL = String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_COUNTRYID, COLNAME_COUNTRY, COLNAME_CREATEDATE,
             COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, TABLENAME_COUNTRY);
 

@@ -3,7 +3,6 @@ package scheduler.dao;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import scheduler.App;
-import static scheduler.dao.UserImpl.COLNAME_ACTIVE;
 import static scheduler.util.Values.USER_STATUS_INACTIVE;
 import scheduler.view.ItemModel;
 import scheduler.view.user.UserModel;
@@ -33,7 +32,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
         return new UserFilter() {
             @Override
             public String getHeading() {
-                return App.getResourceString(App.ALL_CUSTOMERS);
+                return App.getResourceString(App.RESOURCEKEY_ALLCUSTOMERS);
             }
 
             @Override
@@ -59,12 +58,12 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
             return new UserFilter() {
                 @Override
                 public String getHeading() {
-                    return App.getResourceString(App.ACTIVE_USERS);
+                    return App.getResourceString(App.RESOURCEKEY_ACTIVEUSERS);
                 }
 
                 @Override
                 public String getSqlFilterExpr() {
-                    return String.format("`%s` <> ?", COLNAME_ACTIVE);
+                    return String.format("`%s` <> ?", UserColumns.COLALIAS_ACTIVE_STATUS);
                 }
 
                 @Override
@@ -83,12 +82,12 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
         return new UserFilter() {
             @Override
             public String getHeading() {
-                return App.getResourceString(App.INACTIVE_USERS);
+                return App.getResourceString(App.RESOURCEKEY_INACTIVEUSERS);
             }
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", COLNAME_ACTIVE);
+                return String.format("`%s` = ?", UserColumns.COLALIAS_ACTIVE_STATUS);
             }
 
             @Override

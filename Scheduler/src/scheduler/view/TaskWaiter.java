@@ -3,7 +3,6 @@ package scheduler.view;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +27,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import scheduler.App;
 import scheduler.util.DbConnector;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.ThrowableFunction;
 import scheduler.view.annotations.FXMLResource;
@@ -253,8 +253,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
         if (null != contentPane) {
             return;
         }
-        ResourceBundle rb = ResourceBundle.getBundle(SchedulerController.getGlobalizationResourceName(TaskWaiter.class),
-                Locale.getDefault(Locale.Category.DISPLAY));
+        ResourceBundle rb = ResourceBundleLoader.getBundle(TaskWaiter.class);
         FXMLLoader loader = new FXMLLoader(TaskWaiter.class.getResource(SchedulerController.getFXMLResourceName(TaskWaiter.class)), rb);
         loader.setController(this);
         final Parent newParent;
