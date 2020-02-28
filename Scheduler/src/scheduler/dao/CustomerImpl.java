@@ -233,26 +233,6 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
-        public ArrayList<CustomerImpl> getByStatus(Connection connection, boolean isActive) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        public ArrayList<CustomerImpl> getByCountry(Connection connection, int countryId) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        public ArrayList<CustomerImpl> getByCountry(Connection connection, int countryId, boolean isActive) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        public ArrayList<CustomerImpl> getByCity(Connection connection, int cityId) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        public ArrayList<CustomerImpl> getByCity(Connection connection, int cityId, boolean isActive) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
     }
 
 }

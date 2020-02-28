@@ -48,6 +48,16 @@ interface ManageCustomersConstants {
     public static final String RESOURCEKEY_CUSTOMERNAME = "customerName";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customers by Address"}.
+     */
+    public static final String RESOURCEKEY_CUSTOMERSBYADDRESS = "customersByAddress";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customers by City"}.
+     */
+    public static final String RESOURCEKEY_CUSTOMERSBYCITY = "customersByCity";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customers by Country"}.
      */
     public static final String RESOURCEKEY_CUSTOMERSBYCOUNTRY = "customersByCountry";

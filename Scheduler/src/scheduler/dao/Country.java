@@ -32,6 +32,14 @@ public interface Country extends DataObject {
      */
     String getName();
 
+    public static String toString(Country country) {
+        if (null != country) {
+            String n = country.getName();
+            return (null == n) ? "" : n;
+        }
+        return "";
+    }
+    
     /**
      * Creates a read-only Country object from object values.
      *
