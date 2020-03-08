@@ -37,16 +37,6 @@ public interface City extends DataObject {
      */
     DataObjectReference<CountryImpl, Country> getCountry();
 
-    public static String toString(City city) throws SQLException, ClassNotFoundException {
-        if (null != city) {
-            String n = city.getName();
-            String country = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-            if (null == n || (n = n.trim()).isEmpty())
-                return country;
-            return (country.isEmpty()) ? n : String.format("%s, %s", n, country);
-        }
-        return "";
-    }
     /**
      * Creates a read-only City object from object values.
      *

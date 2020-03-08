@@ -62,62 +62,6 @@ public interface Address extends DataObject {
      */
     String getPhone();
 
-    public static String toString(Address address) throws SQLException, ClassNotFoundException {
-        if (null == address)
-            return "";
-        
-        String cityZipCountry = address.getPostalCode();
-        City city;
-        if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
-            if (null == (city = address.getCity().ensurePartial(CityImpl.getFactory()))) {
-                cityZipCountry = "";
-            } else if ((cityZipCountry = City.toString(city).trim()).isEmpty())
-                cityZipCountry = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-            else {
-                String country = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-                if (!country.isEmpty())
-                    cityZipCountry = String.format("%s, %s", cityZipCountry, country);
-            }
-        } else if (null != (city = address.getCity().ensurePartial(CityImpl.getFactory()))) {
-            String cityName = city.getName();
-            String country = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-            if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
-                if (!country.isEmpty())
-                    cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);
-            } else {
-                if (country.isEmpty())
-                    cityZipCountry = String.format("%s %s", cityName, cityZipCountry);
-                else
-                    cityZipCountry = String.format("%s %s, %s", cityName, cityZipCountry, country);
-            }
-        } else
-            cityZipCountry = "";
-        StringBuilder sb = new StringBuilder();
-        String s = address.getAddress1();
-        if (null != s && !(s = s.trim()).isEmpty())
-            sb.append(s);
-        s = address.getAddress2();
-        if (null != s && !(s = s.trim()).isEmpty()) {
-            if (sb.length() > 0)
-                sb.append("\n").append(s);
-            else
-                sb.append(s);
-        }
-        if (!cityZipCountry.isEmpty()) {
-            if (sb.length() > 0)
-                sb.append("\n").append(cityZipCountry);
-            else
-                sb.append(cityZipCountry);
-        }
-        s = address.getPhone();
-        if (null != s && !(s = s.trim()).isEmpty()) {
-            if (sb.length() > 0)
-                sb.append("\n").append(s);
-            else
-                sb.append(s);
-        }
-        return sb.toString();
-    }
     /**
      * Creates a read-only Address object from object values.
      *

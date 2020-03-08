@@ -36,7 +36,6 @@ import javafx.stage.Stage;
 import scheduler.App;
 import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
 import scheduler.util.Alerts;
 import scheduler.view.SchedulerController;
@@ -562,28 +561,28 @@ public class CustomerPicker extends SchedulerController {
             switch (active) {
                 case TRUE:
                     if (null == country) {
-                        return CustomerFilter.byStatus(true).get(connection);
+                        return CustomerImpl.getFactory().getByStatus(connection, true);
                     }
                     if (null == city) {
-                        return CustomerFilter.byCountry(country, true).get(connection);
+                        return CustomerImpl.getFactory().getByCountry(connection, country.getPrimaryKey(), true);
                     }
-                    return CustomerFilter.byCity(city, true).get(connection);
+                    return CustomerImpl.getFactory().getByCity(connection, city.getPrimaryKey(), true);
                 case FALSE:
                     if (null == country) {
-                        return CustomerFilter.byStatus(false).get(connection);
+                        return CustomerImpl.getFactory().getByStatus(connection, false);
                     }
                     if (null == city) {
-                        return CustomerFilter.byCountry(country, false).get(connection);
+                        return CustomerImpl.getFactory().getByCountry(connection, country.getPrimaryKey(), false);
                     }
-                    return CustomerFilter.byCity(city, false).get(connection);
+                    return CustomerImpl.getFactory().getByCity(connection, city.getPrimaryKey(), false);
             }
             if (null == country) {
                 return CustomerImpl.getFactory().getAll(connection);
             }
             if (null == city) {
-                return CustomerFilter.byCountry(country).get(connection);
+                return CustomerImpl.getFactory().getByCountry(connection, country.getPrimaryKey());
             }
-            return CustomerFilter.byCity(city).get(connection);
+            return CustomerImpl.getFactory().getByCity(connection, city.getPrimaryKey());
         }
 
     }
