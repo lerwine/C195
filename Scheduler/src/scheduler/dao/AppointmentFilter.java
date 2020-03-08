@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.util.ThrowableBiFunction;
 import scheduler.view.ItemModel;
 import static scheduler.dao.AppointmentImpl.COLNAME_CUSTOMERID;
@@ -774,7 +775,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerOn(CustomerImpl customer, LocalDate date) {
         // TODO: Reverse string format order for hindi
-        String heading = (App.isAltStringPlaceholderOrder()) ? String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
+        String heading = (AppConfig.isAltStringPlaceholderOrder()) ? String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
                 ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
                 customer.getName(), DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))) :
                 String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),

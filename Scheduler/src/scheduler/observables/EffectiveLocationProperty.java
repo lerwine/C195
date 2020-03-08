@@ -5,6 +5,7 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.dao.Appointment;
 import scheduler.dao.Customer;
 import scheduler.util.Values;
@@ -41,13 +42,13 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
         CustomerReferenceModel<? extends Customer> c = customer.getValue();
         switch (type.getValue()) {
             case Values.APPOINTMENTTYPE_GERMANY:
-                return App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
             case Values.APPOINTMENTTYPE_HONDURAS:
-                return App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS);
             case Values.APPOINTMENTTYPE_HOME:
-                return App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_HOME);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_APPOINTMENTTYPE_HOME);
             case Values.APPOINTMENTTYPE_INDIA:
-                return App.getResourceString(App.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
             case Values.APPOINTMENTTYPE_CUSTOMER:
             case Values.APPOINTMENTTYPE_PHONE:
                 return (u.startsWith("tel:")) ? u.substring(4) : u;

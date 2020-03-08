@@ -49,7 +49,6 @@ public class FakeApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         fakeAppStage = primaryStage;
-        AppConfig.refresh();
         appStarted.await();
     }
     public static Connection getConnection() throws ClassNotFoundException, SQLException {

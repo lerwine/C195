@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import scheduler.App;
+import scheduler.AppConfig;
 
 /**
  * Utility class for validating and normalizing values.
@@ -345,7 +346,7 @@ public class Values {
             }
             Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
             appointmentTypesLocale = locale.toLanguageTag();
-            ResourceBundle rb = App.getResources();
+            ResourceBundle rb = AppConfig.getResources();
             Stream.of(Values.APPOINTMENTTYPE_PHONE, Values.APPOINTMENTTYPE_VIRTUAL, Values.APPOINTMENTTYPE_CUSTOMER, Values.APPOINTMENTTYPE_HOME,
                     Values.APPOINTMENTTYPE_GERMANY, Values.APPOINTMENTTYPE_INDIA, Values.APPOINTMENTTYPE_HONDURAS,
                     Values.APPOINTMENTTYPE_OTHER).forEach((String key) -> {
@@ -468,24 +469,24 @@ public class Values {
     public static String toUserStatusDisplay(int value) {
         switch (value) {
             case USER_STATUS_INACTIVE:
-                return App.getResourceString(App.RESOURCEKEY_INACTIVE);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_INACTIVE);
             case USER_STATUS_NORMAL:
-                return App.getResourceString(App.RESOURCEKEY_ACTIVE);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_ACTIVE);
             case USER_STATUS_ADMIN:
-                return App.getResourceString(App.RESOURCEKEY_ADMINISTRATOR);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_ADMINISTRATOR);
         }
-        return String.format("%s: %d", App.getResourceString(App.RESOURCEKEY_UNKNOWN), value);
+        return String.format("%s: %d", AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNKNOWN), value);
     }
 
     public static String toAppointmentTypeDisplay(String type) {
         if (null == type || (type = type.trim()).isEmpty()) {
-            return App.getResourceString(App.RESOURCEKEY_NONE);
+            return AppConfig.getResourceString(AppConfig.RESOURCEKEY_NONE);
         }
         ObservableMap<String, String> map = getAppointmentTypes();
         if (map.containsKey(type)) {
             return map.get(type);
         }
-        return String.format("%s: %s", App.getResourceString(App.RESOURCEKEY_UNKNOWN), type);
+        return String.format("%s: %s", AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNKNOWN), type);
     }
 
     /**

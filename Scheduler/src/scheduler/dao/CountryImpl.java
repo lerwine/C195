@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.view.country.CountryModel;
 
 public class CountryImpl extends DataObjectImpl implements Country, CountryColumns {
@@ -109,8 +110,8 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
 
         @Override
         public ModelFilter<CountryImpl, CountryModel> getAllItemsFilter() {
-            return ModelFilter.all(this, App.getResourceString(App.RESOURCEKEY_LOADINGCOUNTRIES),
-                    App.getResourceString(App.RESOURCEKEY_ALLCOUNTRIES), null);
+            return ModelFilter.all(this, AppConfig.getResourceString(AppConfig.RESOURCEKEY_LOADINGCOUNTRIES),
+                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_ALLCOUNTRIES), null);
         }
 
         @Override

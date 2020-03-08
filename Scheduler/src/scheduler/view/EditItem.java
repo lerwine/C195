@@ -22,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
 import scheduler.view.annotations.FXMLResource;
@@ -113,8 +114,8 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         Objects.requireNonNull(deleteButton, String.format("fx:id=\"deleteButton\" was not injected: check your FXML file '%s'.",
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             ResourceBundle rb = getResources();
-            Optional<ButtonType> response = Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_CONFIRMDELETE),
-                    App.getResourceString(App.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
+                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             if (response.isPresent() && response.get() == ButtonType.YES) {
                 TaskWaiter.execute(new DeleteTask((Stage) deleteButton.getScene().getWindow()));
             }
@@ -289,7 +290,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
     private class SaveTask extends TaskWaiter<String> {
 
         SaveTask(Stage stage) {
-            super(stage, App.getResourceString(App.RESOURCEKEY_SAVINGCHANGES));
+            super(stage, AppConfig.getResourceString(AppConfig.RESOURCEKEY_SAVINGCHANGES));
         }
 
         @Override
@@ -308,14 +309,14 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 result.canceled = false;
                 owner.hide();
             } else {
-                Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_SAVEFAILURE), message);
+                Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_SAVEFAILURE), message);
             }
         }
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error saving record", ex);
-            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_SAVEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
+            Alerts.showErrorAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_SAVEFAILURE), AppConfig.getResourceString(AppConfig.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
         }
 
         @Override
@@ -334,7 +335,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
     private class DeleteTask extends TaskWaiter<String> {
 
         DeleteTask(Stage stage) {
-            super(stage, App.getResourceString(App.RESOURCEKEY_DELETINGRECORD));
+            super(stage, AppConfig.getResourceString(AppConfig.RESOURCEKEY_DELETINGRECORD));
         }
 
         @Override
@@ -346,14 +347,14 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 result.canceled = false;
                 owner.hide();
             } else {
-                Alerts.showWarningAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), message);
+                Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DELETEFAILURE), message);
             }
         }
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
-            Alerts.showErrorAlert(App.getResourceString(App.RESOURCEKEY_DELETEFAILURE), App.getResourceString(App.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+            Alerts.showErrorAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DELETEFAILURE), AppConfig.getResourceString(AppConfig.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 
         @Override

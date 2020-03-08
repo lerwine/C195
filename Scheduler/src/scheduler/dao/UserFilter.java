@@ -3,6 +3,7 @@ package scheduler.dao;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import scheduler.App;
+import scheduler.AppConfig;
 import static scheduler.util.Values.USER_STATUS_INACTIVE;
 import scheduler.view.ItemModel;
 import scheduler.view.user.UserModel;
@@ -20,7 +21,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 
     @Override
     public default String getLoadingMessage() {
-        return App.getResourceString(App.RESOURCEKEY_LOADINGCUSTOMERS);
+        return AppConfig.getResourceString(AppConfig.RESOURCEKEY_LOADINGCUSTOMERS);
     }
 
     @Override
@@ -32,7 +33,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
         return new UserFilter() {
             @Override
             public String getHeading() {
-                return App.getResourceString(App.RESOURCEKEY_ALLCUSTOMERS);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_ALLCUSTOMERS);
             }
 
             @Override
@@ -58,7 +59,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
             return new UserFilter() {
                 @Override
                 public String getHeading() {
-                    return App.getResourceString(App.RESOURCEKEY_ACTIVEUSERS);
+                    return AppConfig.getResourceString(AppConfig.RESOURCEKEY_ACTIVEUSERS);
                 }
 
                 @Override
@@ -82,7 +83,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
         return new UserFilter() {
             @Override
             public String getHeading() {
-                return App.getResourceString(App.RESOURCEKEY_INACTIVEUSERS);
+                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_INACTIVEUSERS);
             }
 
             @Override

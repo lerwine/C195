@@ -1,9 +1,7 @@
 package scheduler.view;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +22,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
@@ -41,8 +40,6 @@ public final class Login extends SchedulerController {
 
     private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
-    private HashMap<String, Boolean> useAltStringPlaceholderOrder;
-    
     //<editor-fold defaultstate="collapsed" desc="Fields">
     //<editor-fold defaultstate="collapsed" desc="Resource keys">
     public static final String RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN = "appointmentSchedulerLogin";
@@ -123,49 +120,12 @@ public final class Login extends SchedulerController {
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Initialization">
     public static void loadInto(Stage stage) throws IOException {
-        HashMap<String, Boolean> languageIds = new HashMap<>();
-        languageIds.put("en", false);
-        languageIds.put("de", false);
-        languageIds.put("hi", true);
-        languageIds.put("es", false);
-        // Attempt to find a match for the current display language amongst the languages supported by the app.
-        final String lt = Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag();
-        // First look for one that is an exact match with the language tag.
-        Optional<String> cl = languageIds.keySet().stream().filter((String id) -> id.equals(lt)).findFirst();
-        if (!cl.isPresent()) {
-            // Look for one that matches the ISO3 language code.
-            final String iso3 = Locale.getDefault(Locale.Category.DISPLAY).getISO3Language();
-            cl = languageIds.keySet().stream().filter((String id) -> id.equals(iso3)).findFirst();
-            if (!cl.isPresent()) {
-                // Look for one that matches the ISO2 language code.
-                final String ln = Locale.getDefault(Locale.Category.DISPLAY).getLanguage();
-                cl = languageIds.keySet().stream().filter((String id) -> id.equals(ln)).findFirst();
-            }
-        }
-
-        HashMap<String, Boolean> map = new HashMap<>();
         // Populate list of Locale objects.
         ObservableList<Locale> languages = FXCollections.observableArrayList();
-        if (cl.isPresent()) {
-            for (String n : languageIds.keySet()) {
-                Locale l = (n.equals(cl.get())) ? Locale.getDefault(Locale.Category.DISPLAY) : new Locale(n);
-                languages.add(l);
-                map.put(l.toLanguageTag(), languageIds.get(n));
-            }
-        } else {
-            for (String n : languageIds.keySet()) {
-                Locale l = new Locale(n);
-                languages.add(l);
-                map.put(l.toLanguageTag(), languageIds.get(n));
-            }
-            Locale toSelect = languages.get(0);
-            Locale.setDefault(Locale.Category.DISPLAY, toSelect);
-            Locale.setDefault(Locale.Category.FORMAT, toSelect);
-        }
+        AppConfig.getSupportedLocales().forEachRemaining((t) -> languages.add(t.getKey()));
 
         SchedulerController.load(stage, Login.class, (Parent v, Login c) -> {
             c.languageComboBox.setItems(languages);
-            c.useAltStringPlaceholderOrder = map;
             stage.setScene(new Scene(v));
         });
     }
@@ -199,8 +159,7 @@ public final class Login extends SchedulerController {
     //</editor-fold>
     @FXML
     void loginButtonClick(ActionEvent event) {
-        App.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(),
-                useAltStringPlaceholderOrder.get(Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag()), (ex) -> {
+        App.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null) {
                 Alerts.showErrorAlert(currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             } else {
@@ -262,8 +221,7 @@ public final class Login extends SchedulerController {
                 return;
             }
             // Change the current application language;
-            Locale.setDefault(Locale.Category.DISPLAY, newValue);
-            Locale.setDefault(Locale.Category.FORMAT, newValue);
+            AppConfig.setLocale(newValue);
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundleLoader.getBundle(Login.class);
             // Update field labels and button text.

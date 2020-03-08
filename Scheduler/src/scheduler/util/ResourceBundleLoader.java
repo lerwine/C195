@@ -1,13 +1,13 @@
 package scheduler.util;
 
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.App;
 import scheduler.view.annotations.FXMLResource;
 
 /**
@@ -24,7 +24,6 @@ public class ResourceBundleLoader {
 
     static {
         BUNDLE_NAME_MAP = new HashMap<>();
-        BUNDLE_NAME_MAP.put(App.class.getName(), App.GLOBALIZATION_RESOURCE_NAME);
     }
 
     public static String getResourceString(Class<?> ctlClass, String key) {
@@ -35,7 +34,6 @@ public class ResourceBundleLoader {
      * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}. This value is specified using the
      * {@link FXMLResource} annotation.
      *
-     * @param <C> The type of controller.
      * @param ctlClass The {@link java.lang.Class} for the target controller.
      * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
      */
@@ -75,13 +73,6 @@ public class ResourceBundleLoader {
         }
     }
 
-    public static final ResourceBundle getAppBundle() {
-        synchronized (BUNDLE_CACHE) {
-            checkLocale();
-            return getBundle(App.class, App.GLOBALIZATION_RESOURCE_NAME);
-        }
-    }
-
     private static ResourceBundle getBundle(Class<?> resourceClass, String baseName) {
         if (null == resourceClass || baseName.isEmpty()) {
             return null;
@@ -101,13 +92,37 @@ public class ResourceBundleLoader {
         return result;
     }
 
+    public static final ResourceBundle empty() {
+        return new ResourceBundle() {
+            private final Enumeration<String> keys = new Enumeration<String>() {
+                @Override
+                public boolean hasMoreElements() {
+                    return false;
+                }
+                @Override
+                public String nextElement() {
+                    return null;
+                }
+            };
+            @Override
+            protected Object handleGetObject(String key) {
+                return null;
+            }
+
+            @Override
+            public Enumeration<String> getKeys() {
+                return keys;
+            }
+            
+        };
+    }
     public static final ResourceBundle getBundle(Class<?> resourceClass) {
         ResourceBundle result;
         synchronized (BUNDLE_CACHE) {
             checkLocale();
             result = getBundle(resourceClass, getFXMLResourceName(resourceClass));
             if (null == result) {
-                result = getBundle(App.class, App.GLOBALIZATION_RESOURCE_NAME);
+                return empty();
             }
         }
         return result;
@@ -145,7 +160,7 @@ public class ResourceBundleLoader {
                 MERGED_BUNDLE_CACHE.put(key, result);
             }
             if (null == result) {
-                result = getBundle(App.class, App.GLOBALIZATION_RESOURCE_NAME);
+                return empty();
             }
         }
 

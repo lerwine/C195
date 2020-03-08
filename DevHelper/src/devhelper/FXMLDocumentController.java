@@ -5,6 +5,7 @@
  */
 package devhelper;
 
+import java.text.NumberFormat;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.TextStyle;
@@ -13,7 +14,11 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Locale.Category;
 import java.util.TimeZone;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyFloatProperty;
 import javafx.beans.property.ReadOnlyFloatWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -21,21 +26,36 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import scheduler.util.PwHash;
 
 /**
  *
  * @author Leonard T. Erwine
  */
 public class FXMLDocumentController {
+
+    @FXML // fx:id="inputTextBox"
+    private TextField inputTextBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="hashTextBox"
+    private TextField hashTextBox; // Value injected by FXMLLoader
+
     @FXML
     private ComboBox<String> twoLetterCountryCodesComboBox;
 
@@ -97,38 +117,50 @@ public class FXMLDocumentController {
     private ObservableList<String> timeZoneIDs;
     private ObservableList<String> zoneIDs;
     private ObservableList<String> zoneOffsetIDs;
+
+    @FXML
+    void getHashButtonClick(ActionEvent event) {
+        hashTextBox.setText((new PwHash(inputTextBox.getText(), true)).getEncodedHash());
+    }
+
     public static <T> Predicate<T> createFilter(Predicate<T> newFilter, Predicate<T> currentFilter) {
-        if (newFilter == null)
+        if (newFilter == null) {
             return currentFilter;
-        if (currentFilter == null)
+        }
+        if (currentFilter == null) {
             return newFilter;
+        }
         return (T t) -> newFilter.test(t) && currentFilter.test(t);
     }
-    
+
     private final String ALL_ITEM = " (all) ";
     private final String EMPTY_ITEM = " (empty) ";
-    
-    private static boolean isNullOrEmpty(String s) { return s == null || s.isEmpty(); }
-    
+
+    private static boolean isNullOrEmpty(String s) {
+        return s == null || s.isEmpty();
+    }
+
     public static class TimeZoneInfo implements Comparable<TimeZoneInfo> {
 
-        private final ReadOnlyStringWrapper id;
+        private final ReadOnlyStringWrapper availableID;
 
-        public String getId() {
-            return id.get();
+        public String getAvailableID() {
+
+            return availableID.get();
         }
 
-        public ReadOnlyStringProperty idProperty() {
-            return id.getReadOnlyProperty();
+        public ReadOnlyStringProperty availableIDProperty() {
+            return availableID.getReadOnlyProperty();
         }
-        private final ReadOnlyStringWrapper name;
+        
+        private final ReadOnlyStringWrapper displayName;
 
-        public String getName() {
-            return name.get();
+        public String getDisplayName() {
+            return displayName.get();
         }
 
-        public ReadOnlyStringProperty nameProperty() {
-            return name.getReadOnlyProperty();
+        public ReadOnlyStringProperty displayNameProperty() {
+            return displayName.getReadOnlyProperty();
         }
 
         private final ReadOnlyIntegerWrapper dstSavings;
@@ -149,7 +181,36 @@ public class FXMLDocumentController {
         public ReadOnlyFloatProperty rawOffsetProperty() {
             return rawOffset.getReadOnlyProperty();
         }
+
+        private final ReadOnlyStringWrapper id;
+
+        public String getId() {
+
+            return id.get();
+        }
+
+        public ReadOnlyStringProperty idProperty() {
+            return id.getReadOnlyProperty();
+        }
+        private final ReadOnlyBooleanWrapper observesDaylightTime;
+
+        public boolean isObservesDaylightTime() {
+            return observesDaylightTime.get();
+        }
+
+        public ReadOnlyBooleanProperty observesDaylightTimeProperty() {
+            return observesDaylightTime.getReadOnlyProperty();
+        }
         
+        private final ReadOnlyBooleanWrapper useDaylightTime;
+
+        public boolean isUseDaylightTime() {
+            return useDaylightTime.get();
+        }
+
+        public ReadOnlyBooleanProperty useDaylightTimeProperty() {
+            return useDaylightTime.getReadOnlyProperty();
+        }
         
         private final ReadOnlyStringWrapper zoneId;
 
@@ -187,7 +248,7 @@ public class FXMLDocumentController {
         public ReadOnlyStringProperty normalizedNameProperty() {
             return normalizedName.getReadOnlyProperty();
         }
-        
+
         private final ReadOnlyIntegerWrapper totalSeconds;
 
         public int getTotalSeconds() {
@@ -197,32 +258,45 @@ public class FXMLDocumentController {
         public ReadOnlyIntegerProperty totalSecondsProperty() {
             return totalSeconds.getReadOnlyProperty();
         }
+
         public TimeZoneInfo(String id) {
             TimeZone tz = TimeZone.getTimeZone(id);
-            this.id = new ReadOnlyStringWrapper(id);
-            name = new ReadOnlyStringWrapper(tz.getDisplayName());
+            this.availableID = new ReadOnlyStringWrapper(id);
+            displayName = new ReadOnlyStringWrapper(tz.getDisplayName());
             dstSavings = new ReadOnlyIntegerWrapper(tz.getDSTSavings());
-            rawOffset = new ReadOnlyFloatWrapper((float)tz.getRawOffset() / 1000.0f);
-            
+            rawOffset = new ReadOnlyFloatWrapper((float) tz.getRawOffset() / 1000.0f);
+            this.id = new ReadOnlyStringWrapper(tz.getID());
+            observesDaylightTime = new ReadOnlyBooleanWrapper(tz.observesDaylightTime());
+            useDaylightTime = new ReadOnlyBooleanWrapper(tz.useDaylightTime());
             ZoneId z;
-            try { z = tz.toZoneId(); } catch (Throwable ex) { z = null; }
+            try {
+                z = tz.toZoneId();
+            } catch (Throwable ex) {
+                z = null;
+            }
             if (z != null) {
                 zoneId = new ReadOnlyStringWrapper(z.getId());
                 zoneName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, Locale.getDefault(Category.DISPLAY)));
                 if (z instanceof ZoneOffset) {
-                    normalizedId = new ReadOnlyStringWrapper(z.getId());
-                    normalizedName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, Locale.getDefault(Category.DISPLAY)));
-                    totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset)z).getTotalSeconds());
+                    ZoneOffset zo = (ZoneOffset)z;
+                    normalizedId = new ReadOnlyStringWrapper(zo.getId());
+                    normalizedName = new ReadOnlyStringWrapper(zo.getDisplayName(TextStyle.FULL, Locale.getDefault(Category.DISPLAY)));
+                    totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset) z).getTotalSeconds());
                     return;
                 }
-                try { z = z.normalized(); } catch (Throwable ex) { z = null; }
+                try {
+                    z = z.normalized();
+                } catch (Throwable ex) {
+                    z = null;
+                }
                 if (z != null) {
                     normalizedId = new ReadOnlyStringWrapper(z.getId());
                     normalizedName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, Locale.getDefault(Category.DISPLAY)));
-                    if (z instanceof ZoneOffset)
-                        totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset)z).getTotalSeconds());
-                    else
+                    if (z instanceof ZoneOffset) {
+                        totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset) z).getTotalSeconds());
+                    } else {
                         totalSeconds = new ReadOnlyIntegerWrapper(-1);
+                    }
                     return;
                 }
             } else {
@@ -236,17 +310,28 @@ public class FXMLDocumentController {
 
         @Override
         public int compareTo(TimeZoneInfo o) {
-            if (o == null)
+            if (o == null) {
                 return 1;
+            }
             int r;
-            if ((r = (int)(getRawOffset() * 1000) - (int)(o.getRawOffset()) * 1000) != 0 || (r = getTotalSeconds() - o.getTotalSeconds()) != 0)
+            if ((r = (int) (getRawOffset() * 1000) - (int) (o.getRawOffset()) * 1000) != 0 || (r = getTotalSeconds() - o.getTotalSeconds()) != 0) {
                 return r;
-            return getName().compareTo(o.getName());
+            }
+            return getAvailableID().compareTo(o.getAvailableID());
         }
     }
-    
+
     public static class ZoneIdInfo implements Comparable<ZoneIdInfo> {
 
+        private final ReadOnlyStringWrapper availableZoneId;
+
+        public String getAvailableZoneId() {
+            return availableZoneId.get();
+        }
+
+        public ReadOnlyStringProperty availableZoneIdProperty() {
+            return availableZoneId.getReadOnlyProperty();
+        }
         private final ReadOnlyStringWrapper id;
 
         public String getId() {
@@ -319,14 +404,32 @@ public class FXMLDocumentController {
         public ReadOnlyStringProperty normalizedIdProperty() {
             return normalizedId.getReadOnlyProperty();
         }
-        private final ReadOnlyStringWrapper normalizedName;
+        private final ReadOnlyStringWrapper normalizedNameFull;
 
-        public String getNormalizedName() {
-            return normalizedName.get();
+        public String getNormalizedNameFull() {
+            return normalizedNameFull.get();
         }
 
-        public ReadOnlyStringProperty normalizedNameProperty() {
-            return normalizedName.getReadOnlyProperty();
+        public ReadOnlyStringProperty normalizedNameFullProperty() {
+            return normalizedNameFull.getReadOnlyProperty();
+        }
+        private final ReadOnlyStringWrapper normalizedNameShort;
+
+        public String getNormalizedNameShort() {
+            return normalizedNameShort.get();
+        }
+
+        public ReadOnlyStringProperty normalizedNameShortProperty() {
+            return normalizedNameShort.getReadOnlyProperty();
+        }
+        private final ReadOnlyStringWrapper normalizedNameNarrow;
+
+        public String getNormalizedNameNarrow() {
+            return normalizedNameNarrow.get();
+        }
+
+        public ReadOnlyStringProperty normalizedNameNarrowProperty() {
+            return normalizedNameNarrow.getReadOnlyProperty();
         }
         private final ReadOnlyIntegerWrapper totalSeconds;
 
@@ -355,7 +458,7 @@ public class FXMLDocumentController {
         public ReadOnlyStringProperty timeZoneNameProperty() {
             return timeZoneName.getReadOnlyProperty();
         }
-        
+
         private final ReadOnlyFloatWrapper timeZoneOffset;
 
         public float getTimeZoneOffset() {
@@ -365,11 +468,12 @@ public class FXMLDocumentController {
         public ReadOnlyFloatProperty timeZoneOffsetProperty() {
             return timeZoneOffset.getReadOnlyProperty();
         }
-        
+
         public ZoneIdInfo(String id) {
-            this.id = new ReadOnlyStringWrapper(id);
+            availableZoneId = new ReadOnlyStringWrapper(id);
             ZoneId z = ZoneId.of(id);
             Locale l = Locale.getDefault(Category.DISPLAY);
+            this.id = new ReadOnlyStringWrapper(z.getId());
             fullName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
             standaloneFull = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL_STANDALONE, l));
             shortName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
@@ -378,29 +482,44 @@ public class FXMLDocumentController {
             standaloneNarrow = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.NARROW_STANDALONE, l));
             if (z instanceof ZoneOffset) {
                 normalizedId = new ReadOnlyStringWrapper(z.getId());
-                normalizedName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
-                totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset)z).getTotalSeconds());
+                normalizedNameFull = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
+                normalizedNameShort = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.SHORT, l));
+                normalizedNameNarrow = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.NARROW, l));
+                totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset) z).getTotalSeconds());
             } else {
-                try { z = z.normalized(); } catch (Throwable ex) { z = null; }
+                try {
+                    z = z.normalized();
+                } catch (Throwable ex) {
+                    z = null;
+                }
                 if (z != null) {
                     normalizedId = new ReadOnlyStringWrapper(z.getId());
-                    normalizedName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
-                    if (z instanceof ZoneOffset)
-                        totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset)z).getTotalSeconds());
-                    else
+                    normalizedNameFull = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
+                    normalizedNameShort = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.SHORT, l));
+                    normalizedNameNarrow = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.NARROW, l));
+                    if (z instanceof ZoneOffset) {
+                        totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset) z).getTotalSeconds());
+                    } else {
                         totalSeconds = new ReadOnlyIntegerWrapper(-1);
+                    }
                 } else {
                     normalizedId = new ReadOnlyStringWrapper();
-                    normalizedName = new ReadOnlyStringWrapper();
+                    normalizedNameFull = new ReadOnlyStringWrapper();
+                    normalizedNameShort = new ReadOnlyStringWrapper();
+                    normalizedNameNarrow = new ReadOnlyStringWrapper();
                     totalSeconds = new ReadOnlyIntegerWrapper(-1);
                 }
             }
             TimeZone tz;
-            try { tz = TimeZone.getTimeZone(z); } catch (Throwable ex) { tz = null; }
+            try {
+                tz = TimeZone.getTimeZone(z);
+            } catch (Throwable ex) {
+                tz = null;
+            }
             if (tz != null) {
                 timeZoneId = new ReadOnlyStringWrapper(tz.getID());
                 timeZoneName = new ReadOnlyStringWrapper(tz.getDisplayName());
-                timeZoneOffset = new ReadOnlyFloatWrapper((float)tz.getRawOffset() / 1000.0f);
+                timeZoneOffset = new ReadOnlyFloatWrapper((float) tz.getRawOffset() / 1000.0f);
             } else {
                 timeZoneId = new ReadOnlyStringWrapper();
                 timeZoneName = new ReadOnlyStringWrapper();
@@ -410,17 +529,21 @@ public class FXMLDocumentController {
 
         @Override
         public int compareTo(ZoneIdInfo o) {
-            if (o == null)
+            if (o == null) {
                 return 1;
+            }
             int r;
-            if ((r = getTotalSeconds() - o.getTotalSeconds()) != 0 || (r = (int)(getTimeZoneOffset() * 1000) - (int)(o.getTimeZoneOffset() * 1000)) != 0)
+            if ((r = getTotalSeconds() - o.getTotalSeconds()) != 0 || (r = (int) (getTimeZoneOffset() * 1000) - (int) (o.getTimeZoneOffset() * 1000)) != 0) {
                 return r;
+            }
             return getFullName().compareTo(o.getFullName());
         }
     }
-    
+
     @FXML
     void initialize() {
+        assert inputTextBox != null : "fx:id=\"inputTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert hashTextBox != null : "fx:id=\"hashTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
         assert twoLetterCountryCodesComboBox != null : "fx:id=\"twoLetterCountryCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
         assert threeLetterCountryCodesComboBox != null : "fx:id=\"threeLetterCountryCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
         assert iso3CountryCodesComboBox != null : "fx:id=\"iso3CountryCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
@@ -436,7 +559,7 @@ public class FXMLDocumentController {
         assert localeToStringTableColumn != null : "fx:id=\"localeToStringTableColumn\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
         assert timeZonesTableView != null : "fx:id=\"timeZonesTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
         assert zoneIdsTableView != null : "fx:id=\"timeZonesTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        
+
         availableLocales = FXCollections.observableArrayList();
         filteredLocales = FXCollections.observableArrayList();
         twoLetterCountryCodes = FXCollections.observableArrayList();
@@ -470,46 +593,67 @@ public class FXMLDocumentController {
                 String c2 = o2.getCountry();
                 int r;
                 if (c1 == null || c1.isEmpty()) {
-                    if (c2 != null && !c2.isEmpty())
+                    if (c2 != null && !c2.isEmpty()) {
                         return -1;
+                    }
                 } else {
-                    if (c2 == null || c2.isEmpty())
+                    if (c2 == null || c2.isEmpty()) {
                         return 1;
-                    if (c1 == c2)
+                    }
+                    if (c1 == c2) {
                         return 0;
+                    }
                     r = c1.compareToIgnoreCase(c2);
-                    if (r != 0)
+                    if (r != 0) {
                         return r;
+                    }
                     r = c1.compareTo(c2);
-                    if (r != 0)
+                    if (r != 0) {
                         return r;
+                    }
                 }
-                try { c1 = o1.getISO3Language(); } catch (Throwable ex) { c1 = null; }
-                if (c1 == null || c1.isEmpty())
-                    c1 = o1.getLanguage();
-                try { c2 = o2.getISO3Language(); } catch (Throwable ex) { c2 = null; }
-                if (c2 == null || c2.isEmpty())
-                    c2 = o2.getLanguage();
+                try {
+                    c1 = o1.getISO3Language();
+                } catch (Throwable ex) {
+                    c1 = null;
+                }
                 if (c1 == null || c1.isEmpty()) {
-                    if (c2 != null && !c2.isEmpty())
+                    c1 = o1.getLanguage();
+                }
+                try {
+                    c2 = o2.getISO3Language();
+                } catch (Throwable ex) {
+                    c2 = null;
+                }
+                if (c2 == null || c2.isEmpty()) {
+                    c2 = o2.getLanguage();
+                }
+                if (c1 == null || c1.isEmpty()) {
+                    if (c2 != null && !c2.isEmpty()) {
                         return -1;
+                    }
                 } else {
-                    if (c2 == null || c2.isEmpty())
+                    if (c2 == null || c2.isEmpty()) {
                         return 1;
+                    }
                     r = c1.compareToIgnoreCase(c2);
-                    if (r != 0)
+                    if (r != 0) {
                         return r;
+                    }
                     r = c1.compareTo(c2);
-                    if (r != 0)
+                    if (r != 0) {
                         return r;
+                    }
                 }
                 c1 = o1.getDisplayName();
                 c2 = o2.getDisplayName();
-                if (c1 == null || c1.isEmpty())
+                if (c1 == null || c1.isEmpty()) {
                     return (c2 == null || c2.isEmpty()) ? 0 : -1;
+                }
 
-                if (c2 == null || c2.isEmpty())
+                if (c2 == null || c2.isEmpty()) {
                     return 1;
+                }
                 r = c1.compareToIgnoreCase(c2);
                 return (r == 0) ? c1.compareTo(c2) : r;
             }
@@ -517,39 +661,55 @@ public class FXMLDocumentController {
             availableLocales.add(l);
             filteredLocales.add(l);
             String s = l.toLanguageTag();
-            if (s == null || s.isEmpty())
+            if (s == null || s.isEmpty()) {
                 s = EMPTY_ITEM;
-            if (!languageTags.contains(s))
+            }
+            if (!languageTags.contains(s)) {
                 languageTags.add(s);
+            }
             s = l.getCountry();
-            if (s == null || s.isEmpty())
+            if (s == null || s.isEmpty()) {
                 s = EMPTY_ITEM;
+            }
             if (s.length() == 3) {
-                if (!threeLetterCountryCodes.contains(s))
+                if (!threeLetterCountryCodes.contains(s)) {
                     threeLetterCountryCodes.add(s);
-            } else if (!twoLetterCountryCodes.contains(s))
+                }
+            } else if (!twoLetterCountryCodes.contains(s)) {
                 twoLetterCountryCodes.add(s);
-            try { s = l.getISO3Country(); }
-            catch (Throwable ex) { s = null; }
-            if (s == null || s.isEmpty())
+            }
+            try {
+                s = l.getISO3Country();
+            } catch (Throwable ex) {
+                s = null;
+            }
+            if (s == null || s.isEmpty()) {
                 s = EMPTY_ITEM;
-            if (!iso3CountryCodes.contains(s))
+            }
+            if (!iso3CountryCodes.contains(s)) {
                 iso3CountryCodes.add(s);
+            }
             s = l.getLanguage();
-            if (s == null || s.isEmpty())
+            if (s == null || s.isEmpty()) {
                 s = EMPTY_ITEM;
-            if (!twoLetterLanguageCodes.contains(s))
+            }
+            if (!twoLetterLanguageCodes.contains(s)) {
                 twoLetterLanguageCodes.add(s);
+            }
             s = l.getISO3Language();
-            if (s == null || s.isEmpty())
+            if (s == null || s.isEmpty()) {
                 s = EMPTY_ITEM;
-            if (!threeLetterLanguageCodes.contains(s))
+            }
+            if (!threeLetterLanguageCodes.contains(s)) {
                 threeLetterLanguageCodes.add(s);
+            }
             s = l.getScript();
-            if (s == null || s.isEmpty())
+            if (s == null || s.isEmpty()) {
                 s = EMPTY_ITEM;
-            if (!scriptCodes.contains(s))
+            }
+            if (!scriptCodes.contains(s)) {
                 scriptCodes.add(s);
+            }
         });
         Arrays.stream(TimeZone.getAvailableIDs()).map((String id) -> new TimeZoneInfo(id)).forEach((TimeZoneInfo item) -> {
             availableTimeZones.add(item);
@@ -559,10 +719,11 @@ public class FXMLDocumentController {
         ZoneId.getAvailableZoneIds().stream().map((String id) -> new ZoneIdInfo(id)).forEach((ZoneIdInfo item) -> {
             availableZoneIds.add(item);
             filteredZoneIds.add(item);
-            zoneIDs.add(item.getId());
+            zoneIDs.add(item.getAvailableZoneId());
             String s = item.getNormalizedId();
-            if (s != null && !s.isEmpty() && !zoneOffsetIDs.contains(s))
+            if (s != null && !s.isEmpty() && !zoneOffsetIDs.contains(s)) {
                 zoneOffsetIDs.add(s);
+            }
         });
         languageTagTableColumn.setCellValueFactory((TableColumn.CellDataFeatures<Locale, String> param) -> {
             Locale locale = param.getValue();
@@ -580,69 +741,179 @@ public class FXMLDocumentController {
         threeLetterLanguageCodesComboBox.setItems(threeLetterLanguageCodes);
         languageTagsComboBox.setItems(languageTags);
         availableLocalesTableView.setItems(filteredLocales);
+        availableLocalesTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        availableLocalesTableView.setOnKeyPressed(new TableCopyEventHandler());
         timeZonesTableView.setItems(filteredTimeZones);
+        timeZonesTableView.setOnKeyPressed(new TableCopyEventHandler());
         timeZoneIDsComboBox.setItems(timeZoneIDs);
         zoneOffsetIDsComboBox.setItems(zoneOffsetIDs);
         zoneIDsComboBox.setItems(zoneIDs);
         zoneIdsTableView.setItems(filteredZoneIds);
+        zoneIdsTableView.setOnKeyPressed(new TableCopyEventHandler());
+    }
+
+    public static class TableCopyEventHandler implements EventHandler<KeyEvent> {
+        KeyCodeCombination copyKeyCodeCompination = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+
+        private String asString(Object obj) {
+            if (null == obj)
+                return "";
+            String s;
+            if (obj instanceof String)
+                s = (String)obj;
+            else
+                s = obj.toString();
+            return s.replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n");
+        }
+        @Override
+        public void handle(final KeyEvent event) {
+            if (copyKeyCodeCompination.match(event)) {
+                final TableView<?> tableView = (TableView<?>)event.getSource();
+                final ObservableList<?> items = tableView.getItems();
+                final TableView.TableViewSelectionModel<?> selectionModel = tableView.getSelectionModel();
+                final StringBuilder content = new StringBuilder();
+                final TableColumn<?, ?>[] columns = tableView.getColumns().stream().filter(new Predicate<TableColumn<?, ?>>() {
+                    private int colIndex = -1;
+                    @Override
+                    public boolean test(TableColumn<?, ?> t) {
+                        if (t.isVisible()) {
+                            if (++colIndex > 0)
+                                content.append("\t");
+                            content.append(t.getText());
+                            return true;
+                        }
+                        return false;
+                    }
+                }).toArray(TableColumn<?, ?>[]::new);
+                selectionModel.getSelectedIndices().forEach((Integer t) -> {
+                    content.append("\n").append(asString(columns[0].getCellData(t)));
+                    for (int i = 1; i < columns.length; i++) {
+                        content.append("\t").append(asString(columns[i].getCellData(t)));
+                    }
+                });
+                final ClipboardContent clipboardContent = new ClipboardContent();
+                clipboardContent.putString(content.toString());
+                Clipboard.getSystemClipboard().setContent(clipboardContent);
+                event.consume();
+            }
+        }
+        
     }
     
+//    public static class TableKeyEventHandler<T> implements EventHandler<KeyEvent> {
+//
+//        KeyCodeCombination copyKeyCodeCompination = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+//        private final NumberFormat numberFormatter = NumberFormat.getNumberInstance();
+//        private final Function<T, CharSequence> toText;
+//        TableKeyEventHandler(Function<T, CharSequence> toText) {
+//            this.toText = toText;
+//        }
+//
+//        public void handle(final KeyEvent keyEvent) {
+//
+//            if (copyKeyCodeCompination.match(keyEvent)) {
+//
+//                if (keyEvent.getSource() instanceof TableView) {
+//
+//                    // copy to clipboard
+//                    copySelectionToClipboard((TableView<T>) keyEvent.getSource());
+//
+//                    // event is handled, consume it
+//                    keyEvent.consume();
+//
+//                }
+//
+//            }
+//        }
+//
+//        private void copySelectionToClipboard(TableView<T> tableView) {
+//            final StringBuilder clipboardString = new StringBuilder();
+//            tableView.getSelectionModel().getSelectedItems().forEach(new Consumer<T>() {
+//                private boolean isSubsequent = false;
+//                @Override
+//                public void accept(T t) {
+//                    if (isSubsequent)
+//                        clipboardString.append("\n");
+//                    clipboardString.append(toText.apply(t));
+//                }
+//            });
+//            // create clipboard content
+//            final ClipboardContent clipboardContent = new ClipboardContent();
+//            clipboardContent.putString(clipboardString.toString());
+//
+//            // set clipboard content
+//            Clipboard.getSystemClipboard().setContent(clipboardContent);
+//
+//        }
+//
+//    }
+
     @FXML
     void localeComboBoxChanged(ActionEvent event) {
         Predicate<Locale> filter;
         final String code2c = twoLetterCountryCodesComboBox.getValue();
-        if (code2c == null || code2c.isEmpty() || code2c.equals(ALL_ITEM))
+        if (code2c == null || code2c.isEmpty() || code2c.equals(ALL_ITEM)) {
             filter = null;
-        else if (code2c.equals(EMPTY_ITEM))
+        } else if (code2c.equals(EMPTY_ITEM)) {
             filter = (Locale l) -> isNullOrEmpty(l.getCountry());
-        else
+        } else {
             filter = (Locale l) -> code2c.equals(l.getCountry());
-        
+        }
+
         final String code3c = threeLetterCountryCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(code3c))
+        if (EMPTY_ITEM.equals(code3c)) {
             filter = createFilter((Locale l) -> isNullOrEmpty(l.getCountry()), filter);
-        else if (code3c != null && !code3c.equals(ALL_ITEM))
+        } else if (code3c != null && !code3c.equals(ALL_ITEM)) {
             filter = createFilter((Locale l) -> code3c.equals(l.getCountry()), filter);
-        
+        }
+
         final String iso3c = iso3CountryCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(iso3c))
+        if (EMPTY_ITEM.equals(iso3c)) {
             filter = createFilter((Locale l) -> isNullOrEmpty(l.getISO3Country()), filter);
-        else if (iso3c != null && !iso3c.equals(ALL_ITEM))
+        } else if (iso3c != null && !iso3c.equals(ALL_ITEM)) {
             filter = createFilter((Locale l) -> iso3c.equals(l.getISO3Country()), filter);
-        
+        }
+
         final String sc = scriptCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(sc))
+        if (EMPTY_ITEM.equals(sc)) {
             filter = createFilter((Locale l) -> isNullOrEmpty(l.getScript()), filter);
-        else if (sc != null && !sc.equals(ALL_ITEM))
+        } else if (sc != null && !sc.equals(ALL_ITEM)) {
             filter = createFilter((Locale l) -> sc.equals(l.getScript()), filter);
-        
+        }
+
         final String code2l = twoLetterLanguageCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(code2l))
+        if (EMPTY_ITEM.equals(code2l)) {
             filter = createFilter((Locale l) -> isNullOrEmpty(l.getLanguage()), filter);
-        else if (code2l != null && !code2l.equals(ALL_ITEM))
+        } else if (code2l != null && !code2l.equals(ALL_ITEM)) {
             filter = createFilter((Locale l) -> code2l.equals(l.getLanguage()), filter);
-        
+        }
+
         final String code3l = threeLetterLanguageCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(code3l))
+        if (EMPTY_ITEM.equals(code3l)) {
             filter = createFilter((Locale l) -> isNullOrEmpty(l.getISO3Language()), filter);
-        else if (code3l != null && !code3l.equals(ALL_ITEM))
+        } else if (code3l != null && !code3l.equals(ALL_ITEM)) {
             filter = createFilter((Locale l) -> code3l.equals(l.getISO3Language()), filter);
-        
+        }
+
         final String lt = languageTagsComboBox.getValue();
-        if (EMPTY_ITEM.equals(lt))
+        if (EMPTY_ITEM.equals(lt)) {
             filter = createFilter((Locale l) -> isNullOrEmpty(l.toLanguageTag()), filter);
-        else if (lt != null && !lt.equals(ALL_ITEM))
+        } else if (lt != null && !lt.equals(ALL_ITEM)) {
             filter = createFilter((Locale l) -> lt.equals(l.toLanguageTag()), filter);
-        
+        }
+
         filteredLocales.clear();
-        if (filter == null)
-            for (Locale l : availableLocales)
-                filteredLocales.add(l);
-        else
+        if (filter == null) {
             for (Locale l : availableLocales) {
-                if (filter.test(l))
-                    filteredLocales.add(l);
+                filteredLocales.add(l);
             }
+        } else {
+            for (Locale l : availableLocales) {
+                if (filter.test(l)) {
+                    filteredLocales.add(l);
+                }
+            }
+        }
     }
 
     @FXML
@@ -652,7 +923,7 @@ public class FXMLDocumentController {
         final String tz = timeZoneIDsComboBox.getValue();
         final String id = zoneIDsComboBox.getValue();
         final String zo = zoneOffsetIDsComboBox.getValue();
-        
+
         if (tz == null || tz.isEmpty() || tz.equals(ALL_ITEM)) {
             tzFilter = null;
             zFilter = null;
@@ -664,37 +935,43 @@ public class FXMLDocumentController {
             tzFilter = (TimeZoneInfo l) -> tz.equals(l.getId());
         }
 
-        if (EMPTY_ITEM.equals(id))
+        if (EMPTY_ITEM.equals(id)) {
             tzFilter = createFilter((TimeZoneInfo l) -> isNullOrEmpty(l.getZoneId()), tzFilter);
-        else if (id != null && !id.equals(ALL_ITEM)) {
+        } else if (id != null && !id.equals(ALL_ITEM)) {
             tzFilter = createFilter((TimeZoneInfo l) -> id.equals(l.getZoneId()), tzFilter);
-            zFilter = createFilter((ZoneIdInfo l) -> id.equals(l.getId()), zFilter);
+            zFilter = createFilter((ZoneIdInfo l) -> id.equals(l.getAvailableZoneId()), zFilter);
         }
-        
-        if (EMPTY_ITEM.equals(zo))
+
+        if (EMPTY_ITEM.equals(zo)) {
             tzFilter = createFilter((TimeZoneInfo l) -> isNullOrEmpty(l.getNormalizedId()), tzFilter);
-        else if (id != null && !id.equals(ALL_ITEM)) {
+        } else if (id != null && !id.equals(ALL_ITEM)) {
             tzFilter = createFilter((TimeZoneInfo l) -> zo.equals(l.getNormalizedId()), tzFilter);
             zFilter = createFilter((ZoneIdInfo l) -> zo.equals(l.getNormalizedId()), zFilter);
         }
-        
+
         filteredTimeZones.clear();
-        if (tzFilter == null)
-            for (TimeZoneInfo l : availableTimeZones)
-                filteredTimeZones.add(l);
-        else
+        if (tzFilter == null) {
             for (TimeZoneInfo l : availableTimeZones) {
-                if (tzFilter.test(l))
+                filteredTimeZones.add(l);
+            }
+        } else {
+            for (TimeZoneInfo l : availableTimeZones) {
+                if (tzFilter.test(l)) {
                     filteredTimeZones.add(l);
+                }
             }
+        }
         filteredZoneIds.clear();
-        if (zFilter == null)
-            for (ZoneIdInfo l : availableZoneIds)
-                filteredZoneIds.add(l);
-        else
+        if (zFilter == null) {
             for (ZoneIdInfo l : availableZoneIds) {
-                if (zFilter.test(l))
-                    filteredZoneIds.add(l);
+                filteredZoneIds.add(l);
             }
+        } else {
+            for (ZoneIdInfo l : availableZoneIds) {
+                if (zFilter.test(l)) {
+                    filteredZoneIds.add(l);
+                }
+            }
+        }
     }
 }

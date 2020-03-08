@@ -23,6 +23,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import scheduler.App;
+import scheduler.AppConfig;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
@@ -124,8 +125,8 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = App.getResources();
-                Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
+                ResourceBundle rb = AppConfig.getResources();
+                Alerts.showWarningAlert(rb.getString(AppConfig.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppConfig.RESOURCEKEY_NOITEMWASSELECTED));
             } else {
                 onEditItem(event, item);
             }
@@ -134,8 +135,8 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
                 getFXMLResourceName(getClass()))).setOnAction((event) -> {
             S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
-                ResourceBundle rb = App.getResources();
-                Alerts.showWarningAlert(rb.getString(scheduler.App.RESOURCEKEY_NOTHINGSELECTED), rb.getString(scheduler.App.RESOURCEKEY_NOITEMWASSELECTED));
+                ResourceBundle rb = AppConfig.getResources();
+                Alerts.showWarningAlert(rb.getString(AppConfig.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppConfig.RESOURCEKEY_NOITEMWASSELECTED));
             } else {
                 onDeleteItem(event, item);
             }
