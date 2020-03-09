@@ -22,7 +22,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import scheduler.App;
 import scheduler.AppResources;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
@@ -41,33 +40,24 @@ import scheduler.dao.ModelFilter;
  */
 public abstract class ListingController<T extends DataObjectImpl, S extends ItemModel<T>> extends MainController.MainContentController {
 
+    private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
+    public static <T extends DataObjectImpl, S extends ItemModel<T>> ListingController<T, S> setContent(MainController mainController,
+            Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelFilter<T, S> filter) throws IOException {
+        ListingController<T, S> controller = setContent(mainController, controllerClass, stage);
+        controller.changeFilter(filter, stage, null);
+        return controller;
+    }
     private ItemEventListener<ItemEvent<S>> itemAddedListener;
     private ItemEventListener<ItemEvent<S>> itemRemovedListener;
-
     private ModelFilter<T, S> filter;
-
-    //<editor-fold defaultstate="collapsed" desc="itemsList">
     private final ObservableList<S> itemsList = FXCollections.observableArrayList();
 
-    /**
-     * Gets the {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
-     *
-     * @return The {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
-     */
-    protected ObservableList<S> getItemsList() {
-        return itemsList;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
-    //<editor-fold defaultstate="collapsed" desc="listingTableView">
     /**
      * The {@link TableView} control injected by the {@link FXMLLoader}.
      */
     @FXML
     protected TableView<S> listingTableView;
 
-    //</editor-fold>
     /**
      * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link ItemModel}. This is defined within the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
@@ -88,8 +78,15 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     @FXML
     protected Button newButton;
 
-    //</editor-fold>
-    private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
+    /**
+     * Gets the {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
+     *
+     * @return The {@link javafx.collections.ObservableList} that is bound to the {@link #listingTableView}.
+     */
+    protected ObservableList<S> getItemsList() {
+        return itemsList;
+    }
+
 
     /**
      * Called by the {@link FXMLLoader} to complete controller initialization.
@@ -179,13 +176,6 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         getItemAddManager().removeListener(itemAddedListener);
         getItemAddManager().removeListener(itemRemovedListener);
         super.onUnloaded(view);
-    }
-
-    public static <T extends DataObjectImpl, S extends ItemModel<T>> ListingController<T, S> setContent(MainController mainController,
-            Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelFilter<T, S> filter) throws IOException {
-        ListingController<T, S> controller = setContent(mainController, controllerClass, stage);
-        controller.changeFilter(filter, stage, null);
-        return controller;
     }
 
     /**

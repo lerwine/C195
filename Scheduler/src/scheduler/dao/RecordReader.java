@@ -64,7 +64,7 @@ public interface RecordReader<T extends DataObjectImpl> {
         if (null != w && !(w = w.trim()).isEmpty()) {
             sb.append(" WHERE ").append(w);
         }
-        Logger.getLogger(App.class.getName()).log(Level.SEVERE, "Executing query \"%s\"", w);
+        Logger.getLogger(App.class.getName()).log(Level.FINE, String.format("Executing query \"%s\"", sb.toString()));
         ArrayList<T> result = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
             apply(ps, 1);

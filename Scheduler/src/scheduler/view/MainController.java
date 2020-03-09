@@ -27,8 +27,8 @@ import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
-import scheduler.util.ItemEventManager;
 import scheduler.util.ItemEvent;
+import scheduler.util.ItemEventManager;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -61,7 +61,8 @@ import scheduler.view.user.UserReferenceModelImpl;
 @FXMLResource("/scheduler/view/MainView.fxml")
 public final class MainController extends SchedulerController implements MainControllerConstants {
 
-    //<editor-fold defaultstate="collapsed" desc="FXML controls">
+    private static final Logger LOG = Logger.getLogger(MainController.class.getName());
+
     @FXML
     private Menu appointmentsMenu;
 
@@ -107,15 +108,7 @@ public final class MainController extends SchedulerController implements MainCon
     @FXML
     private BorderPane contentPane;
 
-    public BorderPane getContentPane() {
-        return contentPane;
-    }
-
-    //</editor-fold>
-    private static final Logger LOG = Logger.getLogger(MainController.class.getName());
-
     private MainContentController contentController;
-    //<editor-fold defaultstate="collapsed" desc="Event handler managers">
 
     private final ItemEventManager<ItemEvent<AppointmentModel>> appointmentAddManager;
     private final ItemEventManager<ItemEvent<AppointmentModel>> appointmentRemoveManager;
@@ -129,6 +122,25 @@ public final class MainController extends SchedulerController implements MainCon
     private final ItemEventManager<ItemEvent<CityModel>> cityRemoveManager;
     private final ItemEventManager<ItemEvent<CountryModel>> countryAddManager;
     private final ItemEventManager<ItemEvent<CountryModel>> countryRemoveManager;
+
+    public MainController() {
+        appointmentAddManager = new ItemEventManager<>();
+        appointmentRemoveManager = new ItemEventManager<>();
+        customerAddManager = new ItemEventManager<>();
+        customerRemoveManager = new ItemEventManager<>();
+        userAddManager = new ItemEventManager<>();
+        userRemoveManager = new ItemEventManager<>();
+        addressAddManager = new ItemEventManager<>();
+        addressRemoveManager = new ItemEventManager<>();
+        cityAddManager = new ItemEventManager<>();
+        cityRemoveManager = new ItemEventManager<>();
+        countryAddManager = new ItemEventManager<>();
+        countryRemoveManager = new ItemEventManager<>();
+    }
+
+    public BorderPane getContentPane() {
+        return contentPane;
+    }
 
     public ItemEventManager<ItemEvent<AppointmentModel>> getAppointmentAddManager() {
         return appointmentAddManager;
@@ -178,23 +190,6 @@ public final class MainController extends SchedulerController implements MainCon
         return countryRemoveManager;
     }
 
-    //</editor-fold>
-    //</editor-fold>
-    public MainController() {
-        appointmentAddManager = new ItemEventManager<>();
-        appointmentRemoveManager = new ItemEventManager<>();
-        customerAddManager = new ItemEventManager<>();
-        customerRemoveManager = new ItemEventManager<>();
-        userAddManager = new ItemEventManager<>();
-        userRemoveManager = new ItemEventManager<>();
-        addressAddManager = new ItemEventManager<>();
-        addressRemoveManager = new ItemEventManager<>();
-        cityAddManager = new ItemEventManager<>();
-        cityRemoveManager = new ItemEventManager<>();
-        countryAddManager = new ItemEventManager<>();
-        countryRemoveManager = new ItemEventManager<>();
-    }
-
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert appointmentsMenu != null : String.format("fx:id=\"appointmentsMenu\" was not injected: check your FXML file '%s'.",
@@ -207,7 +202,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageAppointments.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         AppointmentImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, "Error loading ManageAppointments view/controller", ex);
             }
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
@@ -220,7 +215,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageCustomers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CustomerImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, "Error loading ManageCustomers view/controller", ex);
             }
         });
         assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
@@ -237,7 +232,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageCountries.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CountryImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, "Error loading ManageCountries view/controller", ex);
             }
         });
         assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
@@ -250,7 +245,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageUsers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         UserImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, "Error loading ManageUsers view/controller", ex);
             }
         });
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
@@ -263,7 +258,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             ManageAppointments.setContent(MainController.this, stage, AppointmentImpl.getFactory().getDefaultFilter());
         } catch (IOException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.logp(Level.SEVERE, MainController.class.getName(), "onBeforeShow", "Error loading ManageAppointments view/controller", ex);
         }
     }
 
@@ -275,8 +270,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //<editor-fold defaultstate="collapsed" desc="CRUD implementation methods">
-    //<editor-fold defaultstate="collapsed" desc="AppointmentImpl operations">
     /**
      * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
      *
@@ -324,8 +317,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="CustomerImpl operations">
     /**
      * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
      *
@@ -372,8 +363,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="CountryImpl operations">
     /**
      * Opens an {@link EditItem} window to edit a new {@link CountryModel}.
      *
@@ -420,8 +409,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="CityImpl operations">
     /**
      * Opens an {@link EditItem} window to edit a new {@link CityModel}.
      *
@@ -468,8 +455,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="AddressImpl operations">
     /**
      * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
      *
@@ -516,8 +501,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="UserModel operations">
     /**
      * Opens an {@link EditItem} window to edit a new {@link UserModel}.
      *
@@ -564,46 +547,6 @@ public final class MainController extends SchedulerController implements MainCon
         }
     }
 
-    //</editor-fold>
-    //</editor-fold>
-    private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
-
-        private final M model;
-        private final Consumer<M> onDeleted;
-
-        DeleteTask(M model, Stage stage, Consumer<M> onDeleted) {
-            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETINGRECORD));
-            this.model = model;
-            this.onDeleted = onDeleted;
-        }
-
-        @Override
-        protected void processResult(String message, Stage owner) {
-            if (null != message && !message.trim().isEmpty()) {
-                Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
-            } else if (null != onDeleted) {
-                onDeleted.accept(model);
-            }
-        }
-
-        @Override
-        protected void processException(Throwable ex, Stage owner) {
-            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
-            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
-        }
-
-        @Override
-        protected String getResult(Connection connection) throws SQLException {
-            String message = model.getDaoFactory().getDeleteDependencyMessage(model.getDataObject(), connection);
-            if (null != message && !message.trim().isEmpty()) {
-                return message;
-            }
-
-            model.getDaoFactory().delete(model.getDataObject(), connection);
-            return null;
-        }
-    }
-
     /**
      * Base class for controllers that represent content views for the {@link MainController}.
      */
@@ -646,6 +589,44 @@ public final class MainController extends SchedulerController implements MainCon
                     }
                 }
             });
+        }
+    }
+
+    private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
+
+        private final M model;
+        private final Consumer<M> onDeleted;
+
+        DeleteTask(M model, Stage stage, Consumer<M> onDeleted) {
+            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETINGRECORD));
+            this.model = model;
+            this.onDeleted = onDeleted;
+        }
+
+        @Override
+        protected void processResult(String message, Stage owner) {
+            if (null != message && !message.trim().isEmpty()) {
+                Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
+            } else if (null != onDeleted) {
+                onDeleted.accept(model);
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage owner) {
+            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
+            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+        }
+
+        @Override
+        protected String getResult(Connection connection) throws SQLException {
+            String message = model.getDaoFactory().getDeleteDependencyMessage(model.getDataObject(), connection);
+            if (null != message && !message.trim().isEmpty()) {
+                return message;
+            }
+
+            model.getDaoFactory().delete(model.getDataObject(), connection);
+            return null;
         }
     }
 }

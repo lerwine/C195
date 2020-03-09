@@ -14,21 +14,6 @@ import scheduler.view.user.UserModel;
  */
 public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 
-    @Override
-    public default DataObjectImpl.Factory<UserImpl, ? extends ItemModel<UserImpl>> getFactory() {
-        return UserImpl.getFactory();
-    }
-
-    @Override
-    public default String getLoadingMessage() {
-        return AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS);
-    }
-
-    @Override
-    public default String getSubHeading() {
-        return "";
-    }
-
     public static UserFilter all() {
         return new UserFilter() {
             @Override
@@ -103,6 +88,21 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
             }
 
         };
+    }
+
+    @Override
+    public default DataObjectImpl.Factory<UserImpl, ? extends ItemModel<UserImpl>> getFactory() {
+        return UserImpl.getFactory();
+    }
+
+    @Override
+    public default String getLoadingMessage() {
+        return AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS);
+    }
+
+    @Override
+    public default String getSubHeading() {
+        return "";
     }
 
 }

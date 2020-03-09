@@ -15,222 +15,6 @@ import scheduler.view.appointment.AppointmentModel;
 
 public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns, UserColumns {
 
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="customer property">
-    private DataObjectReference<CustomerImpl, Customer> customer;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataObjectReference<CustomerImpl, Customer> getCustomer() {
-        return customer;
-    }
-
-    /**
-     * Set the value of customer
-     *
-     * @param value new value of customer
-     */
-    public void setCustomer(DataObjectReference<CustomerImpl, Customer> value) {
-        Objects.requireNonNull(value);
-        customer = value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="user property">
-    private DataObjectReference<UserImpl, User> user;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataObjectReference<UserImpl, User> getUser() {
-        return user;
-    }
-
-    /**
-     * Set the value of user
-     *
-     * @param value new value of user
-     */
-    public void setUser(DataObjectReference<UserImpl, User> value) {
-        Objects.requireNonNull(value);
-        user = value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="title property">
-    private String title;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getTitle() {
-        return title;
-    }
-
-    /**
-     * Set the value of title
-     *
-     * @param value new value of title
-     */
-    public void setTitle(String value) {
-        title = (value == null) ? "" : value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="description property">
-    private String description;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Set the value of description
-     *
-     * @param value new value of description
-     */
-    public void setDescription(String value) {
-        description = (value == null) ? "" : value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="location property">
-    private String location;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getLocation() {
-        return location;
-    }
-
-    /**
-     * Set the value of location
-     *
-     * @param value new value of location
-     */
-    public void setLocation(String value) {
-        location = (value == null) ? "" : value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="contact property">
-    private String contact;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getContact() {
-        return contact;
-    }
-
-    /**
-     * Set the value of contact
-     *
-     * @param value new value of contact
-     */
-    public void setContact(String value) {
-        contact = (value == null) ? "" : value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="type property">
-    private String type;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * Set the value of type
-     *
-     * @param value new value of type
-     */
-    public void setType(String value) {
-        type = Values.asValidAppointmentType(value);
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="url property">
-    private String url;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getUrl() {
-        return url;
-    }
-
-    /**
-     * Set the value of url
-     *
-     * @param value new value of url
-     */
-    public void setUrl(String value) {
-        url = (value == null) ? "" : value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="start property">
-    private Timestamp start;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Timestamp getStart() {
-        return start;
-    }
-
-    /**
-     * Set the value of start
-     *
-     * @param value new value of start
-     */
-    public void setStart(Timestamp value) {
-        Objects.requireNonNull(value);
-        start = value;
-    }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="end property">
-    private Timestamp end;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Timestamp getEnd() {
-        return end;
-    }
-
-    /**
-     * Set the value of end
-     *
-     * @param value new value of end
-     */
-    public void setEnd(Timestamp value) {
-        Objects.requireNonNull(value);
-        end = value;
-    }
-
-    //</editor-fold>
-    
     private static final String BASE_SELECT_QUERY = String.format("SELECT %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, "
             + "%s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s FROM %s %s "
             + "LEFT JOIN %s %s on %s.%s = %s.%s LEFT JOIN %s %s on %s.%s = %s.%s %s",
@@ -245,8 +29,23 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
             TABLENAME_APPOINTMENT, TABLEALIAS_APPOINTMENT, TABLENAME_USER, TABLEALIAS_USER, TABLEALIAS_APPOINTMENT, COLNAME_USERID,
             TABLEALIAS_USER, COLNAME_USERID, TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID,
             TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERID, SQL_JOIN_ADDRESS);
+    private static final FactoryImpl FACTORY = new FactoryImpl();
 
-    //</editor-fold>
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
+    private DataObjectReference<CustomerImpl, Customer> customer;
+    private DataObjectReference<UserImpl, User> user;
+    private String title;
+    private String description;
+    private String location;
+    private String contact;
+    private String type;
+    private String url;
+    private Timestamp start;
+    private Timestamp end;
+
     /**
      * Initializes a {@link Values#ROWSTATE_NEW} appointment object.
      */
@@ -265,10 +64,148 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
         end = DB.toUtcTimestamp(d.plusHours(1));
     }
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
+    @Override
+    public DataObjectReference<CustomerImpl, Customer> getCustomer() {
+        return customer;
+    }
 
-    public static FactoryImpl getFactory() {
-        return FACTORY;
+    /**
+     * Set the value of customer
+     *
+     * @param value new value of customer
+     */
+    public void setCustomer(DataObjectReference<CustomerImpl, Customer> value) {
+        Objects.requireNonNull(value);
+        customer = value;
+    }
+
+    @Override
+    public DataObjectReference<UserImpl, User> getUser() {
+        return user;
+    }
+
+    /**
+     * Set the value of user
+     *
+     * @param value new value of user
+     */
+    public void setUser(DataObjectReference<UserImpl, User> value) {
+        Objects.requireNonNull(value);
+        user = value;
+    }
+
+    @Override
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Set the value of title
+     *
+     * @param value new value of title
+     */
+    public void setTitle(String value) {
+        title = (value == null) ? "" : value;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Set the value of description
+     *
+     * @param value new value of description
+     */
+    public void setDescription(String value) {
+        description = (value == null) ? "" : value;
+    }
+
+    @Override
+    public String getLocation() {
+        return location;
+    }
+
+    /**
+     * Set the value of location
+     *
+     * @param value new value of location
+     */
+    public void setLocation(String value) {
+        location = (value == null) ? "" : value;
+    }
+
+    @Override
+    public String getContact() {
+        return contact;
+    }
+
+    /**
+     * Set the value of contact
+     *
+     * @param value new value of contact
+     */
+    public void setContact(String value) {
+        contact = (value == null) ? "" : value;
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Set the value of type
+     *
+     * @param value new value of type
+     */
+    public void setType(String value) {
+        type = Values.asValidAppointmentType(value);
+    }
+
+    @Override
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Set the value of url
+     *
+     * @param value new value of url
+     */
+    public void setUrl(String value) {
+        url = (value == null) ? "" : value;
+    }
+
+    @Override
+    public Timestamp getStart() {
+        return start;
+    }
+
+    /**
+     * Set the value of start
+     *
+     * @param value new value of start
+     */
+    public void setStart(Timestamp value) {
+        Objects.requireNonNull(value);
+        start = value;
+    }
+
+    @Override
+    public Timestamp getEnd() {
+        return end;
+    }
+
+    /**
+     * Set the value of end
+     *
+     * @param value new value of end
+     */
+    public void setEnd(Timestamp value) {
+        Objects.requireNonNull(value);
+        end = value;
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> {

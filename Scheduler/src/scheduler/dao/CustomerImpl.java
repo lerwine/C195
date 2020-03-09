@@ -12,25 +12,26 @@ import scheduler.view.customer.CustomerModel;
 
 public class CustomerImpl extends DataObjectImpl implements Customer, CustomerColumns {
 
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    
-    private static final String BASE_SELECT_SQL = String.format("SELECT p.`%s` AS `%s`, p.`%s` AS `%s`, p.`%s` AS `%s`, p.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`,"
-            + "a.`%s` AS `%s`, c.`%s` AS `%s`, c.`%s` AS `%s`, n.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`"
-            + " FROM `%s` p LEFT JOIN `%s` a ON p.`%s`=a.`%s` LEFT JOIN `%s` c ON a.`%s`=c.`%s` LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_CUSTOMERID, COLNAME_CUSTOMERID,
-            COLNAME_CUSTOMERNAME, COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_ADDRESSID, COLNAME_ADDRESS,
-            COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_CITYID,
-            COLNAME_CITY, COLNAME_CITY, COLNAME_COUNTRYID, COLNAME_COUNTRYID, COLNAME_COUNTRY,
-            COLNAME_COUNTRY, COLNAME_POSTALCODE, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_PHONE,
-            COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
-            TABLENAME_CUSTOMER, TABLENAME_ADDRESS, COLNAME_ADDRESSID, COLNAME_ADDRESSID, TABLENAME_CITY, COLNAME_CITYID, COLNAME_CITYID,
-            TABLENAME_COUNTRY, COLNAME_COUNTRYID, COLNAME_COUNTRYID);
+    private static final String BASE_SELECT_SQL = String.format("SELECT `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, "
+            + "`%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, "
+            + "`%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`"
+            + " FROM `%s` `%s` LEFT JOIN `%s` `%s` ON `%s`.`%s`=`%s`.`%s` "
+            + " LEFT JOIN `%s` `%s` ON `%s`.`%s`=`%s`.`%s`"
+            + "LEFT JOIN `%s` `%s` ON `%s`.`%s`=`%s`.`%s`", COLNAME_CUSTOMERID, COLNAME_CUSTOMERID,
+            TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERNAME, COLNAME_CUSTOMERNAME, TABLEALIAS_CUSTOMER, COLNAME_ACTIVE, COLNAME_ACTIVE,
+            TABLEALIAS_CUSTOMER, COLNAME_ADDRESSID, COLNAME_ADDRESSID, TABLEALIAS_ADDRESS, COLNAME_ADDRESS, COLNAME_ADDRESS,
+            TABLEALIAS_ADDRESS, COLNAME_ADDRESS2, COLNAME_ADDRESS2, TABLEALIAS_ADDRESS, COLNAME_CITYID, COLNAME_CITYID,
+            TABLEALIAS_CITY, COLNAME_CITY, COLNAME_CITY, TABLEALIAS_CITY, COLNAME_COUNTRYID, TABLEALIAS_CITY, COLNAME_COUNTRYID,
+            TABLEALIAS_COUNTRY, COLNAME_COUNTRY, COLNAME_COUNTRY, TABLEALIAS_ADDRESS, COLNAME_POSTALCODE, COLNAME_POSTALCODE,
+            TABLEALIAS_ADDRESS, COLNAME_PHONE, COLNAME_PHONE, TABLEALIAS_CUSTOMER, COLNAME_CREATEDATE, COLNAME_CREATEDATE,
+            TABLEALIAS_CUSTOMER, COLNAME_CREATEDBY, COLNAME_CREATEDBY, TABLEALIAS_CUSTOMER, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE,
+            TABLEALIAS_CUSTOMER, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
+            TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, TABLENAME_ADDRESS, TABLEALIAS_ADDRESS, TABLEALIAS_CUSTOMER, COLNAME_ADDRESSID, TABLEALIAS_ADDRESS, COLNAME_ADDRESSID,
+            TABLENAME_CITY, TABLEALIAS_CITY, TABLEALIAS_CUSTOMER, COLNAME_CITYID, TABLEALIAS_CITY, COLNAME_CITYID,
+            TABLENAME_COUNTRY, TABLEALIAS_COUNTRY, TABLEALIAS_CUSTOMER, COLNAME_COUNTRYID, TABLEALIAS_COUNTRY, COLNAME_COUNTRYID);
 
-    //<editor-fold defaultstate="collapsed" desc="name property">
     private String name;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getName() {
         return name;
@@ -45,13 +46,8 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         this.name = name;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="address property">
     private DataObjectReference<AddressImpl, Address> address;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DataObjectReference<AddressImpl, Address> getAddress() {
         return address;
@@ -66,13 +62,8 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         this.address = address;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="active property">
     private boolean active;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isActive() {
         return active;
@@ -87,8 +78,6 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         this.active = active;
     }
 
-    //</editor-fold>
-    //</editor-fold>
     /**
      * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} customer object.
      */

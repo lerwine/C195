@@ -23,10 +23,13 @@ import scheduler.view.user.UserModel;
 
 public class UserImpl extends DataObjectImpl implements User, UserColumns {
 
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
     private static final ObservableMap<Integer, String> USER_STATUS_MAP = FXCollections.observableHashMap();
     private static ObservableMap<Integer, String> userStatusMap = null;
     private static String appointmentTypesLocale = null;
+    private static final String BASE_SELECT_QUERY = String.format("SELECT %s, %s, %s, %s as %s, %s, %s, %s, %s FROM %s", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD,
+            COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
+            TABLENAME_USER);
+    private static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static ObservableMap<Integer, String> getUserStatusMap() {
         synchronized (USER_STATUS_MAP) {
@@ -46,12 +49,24 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
         return userStatusMap;
     }
 
-    //<editor-fold defaultstate="collapsed" desc="userName property">
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     private String userName;
+    private String password;
+    private int status;
 
     /**
-     * {@inheritDoc}
+     * Initializes a {@link Values#ROWSTATE_NEW} user object.
      */
+    public UserImpl() {
+        super();
+        userName = "";
+        password = "";
+        status = Values.USER_STATUS_NORMAL;
+    }
+
     @Override
     public String getUserName() {
         return userName;
@@ -66,13 +81,6 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
         this.userName = (userName == null) ? "" : userName;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="password property">
-    private String password;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getPassword() {
         return password;
@@ -87,13 +95,6 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
         this.password = (password == null) ? "" : password;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="status property">
-    private int status;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getStatus() {
         return status;
@@ -106,28 +107,6 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
      */
     public void setStatus(int status) {
         this.status = Values.asValidUserStatus(status);
-    }
-
-    //</editor-fold>
-    
-    private static final String BASE_SELECT_QUERY = String.format("SELECT %s, %s, %s, %s as %s, %s, %s, %s, %s FROM %s", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD,
-                    COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
-                    TABLENAME_USER);
-    //</editor-fold>
-    /**
-     * Initializes a {@link Values#ROWSTATE_NEW} user object.
-     */
-    public UserImpl() {
-        super();
-        userName = "";
-        password = "";
-        status = Values.USER_STATUS_NORMAL;
-    }
-
-    private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl, UserModel> {

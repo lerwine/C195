@@ -40,7 +40,7 @@ public abstract class SchedulerController {
     }
 
     @FXML // ResourceBundle that was given to the FXMLLoader
-    private ResourceBundle resources;
+    protected ResourceBundle resources;
 
     /**
      * Gets the {@link java.util.ResourceBundle} injected by the {@link javafx.fxml.FXMLLoader}.
@@ -68,6 +68,7 @@ public abstract class SchedulerController {
      * @param ctlClass The {@link java.lang.Class} for the target controller.
      * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
      */
+    @Deprecated
     public static final <C> String getFXMLResourceName(Class<? extends C> ctlClass) {
         Class<FXMLResource> ac = FXMLResource.class;
         String message;

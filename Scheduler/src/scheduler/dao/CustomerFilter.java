@@ -6,11 +6,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.App;
 import scheduler.AppResources;
 import static scheduler.dao.CityColumns.COLNAME_CITYID;
 import static scheduler.dao.CustomerImpl.COLNAME_ACTIVE;
 import static scheduler.dao.CityImpl.COLNAME_COUNTRYID;
+import static scheduler.dao.TableNames.TABLEALIAS_CUSTOMER;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.ItemModel;
 import scheduler.view.address.AddressReferenceModel;
@@ -24,21 +24,6 @@ import scheduler.view.customer.ManageCustomers;
  * @author lerwi
  */
 public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel> {
-
-    @Override
-    public default DataObjectImpl.Factory<CustomerImpl, ? extends ItemModel<CustomerImpl>> getFactory() {
-        return CustomerImpl.getFactory();
-    }
-
-    @Override
-    public default String getLoadingMessage() {
-        return AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS);
-    }
-
-    @Override
-    public default String getSubHeading() {
-        return "";
-    }
 
     public static CustomerFilter all() {
         return new CustomerFilter() {
@@ -81,7 +66,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", COLNAME_ACTIVE);
+                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_ACTIVE);
             }
 
             @Override
@@ -101,7 +86,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
     public static CustomerFilter byAddress(Address address, boolean isActive) {
         throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     public static CustomerFilter byAddress(Address address) {
         return new CustomerFilter() {
             private final int id = address.getPrimaryKey();
@@ -132,7 +117,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", COLNAME_CITYID);
+                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_CITYID);
             }
 
             @Override
@@ -153,7 +138,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
     public static CustomerFilter byCity(City country, boolean isActive) {
         throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     public static CustomerFilter byCity(City city) {
         return new CustomerFilter() {
             private final int id = city.getPrimaryKey();
@@ -172,7 +157,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", COLNAME_CITYID);
+                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_CITYID);
             }
 
             @Override
@@ -197,7 +182,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
     public static CustomerFilter byCountry(Country country, boolean isActive) {
         throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     public static CustomerFilter byCountry(Country country) {
         return new CustomerFilter() {
             private final int id = country.getPrimaryKey();
@@ -217,7 +202,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", COLNAME_COUNTRYID);
+                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_COUNTRYID);
             }
 
             @Override
@@ -240,6 +225,21 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
             }
 
         };
+    }
+
+    @Override
+    public default DataObjectImpl.Factory<CustomerImpl, ? extends ItemModel<CustomerImpl>> getFactory() {
+        return CustomerImpl.getFactory();
+    }
+
+    @Override
+    public default String getLoadingMessage() {
+        return AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS);
+    }
+
+    @Override
+    public default String getSubHeading() {
+        return "";
     }
 
 }

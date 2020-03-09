@@ -47,16 +47,25 @@ import scheduler.view.MainController;
 public final class ManageAppointments extends ListingController<AppointmentImpl, AppointmentModel> implements ManageAppointmentsResourceKeys {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
-
-    private final ObservableList<FilterType> filters;
+    /**
+     * Loads {@link AppointmentModel} listing view and controller into the {@link MainController}.
+     *
+     * @param mainController The {@link MainController} to contain the {@link CountryModel} listing.
+     * @param stage The {@link Stage} for the view associated with the current main controller.
+     * @param filter The {@link AppointmentFilter} to use for loading and filtering {@link CountryModel} items.
+     * @throws IOException if unable to load the view.
+     */
+    public static void setContent(MainController mainController, Stage stage, AppointmentFilter filter) throws IOException {
+        setContent(mainController, ManageAppointments.class, stage, filter);
+    }
     private final BooleanProperty allItems;
     private final ObjectProperty<CustomerImpl> filterCustomer;
     private final ObjectProperty<UserImpl> filterUser;
     private final ObjectProperty<LocalDate> start;
     private final ObjectProperty<LocalDate> end;
-    private final RangeFilterType rangeFilter;
+    private RangeFilterType rangeFilter;
+    private ObservableList<FilterType> filters;
 
-    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     @FXML
     private Label headingLabel;
 
@@ -66,7 +75,15 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     @FXML // fx:id="filterButton"
     private Button filterButton; // Value injected by FXMLLoader
 
-    //</editor-fold>
+    public ManageAppointments() {
+        start = new SimpleObjectProperty<>();
+        end = new SimpleObjectProperty<>();
+        allItems = new SimpleBooleanProperty(false);
+        filterCustomer = new SimpleObjectProperty<>(null);
+        filterUser = new SimpleObjectProperty<>(App.getCurrentUser());
+    }
+
+
     public LocalDate getStart() {
         return start.get();
     }
@@ -136,12 +153,16 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     void filterButtonClick(ActionEvent event) {
     }
 
-    public ManageAppointments() {
-        start = new SimpleObjectProperty<>();
-        end = new SimpleObjectProperty<>();
-        allItems = new SimpleBooleanProperty(false);
-        filterCustomer = new SimpleObjectProperty<>(null);
-        filterUser = new SimpleObjectProperty<>(App.getCurrentUser());
+    @FXML // This method is called by the FXMLLoader when initialization is complete
+    @Override
+    protected void initialize() {
+        super.initialize();
+        assert headingLabel != null : String.format("fx:id=\"headingLabel\" was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()));
+        assert filterTypeComboBox != null : String.format("fx:id=\"filterTypeComboBox\" was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()));
+        assert filterButton != null : String.format("fx:id=\"filterButton\" was not injected: check your FXML file '%s'.",
+                getFXMLResourceName(getClass()));
         filters = FXCollections.observableArrayList(new FilterType(getResourceString(RESOURCEKEY_CURRENT)) {
             @Override
             AppointmentFilter getMyFilter() {
@@ -224,19 +245,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
             }
         });
         rangeFilter = new RangeFilterType();
-    }
 
-    //<editor-fold defaultstate="collapsed" desc="Initialization">
-    @FXML // This method is called by the FXMLLoader when initialization is complete
-    @Override
-    protected void initialize() {
-        super.initialize();
-        assert headingLabel != null : String.format("fx:id=\"headingLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
-        assert filterTypeComboBox != null : String.format("fx:id=\"filterTypeComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
-        assert filterButton != null : String.format("fx:id=\"filterButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
         filterTypeComboBox.setCellFactory((ListView<FilterType> param) -> {
             return new ListCell<FilterType>() {
                 @Override
@@ -255,19 +264,6 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         });
     }
 
-    /**
-     * Loads {@link AppointmentModel} listing view and controller into the {@link MainController}.
-     *
-     * @param mainController The {@link MainController} to contain the {@link CountryModel} listing.
-     * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param filter The {@link AppointmentFilter} to use for loading and filtering {@link CountryModel} items.
-     * @throws IOException if unable to load the view.
-     */
-    public static void setContent(MainController mainController, Stage stage, AppointmentFilter filter) throws IOException {
-        setContent(mainController, ManageAppointments.class, stage, filter);
-    }
-
-    //</editor-fold>
     @Override
     protected ItemEventManager<ItemEvent<AppointmentModel>> getItemAddManager() {
         return getMainController().getAppointmentAddManager();

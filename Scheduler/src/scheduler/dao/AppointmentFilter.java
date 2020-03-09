@@ -10,13 +10,13 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import scheduler.App;
-import scheduler.AppResources;
 import scheduler.util.ThrowableBiFunction;
 import scheduler.view.ItemModel;
 import static scheduler.dao.AppointmentImpl.COLNAME_CUSTOMERID;
 import static scheduler.dao.AppointmentImpl.COLNAME_END;
 import static scheduler.dao.AppointmentImpl.COLNAME_START;
 import static scheduler.dao.AppointmentImpl.COLNAME_USERID;
+import static scheduler.dao.TableNames.TABLEALIAS_APPOINTMENT;
 import scheduler.util.DB;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.ManageAppointments;
@@ -29,18 +29,6 @@ import scheduler.util.ResourceBundleLoader;
  * @author lerwi
  */
 public interface AppointmentFilter extends ModelFilter<AppointmentImpl, AppointmentModel> {
-
-    void initializeNew(AppointmentModel model);
-
-    @Override
-    public default DataObjectImpl.Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
-        return AppointmentImpl.getFactory();
-    }
-
-    @Override
-    public default String getLoadingMessage() {
-        return ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_LOADINGAPPOINTMENTS);
-    }
 
     /**
      * Create a new appointment filter.
@@ -148,7 +136,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId,
                 // sqlFilterExpr
-                String.format("`%s` = ?", COLNAME_CUSTOMERID),
+                String.format("`%s`.`%s` = ?", TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, customerId);
@@ -186,7 +174,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getUser().getPrimaryKey() == userId,
                 // sqlFilterExpr
-                String.format("`%s` = ?", COLNAME_USERID),
+                String.format("`%s`.`%s` = ?", TABLEALIAS_APPOINTMENT, COLNAME_USERID),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, userId);
@@ -204,9 +192,9 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUser(UserImpl user) {
         return byUser(user.getPrimaryKey(), (user.getPrimaryKey() == App.getCurrentUser().getPrimaryKey())
-                ? ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLMYAPPOINTMENTS) :
-                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTSFOR),
-                user.getUserName()), (m) -> m.setUser(new UserModel(user)));
+                ? ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLMYAPPOINTMENTS)
+                : String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTSFOR),
+                        user.getUserName()), (m) -> m.setUser(new UserModel(user)));
     }
 
     /**
@@ -234,7 +222,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` = ?", COLNAME_CUSTOMERID, COLNAME_USERID),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` = ?", TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID, TABLEALIAS_APPOINTMENT, COLNAME_USERID),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, customerId);
@@ -275,7 +263,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
-                String.format("`%s` < ?", COLNAME_END),
+                String.format("`%s`.`%s` < ?", TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setTimestamp(i++, DB.toUtcTimestamp(e));
@@ -312,7 +300,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` < ?", COLNAME_CUSTOMERID, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, customerId);
@@ -355,7 +343,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` < ?", COLNAME_USERID, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", TABLEALIAS_APPOINTMENT, COLNAME_USERID, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, userId);
@@ -410,7 +398,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` < ?", COLNAME_USERID, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", TABLEALIAS_APPOINTMENT, COLNAME_USERID, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, userId);
@@ -454,7 +442,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
-                String.format("`%s` >= ?", COLNAME_END),
+                String.format("`%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setTimestamp(i++, DB.toUtcTimestamp(d));
@@ -492,7 +480,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` >= ?", COLNAME_CUSTOMERID, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, customerId);
@@ -535,7 +523,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` >= ?", COLNAME_USERID, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_USERID, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, userId);
@@ -591,7 +579,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` >= ?", COLNAME_USERID, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_USERID, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, userId);
@@ -637,7 +625,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
                 // sqlFilterExpr
-                String.format("`%s` < ? AND `%s` >= ?", COLNAME_START, COLNAME_END),
+                String.format("`%s`.`%s` < ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_START, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setTimestamp(i++, DB.toUtcTimestamp(e));
@@ -679,7 +667,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` < ? AND `%s` >= ?", COLNAME_CUSTOMERID, COLNAME_START, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID, TABLEALIAS_APPOINTMENT, COLNAME_START, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, customerId);
@@ -709,7 +697,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` < ? AND `%s` >= ?", COLNAME_USERID, COLNAME_START, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_USERID, TABLEALIAS_APPOINTMENT, COLNAME_START, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, userId);
@@ -741,7 +729,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0
                 && t.getEnd().compareTo(s) >= 0,
                 // sqlFilterExpr
-                String.format("`%s` = ? AND `%s` = ? AND `%s` < ? AND `%s` >= ?", COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_START, COLNAME_END),
+                String.format("`%s`.`%s` = ? AND `%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID, TABLEALIAS_APPOINTMENT, COLNAME_USERID, TABLEALIAS_APPOINTMENT, COLNAME_START, TABLEALIAS_APPOINTMENT, COLNAME_END),
                 // applyValues
                 (ps, i) -> {
                     ps.setInt(i++, customerId);
@@ -777,9 +765,9 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         // TODO: Reverse string format order for hindi
         String heading = (ResourceBundleLoader.isAltVerbalOrder()) ? String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class,
                 ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
-                customer.getName(), DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))) :
-                String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName());
+                customer.getName(), DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)))
+                : String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_APPOINTMENTSONFOR),
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date)), customer.getName());
         return byCustomerWithin(customer.getPrimaryKey(), date, date, heading, (m) -> {
             m.setCustomer(new CustomerModel(customer));
             m.setUser(new UserModel(App.getCurrentUser()));
@@ -810,7 +798,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter myOn(LocalDate date) {
         return byUserWithin(App.getCurrentUser().getPrimaryKey(), date, date,
                 String.format(ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYAPPOINTMENTSON),
-                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(Objects.requireNonNull(date))),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
@@ -1079,6 +1067,18 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         return byUserOnOrAfterDate(App.getCurrentUser().getPrimaryKey(), LocalDate.now(),
                 ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_MYPASTAPPOINTMENTS),
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
+    }
+
+    void initializeNew(AppointmentModel model);
+
+    @Override
+    public default DataObjectImpl.Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+        return AppointmentImpl.getFactory();
+    }
+
+    @Override
+    public default String getLoadingMessage() {
+        return ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_LOADINGAPPOINTMENTS);
     }
 
 }
