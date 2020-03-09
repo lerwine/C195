@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
-import scheduler.dao.DataObjectImpl;
 import scheduler.dao.UserImpl;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;

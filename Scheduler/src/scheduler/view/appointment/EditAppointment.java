@@ -1,8 +1,8 @@
 package scheduler.view.appointment;
 
-import java.sql.Connection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,7 +38,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import scheduler.App;
 import scheduler.AppResources;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
@@ -65,186 +64,10 @@ import scheduler.view.user.UserModel;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public final class EditAppointment extends EditItem.EditController<AppointmentImpl, AppointmentModel> {
-    //<editor-fold defaultstate="collapsed" desc="Fields">
+public final class EditAppointment extends EditItem.EditController<AppointmentImpl, AppointmentModel> implements EditAppointmentConstants {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Appointment"}.
-     */
-    public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
+    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current Time Zone:"}.
-     */
-    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer:"}.
-     */
-    public static final String RESOURCEKEY_CUSTOMER = "customer";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer not found..."}.
-     */
-    public static final String RESOURCEKEY_CUSTOMERNOTFOUND = "customerNotFound";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Description:"}.
-     */
-    public static final String RESOURCEKEY_DESCRIPTION = "description";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Appointment"}.
-     */
-    public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End:"}.
-     */
-    public static final String RESOURCEKEY_END = "end";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End cannot be before Start."}.
-     */
-    public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid URL format"}.
-     */
-    public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Location:"}.
-     */
-    public static final String RESOURCEKEY_LOCATION = "location";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Point of Contact:"}.
-     */
-    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Show"}.
-     */
-    public static final String RESOURCEKEY_SHOW = "show";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start:"}.
-     */
-    public static final String RESOURCEKEY_START = "start";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%s to %s"}.
-     */
-    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Time Zone:"}.
-     */
-    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title:"}.
-     */
-    public static final String RESOURCEKEY_TITLE = "title";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type:"}.
-     */
-    public static final String RESOURCEKEY_TYPE = "type";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User:"}.
-     */
-    public static final String RESOURCEKEY_USER = "user";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User not found..."}.
-     */
-    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
-     */
-    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Meeting URL:"}.
-     */
-    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid hour value"}.
-     */
-    public static final String RESOURCEKEY_INVALIDHOUR = "invalidHour";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid minute value"}.
-     */
-    public static final String RESOURCEKEY_INVALIDMINUTE = "invalidMinute";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d customer appointments and %d user appointments..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d customer appointments and 1 user appointment.."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSER1 = "conflictCustomerNUser1";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment and %d user appointments..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USERN = "conflictCustomer1UserN";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment and 1 user appointment..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USER1 = "conflictCustomer1User1";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d customer appointments..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTCUSTOMERN = "conflictCustomerN";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 customer appointment..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTCUSTOMER1 = "conflictCustomer1";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with %d user appointments..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This conflicts with 1 user appointment..."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Conflicts Found"}.
-     */
-    public static final String RESOURCEKEY_CONFLICTSFOUND = "conflictsFound";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointment Conflict"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading customers"}.
-     */
-    public static final String RESOURCEKEY_LOADING_CUSTOMERS = "loadingCustomers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading users"}.
-     */
-    public static final String RESOURCEKEY_LOADING_USERS = "loadingUsers";
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     @FXML // Customer selection control
     private ComboBox<CustomerModel> customerComboBox;
 
@@ -341,10 +164,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @FXML // Appointment description input control.
     private TextArea descriptionTextArea;
 
-    //</editor-fold>
-    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
-
-    //<editor-fold defaultstate="collapsed" desc="Observables">
     // Items for the customerComboBox control.
     private ObservableList<CustomerModel> customers;
 
@@ -386,8 +205,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     // Aggregate binding to indicate whether all controls are valid.
     private BooleanBinding valid;
 
-    //</editor-fold>
-    //</editor-fold>
     private int currentTimeZoneOffset;
 
     @Override
@@ -395,73 +212,72 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         return AppointmentImpl.getFactory();
     }
 
-    //<editor-fold defaultstate="collapsed" desc="Initialization">
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         assert customerComboBox != null : String.format("fx:id=\"customerComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert userComboBox != null : String.format("fx:id=\"userComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert customerValidationText != null : String.format("fx:id=\"customerValidationText\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
 //        assert customerValidationLabel != null : String.format("fx:id=\"customerValidationLabel\" was not injected: check your FXML file '%s'.",
-//                getFXMLResourceName(getClass()));
+//                AppResources.getFXMLResourceName(getClass()));
         assert userValidationLabel != null : String.format("fx:id=\"userValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert titleTextField != null : String.format("fx:id=\"titleTextField\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert titleValidationLabel != null : String.format("fx:id=\"titleValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert startDatePicker != null : String.format("fx:id=\"startDatePicker\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert startHourComboBox != null : String.format("fx:id=\"startHourComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert startMinuteComboBox != null : String.format("fx:id=\"startMinuteComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert startValidationLabel != null : String.format("fx:id=\"startValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert endDatePicker != null : String.format("fx:id=\"endDatePicker\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert endHourComboBox != null : String.format("fx:id=\"endHourComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert endMinuteComboBox != null : String.format("fx:id=\"endMinuteComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert endValidationLabel != null : String.format("fx:id=\"endValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert timeZoneComboBox != null : String.format("fx:id=\"timeZoneComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert currentTimeZoneLabel != null : String.format("fx:id=\"currentTimeZoneLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert currentTimeZoneValue != null : String.format("fx:id=\"currentTimeZoneValue\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert conflictValidationLabel != null : String.format("fx:id=\"dateTimeValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert showConflictsHBox != null : String.format("fx:id=\"showConflictsHBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert locationLabel != null : String.format("fx:id=\"locationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert typeComboBox != null : String.format("fx:id=\"typeComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert locationTextArea != null : String.format("fx:id=\"locationTextArea\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert phoneTextField != null : String.format("fx:id=\"phoneTextField\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert implicitLocationLabel != null : String.format("fx:id=\"implicitLocationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert locationValidationLabel != null : String.format("fx:id=\"locationValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert urlLabel != null : String.format("fx:id=\"urlLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert urlTextField != null : String.format("fx:id=\"urlTextField\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert urlValidationLabel != null : String.format("fx:id=\"urlValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert contactTextField != null : String.format("fx:id=\"contactTextField\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert contactValidationLabel != null : String.format("fx:id=\"contactValidationLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert descriptionTextArea != null : String.format("fx:id=\"descriptionTextArea\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
 
         // Initialize options lists for start and end time combo boxes.
         hourOptions = FXCollections.observableArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
@@ -535,6 +351,36 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         super.onBeforeShow(currentView, stage);
     }
 
+    @FXML
+    void addCustomerClick(ActionEvent event) {
+        Alerts.showWarningAlert("Not implemented");
+//        CustomerModel customer = EditCustomer.addNew(getViewManager());
+//        if (null == customer)
+//            return;
+//        customers.add(customer);
+//        customerComboBox.getSelectionModel().select(customer);
+    }
+
+    @FXML
+    void addUserClick(ActionEvent event) {
+        Alerts.showWarningAlert("Not implemented");
+//        UserModel user = EditUser.addNew(getViewManager());
+//        if (null == user)
+//            return;
+//        users.add(user);
+//        userComboBox.getSelectionModel().select(user);
+    }
+
+    @FXML
+    void showConflictsButtonClick(ActionEvent event) {
+        Alerts.showWarningAlert("Not implemented");
+    }
+
+    @Override
+    protected BooleanExpression getValidationExpression() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     private class ItemsLoadTask extends TaskWaiter<Boolean> {
 
         private ArrayList<CustomerImpl> customerList;
@@ -577,43 +423,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Event handler methods">
-    @FXML
-    void addCustomerClick(ActionEvent event) {
-//        CustomerModel customer = EditCustomer.addNew(getViewManager());
-//        if (null == customer)
-//            return;
-//        customers.add(customer);
-//        customerComboBox.getSelectionModel().select(customer);
-    }
-
-    @FXML
-    void addUserClick(ActionEvent event) {
-//        UserModel user = EditUser.addNew(getViewManager());
-//        if (null == user)
-//            return;
-//        users.add(user);
-//        userComboBox.getSelectionModel().select(user);
-    }
-
-    @FXML
-    void showConflictsButtonClick(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    //</editor-fold>
-    @Override
-    protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="State management classes">
     /**
-     * Manages visibility and text of controls according to the selected appointment type. The {@link #locationTextArea} control is made visible when the selected appointment type
-     * is for an explicitly defined location. The {@link #phoneTextField} control is made visible when the selected appointment type is for a phone meeting. The {@link #urlLabel}
-     * and {@link #urlTextField} controls are made visible when the selected appointment type is for a virtual (online) meeting. The {@link #implicitLocationLabel} control is made
-     * visible when the selected appointment type indicates it is at the customer's location. The {@link #locationLabel} control is made visible when either the
+     * Manages visibility and text of controls according to the selected appointment type. The {@link #locationTextArea} control is made visible when
+     * the selected appointment type is for an explicitly defined location. The {@link #phoneTextField} control is made visible when the selected
+     * appointment type is for a phone meeting. The {@link #urlLabel} and {@link #urlTextField} controls are made visible when the selected
+     * appointment type is for a virtual (online) meeting. The {@link #implicitLocationLabel} control is made visible when the selected appointment
+     * type indicates it is at the customer's location. The {@link #locationLabel} control is made visible when either the
      * {@link #locationTextArea}, {@link #phoneTextField} or {@link #implicitLocationLabel} are visible.
      */
     private class TypeSelectionState {
@@ -627,7 +442,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
          */
         final ObjectProperty<CustomerModel> selectedCustomerProperty;
         /**
-         * Indicates whether the selected appointment type is for an explicitly defined location ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_OTHER}).
+         * Indicates whether the selected appointment type is for an explicitly defined location
+         * ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_OTHER}).
          */
         final BooleanBinding explicitLocation;
         /**
@@ -635,7 +451,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
          */
         final BooleanBinding phone;
         /**
-         * Indicates whether the selected appointment type is for an online (virtual) meeting ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_VIRTUAL}).
+         * Indicates whether the selected appointment type is for an online (virtual) meeting
+         * ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_VIRTUAL}).
          */
         final BooleanBinding virtual;
         /**
@@ -772,7 +589,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         /**
          * Updates the display status for the {@link #urlLabel} and {@link #urlTextField} controls.
          *
-         * @param value If {@code true}, then the {@link #urlLabel} and {@link #urlLabel} controls will be made visible; otherwise, they will be hidden and collapsed.
+         * @param value If {@code true}, then the {@link #urlLabel} and {@link #urlLabel} controls will be made visible; otherwise, they will be
+         * hidden and collapsed.
          */
         final void virtualChanged(boolean value) {
             if (value) {
@@ -787,7 +605,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         /**
          * Update the text and/or display status for the {@link #implicitLocationLabel} control.
          *
-         * @param value If empty, then the {@link #implicitLocationLabel} control will be hidden and collapsed; otherwise, it will be made visible and its text updated accordingly.
+         * @param value If empty, then the {@link #implicitLocationLabel} control will be hidden and collapsed; otherwise, it will be made visible and
+         * its text updated accordingly.
          */
         final void implicitLocationTextChanged(String value) {
             if (value == null || value.trim().isEmpty()) {
@@ -800,7 +619,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         /**
          * Update the text and/or display status for the {@link #locationLabel} control.
          *
-         * @param value If empty, then the {@link #locationLabel} control will be hidden and collapsed; otherwise, it will be made visible and its text updated accordingly.
+         * @param value If empty, then the {@link #locationLabel} control will be hidden and collapsed; otherwise, it will be made visible and its
+         * text updated accordingly.
          */
         final void locationLabelTextChanged(String value) {
             if (value == null || value.trim().isEmpty()) {
@@ -812,9 +632,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     }
 
     /**
-     * Manages visibility of the {@link #showConflictsHBox} control and the text of the {@link #conflictValidationLabel} control according to appointment schedule conflict results.
-     * The text of the {@link #conflictValidationLabel} control is updated to contain a verbal explanation of the conflict counts. The {@link #showConflictsHBox} control is made
-     * visible when there are one or more customer or user scheduling conflicts found.
+     * Manages visibility of the {@link #showConflictsHBox} control and the text of the {@link #conflictValidationLabel} control according to
+     * appointment schedule conflict results. The text of the {@link #conflictValidationLabel} control is updated to contain a verbal explanation of
+     * the conflict counts. The {@link #showConflictsHBox} control is made visible when there are one or more customer or user scheduling conflicts
+     * found.
      */
     private class ConflictLookupState {
 
@@ -893,8 +714,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         /**
          * This is invoked when the user clicks the "Save" button, to see if there are no customer or user scheduling conflicts.
          *
-         * @return {@code true} if selected date ranges are valid, a customer and user is selected, and there are no scheduling conflicts; otherwise, {@code false} to indicate that
-         * the "save" should be aborted.
+         * @return {@code true} if selected date ranges are valid, a customer and user is selected, and there are no scheduling conflicts; otherwise,
+         * {@code false} to indicate that the "save" should be aborted.
          */
         boolean test(Connection connection) throws Exception {
             LocalDateTime start = dateRangeValidation.startValidation.selectedDateTime.get();
@@ -921,8 +742,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         }
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Field Validation classes">
     private class SimpleRequirementValidation<T> extends BooleanBinding {
 
         final ObjectProperty<T> valueProperty;
@@ -1135,21 +954,22 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     /**
      * Validation binding for start and end date/time. This validates the selections for the {@link #endDatePicker}, {@link #endHourComboBox}, {@link #endMinuteComboBox},
-     * {@link #endDatePicker}, {@link #endHourComboBox}, and {@link #endMinuteComboBox}controls, producing the resource key of the validation message for the date range or an empty
-     * string if the start/end date/time range is valid.
+     * {@link #endDatePicker}, {@link #endHourComboBox}, and {@link #endMinuteComboBox}controls, producing the resource key of the validation message
+     * for the date range or an empty string if the start/end date/time range is valid.
      */
     private class DateRangeValidation extends StringBinding {
 
         /**
-         * Validation binding for the range start date/time. This validates the selections for the {@link #startDatePicker}, {@link #startHourComboBox}, and
-         * {@link #startMinuteComboBox} controls, producing the resource key of the validation message for the start date/time or an empty string if all start date/time selections
-         * are valid.
+         * Validation binding for the range start date/time. This validates the selections for the
+         * {@link #startDatePicker}, {@link #startHourComboBox}, and {@link #startMinuteComboBox} controls, producing the resource key of the
+         * validation message for the start date/time or an empty string if all start date/time selections are valid.
          */
         final DateValidation startValidation;
 
         /**
-         * Validation binding for the range end date/time. This validates the selections for the {@link #endDatePicker}, {@link #endHourComboBox}, and {@link #endMinuteComboBox}
-         * controls, producing the resource key of the validation message for the start date/time or an empty string if all start date/time selections are valid.
+         * Validation binding for the range end date/time. This validates the selections for the {@link #endDatePicker}, {@link #endHourComboBox}, and
+         * {@link #endMinuteComboBox} controls, producing the resource key of the validation message for the start date/time or an empty string if all
+         * start date/time selections are valid.
          */
         final DateValidation endValidation;
 
@@ -1250,5 +1070,4 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         }
     }
 
-    //</editor-fold>
 }

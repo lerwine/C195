@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -13,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Labeled;
 import javafx.stage.Stage;
+import scheduler.AppResources;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -62,56 +62,6 @@ public abstract class SchedulerController {
     }
 
     /**
-     * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}. This value is specified using the {@link FXMLResource} annotation.
-     *
-     * @param <C> The type of controller.
-     * @param ctlClass The {@link java.lang.Class} for the target controller.
-     * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
-     */
-    @Deprecated
-    public static final <C> String getFXMLResourceName(Class<? extends C> ctlClass) {
-        Class<FXMLResource> ac = FXMLResource.class;
-        String message;
-        if (ctlClass.isAnnotationPresent(ac)) {
-            String n = ctlClass.getAnnotation(ac).value();
-            if (n != null && !n.trim().isEmpty()) {
-                return n;
-            }
-            message = String.format("Value not defined for annotation scene.annotations.FXMLResourceName in type %s",
-                    ctlClass.getName());
-        } else {
-            message = String.format("Annotation scene.annotations.FXMLResourceName not present in type %s", ctlClass.getName());
-        }
-        LOG.logp(Level.SEVERE, SchedulerController.class.getName(), "getFXMLResourceName", message);
-        return null;
-    }
-
-//    /**
-//     * Gets the name of the internationalization resource bundle to be loaded with the specified controller {@link Class}. This value is specified using the
-//     * {@link GlobalizationResource} annotation.
-//     *
-//     * @param <C> The type of controller.
-//     * @param ctlClass The {@link Class} for the target controller.
-//     * @return The name of the internationalization resource bundle to be loaded with the target controller.
-//     */
-//    public static final <C> String getGlobalizationResourceName(Class<? extends C> ctlClass) {
-//        Class<GlobalizationResource> ac = GlobalizationResource.class;
-//        String message;
-//        if (ctlClass.isAnnotationPresent(ac)) {
-//            String n = ctlClass.getAnnotation(ac).value();
-//            if (n != null && !n.trim().isEmpty()) {
-//                return n;
-//            }
-//            message = String.format("Value not defined for annotation scene.annotations.GlobalizationResource in type %s",
-//                    ctlClass.getName());
-//        } else {
-//            message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", ctlClass.getName());
-//        }
-//        LOG.logp(Level.SEVERE, SchedulerController.class.getName(), "getGlobalizationResourceName", message);
-//        return scheduler.App.GLOBALIZATION_RESOURCE_NAME;
-//    }
-
-    /**
      * Loads a view and controller. The path of the view to load is identified by the {@link FXMLResource} annotation on the {@code controllerClass}. The {@link ResourceBundle}
      * loaded with the controller is identified by the {@link GlobalizationResource} annotation on the {@code controllerClass}.
      *
@@ -130,7 +80,7 @@ public abstract class SchedulerController {
             BiConsumer<V, C> show, Class<?> baseResourceClass) throws IOException {
         Objects.requireNonNull(stage);
         Objects.requireNonNull(show);
-        FXMLLoader loader = new FXMLLoader(controllerClass.getResource(getFXMLResourceName(controllerClass)),
+        FXMLLoader loader = new FXMLLoader(controllerClass.getResource(AppResources.getFXMLResourceName(controllerClass)),
                 (null == baseResourceClass) ? ResourceBundleLoader.getBundle(controllerClass)
                         : ResourceBundleLoader.getMergedBundle(controllerClass, baseResourceClass));
         V view = loader.load();

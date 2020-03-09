@@ -33,7 +33,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import scheduler.App;
 import scheduler.AppResources;
 import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;

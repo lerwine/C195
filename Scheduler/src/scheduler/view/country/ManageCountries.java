@@ -12,7 +12,6 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.dao.ModelFilter;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
-import static scheduler.view.ListingController.setContent;
 import scheduler.view.MainController;
 
 /**

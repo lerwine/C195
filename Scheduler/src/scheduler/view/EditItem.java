@@ -6,22 +6,21 @@ import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.logging.Logger;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
+import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import scheduler.App;
 import scheduler.AppResources;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
@@ -38,13 +37,42 @@ import scheduler.view.annotations.GlobalizationResource;
 @GlobalizationResource("view/EditItem")
 @FXMLResource("/view/EditItem.fxml")
 public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> extends SchedulerController {
-    //<editor-fold defaultstate="collapsed" desc="fields">
 
+    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+
+    /**
+     * Displays a dialog window to edit an {@link ItemModel}.
+     *
+     * @param <M> The type of {@link ItemModel} to be edited.
+     * @param <C> The type of controller for the editor.
+     * @param controllerClass The {@link EditController} class.
+     * @param model The {@link ItemModel} to be edited.
+     * @param parent The {@link Stage} that represents the parent window.
+     * @return A {@link ShowAndWaitResult} object that represents the result of the dialog window.
+     */
+    public static <M extends ItemModel<?>, C extends EditController<?, M>> ShowAndWaitResult<M> waitEdit(Class<C> controllerClass,
+            M model, Stage parent) {
+        final ShowAndWaitResult<M> result = new ShowAndWaitResult<>(model);
+        try {
+            load(parent, EditItem.class, (Parent v, EditItem ctrl) -> {
+                ctrl.result = result;
+                ctrl.onLoaded(v, model);
+            }, (Parent v, EditItem ctrl) -> {
+                ctrl.onShow(v, model, controllerClass, parent);
+            });
+        } catch (IOException ex) {
+            Alerts.logAndAlertError(LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
+            result.fault = ex;
+            result.successful = false;
+            result.canceled = false;
+            result.deleteOperation = false;
+        }
+        return result;
+    }
     private ShowAndWaitResult<M> result;
 
     private EditController<D, M> contentController;
 
-    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
     @FXML
     private BorderPane contentBorderPane; // Value injected by FXMLLoader
 
@@ -81,39 +109,34 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
     @FXML
     private Button cancelButton; // Value injected by FXMLLoader
 
-    //</editor-fold>
-    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
-
-    //</editor-fold>
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert contentBorderPane != null : String.format("fx:id=\"contentBorderPane\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert createdLabel != null : String.format("fx:id=\"createdLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert lastUpdateLabel != null : String.format("fx:id=\"lastUpdateLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert createDateValue != null : String.format("fx:id=\"createDateValue\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert createdByLabel != null : String.format("fx:id=\"createdByLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert createdByValue != null : String.format("fx:id=\"createdByValue\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert lastUpdateValue != null : String.format("fx:id=\"lastUpdateValue\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert lastUpdateByLabel != null : String.format("fx:id=\"lastUpdateByLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert lastUpdateByValue != null : String.format("fx:id=\"lastUpdateByValue\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(saveChangesButton, String.format("fx:id=\"saveChangesButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             throw new UnsupportedOperationException("Not implemented");
 //            contentController.getDaoFactory().applyChanges(contentController.model);
 //            TaskWaiter.execute(new SaveTask((Stage)saveChangesButton.getScene().getWindow()));
         });
         Objects.requireNonNull(deleteButton, String.format("fx:id=\"deleteButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            ResourceBundle rb = getResources();
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             if (response.isPresent() && response.get() == ButtonType.YES) {
@@ -121,7 +144,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
             }
         });
         Objects.requireNonNull(cancelButton, String.format("fx:id=\"cancelButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             result.canceled = true;
             result.successful = false;
             result.deleteOperation = false;
@@ -185,37 +208,6 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
     }
 
     /**
-     * Displays a dialog window to edit an {@link ItemModel}.
-     *
-     * @param <M> The type of {@link ItemModel} to be edited.
-     * @param <C> The type of controller for the editor.
-     * @param controllerClass The {@link EditController} class.
-     * @param model The {@link ItemModel} to be edited.
-     * @param parent The {@link Stage} that represents the parent window.
-     * @return A {@link ShowAndWaitResult} object that represents the result of the dialog window.
-     */
-    public static <M extends ItemModel<?>, C extends EditController<?, M>> ShowAndWaitResult<M> waitEdit(Class<C> controllerClass,
-            M model, Stage parent) {
-        final ShowAndWaitResult<M> result = new ShowAndWaitResult<>(model);
-        try {
-            load(parent, EditItem.class, (Parent v, EditItem ctrl) -> {
-                ctrl.result = result;
-                ctrl.onLoaded(v, model);
-            }, (Parent v, EditItem ctrl) -> {
-                ctrl.onShow(v, model, controllerClass, parent);
-            });
-        } catch (IOException ex) {
-            Alerts.logAndAlertError(LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
-            result.fault = ex;
-            result.successful = false;
-            result.canceled = false;
-            result.deleteOperation = false;
-        }
-        return result;
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="Nested classes">
-    /**
      * Represents the results of the {@link #waitEdit(java.lang.Class, scheduler.view.ItemModel, javafx.stage.Stage)} method.
      *
      * @param <M> The type of model being edited.
@@ -227,7 +219,8 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         /**
          * Returns {@code true} if the operation was successful; otherwise {@code false}.
          *
-         * @return {@code true} if the operation was successful; otherwise {@code false} if {@link #canceled} is {@code true} or {@link #fault} is not {@code null}.
+         * @return {@code true} if the operation was successful; otherwise {@code false} if {@link #canceled} is {@code true} or {@link #fault} is not
+         * {@code null}.
          */
         public boolean isSuccessful() {
             return successful;
@@ -286,7 +279,101 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
     }
 
-    //<editor-fold defaultstate="collapsed" desc="Background tasks">
+    /**
+     * Base class for item edit content controllers.
+     *
+     * @param <D> The type of data access object that the model represents.
+     * @param <M> The type of model being edited.
+     */
+    public static abstract class EditController<D extends DataObjectImpl, M extends ItemModel<D>> extends SchedulerController {
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add"}.
+         */
+        public static final String RESOURCEKEY_ADD = "add";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "* Required"}.
+         */
+        public static final String RESOURCEKEY_REQUIRED = "required";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created"}.
+         */
+        public static final String RESOURCEKEY_CREATED = "created";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "by"}.
+         */
+        public static final String RESOURCEKEY_BY = "by";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated"}.
+         */
+        public static final String RESOURCEKEY_UPDATED = "updated";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Save"}.
+         */
+        public static final String RESOURCEKEY_SAVE = "save";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cancel"}.
+         */
+        public static final String RESOURCEKEY_CANCEL = "cancel";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Would you like to save, anyway?"}.
+         */
+        public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete"}.
+         */
+        public static final String RESOURCEKEY_DELETE = "delete";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Confirm Delete"}.
+         */
+        public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This action cannot be undone!..."}.
+         */
+        public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
+
+        /**
+         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Validation Error"}.
+         */
+        public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
+
+        private M model;
+
+        /**
+         * Gets the current {@link ItemModel} being edited.
+         *
+         * @return the current {@link ItemModel} being edited.
+         */
+        protected M getModel() {
+            return model;
+        }
+
+        /**
+         * This gets called to get an instance of the {@link DataObjectImpl.Factory}.
+         *
+         * @return An instance of the {@link DataObjectImpl.Factory}.
+         */
+        protected abstract DataObjectImpl.Factory<D, M> getDaoFactory();
+
+        /**
+         * Gets the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
+         *
+         * @return the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
+         */
+        protected abstract BooleanExpression getValidationExpression();
+
+    }
+
     private class SaveTask extends TaskWaiter<String> {
 
         SaveTask(Stage stage) {
@@ -368,121 +455,4 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
     }
 
-    //</editor-fold>
-    /**
-     * Base class for item edit content controllers.
-     *
-     * @param <D> The type of data access object that the model represents.
-     * @param <M> The type of model being edited.
-     */
-    public static abstract class EditController<D extends DataObjectImpl, M extends ItemModel<D>> extends SchedulerController {
-        //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add"}.
-         */
-        public static final String RESOURCEKEY_ADD = "add";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "* Required"}.
-         */
-        public static final String RESOURCEKEY_REQUIRED = "required";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created"}.
-         */
-        public static final String RESOURCEKEY_CREATED = "created";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "by"}.
-         */
-        public static final String RESOURCEKEY_BY = "by";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated"}.
-         */
-        public static final String RESOURCEKEY_UPDATED = "updated";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Save"}.
-         */
-        public static final String RESOURCEKEY_SAVE = "save";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cancel"}.
-         */
-        public static final String RESOURCEKEY_CANCEL = "cancel";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Would you like to save, anyway?"}.
-         */
-        public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Delete"}.
-         */
-        public static final String RESOURCEKEY_DELETE = "delete";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Confirm Delete"}.
-         */
-        public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This action cannot be undone!..."}.
-         */
-        public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
-
-        /**
-         * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Validation Error"}.
-         */
-        public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
-
-        //</editor-fold>
-        private M model;
-
-        /**
-         * Gets the current {@link ItemModel} being edited.
-         *
-         * @return the current {@link ItemModel} being edited.
-         */
-        protected M getModel() {
-            return model;
-        }
-
-        /**
-         * This gets called to get an instance of the {@link DataObjectImpl.Factory}.
-         *
-         * @return An instance of the {@link DataObjectImpl.Factory}.
-         */
-        protected abstract DataObjectImpl.Factory<D, M> getDaoFactory();
-
-        /**
-         * Gets the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
-         *
-         * @return the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
-         */
-        protected abstract BooleanExpression getValidationExpression();
-//
-//        /**
-//         * Gets a message indicating whether any existing record conflicts with the proposed change.
-//         *
-//         * @param connection The {@link Connection} to use to look for database conflicts.
-//         * @return The human-readable conflict message or {@code null} if there are no conflicts.
-//         * @throws SQLException if unable to check for conflicts.
-//         */
-//        protected abstract String getSaveConflictMessage(Connection connection) throws SQLException;
-//
-//        /**
-//         * Gets a message indicating whether any other records have a dependency on the current record.
-//         *
-//         * @param connection The {@link Connection} to use to look for dependencies.
-//         * @return The human-readable dependency message or {@code null} if there are no dependencies.
-//         * @throws SQLException if unable to check for dependencies.
-//         */
-//        protected abstract String getDeleteDependencyMessage(Connection connection) throws SQLException;
-
-    }
-
-    //</editor-fold>
 }

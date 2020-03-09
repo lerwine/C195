@@ -23,18 +23,20 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import scheduler.App;
+import scheduler.AppResources;
 import scheduler.dao.AppointmentFilter;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.UserImpl;
+import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
 import scheduler.view.EditItem;
-import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
+import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items. This is loaded as content of {@link MainController} using
@@ -47,6 +49,7 @@ import scheduler.view.MainController;
 public final class ManageAppointments extends ListingController<AppointmentImpl, AppointmentModel> implements ManageAppointmentsResourceKeys {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
+
     /**
      * Loads {@link AppointmentModel} listing view and controller into the {@link MainController}.
      *
@@ -82,7 +85,6 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         filterCustomer = new SimpleObjectProperty<>(null);
         filterUser = new SimpleObjectProperty<>(App.getCurrentUser());
     }
-
 
     public LocalDate getStart() {
         return start.get();
@@ -146,11 +148,12 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 
     @FXML
     void filterTypeChanged(ActionEvent event) {
-
+        Alerts.showWarningAlert("Not implemented");
     }
 
     @FXML
     void filterButtonClick(ActionEvent event) {
+        Alerts.showWarningAlert("Not implemented");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -158,11 +161,11 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     protected void initialize() {
         super.initialize();
         assert headingLabel != null : String.format("fx:id=\"headingLabel\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert filterTypeComboBox != null : String.format("fx:id=\"filterTypeComboBox\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         assert filterButton != null : String.format("fx:id=\"filterButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         filters = FXCollections.observableArrayList(new FilterType(getResourceString(RESOURCEKEY_CURRENT)) {
             @Override
             AppointmentFilter getMyFilter() {
@@ -262,6 +265,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
                 setText((item == null) ? "" : item.getDisplayText());
             }
         });
+        filterTypeComboBox.setItems(filters);
     }
 
     @Override

@@ -13,7 +13,7 @@ import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModel;
 
-public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns, UserColumns {
+public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns {
 
     private static final String BASE_SELECT_QUERY = String.format("SELECT %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, "
             + "%s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s FROM %s %s "

@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.App;
 import scheduler.view.ItemModel;
 
 /**
@@ -64,7 +63,7 @@ public interface RecordReader<T extends DataObjectImpl> {
         if (null != w && !(w = w.trim()).isEmpty()) {
             sb.append(" WHERE ").append(w);
         }
-        Logger.getLogger(App.class.getName()).log(Level.FINE, String.format("Executing query \"%s\"", sb.toString()));
+        Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Executing query \"%s\"", sb.toString()));
         ArrayList<T> result = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
             apply(ps, 1);

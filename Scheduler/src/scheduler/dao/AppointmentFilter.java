@@ -10,19 +10,19 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import scheduler.App;
+import static scheduler.dao.AppointmentColumns.COLNAME_END;
+import static scheduler.dao.AppointmentColumns.COLNAME_START;
+import static scheduler.dao.CustomerColumns.COLNAME_CUSTOMERID;
+import static scheduler.dao.TableNames.TABLEALIAS_APPOINTMENT;
+import static scheduler.dao.UserColumns.COLNAME_USERID;
+import scheduler.util.DB;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ThrowableBiFunction;
 import scheduler.view.ItemModel;
-import static scheduler.dao.AppointmentImpl.COLNAME_CUSTOMERID;
-import static scheduler.dao.AppointmentImpl.COLNAME_END;
-import static scheduler.dao.AppointmentImpl.COLNAME_START;
-import static scheduler.dao.AppointmentImpl.COLNAME_USERID;
-import static scheduler.dao.TableNames.TABLEALIAS_APPOINTMENT;
-import scheduler.util.DB;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.user.UserModel;
-import scheduler.util.ResourceBundleLoader;
 
 /**
  *

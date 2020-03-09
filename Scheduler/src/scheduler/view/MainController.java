@@ -193,11 +193,11 @@ public final class MainController extends SchedulerController implements MainCon
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert appointmentsMenu != null : String.format("fx:id=\"appointmentsMenu\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
                 ManageAppointments.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         AppointmentImpl.getFactory().getAllItemsFilter());
@@ -206,11 +206,11 @@ public final class MainController extends SchedulerController implements MainCon
             }
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCustomer(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCustomer(event));
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
                 ManageCustomers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CustomerImpl.getFactory().getAllItemsFilter());
@@ -219,15 +219,15 @@ public final class MainController extends SchedulerController implements MainCon
             }
         });
         assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCountryMenuItem, String.format("fx:id=\"newCountryMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCountry(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCountry(event));
         Objects.requireNonNull(newCityMenuItem, String.format("fx:id=\"newCityMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCity(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCity(event));
         Objects.requireNonNull(newAddressMenuItem, String.format("fx:id=\"newAddressMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAddress(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAddress(event));
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
                 ManageCountries.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CountryImpl.getFactory().getAllItemsFilter());
@@ -236,11 +236,11 @@ public final class MainController extends SchedulerController implements MainCon
             }
         });
         assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newUserMenuItem, String.format("fx:id=\"newUserMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> addNewUser(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewUser(event));
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
                 ManageUsers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         UserImpl.getFactory().getAllItemsFilter());
@@ -249,7 +249,7 @@ public final class MainController extends SchedulerController implements MainCon
             }
         });
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()));
+                AppResources.getFXMLResourceName(getClass()));
     }
 
     @Override

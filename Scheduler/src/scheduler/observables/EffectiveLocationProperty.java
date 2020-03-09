@@ -4,7 +4,6 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.App;
 import scheduler.AppResources;
 import scheduler.dao.Appointment;
 import scheduler.dao.Customer;
@@ -39,7 +38,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
     protected String computeValue() {
         String l = location.getValue();
         String u = url.getValue();
-        CustomerReferenceModel<? extends Customer> c = customer.getValue();
+        //CustomerReferenceModel<? extends Customer> c = customer.getValue();
         switch (type.getValue()) {
             case Values.APPOINTMENTTYPE_GERMANY:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);

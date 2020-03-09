@@ -5,11 +5,6 @@
  */
 package scheduler.dao;
 
-import static scheduler.dao.CountryColumns.COLNAME_COUNTRYID;
-import static scheduler.dao.TableNames.TABLEALIAS_CITY;
-import static scheduler.dao.TableNames.TABLEALIAS_COUNTRY;
-import static scheduler.dao.TableNames.TABLENAME_COUNTRY;
-
 /**
  *
  * @author lerwi

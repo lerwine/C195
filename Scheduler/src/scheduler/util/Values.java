@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import scheduler.App;
 import scheduler.AppResources;
 
 /**

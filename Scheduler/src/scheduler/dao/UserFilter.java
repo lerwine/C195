@@ -2,7 +2,6 @@ package scheduler.dao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import scheduler.App;
 import scheduler.AppResources;
 import static scheduler.util.Values.USER_STATUS_INACTIVE;
 import scheduler.view.ItemModel;

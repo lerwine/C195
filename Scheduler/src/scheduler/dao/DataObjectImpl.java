@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -453,7 +452,7 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
             synchronized (dao) {
                 assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has been deleted", getClass().getName());
                 StringBuilder sql = new StringBuilder();
-                HashMap<String, Integer> indexes = new HashMap<>();
+                //HashMap<String, Integer> indexes = new HashMap<>();
                 List<String> extendedFields = getExtendedColNames();
                 if (dao.getRowState() == Values.ROWSTATE_NEW) {
                     sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", extendedFields))

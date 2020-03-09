@@ -17,7 +17,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
-import scheduler.App;
 import scheduler.AppResources;
 import scheduler.util.Values;
 

@@ -6,11 +6,11 @@ import javafx.beans.binding.StringBinding;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import scheduler.AppResources;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
-import scheduler.view.SchedulerController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -23,7 +23,6 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
 public final class EditCountry extends EditItem.EditController<CountryImpl, CountryModel> {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Country"}.
      */
@@ -50,7 +49,6 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
      */
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
 
-    //</editor-fold>
     @FXML
     private TextField nameTextField;
 
@@ -62,7 +60,7 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         Objects.requireNonNull(nameTextField, String.format("fx:id=\"nameTextField\" was not injected: check your FXML file '%s'.",
-                SchedulerController.getFXMLResourceName(getClass()))).setText(getModel().getName());
+                AppResources.getFXMLResourceName(getClass()))).setText(getModel().getName());
         normalizedName = ValueBindings.asNormalized(nameTextField.textProperty());
         normalizedName.isNotEmpty().addListener((observable) -> {
             if (normalizedName.isNotEmpty().get()) {

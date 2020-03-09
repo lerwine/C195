@@ -24,11 +24,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventListener;
 import scheduler.util.ItemEventManager;
-import scheduler.dao.ModelFilter;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects. This is loaded as the content of
@@ -41,6 +41,7 @@ import scheduler.dao.ModelFilter;
 public abstract class ListingController<T extends DataObjectImpl, S extends ItemModel<T>> extends MainController.MainContentController {
 
     private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
+
     public static <T extends DataObjectImpl, S extends ItemModel<T>> ListingController<T, S> setContent(MainController mainController,
             Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelFilter<T, S> filter) throws IOException {
         ListingController<T, S> controller = setContent(mainController, controllerClass, stage);
@@ -87,14 +88,13 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         return itemsList;
     }
 
-
     /**
      * Called by the {@link FXMLLoader} to complete controller initialization.
      */
     @FXML
     protected void initialize() {
         Objects.requireNonNull(listingTableView, String.format("fx:id=\"listingTableView\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setItems(itemsList);
+                AppResources.getFXMLResourceName(getClass()))).setItems(itemsList);
         listingTableView.setOnKeyTyped((event) -> {
             if (event.isAltDown() || event.isShortcutDown()) {
                 return;
@@ -119,7 +119,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
             }
         });
         Objects.requireNonNull(editMenuItem, String.format("fx:id=\"editMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = AppResources.getResources();
@@ -129,7 +129,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
             }
         });
         Objects.requireNonNull(deleteMenuItem, String.format("fx:id=\"deleteMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> {
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = AppResources.getResources();
@@ -139,7 +139,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
             }
         });
         Objects.requireNonNull(newButton, String.format("fx:id=\"newButton\" was not injected: check your FXML file '%s'.",
-                getFXMLResourceName(getClass()))).setOnAction((event) -> onAddNewItem(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> onAddNewItem(event));
         itemAddedListener = (event) -> {
             if (null == filter || filter.test(event.getTarget())) {
                 itemsList.add(event.getTarget());
