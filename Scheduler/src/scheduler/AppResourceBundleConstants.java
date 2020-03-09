@@ -4,26 +4,7 @@ package scheduler;
  *
  * @author lerwi
  */
-public interface AppConfigConstants {
-    
-    public static final String PROP_DBSERVERNAME = "dbServerName";
-    public static final String PROP_DATABASENAME = "databaseName";
-    public static final String PROP_DBLOGINNAME = "dbLoginName";
-    public static final String PROP_DBLOGINPASSWORD = "dbLoginPassword";
-    public static final String PROP_SUPPORTEDLOCALE = "supportedLocale";
-    public static final String PROPERTYKEY_DBSERVERNAME = "dbServerName";
-    public static final String PROPERTYKEY_DBNAME = "dbName";
-    public static final String PROPERTYKEY_DBLOGIN = "dbLogin";
-    public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
-    public static final String PROPERTYKEY_SUPPORTEDLOCALES = "supportedLocales";
-    public static final String PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER = "altStringPlaceholderOrder";
-    public static final String PROPERTIES_FILE_APPCONFIG = "appconfig.properties";
-    public static final String PROPERTIES_FILE_CITIES = "supportedCities.properties";
-    /**
-     * The name of the general application globalization resource bundle.
-     */
-    public static final String APP_BASE_RESOURCE_NAME = "scheduler/App";
-    public static final String CITYNAMES_BASE_RESOURCE_NAME = "scheduler/cityNames";
+public interface AppResourceBundleConstants {
     
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Abort"}.

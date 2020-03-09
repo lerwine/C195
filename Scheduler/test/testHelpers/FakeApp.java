@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.util.DbConnector;
 
 /**
@@ -53,9 +53,9 @@ public class FakeApp extends Application {
     }
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName(DbConnector.DB_DRIVER);
-        String url = AppConfig.getConnectionUrl();
+        String url = AppResources.getConnectionUrl();
         System.out.println(String.format("Connecting to %s", url));
-        Connection result = (Connection)DriverManager.getConnection(url, AppConfig.getDbLoginName(), AppConfig.getDbLoginPassword());
+        Connection result = (Connection)DriverManager.getConnection(url, AppResources.getDbLoginName(), AppResources.getDbLoginPassword());
         System.out.println(String.format("Connected to %s", url));
         return result;
     }

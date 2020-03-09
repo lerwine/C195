@@ -1,7 +1,6 @@
 package scheduler.view;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.App;
-import scheduler.AppConfig;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
@@ -40,8 +38,6 @@ public final class Login extends SchedulerController {
 
     private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
-    //<editor-fold defaultstate="collapsed" desc="Fields">
-    //<editor-fold defaultstate="collapsed" desc="Resource keys">
     public static final String RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN = "appointmentSchedulerLogin";
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
     public static final String RESOURCEKEY_EXIT = "exit";
@@ -54,13 +50,22 @@ public final class Login extends SchedulerController {
     public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="JavaFX Controls">
+    public static void loadInto(Stage stage) throws IOException {
+        // Populate list of Locale objects.
+        ObservableList<ResourceBundleLoader.SupportedLocale> languages = FXCollections.observableArrayList();
+        ResourceBundleLoader.getSupportedLocales().forEach((t) -> languages.add(t));
+
+        SchedulerController.load(stage, Login.class, (Parent v, Login c) -> {
+            c.languageComboBox.setItems(languages);
+            stage.setScene(new Scene(v));
+        });
+    }
+
     /**
      * The {@link ComboBox} that lets the user select their preferred language.
      */
     @FXML
-    private ComboBox<Locale> languageComboBox;
+    private ComboBox<ResourceBundleLoader.SupportedLocale> languageComboBox;
 
     /**
      * The {@link Label} for the User Name {@link TextField}.
@@ -110,25 +115,9 @@ public final class Login extends SchedulerController {
     @FXML
     private Button exitButton;
 
-    //</editor-fold>
     private ResourceBundle currentResourceBundle;
 
-    //<editor-fold defaultstate="collapsed" desc="Validation Bindings">
     private Validation valid;
-
-    //</editor-fold>
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Initialization">
-    public static void loadInto(Stage stage) throws IOException {
-        // Populate list of Locale objects.
-        ObservableList<Locale> languages = FXCollections.observableArrayList();
-        AppConfig.getSupportedLocales().forEachRemaining((t) -> languages.add(t.getKey()));
-
-        SchedulerController.load(stage, Login.class, (Parent v, Login c) -> {
-            c.languageComboBox.setItems(languages);
-            stage.setScene(new Scene(v));
-        });
-    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -147,7 +136,7 @@ public final class Login extends SchedulerController {
     @Override
     protected void onBeforeShow(Node currentView, Stage stage) {
         stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-        languageComboBox.getSelectionModel().select(Locale.getDefault(Locale.Category.DISPLAY));
+        languageComboBox.getSelectionModel().select(ResourceBundleLoader.getSupportedLocales().filter((l) -> l.isCurrent()).findFirst().get());
         valid = new Validation();
         valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             loginButton.setDisable(!newValue);
@@ -156,7 +145,6 @@ public final class Login extends SchedulerController {
         super.onBeforeShow(currentView, stage);
     }
 
-    //</editor-fold>
     @FXML
     void loginButtonClick(ActionEvent event) {
         App.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
@@ -185,7 +173,7 @@ public final class Login extends SchedulerController {
             userNameValid = ValueBindings.notNullOrWhiteSpace(userNameTextField.textProperty());
             passwordValid = ValueBindings.notNullOrWhiteSpace(passwordField.textProperty());
             super.bind(languageValid, userNameValid, passwordValid);
-            languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Locale> observable, Locale oldValue, Locale newValue) -> {
+            languageComboBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends ResourceBundleLoader.SupportedLocale> observable, ResourceBundleLoader.SupportedLocale oldValue, ResourceBundleLoader.SupportedLocale newValue) -> {
                 selectedLanaguageChanged(newValue);
             });
             userNameValid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
@@ -215,13 +203,13 @@ public final class Login extends SchedulerController {
             }
         }
 
-        private void selectedLanaguageChanged(Locale newValue) {
+        private void selectedLanaguageChanged(ResourceBundleLoader.SupportedLocale newValue) {
             languageComboBox.getButtonCell().setItem(newValue);
             if (newValue == null) {
                 return;
             }
             // Change the current application language;
-            AppConfig.setLocale(newValue);
+            newValue.setCurrent();
             // Load resource bundle for new language
             currentResourceBundle = ResourceBundleLoader.getBundle(Login.class);
             // Update field labels and button text.

@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 
 /**
  * Manages SQL {@link java.sql.Connection} dependencies. SQL connections are opened when needed, and then closes the connection after there have been no dependencies after a
@@ -128,9 +128,9 @@ public final class DbConnector implements AutoCloseable {
                 // Initialize database driver class
                 Class.forName(DB_DRIVER);
                 // Make new connection.
-                String url = AppConfig.getConnectionUrl();
+                String url = AppResources.getConnectionUrl();
                 LOG.log(Level.INFO, String.format("Connecting to %s", url));
-                CONNECTION = Objects.requireNonNull(DriverManager.getConnection(url, AppConfig.getDbLoginName(), AppConfig.getDbLoginPassword()),
+                CONNECTION = Objects.requireNonNull(DriverManager.getConnection(url, AppResources.getDbLoginName(), AppResources.getDbLoginPassword()),
                         "DriverManager.getConnection returned null");
                 LOG.log(Level.INFO, String.format("Connected to %s", url));
                 CURRENT_STATE = STATE_CONNECTED;
@@ -223,12 +223,12 @@ public final class DbConnector implements AutoCloseable {
                 CONNECTION.close();
             } catch (SQLException ex) {
                 LOG.logp(Level.SEVERE, DbConnector.class.getName(), "checkClose", String.format("Error closing database connection to %s",
-                        AppConfig.getDbServerName()), ex);
+                        AppResources.getDbServerName()), ex);
             } finally {
                 CONNECTION = null;
                 CURRENT_STATE = STATE_NOT_CONNECTED;
             }
-            LOG.logp(Level.INFO, DbConnector.class.getName(), "checkClose", String.format("Disconnected from %s", AppConfig.getDbServerName()));
+            LOG.logp(Level.INFO, DbConnector.class.getName(), "checkClose", String.format("Disconnected from %s", AppResources.getDbServerName()));
         }
         return true;
     }
@@ -266,9 +266,9 @@ public final class DbConnector implements AutoCloseable {
                 if (c != null) {
                     try {
                         c.close();
-                        LOG.log(Level.INFO, String.format("Disconnected from %s", AppConfig.getDbServerName()));
+                        LOG.log(Level.INFO, String.format("Disconnected from %s", AppResources.getDbServerName()));
                     } catch (SQLException ex) {
-                        LOG.log(Level.SEVERE, String.format("Error closing database connection to %s", AppConfig.getDbServerName()), ex);
+                        LOG.log(Level.SEVERE, String.format("Error closing database connection to %s", AppResources.getDbServerName()), ex);
                     }
                 }
             }

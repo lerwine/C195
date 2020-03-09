@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import static scheduler.dao.CityColumns.COLNAME_CITYID;
 import static scheduler.dao.CustomerImpl.COLNAME_ACTIVE;
 import static scheduler.dao.CityImpl.COLNAME_COUNTRYID;
@@ -32,7 +32,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
     @Override
     public default String getLoadingMessage() {
-        return AppConfig.getResourceString(AppConfig.RESOURCEKEY_LOADINGCUSTOMERS);
+        return AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS);
     }
 
     @Override
@@ -44,7 +44,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
         return new CustomerFilter() {
             @Override
             public String getHeading() {
-                return AppConfig.getResourceString(AppConfig.RESOURCEKEY_ALLCUSTOMERS);
+                return AppResources.getResourceString(AppResources.RESOURCEKEY_ALLCUSTOMERS);
             }
 
             @Override
@@ -72,7 +72,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
     public static CustomerFilter byStatus(boolean isActive) {
         return new CustomerFilter() {
-            private final String heading = AppConfig.getResourceString((isActive) ? AppConfig.RESOURCEKEY_ACTIVECUSTOMERS : AppConfig.RESOURCEKEY_INACTIVECUSTOMERS);
+            private final String heading = AppResources.getResourceString((isActive) ? AppResources.RESOURCEKEY_ACTIVECUSTOMERS : AppResources.RESOURCEKEY_INACTIVECUSTOMERS);
 
             @Override
             public String getHeading() {

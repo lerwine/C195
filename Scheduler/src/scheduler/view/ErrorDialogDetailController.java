@@ -18,7 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.util.Values;
 
 /**
@@ -200,7 +200,7 @@ public class ErrorDialogDetailController {
 
     private static GridPane load(Throwable error, int maxDepth, boolean ignoreCause, String message) throws IOException {
         FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
-                AppConfig.getResources());
+                AppResources.getResources());
         GridPane view = loader.load();
         ((ErrorDialogDetailController) loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
         return view;
@@ -208,7 +208,7 @@ public class ErrorDialogDetailController {
 
     public static GridPane load(Throwable error, String logMessage) throws IOException {
         FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
-                AppConfig.getResources());
+                AppResources.getResources());
         GridPane view = loader.load();
         ((ErrorDialogDetailController) loader.getController()).initialize(error, logMessage, 32, Optional.empty());
         return view;

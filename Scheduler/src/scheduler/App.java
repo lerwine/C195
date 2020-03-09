@@ -13,9 +13,9 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
-import static scheduler.AppConfigConstants.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppConfigConstants.RESOURCEKEY_CONNECTINGTODB;
-import static scheduler.AppConfigConstants.RESOURCEKEY_LOGGINGIN;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
 import scheduler.util.PwHash;
@@ -77,7 +77,7 @@ public final class App extends Application {
         private final Consumer<Throwable> onNotSucceeded;
 
         LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
-            super(stage, AppConfig.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppConfig.getResourceString(RESOURCEKEY_LOGGINGIN));
+            super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
             this.userName = userName;
             this.password = password;
             this.onNotSucceeded = onNotSucceeded;
@@ -111,7 +111,7 @@ public final class App extends Application {
         protected UserImpl getResult(Connection connection) throws SQLException {
             Optional<UserImpl> result;
             LOG.logp(Level.INFO, getClass().getName(), "getResult", String.format("Looking up %s", userName));
-            Platform.runLater(() -> updateMessage(AppConfig.getResourceString(RESOURCEKEY_CONNECTEDTODB)));
+            Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB)));
             result = UserImpl.getFactory().findByUserName(connection, userName);
             if (result.isPresent()) {
                 // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password

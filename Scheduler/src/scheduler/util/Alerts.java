@@ -10,7 +10,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.StageStyle;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.view.ErrorDialogDetailController;
 
 /**
@@ -41,9 +41,9 @@ public class Alerts {
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};
         }
-        Alert alert = new Alert(Alert.AlertType.ERROR, AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS), buttons);
+        Alert alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), buttons);
         alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle(AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORTITLE));
+        alert.setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE));
         try {
             alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
         } catch (IOException ex) {
@@ -72,15 +72,15 @@ public class Alerts {
                 alert = new Alert(Alert.AlertType.ERROR, Values.nonWhitespaceOrDefault(contentText, "Content text cannot be empty"), buttons);
             } else {
                 alert = new Alert(Alert.AlertType.ERROR, Values.nonWhitespaceOrDefault(contentText,
-                        () -> AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS)), buttons);
+                        () -> AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS)), buttons);
             }
         } else {
             alert = new Alert(Alert.AlertType.ERROR, Values.nonWhitespaceOrDefault(contentText,
-                    () -> AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS)), buttons);
+                    () -> AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS)), buttons);
             alert.setHeaderText(headerText);
         }
         alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORTITLE)));
+        alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE)));
         if (null != error) {
             try {
                 alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, null));
@@ -124,8 +124,8 @@ public class Alerts {
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
     public static Optional<ButtonType> showErrorAlert(Throwable error, ButtonType... buttons) {
-        return showErrorAlert(null, AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS), Objects.requireNonNull(error, "Error cannot be null"), buttons);
+        return showErrorAlert(null, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), Objects.requireNonNull(error, "Error cannot be null"), buttons);
     }
 
     /**
@@ -176,7 +176,7 @@ public class Alerts {
     public static Optional<ButtonType> showWarningAlert(String title, String headerText, String contentText, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.WARNING, Values.requireNonWhitespace(contentText, "Content text cannot be empty"), buttons);
         alert.initStyle(StageStyle.UTILITY);
-        alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppConfig.getResourceString(AppConfig.RESOURCEKEY_WARNING)));
+        alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResources.RESOURCEKEY_WARNING)));
         if (Values.isNullWhiteSpaceOrEmpty(headerText)) {
             alert.setHeaderText(headerText);
         }

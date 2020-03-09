@@ -26,7 +26,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.util.DbConnector;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ThrowableConsumer;
@@ -209,8 +209,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
             }
         });
         if (getTitle().trim().isEmpty() && getMessage().trim().isEmpty()) {
-            updateTitle(resources.getString(AppConfig.RESOURCEKEY_PLEASEWAIT));
-            updateMessage(resources.getString(AppConfig.RESOURCEKEY_CONNECTINGTODB));
+            updateTitle(resources.getString(AppResources.RESOURCEKEY_PLEASEWAIT));
+            updateMessage(resources.getString(AppResources.RESOURCEKEY_CONNECTINGTODB));
         }
         updateHeadingLabel();
         updateOperationLabel();

@@ -34,12 +34,13 @@ import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
 import scheduler.util.Alerts;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
 import scheduler.view.annotations.FXMLResource;
@@ -303,8 +304,8 @@ public class CustomerPicker extends SchedulerController {
         countryLabel.setText(customer.getCountryName());
         postalCodeLabel.setText(customer.getPostalCode());
         phoneLabel.setText(customer.getPhone());
-        createdLabel.setText(AppConfig.formatCreatedByOn(customer.getCreatedBy(), customer.getCreateDate()));
-        modifiedLabel.setText(AppConfig.formatModifiedByOn(customer.getLastModifiedBy(), customer.getLastModifiedDate()));
+        createdLabel.setText(ResourceBundleLoader.formatCreatedByOn(customer.getCreatedBy(), customer.getCreateDate()));
+        modifiedLabel.setText(ResourceBundleLoader.formatModifiedByOn(customer.getLastModifiedBy(), customer.getLastModifiedDate()));
         selectCustomerButton.setDisable(false);
     }
 
@@ -456,7 +457,7 @@ public class CustomerPicker extends SchedulerController {
         private final CustomerImpl customer;
 
         public LoadCitiesTask(ActionEvent event, CountryImpl country, CustomerImpl customer) {
-            super((Stage) ((Node) event.getSource()).getScene().getWindow(), AppConfig.getResourceString(AppConfig.RESOURCEKEY_LOADINGCITIES));
+            super((Stage) ((Node) event.getSource()).getScene().getWindow(), AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES));
             this.country = Objects.requireNonNull(country);
             this.customer = customer;
         }
@@ -474,9 +475,9 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DBACCESSERROR),
-                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
+            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override
@@ -489,7 +490,7 @@ public class CustomerPicker extends SchedulerController {
     class LoadCountriesTask extends TaskWaiter<ArrayList<CountryImpl>> {
 
         public LoadCountriesTask(Stage stage) {
-            super(stage, AppConfig.getResourceString(AppConfig.RESOURCEKEY_LOADINGCOUNTRIES));
+            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
         @Override
@@ -503,9 +504,9 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DBACCESSERROR),
-                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
+            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override
@@ -523,7 +524,7 @@ public class CustomerPicker extends SchedulerController {
         private final CustomerImpl customer;
 
         public LoadCustomersTask(Stage stage, CountryImpl country, CityImpl city, OptionalBoolean active, CustomerImpl customer) {
-            super(stage, AppConfig.getResourceString(AppConfig.RESOURCEKEY_LOADINGCUSTOMERS));
+            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
             this.country = country;
             this.city = city;
             this.active = active;
@@ -553,9 +554,9 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DBACCESSERROR),
-                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                    AppConfig.getResourceString(AppConfig.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
+            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override

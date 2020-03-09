@@ -217,7 +217,7 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
             if (resultSet.wasNull()) {
                 target.password = "";
             }
-            target.status = Values.asValidUserStatus(resultSet.getInt(COLNAME_ACTIVE_STATUS));
+            target.status = Values.asValidUserStatus(resultSet.getInt(COLALIAS_ACTIVE_STATUS));
             if (resultSet.wasNull()) {
                 target.status = Values.USER_STATUS_INACTIVE;
             }

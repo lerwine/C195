@@ -39,7 +39,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.CustomerFilter;
@@ -541,7 +541,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         private ArrayList<UserImpl> userList;
 
         public ItemsLoadTask(Stage owner) {
-            super(owner, AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONNECTINGTODB), AppConfig.getResourceString(AppConfig.RESOURCEKEY_INITIALIZING));
+            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(AppResources.RESOURCEKEY_INITIALIZING));
             customerList = null;
             userList = null;
         }

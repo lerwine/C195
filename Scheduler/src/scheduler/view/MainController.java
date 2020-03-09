@@ -18,7 +18,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import scheduler.App;
-import scheduler.AppConfig;
+import scheduler.AppResources;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.CityImpl;
@@ -316,8 +316,8 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link AppointmentModel} to be deleted.
      */
     public void deleteAppointment(Event event, AppointmentModel item) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> appointmentRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
@@ -364,8 +364,8 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link CustomerModel} to be deleted.
      */
     public void deleteCustomer(Event event, CustomerModel item) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> customerRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
@@ -412,8 +412,8 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link CountryModel} to be deleted.
      */
     public void deleteCountry(Event event, CountryModel item) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> countryRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
@@ -460,8 +460,8 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link CityModel} to be deleted.
      */
     public void deleteCity(Event event, CityModel item) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> cityRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
@@ -508,8 +508,8 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link AddressModel} to be deleted.
      */
     public void deleteAddress(Event event, AddressModel item) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> addressRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
@@ -556,8 +556,8 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link UserModel} to be deleted.
      */
     public void deleteUser(Event event, UserModel item) {
-        Optional<ButtonType> response = Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_CONFIRMDELETE),
-                AppConfig.getResourceString(AppConfig.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> response = Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(),
                     (m) -> userRemoveManager.fireEvent(new ItemEvent<>(MainController.this, m))));
@@ -572,7 +572,7 @@ public final class MainController extends SchedulerController implements MainCon
         private final Consumer<M> onDeleted;
 
         DeleteTask(M model, Stage stage, Consumer<M> onDeleted) {
-            super(stage, AppConfig.getResourceString(AppConfig.RESOURCEKEY_DELETINGRECORD));
+            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETINGRECORD));
             this.model = model;
             this.onDeleted = onDeleted;
         }
@@ -580,7 +580,7 @@ public final class MainController extends SchedulerController implements MainCon
         @Override
         protected void processResult(String message, Stage owner) {
             if (null != message && !message.trim().isEmpty()) {
-                Alerts.showWarningAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DELETEFAILURE), message);
+                Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
             } else if (null != onDeleted) {
                 onDeleted.accept(model);
             }
@@ -589,7 +589,7 @@ public final class MainController extends SchedulerController implements MainCon
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
-            Alerts.showErrorAlert(AppConfig.getResourceString(AppConfig.RESOURCEKEY_DELETEFAILURE), AppConfig.getResourceString(AppConfig.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 
         @Override
