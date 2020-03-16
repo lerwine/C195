@@ -19,6 +19,7 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import scheduler.AppResources;
 import scheduler.util.Values;
+import static scheduler.util.NodeUtil.collapseNode;
 
 /**
  * FXML Controller class
@@ -99,18 +100,18 @@ public class ErrorDialogDetailController {
 
     private void initialize(Throwable error, String message, int maxDepth, Optional<Boolean> ignoreCause) throws IOException {
         if (ignoreCause.isPresent()) {
-            SchedulerController.collapseNode(logMessageLabel);
-            SchedulerController.collapseNode(logMessageTextField);
+            collapseNode(logMessageLabel);
+            collapseNode(logMessageTextField);
             if (Values.isNullWhiteSpaceOrEmpty(message)) {
-                SchedulerController.collapseNode(typeLabel);
-                SchedulerController.collapseNode(typeTextField);
+                collapseNode(typeLabel);
+                collapseNode(typeTextField);
             } else {
                 typeTextField.setText(message);
             }
         } else {
             if (Values.isNullWhiteSpaceOrEmpty(message)) {
-                SchedulerController.collapseNode(logMessageLabel);
-                SchedulerController.collapseNode(logMessageTextField);
+                collapseNode(logMessageLabel);
+                collapseNode(logMessageTextField);
             } else {
                 logMessageTextField.setText(message);
             }
@@ -118,8 +119,8 @@ public class ErrorDialogDetailController {
         }
         String s = error.getLocalizedMessage();
         if (Values.isNullWhiteSpaceOrEmpty(s)) {
-            SchedulerController.collapseNode(messageLabel);
-            SchedulerController.collapseNode(messgeTextField);
+            collapseNode(messageLabel);
+            collapseNode(messgeTextField);
         } else {
             messgeTextField.setText(s);
         }
@@ -128,14 +129,14 @@ public class ErrorDialogDetailController {
             errorCodeTextField.setText(NumberFormat.getIntegerInstance(Locale.getDefault(Locale.Category.DISPLAY)).format(sqlException.getErrorCode()));
             s = sqlException.getSQLState();
             if (Values.isNullWhiteSpaceOrEmpty(s)) {
-                SchedulerController.collapseNode(stateLabel);
-                SchedulerController.collapseNode(stateTextField);
+                collapseNode(stateLabel);
+                collapseNode(stateTextField);
             } else {
                 stateTextField.setText(s);
             }
             SQLException ex;
             if (maxDepth < 1 || (ignoreCause.isPresent() && !ignoreCause.get()) || null == (ex = sqlException.getNextException())) {
-                SchedulerController.collapseNode(relatedExceptionsPane);
+                collapseNode(relatedExceptionsPane);
             } else {
                 SQLException n;
                 if (maxDepth == 1 || null == (n = ex.getNextException())) {
@@ -159,16 +160,16 @@ public class ErrorDialogDetailController {
                 }
             }
         } else {
-            SchedulerController.collapseNode(errorCodeLabel);
-            SchedulerController.collapseNode(errorCodeTextField);
-            SchedulerController.collapseNode(stateLabel);
-            SchedulerController.collapseNode(stateTextField);
-            SchedulerController.collapseNode(relatedExceptionsPane);
+            collapseNode(errorCodeLabel);
+            collapseNode(errorCodeTextField);
+            collapseNode(stateLabel);
+            collapseNode(stateTextField);
+            collapseNode(relatedExceptionsPane);
         }
 
         Throwable causedBy;
         if (maxDepth < 1 || (ignoreCause.isPresent() && ignoreCause.get()) || null == (causedBy = error.getCause())) {
-            SchedulerController.collapseNode(causedByPane);
+            collapseNode(causedByPane);
         } else {
             Throwable c;
             if (maxDepth == 1 || null == (c = causedBy.getCause())) {

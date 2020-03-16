@@ -83,7 +83,7 @@ Function Save-ResourceFile {
     }) + $ResourceFile.Tail)));
 }
 
-Function Move-ResourceKeys {
+Function Copy-ResourceKeys {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)]
@@ -95,7 +95,9 @@ Function Move-ResourceKeys {
         [Parameter(Mandatory = $true)]
         [string[]]$Properties,
 
-        [string[]]$Locale = @('en', 'de', 'hi', 'es')
+        [string[]]$Locale = @('en', 'de', 'hi', 'es'),
+
+        [switch]$Move
     )
 
     $SourceHash = @{};
@@ -115,7 +117,9 @@ Function Move-ResourceKeys {
             $Properties | ForEach-Object {
                 if ($s.Content.ContainsKey($_)) {
                     $t.Content[$_] = $s.Content[$_];
-                    $s.Content.Remove($_);
+                    if ($Move.IsPresent) {
+                        $s.Content.Remove($_);
+                    }
                 } else {
                     $t.Content[$_] = New-Object -TypeName 'System.Management.Automation.PSObject' -ArgumentList @{
                         Comments = ([string[]]@());
@@ -123,32 +127,32 @@ Function Move-ResourceKeys {
                     };
                 }
             }
-            Save-ResourceFile -Path "$SourceBaseName`_$_.properties2" -ResourceFile $SourceHash[$_];
+            if ($Move.IsPresent) { Save-ResourceFile -Path "$SourceBaseName`_$_.properties2" -ResourceFile $SourceHash[$_] }
             Save-ResourceFile -Path "$TargetBaseName`_$_.properties2" -ResourceFile $TargetHash[$_];
         }
     }
-    
-    $Hash = $SourceHash[$Locale[0]].Content;
-    $Lines = @("    //<editor-fold defaultstate=`"collapsed`" desc=`"$($SourceBaseName | Split-Path -Leaf) Resource bundle keys`">") + @($Hash.Keys | Sort-Object | ForEach-Object {
+    $Hash = $TargetHash[$Locale[0]].Content;
+    $Lines = @($Hash.Keys | Sort-Object | ForEach-Object {
         '';
         "    /**";
         "     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code `"$($Hash[$_].Value)`"}.";
         "     */";
         "    public static final String RESOURCEKEY_$($_.ToUpper()) = `"$_`";";
     });
-    $Hash = $TargetHash[$Locale[0]].Content;
-    $Lines += @('', '    //</editor-fold>', '', "    //<editor-fold defaultstate=`"collapsed`" desc=`"$($TargetBaseName | Split-Path -Leaf) Resource bundle keys`">") + @($Hash.Keys | Sort-Object | ForEach-Object {
-        '';
-        "    /**";
-        "     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code `"$($Hash[$_].Value)`"}.";
-        "     */";
-        "    public static final String RESOURCEKEY_$($_.ToUpper()) = `"$_`";";
-    }) + @('', '    //</editor-fold>');
+    if ($Move.IsPresent) {
+        $Hash = $SourceHash[$Locale[0]].Content;
+        $Lines = @("    //<editor-fold defaultstate=`"collapsed`" desc=`"$($SourceBaseName | Split-Path -Leaf) Resource bundle keys`">") + @($Hash.Keys | Sort-Object | ForEach-Object {
+            '';
+            "    /**";
+            "     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code `"$($Hash[$_].Value)`"}.";
+            "     */";
+            "    public static final String RESOURCEKEY_$($_.ToUpper()) = `"$_`";";
+        }) + @('', '    //</editor-fold>', '', "    //<editor-fold defaultstate=`"collapsed`" desc=`"$($TargetBaseName | Split-Path -Leaf) Resource bundle keys`">") + $Lines +  + @('', '    //</editor-fold>');
+    }
     [System.Windows.Clipboard]::SetText(($Lines | Out-String).Trim());
 }
 
-Function Copy-ResourceKeys {
-}
-Move-ResourceKeys -SourceBaseName ($PSScriptRoot | Join-Path -ChildPath 'Scheduler\src\scheduler\App') `
+Copy-ResourceKeys -SourceBaseName ($PSScriptRoot | Join-Path -ChildPath 'Scheduler\src\scheduler\App') `
     -TargetBaseName ($PSScriptRoot | Join-Path -ChildPath 'Scheduler\src\scheduler\view\appointment\ManageAppointments') `
-    -Properties 'currentFor', 'currentForBoth', 'current', 'currentAndFuture', 'currentAppointments';
+    -Properties 'all', 'appointmentType_customer', 'appointmentType_DE', 'appointmentType_HN', 'appointmentType_IN', 'appointmentType_other', 'appointmentType_phone',
+    'appointmentType_US', 'appointmentType_virtual', 'cancel', 'none', 'type';

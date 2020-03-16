@@ -32,6 +32,8 @@ import scheduler.util.ThrowableConsumer;
 import scheduler.util.ThrowableFunction;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 
 /**
  * Controller / Task for showing a busy indicator while background process is running. If the current {@link Stage} is closed while this is executing,
@@ -658,9 +660,9 @@ public abstract class TaskWaiter<T> extends Task<T> {
         }
         String s = getTitle();
         if (s == null || s.trim().isEmpty()) {
-            SchedulerController.collapseNode(headingLabel);
+            collapseNode(headingLabel);
         } else {
-            SchedulerController.restoreLabeled(headingLabel, s);
+            restoreLabeled(headingLabel, s);
         }
     }
 
@@ -670,9 +672,9 @@ public abstract class TaskWaiter<T> extends Task<T> {
         }
         String s = getMessage();
         if (s == null || s.trim().isEmpty()) {
-            SchedulerController.collapseNode(operationLabel);
+            collapseNode(operationLabel);
         } else {
-            SchedulerController.restoreLabeled(operationLabel, s);
+            restoreLabeled(operationLabel, s);
         }
     }
 

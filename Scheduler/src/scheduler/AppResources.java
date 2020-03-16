@@ -30,7 +30,7 @@ public final class AppResources implements AppResourceBundleConstants {
     public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
     public static final String PROPERTYKEY_SUPPORTEDLOCALES = "supportedLocales";
     public static final String PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER = "altStringPlaceholderOrder";
-    public static final String PROPERTIES_FILE_APPCONFIG = "appconfig.properties";
+    public static final String PROPERTIES_FILE_APPCONFIG = "scheduler/config.properties";
 
     static {
         CLASSNAME_TO_FXMLNAME = new HashMap<>();

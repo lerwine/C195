@@ -9,6 +9,8 @@ import javafx.scene.control.TextField;
 import scheduler.AppResources;
 import scheduler.dao.CountryImpl;
 import scheduler.dao.DataObjectImpl.Factory;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;

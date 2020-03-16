@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.DataObjectImpl;
 import scheduler.util.Alerts;
+import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 

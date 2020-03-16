@@ -11,6 +11,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl.Factory;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;

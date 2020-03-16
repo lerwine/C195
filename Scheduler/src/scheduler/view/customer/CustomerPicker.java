@@ -39,6 +39,8 @@ import scheduler.dao.CountryImpl;
 import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
 import scheduler.util.Alerts;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;

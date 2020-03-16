@@ -26,6 +26,8 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ValueBindings;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 
 /**
  * FXML Controller class for the application login screen.

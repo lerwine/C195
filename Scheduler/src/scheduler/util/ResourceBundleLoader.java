@@ -43,7 +43,7 @@ public final class ResourceBundleLoader {
 
     private static final ResourceBundleLoader INSTANCE;
     private static final Logger LOG;
-    public static final String PROPERTIES_FILE_CITIES = "supportedCities.properties";
+    public static final String PROPERTIES_FILE_CITIES = "scheduler/supportedCities.properties";
     public static final String CITYNAMES_BASE_RESOURCE_NAME = "scheduler/cityNames";
     public static final String PROP_CURRENTDISPLAYLOCALE = "currentDisplayLocale";
     public static final String PROP_CURRENTFORMATLOCALE = "currentFormatLocale";
