@@ -430,7 +430,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", String.format("\"%s\" operation error", getTitle()), ex);
-            Alerts.showErrorAlert(ex);
+            Alerts.showErrorAlert(owner, ex);
         }
 
     }

@@ -62,7 +62,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 ctrl.onShow(v, model, controllerClass, parent);
             });
         } catch (IOException ex) {
-            Alerts.logAndAlertError(LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
+            Alerts.logAndAlertError(parent, LOG, EditItem.class, "waitEdit", String.format("Error loading FXML for %s", EditItem.class.getName()), ex);
             result.fault = ex;
             result.successful = false;
             result.canceled = false;
@@ -198,7 +198,7 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 saveChangesButton.setDisable(!c.getValidationExpression().get());
             }, EditItem.class);
         } catch (IOException ex) {
-            Alerts.logAndAlertError(LOG, EditItem.class, "onShow", String.format("Error loading FXML for %s", controllerClass.getName()), ex);
+            Alerts.logAndAlertError(parent, LOG, EditItem.class, "onShow", String.format("Error loading FXML for %s", controllerClass.getName()), ex);
             result.fault = ex;
             result.successful = false;
             result.canceled = false;
@@ -397,14 +397,14 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 result.canceled = false;
                 owner.hide();
             } else {
-                Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), message);
+                Alerts.showWarningAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), message);
             }
         }
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error saving record", ex);
-            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
+            Alerts.showErrorAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
         }
 
         @Override
@@ -435,14 +435,15 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
                 result.canceled = false;
                 owner.hide();
             } else {
-                Alerts.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
+                Alerts.showWarningAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
             }
         }
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
-            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+            Alerts.showErrorAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 
         @Override

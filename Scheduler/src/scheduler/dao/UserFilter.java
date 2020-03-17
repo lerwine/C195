@@ -48,7 +48,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 
                 @Override
                 public String getSqlFilterExpr() {
-                    return String.format("`%s` <> ?", UserColumns.COLALIAS_ACTIVE_STATUS);
+                    return String.format("`%s` <> ?", UserColumns.COLNAME_ACTIVE_STATUS);
                 }
 
                 @Override
@@ -72,7 +72,7 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", UserColumns.COLALIAS_ACTIVE_STATUS);
+                return String.format("`%s` = ?", UserColumns.COLNAME_ACTIVE_STATUS);
             }
 
             @Override

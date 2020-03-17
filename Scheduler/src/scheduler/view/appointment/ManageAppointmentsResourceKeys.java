@@ -5,9 +5,9 @@ package scheduler.view.appointment;
  * @author lerwi
  */
 public interface ManageAppointmentsResourceKeys {
-    
+     
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "After %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "After %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_AFTERDATE = "afterDate";
 
@@ -27,14 +27,19 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ALLAPPOINTMENTS = "allAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All appointments for %s"}.
-     */
-    public static final String RESOURCEKEY_ALLAPPOINTMENTSFOR = "allAppointmentsFor";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All appointments for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All appointments for customer \"%s\" and user \"%s\""}.
      */
     public static final String RESOURCEKEY_ALLAPPOINTMENTSFORBOTH = "allAppointmentsForBoth";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All appointments for customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_ALLAPPOINTMENTSFORCUST = "allAppointmentsForCust";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All appointments for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_ALLAPPOINTMENTSFORUSER = "allAppointmentsForUser";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Current and Future Appointments"}.
@@ -45,11 +50,6 @@ public interface ManageAppointmentsResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All of my appointments"}.
      */
     public static final String RESOURCEKEY_ALLMYAPPOINTMENTS = "allMyAppointments";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments On or After %s"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTSAFTER = "appointmentsAfter";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "(any)"}.
@@ -67,82 +67,107 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ANYTITLEOPTION = "anyTitleOption";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments On or After %s for %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments after %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSAFTERFOR = "appointmentsAfterFor";
+    public static final String RESOURCEKEY_APPOINTMENTSAFTERDATE = "appointmentsAfterDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments On or After %s for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments after %tm %<te, %<tY for customer \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSAFTERFORBOTH = "appointmentsAfterForBoth";
+    public static final String RESOURCEKEY_APPOINTMENTSAFTERDATEFORCUST = "appointmentsAfterDateForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Before %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments after %tm %<te, %<tY for user \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSBEFORE = "appointmentsBefore";
+    public static final String RESOURCEKEY_APPOINTMENTSAFTERDATEFORUSER = "appointmentsAfterDateForUser";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Before %s for %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments after %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSBEFOREFOR = "appointmentsBeforeFor";
+    public static final String RESOURCEKEY_APPOINTMENTSAFTERDATEFORBOTH = "appointmentsAfterDateForBoth";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Before %s for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments before %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSBEFOREFORBOTH = "appointmentsBeforeForBoth";
+    public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATE = "appointmentsBeforeDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Between %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments before %tm %<te, %<tY for customer \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSBETWEEN = "appointmentsBetween";
+    public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATEFORCUST = "appointmentsBeforeDateForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Between %s and %s for %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments before %tm %<te, %<tY for user \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSBETWEENFOR = "appointmentsBetweenFor";
+    public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATEFORUSER = "appointmentsBeforeDateForUser";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Between %s and %s for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments Before %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSBETWEENFORBOTH = "appointmentsBetweenForBoth";
+    public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATEFORBOTH = "appointmentsBeforeDateForBoth";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments for customer "%""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSBETWEENDATES = "appointmentsBetweenDates";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSBETWEENDATESFORBOTH = "appointmentsBetweenDatesForBoth";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSBETWEENDATESFORCUST = "appointmentsBetweenDatesForCust";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSBETWEENDATESFORUSER = "appointmentsBetweenDatesForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments for customer \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments for user "%s""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments for user \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments from %s to %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments from %tm %<te, %<tY to %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSINRANGE = "appointmentsInRange";
+    public static final String RESOURCEKEY_APPOINTMENTSINDATERANGE = "appointmentsInDateRange";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSONDATE = "appointmentsOnDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %s for %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %tm %<te, %<tY for customer \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSONFOR = "appointmentsOnFor";
+    public static final String RESOURCEKEY_APPOINTMENTSONDATEFORCUST = "appointmentsOnDateForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or after %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on %tm %<te, %<tY for user \"%s\""}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSONORAFTER = "appointmentsOnOrAfter";
+    public static final String RESOURCEKEY_APPOINTMENTSONDATEFORUSER = "appointmentsOnDateForUser";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or before %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or after %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTSONORBEFORE = "appointmentsOnOrBefore";
+    public static final String RESOURCEKEY_APPOINTMENTSONORAFTERDATE = "appointmentsOnOrAfterDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Before %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or before %tm %<te, %<tY"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSONORBEFOREDATE = "appointmentsOnOrBeforeDate";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Before %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_BEFOREDATE = "beforeDate";
 
@@ -192,34 +217,44 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CURRENTANDFUTUREAPPOINTMENTS = "currentAndFutureAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and Future Appointments for %s"}.
-     */
-    public static final String RESOURCEKEY_CURRENTANDFUTUREFOR = "currentAndFutureFor";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and Future Appointments for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and future appointments for customer \"%s\" and user \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTANDFUTUREFORBOTH = "currentAndFutureForBoth";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and Past Appointments"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and future appointments for customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDFUTUREFORCUST = "currentAndFutureForCust";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and future appointments for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDFUTUREFORUSER = "currentAndFutureForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and past appointments"}.
      */
     public static final String RESOURCEKEY_CURRENTANDPASTAPPOINTMENTS = "currentAndPastAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current Appointments"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current appointments"}.
      */
     public static final String RESOURCEKEY_CURRENTAPPOINTMENTS = "currentAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current Appointments for %s"}.
-     */
-    public static final String RESOURCEKEY_CURRENTFOR = "currentFor";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current Appointments for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current appointments for customer \"%s\" and user \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTFORBOTH = "currentForBoth";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current appointments for customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTFORCUSTOMER = "currentForCustomer";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current appointments for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTFORUSER = "currentForUser";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Customer"}.
@@ -267,6 +302,11 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading data.\nSee logs for more information."}.
+     */
+    public static final String RESOURCEKEY_ERRORLOADINGDATA = "errorLoadingData";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Filter..."}.
      */
     public static final String RESOURCEKEY_FILTER = "filter";
@@ -292,9 +332,9 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_INITIALIZING = "initializing";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%s to %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%tm %<te, %<tY to %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_INRANGE = "inRange";
+    public static final String RESOURCEKEY_INDATERANGE = "inDateRange";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading appointments, please wait..."}.
@@ -332,6 +372,11 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_LOCATIONSTARTSWITH = "locationStartsWith";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "(lookup options)"}.
+     */
+    public static final String RESOURCEKEY_LOOKUPOPTIONS = "lookupOptions";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Appointments"}.
      */
     public static final String RESOURCEKEY_MANAGEAPPOINTMENTS = "manageAppointments";
@@ -342,24 +387,24 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_MINUTE = "minute";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Appointments Before %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Appointments before %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_MYAPPOINTMENTSBEFORE = "myAppointmentsBefore";
+    public static final String RESOURCEKEY_MYAPPOINTMENTSBEFOREDATE = "myAppointmentsBeforeDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Appointments Between %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Appointments between %tm %<te, %<tY and %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_MYAPPOINTMENTSBETWEEN = "myAppointmentsBetween";
+    public static final String RESOURCEKEY_MYAPPOINTMENTSBETWEENDATES = "myAppointmentsBetweenDates";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Appointments on %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My appointments on %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_MYAPPOINTMENTSON = "myAppointmentsOn";
+    public static final String RESOURCEKEY_MYAPPOINTMENTSONDATE = "myAppointmentsOnDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Appointments On or After %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My appointments on or after %tm %<te, %<tY"}.
      */
-    public static final String RESOURCEKEY_MYAPPOINTMENTSONORAFTER = "myAppointmentsOnOrAfter";
+    public static final String RESOURCEKEY_MYAPPOINTMENTSONORAFTERDATE = "myAppointmentsOnOrAfterDate";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Current Appointments"}.
@@ -412,17 +457,17 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_OCCURSONORBEFORE = "occursOnOrBefore";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "On %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "On %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_ONDATE = "onDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "On or after %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "On or after %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_ONORAFTERDATE = "onOrAfterDate";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "On or before %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "On or before %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_ONORBEFOREDATE = "onOrBeforeDate";
 
@@ -437,12 +482,17 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_PASTAPPOINTMENTS = "pastAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Past Appointments for %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Past appointments for customer \"%s\""}.
      */
-    public static final String RESOURCEKEY_PASTAPPOINTMENTSFOR = "pastAppointmentsFor";
+    public static final String RESOURCEKEY_PASTAPPOINTMENTSFORCUSTOMER = "pastAppointmentsForCustomer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Past Appointments for %s and %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Past appointments for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_PASTAPPOINTMENTSFORUSER = "pastAppointmentsForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Past appointments for customer \"%s\" and user \"%s\""}.
      */
     public static final String RESOURCEKEY_PASTAPPOINTMENTSFORBOTH = "pastAppointmentsForBoth";
 

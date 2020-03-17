@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -27,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -37,10 +39,13 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import javafx.util.StringConverter;
 import scheduler.App;
+import scheduler.dao.Address;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;
@@ -71,7 +76,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
                 ctrl.onShow(v, filter, ctrl, parent);
             }).resultFilter;
         } catch (IOException ex) {
-            Alerts.logAndAlertError(LOG, EditAppointmentFilter.class, "waitEdit", String.format("Error loading FXML for %s", EditAppointmentFilter.class.getName()), ex);
+            Alerts.logAndAlertError(parent, LOG, EditAppointmentFilter.class, "waitEdit", String.format("Error loading FXML for %s", EditAppointmentFilter.class.getName()), ex);
         }
         return null;
     }
@@ -97,6 +102,8 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
         return selectSelection(source.getSelectionModel(), source.getItems(), (t) -> t.getValue().equals(type));
     }
+    private boolean includeInactiveCustomers = false;
+    private boolean includeInactiveUsers = false;
     private FilterOptionState resultFilter;
     private ObservableList<RangeSelectionItem> rangeTypeOptionList;
     private ObservableList<CustomerSelectionItem> customerList;
@@ -207,6 +214,15 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     @FXML // fx:id="okButton"
     private Button okButton; // Value injected by FXMLLoader
 
+    @FXML // fx:id="lookupOptionsBorderPane"
+    private BorderPane lookupOptionsBorderPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="lookupOptionCustomersCheckBox"
+    private CheckBox lookupOptionCustomersCheckBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="lookupOptionUsersCheckBox"
+    private CheckBox lookupOptionUsersCheckBox; // Value injected by FXMLLoader
+
     @FXML
     void cancelButtonAction(ActionEvent event) {
         ((Button) event.getSource()).getScene().getWindow().hide();
@@ -214,21 +230,76 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     @FXML
     void cityComboBoxChanged(ActionEvent event) {
-        // TODO: Filter customers by city. If currently selected country does not exist, select none.
+        CitySelectionItem cityItem = (countryRadioButton.isSelected()) ? null : cityComboBox.getValue();
+        CustomerSelectionItem currentCustomer = (customerRadioButton.isSelected()) ? customCustomerComboBox.getValue() : null;
+        if (null == cityItem || null == cityItem.getValue()) {
+            CountrySelectionItem countryItem = countryComboBox.getValue();
+            if (null == countryItem || null == countryItem.getValue()) {
+                if (filteredCustomerList.size() < customerList.size()) {
+                    filteredCustomerList.clear();
+                    filteredCustomerList.addAll(customerList);
+                }
+            } else {
+                int countryId = countryItem.getValue().getPrimaryKey();
+                filteredCustomerList.clear();
+                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
+            }
+        } else {
+            int cityId = cityItem.getValue().getPrimaryKey();
+            filteredCustomerList.clear();
+            filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
+        }
+        if (!selectItem(customCustomerComboBox, (null == currentCustomer) ? null : currentCustomer.getValue())) {
+            selectItem(customCustomerComboBox, null);
+        }
     }
 
     @FXML
     void countryComboBoxChanged(ActionEvent event) {
-        // TODO: Filter cities by country. If currently selected country does not exist, select none.
+        CountrySelectionItem countryItem = countryComboBox.getValue();
+        CitySelectionItem currentCity = (countryRadioButton.isSelected()) ? null : cityComboBox.getValue();
+        CustomerSelectionItem currentCustomer = (customerRadioButton.isSelected()) ? customCustomerComboBox.getValue() : null;
+        if (null == countryItem || null == countryItem.getValue()) {
+            if (filteredCityList.size() < cityList.size()) {
+                filteredCityList.clear();
+                filteredCityList.addAll(cityList);
+            }
+            if (null == currentCity || null == currentCity.getValue()) {
+                if (filteredCustomerList.size() < customerList.size()) {
+                    filteredCustomerList.clear();
+                    filteredCustomerList.addAll(customerList);
+                }
+            }
+        } else {
+            int countryId = countryItem.getValue().getPrimaryKey();
+            filteredCityList.clear();
+            filteredCityList.addAll(cityList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
+            filteredCustomerList.clear();
+            if (null == currentCity || null == currentCity.getValue()) {
+                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
+            } else {
+                int cityId = currentCity.getValue().getPrimaryKey();
+                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
+            }
+        }
+        if (!selectItem(cityComboBox, (null == currentCity) ? null : currentCity.getValue())) {
+            selectItem(cityComboBox, null);
+        }
+        if (!selectItem(customCustomerComboBox, (null == currentCustomer) ? null : currentCustomer.getValue())) {
+            selectItem(customCustomerComboBox, null);
+        }
     }
 
     @FXML
     void customerRadioButtonChanged(ActionEvent event) {
         if (countryRadioButton.isSelected()) {
+            selectItem(customCustomerComboBox, null);
+            selectItem(cityComboBox, null);
             customCustomerComboBox.setDisable(true);
             cityComboBox.setDisable(true);
             countryComboBox.setDisable(false);
         } else if (cityRadioButton.isSelected()) {
+            selectItem(customCustomerComboBox, null);
             customCustomerComboBox.setDisable(true);
             cityComboBox.setDisable(false);
             countryComboBox.setDisable(false);
@@ -269,6 +340,36 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
+    void lookupOptionsButtonClick(ActionEvent event) {
+        lookupOptionCustomersCheckBox.setSelected(includeInactiveCustomers);
+        lookupOptionUsersCheckBox.setSelected(includeInactiveUsers);
+        lookupOptionsBorderPane.setVisible(true);
+    }
+
+    @FXML
+    void lookupOptionsCancelClick(ActionEvent event) {
+        lookupOptionsBorderPane.setVisible(false);
+    }
+
+    @FXML
+    void lookupOptionsOkClick(ActionEvent event) {
+        if (lookupOptionCustomersCheckBox.isSelected() != includeInactiveCustomers) {
+            includeInactiveCustomers = lookupOptionCustomersCheckBox.isSelected();
+            if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
+                includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
+                TaskWaiter.execute(new ReloadCustomersAndUsersTask((Stage) ((Button) event.getSource()).getScene().getWindow(),
+                        includeInactiveCustomers, includeInactiveUsers));
+            } else {
+                TaskWaiter.execute(new ReloadCustomersTask((Stage) ((Button) event.getSource()).getScene().getWindow(), includeInactiveCustomers));
+            }
+        } else if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
+            includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
+            TaskWaiter.execute(new ReloadUsersTask((Stage) ((Button) event.getSource()).getScene().getWindow(), includeInactiveUsers));
+        }
+        lookupOptionsBorderPane.setVisible(false);
+    }
+
+    @FXML
     void okButtonAction(ActionEvent event) {
         ((Button) event.getSource()).getScene().getWindow().hide();
     }
@@ -282,21 +383,87 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
                     switch (item.getValue()) {
                         case CURRENT:
                             selectItem(startComboBox, DateFilterType.ON);
+                            selectItem(endComboBox, DateFilterType.NONE);
+                            startDatePicker.setValue(LocalDate.now());
+                            if (startHourSpinner.getValue() > 0) {
+                                startHourSpinner.decrement(startHourSpinner.getValue());
+                            }
+                            if (startMinuteSpinner.getValue() > 0) {
+                                startMinuteSpinner.decrement(startMinuteSpinner.getValue());
+                            }
                             break;
                         case CURRENT_AND_FUTURE:
+                            selectItem(startComboBox, DateFilterType.INCLUSIVE);
+                            selectItem(endComboBox, DateFilterType.NONE);
+                            startDatePicker.setValue(LocalDate.now());
+                            if (startHourSpinner.getValue() > 0) {
+                                startHourSpinner.decrement(startHourSpinner.getValue());
+                            }
+                            if (startMinuteSpinner.getValue() > 0) {
+                                startMinuteSpinner.decrement(startMinuteSpinner.getValue());
+                            }
                             break;
                         case CURRENT_AND_PAST:
+                            selectItem(startComboBox, DateFilterType.NONE);
+                            selectItem(endComboBox, DateFilterType.INCLUSIVE);
+                            endDatePicker.setValue(LocalDate.now());
+                            if (endHourSpinner.getValue() > 0) {
+                                endHourSpinner.decrement(endHourSpinner.getValue());
+                            }
+                            if (endMinuteSpinner.getValue() > 0) {
+                                endMinuteSpinner.decrement(endMinuteSpinner.getValue());
+                            }
                             break;
                         case FUTURE:
+                            selectItem(startComboBox, DateFilterType.EXCLUSIVE);
+                            selectItem(endComboBox, DateFilterType.NONE);
+                            startDatePicker.setValue(LocalDate.now());
+                            if (startHourSpinner.getValue() > 0) {
+                                startHourSpinner.decrement(startHourSpinner.getValue());
+                            }
+                            if (startMinuteSpinner.getValue() > 0) {
+                                startMinuteSpinner.decrement(startMinuteSpinner.getValue());
+                            }
                             break;
                         case PAST:
+                            selectItem(startComboBox, DateFilterType.NONE);
+                            selectItem(endComboBox, DateFilterType.EXCLUSIVE);
+                            endDatePicker.setValue(LocalDate.now());
+                            if (endHourSpinner.getValue() > 0) {
+                                endHourSpinner.decrement(endHourSpinner.getValue());
+                            }
+                            if (endMinuteSpinner.getValue() > 0) {
+                                endMinuteSpinner.decrement(endMinuteSpinner.getValue());
+                            }
                             break;
                         default:
+                            selectItem(startComboBox, DateFilterType.NONE);
+                            selectItem(endComboBox, DateFilterType.NONE);
                             break;
                     }
                 }
-            } else {
-                // TODO: Finish logic
+                dateRadioButton.setSelected(true);
+                customerRadioButton.setSelected(true);
+                CustomerSelectionItem customer = customerComboBox.getValue();
+                if (!selectItem(customCustomerComboBox, (null == customer) ? null : customer.getValue())) {
+                    int cityId = customer.getCityId();
+                    Optional<CitySelectionItem> existing = cityComboBox.getItems().stream().filter((t) -> null != t.getValue() && t.getValue().getPrimaryKey() == cityId).findFirst();
+                    if (existing.isPresent()) {
+                        selectItem(cityComboBox, existing.get().getValue());
+                    } else {
+                        CitySelectionItem city = cityList.stream().filter((t)
+                                -> null != t.getValue() && t.getValue().getPrimaryKey() == cityId).findFirst().get();
+                        int countryId = city.getCountryId();
+                        selectItem(countryComboBox, countryComboBox.getItems().stream().filter((t)
+                                -> null != t.getValue() && t.getValue().getPrimaryKey() == countryId).findFirst().get().getValue());
+                        selectItem(cityComboBox, city.getValue());
+                    }
+                    selectItem(customCustomerComboBox, customer.getValue());
+                }
+                UserSelectionItem user = userComboBox.getValue();
+                selectItem(customUserComboBox, (null == user) ? null : user.getValue());
+                selectItem(titleComboBox, TextFilterType.NONE);
+                selectItem(locationComboBox, TextFilterType.NONE);
             }
         }
     }
@@ -484,6 +651,9 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         assert cityRadioButton != null : "fx:id=\"cityRadioButton\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert countryRadioButton != null : "fx:id=\"countryRadioButton\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert okButton != null : "fx:id=\"okButton\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
+        assert lookupOptionsBorderPane != null : "fx:id=\"lookupOptionsBorderPane\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
+        assert lookupOptionCustomersCheckBox != null : "fx:id=\"lookupOptionCustomersCheckBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
+        assert lookupOptionUsersCheckBox != null : "fx:id=\"lookupOptionUsersCheckBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
 
         rangeTypeOptionList = FXCollections.observableArrayList(new RangeSelectionItem(RangeOptionValue.CURRENT_AND_FUTURE),
                 new RangeSelectionItem(RangeOptionValue.CURRENT), new RangeSelectionItem(RangeOptionValue.PAST),
@@ -563,7 +733,6 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             filter.setStartOption(DateFilterType.INCLUSIVE);
             filter.setUser(App.getCurrentUser());
         }
-
         TaskWaiter.execute(new InitializeTask(stage, filter));
         stage.showAndWait();
     }
@@ -574,6 +743,189 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         private ArrayList<UserImpl> users;
         private ArrayList<CityImpl> cities;
         private ArrayList<CountryImpl> countries;
+
+    }
+
+    private class ReloadCustomersAndUsersTask extends TaskWaiter<Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>>> {
+
+        private final boolean includeInactiveCustomers;
+        private final boolean includeInactiveUsers;
+
+        public ReloadCustomersAndUsersTask(Stage stage, boolean includeInactiveCustomers, boolean includeInactiveUsers) {
+            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
+            this.includeInactiveCustomers = includeInactiveCustomers;
+            this.includeInactiveUsers = includeInactiveUsers;
+        }
+
+        @Override
+        protected void processResult(Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>> result, Stage stage) {
+            CustomerSelectionItem currentCustomer = customerComboBox.getValue();
+            CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
+            UserSelectionItem currentUser = userComboBox.getValue();
+            UserSelectionItem currentCustomUser = customUserComboBox.getValue();
+            userList.clear();
+            customerList.clear();
+            userList.add(new UserSelectionItem(null));
+            customerList.add(new CustomerSelectionItem(null));
+            result.getKey().forEach((t) -> {
+                customerList.add(new CustomerSelectionItem(t));
+            });
+            result.getValue().forEach((t) -> {
+                userList.add(new UserSelectionItem(t));
+            });
+            if (null == currentCustomer || null == currentCustomer.getValue() || !selectItem(customerComboBox, currentCustomer.getValue())) {
+                selectItem(customerComboBox, null);
+            }
+            if (null == currentUser || null == currentUser.getValue() || !selectItem(userComboBox, currentUser.getValue())) {
+                selectItem(userComboBox, null);
+            }
+            if (null == currentCustomUser || null == currentCustomUser.getValue() || !selectItem(customUserComboBox, currentCustomUser.getValue())) {
+                selectItem(customUserComboBox, null);
+            }
+            filteredCustomerList.clear();
+            CitySelectionItem cityItem = cityComboBox.getValue();
+            if (null != cityItem && null != cityItem.getValue()) {
+                int cityId = cityItem.getValue().getPrimaryKey();
+                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
+            } else {
+                CountrySelectionItem countryItem = countryComboBox.getValue();
+                if (null != countryItem && null != countryItem.getValue()) {
+                    int countryId = countryItem.getValue().getPrimaryKey();
+                    filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
+                } else {
+                    filteredCustomerList.addAll(customerList);
+                }
+            }
+            if (null == currentCustomCustomer || null == currentCustomCustomer.getValue() || !selectItem(customCustomerComboBox, currentCustomCustomer.getValue())) {
+                selectItem(customCustomerComboBox, null);
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                    "Error loading reloading customers and  users", ex);
+        }
+
+        @Override
+        protected Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>> getResult(Connection connection) throws SQLException {
+            ArrayList<CustomerImpl> customers = (this.includeInactiveCustomers) ? CustomerImpl.getFactory().getAll(connection)
+                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
+            AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
+            CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
+            for (int i = 0; i < customers.size(); i++) {
+                customers.get(i).getAddress().ensurePartial(addrFactory, connection)
+                        .getCity().ensurePartial(cityFactory, connection);
+            }
+            return new Pair<>(customers,
+                    (this.includeInactiveUsers)
+                            ? UserImpl.getFactory().getAllItemsFilter().get(connection)
+                            : UserImpl.getFactory().getDefaultFilter().get(connection)
+            );
+        }
+
+    }
+
+    private class ReloadCustomersTask extends TaskWaiter<ArrayList<CustomerImpl>> {
+
+        private final boolean includeInactive;
+
+        public ReloadCustomersTask(Stage stage, boolean includeInactive) {
+            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
+            this.includeInactive = includeInactive;
+        }
+
+        @Override
+        protected void processResult(ArrayList<CustomerImpl> result, Stage stage) {
+            CustomerSelectionItem currentCustomer = customerComboBox.getValue();
+            CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
+            customerList.clear();
+            customerList.add(new CustomerSelectionItem(null));
+            result.forEach((t) -> {
+                customerList.add(new CustomerSelectionItem(t));
+            });
+            if (null == currentCustomer || null == currentCustomer.getValue() || !selectItem(customerComboBox, currentCustomer.getValue())) {
+                selectItem(customerComboBox, null);
+            }
+            filteredCustomerList.clear();
+            CitySelectionItem cityItem = cityComboBox.getValue();
+            if (null != cityItem && null != cityItem.getValue()) {
+                int cityId = cityItem.getValue().getPrimaryKey();
+                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
+            } else {
+                CountrySelectionItem countryItem = countryComboBox.getValue();
+                if (null != countryItem && null != countryItem.getValue()) {
+                    int countryId = countryItem.getValue().getPrimaryKey();
+                    filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
+                } else {
+                    filteredCustomerList.addAll(customerList);
+                }
+            }
+            if (null == currentCustomCustomer || null == currentCustomCustomer.getValue() || !selectItem(customCustomerComboBox, currentCustomCustomer.getValue())) {
+                selectItem(customCustomerComboBox, null);
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                    "Error loading reloading customers", ex);
+        }
+
+        @Override
+        protected ArrayList<CustomerImpl> getResult(Connection connection) throws SQLException {
+            ArrayList<CustomerImpl> customers = (this.includeInactive) ? CustomerImpl.getFactory().getAll(connection)
+                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
+            AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
+            CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
+            for (int i = 0; i < customers.size(); i++) {
+                customers.get(i).getAddress().ensurePartial(addrFactory, connection)
+                        .getCity().ensurePartial(cityFactory, connection);
+            }
+            return customers;
+        }
+
+    }
+
+    private class ReloadUsersTask extends TaskWaiter<ArrayList<UserImpl>> {
+
+        private final boolean includeInactive;
+
+        public ReloadUsersTask(Stage stage, boolean includeInactive) {
+            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
+            this.includeInactive = includeInactive;
+        }
+
+        @Override
+        protected void processResult(ArrayList<UserImpl> result, Stage stage) {
+            UserSelectionItem currentUser = userComboBox.getValue();
+            UserSelectionItem currentCustomUser = customUserComboBox.getValue();
+            userList.clear();
+            userList.add(new UserSelectionItem(null));
+            result.forEach((t) -> {
+                userList.add(new UserSelectionItem(t));
+            });
+            if (null == currentUser || null == currentUser.getValue() || !selectItem(userComboBox, currentUser.getValue())) {
+                selectItem(userComboBox, null);
+            }
+            if (null == currentCustomUser || null == currentCustomUser.getValue() || !selectItem(customUserComboBox, currentCustomUser.getValue())) {
+                selectItem(customUserComboBox, null);
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                    "Error loading reloading users", ex);
+        }
+
+        @Override
+        protected ArrayList<UserImpl> getResult(Connection connection) throws SQLException {
+            if (includeInactive) {
+                return UserImpl.getFactory().getAllItemsFilter().get(connection);
+            }
+            return UserImpl.getFactory().getDefaultFilter().get(connection);
+        }
 
     }
 
@@ -588,6 +940,9 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processResult(OptionItems result, Stage stage) {
+            userList.add(new UserSelectionItem(null));
+            customerList.add(new CustomerSelectionItem(null));
+            filteredCustomerList.add(customerList.get(0));
             result.customers.stream().map((t) -> new CustomerSelectionItem(t)).forEach((t) -> {
                 customerList.add(t);
                 filteredCustomerList.add(t);
@@ -669,16 +1024,19 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            throw new UnsupportedOperationException("Not supported yet.");
+            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                    "Error loading appointment filter data", ex);
         }
 
         @Override
         protected OptionItems getResult(Connection connection) throws SQLException {
             OptionItems result = new OptionItems();
-            AddressImpl.FactoryImpl factory = AddressImpl.getFactory();
+            AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
+            CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
             result.customers = CustomerImpl.getFactory().getDefaultFilter().get(connection);
             for (int i = 0; i < result.customers.size(); i++) {
-                result.customers.get(i).getAddress().ensurePartial(factory, connection);
+                result.customers.get(i).getAddress().ensurePartial(addrFactory, connection)
+                        .getCity().ensurePartial(cityFactory, connection);
             }
             result.users = UserImpl.getFactory().getDefaultFilter().get(connection);
             result.cities = CityImpl.getFactory().getAllItemsFilter().get(connection);
@@ -998,6 +1356,8 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     public class CustomerSelectionItem extends DataObjectItem<CustomerImpl> {
 
         private final ReadOnlyStringWrapper text;
+        private final ReadOnlyIntegerWrapper cityId;
+        private final ReadOnlyIntegerWrapper countryId;
 
         @Override
         public String getText() {
@@ -1008,7 +1368,6 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         public ReadOnlyStringProperty textProperty() {
             return text.getReadOnlyProperty();
         }
-        private final ReadOnlyIntegerWrapper cityId;
 
         public int getCityId() {
             return cityId.get();
@@ -1018,14 +1377,25 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             return cityId.getReadOnlyProperty();
         }
 
+        public int getCountryId() {
+            return countryId.get();
+        }
+
+        public ReadOnlyIntegerProperty countryIdProperty() {
+            return countryId.getReadOnlyProperty();
+        }
+
         public CustomerSelectionItem(CustomerImpl customer) {
             super(customer);
             if (null == customer) {
                 text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANY));
                 cityId = new ReadOnlyIntegerWrapper(-1);
+                countryId = new ReadOnlyIntegerWrapper(-1);
             } else {
                 text = new ReadOnlyStringWrapper(customer.getName());
-                cityId = new ReadOnlyIntegerWrapper(customer.getAddress().getPartial().getCity().getPrimaryKey());
+                Address addr = customer.getAddress().getPartial();
+                cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
+                countryId = new ReadOnlyIntegerWrapper(addr.getCity().getPartial().getCountry().getPrimaryKey());
             }
         }
     }

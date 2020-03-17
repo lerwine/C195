@@ -20,7 +20,7 @@ public class Values {
     //<editor-fold defaultstate="collapsed" desc="String validation and normalization">
 
     public static final Pattern REGEX_NON_NORMAL_WHITESPACES = Pattern.compile(" \\s+|(?! )\\s+");
-
+    
     /**
      * Ensures a {@link String} value is not null.
      *

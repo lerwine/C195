@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import scheduler.dao.AppointmentFilter;
@@ -32,7 +33,8 @@ import scheduler.view.annotations.GlobalizationResource;
 public final class ManageAppointments extends ListingController<AppointmentImpl, AppointmentModel> implements ManageAppointmentsResourceKeys {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
-
+    private FilterOptionState filterState = null;
+    
     @FXML // fx:id="headingLabel"
     private Label headingLabel; // Value injected by FXMLLoader
 
@@ -40,23 +42,12 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     private Label subHeadingLabel; // Value injected by FXMLLoader
 
     @FXML
-    void deleteMenuItemClick(ActionEvent event) {
-        Alerts.showWarningAlert("deleteMenuItemClick Not implemented");
-    }
-
-    @FXML
-    void editMenuItemClick(ActionEvent event) {
-        Alerts.showWarningAlert("editMenuItemClick Not implemented");
-    }
-
-    @FXML
     void filterButtonClick(ActionEvent event) {
-        Alerts.showWarningAlert("filterButtonClick Not implemented");
-    }
-
-    @FXML
-    void newButtonClick(ActionEvent event) {
-        Alerts.showWarningAlert("newButtonClick Not implemented");
+        FilterOptionState result = EditAppointmentFilter.waitEdit(filterState, (Stage)((Button)event.getSource()).getScene().getWindow());
+        if (null != result && !result.equals(filterState)) {
+            filterState = result;
+            Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
+        }
     }
 
     /**

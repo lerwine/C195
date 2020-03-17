@@ -132,7 +132,7 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_CONNECTINGTODB = "connectingToDb";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created by %s on %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created by %s on %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_CREATEDBYON = "createdByOn";
 
@@ -262,7 +262,7 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_MESSAGE = "message";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Modified by %s on %s"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Modified by %s on %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_MODIFIEDBYON = "modifiedByOn";
 

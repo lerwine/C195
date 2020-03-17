@@ -20,6 +20,7 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -54,8 +55,16 @@ public final class ResourceBundleLoader {
         INSTANCE = new ResourceBundleLoader();
     }
 
+    public static String formatResourceString(Class<?> ctlClass, String key, Object... args) {
+        return String.format(getResourceString(ctlClass, key), args);
+    }
+    
     public static String getResourceString(Class<?> ctlClass, String key) {
-        return getBundle(ctlClass).getString(key);
+        ResourceBundle bundle = getBundle(ctlClass);
+        if (bundle.containsKey(key))
+            return getBundle(ctlClass).getString(key);
+        LOG.severe(String.format("Key \"%s\" not found in resource bundle for %s", key, ctlClass.getName()));
+        return key;
     }
 
     public static final ResourceBundle empty() {
@@ -149,6 +158,7 @@ public final class ResourceBundleLoader {
     private Locale currentDisplayLocale;
     private Locale currentFormatLocale;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    @Deprecated
     private boolean altVerbalOrder;
 
     private ResourceBundleLoader() {
@@ -305,6 +315,7 @@ public final class ResourceBundleLoader {
      *
      * @return the value of altVerbalOrder
      */
+    @Deprecated
     public static boolean isAltVerbalOrder() {
         return INSTANCE.altVerbalOrder;
     }
@@ -411,19 +422,11 @@ public final class ResourceBundleLoader {
     }
     
     public static String formatCreatedByOn(String createdBy, LocalDateTime createDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
-        if (INSTANCE.altVerbalOrder) {
-            return String.format(getResourceString(AppResources.class, RESOURCEKEY_CREATEDBYON), formatter.format(createDate), createdBy);
-        }
-        return String.format(getResourceString(AppResources.class, RESOURCEKEY_CREATEDBYON), createdBy, formatter.format(createDate));
+        return formatResourceString(AppResources.class, RESOURCEKEY_CREATEDBYON, createdBy, Objects.requireNonNull(createDate));
     }
 
     public static String formatModifiedByOn(String modifiedBy, LocalDateTime lastModifiedDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
-        if (INSTANCE.altVerbalOrder) {
-            return String.format(getResourceString(AppResources.class, RESOURCEKEY_MODIFIEDBYON), formatter.format(lastModifiedDate), modifiedBy);
-        }
-        return String.format(getResourceString(AppResources.class, RESOURCEKEY_MODIFIEDBYON), modifiedBy, formatter.format(lastModifiedDate));
+        return formatResourceString(AppResources.class, RESOURCEKEY_MODIFIEDBYON, modifiedBy, Objects.requireNonNull(lastModifiedDate));
     }
 
     public class SupportedLocale {

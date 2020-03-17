@@ -38,7 +38,12 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active State:"}.
      */
-    public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
+    public static final String RESOURCEKEY_ACTIVESTATELABELTEXT = "activeStateLabelText";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments:"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSLABELTEXT = "appointmentsLabelText";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New User"}.
@@ -53,12 +58,12 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Change Password:"}.
      */
-    public static final String RESOURCEKEY_CHANGEPASSWORD = "changePassword";
+    public static final String RESOURCEKEY_CHANGEPASSWORDLABELTEXT = "changePasswordLabelText";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Confirm Password:"}.
      */
-    public static final String RESOURCEKEY_CONFIRMPASSWORD = "confirmPassword";
+    public static final String RESOURCEKEY_CONFIRMPASSWORDLABELTEXT = "confirmPasswordLabelText";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit User "%s""}.
@@ -83,7 +88,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Password:"}.
      */
-    public static final String RESOURCEKEY_PASSWORD = "password";
+    public static final String RESOURCEKEY_PASSWORDLABELTEXT = "passwordLabelText";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Password cannot be empty."}.
@@ -98,7 +103,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User Name:"}.
      */
-    public static final String RESOURCEKEY_USERNAME = "userName";
+    public static final String RESOURCEKEY_USERNAMELABELTEXT = "userNameLabelText";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User Name cannot be empty."}.

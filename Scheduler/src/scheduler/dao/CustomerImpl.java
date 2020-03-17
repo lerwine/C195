@@ -8,28 +8,37 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import scheduler.view.customer.CustomerModel;
 
 public class CustomerImpl extends DataObjectImpl implements Customer, CustomerColumns {
 
-    private static final String BASE_SELECT_SQL = String.format("SELECT `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, "
-            + "`%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, "
-            + "`%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`, `%s`.`%s` AS `%s`"
-            + " FROM `%s` `%s` LEFT JOIN `%s` `%s` ON `%s`.`%s`=`%s`.`%s` "
-            + " LEFT JOIN `%s` `%s` ON `%s`.`%s`=`%s`.`%s`"
-            + "LEFT JOIN `%s` `%s` ON `%s`.`%s`=`%s`.`%s`", COLNAME_CUSTOMERID, COLNAME_CUSTOMERID,
-            TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERNAME, COLNAME_CUSTOMERNAME, TABLEALIAS_CUSTOMER, COLNAME_ACTIVE, COLNAME_ACTIVE,
-            TABLEALIAS_CUSTOMER, COLNAME_ADDRESSID, COLNAME_ADDRESSID, TABLEALIAS_ADDRESS, COLNAME_ADDRESS, COLNAME_ADDRESS,
-            TABLEALIAS_ADDRESS, COLNAME_ADDRESS2, COLNAME_ADDRESS2, TABLEALIAS_ADDRESS, COLNAME_CITYID, COLNAME_CITYID,
-            TABLEALIAS_CITY, COLNAME_CITY, COLNAME_CITY, TABLEALIAS_CITY, COLNAME_COUNTRYID, TABLEALIAS_CITY, COLNAME_COUNTRYID,
-            TABLEALIAS_COUNTRY, COLNAME_COUNTRY, COLNAME_COUNTRY, TABLEALIAS_ADDRESS, COLNAME_POSTALCODE, COLNAME_POSTALCODE,
-            TABLEALIAS_ADDRESS, COLNAME_PHONE, COLNAME_PHONE, TABLEALIAS_CUSTOMER, COLNAME_CREATEDATE, COLNAME_CREATEDATE,
-            TABLEALIAS_CUSTOMER, COLNAME_CREATEDBY, COLNAME_CREATEDBY, TABLEALIAS_CUSTOMER, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE,
-            TABLEALIAS_CUSTOMER, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
-            TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, TABLENAME_ADDRESS, TABLEALIAS_ADDRESS, TABLEALIAS_CUSTOMER, COLNAME_ADDRESSID, TABLEALIAS_ADDRESS, COLNAME_ADDRESSID,
-            TABLENAME_CITY, TABLEALIAS_CITY, TABLEALIAS_CUSTOMER, COLNAME_CITYID, TABLEALIAS_CITY, COLNAME_CITYID,
-            TABLENAME_COUNTRY, TABLEALIAS_COUNTRY, TABLEALIAS_CUSTOMER, COLNAME_COUNTRYID, TABLEALIAS_COUNTRY, COLNAME_COUNTRYID);
+    private static final String BASE_SELECT_SQL;
 
+    static {
+        StringBuilder sb = new StringBuilder("SELECT ");
+        sb.append(TABLEALIAS_CUSTOMER).append(".`").append(COLNAME_CUSTOMERID).append("` AS `").append(COLNAME_CUSTOMERID);
+        Stream.of(COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
+                COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY).forEach((t) ->
+                        sb.append("`, ").append(TABLEALIAS_CUSTOMER).append(".`").append(t));
+        Stream.of(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE).forEach((t) ->
+                sb.append("`, ").append(TABLEALIAS_ADDRESS).append(".`").append(t));
+        
+        BASE_SELECT_SQL = sb.append("`, ").append(TABLEALIAS_CITY).append(".`").append(COLNAME_CITY).append("`, ")
+                .append(TABLEALIAS_CITY).append(".`").append(COLNAME_COUNTRYID).append("`, ")
+                .append(TABLEALIAS_COUNTRY).append(".`").append(COLNAME_COUNTRY)
+                .append("` FROM `").append(TABLENAME_CUSTOMER).append("` ").append(TABLEALIAS_CUSTOMER)
+                .append(" LEFT JOIN `").append(TABLENAME_ADDRESS).append("` ").append(TABLEALIAS_ADDRESS)
+                .append(" ON ").append(TABLEALIAS_CUSTOMER).append(".`").append(COLNAME_ADDRESSID)
+                .append("`=").append(TABLEALIAS_ADDRESS).append(".`").append(COLNAME_ADDRESSID)
+                .append("` LEFT JOIN `").append(TABLENAME_CITY).append("` ").append(TABLEALIAS_CITY)
+                .append(" ON ").append(TABLEALIAS_ADDRESS).append(".`").append(COLNAME_CITYID)
+                .append("`=").append(TABLEALIAS_CITY).append(".`").append(COLNAME_CITYID)
+                .append("` LEFT JOIN `").append(TABLENAME_COUNTRY).append("` ").append(TABLEALIAS_COUNTRY)
+                .append(" ON ").append(TABLEALIAS_CITY).append(".`").append(COLNAME_COUNTRYID)
+                .append("`=").append(TABLEALIAS_COUNTRY).append(".`").append(COLNAME_COUNTRYID).append("`").toString();
+    }
+    
     private String name;
 
     @Override

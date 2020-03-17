@@ -238,7 +238,7 @@ public class CustomerPicker extends SchedulerController {
             stage.showAndWait();
             return ctrl.selectedCustomer;
         } catch (IOException ex) {
-            Alerts.logAndAlertError(LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
+            Alerts.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
         }
         return null;
     }
@@ -476,7 +476,7 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            Alerts.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
@@ -505,7 +505,7 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            Alerts.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
@@ -555,7 +555,7 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            Alerts.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }

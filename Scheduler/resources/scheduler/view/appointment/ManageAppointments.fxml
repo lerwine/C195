@@ -100,15 +100,15 @@
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#editMenuItemClick" text="%edit" />
-                        <MenuItem mnemonicParsing="false" onAction="#deleteMenuItemClick" text="%delete" />
+                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
                     </items>
                 </ContextMenu>
             </contextMenu>
         </TableView>
         <ButtonBar>
             <buttons>
-                <Button mnemonicParsing="false" onAction="#newButtonClick" text="%new" />
+                <Button fx:id="newButton" mnemonicParsing="false" text="%new" />
             </buttons>
             <padding>
                 <Insets bottom="8.0" right="8.0" />

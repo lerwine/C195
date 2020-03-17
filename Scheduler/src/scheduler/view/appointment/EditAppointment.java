@@ -30,6 +30,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -356,7 +357,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void addCustomerClick(ActionEvent event) {
-        Alerts.showWarningAlert("Not implemented");
+        Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "addCustomerClick not implemented");
 //        CustomerModel customer = EditCustomer.addNew(getViewManager());
 //        if (null == customer)
 //            return;
@@ -366,7 +367,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void addUserClick(ActionEvent event) {
-        Alerts.showWarningAlert("Not implemented");
+        Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "addUserClick not implemented");
 //        UserModel user = EditUser.addNew(getViewManager());
 //        if (null == user)
 //            return;
@@ -376,7 +377,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
-        Alerts.showWarningAlert("Not implemented");
+        Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "showConflictsButtonClick not implemented");
     }
 
     @Override
@@ -409,7 +410,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            Alerts.showErrorAlert(ex);
+            Alerts.showErrorAlert(owner, ex);
             owner.close();
         }
 

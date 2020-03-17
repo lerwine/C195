@@ -95,7 +95,7 @@ public final class App extends Application {
                         ((Stage) owner).setScene(new Scene(v));
                     });
                 } catch (IOException ex) {
-                    Alerts.logAndAlertError(LOG, getClass(), "processResult", "Error loading main content", ex);
+                    Alerts.logAndAlertError(owner, LOG, getClass(), "processResult", "Error loading main content", ex);
                 }
             }
         }
