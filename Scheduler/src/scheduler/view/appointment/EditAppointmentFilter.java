@@ -811,12 +811,6 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         protected Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>> getResult(Connection connection) throws SQLException {
             ArrayList<CustomerImpl> customers = (this.includeInactiveCustomers) ? CustomerImpl.getFactory().getAll(connection)
                     : CustomerImpl.getFactory().getDefaultFilter().get(connection);
-            AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
-            CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
-            for (int i = 0; i < customers.size(); i++) {
-                customers.get(i).getAddress().ensurePartial(addrFactory, connection)
-                        .getCity().ensurePartial(cityFactory, connection);
-            }
             return new Pair<>(customers,
                     (this.includeInactiveUsers)
                             ? UserImpl.getFactory().getAllItemsFilter().get(connection)
@@ -874,15 +868,8 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected ArrayList<CustomerImpl> getResult(Connection connection) throws SQLException {
-            ArrayList<CustomerImpl> customers = (this.includeInactive) ? CustomerImpl.getFactory().getAll(connection)
+            return (this.includeInactive) ? CustomerImpl.getFactory().getAll(connection)
                     : CustomerImpl.getFactory().getDefaultFilter().get(connection);
-            AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
-            CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
-            for (int i = 0; i < customers.size(); i++) {
-                customers.get(i).getAddress().ensurePartial(addrFactory, connection)
-                        .getCity().ensurePartial(cityFactory, connection);
-            }
-            return customers;
         }
 
     }
@@ -1034,10 +1021,6 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
             CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
             result.customers = CustomerImpl.getFactory().getDefaultFilter().get(connection);
-            for (int i = 0; i < result.customers.size(); i++) {
-                result.customers.get(i).getAddress().ensurePartial(addrFactory, connection)
-                        .getCity().ensurePartial(cityFactory, connection);
-            }
             result.users = UserImpl.getFactory().getDefaultFilter().get(connection);
             result.cities = CityImpl.getFactory().getAllItemsFilter().get(connection);
             result.countries = CountryImpl.getFactory().getAllItemsFilter().get(connection);
@@ -1393,9 +1376,9 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
                 countryId = new ReadOnlyIntegerWrapper(-1);
             } else {
                 text = new ReadOnlyStringWrapper(customer.getName());
-                Address addr = customer.getAddress().getPartial();
+                Address addr = customer.getAddress();
                 cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
-                countryId = new ReadOnlyIntegerWrapper(addr.getCity().getPartial().getCountry().getPrimaryKey());
+                countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
             }
         }
     }

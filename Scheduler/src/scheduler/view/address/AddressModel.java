@@ -148,7 +148,7 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
         address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
         address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
         addressLines = new AddressLinesProperty();
-        City c = dao.getCity().getPartial();
+        City c = dao.getCity();
         city = new SimpleObjectProperty<>(this, "city", (null == c) ? null : new CityReferenceModelImpl(c));
         cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());
@@ -161,7 +161,7 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
     protected void refreshFromDAO(AddressImpl dao) {
         address1.set(dao.getAddress1());
         address2.set(dao.getAddress2());
-        City c = dao.getCity().getPartial();
+        City c = dao.getCity();
         city.set((null == c) ? null : new CityReferenceModelImpl(c));
         postalCode.set(dao.getPostalCode());
         phone.set(dao.getPhone());

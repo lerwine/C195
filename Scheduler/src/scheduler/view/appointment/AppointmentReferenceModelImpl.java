@@ -7,10 +7,8 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.Appointment;
 import scheduler.dao.Customer;
-import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.User;
-import scheduler.dao.UserImpl;
 import scheduler.observables.AppointmentTypeDisplayProperty;
 import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.ChildPropertyWrapper;
@@ -55,7 +53,7 @@ public class AppointmentReferenceModelImpl extends DataObjectImpl.DataObjectRefe
 
     public AppointmentReferenceModelImpl(Appointment dao) throws SQLException, ClassNotFoundException {
         super(dao);
-        Customer c = dao.getCustomer().ensurePartial(CustomerImpl.getFactory());
+        Customer c = dao.getCustomer();
         customer = new ReadOnlyObjectWrapper<>(this, "customer", (null == c) ? null : new CustomerReferenceModelImpl(c));
         customerName = new ChildPropertyWrapper<>(this, "customerName", customer, (t) -> t.nameProperty());
         customerAddress1 = new ChildPropertyWrapper<>(this, "customerAddress1", customer, (t) -> t.address1Property());
@@ -67,7 +65,7 @@ public class AppointmentReferenceModelImpl extends DataObjectImpl.DataObjectRefe
         customerCityZipCountry = new ChildPropertyWrapper<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
         customerAddressText = new ChildPropertyWrapper<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
         customerActive = new ChildPropertyWrapper<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        User u = dao.getUser().ensurePartial(UserImpl.getFactory());
+        User u = dao.getUser();
         user = new ReadOnlyObjectWrapper<>(this, "user", (null == u) ? null : new UserReferenceModelImpl(u));
         userName = new ChildPropertyWrapper<>(this, "userName", user, (t) -> t.userNameProperty());
         userStatus = new ChildPropertyWrapper<>(this, "userStatus", user, (t) -> t.statusProperty());

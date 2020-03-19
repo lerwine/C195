@@ -162,6 +162,16 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There are %d cities that reference this country."}.
+     */
+    public static final String RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY = "deleteMsgMultipleCountry";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There is one city that references this country."}.
+     */
+    public static final String RESOURCEKEY_DELETEMSGSINGLECOUNTRY = "deleteMsgSingleCountry";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Deleting Record"}.
      */
     public static final String RESOURCEKEY_DELETINGRECORD = "deletingRecord";

@@ -6,7 +6,6 @@ package scheduler.view.customer;
  */
 interface ManageCustomersConstants {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit"}.
      */
@@ -118,5 +117,4 @@ interface ManageCustomersConstants {
      */
     public static final String RESOURCEKEY_CUSTOMERHASAPPOINTMENTS = "customerHasAppointments";
 
-    //</editor-fold>
 }

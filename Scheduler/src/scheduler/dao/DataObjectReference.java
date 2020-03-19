@@ -13,46 +13,30 @@ import scheduler.util.DbConnector;
  * @param <T> The full data access object type.
  * @param <U> The partial data access object type.
  */
-public final class DataObjectReference<T extends U, U extends DataObject> {
+public final class DataObjectReference<T extends U, U extends DataObject> implements IDataObjectReference<T, U> {
 
     private Supplier<Integer> primaryKeySuppler;
 
-    /**
-     * Gets the primary key for the referenced data access object.
-     *
-     * @return The primary key for the referenced data access object.
-     */
+    @Override
     public int getPrimaryKey() {
         return (null == primaryKeySuppler) ? Integer.MIN_VALUE : primaryKeySuppler.get();
     }
 
-    /**
-     * Indicates whether this refers to an existing data object.
-     *
-     * @return {@code true} if this refers to an existing data object; otherwise, {@code false}.
-     */
+    @Override
     public boolean isEmpty() {
         return null == primaryKeySuppler;
     }
 
     private T full;
 
-    /**
-     * Gets the full data access object instance.
-     *
-     * @return The full data access object instance or {@code null} if this does not contain a full instance.
-     */
+    @Override
     public T getFull() {
         return full;
     }
 
     private U partial;
 
-    /**
-     * Gets the partial data access object instance.
-     *
-     * @return The partial data access object instance or {@code null} if this does not contain a full or partial instance.
-     */
+    @Override
     public U getPartial() {
         return partial;
     }

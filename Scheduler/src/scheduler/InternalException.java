@@ -1,7 +1,8 @@
 package scheduler;
 
 /**
- * An exception which indicates an internal error, usually for an exception that should never occur. This usually indicates there is a bug in the code.
+ * An exception which indicates an internal error, usually for an exception that should never occur. This usually indicates there is a bug in the
+ * code.
  *
  * @author Leonard T. Erwine
  */

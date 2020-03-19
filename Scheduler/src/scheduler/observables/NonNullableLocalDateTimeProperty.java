@@ -13,18 +13,6 @@ public class NonNullableLocalDateTimeProperty extends SimpleObjectProperty<Local
 
     ReadOnlyObjectProperty<LocalDateTime> readOnlyProperty;
 
-    /**
-     * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
-     *
-     * @return the readonly property
-     */
-    public ReadOnlyObjectProperty<LocalDateTime> getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new NonNullableLocalDateTimeProperty.ReadOnlyPropertyImpl();
-        }
-        return readOnlyProperty;
-    }
-
     public NonNullableLocalDateTimeProperty() {
         super(LocalDateTime.now());
     }
@@ -39,6 +27,18 @@ public class NonNullableLocalDateTimeProperty extends SimpleObjectProperty<Local
 
     public NonNullableLocalDateTimeProperty(Object bean, String name, LocalDateTime initialValue) {
         super(bean, name, (initialValue == null) ? LocalDateTime.MIN : initialValue);
+    }
+
+    /**
+     * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
+     *
+     * @return the readonly property
+     */
+    public ReadOnlyObjectProperty<LocalDateTime> getReadOnlyProperty() {
+        if (readOnlyProperty == null) {
+            readOnlyProperty = new NonNullableLocalDateTimeProperty.ReadOnlyPropertyImpl();
+        }
+        return readOnlyProperty;
     }
 
     @Override

@@ -33,22 +33,6 @@ import scheduler.view.annotations.GlobalizationResource;
 public final class ManageAppointments extends ListingController<AppointmentImpl, AppointmentModel> implements ManageAppointmentsResourceKeys {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
-    private FilterOptionState filterState = null;
-    
-    @FXML // fx:id="headingLabel"
-    private Label headingLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="subHeadingLabel"
-    private Label subHeadingLabel; // Value injected by FXMLLoader
-
-    @FXML
-    void filterButtonClick(ActionEvent event) {
-        FilterOptionState result = EditAppointmentFilter.waitEdit(filterState, (Stage)((Button)event.getSource()).getScene().getWindow());
-        if (null != result && !result.equals(filterState)) {
-            filterState = result;
-            Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
-        }
-    }
 
     /**
      * Loads {@link AppointmentModel} listing view and controller into the {@link MainController}.
@@ -61,7 +45,23 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     public static void setContent(MainController mainController, Stage stage, AppointmentFilter filter) throws IOException {
         setContent(mainController, ManageAppointments.class, stage, filter);
     }
-    
+    private FilterOptionState filterState = null;
+
+    @FXML // fx:id="headingLabel"
+    private Label headingLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="subHeadingLabel"
+    private Label subHeadingLabel; // Value injected by FXMLLoader
+
+    @FXML
+    void filterButtonClick(ActionEvent event) {
+        FilterOptionState result = EditAppointmentFilter.waitEdit(filterState, (Stage) ((Button) event.getSource()).getScene().getWindow());
+        if (null != result && !result.equals(filterState)) {
+            filterState = result;
+            Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
+        }
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     @Override
     protected void initialize() {
@@ -112,12 +112,11 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
         super.changeFilter(value, stage, onChangeComplete);
     }
 
-    
     @Override
     protected void onItemsLoaded(ModelFilter<AppointmentImpl, AppointmentModel> filter, Stage owner) {
         super.onItemsLoaded(filter, owner);
-        
-        AppointmentFilter appointmentFilter = (AppointmentFilter)filter;
+
+        AppointmentFilter appointmentFilter = (AppointmentFilter) filter;
     }
 
 }

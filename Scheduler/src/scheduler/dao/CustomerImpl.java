@@ -14,16 +14,17 @@ import scheduler.view.customer.CustomerModel;
 public class CustomerImpl extends DataObjectImpl implements Customer, CustomerColumns {
 
     private static final String BASE_SELECT_SQL;
+    private static final FactoryImpl FACTORY = new FactoryImpl();
 
     static {
         StringBuilder sb = new StringBuilder("SELECT ");
         sb.append(TABLEALIAS_CUSTOMER).append(".`").append(COLNAME_CUSTOMERID).append("` AS `").append(COLNAME_CUSTOMERID);
         Stream.of(COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
-                COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY).forEach((t) ->
-                        sb.append("`, ").append(TABLEALIAS_CUSTOMER).append(".`").append(t));
-        Stream.of(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE).forEach((t) ->
-                sb.append("`, ").append(TABLEALIAS_ADDRESS).append(".`").append(t));
-        
+                COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY).forEach((t)
+                        -> sb.append("`, ").append(TABLEALIAS_CUSTOMER).append(".`").append(t));
+        Stream.of(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE).forEach((t)
+                -> sb.append("`, ").append(TABLEALIAS_ADDRESS).append(".`").append(t));
+
         BASE_SELECT_SQL = sb.append("`, ").append(TABLEALIAS_CITY).append(".`").append(COLNAME_CITY).append("`, ")
                 .append(TABLEALIAS_CITY).append(".`").append(COLNAME_COUNTRYID).append("`, ")
                 .append(TABLEALIAS_COUNTRY).append(".`").append(COLNAME_COUNTRY)
@@ -38,8 +39,24 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
                 .append(" ON ").append(TABLEALIAS_CITY).append(".`").append(COLNAME_COUNTRYID)
                 .append("`=").append(TABLEALIAS_COUNTRY).append(".`").append(COLNAME_COUNTRYID).append("`").toString();
     }
-    
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     private String name;
+    private DataObjectReference<AddressImpl, Address> address;
+    private boolean active;
+
+    /**
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} customer object.
+     */
+    public CustomerImpl() {
+        super();
+        name = "";
+        address = DataObjectReference.of(null);
+        active = true;
+    }
 
     @Override
     public String getName() {
@@ -55,11 +72,14 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         this.name = name;
     }
 
-    private DataObjectReference<AddressImpl, Address> address;
+    @Override
+    public DataObjectReference<AddressImpl, Address> getAddressReference() {
+        return address;
+    }
 
     @Override
-    public DataObjectReference<AddressImpl, Address> getAddress() {
-        return address;
+    public Address getAddress() {
+        return address.getPartial();
     }
 
     /**
@@ -67,11 +87,9 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
      *
      * @param address new value of address
      */
-    public void setAddress(DataObjectReference<AddressImpl, Address> address) {
-        this.address = address;
+    public void setAddress(Address address) {
+        this.address = DataObjectReference.of(address);
     }
-
-    private boolean active;
 
     @Override
     public boolean isActive() {
@@ -85,22 +103,6 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
      */
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    /**
-     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} customer object.
-     */
-    public CustomerImpl() {
-        super();
-        name = "";
-        address = null;
-        active = true;
-    }
-
-    private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {

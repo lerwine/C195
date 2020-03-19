@@ -27,12 +27,6 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
-    @FXML
-    @Override
-    protected void initialize() {
-        super.initialize();
-    }
-
     /**
      * Loads {@link CustomerModel} listing view and controller into the {@link MainController}.
      *
@@ -43,6 +37,12 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
      */
     public static void setContent(MainController mainController, Stage stage, CustomerFilter filter) throws IOException {
         setContent(mainController, ManageCustomers.class, stage, filter);
+    }
+
+    @FXML
+    @Override
+    protected void initialize() {
+        super.initialize();
     }
 
     @Override

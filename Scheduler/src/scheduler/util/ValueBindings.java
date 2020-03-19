@@ -22,8 +22,8 @@ import scheduler.dao.DataObjectImpl;
 public class ValueBindings {
 
     /**
-     * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or an empty string if the source value was
-     * null.
+     * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or an empty
+     * string if the source value was null.
      *
      * @param stringProperty The {@link javafx.beans.property.StringProperty} to trim.
      * @return The new {@link javafx.beans.binding.StringBinding}.
@@ -76,7 +76,8 @@ public class ValueBindings {
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is not null and contains at least one non-whitespace character.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is not null and contains at least one
+     * non-whitespace character.
      *
      * @param stringProperty The {@link javafx.beans.property.StringProperty} to test.
      * @return The new {@link javafx.beans.binding.BooleanBinding}.
@@ -107,7 +108,8 @@ public class ValueBindings {
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is null, empty or contains all whitespace characters.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is null, empty or contains all whitespace
+     * characters.
      *
      * @param stringProperty The {@link javafx.beans.property.StringProperty} to test.
      * @return The new {@link javafx.beans.binding.BooleanBinding}.
@@ -138,7 +140,8 @@ public class ValueBindings {
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of {@link LocalDateTime} is not null and start is not greater than end.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link ObjectExpression} of {@link LocalDateTime} is not null and start
+     * is not greater than end.
      *
      * @param start The start {@link ObjectExpression} of {@link LocalDateTime} to test.
      * @param end The end {@link ObjectExpression} of {@link LocalDateTime} to test.

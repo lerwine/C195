@@ -33,7 +33,6 @@ import static scheduler.util.NodeUtil.restoreNode;
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
 public final class EditUser extends EditItem.EditController<UserImpl, UserModel> {
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active State:"}.
@@ -121,11 +120,11 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That user is referenced in one or more appointments...}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "That user is referenced in one or more appointments...}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 
-    //</editor-fold>
     @FXML // fx:id="userNameTextField"
     private TextField userNameTextField; // Value injected by FXMLLoader
 
@@ -163,6 +162,12 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     private Button addAppointmentButton; // Value injected by FXMLLoader
 
     private ObservableList<Short> userActiveStateOptions;
+
+    private StringBinding normalizedUserName;
+
+    private StringBinding passwordErrorMessageBinding;
+
+    private BooleanExpression validationExpression;
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -238,12 +243,6 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
         changePasswordSelectedChanged();
         userNameEmptyChanged();
     }
-
-    private StringBinding normalizedUserName;
-
-    private StringBinding passwordErrorMessageBinding;
-
-    private BooleanExpression validationExpression;
 
     private void changePasswordSelectedChanged() {
         if (changePasswordCheckBox.selectedProperty().get()) {

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 /**
@@ -10,12 +5,13 @@ package scheduler.dao;
  * @author lerwi
  */
 public interface TableNames {
+
     public static final String TABLEALIAS_COUNTRY = "n";
     public static final String TABLEALIAS_CITY = "l";
     public static final String TABLEALIAS_ADDRESS = "a";
     public static final String TABLEALIAS_CUSTOMER = "c";
     public static final String TABLEALIAS_APPOINTMENT = "e";
-    public static final String TABLEALIAS_USER  = "u";
+    public static final String TABLEALIAS_USER = "u";
     /**
      * The name of the {@link User} database table.
      */

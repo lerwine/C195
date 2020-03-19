@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
  * @author lerwi
  */
 public abstract class ObjectBindingProperty<T> extends ObjectBinding<T> implements ReadOnlyProperty<T> {
+
     private final String name;
     private final Object bean;
     private final ObservableList<Observable> dependencies;

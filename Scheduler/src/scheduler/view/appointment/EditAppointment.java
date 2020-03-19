@@ -357,7 +357,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void addCustomerClick(ActionEvent event) {
-        Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "addCustomerClick not implemented");
+        Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addCustomerClick not implemented");
 //        CustomerModel customer = EditCustomer.addNew(getViewManager());
 //        if (null == customer)
 //            return;
@@ -367,7 +367,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void addUserClick(ActionEvent event) {
-        Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "addUserClick not implemented");
+        Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addUserClick not implemented");
 //        UserModel user = EditUser.addNew(getViewManager());
 //        if (null == user)
 //            return;
@@ -377,7 +377,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
-        Alerts.showWarningAlert(((Button)event.getSource()).getScene().getWindow(), "showConflictsButtonClick not implemented");
+        Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "showConflictsButtonClick not implemented");
     }
 
     @Override

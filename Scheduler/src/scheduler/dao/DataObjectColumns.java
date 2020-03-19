@@ -26,8 +26,7 @@ interface DataObjectColumns {
     public static final String COLNAME_LASTUPDATEBY = "lastUpdateBy";
     
     public static String getDataObjectSelectFields(String tableAlias) {
-        return String.format("%s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s", tableAlias, COLNAME_CREATEDATE, COLNAME_CREATEDATE,
-                tableAlias, COLNAME_CREATEDBY, COLNAME_CREATEDBY, tableAlias, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE,
-                tableAlias, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY);
+        return String.format("%1$s.%2$s as %2$s, %1$s.%3$s as %3$s, %1$s.%4$s as %4$s, %1$s.%5$s as %5$s", tableAlias, COLNAME_CREATEDATE,
+                COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY);
     }
 }

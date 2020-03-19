@@ -15,28 +15,9 @@ import scheduler.util.Values;
 public class ReadOnlyModelProperty<M extends scheduler.view.ItemModel<?>> extends ReadOnlyObjectWrapper<M> {
 
     private final BooleanBinding newRow;
-
-    public BooleanBinding isNewRow() {
-        return newRow;
-    }
-
     private final BooleanBinding deleted;
-
-    public BooleanBinding isDeleted() {
-        return deleted;
-    }
-
     private final BooleanBinding modified;
-
-    public BooleanBinding isModified() {
-        return modified;
-    }
-
     private final BooleanBinding saved;
-
-    public BooleanBinding isSaved() {
-        return saved;
-    }
 
     public ReadOnlyModelProperty() {
         super();
@@ -44,6 +25,22 @@ public class ReadOnlyModelProperty<M extends scheduler.view.ItemModel<?>> extend
         deleted = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_DELETED);
         modified = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_MODIFIED);
         saved = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_UNMODIFIED);
+    }
+
+    public BooleanBinding isNewRow() {
+        return newRow;
+    }
+
+    public BooleanBinding isDeleted() {
+        return deleted;
+    }
+
+    public BooleanBinding isModified() {
+        return modified;
+    }
+
+    public BooleanBinding isSaved() {
+        return saved;
     }
 
     protected class PredicateBinding extends BooleanBinding {

@@ -1,4 +1,3 @@
-
 package scheduler.observables;
 
 import scheduler.util.ThrowableFunction;
@@ -21,33 +20,6 @@ public class OptionalValueProperty<T> extends SimpleObjectProperty<Optional<T>> 
 
     private final ReadOnlyBooleanWrapper present;
 
-    public final boolean isPresent() { return present.get(); }
-
-    public final ReadOnlyBooleanProperty presentProperty() { return present.getReadOnlyProperty(); }
-
-    public final void ifPresent(Consumer<? super T> consumer) { get().ifPresent(consumer); }
-    
-    public final <R> R fromPresence(Function<? super T, R> ifPresent, Supplier<R> notPresent) {
-        Optional<T> value = get();
-        if (value.isPresent())
-            return ifPresent.apply(value.get());
-        return notPresent.get();
-    }
-    
-    public final <R, E extends Exception> R withPresenceOrDefault(ThrowableFunction<? super T, R, E> function, R defaultValue) throws E {
-        Optional<T> value = get();
-        if (value.isPresent())
-            return function.apply(value.get());
-        return defaultValue;
-    }
-    
-    public final <U, R, E extends Exception> R fromPresentOrDefault(U u, ThrowableBiFunction<? super T, U, R, E> function, R defaultValue) throws E {
-        Optional<T> value = get();
-        if (value.isPresent())
-            return function.apply(value.get(), u);
-        return defaultValue;
-    }
-    
     public OptionalValueProperty() {
         super(Optional.empty());
         present = new ReadOnlyBooleanWrapper(false);
@@ -68,9 +40,48 @@ public class OptionalValueProperty<T> extends SimpleObjectProperty<Optional<T>> 
         present = new ReadOnlyBooleanWrapper(get().isPresent());
     }
 
+    public final boolean isPresent() {
+        return present.get();
+    }
+
+    public final ReadOnlyBooleanProperty presentProperty() {
+        return present.getReadOnlyProperty();
+    }
+
+    public final void ifPresent(Consumer<? super T> consumer) {
+        get().ifPresent(consumer);
+    }
+
+    public final <R> R fromPresence(Function<? super T, R> ifPresent, Supplier<R> notPresent) {
+        Optional<T> value = get();
+        if (value.isPresent()) {
+            return ifPresent.apply(value.get());
+        }
+        return notPresent.get();
+    }
+
+    public final <R, E extends Exception> R withPresenceOrDefault(ThrowableFunction<? super T, R, E> function, R defaultValue) throws E {
+        Optional<T> value = get();
+        if (value.isPresent()) {
+            return function.apply(value.get());
+        }
+        return defaultValue;
+    }
+
+    public final <U, R, E extends Exception> R fromPresentOrDefault(U u, ThrowableBiFunction<? super T, U, R, E> function, R defaultValue) throws E {
+        Optional<T> value = get();
+        if (value.isPresent()) {
+            return function.apply(value.get(), u);
+        }
+        return defaultValue;
+    }
+
     @Override
     public void set(Optional<T> newValue) {
-        try { super.set(Objects.requireNonNull(newValue, "Value cannot be null")); }
-        finally { present.set(get().isPresent()); }
+        try {
+            super.set(Objects.requireNonNull(newValue, "Value cannot be null"));
+        } finally {
+            present.set(get().isPresent());
+        }
     }
 }

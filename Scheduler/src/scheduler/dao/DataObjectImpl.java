@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.util.PropertyBindable;
 import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -28,13 +29,43 @@ import scheduler.util.Values;
 import scheduler.view.DataObjectReferenceModel;
 import scheduler.view.ItemModel;
 
-public class DataObjectImpl extends PropertyChangeNotifiable implements DataObject, TableNames, DataObjectColumns {
-
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    //<editor-fold defaultstate="collapsed" desc="primaryKey property">
-    private int primaryKey;
+public class DataObjectImpl extends PropertyBindable implements DataObject, TableNames, DataObjectColumns {
 
     public static final String PROP_PRIMARYKEY = "primaryKey";
+    /**
+     * The name of the 'createDate' property.
+     */
+    public static final String PROP_CREATEDATE = "createDate";
+    /**
+     * The name of the 'createdBy' property.
+     */
+    public static final String PROP_CREATEDBY = "createdBy";
+    /**
+     * The name of the 'lastModifiedDate' property.
+     */
+    public static final String PROP_LASTMODIFIEDDATE = "lastModifiedDate";
+    /**
+     * The name of the 'lastModifiedBy' property.
+     */
+    public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
+    public static final String PROP_ROWSTATE = "rowState";
+
+    private int primaryKey;
+    private Timestamp createDate;
+    private String createdBy;
+    private Timestamp lastModifiedDate;
+    private String lastModifiedBy;
+    private int rowState;
+
+    /**
+     * Initializes a {@link Values#ROWSTATE_NEW} data access object.
+     */
+    protected DataObjectImpl() {
+        primaryKey = 0;
+        lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+        lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
+        rowState = Values.ROWSTATE_NEW;
+    }
 
     @Override
     public int getPrimaryKey() {
@@ -46,15 +77,6 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         this.primaryKey = primaryKey;
         getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, primaryKey);
     }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="createDate property">
-    /**
-     * The name of the 'createDate' property.
-     */
-    public static final String PROP_CREATEDATE = "createDate";
-
-    private Timestamp createDate;
 
     /**
      * Gets the timestamp when the data row associated with the current data object was inserted into the database.
@@ -71,15 +93,6 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldCreateDate, createDate);
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="createdBy property">
-    /**
-     * The name of the 'createdBy' property.
-     */
-    public static final String PROP_CREATEDBY = "createdBy";
-
-    private String createdBy;
-
     /**
      * Gets the user name of the person who inserted the data row associated with the current data object into the database.
      *
@@ -94,15 +107,6 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         this.createdBy = Objects.requireNonNull(createdBy);
         getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldCreatedBy, createdBy);
     }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="lastModifiedDate property">
-    /**
-     * The name of the 'lastModifiedDate' property.
-     */
-    public static final String PROP_LASTMODIFIEDDATE = "lastModifiedDate";
-
-    private Timestamp lastModifiedDate;
 
     /**
      * Gets the timestamp when the data row associated with the current data object was last modified.
@@ -119,15 +123,6 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldModifiedDate, lastModifiedDate);
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="lastModifiedBy property">
-    /**
-     * The name of the 'lastModifiedBy' property.
-     */
-    public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
-
-    private String lastModifiedBy;
-
     /**
      * Gets the user name of the person who last modified the data row associated with the current data object in the database.
      *
@@ -142,12 +137,6 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
         this.lastModifiedBy = Objects.requireNonNull(lastModifiedBy);
         getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldLastModifiedBy, lastModifiedBy);
     }
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="rowState">
-    private int rowState;
-
-    public static final String PROP_ROWSTATE = "rowState";
 
     @Override
     public final int getRowState() {
@@ -199,18 +188,6 @@ public class DataObjectImpl extends PropertyChangeNotifiable implements DataObje
                     break;
             }
         }
-    }
-
-    //</editor-fold>
-    //</editor-fold>
-    /**
-     * Initializes a {@link Values#ROWSTATE_NEW} data access object.
-     */
-    protected DataObjectImpl() {
-        primaryKey = 0;
-        lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
-        lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
-        rowState = Values.ROWSTATE_NEW;
     }
 
     public static abstract class DataObjectReferenceModelImpl<T extends DataObject> implements DataObjectReferenceModel<T> {

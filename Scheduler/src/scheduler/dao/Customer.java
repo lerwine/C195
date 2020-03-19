@@ -36,7 +36,9 @@ public interface Customer extends DataObject {
      *
      * @return The {@link Address} for the current customer.
      */
-    DataObjectReference<AddressImpl, Address> getAddress();
+    DataObjectReference<AddressImpl, Address> getAddressReference();
+
+    Address getAddress();
 
     /**
      * Gets a value that indicates whether the current customer is active. This corresponds to the "active" database column.
@@ -57,14 +59,21 @@ public interface Customer extends DataObject {
     public static Customer of(int pk, String name, DataObjectReference<AddressImpl, Address> address, boolean active) {
         Objects.requireNonNull(name, "Name cannot be null");
         return new Customer() {
+            private final DataObjectReference<AddressImpl, Address> addressReference = (null == address) ? DataObjectReference.of(null) : address;
+
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public DataObjectReference<AddressImpl, Address> getAddress() {
-                return address;
+            public DataObjectReference<AddressImpl, Address> getAddressReference() {
+                return addressReference;
+            }
+
+            @Override
+            public Address getAddress() {
+                return addressReference.getPartial();
             }
 
             @Override

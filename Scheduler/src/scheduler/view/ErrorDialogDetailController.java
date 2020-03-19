@@ -18,8 +18,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import scheduler.AppResources;
-import scheduler.util.Values;
 import static scheduler.util.NodeUtil.collapseNode;
+import scheduler.util.Values;
 
 /**
  * FXML Controller class
@@ -27,6 +27,22 @@ import static scheduler.util.NodeUtil.collapseNode;
  * @author lerwi
  */
 public class ErrorDialogDetailController {
+
+    private static GridPane load(Throwable error, int maxDepth, boolean ignoreCause, String message) throws IOException {
+        FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
+                AppResources.getResources());
+        GridPane view = loader.load();
+        ((ErrorDialogDetailController) loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
+        return view;
+    }
+
+    public static GridPane load(Throwable error, String logMessage) throws IOException {
+        FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
+                AppResources.getResources());
+        GridPane view = loader.load();
+        ((ErrorDialogDetailController) loader.getController()).initialize(error, logMessage, 32, Optional.empty());
+        return view;
+    }
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -198,19 +214,4 @@ public class ErrorDialogDetailController {
         stackTraceTextArea.setText(sw.toString());
     }
 
-    private static GridPane load(Throwable error, int maxDepth, boolean ignoreCause, String message) throws IOException {
-        FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
-                AppResources.getResources());
-        GridPane view = loader.load();
-        ((ErrorDialogDetailController) loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
-        return view;
-    }
-
-    public static GridPane load(Throwable error, String logMessage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
-                AppResources.getResources());
-        GridPane view = loader.load();
-        ((ErrorDialogDetailController) loader.getController()).initialize(error, logMessage, 32, Optional.empty());
-        return view;
-    }
 }

@@ -29,7 +29,6 @@ import scheduler.view.country.CountryModel;
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
 public final class EditCustomer extends EditItem.EditController<CustomerImpl, CustomerModel> {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active:"}.
      */
@@ -151,7 +150,6 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
      */
     public static final String RESOURCEKEY_USER = "user";
 
-    //</editor-fold>
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
 

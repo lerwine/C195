@@ -12,6 +12,18 @@ import java.util.function.Function;
  */
 class TernaryOption<T, S, U> {
 
+    public static <T, S, U> TernaryOption<T, S, U> ofPrimary(T t) {
+        return new TernaryOption<>(Objects.requireNonNull(t), Optional.of(true));
+    }
+
+    public static <T, S, U> TernaryOption<T, S, U> ofSecondary(S s) {
+        return new TernaryOption<>(Objects.requireNonNull(s), Optional.of(false));
+    }
+
+    public static <T, S, U> TernaryOption<T, S, U> ofTertiary(U u) {
+        return new TernaryOption<>(Objects.requireNonNull(u), Optional.of(false));
+    }
+
     private final Object value;
     private final Optional<Boolean> primary;
 
@@ -109,15 +121,4 @@ class TernaryOption<T, S, U> {
         return new TernaryOption<>(value, (primary.isPresent()) ? ((primary.get()) ? Optional.empty() : Optional.of(false)) : Optional.of(true));
     }
 
-    public static <T, S, U> TernaryOption<T, S, U> ofPrimary(T t) {
-        return new TernaryOption<>(Objects.requireNonNull(t), Optional.of(true));
-    }
-
-    public static <T, S, U> TernaryOption<T, S, U> ofSecondary(S s) {
-        return new TernaryOption<>(Objects.requireNonNull(s), Optional.of(false));
-    }
-
-    public static <T, S, U> TernaryOption<T, S, U> ofTertiary(U u) {
-        return new TernaryOption<>(Objects.requireNonNull(u), Optional.of(false));
-    }
 }

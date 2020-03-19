@@ -56,7 +56,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
 
     public AppointmentModel(AppointmentImpl dao) {
         super(dao);
-        Customer c = dao.getCustomer().getPartial();
+        Customer c = dao.getCustomer();
         customer = new SimpleObjectProperty<>(this, "customer", (null == c) ? null : new CustomerReferenceModelImpl(c));
         customerName = new ChildPropertyWrapper<>(this, "customerName", customer, (t) -> t.nameProperty());
         customerAddress1 = new ChildPropertyWrapper<>(this, "customerAddress1", customer, (t) -> t.address1Property());
@@ -68,7 +68,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
         customerCityZipCountry = new ChildPropertyWrapper<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
         customerAddressText = new ChildPropertyWrapper<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
         customerActive = new ChildPropertyWrapper<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        User u = dao.getUser().getPartial();
+        User u = dao.getUser();
         user = new SimpleObjectProperty<>(this, "user", (null == u) ? null : new UserReferenceModelImpl(u));
         userName = new ChildPropertyWrapper<>(this, "userName", user, (t) -> t.userNameProperty());
         userStatus = new ChildPropertyWrapper<>(this, "userStatus", user, (t) -> t.statusProperty());
@@ -377,9 +377,9 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
 
     @Override
     protected void refreshFromDAO(AppointmentImpl dao) {
-        Customer c = dao.getCustomer().getPartial();
+        Customer c = dao.getCustomer();
         customer.set((null == c) ? null : new CustomerReferenceModelImpl(c));
-        User u = dao.getUser().getPartial();
+        User u = dao.getUser();
         user.set((null == u) ? null : new UserReferenceModelImpl(u));
         title.set(dao.getTitle());
         description.set(dao.getDescription());

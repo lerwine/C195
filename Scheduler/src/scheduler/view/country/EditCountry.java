@@ -31,9 +31,29 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cities"}.
+     */
+    public static final String RESOURCEKEY_CITIES = "cities";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There are %d addresses that reference this city."}.
+     */
+    public static final String RESOURCEKEY_DELETEMSGMULTIPLE = "deleteMsgMultiple";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This is one address that references this city."}.
+     */
+    public static final String RESOURCEKEY_DELETEMSGSINGLE = "deleteMsgSingle";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Country"}.
      */
     public static final String RESOURCEKEY_EDITCOUNTRY = "editCountry";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading cities. Please wait...."}.
+     */
+    public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name:"}.
@@ -50,6 +70,11 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
      * ot be deleted."}.
      */
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "A city with that name has already been added."}.
+     */
+    public static final String RESOURCEKEY_SAVECONFLICTMESSAGE = "saveConflictMessage";
 
     @FXML
     private TextField nameTextField;

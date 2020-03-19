@@ -13,13 +13,13 @@ import java.util.logging.Logger;
 import scheduler.AppResources;
 
 /**
- * Manages SQL {@link java.sql.Connection} dependencies. SQL connections are opened when needed, and then closes the connection after there have been no dependencies after a
- * predetermined delay. This allows nested method calls to use the same database connection without having to pass the connection instance.
+ * Manages SQL {@link java.sql.Connection} dependencies. SQL connections are opened when needed, and then closes the connection after there have been
+ * no dependencies after a predetermined delay. This allows nested method calls to use the same database connection without having to pass the
+ * connection instance.
  *
  * @author Leonard T. Erwine
  */
 public final class DbConnector implements AutoCloseable {
-    //<editor-fold defaultstate="collapsed" desc="Fields and Properties">
 
     public static final int STATE_NOT_CONNECTED = 0;
 
@@ -54,137 +54,6 @@ public final class DbConnector implements AutoCloseable {
     private static long CLOSE_AT;
 
     private static Future<Boolean> CLOSE_CONNECTION_TASK;
-
-    // The SQL connection dependency that precedes the current one.
-    private DbConnector previous = null;
-
-    // The SQL connection dependency that follows the current one.
-    private DbConnector next = null;
-
-    private Connection connection = null;
-
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="Constructors">
-    /**
-     * Initializes a new DbConnector object with an opened {@link java.sql.Connection}.
-     *
-     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
-     * @throws ClassNotFoundException if the driver class was not found.
-     */
-    public DbConnector() throws SQLException, ClassNotFoundException {
-        this(false);
-    }
-
-    /**
-     * Initializes a new DbConnector object.
-     *
-     * @param doNotOpen Do not automatically open a new {@link java.sql.Connection}.
-     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
-     * @throws ClassNotFoundException if the driver class was not found.
-     */
-    public DbConnector(boolean doNotOpen) throws SQLException, ClassNotFoundException {
-        if (!doNotOpen) {
-            open();
-        }
-    }
-
-    //</editor-fold>
-    /**
-     * Gets the current SQL DB {@link java.sql.Connection}.
-     *
-     * @return The current opened SQL DB {@link java.sql.Connection} or {@code null} if the current DbConnector is in a closed state.
-     */
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public int getState() {
-        return (null == connection) ? STATE_NOT_CONNECTED : CURRENT_STATE;
-    }
-
-    /**
-     * Ensures that the current DbConnector is an an opened state, opening a new SQL DB {@link java.sql.Connection} if necessary.
-     *
-     * @return an opened SQL DB {@link java.sql.Connection}.
-     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
-     * @throws ClassNotFoundException if the SQL database driver class was not found.
-     */
-    public final Connection open() throws SQLException, ClassNotFoundException {
-        synchronized (SYNC_ROOT) {
-            // connection property is null when the current DbConnector is in a closed state.
-            if (null != CONNECTION && !CONNECTION.isClosed()) {
-                if (null == connection) {
-                    if (null != LATEST) {
-                        (previous = LATEST).next = this;
-                    }
-                    LATEST = this;
-                }
-                connection = CONNECTION;
-                return connection;
-            }
-
-            CURRENT_STATE = STATE_CONNECTING;
-            try {
-                // Initialize database driver class
-                Class.forName(DB_DRIVER);
-                // Make new connection.
-                String url = AppResources.getConnectionUrl();
-                LOG.log(Level.INFO, String.format("Connecting to %s", url));
-                CONNECTION = Objects.requireNonNull(DriverManager.getConnection(url, AppResources.getDbLoginName(), AppResources.getDbLoginPassword()),
-                        "DriverManager.getConnection returned null");
-                LOG.log(Level.INFO, String.format("Connected to %s", url));
-                CURRENT_STATE = STATE_CONNECTED;
-            } finally {
-                if (CURRENT_STATE == STATE_CONNECTING) {
-                    CURRENT_STATE = STATE_CONNECTION_ERROR;
-                    CONNECTION = null;
-                    forceCloseAll();
-                } else {
-                    for (DbConnector d = LATEST; d != null; d = d.previous) {
-                        d.connection = CONNECTION;
-                    }
-                    if (connection == null) {
-                        if (null != LATEST) {
-                            (previous = LATEST).next = this;
-                        }
-                        LATEST = this;
-                        connection = CONNECTION;
-                    }
-                }
-            }
-        }
-        return Objects.requireNonNull(connection, "Connection could not be opened");
-    }
-
-    /**
-     * Closes the current SQL connection dependency. If this is the last DbConnector that currently requires an SQL connection, then the actual SQL DB {@link java.sql.Connection}
-     * will be closed after the predetermined delay.
-     */
-    @Override
-    public final void close() {
-        synchronized (SYNC_ROOT) {
-            if (connection == null) {
-                return;
-            }
-            try {
-                if (next == null) {
-                    if ((LATEST = previous) != null) {
-                        previous = previous.next = null;
-                    } else {
-                        scheduleClose(CONNECTION_CLOSE_DELAY_MILLISECONDS);
-                    }
-                } else {
-                    if ((next.previous = previous) != null) {
-                        previous.next = next;
-                        previous = null;
-                    }
-                    next = null;
-                }
-            } finally {
-                connection = null;
-            }
-        }
-    }
 
     private static void scheduleClose(int delayMilliseconds) {
         synchronized (SYNC_ROOT) {
@@ -302,6 +171,134 @@ public final class DbConnector implements AutoCloseable {
         Objects.requireNonNull(callable);
         try (DbConnector dep = new DbConnector()) {
             return callable.apply(dep.getConnection());
+        }
+    }
+
+    // The SQL connection dependency that precedes the current one.
+    private DbConnector previous = null;
+
+    // The SQL connection dependency that follows the current one.
+    private DbConnector next = null;
+
+    private Connection connection = null;
+
+    /**
+     * Initializes a new DbConnector object with an opened {@link java.sql.Connection}.
+     *
+     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
+     * @throws ClassNotFoundException if the driver class was not found.
+     */
+    public DbConnector() throws SQLException, ClassNotFoundException {
+        this(false);
+    }
+
+    /**
+     * Initializes a new DbConnector object.
+     *
+     * @param doNotOpen Do not automatically open a new {@link java.sql.Connection}.
+     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
+     * @throws ClassNotFoundException if the driver class was not found.
+     */
+    public DbConnector(boolean doNotOpen) throws SQLException, ClassNotFoundException {
+        if (!doNotOpen) {
+            open();
+        }
+    }
+
+    /**
+     * Gets the current SQL DB {@link java.sql.Connection}.
+     *
+     * @return The current opened SQL DB {@link java.sql.Connection} or {@code null} if the current DbConnector is in a closed state.
+     */
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public int getState() {
+        return (null == connection) ? STATE_NOT_CONNECTED : CURRENT_STATE;
+    }
+
+    /**
+     * Ensures that the current DbConnector is an an opened state, opening a new SQL DB {@link java.sql.Connection} if necessary.
+     *
+     * @return an opened SQL DB {@link java.sql.Connection}.
+     * @throws SQLException if a database access error occurs or a connection timeout threshold has been exceeded.
+     * @throws ClassNotFoundException if the SQL database driver class was not found.
+     */
+    public final Connection open() throws SQLException, ClassNotFoundException {
+        synchronized (SYNC_ROOT) {
+            // connection property is null when the current DbConnector is in a closed state.
+            if (null != CONNECTION && !CONNECTION.isClosed()) {
+                if (null == connection) {
+                    if (null != LATEST) {
+                        (previous = LATEST).next = this;
+                    }
+                    LATEST = this;
+                }
+                connection = CONNECTION;
+                return connection;
+            }
+
+            CURRENT_STATE = STATE_CONNECTING;
+            try {
+                // Initialize database driver class
+                Class.forName(DB_DRIVER);
+                // Make new connection.
+                String url = AppResources.getConnectionUrl();
+                LOG.log(Level.INFO, String.format("Connecting to %s", url));
+                CONNECTION = Objects.requireNonNull(DriverManager.getConnection(url, AppResources.getDbLoginName(), AppResources.getDbLoginPassword()),
+                        "DriverManager.getConnection returned null");
+                LOG.log(Level.INFO, String.format("Connected to %s", url));
+                CURRENT_STATE = STATE_CONNECTED;
+            } finally {
+                if (CURRENT_STATE == STATE_CONNECTING) {
+                    CURRENT_STATE = STATE_CONNECTION_ERROR;
+                    CONNECTION = null;
+                    forceCloseAll();
+                } else {
+                    for (DbConnector d = LATEST; d != null; d = d.previous) {
+                        d.connection = CONNECTION;
+                    }
+                    if (connection == null) {
+                        if (null != LATEST) {
+                            (previous = LATEST).next = this;
+                        }
+                        LATEST = this;
+                        connection = CONNECTION;
+                    }
+                }
+            }
+        }
+        return Objects.requireNonNull(connection, "Connection could not be opened");
+    }
+
+    /**
+     * Closes the current SQL connection dependency. If this is the last DbConnector that currently requires an SQL connection, then the actual SQL DB
+     * {@link java.sql.Connection} will be closed after the predetermined delay.
+     */
+    @Override
+    public final void close() {
+        synchronized (SYNC_ROOT) {
+            if (connection == null) {
+                return;
+            }
+            try {
+                if (next == null) {
+                    if ((LATEST = previous) != null) {
+                        previous = previous.next = null;
+                    } else {
+                        scheduleClose(CONNECTION_CLOSE_DELAY_MILLISECONDS);
+                    }
+                } else {
+                    if ((next.previous = previous) != null) {
+                        previous.next = next;
+                        previous = null;
+                    }
+                    next = null;
+                }
+            } finally {
+                connection = null;
+            }
         }
     }
 

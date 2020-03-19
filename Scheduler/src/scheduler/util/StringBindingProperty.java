@@ -16,11 +16,12 @@ import javafx.collections.ObservableList;
  * @author lerwi
  */
 public abstract class StringBindingProperty extends StringBinding implements ReadOnlyProperty<String> {
+
     private final String name;
     private final Object bean;
     private final ObservableList<Observable> dependencies;
     private final ObservableList<Observable> readOnlyDependencies;
-    
+
     protected StringBindingProperty(Object bean, String name, Observable... dependencies) {
         this.bean = bean;
         this.name = name;

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.appointment;
 
 import java.time.ZoneId;
@@ -22,43 +17,6 @@ import javafx.beans.property.ReadOnlyStringWrapper;
  */
 public class TimeZoneChoice implements Comparable<TimeZoneChoice> {
 
-    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
-
-    public ZoneId getZoneId() { return zoneId.get(); }
-
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() { return zoneId.getReadOnlyProperty(); }
-    
-    private final ReadOnlyObjectWrapper<TimeZone> timeZone;
-
-    public TimeZone getTimeZone() { return timeZone.get(); }
-
-    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() { return timeZone.getReadOnlyProperty(); }
-    
-    private final ReadOnlyStringWrapper fullName;
-
-    public String getFullName() {
-        return fullName.get();
-    }
-
-    public ReadOnlyStringProperty fullNameProperty() {
-        return fullName.getReadOnlyProperty();
-    }
-    private final ReadOnlyStringWrapper shortName;
-
-    public String getShortName() {
-        return shortName.get();
-    }
-
-    public ReadOnlyStringProperty shortNameProperty() {
-        return shortName.getReadOnlyProperty();
-    }
-    
-    private final ReadOnlyStringWrapper displayName;
-
-    public String getDisplayName() { return displayName.get(); }
-
-    public ReadOnlyStringProperty displayNameProperty() { return displayName.getReadOnlyProperty(); }
-    
     public static Stream<TimeZoneChoice> getAllChoices(Locale locale) {
         final HashMap<Integer, TimeZoneChoice> byOffset = new HashMap<>();
         final HashMap<String, TimeZoneChoice> byName = new HashMap<>();
@@ -85,7 +43,13 @@ public class TimeZoneChoice implements Comparable<TimeZoneChoice> {
         });
         return byName.values().stream().sorted();
     }
-    
+
+    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
+    private final ReadOnlyObjectWrapper<TimeZone> timeZone;
+    private final ReadOnlyStringWrapper fullName;
+    private final ReadOnlyStringWrapper shortName;
+    private final ReadOnlyStringWrapper displayName;
+
     public TimeZoneChoice(ZoneId id, Locale locale) {
         zoneId = new ReadOnlyObjectWrapper<>(id);
         String n = id.getDisplayName(TextStyle.SHORT, locale);
@@ -96,51 +60,103 @@ public class TimeZoneChoice implements Comparable<TimeZoneChoice> {
         timeZone = new ReadOnlyObjectWrapper<>(tz);
         int value = tz.getRawOffset();
         boolean isNegative = value < 0;
-        if (isNegative)
+        if (isNegative) {
             value *= -1;
+        }
         int ms = value % 1000;
         int i = (value = (value - ms) / 1000) % 60;
         int m = (value = (value - i) / 60) % 60;
         value = (value - m) / 60;
         String s = (isNegative) ? "-" : "+";
         if (f.equalsIgnoreCase(n)) {
-            if (ms > 0)
+            if (ms > 0) {
                 displayName = new ReadOnlyStringWrapper(String.format("%s (%s%2d:%2d:%2d.%4d)", f, s, value, m, i, ms));
-            else if (i > 0)
+            } else if (i > 0) {
                 displayName = new ReadOnlyStringWrapper(String.format("%s (%s%2d:%2d:%2d)", f, s, value, m, i));
-            else
+            } else {
                 displayName = new ReadOnlyStringWrapper(String.format("%s (%s%2d:%2d)", f, s, value, m));
-        } else if (ms > 0)
+            }
+        } else if (ms > 0) {
             displayName = new ReadOnlyStringWrapper(String.format("%s (%s %s%2d:%2d:%2d.%4d)", f, s, n, value, m, i, ms));
-        else if (i > 0)
+        } else if (i > 0) {
             displayName = new ReadOnlyStringWrapper(String.format("%s (%s %s%2d:%2d:%2d)", f, s, n, value, m, i));
-        else
+        } else {
             displayName = new ReadOnlyStringWrapper(String.format("%s (%s %s%2d:%2d)", f, s, n, value, m));
+        }
+    }
+
+    public ZoneId getZoneId() {
+        return zoneId.get();
+    }
+
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId.getReadOnlyProperty();
+    }
+
+    public TimeZone getTimeZone() {
+        return timeZone.get();
+    }
+
+    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() {
+        return timeZone.getReadOnlyProperty();
+    }
+
+    public String getFullName() {
+        return fullName.get();
+    }
+
+    public ReadOnlyStringProperty fullNameProperty() {
+        return fullName.getReadOnlyProperty();
+    }
+
+    public String getShortName() {
+        return shortName.get();
+    }
+
+    public ReadOnlyStringProperty shortNameProperty() {
+        return shortName.getReadOnlyProperty();
+    }
+
+    public String getDisplayName() {
+        return displayName.get();
+    }
+
+    public ReadOnlyStringProperty displayNameProperty() {
+        return displayName.getReadOnlyProperty();
     }
 
     @Override
-    public int hashCode() { return getTimeZone().getRawOffset(); }
+    public int hashCode() {
+        return getTimeZone().getRawOffset();
+    }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
-        return getZoneId().getId().equals(((TimeZoneChoice)obj).getZoneId().getId());
+        }
+        return getZoneId().getId().equals(((TimeZoneChoice) obj).getZoneId().getId());
     }
 
     @Override
-    public String toString() { return displayName.get(); }
+    public String toString() {
+        return displayName.get();
+    }
 
     @Override
     public int compareTo(TimeZoneChoice o) {
-        if (o == null)
+        if (o == null) {
             return 1;
-        if (o == this)
+        }
+        if (o == this) {
             return 0;
+        }
         int r = getTimeZone().getRawOffset() - o.getTimeZone().getRawOffset();
         return (r == 0 && (r = getDisplayName().compareToIgnoreCase(o.getDisplayName())) == 0) ? getDisplayName().compareTo(o.getDisplayName()) : r;
     }

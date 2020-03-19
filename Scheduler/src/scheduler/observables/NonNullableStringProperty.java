@@ -6,55 +6,16 @@ import javafx.beans.property.ReadOnlyStringPropertyBase;
 import javafx.beans.property.SimpleStringProperty;
 
 /**
- * A {@link SimpleStringProperty} that stores non-null {@link String} values. Null values supplied to this property will be converted to empty strings.
+ * A {@link SimpleStringProperty} that stores non-null {@link String} values. Null values supplied to this property will be converted to empty
+ * strings.
  *
  * @author Leonard T. Erwine
  */
 public class NonNullableStringProperty extends SimpleStringProperty {
 
     ReadOnlyStringProperty readOnlyProperty;
-
-    /**
-     * Returns the readonly property, that is synchronized with this {@code NonNullableStringProperty}.
-     *
-     * @return the readonly property
-     */
-    public ReadOnlyStringProperty getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new NonNullableStringProperty.ReadOnlyPropertyImpl();
-        }
-        return readOnlyProperty;
-    }
-
     private final BooleanBinding whiteSpaceOrEmpty;
-
-    /**
-     * Gets a {@link BooleanBinding} that returns {@code true} if the current value does not contain any non-whitespace characters.
-     *
-     * @return a {@link BooleanBinding} that returns {@code true} if the current value does not contain any non-whitespace characters.
-     */
-    public BooleanBinding isWhiteSpaceOrEmpty() {
-        return whiteSpaceOrEmpty;
-    }
-
     private final boolean trimming;
-
-    /**
-     * Gets a value that indicates whether this property trims extraneous whitespace when modified.
-     *
-     * @return {@code true} if this property trims extraneous whitespace when modified; otherwise, {@code false}.
-     */
-    public boolean isTrimming() {
-        return trimming;
-    }
-
-    private class WhitespaceBinding extends BooleanBinding {
-
-        @Override
-        protected boolean computeValue() {
-            return NonNullableStringProperty.this.get().trim().isEmpty();
-        }
-    }
 
     /**
      * Initializes a new string property with an empty string.
@@ -143,6 +104,36 @@ public class NonNullableStringProperty extends SimpleStringProperty {
         this(bean, name, initialValue, false);
     }
 
+    /**
+     * Returns the readonly property, that is synchronized with this {@code NonNullableStringProperty}.
+     *
+     * @return the readonly property
+     */
+    public ReadOnlyStringProperty getReadOnlyProperty() {
+        if (readOnlyProperty == null) {
+            readOnlyProperty = new NonNullableStringProperty.ReadOnlyPropertyImpl();
+        }
+        return readOnlyProperty;
+    }
+
+    /**
+     * Gets a {@link BooleanBinding} that returns {@code true} if the current value does not contain any non-whitespace characters.
+     *
+     * @return a {@link BooleanBinding} that returns {@code true} if the current value does not contain any non-whitespace characters.
+     */
+    public BooleanBinding isWhiteSpaceOrEmpty() {
+        return whiteSpaceOrEmpty;
+    }
+
+    /**
+     * Gets a value that indicates whether this property trims extraneous whitespace when modified.
+     *
+     * @return {@code true} if this property trims extraneous whitespace when modified; otherwise, {@code false}.
+     */
+    public boolean isTrimming() {
+        return trimming;
+    }
+
     @Override
     public void set(String newValue) {
         super.set((newValue == null) ? "" : ((trimming) ? newValue.trim() : newValue));
@@ -151,6 +142,14 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     @Override
     public void setValue(String v) {
         super.set((v == null) ? "" : ((trimming) ? v.trim() : v));
+    }
+
+    private class WhitespaceBinding extends BooleanBinding {
+
+        @Override
+        protected boolean computeValue() {
+            return NonNullableStringProperty.this.get().trim().isEmpty();
+        }
     }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyStringPropertyBase {

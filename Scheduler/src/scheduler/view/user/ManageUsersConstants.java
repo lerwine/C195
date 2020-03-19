@@ -6,7 +6,6 @@ package scheduler.view.user;
  */
 interface ManageUsersConstants {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit"}.
      */
@@ -78,5 +77,4 @@ interface ManageUsersConstants {
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 
-    //</editor-fold>
 }

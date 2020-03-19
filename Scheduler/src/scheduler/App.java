@@ -3,51 +3,50 @@ package scheduler;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import scheduler.util.DbConnector;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.scene.Scene;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
+import scheduler.util.DbConnector;
 import scheduler.util.PwHash;
+import scheduler.view.Login;
 import scheduler.view.MainController;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
-import scheduler.view.Login;
 
 /**
- * Main Application class for Scheduler.
- * Upon startup, {@link Login#loadInto(javafx.stage.Stage)} is called to load the Login form into the scene of the primary stage
- * After successful authentication, the current user data object is stored in {@link App#currentUser}, and the view for {@link MainController} is loaded into the primary stage using
+ * Main Application class for Scheduler. Upon startup, {@link Login#loadInto(javafx.stage.Stage)} is called to load the Login form into the scene of
+ * the primary stage After successful authentication, the current user data object is stored in {@link App#currentUser}, and the view for
+ * {@link MainController} is loaded into the primary stage using
  * {@link SchedulerController#load(javafx.stage.Stage, java.lang.Class, java.util.function.BiConsumer)}.
+ *
  * @author Leonard T. Erwine
  */
 public final class App extends Application {
 
     private static final Logger LOG = Logger.getLogger(App.class.getName());
 
-    //<editor-fold defaultstate="collapsed" desc="currentUser property">
     private static UserImpl currentUser = null;
 
     /**
      * Gets the currently logged in user.
+     *
      * @return The {@link UserImpl} object representing the currently logged in user.
      */
     public static UserImpl getCurrentUser() {
         return currentUser;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="App Lifecycle Members">
     /**
      * The application main entry point.
      *
@@ -55,6 +54,19 @@ public final class App extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+
+    /**
+     * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+     *
+     * @param stage The stage
+     * @param userName The login name for the user to look up.
+     * @param password The raw password provided by the user.
+     * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was
+     * not found or the password hash did not match.
+     */
+    public static void tryLoginUser(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        TaskWaiter.execute(new LoginTask(stage, userName, password, onNotSucceeded));
     }
 
     @Override
@@ -69,8 +81,6 @@ public final class App extends Application {
         super.stop();
     }
 
-    //</editor-fold>
-    
     private static class LoginTask extends TaskWaiter<UserImpl> {
 
         private final String userName, password;
@@ -130,19 +140,6 @@ public final class App extends Application {
             return null;
         }
 
-    }
-
-    /**
-     * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
-     *
-     * @param stage The stage
-     * @param userName The login name for the user to look up.
-     * @param password The raw password provided by the user.
-     * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was not found or the password hash
-     * did not match.
-     */
-    public static void tryLoginUser(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
-        TaskWaiter.execute(new LoginTask(stage, userName, password, onNotSucceeded));
     }
 
 }

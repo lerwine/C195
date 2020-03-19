@@ -59,14 +59,7 @@ import scheduler.view.country.CountryModel;
 public class CustomerPicker extends SchedulerController {
 
     private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
-    private ObservableList<CountryModel> countries;
-    private ObservableList<CityModel> cities;
-    private ObservableList<StatusOption> statusOptions;
-    private ObservableList<CustomerModel> allCustomers;
-    private ObservableList<CustomerModel> filteredCustomers;
-    private CustomerModel selectedCustomer = null;
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All"}.
      */
@@ -172,7 +165,28 @@ public class CustomerPicker extends SchedulerController {
      */
     public static final String RESOURCEKEY_CREATED = "created";
 
-    //</editor-fold>
+    public static CustomerModel pickCustomer(Stage parent) {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(parent);
+        try {
+            CustomerPicker ctrl = load(parent, CustomerPicker.class, (Parent v, CustomerPicker c) -> {
+                stage.setScene(new Scene(v));
+            });
+            stage.showAndWait();
+            return ctrl.selectedCustomer;
+        } catch (IOException ex) {
+            Alerts.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
+        }
+        return null;
+    }
+    private ObservableList<CountryModel> countries;
+    private ObservableList<CityModel> cities;
+    private ObservableList<StatusOption> statusOptions;
+    private ObservableList<CustomerModel> allCustomers;
+    private ObservableList<CustomerModel> filteredCustomers;
+    private CustomerModel selectedCustomer = null;
+
     @FXML // fx:id="countryFilterCheckBox"
     private CheckBox countryFilterCheckBox; // Value injected by FXMLLoader
 
@@ -227,22 +241,6 @@ public class CustomerPicker extends SchedulerController {
     @FXML // fx:id="modifiedLabel"
     private Label modifiedLabel; // Value injected by FXMLLoader
 
-    public static CustomerModel pickCustomer(Stage parent) {
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(parent);
-        try {
-            CustomerPicker ctrl = load(parent, CustomerPicker.class, (Parent v, CustomerPicker c) -> {
-                stage.setScene(new Scene(v));
-            });
-            stage.showAndWait();
-            return ctrl.selectedCustomer;
-        } catch (IOException ex) {
-            Alerts.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
-        }
-        return null;
-    }
-    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         countries = FXCollections.observableArrayList();
@@ -452,6 +450,49 @@ public class CustomerPicker extends SchedulerController {
                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
     }
 
+    public static class StatusOption {
+
+        private final ReadOnlyStringWrapper displayText;
+        private final ReadOnlyObjectWrapper<OptionalBoolean> status;
+
+        public StatusOption(String name, OptionalBoolean status) {
+            this.displayText = new ReadOnlyStringWrapper(name);
+            this.status = new ReadOnlyObjectWrapper<>(status);
+        }
+
+        public String getDisplayText() {
+            return displayText.get();
+        }
+
+        public ReadOnlyStringProperty displayTextProperty() {
+            return displayText.getReadOnlyProperty();
+        }
+
+        public OptionalBoolean getStatus() {
+            return status.get();
+        }
+
+        public ReadOnlyObjectProperty<OptionalBoolean> statusProperty() {
+            return status.getReadOnlyProperty();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof StatusOption && this == obj;
+        }
+
+        @Override
+        public int hashCode() {
+            return displayText.get().hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return displayText.get();
+        }
+
+    }
+
     class LoadCitiesTask extends TaskWaiter<ArrayList<CityImpl>> {
 
         private final CountryImpl country;
@@ -591,46 +632,4 @@ public class CustomerPicker extends SchedulerController {
 
     }
 
-    public static class StatusOption {
-
-        private final ReadOnlyStringWrapper displayText;
-        private final ReadOnlyObjectWrapper<OptionalBoolean> status;
-
-        public StatusOption(String name, OptionalBoolean status) {
-            this.displayText = new ReadOnlyStringWrapper(name);
-            this.status = new ReadOnlyObjectWrapper<>(status);
-        }
-
-        public String getDisplayText() {
-            return displayText.get();
-        }
-
-        public ReadOnlyStringProperty displayTextProperty() {
-            return displayText.getReadOnlyProperty();
-        }
-
-        public OptionalBoolean getStatus() {
-            return status.get();
-        }
-
-        public ReadOnlyObjectProperty<OptionalBoolean> statusProperty() {
-            return status.getReadOnlyProperty();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return null != obj && obj instanceof StatusOption && this == obj;
-        }
-
-        @Override
-        public int hashCode() {
-            return displayText.get().hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return displayText.get();
-        }
-
-    }
 }

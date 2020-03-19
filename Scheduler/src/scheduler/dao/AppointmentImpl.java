@@ -15,20 +15,13 @@ import scheduler.view.appointment.AppointmentModel;
 
 public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns {
 
-    private static final String BASE_SELECT_QUERY = String.format("SELECT %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, "
-            + "%s.%s as %s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s.%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s FROM %s %s "
-            + "LEFT JOIN %s %s on %s.%s = %s.%s LEFT JOIN %s %s on %s.%s = %s.%s %s",
-            TABLEALIAS_APPOINTMENT, COLNAME_APPOINTMENTID, COLNAME_APPOINTMENTID, TABLEALIAS_APPOINTMENT, COLNAME_TITLE, COLNAME_TITLE,
-            TABLEALIAS_APPOINTMENT, COLNAME_DESCRIPTION, COLNAME_DESCRIPTION, TABLEALIAS_APPOINTMENT, COLNAME_LOCATION, COLNAME_LOCATION,
-            TABLEALIAS_APPOINTMENT, COLNAME_CONTACT, COLNAME_CONTACT, TABLEALIAS_APPOINTMENT, COLNAME_TYPE, COLNAME_TYPE,
-            TABLEALIAS_APPOINTMENT, COLNAME_URL, COLNAME_URL, TABLEALIAS_APPOINTMENT, COLNAME_START, COLNAME_START,
-            TABLEALIAS_APPOINTMENT, COLNAME_END, COLNAME_END, TABLEALIAS_APPOINTMENT, SQL_CUSTOMER_SELECT_FIELDS,
-            TABLEALIAS_APPOINTMENT, COLNAME_USERID, COLNAME_USERID, TABLEALIAS_USER, COLNAME_USERNAME, COLNAME_USERNAME,
-            TABLEALIAS_USER, COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, TABLEALIAS_APPOINTMENT, SQL_CUSTOMER_SELECT_FIELDS,
-            DataObjectColumns.getDataObjectSelectFields(TABLEALIAS_APPOINTMENT),
-            TABLENAME_APPOINTMENT, TABLEALIAS_APPOINTMENT, TABLENAME_USER, TABLEALIAS_USER, TABLEALIAS_APPOINTMENT, COLNAME_USERID,
-            TABLEALIAS_USER, COLNAME_USERID, TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, TABLEALIAS_APPOINTMENT, COLNAME_CUSTOMERID,
-            TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERID, SQL_JOIN_ADDRESS);
+    private static final String BASE_SELECT_QUERY = String.format("SELECT %1$s.%2$s as %2$s, %1$s.%3$s as %3$s, %1$s.%4$s as %4$s, %1$s.%5$s as %5$s,"
+            + " %1$s.%6$s as %6$s, %1$s.%7$s as %7$s, %1$s.%8$s as %8$s, %1$s.%9$s as %9$s, %1$s.%10$s as %10$s, %1$s%11$s, %12$s FROM %13$s %1$s"
+            + " LEFT JOIN %14$s %15$s on %1$s.%16$s = %15$s.%16$s LEFT JOIN %17$s %18$s on %1$s.%19$s = %18$s.%19$s %20$s",
+            TABLEALIAS_APPOINTMENT, COLNAME_APPOINTMENTID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION, COLNAME_CONTACT, COLNAME_TYPE,
+            COLNAME_URL, COLNAME_START, COLNAME_END, SQL_CUSTOMER_SELECT_FIELDS, DataObjectColumns.getDataObjectSelectFields(TABLEALIAS_APPOINTMENT),
+            TABLENAME_APPOINTMENT, TABLENAME_USER, TABLEALIAS_USER, COLNAME_USERID, TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERID,
+            SQL_JOIN_ADDRESS);
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
@@ -50,8 +43,8 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
      * Initializes a {@link Values#ROWSTATE_NEW} appointment object.
      */
     public AppointmentImpl() {
-        customer = null;
-        user = null;
+        customer = DataObjectReference.of(null);
+        user = DataObjectReference.of(null);
         title = "";
         description = "";
         location = "";
@@ -65,8 +58,13 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
     }
 
     @Override
-    public DataObjectReference<CustomerImpl, Customer> getCustomer() {
+    public DataObjectReference<CustomerImpl, Customer> getCustomerReference() {
         return customer;
+    }
+
+    @Override
+    public Customer getCustomer() {
+        return customer.getPartial();
     }
 
     /**
@@ -74,14 +72,19 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
      *
      * @param value new value of customer
      */
-    public void setCustomer(DataObjectReference<CustomerImpl, Customer> value) {
+    public void setCustomer(Customer value) {
         Objects.requireNonNull(value);
-        customer = value;
+        customer = DataObjectReference.of(value);
     }
 
     @Override
-    public DataObjectReference<UserImpl, User> getUser() {
+    public DataObjectReference<UserImpl, User> getUserReference() {
         return user;
+    }
+
+    @Override
+    public User getUser() {
+        return user.getPartial();
     }
 
     /**
@@ -89,9 +92,9 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
      *
      * @param value new value of user
      */
-    public void setUser(DataObjectReference<UserImpl, User> value) {
+    public void setUser(User value) {
         Objects.requireNonNull(value);
-        user = value;
+        user = DataObjectReference.of(value);
     }
 
     @Override

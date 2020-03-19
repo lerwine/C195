@@ -7,23 +7,39 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import scheduler.AppResources;
+import static scheduler.dao.AddressColumns.COLNAME_ADDRESSID;
+import static scheduler.dao.CityColumns.COLNAME_CITY;
+import static scheduler.dao.CityColumns.COLNAME_CITYID;
+import static scheduler.dao.CountryColumns.COLNAME_COUNTRYID;
+import static scheduler.dao.TableNames.TABLENAME_CITY;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.view.city.CityModel;
+import scheduler.view.country.EditCountry;
 
 public class CityImpl extends DataObjectImpl implements City, CityColumns {
 
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    private static final String BASE_SELECT_SQL = String.format("SELECT c.`%s` AS `%s`, c.`%s` AS `%s`, c.`%s` AS `%s`, n.`%s` AS `%s` FROM `%s` c"
-            + " LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_CITYID, COLNAME_CITYID, COLNAME_CITY, COLNAME_CITY, COLNAME_COUNTRYID,
-            COLNAME_COUNTRYID, COLNAME_COUNTRY, COLNAME_COUNTRY, COLNAME_CREATEDATE, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
-            COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY, TABLENAME_CITY, TABLENAME_COUNTRY,
-            COLNAME_COUNTRYID, COLNAME_COUNTRYID);
+    private static final String BASE_SELECT_SQL = String.format("SELECT %1$s.%2$s AS %2$s, %1$s.%3$s AS %3$s`, %1$s.%4$s AS %4$s, %5$s.%6$s AS %6$s"
+            + " FROM %7$s %1$s LEFT JOIN %8$s %5$s ON %1$s.%4$s=%5$s.%4$s",
+            TABLEALIAS_CITY, COLNAME_CITYID, COLNAME_CITY, COLNAME_COUNTRYID, TABLEALIAS_COUNTRY, COLNAME_COUNTRY, TABLENAME_CITY, TABLENAME_COUNTRY);
+    private static final FactoryImpl FACTORY = new FactoryImpl();
 
-    //<editor-fold defaultstate="collapsed" desc="name property">
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     private String name;
+    private DataObjectReference<CountryImpl, Country> country;
 
     /**
-     * {@inheritDoc}
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} city object.
      */
+    public CityImpl() {
+        super();
+        name = "";
+        country = new DataObjectReference<>();
+    }
+
     @Override
     public String getName() {
         return name;
@@ -38,16 +54,14 @@ public class CityImpl extends DataObjectImpl implements City, CityColumns {
         name = (value == null) ? "" : value;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="country property">
-    private DataObjectReference<CountryImpl, Country> country;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public DataObjectReference<CountryImpl, Country> getCountry() {
+    public DataObjectReference<CountryImpl, Country> getCountryReference() {
         return country;
+    }
+
+    @Override
+    public Country getCountry() {
+        return country.getPartial();
     }
 
     /**
@@ -55,25 +69,8 @@ public class CityImpl extends DataObjectImpl implements City, CityColumns {
      *
      * @param country new value of country
      */
-    public void setCountry(DataObjectReference<CountryImpl, Country> country) {
-        this.country = country;
-    }
-
-    //</editor-fold>
-    //</editor-fold>
-    /**
-     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} city object.
-     */
-    public CityImpl() {
-        super();
-        name = "";
-        country = new DataObjectReference<>();
-    }
-
-    private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
+    public void setCountry(Country country) {
+        this.country = DataObjectReference.of(country);
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CityImpl, CityModel> {
@@ -82,13 +79,6 @@ public class CityImpl extends DataObjectImpl implements City, CityColumns {
         private FactoryImpl() {
         }
 
-        //    @Override
-        //    protected void onApplyChanges(CityModel model) {
-        //        CityImpl dao = model.getDataObject();
-        //        dao.name = model.getName();
-        //        CityCountry<?> country = model.getCountry();
-        //        dao.country = (null == country) ? null : country.getDataObject();
-        //    }
         @Override
         protected CityImpl fromResultSet(ResultSet resultSet) throws SQLException {
             CityImpl r = new CityImpl();
@@ -144,26 +134,77 @@ public class CityImpl extends DataObjectImpl implements City, CityColumns {
 
         @Override
         public ModelFilter<CityImpl, CityModel> getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return ModelFilter.all(this, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES),
+                    ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_CITIES), null);
         }
 
         @Override
         public ModelFilter<CityImpl, CityModel> getDefaultFilter() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return getAllItemsFilter();
         }
 
         @Override
         public String getDeleteDependencyMessage(CityImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            if (null != dao && dao.isExisting()) {
+                try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ?", COLNAME_ADDRESSID,
+                        TABLENAME_ADDRESS, COLNAME_CITYID))) {
+                    ps.setInt(1, dao.getPrimaryKey());
+                    try (ResultSet rs = ps.getResultSet()) {
+                        int count = rs.getInt(1);
+                        if (count == 1) {
+                            return ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_DELETEMSGSINGLE);
+                        }
+                        if (count > 1) {
+                            return ResourceBundleLoader.formatResourceString(EditCountry.class, EditCountry.RESOURCEKEY_DELETEMSGMULTIPLE, count);
+                        }
+                    }
+                }
+            }
+            return "";
         }
 
         @Override
         public String getSaveConflictMessage(CityImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            if (null != dao) {
+                int count;
+                if (dao.isExisting()) {
+                    try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ? AND %s = ? AND %1$s <> ?",
+                            COLNAME_CITYID, TABLENAME_CITY, COLNAME_COUNTRYID, COLNAME_CITY))) {
+                        ps.setString(1, dao.getName());
+                        ps.setInt(2, dao.getCountry().getPrimaryKey());
+                        ps.setInt(3, dao.getPrimaryKey());
+                        try (ResultSet rs = ps.getResultSet()) {
+                            count = rs.getInt(1);
+                        }
+                    }
+                } else {
+                    try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ? AND %s = ?",
+                            COLNAME_CITYID, TABLENAME_CITY, COLNAME_COUNTRYID, COLNAME_CITY))) {
+                        ps.setString(1, dao.getName());
+                        ps.setInt(2, dao.getCountry().getPrimaryKey());
+                        try (ResultSet rs = ps.getResultSet()) {
+                            count = rs.getInt(1);
+                        }
+                    }
+                }
+                if (count > 0) {
+                    return ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_SAVECONFLICTMESSAGE);
+                }
+            }
+            return "";
         }
 
-        public ArrayList<CityImpl> getByCountry(Connection connection, int countryId) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public ArrayList<CityImpl> getByCountry(Connection connection, int countryId) throws SQLException {
+            ArrayList<CityImpl> result = new ArrayList<>();
+            try (PreparedStatement ps = connection.prepareStatement(String.format("%s WHERE %s = ?", BASE_SELECT_SQL, COLNAME_COUNTRYID))) {
+                ps.setInt(1, countryId);
+                try (ResultSet rs = ps.getResultSet()) {
+                    while (rs.next()) {
+                        result.add(fromResultSet(rs));
+                    }
+                }
+            }
+            return result;
         }
 
     }

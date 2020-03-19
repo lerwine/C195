@@ -13,18 +13,6 @@ public class UserStatusProperty extends SimpleIntegerProperty {
 
     private ReadOnlyIntegerProperty readOnlyProperty;
 
-    /**
-     * Returns the readonly property, that is synchronized with this {@code StatusProperty}.
-     *
-     * @return the readonly property
-     */
-    public ReadOnlyIntegerProperty getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new ReadOnlyPropertyImpl();
-        }
-        return readOnlyProperty;
-    }
-
     public UserStatusProperty() {
         this(Values.USER_STATUS_NORMAL);
     }
@@ -39,6 +27,18 @@ public class UserStatusProperty extends SimpleIntegerProperty {
 
     public UserStatusProperty(Object bean, String name, int initialValue) {
         super(bean, name, Values.asValidUserStatus(initialValue));
+    }
+
+    /**
+     * Returns the readonly property, that is synchronized with this {@code StatusProperty}.
+     *
+     * @return the readonly property
+     */
+    public ReadOnlyIntegerProperty getReadOnlyProperty() {
+        if (readOnlyProperty == null) {
+            readOnlyProperty = new ReadOnlyPropertyImpl();
+        }
+        return readOnlyProperty;
     }
 
     @Override

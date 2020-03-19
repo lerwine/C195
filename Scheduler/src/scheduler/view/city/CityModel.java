@@ -62,7 +62,7 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
     public CityModel(CityImpl dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
-        Country c = dao.getCountry().getPartial();
+        Country c = dao.getCountry();
         country = new SimpleObjectProperty<>(this, "country", (null == c) ? null : new CountryReferenceModelImpl(c));
         countryName = new ChildPropertyWrapper<>(this, "countryName", country, (t) -> t.nameProperty());
     }
@@ -70,7 +70,7 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
     @Override
     protected void refreshFromDAO(CityImpl dao) {
         name.set(dao.getName());
-        Country c = dao.getCountry().getPartial();
+        Country c = dao.getCountry();
         country.set((null == c) ? null : new CountryReferenceModelImpl(c));
     }
 

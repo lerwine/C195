@@ -34,7 +34,7 @@ public class CustomerReferenceModelImpl extends DataObjectImpl.DataObjectReferen
     public CustomerReferenceModelImpl(Customer dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "address1", dao.getName());
-        Address a = dao.getAddress().getPartial();
+        Address a = dao.getAddress();
         address = new ReadOnlyObjectWrapper<>(this, "address", (null == a) ? null : new AddressReferenceModelImpl(a));
         address1 = new ChildPropertyWrapper<>(this, "address1", address, (t) -> t.address1Property());
         address2 = new ChildPropertyWrapper<>(this, "address2", address, (t) -> t.address2Property());

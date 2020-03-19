@@ -28,8 +28,6 @@ import scheduler.view.user.UserModel;
  */
 public interface AppointmentFilter extends ModelFilter<AppointmentImpl, AppointmentModel> {
 
-    FilterType getType();
-    
     public static AppointmentFilter of(FilterType type, String heading, String subHeading, Predicate<AppointmentModel> predicate, String sqlFilterExpr,
             ThrowableBiFunction<PreparedStatement, Integer, Integer, SQLException> applyValues, Consumer<AppointmentModel> initializeNew) {
         if (null == subHeading) {
@@ -78,13 +76,14 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
             public FilterType getType() {
                 return type;
             }
-            
+
         };
     }
 
     /**
      * Create a new appointment filter.
      *
+     * @param type
      * @param heading The heading to display in the items listing view.
      * @param predicate The {@link Predicate} that corresponds to the SQL filter expression.
      * @param sqlFilterExpr The WHERE clause sub-expression for filtering results.
@@ -255,8 +254,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter beforeDate(LocalDate date, String heading) {
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST :
-                ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
+                : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
@@ -279,7 +278,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter beforeDate(LocalDate date) {
         return beforeDate(date,
                 ResourceBundleLoader.formatResourceString(ManageAppointments.class,
-                    ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREDATE, Objects.requireNonNull(date)));
+                        ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREDATE, Objects.requireNonNull(date)));
     }
 
     /**
@@ -293,8 +292,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byCustomerBeforeDate(int customerId, LocalDate date, String heading, Consumer<AppointmentModel> initializeNew) {
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST :
-                ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
+                : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
@@ -319,7 +318,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerBeforeDate(CustomerImpl customer, LocalDate date) {
         return byCustomerBeforeDate(customer.getPrimaryKey(), date,
                 ResourceBundleLoader.formatResourceString(ManageAppointments.class,
-                ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREDATEFORCUST, Objects.requireNonNull(date), customer.getName()),
+                        ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREDATEFORCUST, Objects.requireNonNull(date), customer.getName()),
                 (m) -> {
                     m.setCustomer(new CustomerModel(customer));
                     m.setUser(new UserModel(App.getCurrentUser()));
@@ -337,8 +336,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUserBeforeDate(int userId, LocalDate date, String heading, Consumer<AppointmentModel> initializeNew) {
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST :
-                ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
+                : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
@@ -363,7 +362,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byUserBeforeDate(UserImpl user, LocalDate date) {
         return byCustomerBeforeDate(user.getPrimaryKey(), date,
                 ResourceBundleLoader.formatResourceString(ManageAppointments.class,
-                ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREDATEFORUSER, Objects.requireNonNull(date), user.getUserName()),
+                        ManageAppointments.RESOURCEKEY_APPOINTMENTSBEFOREDATEFORUSER, Objects.requireNonNull(date), user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
 
@@ -393,8 +392,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerAndUserBeforeDate(int customerId, int userId, LocalDate date, String heading,
             Consumer<AppointmentModel> initializeNew) {
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST :
-                ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
+                : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
                 // sqlFilterExpr
@@ -437,8 +436,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter onOrAfterDate(LocalDate date, String heading) {
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE :
-                ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
+                : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
@@ -475,8 +474,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerOnOrAfterDate(int customerId, LocalDate date, String heading,
             Consumer<AppointmentModel> initializeNew) {
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE :
-                ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
+                : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
@@ -519,8 +518,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      */
     public static AppointmentFilter byUserOnOrAfterDate(int userId, LocalDate date, String heading, Consumer<AppointmentModel> initializeNew) {
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE :
-                ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
+                : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
@@ -575,8 +574,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byCustomerAndUserOnOrAfterDate(int customerId, int userId, LocalDate date, String heading,
             Consumer<AppointmentModel> initializeNew) {
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
-        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE :
-                ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
+        return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
+                : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
                 // sqlFilterExpr
@@ -828,7 +827,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
     public static AppointmentFilter byUserWithin(UserImpl user, LocalDate start, LocalDate end) {
         return byUserWithin(user.getPrimaryKey(), start, end,
                 ResourceBundleLoader.formatResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_APPOINTMENTSBETWEENDATESFORUSER,
-                Objects.requireNonNull(start), Objects.requireNonNull(end), user.getUserName()),
+                        Objects.requireNonNull(start), Objects.requireNonNull(end), user.getUserName()),
                 (m) -> m.setUser(new UserModel(user)));
     }
 
@@ -1063,6 +1062,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 (m) -> m.setUser(new UserModel(App.getCurrentUser())));
     }
 
+    FilterType getType();
+
     void initializeNew(AppointmentModel model);
 
     @Override
@@ -1084,5 +1085,5 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         ALL,
         CUSTOM
     }
-    
+
 }

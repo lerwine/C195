@@ -8,8 +8,18 @@ import java.util.function.Function;
 /**
  *
  * @author lerwi
+ * @param <T>
+ * @param <S>
  */
 public final class BinaryOption<T, S> {
+
+    public static <T, S> BinaryOption<T, S> ofPrimary(T t) {
+        return new BinaryOption<>(Objects.requireNonNull(t), true);
+    }
+
+    public static <T, S> BinaryOption<T, S> ofSecondary(S s) {
+        return new BinaryOption<>(Objects.requireNonNull(s), false);
+    }
 
     private final Object value;
     private final boolean primary;
@@ -68,11 +78,4 @@ public final class BinaryOption<T, S> {
         return new BinaryOption<>(value, !primary);
     }
 
-    public static <T, S> BinaryOption<T, S> ofPrimary(T t) {
-        return new BinaryOption<>(Objects.requireNonNull(t), true);
-    }
-
-    public static <T, S> BinaryOption<T, S> ofSecondary(S s) {
-        return new BinaryOption<>(Objects.requireNonNull(s), false);
-    }
 }

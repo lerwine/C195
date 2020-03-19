@@ -41,12 +41,15 @@ public interface Address extends DataObject {
     String getAddress2();
 
     /**
-     * Gets the {@link City} for the current address. This corresponds to the "city" data row referenced by the "cityId" database column. Column definition:
-     * <code>`cityId` int(10) NOT NULL</code> Key constraint definition: <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
+     * Gets the {@link City} for the current address. This corresponds to the "city" data row referenced by the "cityId" database column. Column
+     * definition: <code>`cityId` int(10) NOT NULL</code> Key constraint definition:
+     * <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
      *
      * @return The {@link City} for the current address.
      */
-    DataObjectReference<CityImpl, City> getCity();
+    DataObjectReference<CityImpl, City> getCityReference();
+
+    City getCity();
 
     /**
      * Gets the postal code for the current address. Column definition: <code>`postalCode` varchar(10) NOT NULL</code>
@@ -63,61 +66,71 @@ public interface Address extends DataObject {
     String getPhone();
 
     public static String toString(Address address) throws SQLException, ClassNotFoundException {
-        if (null == address)
+        if (null == address) {
             return "";
-        
+        }
+
         String cityZipCountry = address.getPostalCode();
         City city;
         if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
-            if (null == (city = address.getCity().ensurePartial(CityImpl.getFactory()))) {
+            if (null == (city = address.getCityReference().ensurePartial(CityImpl.getFactory()))) {
                 cityZipCountry = "";
-            } else if ((cityZipCountry = City.toString(city).trim()).isEmpty())
-                cityZipCountry = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-            else {
-                String country = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-                if (!country.isEmpty())
-                    cityZipCountry = String.format("%s, %s", cityZipCountry, country);
-            }
-        } else if (null != (city = address.getCity().ensurePartial(CityImpl.getFactory()))) {
-            String cityName = city.getName();
-            String country = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-            if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
-                if (!country.isEmpty())
-                    cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);
+            } else if ((cityZipCountry = City.toString(city).trim()).isEmpty()) {
+                cityZipCountry = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
             } else {
-                if (country.isEmpty())
-                    cityZipCountry = String.format("%s %s", cityName, cityZipCountry);
-                else
-                    cityZipCountry = String.format("%s %s, %s", cityName, cityZipCountry, country);
+                String country = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+                if (!country.isEmpty()) {
+                    cityZipCountry = String.format("%s, %s", cityZipCountry, country);
+                }
             }
-        } else
+        } else if (null != (city = address.getCityReference().ensurePartial(CityImpl.getFactory()))) {
+            String cityName = city.getName();
+            String country = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+            if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
+                if (!country.isEmpty()) {
+                    cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);
+                }
+            } else {
+                if (country.isEmpty()) {
+                    cityZipCountry = String.format("%s %s", cityName, cityZipCountry);
+                } else {
+                    cityZipCountry = String.format("%s %s, %s", cityName, cityZipCountry, country);
+                }
+            }
+        } else {
             cityZipCountry = "";
+        }
         StringBuilder sb = new StringBuilder();
         String s = address.getAddress1();
-        if (null != s && !(s = s.trim()).isEmpty())
+        if (null != s && !(s = s.trim()).isEmpty()) {
             sb.append(s);
+        }
         s = address.getAddress2();
         if (null != s && !(s = s.trim()).isEmpty()) {
-            if (sb.length() > 0)
+            if (sb.length() > 0) {
                 sb.append("\n").append(s);
-            else
+            } else {
                 sb.append(s);
+            }
         }
         if (!cityZipCountry.isEmpty()) {
-            if (sb.length() > 0)
+            if (sb.length() > 0) {
                 sb.append("\n").append(cityZipCountry);
-            else
+            } else {
                 sb.append(cityZipCountry);
+            }
         }
         s = address.getPhone();
         if (null != s && !(s = s.trim()).isEmpty()) {
-            if (sb.length() > 0)
+            if (sb.length() > 0) {
                 sb.append("\n").append(s);
-            else
+            } else {
                 sb.append(s);
+            }
         }
         return sb.toString();
     }
+
     /**
      * Creates a read-only Address object from object values.
      *
@@ -135,6 +148,8 @@ public interface Address extends DataObject {
         Objects.requireNonNull(postalCode, "Postal Code cannot be null");
         Objects.requireNonNull(phone, "Phone cannot be null");
         return new Address() {
+            private final DataObjectReference<CityImpl, City> cityReference = (null == city) ? DataObjectReference.of(null) : city;
+
             @Override
             public String getAddress1() {
                 return address1;
@@ -146,8 +161,13 @@ public interface Address extends DataObject {
             }
 
             @Override
-            public DataObjectReference<CityImpl, City> getCity() {
-                return city;
+            public DataObjectReference<CityImpl, City> getCityReference() {
+                return cityReference;
+            }
+
+            @Override
+            public City getCity() {
+                return cityReference.getPartial();
             }
 
             @Override

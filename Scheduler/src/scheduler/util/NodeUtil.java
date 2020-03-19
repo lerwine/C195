@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.util;
 
 import java.util.function.BiPredicate;
@@ -18,9 +13,10 @@ import javafx.scene.control.SelectionModel;
  * @author lerwi
  */
 public class NodeUtil {
+
     private static final String CSS_CLASS_COLLAPSED = "collapsed";
     private static final String CSS_CLASS_ERROR = "error";
-    
+
     /**
      * Collapses a JavaFX scene graph {@link javafx.scene.Node}. This adds the CSS class "collapsed" to the {@link javafx.scene.Node#styleClass} list,
      * which sets vertical and horizontal dimensions to zero and sets the {@link javafx.scene.Node#visible} property to {@code false}.
@@ -75,11 +71,11 @@ public class NodeUtil {
         }
         return false;
     }
-    
+
     public static <T> boolean selectSelection(ComboBox<T> source, Predicate<T> predicate) {
         return selectSelection(source.getSelectionModel(), source.getItems(), predicate);
     }
-    
+
     public static <T, U> boolean selectSelection(T value, SelectionModel<U> selectionModel, ObservableList<U> source, BiPredicate<T, U> predicate) {
         for (int i = 0; i < source.size(); i++) {
             if (predicate.test(value, source.get(i))) {
@@ -89,9 +85,9 @@ public class NodeUtil {
         }
         return false;
     }
-    
+
     public static <T, U> boolean selectSelection(T value, ComboBox<U> source, BiPredicate<T, U> predicate) {
         return selectSelection(value, source.getSelectionModel(), source.getItems(), predicate);
     }
-    
+
 }

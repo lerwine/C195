@@ -6,7 +6,6 @@ package scheduler.view;
  */
 public interface MainControllerConstants {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
      */
@@ -102,5 +101,4 @@ public interface MainControllerConstants {
      */
     public static final String RESOURCEKEY_USERS = "users";
 
-    //</editor-fold>
 }

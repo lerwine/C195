@@ -10,23 +10,39 @@ import scheduler.view.address.AddressModel;
 
 public class AddressImpl extends DataObjectImpl implements Address, AddressColumns {
 
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    private static final String BASE_SELECT_SQL = String.format("SELECT a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, c.`%s` AS `%s`,"
-            + " c.`%s` AS `%s`, n.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`, a.`%s` AS `%s`"
-            + " FROM `%s` a"
-            + " LEFT JOIN `%s` c ON a.`%s`=c.`%s`"
-            + " LEFT JOIN `%s` n ON c.`%s`=n.`%s`", COLNAME_ADDRESSID, COLNAME_ADDRESSID, COLNAME_ADDRESS, COLNAME_ADDRESS, COLNAME_ADDRESS2,
-            COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_CITYID, COLNAME_CITY, COLNAME_CITY, COLNAME_COUNTRYID, COLNAME_COUNTRYID, COLNAME_COUNTRY,
-            COLNAME_COUNTRY, COLNAME_POSTALCODE, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_PHONE, COLNAME_CREATEDATE, COLNAME_CREATEDATE,
-            COLNAME_CREATEDBY, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, COLNAME_LASTUPDATEBY,
-            TABLENAME_ADDRESS, TABLENAME_CITY, COLNAME_CITYID, COLNAME_CITYID, TABLENAME_COUNTRY, COLNAME_COUNTRYID, COLNAME_COUNTRYID);
+    private static final String BASE_SELECT_SQL = String.format("SELECT %1$s.`%2$s` AS `%2$s`, %1$s.`%3$s` AS `%3$s`, %1$s.`%4$s` AS `%4$s`,"
+            + " %1$s.`%5$s` AS `%5$s`, %6$s.`%7$s` AS `%7$s`, %6$s.`%8$s` AS `%8$s`, %9$s.`%10$s` AS `%10$s`, %1$s.`%11$s` AS `%11$s`,"
+            + " %1$s.`%12$s` AS `%12$s`, %1$s.`%13$s` AS `%13$s`, %1$s.`%14$s` AS `%14$s`, %1$s.`%15$s` AS `%15$s`, %1$s.`%16$s` AS `%16$s`"
+            + " FROM `%17$s` %1$s"
+            + " LEFT JOIN `%18$s` %6$s ON %1$s.`%5$s`=%6$s.`%5$s`"
+            + " LEFT JOIN `%19$s` %9$s ON %6$s.`%8$s`=%9$s.`%8$s`", TABLEALIAS_ADDRESS, COLNAME_ADDRESSID, COLNAME_ADDRESS,
+            COLNAME_ADDRESS2, COLNAME_CITYID, TABLEALIAS_CITY, COLNAME_CITY, COLNAME_COUNTRYID, TABLEALIAS_COUNTRY,
+            COLNAME_COUNTRY, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_CREATEDATE,
+            COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
+            TABLENAME_ADDRESS, TABLENAME_CITY, TABLENAME_COUNTRY);
+    private static final FactoryImpl FACTORY = new FactoryImpl();
 
-    //<editor-fold defaultstate="collapsed" desc="address1 property">
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
+
     private String address1;
+    private String address2;
+    private DataObjectReference<CityImpl, City> city;
+    private String postalCode;
+    private String phone;
 
     /**
-     * {@inheritDoc}
+     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} address object.
      */
+    public AddressImpl() {
+        address1 = "";
+        address2 = "";
+        city = DataObjectReference.of(null);
+        postalCode = "";
+        phone = "";
+    }
+
     @Override
     public String getAddress1() {
         return address1;
@@ -41,13 +57,6 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
         address1 = (value == null) ? "" : value;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="address2 property">
-    private String address2;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getAddress2() {
         return address2;
@@ -62,16 +71,14 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
         address2 = (value == null) ? "" : value;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="city property">
-    private DataObjectReference<CityImpl, City> city;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public DataObjectReference<CityImpl, City> getCity() {
+    public DataObjectReference<CityImpl, City> getCityReference() {
         return city;
+    }
+
+    @Override
+    public City getCity() {
+        return city.getPartial();
     }
 
     /**
@@ -79,17 +86,10 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
      *
      * @param city new value of city
      */
-    public void setCity(DataObjectReference<CityImpl, City> city) {
-        this.city = city;
+    public void setCity(City city) {
+        this.city = DataObjectReference.of(city);
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="postalCode property">
-    private String postalCode;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getPostalCode() {
         return postalCode;
@@ -104,13 +104,6 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
         postalCode = (value == null) ? "" : value;
     }
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="phone property">
-    private String phone;
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getPhone() {
         return phone;
@@ -123,25 +116,6 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
      */
     public void setPhone(String value) {
         phone = (value == null) ? "" : value;
-    }
-
-    //</editor-fold>
-    //</editor-fold>
-    /**
-     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} address object.
-     */
-    public AddressImpl() {
-        address1 = "";
-        address2 = "";
-        city = null;
-        postalCode = "";
-        phone = "";
-    }
-
-    private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {

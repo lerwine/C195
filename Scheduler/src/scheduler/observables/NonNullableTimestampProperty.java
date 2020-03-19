@@ -14,18 +14,6 @@ public class NonNullableTimestampProperty extends SimpleObjectProperty<Timestamp
 
     ReadOnlyObjectProperty<Timestamp> readOnlyProperty;
 
-    /**
-     * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
-     *
-     * @return the readonly property
-     */
-    public ReadOnlyObjectProperty<Timestamp> getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new NonNullableTimestampProperty.ReadOnlyPropertyImpl();
-        }
-        return readOnlyProperty;
-    }
-
     public NonNullableTimestampProperty() {
         super(Timestamp.valueOf(LocalDateTime.now()));
     }
@@ -40,6 +28,18 @@ public class NonNullableTimestampProperty extends SimpleObjectProperty<Timestamp
 
     public NonNullableTimestampProperty(Object bean, String name, Timestamp initialValue) {
         super(bean, name, (initialValue == null) ? Timestamp.valueOf(LocalDateTime.now()) : initialValue);
+    }
+
+    /**
+     * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
+     *
+     * @return the readonly property
+     */
+    public ReadOnlyObjectProperty<Timestamp> getReadOnlyProperty() {
+        if (readOnlyProperty == null) {
+            readOnlyProperty = new NonNullableTimestampProperty.ReadOnlyPropertyImpl();
+        }
+        return readOnlyProperty;
     }
 
     @Override

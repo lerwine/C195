@@ -27,7 +27,8 @@ public class ItemEventManager<T extends ItemEvent<?>> {
      * Adds a {@link ItemEventListener} to the event listener chain.
      *
      * @param listener The {@link ItemEventListener} to add.
-     * @return {@code true} if the {@code listener} was added to the event listener chain; otherwise, {@code false} if {@code listener} was null or it had already been added.
+     * @return {@code true} if the {@code listener} was added to the event listener chain; otherwise, {@code false} if {@code listener} was null or it
+     * had already been added.
      */
     public final synchronized boolean addListener(ItemEventListener<T> listener) {
         if (null == listener) {
@@ -50,8 +51,8 @@ public class ItemEventManager<T extends ItemEvent<?>> {
      * Removes a {@link ItemEventListener} from the event listener chain.
      *
      * @param listener The {@link ItemEventListener} to remove.
-     * @return {@code true} if the {@code listener} was removed to the event listener chain; otherwise, {@code false} if {@code listener} was null or it was not part of the event
-     * listener chain.
+     * @return {@code true} if the {@code listener} was removed to the event listener chain; otherwise, {@code false} if {@code listener} was null or
+     * it was not part of the event listener chain.
      */
     public final synchronized boolean removeListener(ItemEventListener<T> listener) {
         if (null == listener) {

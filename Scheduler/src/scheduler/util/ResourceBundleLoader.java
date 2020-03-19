@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,11 +56,12 @@ public final class ResourceBundleLoader {
     public static String formatResourceString(Class<?> ctlClass, String key, Object... args) {
         return String.format(getResourceString(ctlClass, key), args);
     }
-    
+
     public static String getResourceString(Class<?> ctlClass, String key) {
         ResourceBundle bundle = getBundle(ctlClass);
-        if (bundle.containsKey(key))
+        if (bundle.containsKey(key)) {
             return getBundle(ctlClass).getString(key);
+        }
         LOG.severe(String.format("Key \"%s\" not found in resource bundle for %s", key, ctlClass.getName()));
         return key;
     }
@@ -147,6 +146,68 @@ public final class ResourceBundleLoader {
 
     public static Stream<SupportedCountry> getSupportedCountries() {
         return Arrays.stream(INSTANCE.supportedCountries);
+    }
+
+    public static final String getGlobalizationResourceName(Class<?> target) {
+        HashMap<String, String> map = INSTANCE.classNameToResourceName;
+        synchronized (map) {
+            String c = target.getName();
+            if (map.containsKey(c)) {
+                return map.get(c);
+            }
+            Class<GlobalizationResource> ac = GlobalizationResource.class;
+            String message;
+            if (target.isAnnotationPresent(ac)) {
+                String n = target.getAnnotation(ac).value();
+                if (n != null && !n.trim().isEmpty()) {
+                    map.put(c, n);
+                    return n;
+                }
+                message = String.format("Value not defined for annotation scene.annotations.GlobalizationResource in type %s",
+                        target.getName());
+            } else {
+                message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", target.getName());
+            }
+            LOG.logp(Level.SEVERE, ResourceBundleLoader.class.getName(), "getGlobalizationResourceName", message);
+            map.put(c, "");
+            return "";
+        }
+    }
+
+    /**
+     * Get the value of currentDisplayLocale
+     *
+     * @return the value of currentDisplayLocale
+     */
+    public static Locale getCurrentDisplayLocale() {
+        return INSTANCE.currentDisplayLocale;
+    }
+
+    /**
+     * Get the value of currentFormatLocale
+     *
+     * @return the value of currentFormatLocale
+     */
+    public static Locale getCurrentFormatLocale() {
+        return INSTANCE.currentFormatLocale;
+    }
+
+    /**
+     * Get the value of altVerbalOrder
+     *
+     * @return the value of altVerbalOrder
+     */
+    @Deprecated
+    public static boolean isAltVerbalOrder() {
+        return INSTANCE.altVerbalOrder;
+    }
+
+    public static String formatCreatedByOn(String createdBy, LocalDateTime createDate) {
+        return formatResourceString(AppResources.class, RESOURCEKEY_CREATEDBYON, createdBy, Objects.requireNonNull(createDate));
+    }
+
+    public static String formatModifiedByOn(String modifiedBy, LocalDateTime lastModifiedDate) {
+        return formatResourceString(AppResources.class, RESOURCEKEY_MODIFIEDBYON, modifiedBy, Objects.requireNonNull(lastModifiedDate));
     }
 
     private final SupportedLocale[] supportedLocales;
@@ -240,37 +301,12 @@ public final class ResourceBundleLoader {
                 }
             }
         }
-        if (null == currentDisplayLocale)
+        if (null == currentDisplayLocale) {
             supportedLocales[0].setCurrent();
-        
+        }
+
     }
 
-    public static final String getGlobalizationResourceName(Class<?> target) {
-        HashMap<String, String> map = INSTANCE.classNameToResourceName; 
-        synchronized (map) {
-            String c = target.getName();
-            if (map.containsKey(c)) {
-                return map.get(c);
-            }
-            Class<GlobalizationResource> ac = GlobalizationResource.class;
-            String message;
-            if (target.isAnnotationPresent(ac)) {
-                String n = target.getAnnotation(ac).value();
-                if (n != null && !n.trim().isEmpty()) {
-                    map.put(c, n);
-                    return n;
-                }
-                message = String.format("Value not defined for annotation scene.annotations.GlobalizationResource in type %s",
-                        target.getName());
-            } else {
-                message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", target.getName());
-            }
-            LOG.logp(Level.SEVERE, ResourceBundleLoader.class.getName(), "getGlobalizationResourceName", message);
-            map.put(c, "");
-            return "";
-        }
-    }
-    
     private synchronized ResourceBundle getBundle(Class<?> resourceClass, String baseName) {
         if (null == resourceClass || baseName.isEmpty()) {
             return null;
@@ -293,34 +329,6 @@ public final class ResourceBundleLoader {
     }
 
     /**
-     * Get the value of currentDisplayLocale
-     *
-     * @return the value of currentDisplayLocale
-     */
-    public static Locale getCurrentDisplayLocale() {
-        return INSTANCE.currentDisplayLocale;
-    }
-
-    /**
-     * Get the value of currentFormatLocale
-     *
-     * @return the value of currentFormatLocale
-     */
-    public static Locale getCurrentFormatLocale() {
-        return INSTANCE.currentFormatLocale;
-    }
-
-    /**
-     * Get the value of altVerbalOrder
-     *
-     * @return the value of altVerbalOrder
-     */
-    @Deprecated
-    public static boolean isAltVerbalOrder() {
-        return INSTANCE.altVerbalOrder;
-    }
-
-    /**
      * Add PropertyChangeListener.
      *
      * @param listener
@@ -336,6 +344,52 @@ public final class ResourceBundleLoader {
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+
+    private SupportedCountry[] loadCities() {
+        final HashMap<String, Locale> parsedLocales = new HashMap<>();
+        final HashMap<String, ZoneId> parsedZoneIds = new HashMap<>();
+        final HashMap<String, ArrayList<String>> countryMap = new HashMap<>();
+        supportedCityProperties.stringPropertyNames().stream().forEach((t) -> {
+            String ltTz = supportedCityProperties.getProperty(t).trim();
+            int index = ltTz.indexOf(",");
+            if (index < 1 || index >= ltTz.length() - 1) {
+                LOG.log(Level.SEVERE, String.format("Invalid language/zone id pair \"%s\"", ltTz));
+            } else {
+                Locale locale = Locale.forLanguageTag(ltTz.substring(0, index));
+                String c = locale.getCountry();
+                if (c.isEmpty()) {
+                    LOG.log(Level.SEVERE, String.format("Language tag for \"%s\" does not indicate a country", ltTz));
+                    return;
+                }
+                try {
+                    ZoneId zoneId = ZoneId.of(ltTz.substring(index + 1));
+                    parsedZoneIds.put(t, zoneId);
+                } catch (DateTimeException ex) {
+                    LOG.log(Level.SEVERE, String.format("Invalid zone id \"%s\"", ltTz.substring(index + 1)), ex);
+                    return;
+                }
+                parsedLocales.put(t, locale);
+                if (countryMap.containsKey(c)) {
+                    countryMap.get(c).add(t);
+                } else {
+                    ArrayList<String> a = new ArrayList<>();
+                    a.add(t);
+                    countryMap.put(c, a);
+                }
+            }
+        });
+
+        return countryMap.keySet().stream().map((ck) -> {
+            ArrayList<String> kList = countryMap.get(ck);
+            SupportedCity[] arr = new SupportedCity[kList.size()];
+            SupportedCountry country = new SupportedCountry(ck, arr);
+            for (int i = 0; i < arr.length; i++) {
+                String k = kList.get(i);
+                arr[i] = new SupportedCity(k, parsedLocales.get(k), parsedZoneIds.get(k), country);
+            }
+            return country;
+        }).toArray(SupportedCountry[]::new);
     }
 
     private static final class CacheKey {
@@ -373,60 +427,6 @@ public final class ResourceBundleLoader {
             return Arrays.deepEquals(names, other.names) && Arrays.deepEquals(classes, other.classes);
         }
 
-    }
-
-    private SupportedCountry[] loadCities() {
-        final HashMap<String, Locale> parsedLocales = new HashMap<>();
-        final HashMap<String, ZoneId> parsedZoneIds = new HashMap<>();
-        final HashMap<String, ArrayList<String>> countryMap = new HashMap<>();
-        supportedCityProperties.stringPropertyNames().stream().forEach((t) -> {
-            String ltTz = supportedCityProperties.getProperty(t).trim();
-            int index = ltTz.indexOf(",");
-            if (index < 1 || index >= ltTz.length() - 1) {
-                LOG.log(Level.SEVERE, String.format("Invalid language/zone id pair \"%s\"", ltTz));
-            } else {
-                Locale locale = Locale.forLanguageTag(ltTz.substring(0, index));
-                String c = locale.getCountry();
-                if (c.isEmpty()) {
-                    LOG.log(Level.SEVERE, String.format("Language tag for \"%s\" does not indicate a country", ltTz));
-                    return;
-                }
-                try {
-                    ZoneId zoneId = ZoneId.of(ltTz.substring(index + 1));
-                    parsedZoneIds.put(t, zoneId);
-                } catch (DateTimeException ex) {
-                    LOG.log(Level.SEVERE, String.format("Invalid zone id \"%s\"", ltTz.substring(index + 1)), ex);
-                    return;
-                }
-                parsedLocales.put(t, locale);
-                if (countryMap.containsKey(c))
-                    countryMap.get(c).add(t);
-                else {
-                    ArrayList<String> a = new ArrayList<>();
-                    a.add(t);
-                    countryMap.put(c, a);
-                }
-            }
-        });
-        
-        return countryMap.keySet().stream().map((ck) -> {
-            ArrayList<String> kList = countryMap.get(ck);
-            SupportedCity[] arr = new SupportedCity[kList.size()];
-            SupportedCountry country = new SupportedCountry(ck, arr);
-            for (int i = 0; i < arr.length; i++) {
-                String k = kList.get(i);
-                arr[i] = new SupportedCity(k, parsedLocales.get(k), parsedZoneIds.get(k), country);
-            }
-            return country;
-        }).toArray(SupportedCountry[]::new);
-    }
-    
-    public static String formatCreatedByOn(String createdBy, LocalDateTime createDate) {
-        return formatResourceString(AppResources.class, RESOURCEKEY_CREATEDBYON, createdBy, Objects.requireNonNull(createDate));
-    }
-
-    public static String formatModifiedByOn(String modifiedBy, LocalDateTime lastModifiedDate) {
-        return formatResourceString(AppResources.class, RESOURCEKEY_MODIFIEDBYON, modifiedBy, Objects.requireNonNull(lastModifiedDate));
     }
 
     public class SupportedLocale {
@@ -473,7 +473,9 @@ public final class ResourceBundleLoader {
         }
 
         @Override
-        public int hashCode() { return key.hashCode(); }
+        public int hashCode() {
+            return key.hashCode();
+        }
 
         @Override
         public boolean equals(Object obj) {
@@ -526,6 +528,7 @@ public final class ResourceBundleLoader {
     }
 
     public class SupportedCity {
+
         private final String key;
         private String displayName;
         private final Locale locale;
@@ -551,9 +554,11 @@ public final class ResourceBundleLoader {
         public SupportedCountry getCountry() {
             return country;
         }
-        
+
         @Override
-        public int hashCode() { return key.hashCode(); }
+        public int hashCode() {
+            return key.hashCode();
+        }
 
         @Override
         public boolean equals(Object obj) {
@@ -572,8 +577,9 @@ public final class ResourceBundleLoader {
             this.country = country;
         }
     }
-    
+
     public class SupportedCountry implements List<SupportedCity> {
+
         private final String key;
         private String displayName;
         private final SupportedCity[] cities;
@@ -587,7 +593,9 @@ public final class ResourceBundleLoader {
         }
 
         @Override
-        public int hashCode() { return key.hashCode(); }
+        public int hashCode() {
+            return key.hashCode();
+        }
 
         @Override
         public boolean equals(Object obj) {
@@ -603,7 +611,7 @@ public final class ResourceBundleLoader {
             this.key = displayName = key;
             this.cities = cities;
         }
-        
+
         private void refresh(ResourceBundle cityNames) {
             displayName = cities[0].locale.getDisplayCountry(currentDisplayLocale);
             for (SupportedCity city : cities) {
@@ -613,20 +621,25 @@ public final class ResourceBundleLoader {
         }
 
         @Override
-        public Stream<SupportedCity> stream() { return Arrays.stream(cities); }
-        
-        public Stream<String> getCityKeys() { return Arrays.stream(cities).map((t) -> t.key); }
-        
+        public Stream<SupportedCity> stream() {
+            return Arrays.stream(cities);
+        }
+
+        public Stream<String> getCityKeys() {
+            return Arrays.stream(cities).map((t) -> t.key);
+        }
+
         public SupportedCity get(String key) {
             if (null != key) {
                 for (SupportedCity item : cities) {
-                    if (item.key.equals(key))
+                    if (item.key.equals(key)) {
                         return item;
-                }   
+                    }
+                }
             }
             return null;
         }
-        
+
         @Override
         public int size() {
             return cities.length;
@@ -641,8 +654,9 @@ public final class ResourceBundleLoader {
         public boolean contains(Object o) {
             if (null != o && o instanceof SupportedCity) {
                 for (SupportedCity item : cities) {
-                    if (item == o)
+                    if (item == o) {
                         return true;
+                    }
                 }
             }
             return false;
@@ -652,14 +666,17 @@ public final class ResourceBundleLoader {
         public Iterator<SupportedCity> iterator() {
             return new Iterator<SupportedCity>() {
                 int index = 0;
+
                 @Override
                 public boolean hasNext() {
                     return index < cities.length;
                 }
+
                 @Override
                 public SupportedCity next() {
-                    if (index < cities.length)
+                    if (index < cities.length) {
                         return cities[index++];
+                    }
                     throw new NoSuchElementException();
                 }
             };
@@ -674,11 +691,13 @@ public final class ResourceBundleLoader {
 
         @Override
         public <T> T[] toArray(T[] a) {
-            if (a.length < cities.length)
+            if (a.length < cities.length) {
                 return (T[]) Arrays.copyOf(cities, cities.length, a.getClass());
+            }
             System.arraycopy(cities, 0, a, 0, cities.length);
-            if (a.length > cities.length)
+            if (a.length > cities.length) {
                 a[cities.length] = null;
+            }
             return a;
         }
 
@@ -746,8 +765,9 @@ public final class ResourceBundleLoader {
         public int indexOf(Object o) {
             if (null != o && o instanceof SupportedCity) {
                 for (int index = 0; index < cities.length; index++) {
-                    if (cities[index] == o)
+                    if (cities[index] == o) {
                         return index;
+                    }
                 }
             }
             return -1;
@@ -757,8 +777,9 @@ public final class ResourceBundleLoader {
         public int lastIndexOf(Object o) {
             if (null != o && o instanceof SupportedCity) {
                 for (int index = cities.length - 1; index >= 0; index--) {
-                    if (cities[index] == o)
+                    if (cities[index] == o) {
                         return index;
+                    }
                 }
             }
             return -1;
@@ -771,11 +792,13 @@ public final class ResourceBundleLoader {
 
         @Override
         public ListIterator<SupportedCity> listIterator(int index) {
-            if (index < 0 || index > cities.length)
+            if (index < 0 || index > cities.length) {
                 throw new IndexOutOfBoundsException();
-            
+            }
+
             return new ListIterator<SupportedCity>() {
                 int currentIndex = index;
+
                 @Override
                 public boolean hasNext() {
                     return currentIndex < cities.length;
@@ -783,8 +806,9 @@ public final class ResourceBundleLoader {
 
                 @Override
                 public SupportedCity next() {
-                    if (currentIndex < cities.length)
+                    if (currentIndex < cities.length) {
                         return cities[currentIndex++];
+                    }
                     throw new NoSuchElementException();
                 }
 
@@ -795,8 +819,9 @@ public final class ResourceBundleLoader {
 
                 @Override
                 public SupportedCity previous() {
-                    if (currentIndex > 0)
+                    if (currentIndex > 0) {
                         return cities[currentIndex--];
+                    }
                     throw new NoSuchElementException();
                 }
 
@@ -824,14 +849,15 @@ public final class ResourceBundleLoader {
                 public void add(SupportedCity e) {
                     throw new UnsupportedOperationException();
                 }
-                
+
             };
         }
 
         @Override
         public List<SupportedCity> subList(int fromIndex, int toIndex) {
-            if (fromIndex < 0 || toIndex > cities.length || toIndex < fromIndex)
+            if (fromIndex < 0 || toIndex > cities.length || toIndex < fromIndex) {
                 throw new IndexOutOfBoundsException();
+            }
             return new List<SupportedCity>() {
                 final int start = fromIndex;
                 final int end = toIndex;
@@ -850,8 +876,9 @@ public final class ResourceBundleLoader {
                 public boolean contains(Object o) {
                     if (null != o && o instanceof SupportedCity) {
                         for (int i = start; i < end; i++) {
-                            if (cities[i] == o)
+                            if (cities[i] == o) {
                                 return true;
+                            }
                         }
                     }
                     return false;
@@ -869,8 +896,9 @@ public final class ResourceBundleLoader {
 
                         @Override
                         public SupportedCity next() {
-                            if (index < end)
+                            if (index < end) {
                                 return cities[index++];
+                            }
                             throw new NoSuchElementException();
                         }
                     };
@@ -887,11 +915,13 @@ public final class ResourceBundleLoader {
                 @Override
                 public <T> T[] toArray(T[] a) {
                     int len = end - start;
-                    if (a.length < len)
+                    if (a.length < len) {
                         return (T[]) Arrays.copyOfRange(cities, start, end, a.getClass());
+                    }
                     System.arraycopy(cities, start, a, 0, len);
-                    if (a.length > len)
+                    if (a.length > len) {
                         a[len] = null;
+                    }
                     return a;
                 }
 
@@ -959,8 +989,9 @@ public final class ResourceBundleLoader {
                 public int indexOf(Object o) {
                     if (null != o && o instanceof SupportedCity) {
                         for (int i = start; i < end; i++) {
-                            if (cities[i] == o)
+                            if (cities[i] == o) {
                                 return i;
+                            }
                         }
                     }
                     return -1;
@@ -970,8 +1001,9 @@ public final class ResourceBundleLoader {
                 public int lastIndexOf(Object o) {
                     if (null != o && o instanceof SupportedCity) {
                         for (int i = end - 1; i >= start; i--) {
-                            if (cities[i] == o)
+                            if (cities[i] == o) {
                                 return i;
+                            }
                         }
                     }
                     return -1;
@@ -985,11 +1017,13 @@ public final class ResourceBundleLoader {
                 @Override
                 public ListIterator<SupportedCity> listIterator(int index) {
                     int len = end - start;
-                    if (index < 0 || index > len)
+                    if (index < 0 || index > len) {
                         throw new IndexOutOfBoundsException();
+                    }
 
                     return new ListIterator<SupportedCity>() {
                         int currentIndex = index;
+
                         @Override
                         public boolean hasNext() {
                             return currentIndex < len;
@@ -997,8 +1031,9 @@ public final class ResourceBundleLoader {
 
                         @Override
                         public SupportedCity next() {
-                            if (currentIndex < len)
+                            if (currentIndex < len) {
                                 return cities[(currentIndex++) + start];
+                            }
                             throw new NoSuchElementException();
                         }
 
@@ -1009,8 +1044,9 @@ public final class ResourceBundleLoader {
 
                         @Override
                         public SupportedCity previous() {
-                            if (currentIndex > 0)
+                            if (currentIndex > 0) {
                                 return cities[(currentIndex--) + start];
+                            }
                             throw new NoSuchElementException();
                         }
 
@@ -1044,8 +1080,9 @@ public final class ResourceBundleLoader {
 
                 @Override
                 public List<SupportedCity> subList(int fromIndex, int toIndex) {
-                    if (toIndex > end)
+                    if (toIndex > end) {
                         throw new IndexOutOfBoundsException();
+                    }
                     return SupportedCountry.this.subList(start + fromIndex, start + toIndex);
                 }
             };

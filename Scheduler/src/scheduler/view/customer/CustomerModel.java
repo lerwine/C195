@@ -34,6 +34,22 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
     private final AddressTextProperty addressText;
     private final SimpleBooleanProperty active;
 
+    public CustomerModel(CustomerImpl dao) {
+        super(dao);
+        name = new NonNullableStringProperty(this, "name", dao.getName());
+        Address a = dao.getAddress();
+        address = new SimpleObjectProperty<>(this, "address", (null == a) ? null : new AddressReferenceModelImpl(a));
+        address1 = new ChildPropertyWrapper<>(this, "address1", address, (c) -> c.address1Property());
+        address2 = new ChildPropertyWrapper<>(this, "address2", address, (c) -> c.address2Property());
+        cityName = new ChildPropertyWrapper<>(this, "cityName", address, (c) -> c.cityNameProperty());
+        countryName = new ChildPropertyWrapper<>(this, "countryName", address, (c) -> c.countryNameProperty());
+        postalCode = new ChildPropertyWrapper<>(this, "postalCode", address, (c) -> c.postalCodeProperty());
+        phone = new ChildPropertyWrapper<>(this, "phone", address, (c) -> c.phoneProperty());
+        cityZipCountry = new ChildPropertyWrapper<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
+        addressText = new AddressTextProperty(this, "addressText", this);
+        active = new SimpleBooleanProperty(this, "active", dao.isActive());
+    }
+
     @Override
     public String getName() {
         return name.get();
@@ -136,26 +152,10 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
         return active;
     }
 
-    public CustomerModel(CustomerImpl dao) {
-        super(dao);
-        name = new NonNullableStringProperty(this, "name", dao.getName());
-        Address a = dao.getAddress().getPartial();
-        address = new SimpleObjectProperty<>(this, "address", (null == a) ? null : new AddressReferenceModelImpl(a));
-        address1 = new ChildPropertyWrapper<>(this, "address1", address, (c) -> c.address1Property());
-        address2 = new ChildPropertyWrapper<>(this, "address2", address, (c) -> c.address2Property());
-        cityName = new ChildPropertyWrapper<>(this, "cityName", address, (c) -> c.cityNameProperty());
-        countryName = new ChildPropertyWrapper<>(this, "countryName", address, (c) -> c.countryNameProperty());
-        postalCode = new ChildPropertyWrapper<>(this, "postalCode", address, (c) -> c.postalCodeProperty());
-        phone = new ChildPropertyWrapper<>(this, "phone", address, (c) -> c.phoneProperty());
-        cityZipCountry = new ChildPropertyWrapper<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
-        addressText = new AddressTextProperty(this, "addressText", this);
-        active = new SimpleBooleanProperty(this, "active", dao.isActive());
-    }
-
     @Override
     protected void refreshFromDAO(CustomerImpl dao) {
         name.set(dao.getName());
-        Address a = dao.getAddress().getPartial();
+        Address a = dao.getAddress();
         address.set((null == a) ? null : new AddressReferenceModelImpl(a));
         active.set(dao.isActive());
     }

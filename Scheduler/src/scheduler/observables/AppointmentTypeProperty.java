@@ -14,18 +14,6 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
 
     ReadOnlyStringProperty readOnlyProperty;
 
-    /**
-     * Returns the readonly property, that is synchronized with this {@code AppointmentTypeProperty}.
-     *
-     * @return the readonly property
-     */
-    public ReadOnlyStringProperty getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new AppointmentTypeProperty.ReadOnlyPropertyImpl();
-        }
-        return readOnlyProperty;
-    }
-
     public AppointmentTypeProperty() {
         super(Values.APPOINTMENTTYPE_OTHER);
     }
@@ -40,6 +28,18 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
 
     public AppointmentTypeProperty(Object bean, String name, String initialValue) {
         super(bean, name, Values.asValidAppointmentType(initialValue));
+    }
+
+    /**
+     * Returns the readonly property, that is synchronized with this {@code AppointmentTypeProperty}.
+     *
+     * @return the readonly property
+     */
+    public ReadOnlyStringProperty getReadOnlyProperty() {
+        if (readOnlyProperty == null) {
+            readOnlyProperty = new AppointmentTypeProperty.ReadOnlyPropertyImpl();
+        }
+        return readOnlyProperty;
     }
 
     @Override

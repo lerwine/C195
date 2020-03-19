@@ -35,18 +35,22 @@ public interface City extends DataObject {
      *
      * @return The {@link Country} for the current city.
      */
-    DataObjectReference<CountryImpl, Country> getCountry();
+    DataObjectReference<CountryImpl, Country> getCountryReference();
+
+    Country getCountry();
 
     public static String toString(City city) throws SQLException, ClassNotFoundException {
         if (null != city) {
             String n = city.getName();
-            String country = Country.toString(city.getCountry().ensurePartial(CountryImpl.getFactory())).trim();
-            if (null == n || (n = n.trim()).isEmpty())
+            String country = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+            if (null == n || (n = n.trim()).isEmpty()) {
                 return country;
+            }
             return (country.isEmpty()) ? n : String.format("%s, %s", n, country);
         }
         return "";
     }
+
     /**
      * Creates a read-only City object from object values.
      *
@@ -58,6 +62,8 @@ public interface City extends DataObject {
     public static City of(int pk, String name, DataObjectReference<CountryImpl, Country> country) {
         Objects.requireNonNull(name, "Name cannot be null");
         return new City() {
+            private final DataObjectReference<CountryImpl, Country> countryReference = (null == country) ? DataObjectReference.of(null) : country;
+
             @Override
             public String getName() {
                 return name;
@@ -69,8 +75,13 @@ public interface City extends DataObject {
             }
 
             @Override
-            public DataObjectReference<CountryImpl, Country> getCountry() {
-                return country;
+            public DataObjectReference<CountryImpl, Country> getCountryReference() {
+                return countryReference;
+            }
+
+            @Override
+            public Country getCountry() {
+                return country.getPartial();
             }
 
             @Override

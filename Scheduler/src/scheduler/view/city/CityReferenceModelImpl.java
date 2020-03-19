@@ -20,7 +20,7 @@ public class CityReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
     public CityReferenceModelImpl(City dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "name", dao.getName());
-        Country c = dao.getCountry().getPartial();
+        Country c = dao.getCountry();
         country = new ReadOnlyObjectWrapper<>(this, "country", (null == c) ? null : new CountryReferenceModelImpl(c));
         countryName = new ChildPropertyWrapper<>(this, "countryName", country, (t) -> t.nameProperty());
     }

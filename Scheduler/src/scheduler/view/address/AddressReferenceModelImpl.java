@@ -36,7 +36,7 @@ public class AddressReferenceModelImpl extends DataObjectImpl.DataObjectReferenc
         address1 = new ReadOnlyStringWrapper(this, "address1", dao.getAddress1());
         address2 = new ReadOnlyStringWrapper(this, "address2", dao.getAddress2());
         addressLines = new AddressLinesProperty();
-        City c = dao.getCity().getPartial();
+        City c = dao.getCity();
         city = new ReadOnlyObjectWrapper<>(this, "city", (null == c) ? null : new CityReferenceModelImpl(c));
         cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());

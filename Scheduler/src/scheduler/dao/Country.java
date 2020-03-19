@@ -39,7 +39,7 @@ public interface Country extends DataObject {
         }
         return "";
     }
-    
+
     /**
      * Creates a read-only Country object from object values.
      *

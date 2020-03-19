@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao;
 
 /**
@@ -35,11 +30,10 @@ public interface AddressColumns extends CityColumns {
      */
     public static final String COLNAME_PHONE = "phone";
     
-    public static final String SQL_JOIN_CITY = String.format("LEFT JOIN %s %s ON %s.%s = %s.%s %s", TABLENAME_CITY, TABLEALIAS_CITY,
-            TABLEALIAS_ADDRESS, COLNAME_CITYID, TABLEALIAS_CITY, COLNAME_CITYID, SQL_JOIN_COUNTRY);
+    public static final String SQL_JOIN_CITY = String.format("LEFT JOIN %1$s %2$s ON %3$s.%4$s = %2$s.%4$s %5$s", TABLENAME_CITY, TABLEALIAS_CITY,
+            TABLEALIAS_ADDRESS, COLNAME_CITYID, SQL_JOIN_COUNTRY);
     
-    public static final String SQL_ADDRESS_SELECT_FIELDS = String.format(".%s as %s, %s.%s as %s, %s.%s as %s, %s%s, %s.%s as %s, %s.%s as %s",
-            COLNAME_ADDRESSID, COLNAME_ADDRESSID, TABLEALIAS_ADDRESS, COLNAME_ADDRESS, COLNAME_ADDRESS,
-            TABLEALIAS_ADDRESS, COLNAME_ADDRESS2, COLNAME_ADDRESS2, TABLEALIAS_ADDRESS, SQL_CITY_SELECT_FIELDS,
-            TABLEALIAS_ADDRESS, COLNAME_POSTALCODE, COLNAME_POSTALCODE, TABLEALIAS_ADDRESS, COLNAME_PHONE, COLNAME_PHONE);
+    public static final String SQL_ADDRESS_SELECT_FIELDS = String.format(".%1$s as %1$s, %2$s.%3$s as %3$s, %s2$.%4$s as %4$s, %2$s%5$s,"
+            + " %2$s.%6$s as %6$s, %2$s.%7$s as %7$s",
+            COLNAME_ADDRESSID, TABLEALIAS_ADDRESS, COLNAME_ADDRESS, COLNAME_ADDRESS2, SQL_CITY_SELECT_FIELDS, COLNAME_POSTALCODE, COLNAME_PHONE);
 }

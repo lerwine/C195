@@ -8,20 +8,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import scheduler.AppResources;
+import static scheduler.dao.CityColumns.COLNAME_CITYID;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.view.country.CountryModel;
+import scheduler.view.country.EditCountry;
 
 public class CountryImpl extends DataObjectImpl implements Country, CountryColumns {
 
-    //<editor-fold defaultstate="collapsed" desc="Properties and Fields">
-    private static final String BASE_SELECT_SQL = String.format("SELECT `%s`, `%s`, `%s`, `%s`, `%s`, `%s` FROM `%s`", COLNAME_COUNTRYID, COLNAME_COUNTRY, COLNAME_CREATEDATE,
-            COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, TABLENAME_COUNTRY);
+    private static final String BASE_SELECT_SQL = String.format("SELECT %s, %s, %s, %s, %s, %s FROM %s", COLNAME_COUNTRYID, COLNAME_COUNTRY,
+            COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, TABLENAME_COUNTRY);
 
-    //<editor-fold defaultstate="collapsed" desc="name property">
     private String name;
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getName() {
         return name;
@@ -36,8 +34,6 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
         name = (value == null) ? "" : value;
     }
 
-    //</editor-fold>
-    //</editor-fold>
     /**
      * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} country object.
      */
@@ -58,10 +54,6 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
         private FactoryImpl() {
         }
 
-        //    @Override
-        //    protected void onApplyChanges(CountryModel model) {
-        //        model.getDataObject().name = model.getName();
-        //    }
         @Override
         protected CountryImpl fromResultSet(ResultSet resultSet) throws SQLException {
             CountryImpl result = new CountryImpl();
@@ -120,12 +112,52 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
 
         @Override
         public String getDeleteDependencyMessage(CountryImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            if (null != dao && dao.isExisting()) {
+                try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ?", COLNAME_CITYID,
+                        TABLENAME_CITY, COLNAME_COUNTRYID))) {
+                    ps.setInt(1, dao.getPrimaryKey());
+                    try (ResultSet rs = ps.getResultSet()) {
+                        int count = rs.getInt(1);
+                        if (count == 1) {
+                            return ResourceBundleLoader.getResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGSINGLECOUNTRY);
+                        }
+                        if (count > 1) {
+                            return ResourceBundleLoader.formatResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY,
+                                    count);
+                        }
+                    }
+                }
+            }
+            return "";
         }
 
         @Override
         public String getSaveConflictMessage(CountryImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            if (null != dao) {
+                int count;
+                if (dao.isExisting()) {
+                    try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE AND %s = ? AND %1$s <> ?",
+                            COLNAME_COUNTRYID, TABLENAME_COUNTRY, COLNAME_COUNTRY))) {
+                        ps.setString(1, dao.getName());
+                        ps.setInt(2, dao.getPrimaryKey());
+                        try (ResultSet rs = ps.getResultSet()) {
+                            count = rs.getInt(1);
+                        }
+                    }
+                } else {
+                    try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ?",
+                            COLNAME_COUNTRYID, TABLENAME_COUNTRY, COLNAME_COUNTRY))) {
+                        ps.setString(1, dao.getName());
+                        try (ResultSet rs = ps.getResultSet()) {
+                            count = rs.getInt(1);
+                        }
+                    }
+                }
+                if (count > 0) {
+                    return ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_SAVECONFLICTMESSAGE);
+                }
+            }
+            return "";
         }
 
         public ArrayList<CountryImpl> getAllCountries(Connection connection) {
