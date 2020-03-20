@@ -34,7 +34,8 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
     private String description;
     private String location;
     private String contact;
-    private String type;
+    private String type_old;
+    private AppointmentType type;
     private String url;
     private Timestamp start;
     private Timestamp end;
@@ -49,7 +50,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
         description = "";
         location = "";
         contact = "";
-        type = Values.APPOINTMENTTYPE_OTHER;
+        type_old = Values.APPOINTMENTTYPE_OTHER;
         url = null;
         LocalDateTime d = LocalDateTime.now().plusHours(1).plusMinutes(30);
         d = d.minusMinutes(d.getMinute()).minusSeconds(d.getSecond()).minusNanos(d.getNano());
@@ -155,7 +156,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
 
     @Override
     public String getType() {
-        return type;
+        return type_old;
     }
 
     /**
@@ -164,7 +165,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
      * @param value new value of type
      */
     public void setType(String value) {
-        type = Values.asValidAppointmentType(value);
+        type_old = Values.asValidAppointmentType(value);
     }
 
     @Override
@@ -284,11 +285,11 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
             if (resultSet.wasNull()) {
                 target.contact = "";
             }
-            target.type = resultSet.getString(COLNAME_TYPE);
+            target.type_old = resultSet.getString(COLNAME_TYPE);
             if (resultSet.wasNull()) {
-                target.type = Values.APPOINTMENTTYPE_OTHER;
+                target.type_old = Values.APPOINTMENTTYPE_OTHER;
             } else {
-                target.type = Values.asValidAppointmentType(target.type);
+                target.type_old = Values.asValidAppointmentType(target.type_old);
             }
             target.url = resultSet.getString(COLNAME_URL);
             if (resultSet.wasNull()) {

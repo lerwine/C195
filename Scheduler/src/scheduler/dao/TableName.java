@@ -1,23 +1,40 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package scheduler.dao;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Specifies the database table name associated with the class. This is used by {@link scheduler.dao.DataObjectImpl} for database operations.
  *
- * @author Leonard T. Erwine
+ * @author lerwi
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface TableName {
+public enum TableName {
+    COUNTRY("country", "n", "countryId"),
+    CITY("city", "c", "cityId"),
+    ADDRESS("address", "l", "addressId"),
+    CUSTOMER("customer", "p", "customerId"),
+    APPOINTMENT("appointment", "a", "appointmentId"),
+    USER("user", "u", "userId");
+    private final String dbName;
+    private final String alias;
+    private final String pkColName;
 
-    /**
-     * Get the name of the database table associated with the class.
-     *
-     * @return the name of the database table associated with the class.
-     */
-    public String value();
+    public String getDbName() {
+        return dbName;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public String getPkColName() {
+        return pkColName;
+    }
+    
+    private TableName(String dbName, String alias, String pkColName) {
+        this.dbName = dbName;
+        this.alias = alias;
+        this.pkColName = pkColName;
+    }
 }

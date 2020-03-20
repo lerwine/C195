@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -55,8 +56,9 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
     private String createdBy;
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
-    private int rowState;
-
+    private int rowState_old;
+    private DataRowState rowState;
+    
     /**
      * Initializes a {@link Values#ROWSTATE_NEW} data access object.
      */
@@ -64,7 +66,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
         primaryKey = 0;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
-        rowState = Values.ROWSTATE_NEW;
+        rowState_old = Values.ROWSTATE_NEW;
     }
 
     @Override
@@ -140,21 +142,21 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
 
     @Override
     public final int getRowState() {
-        return rowState;
+        return rowState_old;
     }
 
     private void setRowState(int rowState) {
-        int oldRowState = this.rowState;
-        this.rowState = rowState;
+        int oldRowState = this.rowState_old;
+        this.rowState_old = rowState;
         getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
     }
 
     final void setDeleted() {
-        rowState = Values.ROWSTATE_DELETED;
+        rowState_old = Values.ROWSTATE_DELETED;
     }
 
     public final boolean isModified() {
-        return rowState != Values.ROWSTATE_UNMODIFIED;
+        return rowState_old != Values.ROWSTATE_UNMODIFIED;
     }
 
     protected boolean propertyChangeModifiesState(String propertyName) {
@@ -178,7 +180,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                         UserImpl currentUser = App.getCurrentUser();
                         setLastModifiedBy(currentUser.getUserName());
                         setLastModifiedDate(DB.toUtcTimestamp(LocalDateTime.now()));
-                        if (rowState != Values.ROWSTATE_NEW) {
+                        if (rowState_old != Values.ROWSTATE_NEW) {
                             setRowState(Values.ROWSTATE_MODIFIED);
                             return;
                         }
@@ -371,8 +373,12 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
 
         public abstract String getTableName();
 
+//        public abstract String getTableAlias();
+
         public abstract String getPrimaryKeyColName();
 
+//        protected abstract Stream<ColNameSupplier> getExtendedColumns(DmlType type);
+        
         protected abstract List<String> getExtendedColNames();
 
         protected abstract void setSaveStatementValues(T dao, PreparedStatement ps) throws SQLException;
@@ -385,7 +391,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             int pk = resultSet.getInt(pkColName);
             assert !resultSet.wasNull() : String.format("%s was null", pkColName);
             assert resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName)).equals(getTableName()) : "Table name mismatch";
-            if (target.rowState != Values.ROWSTATE_NEW) {
+            if (target.rowState_old != Values.ROWSTATE_NEW) {
                 assert pk == target.getPrimaryKey() : "Primary key does not match";
             }
             return pk;

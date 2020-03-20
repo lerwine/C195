@@ -4,6 +4,7 @@ package scheduler.dao;
  *
  * @author lerwi
  */
+@Deprecated
 public interface TableNames {
 
     public static final String TABLEALIAS_COUNTRY = "n";

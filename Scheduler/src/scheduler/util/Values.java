@@ -25,6 +25,7 @@ public class Values {
      * {@link scheduler.dao.Appointment#getUrl()} returns the telephone number encoded as a URL using the format "tel:+" + international_code + "-" +
      * phone_number and {@link scheduler.dao.Appointment#getLocation()} returns an empty string for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_PHONE = "phone";
 
     /**
@@ -32,42 +33,49 @@ public class Values {
      * {@link scheduler.dao.Appointment#getUrl()} returns the internet address of the virtual meeting and
      * {@link scheduler.dao.Appointment#getLocation()} returns an empty string for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_VIRTUAL = "virtual";
 
     /**
      * The value of {@link scheduler.dao.Appointment#getType()} when the appointment located at the customer address.
      * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_CUSTOMER = "customer";
 
     /**
      * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the home (USA) office.
      * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_HOME = "home";
 
     /**
      * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the Germany office.
      * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_GERMANY = "germany";
 
     /**
      * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the India office.
      * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_INDIA = "india";
 
     /**
      * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the Honduras office.
      * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_HONDURAS = "honduras";
 
     /**
      * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at an explicit address returned by
      * {@link scheduler.dao.Appointment#getLocation()}. {@link scheduler.dao.Appointment#getUrl()} returns an empty string for this appointment type.
      */
+    @Deprecated
     public static final String APPOINTMENTTYPE_OTHER = "other";
 
     private static final ObservableMap<String, String> APPOINTMENT_TYPES = FXCollections.observableHashMap();
@@ -77,23 +85,27 @@ public class Values {
     /**
      * Value of {@link scheduler.dao.DataObject#getRowState()} when the current data object has been deleted from the database.
      */
+    @Deprecated
     public static final int ROWSTATE_DELETED = -1;
 
     /**
      * Value of {@link scheduler.dao.DataObject#getRowState()} when the current data object has not yet been added to the database.
      */
+    @Deprecated
     public static final int ROWSTATE_NEW = 0;
 
     /**
      * Value of {@link scheduler.dao.DataObject#getRowState()} when the properties of the current data object has not been modified since it was last
      * synchronized with the database.
      */
+    @Deprecated
     public static final int ROWSTATE_UNMODIFIED = 1;
 
     /**
      * Value of {@link scheduler.dao.DataObject#getRowState()} when the properties of the current data object differ from the data stored in the
      * database.
      */
+    @Deprecated
     public static final int ROWSTATE_MODIFIED = 2;
 
     public static final String OPERATOR_EQUALS = "=";
