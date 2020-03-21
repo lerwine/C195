@@ -3,15 +3,16 @@ package scheduler.controls;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
+import scheduler.dao.AppointmentType;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-public class AppointmentTypeListCellFactory implements Callback<ListView<String>, ListCell<String>> {
+public class AppointmentTypeListCellFactory implements Callback<ListView<AppointmentType>, ListCell<AppointmentType>> {
 
     @Override
-    public ListCell<String> call(ListView<String> param) {
+    public ListCell<AppointmentType> call(ListView<AppointmentType> param) {
         return new AppointmentTypeListCell();
     }
 }

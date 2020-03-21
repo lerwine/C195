@@ -1,18 +1,18 @@
 package scheduler.controls;
 
 import javafx.scene.control.TableCell;
-import scheduler.util.Values;
+import scheduler.dao.AppointmentType;
 
 /**
  *
  * @author lerwi
  * @param <S> The row item type.
  */
-public class AppointmentTypeTableCell<S> extends TableCell<S, String> {
+public class AppointmentTypeTableCell<S> extends TableCell<S, AppointmentType> {
 
     @Override
-    protected void updateItem(String item, boolean empty) {
+    protected void updateItem(AppointmentType item, boolean empty) {
         super.updateItem(item, empty);
-        setText(Values.toAppointmentTypeDisplay(item));
+        setText(AppointmentType.toAppointmentTypeDisplay(item));
     }
 }

@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,6 +27,7 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
     private static final ObservableMap<Integer, String> USER_STATUS_MAP = FXCollections.observableHashMap();
     private static ObservableMap<Integer, String> userStatusMap = null;
     private static String appointmentTypesLocale = null;
+    @Deprecated
     private static final String BASE_SELECT_QUERY = String.format("SELECT %s, %s, %s, %s as %s, %s, %s, %s, %s FROM %s", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD,
             COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
             TABLENAME_USER);
@@ -165,7 +167,12 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
         }
 
         @Override
-        public String getTableName() {
+        public DbTable getTableName() {
+            return DbTable.USER;
+        }
+
+        @Override
+        public String getTableName_old() {
             return TABLENAME_USER;
         }
 

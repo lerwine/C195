@@ -5,6 +5,8 @@
  */
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
+import scheduler.dao.schema.DbColumn;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import org.junit.After;
@@ -45,7 +47,7 @@ public class DbColumnTest {
     @Test
     public void testGetColumns_TableName() {
         System.out.println("getColumns");
-        TableName tableName = TableName.ADDRESS;
+        DbTable tableName = DbTable.ADDRESS;
         Stream<DbColumn> expResult = Stream.of(DbColumn.ADDRESS1, DbColumn.ADDRESS2, DbColumn.ADDRESS_CITY, DbColumn.POSTAL_CODE, DbColumn.PHONE,
                 DbColumn.ADDRESS_ID, DbColumn.ADDRESS_CREATE_DATE, DbColumn.ADDRESS_CREATED_BY, DbColumn.ADDRESS_LAST_UPDATE,
                 DbColumn.ADDRESS_LAST_UPDATE_BY);
@@ -58,7 +60,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.APPOINTMENT;
+        tableName = DbTable.APPOINTMENT;
         expResult = Stream.of(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.APPOINTMENT_USER, DbColumn.TITLE, DbColumn.DESCRIPTION, DbColumn.LOCATION,
                 DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START, DbColumn.END, DbColumn.APPOINTMENT_ID,
                 DbColumn.APPOINTMENT_CREATE_DATE, DbColumn.APPOINTMENT_CREATED_BY, DbColumn.APPOINTMENT_LAST_UPDATE,
@@ -72,7 +74,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CITY;
+        tableName = DbTable.CITY;
         expResult = Stream.of(DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.CITY_ID, DbColumn.CITY_CREATE_DATE, DbColumn.CITY_CREATED_BY,
                 DbColumn.CITY_LAST_UPDATE, DbColumn.CITY_LAST_UPDATE_BY);
         result = DbColumn.getColumns(tableName);
@@ -84,7 +86,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.COUNTRY;
+        tableName = DbTable.COUNTRY;
         expResult = Stream.of(DbColumn.COUNTRY_NAME, DbColumn.COUNTRY_ID, DbColumn.COUNTRY_CREATE_DATE, DbColumn.COUNTRY_CREATED_BY,
                 DbColumn.COUNTRY_LAST_UPDATE, DbColumn.COUNTRY_LAST_UPDATE_BY);
         result = DbColumn.getColumns(tableName);
@@ -96,7 +98,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CUSTOMER;
+        tableName = DbTable.CUSTOMER;
         expResult = Stream.of(DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ACTIVE, DbColumn.CUSTOMER_ID, DbColumn.CUSTOMER_CREATE_DATE,
                 DbColumn.CUSTOMER_CREATED_BY, DbColumn.CUSTOMER_LAST_UPDATE, DbColumn.CUSTOMER_LAST_UPDATE_BY);
         result = DbColumn.getColumns(tableName);
@@ -108,7 +110,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.USER;
+        tableName = DbTable.USER;
         expResult = Stream.of(DbColumn.USER_NAME, DbColumn.PASSWORD, DbColumn.STATUS, DbColumn.USER_ID, DbColumn.USER_CREATE_DATE,
                 DbColumn.USER_CREATED_BY, DbColumn.USER_LAST_UPDATE, DbColumn.USER_LAST_UPDATE_BY);
         result = DbColumn.getColumns(tableName);
@@ -128,7 +130,7 @@ public class DbColumnTest {
     @Test
     public void testGetColumns_TableName_Predicate() {
         System.out.println("getColumns");
-        TableName tableName = TableName.ADDRESS;
+        DbTable tableName = DbTable.ADDRESS;
         Stream<DbColumn> expResult = Stream.of(DbColumn.ADDRESS1, DbColumn.ADDRESS2, DbColumn.ADDRESS_CITY, DbColumn.POSTAL_CODE, DbColumn.PHONE,
                 DbColumn.ADDRESS_ID);
         Stream<DbColumn> result = DbColumn.getColumns(tableName, (t) -> !t.isAuditColumn());
@@ -140,7 +142,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.APPOINTMENT;
+        tableName = DbTable.APPOINTMENT;
         expResult = Stream.of(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.APPOINTMENT_USER, DbColumn.TITLE, DbColumn.DESCRIPTION, DbColumn.LOCATION,
                 DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START, DbColumn.END, DbColumn.APPOINTMENT_ID);
         result = DbColumn.getColumns(tableName, (t) -> !t.isAuditColumn());
@@ -152,7 +154,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CITY;
+        tableName = DbTable.CITY;
         expResult = Stream.of(DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.CITY_ID);
         result = DbColumn.getColumns(tableName, (t) -> !t.isAuditColumn());
         x = expResult.iterator();
@@ -163,7 +165,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.COUNTRY;
+        tableName = DbTable.COUNTRY;
         expResult = Stream.of(DbColumn.COUNTRY_NAME, DbColumn.COUNTRY_ID);
         result = DbColumn.getColumns(tableName, (t) -> !t.isAuditColumn());
         x = expResult.iterator();
@@ -174,7 +176,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CUSTOMER;
+        tableName = DbTable.CUSTOMER;
         expResult = Stream.of(DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ACTIVE, DbColumn.CUSTOMER_ID);
         result = DbColumn.getColumns(tableName, (t) -> !t.isAuditColumn());
         x = expResult.iterator();
@@ -185,7 +187,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.USER;
+        tableName = DbTable.USER;
         expResult = Stream.of(DbColumn.USER_NAME, DbColumn.PASSWORD, DbColumn.STATUS, DbColumn.USER_ID);
         result = DbColumn.getColumns(tableName, (t) -> !t.isAuditColumn());
         x = expResult.iterator();
@@ -202,7 +204,7 @@ public class DbColumnTest {
     @Test
     public void testGetDbName() {
         System.out.println("getDbName");
-        TableName tableName = TableName.ADDRESS;
+        DbTable tableName = DbTable.ADDRESS;
        String[] expResult = new String[] { "address", "address2", "cityId", "postalCode", "phone", "addressId", "createDate", "createdBy", "lastUpdate",
             "lastUpdateBy" };
         Stream<DbColumn> result = DbColumn.getColumns(tableName);
@@ -213,7 +215,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.APPOINTMENT;
+        tableName = DbTable.APPOINTMENT;
         expResult = new String[] { "customerId", "userId", "title", "description", "location", "contact", "type", "url", "start", "end", "appointmentId",
             "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
@@ -224,7 +226,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CITY;
+        tableName = DbTable.CITY;
         expResult = new String[] { "city", "countryId", "cityId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -234,7 +236,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.COUNTRY;
+        tableName = DbTable.COUNTRY;
         expResult = new String[] { "country", "countryId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -244,7 +246,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CUSTOMER;
+        tableName = DbTable.CUSTOMER;
         expResult = new String[] { "customerName", "addressId", "active", "customerId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -254,7 +256,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.USER;
+        tableName = DbTable.USER;
         expResult = new String[] { "userName", "password", "active", "userId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -285,7 +287,7 @@ public class DbColumnTest {
     @Test
     public void testGetAlias() {
         System.out.println("getAlias");
-        TableName tableName = TableName.ADDRESS;
+        DbTable tableName = DbTable.ADDRESS;
        String[] expResult = new String[] { "address", "address2", "cityId", "postalCode", "phone", "addressId", "createDate", "createdBy", "lastUpdate",
             "lastUpdateBy" };
         Stream<DbColumn> result = DbColumn.getColumns(tableName);
@@ -296,7 +298,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.APPOINTMENT;
+        tableName = DbTable.APPOINTMENT;
         expResult = new String[] { "customerId", "userId", "title", "description", "location", "contact", "type", "url", "start", "end", "appointmentId",
             "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
@@ -307,7 +309,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CITY;
+        tableName = DbTable.CITY;
         expResult = new String[] { "city", "countryId", "cityId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -317,7 +319,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.COUNTRY;
+        tableName = DbTable.COUNTRY;
         expResult = new String[] { "country", "countryId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -327,7 +329,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.CUSTOMER;
+        tableName = DbTable.CUSTOMER;
         expResult = new String[] { "customerName", "addressId", "active", "customerId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -337,7 +339,7 @@ public class DbColumnTest {
         }
         assertFalse(r.hasNext());
         
-        tableName = TableName.USER;
+        tableName = DbTable.USER;
         expResult = new String[] { "userName", "password", "status", "userId", "createDate", "createdBy", "lastUpdate", "lastUpdateBy" };
         result = DbColumn.getColumns(tableName);
         r = result.iterator();
@@ -359,13 +361,13 @@ public class DbColumnTest {
                 DbColumn.ADDRESS_ID, DbColumn.ADDRESS_CREATE_DATE, DbColumn.ADDRESS_CREATED_BY, DbColumn.ADDRESS_LAST_UPDATE,
                 DbColumn.ADDRESS_LAST_UPDATE_BY
         };
-        TableName expResult = TableName.ADDRESS;
+        DbTable expResult = DbTable.ADDRESS;
         for (DbColumn instance : source) {
-            TableName result = instance.getTable();
+            DbTable result = instance.getTable();
             assertEquals(expResult, result);
         }
         
-        expResult = TableName.APPOINTMENT;
+        expResult = DbTable.APPOINTMENT;
         source = new DbColumn[] {
             DbColumn.APPOINTMENT_CUSTOMER, DbColumn.APPOINTMENT_USER, DbColumn.TITLE, DbColumn.DESCRIPTION, DbColumn.LOCATION,
                 DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START, DbColumn.END, DbColumn.APPOINTMENT_ID,
@@ -373,47 +375,47 @@ public class DbColumnTest {
                 DbColumn.APPOINTMENT_LAST_UPDATE_BY
         };
         for (DbColumn instance : source) {
-            TableName result = instance.getTable();
+            DbTable result = instance.getTable();
             assertEquals(expResult, result);
         }
         
-        expResult = TableName.CITY;
+        expResult = DbTable.CITY;
         source = new DbColumn[] {
             DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.CITY_ID, DbColumn.CITY_CREATE_DATE, DbColumn.CITY_CREATED_BY,
                 DbColumn.CITY_LAST_UPDATE, DbColumn.CITY_LAST_UPDATE_BY
         };
         for (DbColumn instance : source) {
-            TableName result = instance.getTable();
+            DbTable result = instance.getTable();
             assertEquals(expResult, result);
         }
         
-        expResult = TableName.COUNTRY;
+        expResult = DbTable.COUNTRY;
         source = new DbColumn[] {
             DbColumn.COUNTRY_NAME, DbColumn.COUNTRY_ID, DbColumn.COUNTRY_CREATE_DATE, DbColumn.COUNTRY_CREATED_BY,
                 DbColumn.COUNTRY_LAST_UPDATE, DbColumn.COUNTRY_LAST_UPDATE_BY
         };
         for (DbColumn instance : source) {
-            TableName result = instance.getTable();
+            DbTable result = instance.getTable();
             assertEquals(expResult, result);
         }
         
-        expResult = TableName.CUSTOMER;
+        expResult = DbTable.CUSTOMER;
         source = new DbColumn[] {
             DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ACTIVE, DbColumn.CUSTOMER_ID, DbColumn.CUSTOMER_CREATE_DATE,
                 DbColumn.CUSTOMER_CREATED_BY, DbColumn.CUSTOMER_LAST_UPDATE, DbColumn.CUSTOMER_LAST_UPDATE_BY
         };
         for (DbColumn instance : source) {
-            TableName result = instance.getTable();
+            DbTable result = instance.getTable();
             assertEquals(expResult, result);
         }
         
-        expResult = TableName.USER;
+        expResult = DbTable.USER;
         source = new DbColumn[] {
             DbColumn.USER_NAME, DbColumn.PASSWORD, DbColumn.STATUS, DbColumn.USER_ID, DbColumn.USER_CREATE_DATE,
                 DbColumn.USER_CREATED_BY, DbColumn.USER_LAST_UPDATE, DbColumn.USER_LAST_UPDATE_BY
         };
         for (DbColumn instance : source) {
-            TableName result = instance.getTable();
+            DbTable result = instance.getTable();
             assertEquals(expResult, result);
         }
     }

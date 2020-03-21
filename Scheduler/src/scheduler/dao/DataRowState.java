@@ -14,4 +14,8 @@ public enum DataRowState {
     UNMODIFIED,
     MODIFIED,
     DELETED;
+    
+    public static boolean existsInDb(DataRowState status) {
+        return status == DataRowState.UNMODIFIED || status == DataRowState.MODIFIED;
+    }
 }

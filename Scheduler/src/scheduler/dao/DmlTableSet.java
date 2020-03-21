@@ -10,20 +10,26 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import scheduler.dao.dml.TableJoinType;
+import scheduler.dao.schema.ColumnUsage;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbTable;
 
 /**
  *
  * @author lerwi
  */
+// TODO: Replace with scheduler.dao.dml.SelectList
+@Deprecated
 public final class DmlTableSet implements IDmlTableSet {
 
     private final Object syncRoot = new Object();
     private final JoinList tableJoins = new JoinList();
     private final ColumnList dmlColumns = new ColumnList();
-    private final TableName tableName;
+    private final DbTable tableName;
     private String tableAlias;
 
-    public DmlTableSet(TableName primaryTable, String tableAlias, Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
+    public DmlTableSet(DbTable primaryTable, String tableAlias, Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
         this.tableName = primaryTable;
         if (null == tableAlias) {
             this.tableAlias = primaryTable.getAlias();
@@ -47,28 +53,28 @@ public final class DmlTableSet implements IDmlTableSet {
         });
     }
 
-    public DmlTableSet(TableName primaryTable, String tableAlias, Predicate<DbColumn> columnSelector) {
+    public DmlTableSet(DbTable primaryTable, String tableAlias, Predicate<DbColumn> columnSelector) {
         this(primaryTable, tableAlias, columnSelector, null);
     }
 
-    public DmlTableSet(TableName primaryTable, String tableAlias) {
+    public DmlTableSet(DbTable primaryTable, String tableAlias) {
         this(primaryTable, tableAlias, null, null);
     }
 
-    public DmlTableSet(TableName primaryTable, Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
+    public DmlTableSet(DbTable primaryTable, Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
         this(primaryTable, null, columnSelector, columnAliasMapper);
     }
 
-    public DmlTableSet(TableName primaryTable, Predicate<DbColumn> columnSelector) {
+    public DmlTableSet(DbTable primaryTable, Predicate<DbColumn> columnSelector) {
         this(primaryTable, null, columnSelector, null);
     }
 
-    public DmlTableSet(TableName primaryTable) {
+    public DmlTableSet(DbTable primaryTable) {
         this(primaryTable, null, null, null);
     }
 
     @Override
-    public TableName getTableName() {
+    public DbTable getTableName() {
         return tableName;
     }
 
@@ -201,12 +207,8 @@ public final class DmlTableSet implements IDmlTableSet {
             ((null == columnSelector) ? DbColumn.getColumns(right.getTable()) : DbColumn.getColumns(right.getTable(), columnSelector)).forEach((t) -> {
                 DmlColumn col = new DmlColumn(result, t, columnAliasMapper.apply(t));
                 if (columnAliasExists(col.alias)) {
-                    if (col.column == right || col.column.isAuditColumn() || col.column.getDbName().equalsIgnoreCase(rPkCol))
+                    if (col.column.getUsage() != ColumnUsage.OTHER && (col.alias.equals(col.column.getAlias()) || col.alias.equals(col.column.getDbName())))
                         return;
-                    DmlColumn existing = findDmlColumn(col.alias);
-                    if (existing.column == left || existing.column.isAuditColumn() || existing.column.getDbName().equalsIgnoreCase(lPkCol)) {
-                        return;
-                    }
                     throw new UnsupportedOperationException(String.format("Alias \"%s\" is already being used", col.alias));
                 }
                 if (result.dmlColumns.aliasExists(col.alias)) {
@@ -259,7 +261,7 @@ public final class DmlTableSet implements IDmlTableSet {
         private String tableAlias;
 
         @Override
-        public TableName getTableName() {
+        public DbTable getTableName() {
             return joinedColumn.getTable();
         }
 
@@ -344,7 +346,7 @@ public final class DmlTableSet implements IDmlTableSet {
             return DmlTableSet.this.findTableSet(alias);
         }
 
-        public IDmlTableSet findTableSet(TableName tableName, boolean global) {
+        public IDmlTableSet findTableSet(DbTable tableName, boolean global) {
             if (!global) {
                 return findTableSet(tableName);
             }

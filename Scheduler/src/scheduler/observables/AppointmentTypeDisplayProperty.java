@@ -5,7 +5,7 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.util.Values;
+import scheduler.dao.AppointmentType;
 
 /**
  *
@@ -13,11 +13,11 @@ import scheduler.util.Values;
  */
 public class AppointmentTypeDisplayProperty extends StringBinding implements ReadOnlyProperty<String> {
 
-    private final ReadOnlyProperty<String> backingProperty;
+    private final ReadOnlyProperty<AppointmentType> backingProperty;
     private final Object bean;
     private final String name;
 
-    public AppointmentTypeDisplayProperty(Object bean, String name, ReadOnlyProperty<String> statusProperty) {
+    public AppointmentTypeDisplayProperty(Object bean, String name, ReadOnlyProperty<AppointmentType> statusProperty) {
         this.bean = bean;
         this.name = (null == name) ? "" : name;
         super.bind(Objects.requireNonNull(backingProperty = Objects.requireNonNull(statusProperty)));
@@ -25,7 +25,7 @@ public class AppointmentTypeDisplayProperty extends StringBinding implements Rea
 
     @Override
     protected String computeValue() {
-        return Values.toAppointmentTypeDisplay(backingProperty.getValue());
+        return AppointmentType.toAppointmentTypeDisplay(backingProperty.getValue());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +16,7 @@ import scheduler.view.appointment.AppointmentModel;
 
 public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns {
 
+    @Deprecated
     private static final String BASE_SELECT_QUERY = String.format("SELECT %1$s.%2$s as %2$s, %1$s.%3$s as %3$s, %1$s.%4$s as %4$s, %1$s.%5$s as %5$s,"
             + " %1$s.%6$s as %6$s, %1$s.%7$s as %7$s, %1$s.%8$s as %8$s, %1$s.%9$s as %9$s, %1$s.%10$s as %10$s, %1$s%11$s, %12$s FROM %13$s %1$s"
             + " LEFT JOIN %14$s %15$s on %1$s.%16$s = %15$s.%16$s LEFT JOIN %17$s %18$s on %1$s.%19$s = %18$s.%19$s %20$s",
@@ -34,7 +36,6 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
     private String description;
     private String location;
     private String contact;
-    private String type_old;
     private AppointmentType type;
     private String url;
     private Timestamp start;
@@ -50,7 +51,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
         description = "";
         location = "";
         contact = "";
-        type_old = Values.APPOINTMENTTYPE_OTHER;
+        type = AppointmentType.OTHER;
         url = null;
         LocalDateTime d = LocalDateTime.now().plusHours(1).plusMinutes(30);
         d = d.minusMinutes(d.getMinute()).minusSeconds(d.getSecond()).minusNanos(d.getNano());
@@ -155,17 +156,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
     }
 
     @Override
-    public String getType() {
-        return type_old;
+    public AppointmentType getType() {
+        return type;
     }
 
-    /**
-     * Set the value of type
-     *
-     * @param value new value of type
-     */
-    public void setType(String value) {
-        type_old = Values.asValidAppointmentType(value);
+    public void setType(AppointmentType value) {
+        type = (null == value) ? AppointmentType.OTHER : value;
     }
 
     @Override
@@ -236,7 +232,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
         }
 
         @Override
-        public String getTableName() {
+        public DbTable getTableName() {
+            return DbTable.APPOINTMENT;
+        }
+
+        @Override
+        public String getTableName_old() {
             return TABLENAME_APPOINTMENT;
         }
 
@@ -259,7 +260,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
             ps.setString(4, dao.getDescription());
             ps.setString(5, dao.getLocation());
             ps.setString(6, dao.getContact());
-            ps.setString(7, dao.getType());
+            ps.setString(7, dao.getType().getDbValue());
             ps.setString(8, dao.getUrl());
             ps.setTimestamp(9, dao.getStart());
             ps.setTimestamp(10, dao.getEnd());
@@ -285,11 +286,9 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
             if (resultSet.wasNull()) {
                 target.contact = "";
             }
-            target.type_old = resultSet.getString(COLNAME_TYPE);
+            target.type = AppointmentType.of(resultSet.getString(COLNAME_TYPE), AppointmentType.OTHER);
             if (resultSet.wasNull()) {
-                target.type_old = Values.APPOINTMENTTYPE_OTHER;
-            } else {
-                target.type_old = Values.asValidAppointmentType(target.type_old);
+                target.type = AppointmentType.OTHER;
             }
             target.url = resultSet.getString(COLNAME_URL);
             if (resultSet.wasNull()) {

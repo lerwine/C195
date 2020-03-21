@@ -1,33 +1,40 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package scheduler.observables;
 
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringPropertyBase;
-import javafx.beans.property.SimpleStringProperty;
-import scheduler.util.Values;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectPropertyBase;
+import javafx.beans.property.SimpleObjectProperty;
+import scheduler.dao.AppointmentType;
 
 /**
- * A {@link SimpleStringProperty} that contains appointment type code strings
  *
- * @author erwinel
+ * @author lerwi
  */
-public class AppointmentTypeProperty extends SimpleStringProperty {
-
-    ReadOnlyStringProperty readOnlyProperty;
-
+public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentType> {
+    private final ReadOnlyPropertyImpl readOnlyProperty;
+    
     public AppointmentTypeProperty() {
-        super(Values.APPOINTMENTTYPE_OTHER);
+        super(AppointmentType.OTHER);
+        readOnlyProperty = new ReadOnlyPropertyImpl();
     }
 
-    public AppointmentTypeProperty(String initialValue) {
-        super(Values.asValidAppointmentType(initialValue));
+    public AppointmentTypeProperty(AppointmentType initialValue) {
+        super((null == initialValue) ? AppointmentType.OTHER : initialValue);
+        readOnlyProperty = new ReadOnlyPropertyImpl();
     }
 
     public AppointmentTypeProperty(Object bean, String name) {
-        super(bean, name, Values.APPOINTMENTTYPE_OTHER);
+        super(bean, name, AppointmentType.OTHER);
+        readOnlyProperty = new ReadOnlyPropertyImpl();
     }
 
-    public AppointmentTypeProperty(Object bean, String name, String initialValue) {
-        super(bean, name, Values.asValidAppointmentType(initialValue));
+    public AppointmentTypeProperty(Object bean, String name, AppointmentType initialValue) {
+        super(bean, name, (null == initialValue) ? AppointmentType.OTHER : initialValue);
+        readOnlyProperty = new ReadOnlyPropertyImpl();
     }
 
     /**
@@ -35,22 +42,19 @@ public class AppointmentTypeProperty extends SimpleStringProperty {
      *
      * @return the readonly property
      */
-    public ReadOnlyStringProperty getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new AppointmentTypeProperty.ReadOnlyPropertyImpl();
-        }
+    public ReadOnlyObjectProperty<AppointmentType> getReadOnlyProperty() {
         return readOnlyProperty;
     }
 
     @Override
-    public void set(String newValue) {
-        super.set(Values.asValidAppointmentType(newValue));
+    public void set(AppointmentType newValue) {
+        super.set((null == newValue) ? AppointmentType.OTHER : newValue);
     }
 
-    private class ReadOnlyPropertyImpl extends ReadOnlyStringPropertyBase {
+    private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<AppointmentType> {
 
         @Override
-        public String get() {
+        public AppointmentType get() {
             return AppointmentTypeProperty.this.get();
         }
 

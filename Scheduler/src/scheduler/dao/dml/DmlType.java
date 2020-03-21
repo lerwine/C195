@@ -3,21 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package scheduler.dao;
+package scheduler.dao.dml;
 
 /**
  *
  * @author lerwi
  */
-public enum DbColType {
-    AUTO_INCREMENT,
-    INT,
-    VARCHAR,
-    TEXT,
-    VARCHAR_PWD_HASH,
-    TINYINT,
-    TINYINT_BOOLEAN,
-    DATETIME,
-    TIMESTAMP;
-    
+public enum DmlType {
+    INSERT,
+    SELECT,
+    UPDATE,
+    DELETE;
 }

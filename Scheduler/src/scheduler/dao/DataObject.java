@@ -1,7 +1,5 @@
 package scheduler.dao;
 
-import scheduler.util.Values;
-
 /**
  * Base interface for all data objects representing a data row in the database.
  *
@@ -19,17 +17,18 @@ public interface DataObject {
     /**
      * Gets a value which indicates the disposition of the current data object in relation to the corresponding data row in the database.
      *
-     * @return {@link Values#ROWSTATE_UNMODIFIED}, {@link Values#ROWSTATE_MODIFIED}, {@link Values#ROWSTATE_NEW} or {@link Values#ROWSTATE_DELETED}.
+     * @return {@link DataRowState} value that indicates the disposition of the current data object in relation to the corresponding
+     * data row in the database.
      */
-    int getRowState();
-
+    DataRowState getRowState();
+    
     /**
      * Gets a value which indicates whether the current data object exists in the database.
      *
-     * @return {@code true} if the row state is {@link Values#ROWSTATE_UNMODIFIED}, {@link Values#ROWSTATE_MODIFIED}, otherwise, {@code false} if the row state is
-     * {@link Values#ROWSTATE_NEW} or {@link Values#ROWSTATE_DELETED}.
+     * @return {@code true} if the row state is {@link DataRowState#UNMODIFIED} or {@link DataRowState#MODIFIED},
+     * otherwise, {@code false} if the row state is {@link DataRowState#NEW} or {@link DataRowState#DELETED}.
      */
     default boolean isExisting() {
-        return getRowState() == Values.ROWSTATE_MODIFIED || getRowState() == Values.ROWSTATE_UNMODIFIED;
+        return DataRowState.existsInDb(getRowState());
     }
 }

@@ -3,7 +3,6 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import scheduler.util.Values;
 
 /**
  * Represents a data row from the "address" database table. Table definition: <code>CREATE TABLE `address` (
@@ -186,8 +185,8 @@ public interface Address extends DataObject {
             }
 
             @Override
-            public int getRowState() {
-                return Values.ROWSTATE_UNMODIFIED;
+            public DataRowState getRowState() {
+                return DataRowState.UNMODIFIED;
             }
         };
     }

@@ -6,6 +6,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.Appointment;
+import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
 import scheduler.dao.DataObjectImpl;
 import scheduler.dao.User;
@@ -283,12 +284,12 @@ public class AppointmentReferenceModelImpl extends DataObjectImpl.DataObjectRefe
     }
 
     @Override
-    public String getType() {
+    public AppointmentType getType() {
         return type.get();
     }
 
     @Override
-    public ReadOnlyProperty<String> typeProperty() {
+    public ReadOnlyProperty<AppointmentType> typeProperty() {
         return type.getReadOnlyProperty();
     }
 

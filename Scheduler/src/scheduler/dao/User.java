@@ -77,9 +77,10 @@ public interface User extends DataObject {
             }
 
             @Override
-            public int getRowState() {
-                return Values.ROWSTATE_UNMODIFIED;
+            public DataRowState getRowState() {
+                return DataRowState.UNMODIFIED;
             }
+
         };
     }
 

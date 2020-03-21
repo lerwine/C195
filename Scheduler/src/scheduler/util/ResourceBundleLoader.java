@@ -24,7 +24,6 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.util.Pair;
 import scheduler.App;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CREATEDBYON;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_MODIFIEDBYON;
@@ -46,7 +45,6 @@ public final class ResourceBundleLoader {
     public static final String CITYNAMES_BASE_RESOURCE_NAME = "scheduler/cityNames";
     public static final String PROP_CURRENTDISPLAYLOCALE = "currentDisplayLocale";
     public static final String PROP_CURRENTFORMATLOCALE = "currentFormatLocale";
-    public static final String PROP_ALTVERBALORDER = "altVerbalOrder";
 
     static {
         LOG = Logger.getLogger(ResourceBundleLoader.class.getName());
@@ -192,16 +190,6 @@ public final class ResourceBundleLoader {
         return INSTANCE.currentFormatLocale;
     }
 
-    /**
-     * Get the value of altVerbalOrder
-     *
-     * @return the value of altVerbalOrder
-     */
-    @Deprecated
-    public static boolean isAltVerbalOrder() {
-        return INSTANCE.altVerbalOrder;
-    }
-
     public static String formatCreatedByOn(String createdBy, LocalDateTime createDate) {
         return formatResourceString(AppResources.class, RESOURCEKEY_CREATEDBYON, createdBy, Objects.requireNonNull(createDate));
     }
@@ -219,8 +207,6 @@ public final class ResourceBundleLoader {
     private Locale currentDisplayLocale;
     private Locale currentFormatLocale;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
-    @Deprecated
-    private boolean altVerbalOrder;
 
     private ResourceBundleLoader() {
         classNameToResourceName = new HashMap<>();
@@ -237,7 +223,7 @@ public final class ResourceBundleLoader {
         supportedCountries = loadCities();
         resourceBundleByClassName = new HashMap<>();
         mergedBundleCache = new HashMap<>();
-        ArrayList<Pair<Locale, Boolean>> localeList = new ArrayList<>();
+        ArrayList<Locale> localeList = new ArrayList<>();
         ArrayList<String> usesAlt = new ArrayList<>();
         Arrays.stream(AppResources.getProperty(PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER, "").split(",")).map((t) -> t.trim()).forEach((t) -> {
             if (!t.isEmpty()) {
@@ -256,8 +242,8 @@ public final class ResourceBundleLoader {
                         PROPERTYKEY_SUPPORTEDLOCALES, AppResources.PROPERTIES_FILE_APPCONFIG, t));
                 return;
             }
-            if (!localeList.stream().anyMatch((u) -> u.getKey().toLanguageTag().equals(l))) {
-                localeList.add(new Pair<>(locale, usesAlt.contains(s)));
+            if (!localeList.stream().anyMatch((u) -> u.toLanguageTag().equals(l))) {
+                localeList.add(locale);
             }
         });
         if (localeList.isEmpty()) {
@@ -285,14 +271,14 @@ public final class ResourceBundleLoader {
             priorityList.add(new Locale.LanguageRange(String.format("%s-*", originalLanguage)));
             priorityList.add(new Locale.LanguageRange(String.format("*-%s", originalCountry)));
         }
-        Locale toSelect = Locale.lookup(priorityList, Arrays.asList(localeList.stream().map((t) -> t.getKey()).toArray(Locale[]::new)));
+        Locale toSelect = Locale.lookup(priorityList, Arrays.asList(localeList.stream().toArray(Locale[]::new)));
         if (null == toSelect) {
-            supportedLocales = localeList.stream().map((Pair<Locale, Boolean> t) -> new SupportedLocale(t.getKey(), t.getKey(), t.getKey(), t.getValue())).toArray(SupportedLocale[]::new);
+            supportedLocales = localeList.stream().map((Locale t) -> new SupportedLocale(t, t, t)).toArray(SupportedLocale[]::new);
         } else {
             String toMatch = toSelect.toLanguageTag();
-            supportedLocales = localeList.stream().map((Pair<Locale, Boolean> t) -> (t.getKey().toLanguageTag().equals(toMatch))
-                    ? new SupportedLocale(t.getKey(), originalDefaultLocale, Locale.getDefault(Locale.Category.FORMAT), t.getValue())
-                    : new SupportedLocale(t.getKey(), t.getKey(), t.getKey(), t.getValue())).toArray(SupportedLocale[]::new);
+            supportedLocales = localeList.stream().map((Locale t) -> (t.toLanguageTag().equals(toMatch))
+                    ? new SupportedLocale(t, originalDefaultLocale, Locale.getDefault(Locale.Category.FORMAT))
+                    : new SupportedLocale(t, t, t)).toArray(SupportedLocale[]::new);
 
             for (SupportedLocale l : supportedLocales) {
                 if (l.key.equals(toMatch)) {
@@ -437,7 +423,6 @@ public final class ResourceBundleLoader {
         private final Locale displayLocale;
         private final Locale formatLocale;
         private final Locale userLocale;
-        private final boolean altVerbalOrder;
         private boolean current = false;
 
         public String getKey() {
@@ -462,10 +447,6 @@ public final class ResourceBundleLoader {
 
         public Locale getFormatLocale() {
             return formatLocale;
-        }
-
-        public boolean isAltVerbalOrder() {
-            return altVerbalOrder;
         }
 
         public boolean isCurrent() {
@@ -495,7 +476,6 @@ public final class ResourceBundleLoader {
                     mergedBundleCache.clear();
                     Locale oldCurrentFormatLocale = currentFormatLocale;
                     Locale oldCurrentDisplayLocale = currentDisplayLocale;
-                    boolean oldAltVerbalOrder = ResourceBundleLoader.this.altVerbalOrder;
                     for (SupportedLocale l : supportedLocales) {
                         l.current = false;
                         l.displayName = l.userLocale.getDisplayName(userLocale);
@@ -503,7 +483,6 @@ public final class ResourceBundleLoader {
                     current = true;
                     currentFormatLocale = formatLocale;
                     currentDisplayLocale = displayLocale;
-                    ResourceBundleLoader.this.altVerbalOrder = altVerbalOrder;
                     Locale.setDefault(Locale.Category.DISPLAY, userLocale);
                     Locale.setDefault(Locale.Category.FORMAT, formatLocale);
                     ResourceBundle rb = getBundle(AppResources.class, CITYNAMES_BASE_RESOURCE_NAME);
@@ -512,16 +491,14 @@ public final class ResourceBundleLoader {
                     }
                     propertyChangeSupport.firePropertyChange(PROP_CURRENTDISPLAYLOCALE, oldCurrentDisplayLocale, currentDisplayLocale);
                     propertyChangeSupport.firePropertyChange(PROP_CURRENTFORMATLOCALE, oldCurrentFormatLocale, currentFormatLocale);
-                    propertyChangeSupport.firePropertyChange(PROP_ALTVERBALORDER, oldAltVerbalOrder, altVerbalOrder);
                 }
             }
         }
 
-        private SupportedLocale(Locale displayLocale, Locale userLocale, Locale formatLocale, boolean altVerbalOrder) {
+        private SupportedLocale(Locale displayLocale, Locale userLocale, Locale formatLocale) {
             key = (this.displayLocale = displayLocale).toLanguageTag();
             this.formatLocale = formatLocale;
             this.userLocale = userLocale;
-            this.altVerbalOrder = altVerbalOrder;
             localeDisplayName = userLocale.getDisplayName(userLocale);
             displayName = localeDisplayName;
         }

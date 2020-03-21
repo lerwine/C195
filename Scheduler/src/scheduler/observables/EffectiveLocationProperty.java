@@ -6,8 +6,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.AppResources;
 import scheduler.dao.Appointment;
+import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
-import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentReferenceModel;
 import scheduler.view.customer.CustomerReferenceModel;
 
@@ -20,7 +20,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
     private final Object bean;
     private final String name;
     private final ReadOnlyProperty<CustomerReferenceModel<? extends Customer>> customer;
-    private final ReadOnlyProperty<String> type;
+    private final ReadOnlyProperty<AppointmentType> type;
     private final ReadOnlyProperty<String> location;
     private final ReadOnlyProperty<String> url;
 
@@ -40,18 +40,18 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
         String u = url.getValue();
         //CustomerReferenceModel<? extends Customer> c = customer.getValue();
         switch (type.getValue()) {
-            case Values.APPOINTMENTTYPE_GERMANY:
+            case GERMANY_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
-            case Values.APPOINTMENTTYPE_HONDURAS:
+            case HONDURAS_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS);
-            case Values.APPOINTMENTTYPE_HOME:
+            case CORPORATE_HQ_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HOME);
-            case Values.APPOINTMENTTYPE_INDIA:
+            case INDIA_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
-            case Values.APPOINTMENTTYPE_CUSTOMER:
-            case Values.APPOINTMENTTYPE_PHONE:
+            case CUSTOMER_SITE:
+            case PHONE:
                 return (u.startsWith("tel:")) ? u.substring(4) : u;
-            case Values.APPOINTMENTTYPE_VIRTUAL:
+            case VIRTUAL:
                 return u;
         }
         return l;

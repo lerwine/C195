@@ -6,6 +6,7 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.AppointmentImpl;
+import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.dao.User;
@@ -310,11 +311,11 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     }
 
     @Override
-    public String getType() {
+    public AppointmentType getType() {
         return type.get();
     }
 
-    public void setType(String value) {
+    public void setType(AppointmentType value) {
         type.set(value);
     }
 

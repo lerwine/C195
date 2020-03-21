@@ -42,6 +42,7 @@ import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
+import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
 import scheduler.dao.DataObjectImpl.Factory;
@@ -136,7 +137,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     private Label locationLabel;
 
     @FXML // Appointment type selection control.
-    private ComboBox<String> typeComboBox;
+    private ComboBox<AppointmentType> typeComboBox;
 
     @FXML // Explicit location input control.
     private TextArea locationTextArea;
@@ -184,7 +185,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     private ObservableList<TimeZoneChoice> timeZones;
 
     // Items for the typeComboBox control.
-    private ObservableList<String> types;
+    private ObservableList<AppointmentType> types;
 
     // Manages visibility and text of controls according to the selected appointment type.
     private TypeSelectionState typeSelectionState;
@@ -292,9 +293,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         TimeZoneChoice.getAllChoices(Locale.getDefault(Locale.Category.DISPLAY)).forEach((TimeZoneChoice c) -> timeZones.add(c));
 
         // Get appointment type options.
-        types = FXCollections.observableArrayList(Values.APPOINTMENTTYPE_PHONE, Values.APPOINTMENTTYPE_VIRTUAL,
-                Values.APPOINTMENTTYPE_CUSTOMER, Values.APPOINTMENTTYPE_HOME, Values.APPOINTMENTTYPE_GERMANY,
-                Values.APPOINTMENTTYPE_INDIA, Values.APPOINTMENTTYPE_HONDURAS, Values.APPOINTMENTTYPE_OTHER);
+        types = FXCollections.observableArrayList(AppointmentType.values());
 
         LocalDateTime date = LocalDateTime.now().plusDays(1);
         startDatePicker.setValue(date.toLocalDate());
@@ -440,7 +439,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         /**
          * The currently selected appointment type from the {@link #typeComboBox} control.
          */
-        final ObjectProperty<String> selectedTypeProperty;
+        final ObjectProperty<AppointmentType> selectedTypeProperty;
         /**
          * The currently selected customer from the {@link #customerComboBox} control.
          */
@@ -473,9 +472,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
             selectedTypeProperty = typeComboBox.valueProperty();
             selectedCustomerProperty = customerComboBox.valueProperty();
             // Set up boolean bindings
-            explicitLocation = selectedTypeProperty.isEqualTo(Values.APPOINTMENTTYPE_OTHER);
-            phone = selectedTypeProperty.isEqualTo(Values.APPOINTMENTTYPE_PHONE);
-            virtual = selectedTypeProperty.isEqualTo(Values.APPOINTMENTTYPE_VIRTUAL);
+            explicitLocation = selectedTypeProperty.isEqualTo(AppointmentType.OTHER);
+            phone = selectedTypeProperty.isEqualTo(AppointmentType.PHONE);
+            virtual = selectedTypeProperty.isEqualTo(AppointmentType.VIRTUAL);
             // Create binding for implicit location text (customer address).
             implicitLocationText = new StringBinding() {
                 {
@@ -486,12 +485,26 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                 protected String computeValue() {
                     // If appointment type is for an appointment at the customer's location, return the customer's address;
                     // otherwise, return an emtpty string to indicate that the implicit location text label should not be shown.
-                    String t = selectedTypeProperty.get();
+                    AppointmentType t = selectedTypeProperty.get();
                     CustomerModel c = selectedCustomerProperty.get();
-                    if (t.equals(Values.APPOINTMENTTYPE_CUSTOMER) && c != null) {
+                    if (t.equals(AppointmentType.CUSTOMER_SITE) && c != null) {
                         AddressReferenceModel<? extends Address> a = c.getAddress();
-                        if (a != null && !(t = a.toString().trim()).isEmpty()) {
-                            return t;
+                        
+                        if (a != null) {
+                            String l = a.getAddressLines();
+                            l = (null == l) ? "" : l.trim();
+                            String z = a.getCityZipCountry();
+                            z = (null == z) ? "" : z.trim();
+                            String p = a.getPhone();
+                            p = (null == p) ? "" : p.trim();
+                            if (l.isEmpty()) {
+                                if (z.isEmpty())
+                                    return p;
+                                return (p.isEmpty()) ? z : String.format("%s%n%s", z, p);
+                            }
+                            if (z.isEmpty())
+                                return (p.isEmpty()) ? l : String.format("%s%n%s", l, p);
+                            return (p.isEmpty()) ? String.format("%s%n%s", l, z) : String.format("%s%n%s%n%s", l, z, p);
                         }
                     }
                     return "";

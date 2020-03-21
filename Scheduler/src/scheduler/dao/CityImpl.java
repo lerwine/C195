@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,6 +20,7 @@ import scheduler.view.country.EditCountry;
 
 public class CityImpl extends DataObjectImpl implements City, CityColumns {
 
+    @Deprecated
     private static final String BASE_SELECT_SQL = String.format("SELECT %1$s.%2$s AS %2$s, %1$s.%3$s AS %3$s`, %1$s.%4$s AS %4$s, %5$s.%6$s AS %6$s"
             + " FROM %7$s %1$s LEFT JOIN %8$s %5$s ON %1$s.%4$s=%5$s.%4$s",
             TABLEALIAS_CITY, COLNAME_CITYID, COLNAME_CITY, COLNAME_COUNTRYID, TABLEALIAS_COUNTRY, COLNAME_COUNTRY, TABLENAME_CITY, TABLENAME_COUNTRY);
@@ -97,7 +99,12 @@ public class CityImpl extends DataObjectImpl implements City, CityColumns {
         }
 
         @Override
-        public String getTableName() {
+        public DbTable getTableName() {
+            return DbTable.CITY;
+        }
+
+        @Override
+        public String getTableName_old() {
             return TABLENAME_CITY;
         }
 

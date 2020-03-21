@@ -6,14 +6,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbTable;
 
 /**
  *
  * @author lerwi
  */
+// TODO: Replace with scheduler.dao.dml.JoinableTableColumnList
+@Deprecated
 public interface IDmlTableSet {
 
-    TableName getTableName();
+    DbTable getTableName();
     
     String getTableAlias();
 
@@ -62,7 +66,7 @@ public interface IDmlTableSet {
         return null;
     }
 
-    default IDmlTableSet findTableSet(TableName tableName) {
+    default IDmlTableSet findTableSet(DbTable tableName) {
         if (null != tableName) {
             if (tableName == getTableName()) {
                 return this;

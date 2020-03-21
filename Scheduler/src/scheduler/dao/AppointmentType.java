@@ -1,6 +1,8 @@
 package scheduler.dao;
 
 import java.util.Optional;
+import java.util.ResourceBundle;
+import scheduler.AppResources;
 
 /**
  *
@@ -58,6 +60,15 @@ public enum AppointmentType {
 
     public FieldUsage getUrlFieldusage() {
         return urlFieldusage;
+    }
+
+    public static String toAppointmentTypeDisplay(AppointmentType type) {
+        if (null == type) {
+            return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
+        }
+        ResourceBundle rb = AppResources.getResources();
+        String key = type.getDbValue();
+        return (rb.containsKey(key)) ? rb.getString(key) : key;
     }
 
 }

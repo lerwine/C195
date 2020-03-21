@@ -3,6 +3,7 @@ package scheduler.view.appointment;
 import java.time.LocalDateTime;
 import javafx.beans.property.ReadOnlyProperty;
 import scheduler.dao.Appointment;
+import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
 import scheduler.dao.User;
 import scheduler.observables.ChildPropertyWrapper;
@@ -97,10 +98,10 @@ public interface AppointmentReferenceModel<T extends Appointment> extends DataOb
 
     ReadOnlyProperty<String> contactProperty();
 
-    String getType();
+    AppointmentType getType();
 
-    ReadOnlyProperty<String> typeProperty();
-
+    ReadOnlyProperty<AppointmentType> typeProperty();
+    
     String getTypeDisplay();
 
     ReadOnlyProperty<String> typeDisplayProperty();

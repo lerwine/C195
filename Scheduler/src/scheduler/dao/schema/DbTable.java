@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package scheduler.dao;
+package scheduler.dao.schema;
 
 /**
  *
  * @author lerwi
  */
-public enum TableName {
+public enum DbTable {
     COUNTRY("country", "n", "countryId"),
     CITY("city", "c", "cityId"),
     ADDRESS("address", "l", "addressId"),
@@ -32,7 +32,7 @@ public enum TableName {
         return pkColName;
     }
     
-    private TableName(String dbName, String alias, String pkColName) {
+    private DbTable(String dbName, String alias, String pkColName) {
         this.dbName = dbName;
         this.alias = alias;
         this.pkColName = pkColName;

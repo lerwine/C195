@@ -85,16 +85,8 @@ public interface Appointment extends DataObject {
      */
     String getContact();
 
-    /**
-     * Gets the type of the current appointment. This corresponds to the "type" database column. Column definition: <code>`type` text NOT NULL</code>
-     *
-     * @return {@link scheduler.util.Values#APPOINTMENTTYPE_PHONE}, {@link scheduler.util.Values#APPOINTMENTTYPE_VIRTUAL},
-     * {@link scheduler.util.Values#APPOINTMENTTYPE_CUSTOMER}, {@link scheduler.util.Values#APPOINTMENTTYPE_HOME},
-     * {@link scheduler.util.Values#APPOINTMENTTYPE_GERMANY}, {@link scheduler.util.Values#APPOINTMENTTYPE_INDIA},
-     * {@link scheduler.util.Values#APPOINTMENTTYPE_HONDURAS}, or {@link scheduler.util.Values#APPOINTMENTTYPE_OTHER}.
-     */
-    String getType();
-
+    AppointmentType getType();
+    
     /**
      * Gets the URL of the current appointment. This corresponds to the "url" database column. Column definition:
      * <code>`url` varchar(255) NOT NULL</code>

@@ -5,6 +5,8 @@
  */
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
+import scheduler.dao.schema.DbColumn;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -46,12 +48,12 @@ public class DmlTableSetTest {
     @Test
     public void testGetTableName() {
         System.out.println("getTableName");
-        DmlTableSet instance = new DmlTableSet(TableName.COUNTRY);
-        TableName expResult = TableName.COUNTRY;
-        TableName result = instance.getTableName();
+        DmlTableSet instance = new DmlTableSet(DbTable.COUNTRY);
+        DbTable expResult = DbTable.COUNTRY;
+        DbTable result = instance.getTableName();
         assertEquals(expResult, result);
-        instance = new DmlTableSet(TableName.ADDRESS, TableName.COUNTRY.name());
-        expResult = TableName.ADDRESS;
+        instance = new DmlTableSet(DbTable.ADDRESS, DbTable.COUNTRY.name());
+        expResult = DbTable.ADDRESS;
         result = instance.getTableName();
         assertEquals(expResult, result);
         instance.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
@@ -66,7 +68,7 @@ public class DmlTableSetTest {
     @Test
     public void testGetTableJoins() {
         System.out.println("getTableJoins");
-        DmlTableSet instance = new DmlTableSet(TableName.ADDRESS);
+        DmlTableSet instance = new DmlTableSet(DbTable.ADDRESS);
         DmlTableSet.JoinedTable expResult = instance.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
         List<DmlTableSet.JoinedTable> result = instance.getTableJoins();
         assertEquals(1, result.size());
@@ -80,7 +82,7 @@ public class DmlTableSetTest {
     @Test
     public void testGetDmlColumns() {
         System.out.println("getDmlColumns");
-        DmlTableSet instance = new DmlTableSet(TableName.ADDRESS);
+        DmlTableSet instance = new DmlTableSet(DbTable.ADDRESS);
         DbColumn[] expResult = new DbColumn[]{
             DbColumn.ADDRESS1,
             DbColumn.ADDRESS2,
@@ -138,25 +140,25 @@ public class DmlTableSetTest {
     @Test
     public void testGetTableAlias() {
         System.out.println("getTableAlias");
-        DmlTableSet instance = new DmlTableSet(TableName.COUNTRY);
-        String expResult = TableName.COUNTRY.getAlias();
+        DmlTableSet instance = new DmlTableSet(DbTable.COUNTRY);
+        String expResult = DbTable.COUNTRY.getAlias();
         String result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new DmlTableSet(TableName.COUNTRY, (String) null);
+        instance = new DmlTableSet(DbTable.COUNTRY, (String) null);
         result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new DmlTableSet(TableName.COUNTRY, TableName.COUNTRY.getAlias());
+        instance = new DmlTableSet(DbTable.COUNTRY, DbTable.COUNTRY.getAlias());
         result = instance.getTableAlias();
         assertEquals(expResult, result);
-        expResult = TableName.COUNTRY.getDbName();
-        instance = new DmlTableSet(TableName.COUNTRY, "");
+        expResult = DbTable.COUNTRY.getDbName();
+        instance = new DmlTableSet(DbTable.COUNTRY, "");
         result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new DmlTableSet(TableName.COUNTRY, TableName.COUNTRY.getDbName());
+        instance = new DmlTableSet(DbTable.COUNTRY, DbTable.COUNTRY.getDbName());
         result = instance.getTableAlias();
         assertEquals(expResult, result);
         expResult = "xyz";
-        instance = new DmlTableSet(TableName.COUNTRY, "xyz");
+        instance = new DmlTableSet(DbTable.COUNTRY, "xyz");
         result = instance.getTableAlias();
         assertEquals(expResult, result);
     }
@@ -167,12 +169,12 @@ public class DmlTableSetTest {
     @Test
     public void testGetSelectQuery() {
         System.out.println("getSelectQuery");
-        DmlTableSet instance = new DmlTableSet(TableName.APPOINTMENT);
+        DmlTableSet instance = new DmlTableSet(DbTable.APPOINTMENT);
         String expResult = "SELECT `customerId`, `userId`, `title`, `description`, `location`, `contact`, `type`, `url`, `start`, `end`,"
                 + " `appointmentId`, `createDate`, `createdBy`, `lastUpdate`, `lastUpdateBy` FROM `appointment`";
         StringBuilder result = instance.getSelectQuery();
         assertEquals(expResult, result.toString());
-        instance = new DmlTableSet(TableName.CUSTOMER);
+        instance = new DmlTableSet(DbTable.CUSTOMER);
         expResult = "SELECT `customerName`, `addressId`, `active`, `customerId`, `createDate`, `createdBy`, `lastUpdate`, `lastUpdateBy`"
                 + " FROM `customer`";
         result = instance.getSelectQuery();
@@ -185,7 +187,7 @@ public class DmlTableSetTest {
     @Test
     public void testInnerJoin() {
         System.out.println("innerJoin");
-        DmlTableSet instance = new DmlTableSet(TableName.ADDRESS);
+        DmlTableSet instance = new DmlTableSet(DbTable.ADDRESS);
         DmlTableSet.JoinedTable joinedTable = instance.innerJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
         StringBuilder result = instance.getSelectQuery();
         String expResult = "SELECT l.`address` AS address, l.`address2` AS address2, l.`cityId` AS cityId, l.`postalCode` AS postalCode,"
@@ -212,7 +214,7 @@ public class DmlTableSetTest {
     @Test
     public void testLeftJoin() {
         System.out.println("leftJoin");
-        DmlTableSet instance = new DmlTableSet(TableName.CUSTOMER);
+        DmlTableSet instance = new DmlTableSet(DbTable.CUSTOMER);
         instance.leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
                 .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
                 .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
@@ -234,7 +236,7 @@ public class DmlTableSetTest {
     @Test
     public void testRightJoin() {
         System.out.println("rightJoin");
-        DmlTableSet instance = new DmlTableSet(TableName.APPOINTMENT);
+        DmlTableSet instance = new DmlTableSet(DbTable.APPOINTMENT);
         instance.rightJoin(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_ID)
                 .leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
                 .innerJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
@@ -268,7 +270,7 @@ public class DmlTableSetTest {
         DbColumn rightColumn = DbColumn.USER_NAME;
         Predicate<DbColumn> columnSelector = (t) -> t == DbColumn.STATUS || t == DbColumn.USER_NAME|| t == DbColumn.USER_ID;
         Function<DbColumn, String> aliasMapper = (t) -> (t == DbColumn.USER_ID) ? "id" : null;
-        DmlTableSet instance = new DmlTableSet(TableName.APPOINTMENT);
+        DmlTableSet instance = new DmlTableSet(DbTable.APPOINTMENT);
         instance.fullJoin(leftColumn, rightColumn, columnSelector, aliasMapper);
         String expResult = "SELECT a.`customerId` AS customerId, a.`userId` AS userId, a.`title` AS title,"
                 + " a.`description` AS description, a.`location` AS location, a.`contact` AS contact, a.`type` AS type, a.`url` AS url,"

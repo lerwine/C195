@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import scheduler.util.PropertyBindable;
 import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
@@ -14,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -56,7 +56,6 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
     private String createdBy;
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
-    private int rowState_old;
     private DataRowState rowState;
     
     /**
@@ -66,7 +65,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
         primaryKey = 0;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
-        rowState_old = Values.ROWSTATE_NEW;
+        rowState = DataRowState.NEW;
     }
 
     @Override
@@ -141,22 +140,18 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
     }
 
     @Override
-    public final int getRowState() {
-        return rowState_old;
-    }
-
-    private void setRowState(int rowState) {
-        int oldRowState = this.rowState_old;
-        this.rowState_old = rowState;
-        getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+    public DataRowState getRowState() {
+        return rowState;
     }
 
     final void setDeleted() {
-        rowState_old = Values.ROWSTATE_DELETED;
+        DataRowState oldRowState = this.rowState;
+        rowState = DataRowState.DELETED;
+        getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
     }
 
     public final boolean isModified() {
-        return rowState_old != Values.ROWSTATE_UNMODIFIED;
+        return rowState != DataRowState.UNMODIFIED;
     }
 
     protected boolean propertyChangeModifiesState(String propertyName) {
@@ -180,8 +175,10 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                         UserImpl currentUser = App.getCurrentUser();
                         setLastModifiedBy(currentUser.getUserName());
                         setLastModifiedDate(DB.toUtcTimestamp(LocalDateTime.now()));
-                        if (rowState_old != Values.ROWSTATE_NEW) {
-                            setRowState(Values.ROWSTATE_MODIFIED);
+                        if (rowState != DataRowState.NEW && rowState != DataRowState.DELETED) {
+                            DataRowState oldRowState = rowState;
+                            rowState = DataRowState.MODIFIED;
+                            getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
                             return;
                         }
                         setCreatedBy(lastModifiedBy);
@@ -320,7 +317,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
         }
 
         protected DataObjectModel(T dao) {
-            assert Objects.requireNonNull(dao).getRowState() != Values.ROWSTATE_DELETED :
+            assert Objects.requireNonNull(dao).getRowState() != DataRowState.DELETED :
                     String.format("%s has been deleted", dao.getClass().getName());
             dataObject = new ReadOnlyObjectPropertyBase<T>() {
                 @Override
@@ -343,7 +340,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
             lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.fromUtcTimestamp(dao.getLastModifiedDate()));
             lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
-            newItem = new ReadOnlyBooleanWrapper(this, "newItem", dao.getRowState() == Values.ROWSTATE_NEW);
+            newItem = new ReadOnlyBooleanWrapper(this, "newItem", dao.getRowState() == DataRowState.NEW);
         }
 
         protected abstract void refreshFromDAO(T dao);
@@ -356,7 +353,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             createdBy.set(dao.getCreatedBy());
             lastModifiedDate.set(DB.fromUtcTimestamp(dao.getLastModifiedDate()));
             lastModifiedBy.set(dao.getLastModifiedBy());
-            newItem.set(dao.getRowState() == Values.ROWSTATE_NEW);
+            newItem.set(dao.getRowState() == DataRowState.NEW);
             refreshFromDAO(dao);
         }
     }
@@ -367,18 +364,24 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
 
         protected abstract T fromResultSet(ResultSet resultSet) throws SQLException;
 
+        @Deprecated
         public abstract String getBaseSelectQuery();
 
         public abstract Class<? extends T> getDaoClass();
 
-        public abstract String getTableName();
+        @Deprecated
+        public abstract String getTableName_old();
+        
+        public abstract DbTable getTableName();
 
 //        public abstract String getTableAlias();
 
+        @Deprecated
         public abstract String getPrimaryKeyColName();
 
 //        protected abstract Stream<ColNameSupplier> getExtendedColumns(DmlType type);
         
+        @Deprecated
         protected abstract List<String> getExtendedColNames();
 
         protected abstract void setSaveStatementValues(T dao, PreparedStatement ps) throws SQLException;
@@ -387,11 +390,12 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             Objects.requireNonNull(resultSet, "Result set cannot be null");
             assert !resultSet.isClosed() : "Result set is closed.";
             assert !(resultSet.isBeforeFirst() || resultSet.isAfterLast()) : "Result set is not positioned on a result row";
-            String pkColName = getPrimaryKeyColName();
+            String pkColName = getTableName().getPkColName();
             int pk = resultSet.getInt(pkColName);
             assert !resultSet.wasNull() : String.format("%s was null", pkColName);
-            assert resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName)).equals(getTableName()) : "Table name mismatch";
-            if (target.rowState_old != Values.ROWSTATE_NEW) {
+            String tn = resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName));
+            assert tn.equals(getTableName().getAlias()) || tn.equals(getTableName().getDbName()) : "Table name mismatch";
+            if (target.rowState != DataRowState.NEW) {
                 assert pk == target.getPrimaryKey() : "Primary key does not match";
             }
             return pk;
@@ -426,19 +430,21 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             dao.setLastModifiedBy(resultSet.getString(COLNAME_LASTUPDATEBY));
             assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
             onInitializeDao(target, resultSet);
-            dao.setRowState(Values.ROWSTATE_UNMODIFIED);
+            DataRowState oldRowState = dao.rowState;
+            dao.rowState = DataRowState.MODIFIED;
+            dao.getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
         }
 
         public void save(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
             synchronized (dao) {
-                assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has been deleted", getClass().getName());
+                assert dao.getRowState() != DataRowState.DELETED : String.format("%s has been deleted", getClass().getName());
                 StringBuilder sql = new StringBuilder();
                 //HashMap<String, Integer> indexes = new HashMap<>();
                 List<String> extendedFields = getExtendedColNames();
-                if (dao.getRowState() == Values.ROWSTATE_NEW) {
-                    sql.append("INSERT INTO `").append(getTableName()).append("` (`").append(String.join("`, `", extendedFields))
+                if (dao.getRowState() == DataRowState.NEW) {
+                    sql.append("INSERT INTO `").append(getTableName_old()).append("` (`").append(String.join("`, `", extendedFields))
                             .append("`, `").append(String.join("`, `", Arrays.asList(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
                             COLNAME_CREATEDATE, COLNAME_CREATEDBY))).append("`) VALUES (?");
                     int e = extendedFields.size() + 4;
@@ -447,7 +453,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                     }
                     sql.append(")");
                 } else {
-                    sql.append("UPDATE `").append(getTableName()).append("` SET `").append(String.join("` = ?, `", extendedFields))
+                    sql.append("UPDATE `").append(getTableName_old()).append("` SET `").append(String.join("` = ?, `", extendedFields))
                             .append("` = ?, `").append(COLNAME_LASTUPDATE).append("` = ?, `").append(COLNAME_LASTUPDATEBY).append("` = ? WHERE `")
                             .append(getPrimaryKeyColName()).append(" = ?");
                 }
@@ -458,14 +464,14 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                     int index = extendedFields.size();
                     ps.setTimestamp(index++, dao.getLastModifiedDate());
                     ps.setString(index++, dao.getLastModifiedBy());
-                    if (dao.getRowState() == Values.ROWSTATE_NEW) {
+                    if (dao.getRowState() == DataRowState.NEW) {
                         ps.setTimestamp(index++, dao.getCreateDate());
                         ps.setString(index, dao.getCreatedBy());
                     } else {
                         ps.setInt(index, dao.getPrimaryKey());
                     }
                     ps.executeUpdate();
-                    if (dao.getRowState() == Values.ROWSTATE_NEW) {
+                    if (dao.getRowState() == DataRowState.NEW) {
                         try (ResultSet rs = ps.getGeneratedKeys()) {
                             pk = rs.getInt(1);
                         }
@@ -505,14 +511,14 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
             synchronized (dao) {
-                assert dao.getRowState() != Values.ROWSTATE_DELETED : String.format("%s has already been deleted", getClass().getName());
-                assert dao.getRowState() != Values.ROWSTATE_NEW : String.format("%s has not been inserted into the database", getClass().getName());
-                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getTableName(), getPrimaryKeyColName());
+                assert dao.getRowState() != DataRowState.DELETED : String.format("%s has already been deleted", getClass().getName());
+                assert dao.getRowState() != DataRowState.NEW : String.format("%s has not been inserted into the database", getClass().getName());
+                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getTableName_old(), getPrimaryKeyColName());
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setInt(1, dao.getPrimaryKey());
                     assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
-                            getTableName(), getPrimaryKeyColName(), dao.getPrimaryKey());
+                            getTableName_old(), getPrimaryKeyColName(), dao.getPrimaryKey());
                 }
                 dao.setDeleted();
             }

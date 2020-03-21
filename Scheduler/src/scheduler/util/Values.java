@@ -1,14 +1,9 @@
 package scheduler.util;
 
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import scheduler.AppResources;
 
 /**
@@ -19,94 +14,6 @@ import scheduler.AppResources;
 public class Values {
 
     public static final Pattern REGEX_NON_NORMAL_WHITESPACES = Pattern.compile(" \\s+|(?! )\\s+");
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is a phone-based meeting.
-     * {@link scheduler.dao.Appointment#getUrl()} returns the telephone number encoded as a URL using the format "tel:+" + international_code + "-" +
-     * phone_number and {@link scheduler.dao.Appointment#getLocation()} returns an empty string for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_PHONE = "phone";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is an online virtual meeting.
-     * {@link scheduler.dao.Appointment#getUrl()} returns the internet address of the virtual meeting and
-     * {@link scheduler.dao.Appointment#getLocation()} returns an empty string for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_VIRTUAL = "virtual";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment located at the customer address.
-     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_CUSTOMER = "customer";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the home (USA) office.
-     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_HOME = "home";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the Germany office.
-     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_GERMANY = "germany";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the India office.
-     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_INDIA = "india";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at the Honduras office.
-     * {@link scheduler.dao.Appointment#getUrl()} and {@link scheduler.dao.Appointment#getLocation()} return empty strings for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_HONDURAS = "honduras";
-
-    /**
-     * The value of {@link scheduler.dao.Appointment#getType()} when the appointment is at an explicit address returned by
-     * {@link scheduler.dao.Appointment#getLocation()}. {@link scheduler.dao.Appointment#getUrl()} returns an empty string for this appointment type.
-     */
-    @Deprecated
-    public static final String APPOINTMENTTYPE_OTHER = "other";
-
-    private static final ObservableMap<String, String> APPOINTMENT_TYPES = FXCollections.observableHashMap();
-    private static ObservableMap<String, String> appointmentTypes = null;
-    private static String appointmentTypesLocale = null;
-
-    /**
-     * Value of {@link scheduler.dao.DataObject#getRowState()} when the current data object has been deleted from the database.
-     */
-    @Deprecated
-    public static final int ROWSTATE_DELETED = -1;
-
-    /**
-     * Value of {@link scheduler.dao.DataObject#getRowState()} when the current data object has not yet been added to the database.
-     */
-    @Deprecated
-    public static final int ROWSTATE_NEW = 0;
-
-    /**
-     * Value of {@link scheduler.dao.DataObject#getRowState()} when the properties of the current data object has not been modified since it was last
-     * synchronized with the database.
-     */
-    @Deprecated
-    public static final int ROWSTATE_UNMODIFIED = 1;
-
-    /**
-     * Value of {@link scheduler.dao.DataObject#getRowState()} when the properties of the current data object differ from the data stored in the
-     * database.
-     */
-    @Deprecated
-    public static final int ROWSTATE_MODIFIED = 2;
 
     public static final String OPERATOR_EQUALS = "=";
     public static final String OPERATOR_NOT_EQUALS = "<>";
@@ -333,95 +240,6 @@ public class Values {
         return value;
     }
 
-    public static String asValidAppointmentType(String value) {
-        if (value != null) {
-            if ((value = value.trim()).equalsIgnoreCase(APPOINTMENTTYPE_CUSTOMER)) {
-                return APPOINTMENTTYPE_CUSTOMER;
-            }
-            if (value.equalsIgnoreCase(APPOINTMENTTYPE_GERMANY)) {
-                return APPOINTMENTTYPE_GERMANY;
-            }
-            if (value.equalsIgnoreCase(APPOINTMENTTYPE_HOME)) {
-                return APPOINTMENTTYPE_HOME;
-            }
-            if (value.equalsIgnoreCase(APPOINTMENTTYPE_HONDURAS)) {
-                return APPOINTMENTTYPE_HONDURAS;
-            }
-            if (value.equalsIgnoreCase(APPOINTMENTTYPE_INDIA)) {
-                return APPOINTMENTTYPE_INDIA;
-            }
-            if (value.equalsIgnoreCase(APPOINTMENTTYPE_PHONE)) {
-                return APPOINTMENTTYPE_PHONE;
-            }
-            if (value.equalsIgnoreCase(APPOINTMENTTYPE_VIRTUAL)) {
-                return APPOINTMENTTYPE_VIRTUAL;
-            }
-        }
-        return APPOINTMENTTYPE_OTHER;
-    }
-
-    public static ObservableMap<String, String> getAppointmentTypes() {
-        synchronized (APPOINTMENT_TYPES) {
-            if (null == appointmentTypes) {
-                appointmentTypes = FXCollections.unmodifiableObservableMap(APPOINTMENT_TYPES);
-            } else if (null != appointmentTypesLocale && appointmentTypesLocale.equals(Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag())) {
-                return appointmentTypes;
-            }
-            Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
-            appointmentTypesLocale = locale.toLanguageTag();
-            ResourceBundle rb = AppResources.getResources();
-            Stream.of(Values.APPOINTMENTTYPE_PHONE, Values.APPOINTMENTTYPE_VIRTUAL, Values.APPOINTMENTTYPE_CUSTOMER, Values.APPOINTMENTTYPE_HOME,
-                    Values.APPOINTMENTTYPE_GERMANY, Values.APPOINTMENTTYPE_INDIA, Values.APPOINTMENTTYPE_HONDURAS,
-                    Values.APPOINTMENTTYPE_OTHER).forEach((String key) -> {
-                        APPOINTMENT_TYPES.put(key, (rb.containsKey(key)) ? rb.getString(key) : key);
-                    });
-        }
-        return appointmentTypes;
-    }
-
-    public static int asValidRowState(int value) {
-        switch (value) {
-            case ROWSTATE_NEW:
-            case ROWSTATE_UNMODIFIED:
-            case ROWSTATE_MODIFIED:
-            case ROWSTATE_DELETED:
-                return value;
-        }
-        return (value < ROWSTATE_DELETED) ? ROWSTATE_DELETED : ROWSTATE_MODIFIED;
-    }
-
-    /**
-     * Checks that the specified value is a valid data row state value.
-     *
-     * @param value The value to test.
-     * @param message The detail message to be used in the event that an {@link AssertionError} is thrown.
-     * @return {@code value} if it is equal to {@link #ROWSTATE_NEW}, {@link #ROWSTATE_UNMODIFIED}, {@link #ROWSTATE_MODIFIED} or
-     * {@link #ROWSTATE_DELETED}.
-     * @throws AssertionError if {@code value} is not equal to {@link #ROWSTATE_NEW}, {@link #ROWSTATE_UNMODIFIED},
-     * {@link #ROWSTATE_MODIFIED} or {@link #ROWSTATE_DELETED}.
-     */
-    public static int requireValidRowState(int value, String message) {
-        assert value == ROWSTATE_NEW || value == ROWSTATE_UNMODIFIED || value == ROWSTATE_MODIFIED || value == ROWSTATE_DELETED :
-                nonWhitespaceOrDefault(message, "Invalid row state value");
-        return value;
-    }
-
-    /**
-     * Checks that the specified value is a valid data row state value.
-     *
-     * @param value The value to test.
-     * @param messageSupplier The supplier of the detail message to be used in the event that an {@link AssertionError} is thrown.
-     * @return {@code value} if it is equal to {@link #ROWSTATE_NEW}, {@link #ROWSTATE_UNMODIFIED}, {@link #ROWSTATE_MODIFIED} or
-     * {@link #ROWSTATE_DELETED}.
-     * @throws AssertionError if {@code value} is not equal to {@link #ROWSTATE_NEW}, {@link #ROWSTATE_UNMODIFIED},
-     * {@link #ROWSTATE_MODIFIED} or {@link #ROWSTATE_DELETED}.
-     */
-    public static int requireValidRowState(int value, Supplier<String> messageSupplier) {
-        assert value == ROWSTATE_NEW || value == ROWSTATE_UNMODIFIED || value == ROWSTATE_MODIFIED || value == ROWSTATE_DELETED :
-                nonWhitespaceOrDefault(messageSupplier, () -> "Invalid row state value");
-        return value;
-    }
-
     /**
      * Ensures an integer valid is a valid user status value.
      *
@@ -448,17 +266,6 @@ public class Values {
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_ADMINISTRATOR);
         }
         return String.format("%s: %d", AppResources.getResourceString(AppResources.RESOURCEKEY_UNKNOWN), value);
-    }
-
-    public static String toAppointmentTypeDisplay(String type) {
-        if (null == type || (type = type.trim()).isEmpty()) {
-            return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
-        }
-        ObservableMap<String, String> map = getAppointmentTypes();
-        if (map.containsKey(type)) {
-            return map.get(type);
-        }
-        return String.format("%s: %s", AppResources.getResourceString(AppResources.RESOURCEKEY_UNKNOWN), type);
     }
 
     /**

@@ -1,17 +1,17 @@
 package scheduler.controls;
 
 import javafx.scene.control.ListCell;
-import scheduler.util.Values;
+import scheduler.dao.AppointmentType;
 
 /**
  *
  * @author lerwi
  */
-public class AppointmentTypeListCell extends ListCell<String> {
+public class AppointmentTypeListCell extends ListCell<AppointmentType> {
 
     @Override
-    protected void updateItem(String item, boolean empty) {
+    protected void updateItem(AppointmentType item, boolean empty) {
         super.updateItem(item, empty);
-        setText(Values.toAppointmentTypeDisplay(item));
+        setText(AppointmentType.toAppointmentTypeDisplay(item));
     }
 }

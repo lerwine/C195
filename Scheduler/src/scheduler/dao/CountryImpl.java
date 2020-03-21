@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +16,7 @@ import scheduler.view.country.EditCountry;
 
 public class CountryImpl extends DataObjectImpl implements Country, CountryColumns {
 
+    @Deprecated
     private static final String BASE_SELECT_SQL = String.format("SELECT %s, %s, %s, %s, %s, %s FROM %s", COLNAME_COUNTRYID, COLNAME_COUNTRY,
             COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, TABLENAME_COUNTRY);
 
@@ -72,7 +74,12 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
         }
 
         @Override
-        public String getTableName() {
+        public DbTable getTableName() {
+            return DbTable.COUNTRY;
+        }
+
+        @Override
+        public String getTableName_old() {
             return TABLENAME_COUNTRY;
         }
 

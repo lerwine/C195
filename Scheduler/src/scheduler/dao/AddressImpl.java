@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +11,7 @@ import scheduler.view.address.AddressModel;
 
 public class AddressImpl extends DataObjectImpl implements Address, AddressColumns {
 
+    @Deprecated
     private static final String BASE_SELECT_SQL = String.format("SELECT %1$s.`%2$s` AS `%2$s`, %1$s.`%3$s` AS `%3$s`, %1$s.`%4$s` AS `%4$s`,"
             + " %1$s.`%5$s` AS `%5$s`, %6$s.`%7$s` AS `%7$s`, %6$s.`%8$s` AS `%8$s`, %9$s.`%10$s` AS `%10$s`, %1$s.`%11$s` AS `%11$s`,"
             + " %1$s.`%12$s` AS `%12$s`, %1$s.`%13$s` AS `%13$s`, %1$s.`%14$s` AS `%14$s`, %1$s.`%15$s` AS `%15$s`, %1$s.`%16$s` AS `%16$s`"
@@ -142,7 +144,12 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
         }
 
         @Override
-        public String getTableName() {
+        public DbTable getTableName() {
+            return DbTable.ADDRESS;
+        }
+
+        @Override
+        public String getTableName_old() {
             return TABLENAME_ADDRESS;
         }
 

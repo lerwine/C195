@@ -1,4 +1,4 @@
-package scheduler.dao;
+package scheduler.dao.dml;
 
 /**
  *

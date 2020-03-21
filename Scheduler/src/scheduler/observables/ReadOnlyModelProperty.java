@@ -5,6 +5,7 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import scheduler.dao.DataRowState;
 import scheduler.util.Values;
 
 /**
@@ -21,10 +22,10 @@ public class ReadOnlyModelProperty<M extends scheduler.view.ItemModel<?>> extend
 
     public ReadOnlyModelProperty() {
         super();
-        newRow = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_NEW);
-        deleted = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_DELETED);
-        modified = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_MODIFIED);
-        saved = new PredicateBinding((M value) -> value.getDataObject().getRowState() == Values.ROWSTATE_UNMODIFIED);
+        newRow = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataRowState.NEW);
+        deleted = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataRowState.DELETED);
+        modified = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataRowState.MODIFIED);
+        saved = new PredicateBinding((M value) -> value.getDataObject().getRowState() == DataRowState.UNMODIFIED);
     }
 
     public BooleanBinding isNewRow() {

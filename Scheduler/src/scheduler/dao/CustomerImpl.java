@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,6 +14,7 @@ import scheduler.view.customer.CustomerModel;
 
 public class CustomerImpl extends DataObjectImpl implements Customer, CustomerColumns {
 
+    @Deprecated
     private static final String BASE_SELECT_SQL;
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -137,7 +139,12 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         }
 
         @Override
-        public String getTableName() {
+        public DbTable getTableName() {
+            return DbTable.CUSTOMER;
+        }
+
+        @Override
+        public String getTableName_old() {
             return TABLENAME_CUSTOMER;
         }
 
