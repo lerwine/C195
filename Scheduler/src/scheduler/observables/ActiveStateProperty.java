@@ -1,28 +1,28 @@
 package scheduler.observables;
 
-import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.util.Values;
+import javafx.beans.property.SimpleObjectProperty;
+import scheduler.dao.UserStatus;
 
 /**
  * An integer property that only stores specific integer values that represent active status for users.
  *
  * @author Leonard T. Erwine
  */
-public class ActiveStateProperty extends SimpleIntegerProperty {
+public class ActiveStateProperty extends SimpleObjectProperty<UserStatus> {
 
     /**
      *
      */
     public ActiveStateProperty() {
-        super(Values.USER_STATUS_NORMAL);
+        super(UserStatus.NORMAL);
     }
 
     /**
      *
      * @param initialValue
      */
-    public ActiveStateProperty(int initialValue) {
-        super(Values.asValidUserStatus(initialValue));
+    public ActiveStateProperty(UserStatus initialValue) {
+        super((null == initialValue) ? UserStatus.NORMAL : initialValue);
     }
 
     /**
@@ -31,7 +31,7 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
      * @param name
      */
     public ActiveStateProperty(Object bean, String name) {
-        super(bean, name, Values.USER_STATUS_NORMAL);
+        super(bean, name, UserStatus.NORMAL);
     }
 
     /**
@@ -40,28 +40,23 @@ public class ActiveStateProperty extends SimpleIntegerProperty {
      * @param name
      * @param initialValue
      */
-    public ActiveStateProperty(Object bean, String name, int initialValue) {
-        super(bean, name, Values.asValidUserStatus(initialValue));
+    public ActiveStateProperty(Object bean, String name, UserStatus initialValue) {
+        super(bean, name, (null == initialValue) ? UserStatus.NORMAL : initialValue);
     }
 
     @Override
-    public void set(int newValue) {
-        super.set(Values.asValidUserStatus(newValue));
+    public void set(UserStatus newValue) {
+        super.set((null == newValue) ? UserStatus.NORMAL : newValue);
     }
 
     @Override
-    public void setValue(Number v) {
+    public void setValue(UserStatus v) {
         if (v != null) {
-            if (v instanceof Integer) {
-                super.set(Values.asValidUserStatus((int) v));
+            if (v instanceof UserStatus) {
+                super.set(v);
                 return;
-            }
-            try {
-                super.set(Values.asValidUserStatus(v.intValue()));
-                return;
-            } catch (Exception ex) {
             }
         }
-        super.set(Values.USER_STATUS_INACTIVE);
+        super.set(UserStatus.INACTIVE);
     }
 }

@@ -17,16 +17,14 @@ public interface TableReference {
      */
     DbTable getTableName();
  
-    // TODO: Rename to getReferenceName?
     /**
      * Gets the name that refers to the target {@link DbTable}.
      * This value should never be null, empty or completely whitespace.
      * This is the same as {@link DbTable#getDbName()} unless overridden.
      * 
      * @return The name that is used to reference the target {@link DbTable} value.
-     * @see {@link #getTableName()}
      */
     default String getName() {
-        return getTableName().getDbName();
+        return getTableName().getDbName().getValue();
     }
 }

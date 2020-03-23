@@ -23,9 +23,8 @@ public interface ColumnReference {
      * This is the same as {@link DbColumn#getDbName()} unless overridden.
      * 
      * @return The name that is used to reference the target {@link DbColumn} value.
-     * @see {@link #getColumn()}
      */
     default String getName() {
-        return getColumn().getDbName();
+        return getColumn().getDbName().getValue();
     }
 }

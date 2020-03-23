@@ -6,19 +6,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import scheduler.AppResources;
-import static scheduler.dao.CityColumns.COLNAME_CITYID;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.EditCountry;
 
-public class CountryImpl extends DataObjectImpl implements Country, CountryColumns {
-
-    @Deprecated
-    private static final String BASE_SELECT_SQL = String.format("SELECT %s, %s, %s, %s, %s, %s FROM %s", COLNAME_COUNTRYID, COLNAME_COUNTRY,
-            COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY, TABLENAME_COUNTRY);
+public class CountryImpl extends DataObjectImpl implements Country {
 
     private String name;
 
@@ -37,7 +35,7 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
     }
 
     /**
-     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} country object.
+     * Initializes a {@link DataRowState#NEW} country object.
      */
     public CountryImpl() {
         super();
@@ -52,20 +50,27 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CountryImpl, CountryModel> {
 
+        private static final SelectList DETAIL_DML;
+
+        static {
+            DETAIL_DML = new SelectList(DbTable.COUNTRY);
+            DETAIL_DML.makeUnmodifiable();
+        }
+
         // This is a singleton instance
         private FactoryImpl() {
         }
 
         @Override
-        protected CountryImpl fromResultSet(ResultSet resultSet) throws SQLException {
+        protected CountryImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
             CountryImpl result = new CountryImpl();
-            initializeDao(result, resultSet);
+            initializeDao(result, resultSet, columns);
             return result;
         }
 
         @Override
-        public String getBaseSelectQuery() {
-            return BASE_SELECT_SQL;
+        public SelectList getDetailDml() {
+            return DETAIL_DML;
         }
 
         @Override
@@ -74,33 +79,21 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
         }
 
         @Override
-        public DbTable getTableName() {
+        public DbTable getDbTable() {
             return DbTable.COUNTRY;
         }
 
         @Override
-        public String getTableName_old() {
-            return TABLENAME_COUNTRY;
+        protected void setSaveStatementValue(CountryImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+            if (column != DbColumn.COUNTRY_NAME) {
+                throw new UnsupportedOperationException("Unexpected column name");
+            }
+            ps.setString(index, dao.getName());
         }
 
         @Override
-        public String getPrimaryKeyColName() {
-            return COLNAME_COUNTRYID;
-        }
-
-        @Override
-        protected List<String> getExtendedColNames() {
-            return Arrays.asList(COLNAME_COUNTRY);
-        }
-
-        @Override
-        protected void setSaveStatementValues(CountryImpl dao, PreparedStatement ps) throws SQLException {
-            ps.setString(1, dao.getName());
-        }
-
-        @Override
-        protected void onInitializeDao(CountryImpl target, ResultSet resultSet) throws SQLException {
-            target.name = resultSet.getString(COLNAME_COUNTRY);
+        protected void onInitializeDao(CountryImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+            target.name = resultSet.getString(DbColumn.COUNTRY_NAME.getDbName().getValue());
             if (resultSet.wasNull()) {
                 target.name = "";
             }
@@ -120,8 +113,8 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
         @Override
         public String getDeleteDependencyMessage(CountryImpl dao, Connection connection) throws SQLException {
             if (null != dao && dao.isExisting()) {
-                try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ?", COLNAME_CITYID,
-                        TABLENAME_CITY, COLNAME_COUNTRYID))) {
+                try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ?", DbName.CITY_ID,
+                        DbName.CITY, DbName.COUNTRY_ID))) {
                     ps.setInt(1, dao.getPrimaryKey());
                     try (ResultSet rs = ps.getResultSet()) {
                         int count = rs.getInt(1);
@@ -144,7 +137,7 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
                 int count;
                 if (dao.isExisting()) {
                     try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE AND %s = ? AND %1$s <> ?",
-                            COLNAME_COUNTRYID, TABLENAME_COUNTRY, COLNAME_COUNTRY))) {
+                            DbName.COUNTRY_ID, DbName.COUNTRY, DbName.COUNTRY))) {
                         ps.setString(1, dao.getName());
                         ps.setInt(2, dao.getPrimaryKey());
                         try (ResultSet rs = ps.getResultSet()) {
@@ -153,7 +146,7 @@ public class CountryImpl extends DataObjectImpl implements Country, CountryColum
                     }
                 } else {
                     try (PreparedStatement ps = connection.prepareStatement(String.format("SELECT COUNT(%s) FROM %s WHERE %s = ?",
-                            COLNAME_COUNTRYID, TABLENAME_COUNTRY, COLNAME_COUNTRY))) {
+                            DbName.COUNTRY_ID, DbName.COUNTRY, DbName.COUNTRY))) {
                         ps.setString(1, dao.getName());
                         try (ResultSet rs = ps.getResultSet()) {
                             count = rs.getInt(1);

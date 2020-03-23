@@ -15,6 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.dao.UserImpl;
+import scheduler.dao.UserStatus;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
 import scheduler.util.Values;
@@ -147,7 +148,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     private Label passwordErrorMessageLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="activeComboBox"
-    private ComboBox<Short> activeComboBox; // Value injected by FXMLLoader
+    private ComboBox<UserStatus> activeComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsLabel"
     private Label appointmentsLabel; // Value injected by FXMLLoader
@@ -161,7 +162,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     @FXML // fx:id="addAppointmentButton"
     private Button addAppointmentButton; // Value injected by FXMLLoader
 
-    private ObservableList<Short> userActiveStateOptions;
+    private ObservableList<UserStatus> userActiveStateOptions;
 
     private StringBinding normalizedUserName;
 
@@ -184,17 +185,17 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert addAppointmentButton != null : "fx:id=\"addAppointmentButton\" was not injected: check your FXML file 'EditUser.fxml'.";
 
-        userActiveStateOptions = FXCollections.observableArrayList(Values.USER_STATUS_NORMAL, Values.USER_STATUS_ADMIN, Values.USER_STATUS_INACTIVE);
-        activeComboBox.setCellFactory((p) -> new ListCell<Short>() {
+        userActiveStateOptions = FXCollections.observableArrayList(UserStatus.values());
+        activeComboBox.setCellFactory((p) -> new ListCell<UserStatus>() {
             @Override
-            protected void updateItem(Short a, boolean bln) {
+            protected void updateItem(UserStatus a, boolean bln) {
                 super.updateItem(a, bln);
 
                 switch (a) {
-                    case 1:
+                    case NORMAL:
                         setText(getResourceString(RESOURCEKEY_NORMALUSER));
                         break;
-                    case 2:
+                    case ADMIN:
                         setText(getResourceString(RESOURCEKEY_ADMINISTRATIVEUSER));
                         break;
                     default:

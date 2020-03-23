@@ -1,48 +1,43 @@
 package scheduler.observables;
 
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-import scheduler.util.Values;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import scheduler.dao.UserStatus;
 
 /**
  *
  * @author Leonard T. Erwine
  */
-public class ReadonlyActiveStateProperty extends ReadOnlyIntegerWrapper {
+public class ReadonlyActiveStateProperty extends ReadOnlyObjectWrapper<UserStatus> {
 
     public ReadonlyActiveStateProperty() {
-        super(Values.USER_STATUS_NORMAL);
+        super(UserStatus.NORMAL);
     }
 
-    public ReadonlyActiveStateProperty(int initialValue) {
-        super(Values.asValidUserStatus(initialValue));
+    public ReadonlyActiveStateProperty(UserStatus initialValue) {
+        super((null == initialValue) ? UserStatus.INACTIVE : initialValue);
     }
 
     public ReadonlyActiveStateProperty(Object bean, String name) {
-        super(bean, name, Values.USER_STATUS_NORMAL);
+        super(bean, name, UserStatus.NORMAL);
     }
 
-    public ReadonlyActiveStateProperty(Object bean, String name, int initialValue) {
-        super(bean, name, Values.asValidUserStatus(initialValue));
-    }
-
-    @Override
-    public void set(int newValue) {
-        super.set(Values.asValidUserStatus(newValue));
+    public ReadonlyActiveStateProperty(Object bean, String name, UserStatus initialValue) {
+        super(bean, name, (null == initialValue) ? UserStatus.INACTIVE : initialValue);
     }
 
     @Override
-    public void setValue(Number v) {
+    public void set(UserStatus newValue) {
+        super.set((null == newValue) ? UserStatus.INACTIVE : newValue);
+    }
+
+    @Override
+    public void setValue(UserStatus v) {
         if (v != null) {
-            if (v instanceof Integer) {
-                super.set(Values.asValidUserStatus((int) v));
+            if (v instanceof UserStatus) {
+                super.set((UserStatus) v);
                 return;
-            }
-            try {
-                super.set(Values.asValidUserStatus(v.intValue()));
-                return;
-            } catch (Exception ex) {
             }
         }
-        super.set(Values.USER_STATUS_INACTIVE);
+        super.set(UserStatus.INACTIVE);
     }
 }

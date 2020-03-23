@@ -3,17 +3,15 @@ package scheduler.controls;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;
 import scheduler.dao.UserImpl;
+import scheduler.dao.UserStatus;
 
 /**
  *
  * @author lerwi
  */
-public class UserStatusListCell extends ListCell<Integer> {
+public class UserStatusListCell extends ListCell<UserStatus> {
 
-    private final ObservableMap<Integer, String> userStatusMap;
-
-    UserStatusListCell(ObservableMap<Integer, String> userStatusMap) {
-        this.userStatusMap = (null == userStatusMap) ? UserImpl.getUserStatusMap() : userStatusMap;
+    UserStatusListCell(ObservableMap<UserStatus, String> userStatusMap) {
     }
 
     public UserStatusListCell() {
@@ -21,8 +19,8 @@ public class UserStatusListCell extends ListCell<Integer> {
     }
 
     @Override
-    protected void updateItem(Integer item, boolean empty) {
+    protected void updateItem(UserStatus item, boolean empty) {
         super.updateItem(item, empty);
-        setText((item == null) ? "" : ((userStatusMap.containsKey(item)) ? userStatusMap.get(item) : item.toString()));
+        setText((item == null) ? "" : UserStatus.toDisplayValue(item));
     }
 }

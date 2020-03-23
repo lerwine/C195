@@ -1,22 +1,19 @@
 package scheduler.controls;
 
-import javafx.collections.ObservableMap;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
-import scheduler.dao.UserImpl;
+import scheduler.dao.UserStatus;
 
 /**
  *
  * @author lerwi
  * @param <S> The item type.
  */
-public class UserStatusTableCellFactory<S> implements Callback<TableColumn<S, Integer>, TableCell<S, Integer>> {
-
-    private final ObservableMap<Integer, String> userStatusMap = UserImpl.getUserStatusMap();
+public class UserStatusTableCellFactory<S> implements Callback<TableColumn<S, UserStatus>, TableCell<S, UserStatus>> {
 
     @Override
-    public TableCell<S, Integer> call(TableColumn<S, Integer> param) {
-        return new UserStatusTableCell(userStatusMap);
+    public TableCell<S, UserStatus> call(TableColumn<S, UserStatus> param) {
+        return new UserStatusTableCell();
     }
 }

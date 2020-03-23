@@ -145,7 +145,7 @@ public final class DbConnector implements AutoCloseable {
     }
 
     /**
-     * Performs an operation using a {@link DbConnectionConsumer}, providing the opened SQL connection.
+     * Performs an operation using a {@link ThrowableConsumer}, providing the opened SQL connection.
      *
      * @param consumer The operation to perform.
      * @throws java.sql.SQLException if unable to perform the database operation.
@@ -159,11 +159,11 @@ public final class DbConnector implements AutoCloseable {
     }
 
     /**
-     * Produces a result value using a {@link DbConnectedCallable}, providing the opened SQL connection.
+     * Produces a result value using a {@link ThrowableFunction}, providing the opened SQL connection.
      *
      * @param <T> The return value type.
      * @param callable The task that produces the result value.
-     * @return The value produced by the {@link DbConnectedCallable} delegate.
+     * @return The value produced by the {@link ThrowableFunction} delegate.
      * @throws java.sql.SQLException if unable to perform the database operation.
      * @throws java.lang.ClassNotFoundException if unable to load the database driver.
      */

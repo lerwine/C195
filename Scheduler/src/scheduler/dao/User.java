@@ -3,6 +3,11 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbName;
 import scheduler.util.Values;
 
 /**
@@ -39,9 +44,9 @@ public interface User extends DataObject {
     /**
      * Gets a value that indicates the status of the current user. This corresponds to the "active" database column.
      *
-     * @return {@link Values#USER_STATUS_NORMAL}, {@link Values#USER_STATUS_ADMIN} or {@link Values#USER_STATUS_INACTIVE}.
+     * @return {@link UserStatus} value indicating the current user's status.
      */
-    int getStatus();
+    UserStatus getStatus();
 
     /**
      * Creates a read-only Customer object from object values.
@@ -52,7 +57,7 @@ public interface User extends DataObject {
      * @param status A value that indicates the status of the current user.
      * @return The read-only Customer object.
      */
-    public static User of(int pk, String userName, String password, int status) {
+    public static User of(int pk, String userName, String password, UserStatus status) {
         Objects.requireNonNull(userName, "User name cannot be null");
         Objects.requireNonNull(password, "Password name cannot be null");
         return new User() {
@@ -67,7 +72,7 @@ public interface User extends DataObject {
             }
 
             @Override
-            public int getStatus() {
+            public UserStatus getStatus() {
                 return status;
             }
 
@@ -88,25 +93,16 @@ public interface User extends DataObject {
      * Creates a read-only User object from a result set.
      *
      * @param resultSet The data retrieved from the database.
-     * @param pkColName The name of the column containing the value of the primary key.
+     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only User object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static User of(ResultSet resultSet, String pkColName) throws SQLException {
-        Objects.requireNonNull(pkColName, "Primary key column name cannot be null");
-        int id = resultSet.getInt(pkColName);
-        if (resultSet.wasNull()) {
-            return null;
+    public static User of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.CUSTOMER_ID);
+        if (id.isPresent()) {
+            return User.of(id.get(), columns.getString(resultSet, DbColumn.USER_NAME, ""), columns.getString(resultSet, DbColumn.PASSWORD, ""),
+                    UserStatus.of(columns.getInt(resultSet, DbColumn.STATUS, UserStatus.INACTIVE.getValue()), UserStatus.INACTIVE));
         }
-        String userName = resultSet.getString(UserImpl.COLNAME_USERNAME);
-        if (resultSet.wasNull()) {
-            userName = "";
-        }
-        String password = resultSet.getString(UserImpl.COLNAME_PASSWORD);
-        if (resultSet.wasNull()) {
-            password = "";
-        }
-        int status = resultSet.getInt(UserColumns.COLALIAS_ACTIVE_STATUS);
-        return User.of(id, userName, password, (resultSet.wasNull()) ? Values.USER_STATUS_INACTIVE : Values.asValidUserStatus(status));
+        return null;
     }
 }

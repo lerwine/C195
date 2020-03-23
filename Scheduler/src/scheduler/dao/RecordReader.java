@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.dao.dml.SelectList;
 import scheduler.view.ItemModel;
 
 /**
@@ -15,6 +16,7 @@ import scheduler.view.ItemModel;
  * @author lerwi
  * @param <T> The type of {@link DataObjectImpl} that will be read from the database.
  */
+// TODO: Deprecated this after it is replaced
 public interface RecordReader<T extends DataObjectImpl> {
 
     /**
@@ -57,8 +59,8 @@ public interface RecordReader<T extends DataObjectImpl> {
      */
     default ArrayList<T> get(Connection connection) throws SQLException {
         DataObjectImpl.Factory<T, ? extends ItemModel<T>> f = getFactory();
-        StringBuilder sb = new StringBuilder();
-        sb.append(f.getBaseSelectQuery());
+        SelectList dml = f.getDetailDml();
+        StringBuilder sb = dml.getSelectQuery();
         String w = getSqlFilterExpr();
         if (null != w && !(w = w.trim()).isEmpty()) {
             sb.append(" WHERE ").append(w);
@@ -69,7 +71,7 @@ public interface RecordReader<T extends DataObjectImpl> {
             apply(ps, 1);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(f.fromResultSet(rs));
+                    result.add(f.fromResultSet(rs, dml));
                 }
             }
         }

@@ -6,41 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
 import scheduler.view.customer.CustomerModel;
 
-public class CustomerImpl extends DataObjectImpl implements Customer, CustomerColumns {
+public class CustomerImpl extends DataObjectImpl implements Customer {
 
-    @Deprecated
-    private static final String BASE_SELECT_SQL;
     private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    static {
-        StringBuilder sb = new StringBuilder("SELECT ");
-        sb.append(TABLEALIAS_CUSTOMER).append(".`").append(COLNAME_CUSTOMERID).append("` AS `").append(COLNAME_CUSTOMERID);
-        Stream.of(COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ADDRESSID, COLNAME_CREATEDATE, COLNAME_CREATEDBY,
-                COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY).forEach((t)
-                        -> sb.append("`, ").append(TABLEALIAS_CUSTOMER).append(".`").append(t));
-        Stream.of(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE).forEach((t)
-                -> sb.append("`, ").append(TABLEALIAS_ADDRESS).append(".`").append(t));
-
-        BASE_SELECT_SQL = sb.append("`, ").append(TABLEALIAS_CITY).append(".`").append(COLNAME_CITY).append("`, ")
-                .append(TABLEALIAS_CITY).append(".`").append(COLNAME_COUNTRYID).append("`, ")
-                .append(TABLEALIAS_COUNTRY).append(".`").append(COLNAME_COUNTRY)
-                .append("` FROM `").append(TABLENAME_CUSTOMER).append("` ").append(TABLEALIAS_CUSTOMER)
-                .append(" LEFT JOIN `").append(TABLENAME_ADDRESS).append("` ").append(TABLEALIAS_ADDRESS)
-                .append(" ON ").append(TABLEALIAS_CUSTOMER).append(".`").append(COLNAME_ADDRESSID)
-                .append("`=").append(TABLEALIAS_ADDRESS).append(".`").append(COLNAME_ADDRESSID)
-                .append("` LEFT JOIN `").append(TABLENAME_CITY).append("` ").append(TABLEALIAS_CITY)
-                .append(" ON ").append(TABLEALIAS_ADDRESS).append(".`").append(COLNAME_CITYID)
-                .append("`=").append(TABLEALIAS_CITY).append(".`").append(COLNAME_CITYID)
-                .append("` LEFT JOIN `").append(TABLENAME_COUNTRY).append("` ").append(TABLEALIAS_COUNTRY)
-                .append(" ON ").append(TABLEALIAS_CITY).append(".`").append(COLNAME_COUNTRYID)
-                .append("`=").append(TABLEALIAS_COUNTRY).append(".`").append(COLNAME_COUNTRYID).append("`").toString();
-    }
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -51,7 +26,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
     private boolean active;
 
     /**
-     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} customer object.
+     * Initializes a {@link DataRowState#NEW} customer object.
      */
     public CustomerImpl() {
         super();
@@ -109,6 +84,16 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {
 
+        private static final SelectList DETAIL_DML;
+
+        static {
+            DETAIL_DML = new SelectList(DbTable.CUSTOMER);
+            DETAIL_DML.leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
+                    .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
+                    .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
+            DETAIL_DML.makeUnmodifiable();
+        }
+
         // This is a singleton instance
         private FactoryImpl() {
         }
@@ -122,15 +107,15 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         }
 
         @Override
-        protected CustomerImpl fromResultSet(ResultSet resultSet) throws SQLException {
+        protected CustomerImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
             CustomerImpl r = new CustomerImpl();
-            initializeDao(r, resultSet);
+            initializeDao(r, resultSet, columns);
             return r;
         }
 
         @Override
-        public String getBaseSelectQuery() {
-            return BASE_SELECT_SQL;
+        public SelectList getDetailDml() {
+            return DETAIL_DML;
         }
 
         @Override
@@ -139,78 +124,41 @@ public class CustomerImpl extends DataObjectImpl implements Customer, CustomerCo
         }
 
         @Override
-        public DbTable getTableName() {
+        public DbTable getDbTable() {
             return DbTable.CUSTOMER;
         }
 
         @Override
-        public String getTableName_old() {
-            return TABLENAME_CUSTOMER;
-        }
-
-        @Override
-        public String getPrimaryKeyColName() {
-            return COLNAME_CUSTOMERID;
-        }
-
-        @Override
-        protected List<String> getExtendedColNames() {
-            return Arrays.asList(COLNAME_CUSTOMERNAME, COLNAME_ACTIVE, COLNAME_ADDRESSID);
-        }
-
-        @Override
-        protected void setSaveStatementValues(CustomerImpl dao, PreparedStatement ps) throws SQLException {
-            ps.setString(1, dao.getName());
-            ps.setBoolean(2, dao.isActive());
-            ps.setInt(3, dao.getAddress().getPrimaryKey());
-        }
-
-        @Override
-        protected void onInitializeDao(CustomerImpl target, ResultSet resultSet) throws SQLException {
-            target.name = resultSet.getString(COLNAME_CUSTOMERNAME);
-            if (resultSet.wasNull()) {
-                target.name = "";
+        protected void setSaveStatementValue(CustomerImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+            switch (column) {
+                case CUSTOMER_NAME:
+                    ps.setString(index, dao.getName());
+                    break;
+                case ACTIVE:
+                    ps.setBoolean(index, dao.isActive());
+                    break;
+                case CUSTOMER_ADDRESS:
+                    ps.setInt(index, dao.getAddress().getPrimaryKey());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unexpected column name");
             }
+        }
 
-            int addressId = resultSet.getInt(COLNAME_ADDRESSID);
-            if (resultSet.wasNull()) {
-                target.address = null;
+        @Override
+        protected void onInitializeDao(CustomerImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+            target.name = columns.getString(resultSet, DbColumn.CUSTOMER_NAME, "");
+            Optional<Integer> addressId = columns.tryGetInt(resultSet, DbColumn.CUSTOMER_ADDRESS);
+            if (addressId.isPresent()) {
+                target.address = DataObjectReference.of(Address.of(addressId.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""),
+                        columns.getString(resultSet, DbColumn.ADDRESS2, ""), DataObjectReference.of(City.of(resultSet, columns)),
+                        columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
+                        columns.getString(resultSet, DbColumn.PHONE, "")));
             } else {
-                String address1 = resultSet.getString(COLNAME_ADDRESS);
-                if (resultSet.wasNull()) {
-                    address1 = "";
-                }
-                String address2 = resultSet.getString(COLNAME_ADDRESS2);
-                if (resultSet.wasNull()) {
-                    address2 = "";
-                }
-                City city;
-                int cityId = resultSet.getInt(COLNAME_CITYID);
-                if (resultSet.wasNull()) {
-                    city = null;
-                } else {
-                    String cityName = resultSet.getString(COLNAME_CITY);
-                    if (resultSet.wasNull()) {
-                        cityName = "";
-                    }
-                    int countryId = resultSet.getInt(COLNAME_COUNTRYID);
-                    if (resultSet.wasNull()) {
-                        city = City.of(cityId, cityName, null);
-                    } else {
-                        String countryName = resultSet.getString(COLNAME_COUNTRY);
-                        city = City.of(cityId, cityName, DataObjectReference.of(Country.of(countryId, resultSet.wasNull() ? "" : countryName)));
-                    }
-                }
-                String postalCode = resultSet.getString(COLNAME_POSTALCODE);
-                if (resultSet.wasNull()) {
-                    postalCode = "";
-                }
-                String phone = resultSet.getString(COLNAME_PHONE);
-                target.address = DataObjectReference.of(Address.of(addressId, address1, address2, DataObjectReference.of(city), postalCode,
-                        (resultSet.wasNull()) ? "" : phone));
+                target.address = null;
             }
 
-            target.active = resultSet.getBoolean(COLNAME_ACTIVE);
+            target.active = columns.getBoolean(resultSet, DbColumn.ACTIVE, false);
             if (resultSet.wasNull()) {
                 target.active = false;
             }

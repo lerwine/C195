@@ -17,7 +17,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import scheduler.App;
+import scheduler.Scheduler;
 import scheduler.AppResources;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.AppointmentImpl;
@@ -51,9 +51,9 @@ import scheduler.view.user.UserReferenceModelImpl;
 
 /**
  * FXML Controller class for main application content. All application views are loaded into the {@link #contentPane} using
- * {@link MainContentController#setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage)}. The initial content is loaded using
- * {@link ManageAppointments#setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.ModelFilter)}. All Create, Update and Delete
- * operations on {@link ItemModel} objects are initiated through this controller.
+ * {@link MainContentController#setContent(scheduler.view.MainController, Class, Stage)}. The initial content is loaded using
+ * {@link ManageAppointments#setContent(MainController, Class, Stage, scheduler.dao.ModelFilter)}.
+ * All Create, Update and Delete operations on {@link ItemModel} objects are to be initiated through this controller.
  *
  * @author Leonard T. Erwine
  */
@@ -274,11 +274,11 @@ public final class MainController extends SchedulerController implements MainCon
      * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
      *
      * @param event Contextual information about the initiating event.
-     * @return The newly added {@link AppointmentModel} or {@link null} if the operation was canceled.
+     * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
      */
     public AppointmentModel addNewAppointment(Event event) {
         AppointmentModel model = new AppointmentModel(new AppointmentImpl());
-        model.setUser(new UserReferenceModelImpl(App.getCurrentUser()));
+        model.setUser(new UserReferenceModelImpl(Scheduler.getCurrentUser()));
         EditItem.ShowAndWaitResult<AppointmentModel> result = EditItem.waitEdit(EditAppointment.class, model, (Stage) contentPane.getScene().getWindow());
         if (result.isSuccessful()) {
             appointmentAddManager.fireEvent(new ItemEvent<>(MainController.this, result.getTarget()));
@@ -321,7 +321,7 @@ public final class MainController extends SchedulerController implements MainCon
      * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
      *
      * @param event Contextual information about the initiating event.
-     * @return The newly added {@link CustomerModel} or {@link null} if the operation was canceled.
+     * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
      */
     public CustomerModel addNewCustomer(Event event) {
         CustomerModel model = new CustomerModel(new CustomerImpl());
@@ -367,7 +367,7 @@ public final class MainController extends SchedulerController implements MainCon
      * Opens an {@link EditItem} window to edit a new {@link CountryModel}.
      *
      * @param event Contextual information about the initiating event.
-     * @return The newly added {@link CountryModel} or {@link null} if the operation was canceled.
+     * @return The newly added {@link CountryModel} or {@code null} if the operation was canceled.
      */
     public CountryModel addNewCountry(Event event) {
         EditItem.ShowAndWaitResult<CountryModel> result = EditItem.waitEdit(EditCountry.class,
@@ -413,7 +413,7 @@ public final class MainController extends SchedulerController implements MainCon
      * Opens an {@link EditItem} window to edit a new {@link CityModel}.
      *
      * @param event Contextual information about the initiating event.
-     * @return The newly added {@link CityModel} or {@link null} if the operation was canceled.
+     * @return The newly added {@link CityModel} or {@code null} if the operation was canceled.
      */
     public CityModel addNewCity(Event event) {
         CityModel model = new CityModel(new CityImpl());
@@ -459,7 +459,7 @@ public final class MainController extends SchedulerController implements MainCon
      * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
      *
      * @param event Contextual information about the initiating event.
-     * @return The newly added {@link AddressModel} or {@link null} if the operation was canceled.
+     * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
     public AddressModel addNewAddress(Event event) {
         AddressModel model = new AddressModel(new AddressImpl());
@@ -505,7 +505,7 @@ public final class MainController extends SchedulerController implements MainCon
      * Opens an {@link EditItem} window to edit a new {@link UserModel}.
      *
      * @param event Contextual information about the initiating event.
-     * @return The newly added {@link UserModel} or {@link null} if the operation was canceled.
+     * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
      */
     public UserModel addNewUser(Event event) {
         EditItem.ShowAndWaitResult<UserModel> result = EditItem.waitEdit(EditUser.class,

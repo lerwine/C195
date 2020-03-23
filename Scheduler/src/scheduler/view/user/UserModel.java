@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.dao.UserImpl;
+import scheduler.dao.UserStatus;
 import scheduler.observables.UserStatusDisplayProperty;
 import scheduler.observables.UserStatusProperty;
 import scheduler.view.ItemModel;
@@ -49,11 +50,11 @@ public final class UserModel extends ItemModel<UserImpl> implements UserReferenc
     }
 
     @Override
-    public int getStatus() {
+    public UserStatus getStatus() {
         return status.get();
     }
 
-    public void setStatus(int value) {
+    public void setStatus(UserStatus value) {
         status.set(value);
     }
 

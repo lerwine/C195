@@ -5,23 +5,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
 import scheduler.view.address.AddressModel;
 
-public class AddressImpl extends DataObjectImpl implements Address, AddressColumns {
+public class AddressImpl extends DataObjectImpl implements Address {
 
-    @Deprecated
-    private static final String BASE_SELECT_SQL = String.format("SELECT %1$s.`%2$s` AS `%2$s`, %1$s.`%3$s` AS `%3$s`, %1$s.`%4$s` AS `%4$s`,"
-            + " %1$s.`%5$s` AS `%5$s`, %6$s.`%7$s` AS `%7$s`, %6$s.`%8$s` AS `%8$s`, %9$s.`%10$s` AS `%10$s`, %1$s.`%11$s` AS `%11$s`,"
-            + " %1$s.`%12$s` AS `%12$s`, %1$s.`%13$s` AS `%13$s`, %1$s.`%14$s` AS `%14$s`, %1$s.`%15$s` AS `%15$s`, %1$s.`%16$s` AS `%16$s`"
-            + " FROM `%17$s` %1$s"
-            + " LEFT JOIN `%18$s` %6$s ON %1$s.`%5$s`=%6$s.`%5$s`"
-            + " LEFT JOIN `%19$s` %9$s ON %6$s.`%8$s`=%9$s.`%8$s`", TABLEALIAS_ADDRESS, COLNAME_ADDRESSID, COLNAME_ADDRESS,
-            COLNAME_ADDRESS2, COLNAME_CITYID, TABLEALIAS_CITY, COLNAME_CITY, COLNAME_COUNTRYID, TABLEALIAS_COUNTRY,
-            COLNAME_COUNTRY, COLNAME_POSTALCODE, COLNAME_PHONE, COLNAME_CREATEDATE,
-            COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
-            TABLENAME_ADDRESS, TABLENAME_CITY, TABLENAME_COUNTRY);
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
@@ -35,7 +27,7 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
     private String phone;
 
     /**
-     * Initializes a {@link scheduler.util.Values#ROWSTATE_NEW} address object.
+     * Initializes a {@link DataRowState#NEW} address object.
      */
     public AddressImpl() {
         address1 = "";
@@ -122,20 +114,29 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {
 
+        private static final SelectList DETAIL_DML;
+
+        static {
+            DETAIL_DML = new SelectList(DbTable.ADDRESS);
+            DETAIL_DML.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
+                    .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
+            DETAIL_DML.makeUnmodifiable();
+        }
+
         // This is a singleton instance
         private FactoryImpl() {
         }
 
         @Override
-        protected AddressImpl fromResultSet(ResultSet resultSet) throws SQLException {
+        protected AddressImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
             AddressImpl r = new AddressImpl();
-            initializeDao(r, resultSet);
+            initializeDao(r, resultSet, columns);
             return r;
         }
 
         @Override
-        public String getBaseSelectQuery() {
-            return BASE_SELECT_SQL;
+        public SelectList getDetailDml() {
+            return DETAIL_DML;
         }
 
         @Override
@@ -144,69 +145,51 @@ public class AddressImpl extends DataObjectImpl implements Address, AddressColum
         }
 
         @Override
-        public DbTable getTableName() {
+        public DbTable getDbTable() {
             return DbTable.ADDRESS;
         }
 
         @Override
-        public String getTableName_old() {
-            return TABLENAME_ADDRESS;
-        }
-
-        @Override
-        public String getPrimaryKeyColName() {
-            return COLNAME_ADDRESSID;
-        }
-
-        @Override
-        protected List<String> getExtendedColNames() {
-            return Arrays.asList(COLNAME_ADDRESS, COLNAME_ADDRESS2, COLNAME_CITYID, COLNAME_POSTALCODE, COLNAME_PHONE);
-        }
-
-        @Override
-        protected void setSaveStatementValues(AddressImpl dao, PreparedStatement ps) throws SQLException {
-            ps.setString(1, dao.getAddress1());
-            ps.setString(2, dao.getAddress2());
-            ps.setInt(3, dao.getCity().getPrimaryKey());
-            ps.setString(4, dao.getPostalCode());
-            ps.setString(5, dao.getPhone());
-        }
-
-        @Override
-        protected void onInitializeDao(AddressImpl target, ResultSet resultSet) throws SQLException {
-            target.address1 = resultSet.getString(COLNAME_ADDRESS);
-            if (resultSet.wasNull()) {
-                target.address1 = "";
+        protected void setSaveStatementValue(AddressImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+            switch (column) {
+                case ADDRESS1:
+                    ps.setString(index, dao.getAddress1());
+                    break;
+                case ADDRESS2:
+                    ps.setString(index, dao.getAddress2());
+                    break;
+                case ADDRESS_CITY:
+                    ps.setInt(index, dao.getCity().getPrimaryKey());
+                    break;
+                case POSTAL_CODE:
+                    ps.setString(index, dao.getPostalCode());
+                    break;
+                case PHONE:
+                    ps.setString(index, dao.getPhone());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unexpected column name");
             }
-            target.address2 = resultSet.getString(COLNAME_ADDRESS2);
-            if (resultSet.wasNull()) {
-                target.address2 = "";
-            }
-            int cityId = resultSet.getInt(COLNAME_CITYID);
-            if (resultSet.wasNull()) {
-                target.city = null;
-            } else {
-                String cityName = resultSet.getString(COLNAME_CITY);
-                if (resultSet.wasNull()) {
-                    cityName = "";
-                }
-                int countryId = resultSet.getInt(COLNAME_COUNTRYID);
-                if (resultSet.wasNull()) {
-                    target.city = DataObjectReference.of(City.of(cityId, cityName, null));
+        }
+
+        @Override
+        protected void onInitializeDao(AddressImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+            target.address1 = columns.getString(resultSet, DbColumn.ADDRESS1, "");
+            target.address2 = columns.getString(resultSet, DbColumn.ADDRESS2, "");
+            Optional<Integer> cityId = columns.tryGetInt(resultSet, DbColumn.ADDRESS_CITY);
+            if (cityId.isPresent()) {
+                Optional<Integer> countryId = columns.tryGetInt(resultSet, DbColumn.CITY_COUNTRY);
+                if (countryId.isPresent()) {
+                    target.city = DataObjectReference.of(City.of(cityId.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""),
+                            DataObjectReference.of(Country.of(countryId.get(), columns.getString(resultSet, DbColumn.COUNTRY_NAME, "")))));
                 } else {
-                    String countryName = resultSet.getString(COLNAME_COUNTRY);
-                    target.city = DataObjectReference.of(City.of(cityId, cityName,
-                            DataObjectReference.of(Country.of(countryId, resultSet.wasNull() ? "" : countryName))));
+                    target.city = DataObjectReference.of(City.of(cityId.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), null));
                 }
+            } else {
+                target.city = null;
             }
-            target.postalCode = resultSet.getString(COLNAME_POSTALCODE);
-            if (resultSet.wasNull()) {
-                target.postalCode = "";
-            }
-            target.phone = resultSet.getString(COLNAME_PHONE);
-            if (resultSet.wasNull()) {
-                target.phone = "";
-            }
+            target.postalCode = columns.getString(resultSet, DbColumn.POSTAL_CODE, "");
+            target.phone = columns.getString(resultSet, DbColumn.PHONE, "");
         }
 
         @Override

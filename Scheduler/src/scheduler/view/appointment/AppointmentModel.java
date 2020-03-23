@@ -10,6 +10,7 @@ import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
 import scheduler.dao.DataObjectImpl.Factory;
 import scheduler.dao.User;
+import scheduler.dao.UserStatus;
 import scheduler.observables.AppointmentTypeDisplayProperty;
 import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.ChildPropertyWrapper;
@@ -42,7 +43,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     private final ChildPropertyWrapper<Boolean, CustomerReferenceModel<? extends Customer>> customerActive;
     private final SimpleObjectProperty<UserReferenceModel<? extends User>> user;
     private final ChildPropertyWrapper<String, UserReferenceModel<? extends User>> userName;
-    private final ChildPropertyWrapper<Number, UserReferenceModel<? extends User>> userStatus;
+    private final ChildPropertyWrapper<UserStatus, UserReferenceModel<? extends User>> userStatus;
     private final ChildPropertyWrapper<String, UserReferenceModel<? extends User>> userStatusDisplay;
     private final NonNullableStringProperty title;
     private final NonNullableStringProperty description;
@@ -225,12 +226,12 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     }
 
     @Override
-    public int getUserStatus() {
-        return (int) userStatus.get();
+    public UserStatus getUserStatus() {
+        return (UserStatus) userStatus.get();
     }
 
     @Override
-    public ChildPropertyWrapper<Number, UserReferenceModel<? extends User>> userStatusProperty() {
+    public ChildPropertyWrapper<UserStatus, UserReferenceModel<? extends User>> userStatusProperty() {
         return userStatus;
     }
 

@@ -6,6 +6,7 @@ import scheduler.dao.Appointment;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
 import scheduler.dao.User;
+import scheduler.dao.UserStatus;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.DataObjectReferenceModel;
 import scheduler.view.customer.CustomerReferenceModel;
@@ -70,9 +71,9 @@ public interface AppointmentReferenceModel<T extends Appointment> extends DataOb
 
     ChildPropertyWrapper<String, UserReferenceModel<? extends User>> userNameProperty();
 
-    int getUserStatus();
+    UserStatus getUserStatus();
 
-    ChildPropertyWrapper<Number, UserReferenceModel<? extends User>> userStatusProperty();
+    ChildPropertyWrapper<UserStatus, UserReferenceModel<? extends User>> userStatusProperty();
 
     String getUserStatusDisplay();
 

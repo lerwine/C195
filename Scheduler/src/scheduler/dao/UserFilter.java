@@ -3,7 +3,7 @@ package scheduler.dao;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import scheduler.AppResources;
-import static scheduler.util.Values.USER_STATUS_INACTIVE;
+import scheduler.dao.schema.DbName;
 import scheduler.view.ItemModel;
 import scheduler.view.user.UserModel;
 
@@ -48,18 +48,18 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 
                 @Override
                 public String getSqlFilterExpr() {
-                    return String.format("`%s` <> ?", UserColumns.COLNAME_ACTIVE_STATUS);
+                    return String.format("`%s` <> ?", DbName.ACTIVE);
                 }
 
                 @Override
                 public int apply(PreparedStatement ps, int index) throws SQLException {
-                    ps.setInt(index++, USER_STATUS_INACTIVE);
+                    ps.setInt(index++, UserStatus.INACTIVE.getValue());
                     return index;
                 }
 
                 @Override
                 public boolean test(UserModel t) {
-                    return t.getStatus() != USER_STATUS_INACTIVE;
+                    return t.getStatus() != UserStatus.INACTIVE;
                 }
 
             };
@@ -72,18 +72,18 @@ public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", UserColumns.COLNAME_ACTIVE_STATUS);
+                return String.format("`%s` = ?", DbName.ACTIVE);
             }
 
             @Override
             public int apply(PreparedStatement ps, int index) throws SQLException {
-                ps.setInt(index++, USER_STATUS_INACTIVE);
+                ps.setInt(index++, UserStatus.INACTIVE.getValue());
                 return index;
             }
 
             @Override
             public boolean test(UserModel t) {
-                return t.getStatus() == USER_STATUS_INACTIVE;
+                return t.getStatus() == UserStatus.INACTIVE;
             }
 
         };

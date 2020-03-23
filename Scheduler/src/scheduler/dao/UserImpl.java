@@ -6,50 +6,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
-import javafx.util.Pair;
-import scheduler.util.ResourceBundleLoader;
-import scheduler.util.Values;
-import scheduler.view.user.EditUser;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
 import scheduler.view.user.UserModel;
 
-public class UserImpl extends DataObjectImpl implements User, UserColumns {
+public class UserImpl extends DataObjectImpl implements User {
 
-    private static final ObservableMap<Integer, String> USER_STATUS_MAP = FXCollections.observableHashMap();
-    private static ObservableMap<Integer, String> userStatusMap = null;
-    private static String appointmentTypesLocale = null;
-    @Deprecated
-    private static final String BASE_SELECT_QUERY = String.format("SELECT %s, %s, %s, %s as %s, %s, %s, %s, %s FROM %s", COLNAME_USERID, COLNAME_USERNAME, COLNAME_PASSWORD,
-            COLNAME_ACTIVE_STATUS, COLALIAS_ACTIVE_STATUS, COLNAME_CREATEDATE, COLNAME_CREATEDBY, COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
-            TABLENAME_USER);
     private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static ObservableMap<Integer, String> getUserStatusMap() {
-        synchronized (USER_STATUS_MAP) {
-            if (null == userStatusMap) {
-                userStatusMap = FXCollections.unmodifiableObservableMap(USER_STATUS_MAP);
-            } else if (null != appointmentTypesLocale && appointmentTypesLocale.equals(Locale.getDefault(Locale.Category.DISPLAY).toLanguageTag())) {
-                return userStatusMap;
-            }
-            Locale locale = Locale.getDefault(Locale.Category.DISPLAY);
-            appointmentTypesLocale = locale.toLanguageTag();
-            ResourceBundle rb = ResourceBundleLoader.getBundle(EditUser.class);
-            Stream.of(new Pair<>((int) Values.USER_STATUS_INACTIVE, EditUser.RESOURCEKEY_INACTIVE), new Pair<>((int) Values.USER_STATUS_NORMAL, EditUser.RESOURCEKEY_NORMALUSER),
-                    new Pair<>((int) Values.USER_STATUS_ADMIN, EditUser.RESOURCEKEY_ADMINISTRATIVEUSER)).forEach((Pair<Integer, String> p) -> {
-                        USER_STATUS_MAP.put(p.getKey(), (rb.containsKey(p.getValue())) ? rb.getString(p.getValue()) : p.getValue());
-                    });
-        }
-        return userStatusMap;
-    }
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -57,16 +25,16 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
 
     private String userName;
     private String password;
-    private int status;
+    private UserStatus status;
 
     /**
-     * Initializes a {@link Values#ROWSTATE_NEW} user object.
+     * Initializes a {@link DataRowState#NEW} user object.
      */
     public UserImpl() {
         super();
         userName = "";
         password = "";
-        status = Values.USER_STATUS_NORMAL;
+        status = UserStatus.NORMAL;
     }
 
     @Override
@@ -98,7 +66,7 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
     }
 
     @Override
-    public int getStatus() {
+    public UserStatus getStatus() {
         return status;
     }
 
@@ -107,17 +75,24 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
      *
      * @param status new value of status
      */
-    public void setStatus(int status) {
-        this.status = Values.asValidUserStatus(status);
+    public void setStatus(UserStatus status) {
+        this.status = (null == status) ? UserStatus.NORMAL : status;
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl, UserModel> {
 
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+
+        private static final SelectList DETAIL_DML;
+
+        static {
+            DETAIL_DML = new SelectList(DbTable.USER);
+            DETAIL_DML.makeUnmodifiable();
+        }
+
         // This is a singleton instance
         private FactoryImpl() {
         }
-
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         /**
          * Loads the first {@link UserImpl} record matching the specified user name.
@@ -128,7 +103,8 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
          * @throws SQLException if unable to perform database query.
          */
         public Optional<UserImpl> findByUserName(Connection connection, String userName) throws SQLException {
-            String sql = String.format("%s WHERE `%s` = ?", getBaseSelectQuery(), COLNAME_USERNAME);
+            SelectList dml = getDetailDml();
+            String sql = dml.getSelectQuery().append(" WHERE `").append(DbColumn.USER_NAME.getDbName().getValue()).append("` = ?").toString();
             LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Set first parametr to \"%s\"", userName));
@@ -136,7 +112,7 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
                 //ps.setShort(2, Values.USER_STATUS_INACTIVE);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (null != rs && rs.next()) {
-                        return Optional.of(fromResultSet(rs));
+                        return Optional.of(fromResultSet(rs, dml));
                     }
                     SQLWarning w = connection.getWarnings();
                     if (null == w) {
@@ -150,15 +126,15 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
         }
 
         @Override
-        protected UserImpl fromResultSet(ResultSet resultSet) throws SQLException {
+        protected UserImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
             UserImpl r = new UserImpl();
-            initializeDao(r, resultSet);
+            initializeDao(r, resultSet, columns);
             return r;
         }
 
         @Override
-        public String getBaseSelectQuery() {
-            return BASE_SELECT_QUERY;
+        public SelectList getDetailDml() {
+            return DETAIL_DML;
         }
 
         @Override
@@ -167,46 +143,32 @@ public class UserImpl extends DataObjectImpl implements User, UserColumns {
         }
 
         @Override
-        public DbTable getTableName() {
+        public DbTable getDbTable() {
             return DbTable.USER;
         }
 
         @Override
-        public String getTableName_old() {
-            return TABLENAME_USER;
-        }
-
-        @Override
-        public String getPrimaryKeyColName() {
-            return COLNAME_USERID;
-        }
-
-        @Override
-        protected List<String> getExtendedColNames() {
-            return Arrays.asList(COLNAME_USERNAME, COLNAME_PASSWORD, COLNAME_ACTIVE_STATUS);
-        }
-
-        @Override
-        protected void setSaveStatementValues(UserImpl dao, PreparedStatement ps) throws SQLException {
-            ps.setString(1, dao.getUserName());
-            ps.setString(1, dao.getPassword());
-            ps.setInt(3, dao.getStatus());
-        }
-
-        @Override
-        protected void onInitializeDao(UserImpl target, ResultSet resultSet) throws SQLException {
-            target.userName = resultSet.getString(COLNAME_USERNAME);
-            if (resultSet.wasNull()) {
-                target.userName = "";
+        protected void setSaveStatementValue(UserImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+            switch (column) {
+                case USER_NAME:
+                    ps.setString(index, dao.getUserName());
+                    break;
+                case PASSWORD:
+                    ps.setString(index, dao.getPassword());
+                    break;
+                case STATUS:
+                    ps.setInt(index, dao.getStatus().getValue());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unexpected column name");
             }
-            target.password = resultSet.getString(COLNAME_PASSWORD);
-            if (resultSet.wasNull()) {
-                target.password = "";
-            }
-            target.status = Values.asValidUserStatus(resultSet.getInt(COLALIAS_ACTIVE_STATUS));
-            if (resultSet.wasNull()) {
-                target.status = Values.USER_STATUS_INACTIVE;
-            }
+        }
+
+        @Override
+        protected void onInitializeDao(UserImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+            target.userName = columns.getString(resultSet, DbColumn.USER_NAME, "");
+            target.password = columns.getString(resultSet, DbColumn.PASSWORD, "");
+            target.status = UserStatus.of(columns.getInt(resultSet, DbColumn.STATUS, UserStatus.INACTIVE.getValue()), UserStatus.INACTIVE);
         }
 
         @Override

@@ -5,11 +5,9 @@ import javafx.beans.property.ReadOnlyObjectPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import scheduler.dao.DataRowState;
-import scheduler.util.Values;
 
 /**
- * A {@link SimpleIntegerProperty} that represents a valid data rows state value. The value will be {@link Values#ROWSTATE_NEW}, {@link Values#ROWSTATE_UNMODIFIED},
- * {@link Values#ROWSTATE_MODIFIED} or {@link Values#ROWSTATE_DELETED}.
+ * A {@link SimpleIntegerProperty} that contains a {@link DataRowState}.
  *
  * @author erwinel
  */

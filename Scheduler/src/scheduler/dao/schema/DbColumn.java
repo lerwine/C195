@@ -1,148 +1,357 @@
 package scheduler.dao.schema;
 
-import java.util.Arrays;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import scheduler.util.ReadOnlyList;
 
 /**
- *
+ * Database table columns defined in the application database.
+ * 
  * @author lerwi
  */
 public enum DbColumn {
-    APPOINTMENT_CUSTOMER("customerId", ColumnType.INT, 10, DbTable.APPOINTMENT, ColumnUsage.FOREIGN_KEY),
-    CUSTOMER_NAME("customerName", ColumnType.VARCHAR, 45, DbTable.CUSTOMER, ColumnUsage.UNIQUE_KEY),
-    CUSTOMER_ADDRESS("addressId", ColumnType.INT, 10, DbTable.CUSTOMER, ColumnUsage.FOREIGN_KEY),
-    ADDRESS1("address", ColumnType.VARCHAR, 50, DbTable.ADDRESS, ColumnUsage.OTHER),
-    ADDRESS2("address2", ColumnType.VARCHAR, 50, DbTable.ADDRESS, ColumnUsage.OTHER),
-    ADDRESS_CITY("cityId", ColumnType.INT, 10, DbTable.ADDRESS, ColumnUsage.FOREIGN_KEY),
-    CITY_NAME("city", ColumnType.VARCHAR, 50, DbTable.CITY, ColumnUsage.OTHER),
-    CITY_COUNTRY("countryId", ColumnType.INT, 10, DbTable.CITY, ColumnUsage.FOREIGN_KEY),
-    COUNTRY_NAME("country", ColumnType.VARCHAR, 50, DbTable.COUNTRY, ColumnUsage.OTHER),
-    POSTAL_CODE("postalCode", ColumnType.VARCHAR, 10, DbTable.ADDRESS, ColumnUsage.OTHER),
-    PHONE("phone", ColumnType.VARCHAR, 20, DbTable.ADDRESS, ColumnUsage.OTHER),
-    ACTIVE("active", ColumnType.TINYINT_BOOLEAN, DbTable.CUSTOMER, ColumnUsage.OTHER),
-    APPOINTMENT_USER("userId", ColumnType.INT, 11, DbTable.APPOINTMENT, ColumnUsage.FOREIGN_KEY),
-    USER_NAME("userName", ColumnType.VARCHAR, 50, DbTable.USER, ColumnUsage.UNIQUE_KEY),
-    PASSWORD("password", ColumnType.VARCHAR_PWD_HASH, 50, DbTable.USER, ColumnUsage.CRYPTO_HASH),
-    STATUS("active", ColumnType.TINYINT, "status", 4, DbTable.USER, ColumnUsage.OTHER),
-    TITLE("title", ColumnType.VARCHAR, 255, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    DESCRIPTION("description", ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    LOCATION("location", ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    CONTACT("contact", ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    TYPE("type", ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    URL("url", ColumnType.VARCHAR, 255, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    START("start", ColumnType.DATETIME, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    END("end", ColumnType.DATETIME, DbTable.APPOINTMENT, ColumnUsage.OTHER),
-    APPOINTMENT_ID("appointmentId", ColumnType.AUTO_INCREMENT, 10, DbTable.APPOINTMENT, ColumnUsage.PRIMARY_KEY),
-    APPOINTMENT_CREATE_DATE("createDate", ColumnType.DATETIME, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
-    APPOINTMENT_CREATED_BY("createdBy", ColumnType.VARCHAR, 40, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
-    APPOINTMENT_LAST_UPDATE("lastUpdate", ColumnType.TIMESTAMP, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
-    APPOINTMENT_LAST_UPDATE_BY("lastUpdateBy", ColumnType.VARCHAR, 40, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
-    CUSTOMER_ID("customerId", ColumnType.AUTO_INCREMENT, 10, DbTable.CUSTOMER, ColumnUsage.PRIMARY_KEY),
-    CUSTOMER_CREATE_DATE("createDate", ColumnType.DATETIME, DbTable.CUSTOMER, ColumnUsage.AUDIT),
-    CUSTOMER_CREATED_BY("createdBy", ColumnType.VARCHAR, 40, DbTable.CUSTOMER, ColumnUsage.AUDIT),
-    CUSTOMER_LAST_UPDATE("lastUpdate", ColumnType.TIMESTAMP, DbTable.CUSTOMER, ColumnUsage.AUDIT),
-    CUSTOMER_LAST_UPDATE_BY("lastUpdateBy", ColumnType.VARCHAR, 40, DbTable.CUSTOMER, ColumnUsage.AUDIT),
-    ADDRESS_ID("addressId", ColumnType.AUTO_INCREMENT, 10, DbTable.ADDRESS, ColumnUsage.PRIMARY_KEY),
-    ADDRESS_CREATE_DATE("createDate", ColumnType.DATETIME, DbTable.ADDRESS, ColumnUsage.AUDIT),
-    ADDRESS_CREATED_BY("createdBy", ColumnType.VARCHAR, 40, DbTable.ADDRESS, ColumnUsage.AUDIT),
-    ADDRESS_LAST_UPDATE("lastUpdate", ColumnType.TIMESTAMP, DbTable.ADDRESS, ColumnUsage.AUDIT),
-    ADDRESS_LAST_UPDATE_BY("lastUpdateBy", ColumnType.VARCHAR, 40, DbTable.ADDRESS, ColumnUsage.AUDIT),
-    CITY_ID("cityId", ColumnType.AUTO_INCREMENT, 10, DbTable.CITY, ColumnUsage.PRIMARY_KEY),
-    CITY_CREATE_DATE("createDate", ColumnType.DATETIME, DbTable.CITY, ColumnUsage.AUDIT),
-    CITY_CREATED_BY("createdBy", ColumnType.VARCHAR, 40, DbTable.CITY, ColumnUsage.AUDIT),
-    CITY_LAST_UPDATE("lastUpdate", ColumnType.TIMESTAMP, DbTable.CITY, ColumnUsage.AUDIT),
-    CITY_LAST_UPDATE_BY("lastUpdateBy", ColumnType.VARCHAR, 40, DbTable.CITY, ColumnUsage.AUDIT),
-    COUNTRY_ID("countryId", ColumnType.AUTO_INCREMENT, 10, DbTable.COUNTRY, ColumnUsage.PRIMARY_KEY),
-    COUNTRY_CREATE_DATE("createDate", ColumnType.DATETIME, DbTable.COUNTRY, ColumnUsage.AUDIT),
-    COUNTRY_CREATED_BY("createdBy", ColumnType.VARCHAR, 40, DbTable.COUNTRY, ColumnUsage.AUDIT),
-    COUNTRY_LAST_UPDATE("lastUpdate", ColumnType.TIMESTAMP, DbTable.COUNTRY, ColumnUsage.AUDIT),
-    COUNTRY_LAST_UPDATE_BY("lastUpdateBy", ColumnType.VARCHAR, 40, DbTable.COUNTRY, ColumnUsage.AUDIT),
-    USER_ID("userId", ColumnType.AUTO_INCREMENT, 11, DbTable.USER, ColumnUsage.PRIMARY_KEY),
-    USER_CREATE_DATE("createDate", ColumnType.DATETIME, DbTable.USER, ColumnUsage.AUDIT),
-    USER_CREATED_BY("createdBy", ColumnType.VARCHAR, 40, DbTable.USER, ColumnUsage.AUDIT),
-    USER_LAST_UPDATE("lastUpdate", ColumnType.TIMESTAMP, DbTable.USER, ColumnUsage.AUDIT),
-    USER_LAST_UPDATE_BY("lastUpdateBy", ColumnType.VARCHAR, 40, DbTable.USER, ColumnUsage.AUDIT);
+    /**
+     * The {@code customerId} column in the {@code appointment} data table.
+     * Refers to the {@link DbTable#CUSTOMER} table using the {@link DbColumn#CUSTOMER_ID} column.
+     */
+    APPOINTMENT_CUSTOMER(DbName.CUSTOMER_ID, ColumnType.INT, 10, DbTable.APPOINTMENT, ColumnUsage.FOREIGN_KEY,
+            new ForeignKey("appointment_ibfk_1", DbTable.CUSTOMER, DbName.CUSTOMER_ID)),
+    /**
+     * The {@code customerName} column in the {@code customer} data table.
+     */
+    CUSTOMER_NAME(DbName.CUSTOMER_NAME, ColumnType.VARCHAR, 45, DbTable.CUSTOMER, ColumnUsage.UNIQUE_KEY),
+    /**
+     * The {@code addressId} column in the {@code customer} data table.
+     * Refers to the {@link DbTable#ADDRESS} table using the {@link DbColumn#ADDRESS_ID} column.
+     */
+    CUSTOMER_ADDRESS(DbName.ADDRESS_ID, ColumnType.INT, 10, DbTable.CUSTOMER, ColumnUsage.FOREIGN_KEY,
+            new ForeignKey("customer_ibfk_1", DbTable.ADDRESS, DbName.ADDRESS_ID)),
+    /**
+     * The {@code address} column in the {@code address} data table.
+     */
+    ADDRESS1(DbName.ADDRESS, ColumnType.VARCHAR, 50, DbTable.ADDRESS, ColumnUsage.DATA),
+    /**
+     * The {@code address1} column in the {@code address} data table.
+     */
+    ADDRESS2(DbName.ADDRESS2, ColumnType.VARCHAR, 50, DbTable.ADDRESS, ColumnUsage.DATA),
+    /**
+     * The {@code cityId} column in the {@code address} data table.
+     * Refers to the {@link DbTable#CITY} table using the {@link DbColumn#CITY_ID} column.
+     */
+    ADDRESS_CITY(DbName.CITY_ID, ColumnType.INT, 10, DbTable.ADDRESS, ColumnUsage.FOREIGN_KEY,
+            new ForeignKey("address_ibfk_1", DbTable.CITY, DbName.CITY_ID)),
+    /**
+     * The {@code city} column in the {@code city} data table.
+     */
+    CITY_NAME(DbName.CITY, ColumnType.VARCHAR, 50, DbTable.CITY, ColumnUsage.DATA),
+    /**
+     * The {@code countryId} column in the {@code city} data table.
+     * Refers to the {@link DbTable#COUNTRY} table using the {@link DbColumn#COUNTRY_ID} column.
+     */
+    CITY_COUNTRY(DbName.COUNTRY_ID, ColumnType.INT, 10, DbTable.CITY, ColumnUsage.FOREIGN_KEY,
+            new ForeignKey("address_ibfk_1", DbTable.COUNTRY, DbName.COUNTRY_ID)),
+    /**
+     * The {@code country} column in the {@code country} data table.
+     */
+    COUNTRY_NAME(DbName.COUNTRY, ColumnType.VARCHAR, 50, DbTable.COUNTRY, ColumnUsage.DATA),
+    /**
+     * The {@code postalCode} column in the {@code address} data table.
+     */
+    POSTAL_CODE(DbName.POSTAL_CODE, ColumnType.VARCHAR, 10, DbTable.ADDRESS, ColumnUsage.DATA),
+    /**
+     * The {@code phone} column in the {@code address} data table.
+     */
+    PHONE(DbName.PHONE, ColumnType.VARCHAR, 20, DbTable.ADDRESS, ColumnUsage.DATA),
+    /**
+     * The {@code active} column in the {@code customer} data table.
+     */
+    ACTIVE(DbName.ACTIVE, ColumnType.TINYINT_BOOLEAN, DbTable.CUSTOMER, ColumnUsage.DATA),
+    /**
+     * The {@code userId} column in the {@code appointment} data table.
+     * Refers to the {@link DbTable#USER} table using the {@link DbColumn#USER_ID} column.
+     */
+    APPOINTMENT_USER(DbName.USER_ID, ColumnType.INT, 11, DbTable.APPOINTMENT, ColumnUsage.FOREIGN_KEY,
+            new ForeignKey("appointment_ibfk_1", DbTable.USER, DbName.USER_ID)),
+    /**
+     * The {@code userName} column in the {@code user} data table.
+     */
+    USER_NAME(DbName.USER_NAME, ColumnType.VARCHAR, 50, DbTable.USER, ColumnUsage.UNIQUE_KEY),
+    /**
+     * The {@code password} column in the {@code user} data table.
+     */
+    PASSWORD(DbName.PASSWORD, ColumnType.VARCHAR_PWD_HASH, 50, DbTable.USER, ColumnUsage.CRYPTO_HASH),
+    /**
+     * The {@code active} column in the {@code user} data table, usually referred to by the {@code status} alias.
+     */
+    STATUS(DbName.ACTIVE, ColumnType.TINYINT, "status", 4, DbTable.USER, ColumnUsage.DATA),
+    /**
+     * The {@code title} column in the {@code appointment} data table.
+     */
+    TITLE(DbName.TITLE, ColumnType.VARCHAR, 255, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code description} column in the {@code appointment} data table.
+     */
+    DESCRIPTION(DbName.DESCRIPTION, ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code location} column in the {@code appointment} data table.
+     */
+    LOCATION(DbName.LOCATION, ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code contact} column in the {@code appointment} data table.
+     */
+    CONTACT(DbName.CONTACT, ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code type} column in the {@code appointment} data table.
+     */
+    TYPE(DbName.TYPE, ColumnType.TEXT, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code url} column in the {@code appointment} data table.
+     */
+    URL(DbName.URL, ColumnType.VARCHAR, 255, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code start} column in the {@code appointment} data table.
+     */
+    START(DbName.START, ColumnType.DATETIME, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code end} column in the {@code appointment} data table.
+     */
+    END(DbName.END, ColumnType.DATETIME, DbTable.APPOINTMENT, ColumnUsage.DATA),
+    /**
+     * The {@code appointmentId} column in the {@code appointment} data table.
+     */
+    APPOINTMENT_ID(DbName.APPOINTMENT_ID, ColumnType.AUTO_INCREMENT, 10, DbTable.APPOINTMENT, ColumnUsage.PRIMARY_KEY),
+    /**
+     * The {@code createDate} column in the {@code appointment} data table.
+     */
+    APPOINTMENT_CREATE_DATE(DbName.CREATE_DATE, ColumnType.DATETIME, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
+    /**
+     * The {@code createdBy} column in the {@code appointment} data table.
+     */
+    APPOINTMENT_CREATED_BY(DbName.CREATED_BY, ColumnType.VARCHAR, 40, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdate} column in the {@code appointment} data table.
+     */
+    APPOINTMENT_LAST_UPDATE(DbName.LAST_UPDATE, ColumnType.TIMESTAMP, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdateBy} column in the {@code appointment} data table.
+     */
+    APPOINTMENT_LAST_UPDATE_BY(DbName.LAST_UPDATE_BY, ColumnType.VARCHAR, 40, DbTable.APPOINTMENT, ColumnUsage.AUDIT),
+    /**
+     * The {@code customerId} column in the {@code customer} data table.
+     */
+    CUSTOMER_ID(DbName.CUSTOMER_ID, ColumnType.AUTO_INCREMENT, 10, DbTable.CUSTOMER, ColumnUsage.PRIMARY_KEY),
+    /**
+     * The {@code createDate} column in the {@code customer} data table.
+     */
+    CUSTOMER_CREATE_DATE(DbName.CREATE_DATE, ColumnType.DATETIME, DbTable.CUSTOMER, ColumnUsage.AUDIT),
+    /**
+     * The {@code createdBy} column in the {@code customer} data table.
+     */
+    CUSTOMER_CREATED_BY(DbName.CREATED_BY, ColumnType.VARCHAR, 40, DbTable.CUSTOMER, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdate} column in the {@code customer} data table.
+     */
+    CUSTOMER_LAST_UPDATE(DbName.LAST_UPDATE, ColumnType.TIMESTAMP, DbTable.CUSTOMER, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdateBy} column in the {@code customer} data table.
+     */
+    CUSTOMER_LAST_UPDATE_BY(DbName.LAST_UPDATE_BY, ColumnType.VARCHAR, 40, DbTable.CUSTOMER, ColumnUsage.AUDIT),
+    /**
+     * The {@code addressId} column in the {@code address} data table.
+     */
+    ADDRESS_ID(DbName.ADDRESS_ID, ColumnType.AUTO_INCREMENT, 10, DbTable.ADDRESS, ColumnUsage.PRIMARY_KEY),
+    /**
+     * The {@code createDate} column in the {@code address} data table.
+     */
+    ADDRESS_CREATE_DATE(DbName.CREATE_DATE, ColumnType.DATETIME, DbTable.ADDRESS, ColumnUsage.AUDIT),
+    /**
+     * The {@code createdBy} column in the {@code address} data table.
+     */
+    ADDRESS_CREATED_BY(DbName.CREATED_BY, ColumnType.VARCHAR, 40, DbTable.ADDRESS, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdate} column in the {@code address} data table.
+     */
+    ADDRESS_LAST_UPDATE(DbName.LAST_UPDATE, ColumnType.TIMESTAMP, DbTable.ADDRESS, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdateBy} column in the {@code address} data table.
+     */
+    ADDRESS_LAST_UPDATE_BY(DbName.LAST_UPDATE_BY, ColumnType.VARCHAR, 40, DbTable.ADDRESS, ColumnUsage.AUDIT),
+    /**
+     * The {@code cityId} column in the {@code city} data table.
+     */
+    CITY_ID(DbName.CITY_ID, ColumnType.AUTO_INCREMENT, 10, DbTable.CITY, ColumnUsage.PRIMARY_KEY),
+    /**
+     * The {@code createDate} column in the {@code city} data table.
+     */
+    CITY_CREATE_DATE(DbName.CREATE_DATE, ColumnType.DATETIME, DbTable.CITY, ColumnUsage.AUDIT),
+    /**
+     * The {@code createdBy} column in the {@code city} data table.
+     */
+    CITY_CREATED_BY(DbName.CREATED_BY, ColumnType.VARCHAR, 40, DbTable.CITY, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdate} column in the {@code city} data table.
+     */
+    CITY_LAST_UPDATE(DbName.LAST_UPDATE, ColumnType.TIMESTAMP, DbTable.CITY, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdateBy} column in the {@code city} data table.
+     */
+    CITY_LAST_UPDATE_BY(DbName.LAST_UPDATE_BY, ColumnType.VARCHAR, 40, DbTable.CITY, ColumnUsage.AUDIT),
+    /**
+     * The {@code countryId} column in the {@code country} data table.
+     */
+    COUNTRY_ID(DbName.COUNTRY_ID, ColumnType.AUTO_INCREMENT, 10, DbTable.COUNTRY, ColumnUsage.PRIMARY_KEY),
+    /**
+     * The {@code createDate} column in the {@code country} data table.
+     */
+    COUNTRY_CREATE_DATE(DbName.CREATE_DATE, ColumnType.DATETIME, DbTable.COUNTRY, ColumnUsage.AUDIT),
+    /**
+     * The {@code createdBy} column in the {@code country} data table.
+     */
+    COUNTRY_CREATED_BY(DbName.CREATED_BY, ColumnType.VARCHAR, 40, DbTable.COUNTRY, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdate} column in the {@code country} data table.
+     */
+    COUNTRY_LAST_UPDATE(DbName.LAST_UPDATE, ColumnType.TIMESTAMP, DbTable.COUNTRY, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdateBy} column in the {@code country} data table.
+     */
+    COUNTRY_LAST_UPDATE_BY(DbName.LAST_UPDATE_BY, ColumnType.VARCHAR, 40, DbTable.COUNTRY, ColumnUsage.AUDIT),
+    /**
+     * The {@code userId} column in the {@code user} data table.
+     */
+    USER_ID(DbName.USER_ID, ColumnType.AUTO_INCREMENT, 11, DbTable.USER, ColumnUsage.PRIMARY_KEY),
+    /**
+     * The {@code createDate} column in the {@code user} data table.
+     */
+    USER_CREATE_DATE(DbName.CREATE_DATE, ColumnType.DATETIME, DbTable.USER, ColumnUsage.AUDIT),
+    /**
+     * The {@code createdBy} column in the {@code user} data table.
+     */
+    USER_CREATED_BY(DbName.CREATED_BY, ColumnType.VARCHAR, 40, DbTable.USER, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdate} column in the {@code user} data table.
+     */
+    USER_LAST_UPDATE(DbName.LAST_UPDATE, ColumnType.TIMESTAMP, DbTable.USER, ColumnUsage.AUDIT),
+    /**
+     * The {@code lastUpdateBy} column in the {@code user} data table.
+     */
+    USER_LAST_UPDATE_BY(DbName.LAST_UPDATE_BY, ColumnType.VARCHAR, 40, DbTable.USER, ColumnUsage.AUDIT);
 
-    public static Stream<DbColumn> getColumns(DbTable tableName) {
-        return Arrays.stream(DbColumn.values()).filter((t) -> t.getTable() == tableName);
-    }
-
-    public static Stream<DbColumn> getColumns(DbTable tableName, Predicate<DbColumn> predicate) {
-        return Arrays.stream(DbColumn.values()).filter((t) -> 
-                t.getTable() == tableName && 
-                        predicate.test(t));
-    }
-
-    public static Stream<DbColumn> getColumns(Predicate<DbColumn> predicate) {
-        return Arrays.stream(DbColumn.values()).filter(predicate);
-    }
-
-    private final String dbName;
+    private final DbName dbName;
     private final ColumnType type;
-    private final String alias;
+    private final String defaultAlias;
     private final DbTable table;
     private final int maxLength;
     private final ColumnUsage usage;
-    private final boolean auditColumn;
+    private final ReadOnlyList<ForeignKey> foreignKeys;
 
-    private DbColumn(String dbName, ColumnType type, String alias, int maxLength, DbTable table, ColumnUsage usage) {
-        if (null == dbName) {
-            this.dbName = this.alias = name();
-        } else {
-            this.dbName = dbName;
-            this.alias = alias;
-        }
+    private DbColumn(DbName dbName, ColumnType type, String alias, int maxLength, DbTable table, ColumnUsage usage, ForeignKey ...foreignKeys) {
+        this.dbName = dbName;
+        this.defaultAlias = alias;
         this.type = type;
         this.maxLength = maxLength;
         this.table = table;
         this.usage = usage;
-        this.auditColumn = usage == ColumnUsage.AUDIT;
+        this.foreignKeys = (null == foreignKeys) ? ReadOnlyList.empty() : ReadOnlyList.of(foreignKeys);
     }
 
-    private DbColumn(String dbName, ColumnType type, int maxLength, DbTable table, ColumnUsage usage) {
-        this(dbName, type, dbName, maxLength, table, usage);
+    private DbColumn(DbName dbName, ColumnType type, int maxLength, DbTable table, ColumnUsage usage, ForeignKey ...foreignKeys) {
+        this(dbName, type, dbName.getValue(), maxLength, table, usage, foreignKeys);
     }
 
-    private DbColumn(String dbName, ColumnType type, DbTable table, ColumnUsage usage) {
-        this(dbName, type, -1, table, usage);
+    private DbColumn(DbName dbName, ColumnType type, DbTable table, ColumnUsage usage, ForeignKey ...foreignKeys) {
+        this(dbName, type, -1, table, usage, foreignKeys);
     }
 
-    public String getDbName() {
+    /**
+     * Gets the database name of the table.
+     * 
+     * @return The database name of the table.
+     */
+    public DbName getDbName() {
         return dbName;
     }
 
+    /**
+     * Gets the column type.
+     * 
+     * @return The {@link ColumnType}.
+     */
     public ColumnType getType() {
         return type;
     }
 
-    public String getAlias() {
-        return alias;
+    /**
+     * Gets the default alias for this column.
+     * 
+     * @return The default column alias for use in SQL query strings.
+     */
+    public String getDefaultAlias() {
+        return defaultAlias;
     }
 
+    /**
+     * Gets the table to which this column belongs.
+     * 
+     * @return The {@link DbTable} that the current column belongs to.
+     */
     public DbTable getTable() {
         return table;
     }
 
+    /**
+     * Gets the maximum length of values for this column.
+     * A value of {@code -1} indicates that there is no maximum value or it is not applicable.
+     * 
+     * @return The maximum length of values for this column or {@code -1} if not applicable.
+     */
     public int getMaxLength() {
         return maxLength;
     }
+    
+    /**
+     * Calculates the maximum value for this column.
+     * A value of {@code -1} indicates that there is no maximum value or it is not applicable.
+     * 
+     * @return The maximum value for this column or {@code -1} if not applicable.
+     */
+    public int calculateMaxValue() {
+        if (maxLength > 0 && type.getValueType() == ValueType.INT)
+            return (int)Math.pow(10, maxLength);
+        return -1;
+    }
 
+    /**
+     * Specifies general purpose of the column.
+     * 
+     * @return A {@link ColumnUsage} value that indicates the general purpose of the column.
+     */
     public ColumnUsage getUsage() {
         return usage;
     }
 
-    public boolean isAuditColumn() {
-        return auditColumn;
+    /**
+     * Gets foreign key relationships for the current column.
+     * 
+     * @return A {@link ReadOnlyList} of {@link ForeignKey} objects that define the foreign key relationships for the current column.
+     */
+    public ReadOnlyList<ForeignKey> getForeignKeys() {
+        return foreignKeys;
     }
 
-    public static boolean isEntityData(DbColumn column) {
-        switch (column.usage) {
-            case CRYPTO_HASH:
-            case OTHER:
-            case UNIQUE_KEY:
-                return true;
-        }
-        return false;
+    /**
+     * Tests whether another column is the target of a foreign key relationship with the current.
+     * 
+     * @param other The other {@link DbColumn} to test.
+     * @return {@code true} if the {@code other} column in referenced in any of the elements the {@link #foreignKeys} list; otherwise, false;
+     */
+    public boolean isForeignKeyTarget(DbColumn other) {
+        DbTable o = other.table;
+        DbName n = other.dbName;
+        return foreignKeys.stream().anyMatch((t) -> t.getTable() == o && t.getColumnName() == n);
     }
+    
+    @Override
+    public String toString() {
+        return defaultAlias;
+    }
+    
 }

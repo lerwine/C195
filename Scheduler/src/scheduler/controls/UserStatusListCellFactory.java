@@ -1,21 +1,18 @@
 package scheduler.controls;
 
-import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
-import scheduler.dao.UserImpl;
+import scheduler.dao.UserStatus;
 
 /**
  *
  * @author lerwi
  */
-public class UserStatusListCellFactory implements Callback<ListView<Integer>, ListCell<Integer>> {
-
-    private final ObservableMap<Integer, String> userStatusMap = UserImpl.getUserStatusMap();
+public class UserStatusListCellFactory implements Callback<ListView<UserStatus>, ListCell<UserStatus>> {
 
     @Override
-    public ListCell<Integer> call(ListView<Integer> param) {
-        return new UserStatusListCell(userStatusMap);
+    public ListCell<UserStatus> call(ListView<UserStatus> param) {
+        return new UserStatusListCell();
     }
 }

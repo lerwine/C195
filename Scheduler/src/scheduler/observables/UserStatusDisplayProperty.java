@@ -2,11 +2,11 @@ package scheduler.observables;
 
 import java.util.Objects;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.util.Values;
+import scheduler.dao.UserStatus;
 
 /**
  *
@@ -14,11 +14,11 @@ import scheduler.util.Values;
  */
 public class UserStatusDisplayProperty extends StringBinding implements ReadOnlyProperty<String> {
 
-    private final ReadOnlyIntegerProperty backingProperty;
+    private final ReadOnlyObjectProperty<UserStatus> backingProperty;
     private final Object bean;
     private final String name;
 
-    public UserStatusDisplayProperty(Object bean, String name, ReadOnlyIntegerProperty statusProperty) {
+    public UserStatusDisplayProperty(Object bean, String name, ReadOnlyObjectProperty<UserStatus> statusProperty) {
         this.bean = bean;
         this.name = (null == name) ? "" : name;
         super.bind(Objects.requireNonNull(backingProperty = Objects.requireNonNull(statusProperty)));
@@ -26,7 +26,7 @@ public class UserStatusDisplayProperty extends StringBinding implements ReadOnly
 
     @Override
     protected String computeValue() {
-        return Values.toUserStatusDisplay(backingProperty.get());
+        return UserStatus.toDisplayValue(backingProperty.get());
     }
 
     @Override

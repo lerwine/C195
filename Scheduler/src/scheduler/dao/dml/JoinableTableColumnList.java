@@ -6,7 +6,8 @@ import java.util.function.Predicate;
 import scheduler.dao.schema.DbColumn;
 
 /**
- * Represents a list of table columns that can be joined to another list of table columns.
+ * A {@link TableColumnList} that is joined to zero or more {@link JoinedTableColumnList}s.
+ * If {@link JoinableTableColumnList#isEmpty()} is {@code true}, then this will should be a "leaf" {@link JoinedTableColumnList} as well.
  * 
  * @author lerwi
  * @param <T> The type of {@link JoinedTableColumnList} that represents the joined list of table columns.

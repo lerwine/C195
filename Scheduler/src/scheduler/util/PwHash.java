@@ -15,7 +15,6 @@ import javafx.beans.value.ObservableValue;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.InternalException;
 
 /**
  * Contains a password hashed intended to be stored (in string format) in the database.

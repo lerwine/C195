@@ -5,22 +5,24 @@
  */
 package scheduler.dao.schema;
 
+import java.util.Iterator;
+
 /**
  *
  * @author lerwi
  */
 public enum DbTable {
-    COUNTRY("country", "n", "countryId"),
-    CITY("city", "c", "cityId"),
-    ADDRESS("address", "l", "addressId"),
-    CUSTOMER("customer", "p", "customerId"),
-    APPOINTMENT("appointment", "a", "appointmentId"),
-    USER("user", "u", "userId");
-    private final String dbName;
+    COUNTRY(DbName.COUNTRY, "n", DbName.COUNTRY_ID),
+    CITY(DbName.CITY, "c", DbName.CITY_ID),
+    ADDRESS(DbName.ADDRESS, "l", DbName.ADDRESS_ID),
+    CUSTOMER(DbName.CUSTOMER, "p", DbName.CUSTOMER_ID),
+    APPOINTMENT(DbName.APPOINTMENT, "a", DbName.APPOINTMENT_ID),
+    USER(DbName.USER_ID, "u", DbName.USER_ID);
+    private final DbName dbName;
     private final String alias;
-    private final String pkColName;
+    private final DbName pkColName;
 
-    public String getDbName() {
+    public DbName getDbName() {
         return dbName;
     }
 
@@ -28,13 +30,19 @@ public enum DbTable {
         return alias;
     }
 
-    public String getPkColName() {
+    public DbName getPkColName() {
         return pkColName;
     }
     
-    private DbTable(String dbName, String alias, String pkColName) {
+    private DbTable(DbName dbName, String alias, DbName pkColName) {
         this.dbName = dbName;
         this.alias = alias;
         this.pkColName = pkColName;
     }
+    
+    @Override
+    public String toString() {
+        return alias;
+    }
+
 }

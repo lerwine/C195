@@ -20,7 +20,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.App;
+import scheduler.Scheduler;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.Alerts;
@@ -149,7 +149,7 @@ public final class Login extends SchedulerController {
 
     @FXML
     void loginButtonClick(ActionEvent event) {
-        App.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        Scheduler.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null) {
                 Alerts.showErrorAlert(((Button)event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             } else {

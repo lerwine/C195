@@ -13,6 +13,7 @@ public class PropertyBindable implements IPropertyBindable {
 
     private transient final PropertyChangeSupportImpl propertyChangeSupport = new PropertyChangeSupportImpl();
 
+    // TODO: Ensure all derrived classes are implementing property change support they should.
     /**
      * Gets the {@link PropertyChangeSupport} object for supporting bound properties.
      *
@@ -41,7 +42,7 @@ public class PropertyBindable implements IPropertyBindable {
     }
 
     /**
-     * This gets called when {@link PropertyChangeSupport#firePropertyChange(java.beans.PropertyChangeEvent) is invoked.\
+     * This gets called when {@link PropertyChangeSupport#firePropertyChange(java.beans.PropertyChangeEvent)} is invoked.
      *
      * @param event The {@code PropertyChangeEvent} that was fired.
      */

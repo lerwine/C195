@@ -7,10 +7,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResources;
-import static scheduler.dao.CityColumns.COLNAME_CITYID;
-import static scheduler.dao.CustomerImpl.COLNAME_ACTIVE;
-import static scheduler.dao.CityImpl.COLNAME_COUNTRYID;
-import static scheduler.dao.TableNames.TABLEALIAS_CUSTOMER;
+import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.ItemModel;
 import scheduler.view.address.AddressReferenceModel;
@@ -66,7 +63,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_ACTIVE);
+                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.ACTIVE);
             }
 
             @Override
@@ -117,7 +114,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_CITYID);
+                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.CITY_ID);
             }
 
             @Override
@@ -157,7 +154,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_CITYID);
+                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.CITY_ID);
             }
 
             @Override
@@ -202,7 +199,7 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
 
             @Override
             public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", TABLEALIAS_CUSTOMER, COLNAME_COUNTRYID);
+                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.COUNTRY_ID);
             }
 
             @Override

@@ -128,9 +128,9 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param heading The heading text to display above the {@code operation} text while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onSuccess The {@link Runnable} to invoke after the {@link consumer} is executed without any exceptions. This will be executed in the FX
+     * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
-     * @param onError The {@link Consumer} to invoke if the main {@link consumer} throws an exception. This will be executed in the FX application
+     * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
      */
     public static void acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer,
@@ -160,7 +160,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param heading The heading text to display above the {@code operation} text while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onSuccess The {@link Runnable} to invoke after the {@link consumer} is executed without any exceptions. This will be executed in the FX
+     * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
      */
     public static void acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer,
@@ -189,7 +189,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param heading The heading text to display above the {@code operation} text while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onError The {@link Consumer} to invoke if the main {@link consumer} throws an exception. This will be executed in the FX application
+     * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
      */
     public static void acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
@@ -231,9 +231,9 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param operation The description of the operation to be displayed as the message text while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onSuccess The {@link Runnable} to invoke after the {@link consumer} is executed without any exceptions. This will be executed in the FX
+     * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
-     * @param onError The {@link Consumer} to invoke if the main {@link consumer} throws an exception. This will be executed in the FX application
+     * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
      */
     public static void acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess, Consumer<Exception> onError) {
@@ -247,7 +247,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param operation The description of the operation to be displayed as the message text while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onSuccess The {@link Runnable} to invoke after the {@link consumer} is executed without any exceptions. This will be executed in the FX
+     * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
      */
     public static void acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess) {
@@ -261,7 +261,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param operation The description of the operation to be displayed as the message text while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onError The {@link Consumer} to invoke if the main {@link consumer} throws an exception. This will be executed in the FX application
+     * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
      */
     public static void acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
@@ -287,9 +287,9 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param stage The {@link Stage} for the view that will be masked while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onSuccess The {@link Runnable} to invoke after the {@link consumer} is executed without any exceptions. This will be executed in the FX
+     * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
-     * @param onError The {@link Consumer} to invoke if the main {@link consumer} throws an exception. This will be executed in the FX application
+     * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
      */
     public static void acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess, Consumer<Exception> onError) {
@@ -302,7 +302,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param stage The {@link Stage} for the view that will be masked while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onSuccess The {@link Runnable} to invoke after the {@link consumer} is executed without any exceptions. This will be executed in the FX
+     * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
      */
     public static void acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess) {
@@ -315,7 +315,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param stage The {@link Stage} for the view that will be masked while the task is executing.
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
-     * @param onError The {@link Consumer} to invoke if the main {@link consumer} throws an exception. This will be executed in the FX application
+     * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
      */
     public static void acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
@@ -385,8 +385,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param heading The heading text to display above the {@code operation} text while the task is executing.
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
-     * @param onSuccess The {@link Consumer} to accept the results of {@link func}. This will be executed in the FX application thread.
-     * @param onError The {@link Consumer} to invoke if {@link func} throws an exception. This will be executed in the FX application thread.
+     * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
+     * @param onError The {@link Consumer} to invoke if {@code func} throws an exception. This will be executed in the FX application thread.
      */
     public static <T> void applyAsync(Stage stage, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
         TaskWaiterImpl<T> task = new TaskWaiterImpl<>(stage, operation, heading, func);
@@ -416,7 +416,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param heading The heading text to display above the {@code operation} text while the task is executing.
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
-     * @param onSuccess The {@link Consumer} to accept the results of {@link func}. This will be executed in the FX application thread.
+     * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
      */
     public static <T> void applyAsync(Stage stage, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
         TaskWaiterImpl<T> task = new TaskWaiterImpl<>(stage, operation, heading, func);
@@ -459,8 +459,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param operation The description of the operation to be displayed as the message text while the task is executing.
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
-     * @param onSuccess The {@link Consumer} to accept the results of {@link func}. This will be executed in the FX application thread.
-     * @param onError The {@link Consumer} to invoke if {@link func} throws an exception. This will be executed in the FX application thread.
+     * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
+     * @param onError The {@link Consumer} to invoke if {@code func} throws an exception. This will be executed in the FX application thread.
      */
     public static <T> void applyAsync(Stage stage, String operation, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
         applyAsync(stage, operation, null, func, onSuccess, onError);
@@ -474,7 +474,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param operation The description of the operation to be displayed as the message text while the task is executing.
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
-     * @param onSuccess The {@link Consumer} to accept the results of {@link func}. This will be executed in the FX application thread.
+     * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
      */
     public static <T> void applyAsync(Stage stage, String operation, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
         applyAsync(stage, operation, null, func, onSuccess);
@@ -501,8 +501,8 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param stage The {@link Stage} for the view that will be masked while the task is executing.
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
-     * @param onSuccess The {@link Consumer} to accept the results of {@link func}. This will be executed in the FX application thread.
-     * @param onError The {@link Consumer} to invoke if {@link func} throws an exception. This will be executed in the FX application thread.
+     * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
+     * @param onError The {@link Consumer} to invoke if {@code func} throws an exception. This will be executed in the FX application thread.
      */
     public static <T> void applyAsync(Stage stage, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
         applyAsync(stage, null, func, onSuccess, onError);
@@ -515,7 +515,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param stage The {@link Stage} for the view that will be masked while the task is executing.
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
-     * @param onSuccess The {@link Consumer} to accept the results of {@link func}. This will be executed in the FX application thread.
+     * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
      */
     public static <T> void applyAsync(Stage stage, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
         applyAsync(stage, null, func, onSuccess);

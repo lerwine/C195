@@ -9,8 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -24,13 +22,22 @@ import javafx.beans.property.ReadOnlyObjectPropertyBase;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.App;
+import scheduler.Scheduler;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbName;
+import scheduler.dao.schema.SchemaHelper;
 import scheduler.util.DB;
-import scheduler.util.Values;
 import scheduler.view.DataObjectReferenceModel;
 import scheduler.view.ItemModel;
 
-public class DataObjectImpl extends PropertyBindable implements DataObject, TableNames, DataObjectColumns {
+/**
+ * Base class for implementations of the {@link DataObject} interface.
+ * @author lerwi
+ */
+public class DataObjectImpl extends PropertyBindable implements DataObject {
 
     public static final String PROP_PRIMARYKEY = "primaryKey";
     /**
@@ -57,14 +64,14 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
     private DataRowState rowState;
-    
+
     /**
-     * Initializes a {@link Values#ROWSTATE_NEW} data access object.
+     * Initializes a {@link DataRowState#NEW} data access object.
      */
     protected DataObjectImpl() {
         primaryKey = 0;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
-        lastModifiedBy = createdBy = (App.getCurrentUser() == null) ? "" : App.getCurrentUser().getUserName();
+        lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
         rowState = DataRowState.NEW;
     }
 
@@ -73,11 +80,11 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
         return primaryKey;
     }
 
-    private void setPrimaryKey(int primaryKey) {
-        int oldPrimaryKey = this.primaryKey;
-        this.primaryKey = primaryKey;
-        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, primaryKey);
-    }
+//    private void setPrimaryKey(int primaryKey) {
+//        int oldPrimaryKey = this.primaryKey;
+//        this.primaryKey = primaryKey;
+//        getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, primaryKey);
+//    }
 
     /**
      * Gets the timestamp when the data row associated with the current data object was inserted into the database.
@@ -172,7 +179,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                     return;
                 default:
                     if (propertyChangeModifiesState(event.getPropertyName())) {
-                        UserImpl currentUser = App.getCurrentUser();
+                        UserImpl currentUser = Scheduler.getCurrentUser();
                         setLastModifiedBy(currentUser.getUserName());
                         setLastModifiedDate(DB.toUtcTimestamp(LocalDateTime.now()));
                         if (rowState != DataRowState.NEW && rowState != DataRowState.DELETED) {
@@ -362,79 +369,56 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
 
         private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
-        protected abstract T fromResultSet(ResultSet resultSet) throws SQLException;
+        protected abstract T fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
 
-        @Deprecated
-        public abstract String getBaseSelectQuery();
+        public abstract SelectList getDetailDml();
 
         public abstract Class<? extends T> getDaoClass();
 
-        @Deprecated
-        public abstract String getTableName_old();
-        
-        public abstract DbTable getTableName();
-
-//        public abstract String getTableAlias();
-
-        @Deprecated
-        public abstract String getPrimaryKeyColName();
-
-//        protected abstract Stream<ColNameSupplier> getExtendedColumns(DmlType type);
-        
-        @Deprecated
-        protected abstract List<String> getExtendedColNames();
-
-        protected abstract void setSaveStatementValues(T dao, PreparedStatement ps) throws SQLException;
-
-        private int assertBaseResultSetValid(DataObjectImpl target, ResultSet resultSet) throws SQLException {
-            Objects.requireNonNull(resultSet, "Result set cannot be null");
-            assert !resultSet.isClosed() : "Result set is closed.";
-            assert !(resultSet.isBeforeFirst() || resultSet.isAfterLast()) : "Result set is not positioned on a result row";
-            String pkColName = getTableName().getPkColName();
-            int pk = resultSet.getInt(pkColName);
-            assert !resultSet.wasNull() : String.format("%s was null", pkColName);
-            String tn = resultSet.getMetaData().getTableName(resultSet.findColumn(pkColName));
-            assert tn.equals(getTableName().getAlias()) || tn.equals(getTableName().getDbName()) : "Table name mismatch";
-            if (target.rowState != DataRowState.NEW) {
-                assert pk == target.getPrimaryKey() : "Primary key does not match";
-            }
-            return pk;
-        }
+        public abstract DbTable getDbTable();
 
         /**
          * Finishes updating a data access object from a {@link ResultSet}. Do not call this directly. User
-         * {@link #initializeDao(scheduler.dao.DataObjectImpl, java.sql.ResultSet)}, instead.
+         * {@link #initializeDao(DataObjectImpl, ResultSet, TableColumnList) }, instead.
          *
          * @param target The {@link DataObjectImpl} to be initialized.
          * @param resultSet The data retrieved from the database.
+         * @param columns The {@link TableColumnList} that was used to create query string.
          * @throws SQLException if not able to read data from the {@link ResultSet}.
          */
-        protected abstract void onInitializeDao(T target, ResultSet resultSet) throws SQLException;
-
+        protected abstract void onInitializeDao(T target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
+        
         /**
          * Initializes a data access object from a {@link ResultSet}.
          *
          * @param target The {@link DataObjectImpl} to be initialized.
          * @param resultSet The data retrieved from the database.
+         * @param columns The {@link TableColumnList} that was used to create query string.
          * @throws SQLException if not able to read data from the {@link ResultSet}.
          */
-        protected void initializeDao(T target, ResultSet resultSet) throws SQLException {
-            DataObjectImpl dao = (DataObjectImpl) target;
-            dao.setPrimaryKey(assertBaseResultSetValid(target, resultSet));
-            dao.setCreateDate(resultSet.getTimestamp(COLNAME_CREATEDATE));
-            assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDATE);
-            dao.setCreatedBy(resultSet.getString(COLNAME_CREATEDBY));
-            assert !resultSet.wasNull() : String.format("%s was null", COLNAME_CREATEDBY);
-            dao.setLastModifiedDate(resultSet.getTimestamp(COLNAME_LASTUPDATE));
-            assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATE);
-            dao.setLastModifiedBy(resultSet.getString(COLNAME_LASTUPDATEBY));
-            assert !resultSet.wasNull() : String.format("%s was null", COLNAME_LASTUPDATEBY);
-            onInitializeDao(target, resultSet);
+        protected final void initializeDao(T target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+            DataObjectImpl dao = (DataObjectImpl)target;
+            int oldPrimaryKey = dao.primaryKey;
+            String oldCreatedBy = dao.createdBy;
+            Timestamp oldCreateDate = dao.createDate;
+            String oldLastModifiedBy = dao.lastModifiedBy;
+            Timestamp oldLastModifiedDate = dao.lastModifiedDate;
+            dao.primaryKey = columns.getInt(resultSet, SchemaHelper.getPrimaryKey(getDbTable()));
+            dao.lastModifiedBy = columns.getString(resultSet, DbName.LAST_UPDATE_BY);
+            dao.lastModifiedDate = columns.getTimestamp(resultSet, DbName.LAST_UPDATE);
+            dao.createdBy = columns.getString(resultSet, DbName.CREATED_BY);
+            dao.createDate = columns.getTimestamp(resultSet, DbName.CREATE_DATE);
+            onInitializeDao(target, resultSet, columns);
             DataRowState oldRowState = dao.rowState;
-            dao.rowState = DataRowState.MODIFIED;
+            dao.rowState = DataRowState.UNMODIFIED;
             dao.getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
+            dao.getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, dao.primaryKey);
+            dao.getPropertyChangeSupport().firePropertyChange(PROP_CREATEDBY, oldCreatedBy, dao.createdBy);
+            dao.getPropertyChangeSupport().firePropertyChange(PROP_CREATEDATE, oldCreateDate, dao.createDate);
+            dao.getPropertyChangeSupport().firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, dao.lastModifiedBy);
+            dao.getPropertyChangeSupport().firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, dao.lastModifiedDate);
         }
-
+        
         public void save(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
@@ -442,32 +426,62 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                 assert dao.getRowState() != DataRowState.DELETED : String.format("%s has been deleted", getClass().getName());
                 StringBuilder sql = new StringBuilder();
                 //HashMap<String, Integer> indexes = new HashMap<>();
-                List<String> extendedFields = getExtendedColNames();
+
+                DbColumn[] columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> {
+                    switch (t.getDbName()) {
+                        case CREATED_BY:
+                        case CREATE_DATE:
+                        case LAST_UPDATE:
+                        case LAST_UPDATE_BY:
+                            return false;
+                    }
+                    return true;
+                }).toArray(DbColumn[]::new);
+
                 if (dao.getRowState() == DataRowState.NEW) {
-                    sql.append("INSERT INTO `").append(getTableName_old()).append("` (`").append(String.join("`, `", extendedFields))
-                            .append("`, `").append(String.join("`, `", Arrays.asList(COLNAME_LASTUPDATE, COLNAME_LASTUPDATEBY,
-                            COLNAME_CREATEDATE, COLNAME_CREATEDBY))).append("`) VALUES (?");
-                    int e = extendedFields.size() + 4;
+                    sql.append("INSERT INTO `").append(getDbTable().getDbName().getValue()).append("` (`")
+                            .append(DbName.LAST_UPDATE.getValue()).append("`, `")
+                            .append(DbName.LAST_UPDATE_BY.getValue()).append("`, `")
+                            .append(DbName.CREATE_DATE.getValue()).append("`, `")
+                            .append(DbName.CREATED_BY.getValue());
+                    for (DbColumn col : columns) {
+                        sql.append("`, `").append(col.getDbName().getValue());
+                    }
+                    sql.append("`) VALUES (?");
+                    int e = columns.length + 4;
                     for (int i = 1; i < e; i++) {
                         sql.append(", ?");
                     }
                     sql.append(")");
                 } else {
-                    sql.append("UPDATE `").append(getTableName_old()).append("` SET `").append(String.join("` = ?, `", extendedFields))
-                            .append("` = ?, `").append(COLNAME_LASTUPDATE).append("` = ?, `").append(COLNAME_LASTUPDATEBY).append("` = ? WHERE `")
-                            .append(getPrimaryKeyColName()).append(" = ?");
+                    sql.append("UPDATE `").append(getDbTable().getDbName().getValue()).append("` SET `")
+                            .append(DbName.LAST_UPDATE.getValue()).append("` = ?, `")
+                            .append(DbName.LAST_UPDATE_BY.getValue());
+                    for (DbColumn col : columns) {
+                        sql.append("` = ?, `").append(col.getDbName().getValue());
+                    }
+
+                    sql.append("` = ? WHERE `").append(getDbTable().getPkColName().getValue()).append(" = ?");
                 }
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
                 int pk;
                 try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-                    setSaveStatementValues(dao, ps);
-                    int index = extendedFields.size();
-                    ps.setTimestamp(index++, dao.getLastModifiedDate());
-                    ps.setString(index++, dao.getLastModifiedBy());
+                    int index;
                     if (dao.getRowState() == DataRowState.NEW) {
-                        ps.setTimestamp(index++, dao.getCreateDate());
-                        ps.setString(index, dao.getCreatedBy());
+                        ps.setTimestamp(1, dao.getCreateDate());
+                        ps.setString(2, dao.getCreatedBy());
+                        ps.setTimestamp(3, dao.getCreateDate());
+                        ps.setString(4, dao.getCreatedBy());
+                        index = 4;
                     } else {
+                        ps.setTimestamp(1, dao.getLastModifiedDate());
+                        ps.setString(2, dao.getLastModifiedBy());
+                        index = 2;
+                    }
+                    for (DbColumn col : columns) {
+                        setSaveStatementValue(dao, col, ps, ++index);
+                    }
+                    if (dao.getRowState() != DataRowState.NEW) {
                         ps.setInt(index, dao.getPrimaryKey());
                     }
                     ps.executeUpdate();
@@ -479,14 +493,15 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
                         pk = dao.getPrimaryKey();
                     }
                 }
-                sql = new StringBuilder(getBaseSelectQuery());
-                sql.append(" WHERE `").append(getPrimaryKeyColName()).append("`=%");
+                SelectList dml = getDetailDml();
+                sql = dml.getSelectQuery();
+                sql.append(" WHERE `").append(getDbTable().getPkColName().getValue()).append("`=%");
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
                 try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
                     ps.setInt(1, pk);
                     try (ResultSet rs = ps.getResultSet()) {
                         assert rs.next() : "Updated record not found";
-                        initializeDao(dao, rs);
+                        initializeDao(dao, rs, dml);
                     }
                 }
             }
@@ -494,13 +509,14 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
 
         public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
-            String sql = String.format("%s WHERE p.`%s`=?", getBaseSelectQuery(), getPrimaryKeyColName());
+            SelectList dml = getDetailDml();
+            String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName().getValue()).append("`=?").toString();
             LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, pk);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return Optional.of(fromResultSet(rs));
+                        return Optional.of(fromResultSet(rs, dml));
                     }
                 }
             }
@@ -513,12 +529,12 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
             synchronized (dao) {
                 assert dao.getRowState() != DataRowState.DELETED : String.format("%s has already been deleted", getClass().getName());
                 assert dao.getRowState() != DataRowState.NEW : String.format("%s has not been inserted into the database", getClass().getName());
-                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getTableName_old(), getPrimaryKeyColName());
+                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getDbTable().getDbName().getValue(), getDbTable().getPkColName().getValue());
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setInt(1, dao.getPrimaryKey());
                     assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
-                            getTableName_old(), getPrimaryKeyColName(), dao.getPrimaryKey());
+                            getDbTable().getDbName().getValue(), getDbTable().getPkColName().getValue(), dao.getPrimaryKey());
                 }
                 dao.setDeleted();
             }
@@ -528,9 +544,13 @@ public class DataObjectImpl extends PropertyBindable implements DataObject, Tabl
 
         public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
 
+        @Deprecated
         public abstract ModelFilter<T, M> getAllItemsFilter();
 
+        @Deprecated
         public abstract ModelFilter<T, M> getDefaultFilter();
+
+        protected abstract void setSaveStatementValue(T dao, DbColumn column, PreparedStatement ps, int index) throws SQLException;
     }
 
 }

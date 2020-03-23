@@ -3,6 +3,11 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbName;
 
 /**
  * Represents a data row from the "customer" database table. Table definition: <code>CREATE TABLE `customer` (
@@ -97,19 +102,16 @@ public interface Customer extends DataObject {
      * Creates a read-only Customer object from a result set.
      *
      * @param resultSet The data retrieved from the database.
-     * @param pkColName The name of the column containing the value of the primary key.
+     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only Customer object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static Customer of(ResultSet resultSet, String pkColName) throws SQLException {
-        Objects.requireNonNull(pkColName, "Primary key column name cannot be null");
-        int id = resultSet.getInt(pkColName);
-        if (resultSet.wasNull()) {
-            return null;
+    public static Customer of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.CUSTOMER_ID);
+        if (id.isPresent()) {
+            return Customer.of(id.get(), columns.getString(resultSet, DbColumn.CUSTOMER_NAME, ""),
+                    DataObjectReference.of(Address.of(resultSet, columns)), columns.getBoolean(resultSet, DbColumn.ACTIVE, false));
         }
-        boolean active = resultSet.getBoolean(CustomerImpl.COLNAME_ACTIVE) && !resultSet.wasNull();
-        Address a = Address.of(resultSet, CustomerImpl.COLNAME_ADDRESSID);
-        String name = resultSet.getString(CustomerImpl.COLNAME_CUSTOMERNAME);
-        return Customer.of(id, (resultSet.wasNull()) ? "" : name, DataObjectReference.of(a), active);
+        return null;
     }
 }

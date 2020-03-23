@@ -3,6 +3,11 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbName;
 
 /**
  * Represents a data row from the "address" database table. Table definition: <code>CREATE TABLE `address` (
@@ -195,31 +200,18 @@ public interface Address extends DataObject {
      * Creates a read-only Address object from a result set.
      *
      * @param resultSet The data retrieved from the database.
-     * @param pkColName The name of the column containing the value of the primary key.
+     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only Address object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static Address of(ResultSet resultSet, String pkColName) throws SQLException {
-        Objects.requireNonNull(pkColName, "Primary key column name cannot be null");
-        int id = resultSet.getInt(pkColName);
-        if (resultSet.wasNull()) {
-            return null;
+    public static Address of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
+        if (id.isPresent()) {
+            return of(id.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""), columns.getString(resultSet, DbColumn.ADDRESS2, ""),
+                    DataObjectReference.of(City.of(resultSet, columns)), columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
+                    columns.getString(resultSet, DbName.PHONE, ""));
         }
 
-        String address1 = resultSet.getString(AddressImpl.COLNAME_ADDRESS);
-        if (resultSet.wasNull()) {
-            address1 = "";
-        }
-        String address2 = resultSet.getString(AddressImpl.COLNAME_ADDRESS2);
-        if (resultSet.wasNull()) {
-            address2 = "";
-        }
-        City city = City.of(resultSet, AddressImpl.COLNAME_CITYID);
-        String postalCode = resultSet.getString(AddressImpl.COLNAME_POSTALCODE);
-        if (resultSet.wasNull()) {
-            postalCode = "";
-        }
-        String phone = resultSet.getString(AddressImpl.COLNAME_PHONE);
-        return of(id, address1, address2, DataObjectReference.of(city), postalCode, (resultSet.wasNull()) ? "" : phone);
+        return null;
     }
 }

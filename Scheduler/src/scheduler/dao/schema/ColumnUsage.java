@@ -1,19 +1,33 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao.schema;
 
 /**
- *
+ * Specifies a column usage type.
+ * 
  * @author lerwi
  */
 public enum ColumnUsage {
+    /**
+     * Primary key column.
+     */
     PRIMARY_KEY,
+    /**
+     * A column used in a foreign-key relationship.
+     */
     FOREIGN_KEY,
+    /**
+     * A column that is intended to store a unique value.
+     */
     UNIQUE_KEY,
+    /**
+     * A column used in tracking data row creation and modification.
+     */
     AUDIT,
+    /**
+     * A column that stores a cryptographic hash.
+     */
     CRYPTO_HASH,
-    OTHER
+    /**
+     * A general table data column.
+     */
+    DATA
 }

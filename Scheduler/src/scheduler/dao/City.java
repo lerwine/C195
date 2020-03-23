@@ -3,6 +3,11 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbName;
 
 /**
  * Represents a data row from the "city" database table. Table definition: <code>CREATE TABLE `city` (
@@ -95,19 +100,15 @@ public interface City extends DataObject {
      * Creates a read-only City object from a result set.
      *
      * @param resultSet The data retrieved from the database.
-     * @param pkColName The name of the column containing the value of the primary key.
+     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only City object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static City of(ResultSet resultSet, String pkColName) throws SQLException {
-        Objects.requireNonNull(pkColName, "Primary key column name cannot be null");
-        int id = resultSet.getInt(pkColName);
-        if (resultSet.wasNull()) {
-            return null;
+    public static City of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
+        if (id.isPresent()) {
+            return of(id.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), DataObjectReference.of(Country.of(resultSet, columns)));
         }
-
-        Country country = Country.of(resultSet, CityImpl.COLNAME_COUNTRYID);
-        String name = resultSet.getString(CityImpl.COLNAME_CITY);
-        return of(id, (resultSet.wasNull()) ? "" : name, DataObjectReference.of(country));
+        return null;
     }
 }

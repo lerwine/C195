@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
+import scheduler.dao.schema.SchemaHelper;
 import scheduler.util.CaseInsensitiveStringMap;
 import scheduler.util.ReadOnlyList;
 
@@ -22,17 +23,21 @@ import scheduler.util.ReadOnlyList;
  * @author lerwi
  */
 public class SelectList implements JoinableTableColumnList<SelectList.Joined, SelectList.SelectColumn> {
-
+    
+    public boolean isReadOnly() {
+        return globalLookup.readOnly;
+    }
+    
     private static String getTableRefName(DbColumn col, String alias) {
-        return (null == alias) ? col.getTable().getAlias() : ((alias.trim().isEmpty()) ? col.getTable().getDbName() : alias);
+        return (null == alias) ? col.getTable().getAlias() : ((alias.trim().isEmpty()) ? col.getTable().getDbName().getValue() : alias);
     }
 
     private static String getRefName(DbTable table, String alias) {
-        return (null == alias) ? table.getAlias() : ((alias.trim().isEmpty()) ? table.getDbName() : alias);
+        return (null == alias) ? table.getAlias() : ((alias.trim().isEmpty()) ? table.getDbName().getValue() : alias);
     }
 
     private static String getRefName(DbColumn col, String alias) {
-        return (null == alias) ? col.getAlias() : ((alias.trim().isEmpty()) ? col.getDbName() : alias);
+        return (null == alias) ? col.getDefaultAlias() : ((alias.trim().isEmpty()) ? col.getDbName().getValue() : alias);
     }
 
     private final GlobalLookup globalLookup;
@@ -47,8 +52,8 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
         backingList = new ArrayList<>();
         joinedTables = new JoinedTables();
         name = getRefName(tableName, tableAlias);
-        Iterator<DbColumn> iterator = ((null == columnSelector) ? DbColumn.getColumns(tableName) : DbColumn.getColumns(tableName, columnSelector))
-                .iterator();
+        Iterator<DbColumn> iterator = (null == columnSelector) ? SchemaHelper.getTableColumns(tableName).iterator() : 
+                SchemaHelper.getTableColumns(tableName, columnSelector).iterator();
         while (iterator.hasNext()) {
             DbColumn c = iterator.next();
             String a = columnAliasMapper.apply(c);
@@ -61,28 +66,28 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
 
     public SelectList(DbTable tableName, String tableAlias, Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
         this(null, tableName, getRefName(tableName, tableAlias), columnSelector,
-                (null == columnAliasMapper) ? (t) -> t.getAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+                (null == columnAliasMapper) ? (t) -> t.getDefaultAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
     }
 
     public SelectList(DbTable tableName, String tableAlias, Predicate<DbColumn> columnSelector) {
-        this(null, tableName, getRefName(tableName, tableAlias), columnSelector, (t) -> t.getAlias());
+        this(null, tableName, getRefName(tableName, tableAlias), columnSelector, (t) -> t.getDefaultAlias());
     }
 
     public SelectList(DbTable tableName, Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
         this(null, tableName, tableName.getAlias(), columnSelector,
-                (null == columnAliasMapper) ? (t) -> t.getAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+                (null == columnAliasMapper) ? (t) -> t.getDefaultAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
     }
 
     public SelectList(DbTable tableName, Predicate<DbColumn> columnSelector) {
-        this(null, tableName, tableName.getAlias(), columnSelector, (t) -> t.getAlias());
+        this(null, tableName, tableName.getAlias(), columnSelector, (t) -> t.getDefaultAlias());
     }
 
     public SelectList(DbTable tableName, String tableAlias) {
-        this(null, tableName, getRefName(tableName, tableAlias), null, (t) -> t.getAlias());
+        this(null, tableName, getRefName(tableName, tableAlias), null, (t) -> t.getDefaultAlias());
     }
 
     public SelectList(DbTable tableName) {
-        this(null, tableName, tableName.getAlias(), null, (t) -> t.getAlias());
+        this(null, tableName, tableName.getAlias(), null, (t) -> t.getDefaultAlias());
     }
 
     @Override
@@ -94,6 +99,8 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
         name = getRefName(tableName, name);
 
         synchronized (globalLookup) {
+            if (globalLookup.readOnly)
+                throw new IllegalStateException();
             if (!name.equalsIgnoreCase(this.name) && globalLookup.tables.containsKey(name)) {
                 throw new UnsupportedOperationException("Table reference name is already used");
             }
@@ -123,7 +130,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
                     throw new UnsupportedOperationException("Table set has no columns");
                 }
                 col = iterator.next();
-                dbName = col.column.getDbName();
+                dbName = col.column.getDbName().getValue();
                 result.append("`").append(dbName);
                 if (dbName.equals(col.name)) {
                     result.append("`");
@@ -132,7 +139,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
                 }
                 while (iterator.hasNext()) {
                     col = iterator.next();
-                    dbName = col.column.getDbName();
+                    dbName = col.column.getDbName().getValue();
                     result.append(", `").append(dbName);
                     if (dbName.equals(col.name)) {
                         result.append("`");
@@ -140,7 +147,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
                         result.append("` AS ").append(col.name);
                     }
                 }
-                return result.append(" FROM `").append(primaryTable.tableName.getDbName()).append("`");
+                return result.append(" FROM `").append(primaryTable.tableName.getDbName().getValue()).append("`");
             }
 
             Stream.Builder<SelectColumn> allColumns = Stream.builder();
@@ -154,24 +161,24 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             }
             col = iterator.next();
             dbName = col.parent.name;
-            if (dbName.equals(col.column.getTable().getDbName())) {
+            if (dbName.equals(col.column.getTable().getDbName().getValue())) {
                 result.append("`").append(dbName).append("`.`");
             } else {
                 result.append(dbName).append(".`");
             }
-            result.append(col.column.getDbName()).append("` AS ").append(col.name);
+            result.append(col.column.getDbName().getValue()).append("` AS ").append(col.name);
             while (iterator.hasNext()) {
                 col = iterator.next();
                 dbName = col.parent.name;
-                if (dbName.equals(col.column.getTable().getDbName())) {
+                if (dbName.equals(col.column.getTable().getDbName().getValue())) {
                     result.append(", `").append(dbName).append("`.`");
                 } else {
                     result.append(", ").append(dbName).append(".`");
                 }
-                result.append(col.column.getDbName()).append("` AS ").append(col.name);
+                result.append(col.column.getDbName().getValue()).append("` AS ").append(col.name);
             }
-            result.append(" FROM `").append(primaryTable.tableName.getDbName());
-            if (primaryTable.name.equals(primaryTable.tableName.getDbName())) {
+            result.append(" FROM `").append(primaryTable.tableName.getDbName().getValue());
+            if (primaryTable.name.equals(primaryTable.tableName.getDbName().getValue())) {
                 result.append("`");
             } else {
                 result.append("` ").append(primaryTable.name);
@@ -179,15 +186,15 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             Stream.Builder<Joined> allJoins = Stream.builder();
             primaryTable.joinedTables.forEach((t) -> t.getAllNestedJoins(allJoins));
             allJoins.build().forEach((t) -> {
-                String rightDbName = t.childColumn.getTable().getDbName();
+                String rightDbName = t.childColumn.getTable().getDbName().getValue();
                 result.append(" ").append(t.type.toString()).append(" `").append(rightDbName);
                 if (t.getName().equals(rightDbName)) {
                     result.append("` ON ");
                 } else {
                     result.append("` ").append(t.getName()).append(" ON ");
                 }
-                result.append(t.parentTable.name).append(".`").append(t.parentColumn.getDbName()).append("`=")
-                        .append(t.getName()).append(".`").append(t.childColumn.getDbName()).append("`");
+                result.append(t.parentTable.name).append(".`").append(t.parentColumn.getDbName().getValue()).append("`=")
+                        .append(t.getName()).append(".`").append(t.childColumn.getDbName().getValue()).append("`");
             });
         }
         return result;
@@ -267,7 +274,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             Function<DbColumn, String> columnAliasMapper) {
         return globalLookup.join(this, Objects.requireNonNull(leftColumn), TableJoinType.INNER, Objects.requireNonNull(rightColumn),
                 getTableRefName(rightColumn, tableAlias), columnSelector,
-                (null == columnAliasMapper) ? (t) -> t.getAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+                (null == columnAliasMapper) ? (t) -> t.getDefaultAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
     }
 
     @Override
@@ -275,7 +282,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             Function<DbColumn, String> columnAliasMapper) {
         return globalLookup.join(this, Objects.requireNonNull(leftColumn), TableJoinType.LEFT, Objects.requireNonNull(rightColumn),
                 getTableRefName(rightColumn, tableAlias), columnSelector,
-                (null == columnAliasMapper) ? (t) -> t.getAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+                (null == columnAliasMapper) ? (t) -> t.getDefaultAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
     }
 
     @Override
@@ -283,7 +290,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             Function<DbColumn, String> columnAliasMapper) {
         return globalLookup.join(this, Objects.requireNonNull(leftColumn), TableJoinType.RIGHT, Objects.requireNonNull(rightColumn),
                 getTableRefName(rightColumn, tableAlias), columnSelector,
-                (null == columnAliasMapper) ? (t) -> t.getAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+                (null == columnAliasMapper) ? (t) -> t.getDefaultAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
     }
 
     @Override
@@ -291,11 +298,17 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             Function<DbColumn, String> columnAliasMapper) {
         return globalLookup.join(this, Objects.requireNonNull(leftColumn), TableJoinType.FULL, Objects.requireNonNull(rightColumn),
                 getTableRefName(rightColumn, tableAlias), columnSelector,
-                (null == columnAliasMapper) ? (t) -> t.getAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+                (null == columnAliasMapper) ? (t) -> t.getDefaultAlias() : (t) -> getRefName(t, columnAliasMapper.apply(t)));
+    }
+
+    public void makeUnmodifiable() {
+        synchronized (globalLookup) {
+            globalLookup.readOnly = true;
+        }
     }
 
     /**
-     * Represents a {@link SelectedList} that has been joined to another.
+     * Represents a {@link SelectList} that has been joined to another.
      * 
      * @author lerwi
      */
@@ -353,6 +366,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
         private final SelectList primaryTable;
         private final CaseInsensitiveStringMap<SelectList> tables;
         private final CaseInsensitiveStringMap<SelectColumn> columns;
+        private boolean readOnly = false;
 
         GlobalLookup(SelectList primaryTable) {
             this.primaryTable = primaryTable;
@@ -364,14 +378,17 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
 
         private synchronized Joined join(SelectList leftTable, DbColumn leftColumn, TableJoinType type, DbColumn rightColumn, String tableAlias,
                 Predicate<DbColumn> columnSelector, Function<DbColumn, String> columnAliasMapper) {
+            if (readOnly)
+                throw new IllegalStateException();
             assert leftTable.getTableName() == leftColumn.getTable() : "Left column does not belong to the current table";
             assert !tables.containsKey(tableAlias) : "The specified table alias is already used by a joined table";
             Predicate<DbColumn> cs;
             if (null == columnSelector) {
                 cs = (c) -> {
                     String a = columnAliasMapper.apply(c);
-                    if (columns.containsKey(a)) {
-                        assert c == rightColumn || !DbColumn.isEntityData(c) || a.equals(c.getAlias()) || a.equals(c.getDbName()) :
+                    SelectColumn existing = columns.get(a);
+                    if (null != existing) {
+                        assert SchemaHelper.areColumnsRelated(c, existing.column) || !SchemaHelper.isEntityData(c) :
                                 "The specified column alias is already used in a joined table";
                         return false;
                     }
@@ -380,8 +397,9 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
             } else {
                 cs = (c) -> {
                     String a = columnAliasMapper.apply(c);
-                    if (columns.containsKey(a)) {
-                        assert c == rightColumn || !DbColumn.isEntityData(c) || a.equals(c.getAlias()) || a.equals(c.getDbName()) :
+                    SelectColumn existing = columns.get(a);
+                    if (null != existing) {
+                        assert SchemaHelper.areColumnsRelated(c, existing.column) || !SchemaHelper.isEntityData(c) :
                                 "The specified column alias is already used in a joined table";
                         return false;
                     }

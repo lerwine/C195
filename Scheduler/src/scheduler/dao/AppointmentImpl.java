@@ -7,23 +7,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import scheduler.dao.dml.ColumnReference;
+import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.schema.DbColumn;
 import scheduler.util.DB;
-import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModel;
 
-public class AppointmentImpl extends DataObjectImpl implements Appointment, AppointmentColumns {
+public class AppointmentImpl extends DataObjectImpl implements Appointment {
 
-    @Deprecated
-    private static final String BASE_SELECT_QUERY = String.format("SELECT %1$s.%2$s as %2$s, %1$s.%3$s as %3$s, %1$s.%4$s as %4$s, %1$s.%5$s as %5$s,"
-            + " %1$s.%6$s as %6$s, %1$s.%7$s as %7$s, %1$s.%8$s as %8$s, %1$s.%9$s as %9$s, %1$s.%10$s as %10$s, %1$s%11$s, %12$s FROM %13$s %1$s"
-            + " LEFT JOIN %14$s %15$s on %1$s.%16$s = %15$s.%16$s LEFT JOIN %17$s %18$s on %1$s.%19$s = %18$s.%19$s %20$s",
-            TABLEALIAS_APPOINTMENT, COLNAME_APPOINTMENTID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION, COLNAME_CONTACT, COLNAME_TYPE,
-            COLNAME_URL, COLNAME_START, COLNAME_END, SQL_CUSTOMER_SELECT_FIELDS, DataObjectColumns.getDataObjectSelectFields(TABLEALIAS_APPOINTMENT),
-            TABLENAME_APPOINTMENT, TABLENAME_USER, TABLEALIAS_USER, COLNAME_USERID, TABLENAME_CUSTOMER, TABLEALIAS_CUSTOMER, COLNAME_CUSTOMERID,
-            SQL_JOIN_ADDRESS);
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
@@ -42,7 +35,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
     private Timestamp end;
 
     /**
-     * Initializes a {@link Values#ROWSTATE_NEW} appointment object.
+     * Initializes a {@link DataRowState#NEW} appointment object.
      */
     public AppointmentImpl() {
         customer = DataObjectReference.of(null);
@@ -210,20 +203,32 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> {
 
+        private static final SelectList DETAIL_DML;
+
+        static {
+            DETAIL_DML = new SelectList(DbTable.APPOINTMENT);
+            DETAIL_DML.leftJoin(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_ID)
+                    .leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
+                    .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
+                    .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
+            DETAIL_DML.leftJoin(DbColumn.APPOINTMENT_USER, DbColumn.USER_ID);
+            DETAIL_DML.makeUnmodifiable();
+        }
+
         // This is a singleton instance
         private FactoryImpl() {
         }
 
         @Override
-        protected AppointmentImpl fromResultSet(ResultSet resultSet) throws SQLException {
+        protected AppointmentImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
             AppointmentImpl r = new AppointmentImpl();
-            initializeDao(r, resultSet);
+            initializeDao(r, resultSet, columns);
             return r;
         }
 
         @Override
-        public String getBaseSelectQuery() {
-            return BASE_SELECT_QUERY;
+        public SelectList getDetailDml() {
+            return DETAIL_DML;
         }
 
         @Override
@@ -232,81 +237,60 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment, Appo
         }
 
         @Override
-        public DbTable getTableName() {
+        public DbTable getDbTable() {
             return DbTable.APPOINTMENT;
         }
 
         @Override
-        public String getTableName_old() {
-            return TABLENAME_APPOINTMENT;
+        protected void setSaveStatementValue(AppointmentImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+            switch (column) {
+                case APPOINTMENT_CUSTOMER:
+                    ps.setInt(index, dao.getCustomer().getPrimaryKey());
+                    break;
+                case CUSTOMER_ADDRESS:
+                    ps.setInt(index, dao.getUser().getPrimaryKey());
+                    break;
+                case TITLE:
+                    ps.setString(index, dao.getTitle());
+                    break;
+                case DESCRIPTION:
+                    ps.setString(index, dao.getDescription());
+                    break;
+                case LOCATION:
+                    ps.setString(index, dao.getLocation());
+                    break;
+                case CONTACT:
+                    ps.setString(index, dao.getContact());
+                    break;
+                case TYPE:
+                    ps.setString(index, dao.getType().getDbValue());
+                    break;
+                case URL:
+                    ps.setString(index, dao.getUrl());
+                    break;
+                case START:
+                    ps.setTimestamp(index, dao.getStart());
+                    break;
+                case END:
+                    ps.setTimestamp(index, dao.getEnd());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unexpected column name");
+            }
         }
 
         @Override
-        public String getPrimaryKeyColName() {
-            return COLNAME_APPOINTMENTID;
-        }
-
-        @Override
-        protected List<String> getExtendedColNames() {
-            return Arrays.asList(COLNAME_CUSTOMERID, COLNAME_USERID, COLNAME_TITLE, COLNAME_DESCRIPTION, COLNAME_LOCATION,
-                    COLNAME_CONTACT, COLNAME_TYPE, COLNAME_URL, COLNAME_START, COLNAME_END);
-        }
-
-        @Override
-        protected void setSaveStatementValues(AppointmentImpl dao, PreparedStatement ps) throws SQLException {
-            ps.setInt(1, dao.getCustomer().getPrimaryKey());
-            ps.setInt(2, dao.getUser().getPrimaryKey());
-            ps.setString(3, dao.getTitle());
-            ps.setString(4, dao.getDescription());
-            ps.setString(5, dao.getLocation());
-            ps.setString(6, dao.getContact());
-            ps.setString(7, dao.getType().getDbValue());
-            ps.setString(8, dao.getUrl());
-            ps.setTimestamp(9, dao.getStart());
-            ps.setTimestamp(10, dao.getEnd());
-        }
-
-        @Override
-        protected void onInitializeDao(AppointmentImpl target, ResultSet resultSet) throws SQLException {
-            target.customer = DataObjectReference.of(Customer.of(resultSet, COLNAME_CUSTOMERID));
-            target.user = DataObjectReference.of(User.of(resultSet, COLNAME_USERID));
-            target.title = resultSet.getString(COLNAME_TITLE);
-            if (resultSet.wasNull()) {
-                target.title = "";
-            }
-            target.description = resultSet.getString(COLNAME_DESCRIPTION);
-            if (resultSet.wasNull()) {
-                target.description = "";
-            }
-            target.location = resultSet.getString(COLNAME_LOCATION);
-            if (resultSet.wasNull()) {
-                target.location = "";
-            }
-            target.contact = resultSet.getString(COLNAME_CONTACT);
-            if (resultSet.wasNull()) {
-                target.contact = "";
-            }
-            target.type = AppointmentType.of(resultSet.getString(COLNAME_TYPE), AppointmentType.OTHER);
-            if (resultSet.wasNull()) {
-                target.type = AppointmentType.OTHER;
-            }
-            target.url = resultSet.getString(COLNAME_URL);
-            if (resultSet.wasNull()) {
-                target.url = "";
-            }
-            target.start = resultSet.getTimestamp(COLNAME_START);
-            if (resultSet.wasNull()) {
-                target.end = resultSet.getTimestamp(COLNAME_END);
-                if (resultSet.wasNull()) {
-                    target.end = DB.toUtcTimestamp(LocalDateTime.now());
-                }
-                target.start = target.end;
-            } else {
-                target.end = resultSet.getTimestamp(COLNAME_END);
-                if (resultSet.wasNull()) {
-                    target.end = target.start;
-                }
-            }
+        protected void onInitializeDao(AppointmentImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+            target.customer = DataObjectReference.of(Customer.of(resultSet, columns));
+            target.user = DataObjectReference.of(User.of(resultSet, columns));
+            target.title = columns.getString(resultSet, DbColumn.TITLE, "");
+            target.description = columns.getString(resultSet, DbColumn.DESCRIPTION, "");
+            target.location = columns.getString(resultSet, DbColumn.LOCATION, "");
+            target.contact = columns.getString(resultSet, DbColumn.CONTACT, "");
+            target.type = AppointmentType.of(columns.getString(resultSet, DbColumn.TYPE, ""), AppointmentType.OTHER);
+            target.url = columns.getString(resultSet, DbColumn.URL, "");
+            target.start = columns.getTimestamp(resultSet, DbColumn.START);
+            target.end = columns.getTimestamp(resultSet, DbColumn.END);
         }
 
         @Override

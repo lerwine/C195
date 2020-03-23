@@ -13,6 +13,7 @@ import scheduler.view.ItemModel;
  * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
  * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
  */
+// TODO: Deprecated this after it is replaced
 public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D>, Predicate<M> {
 
     public static <D extends DataObjectImpl, M extends ItemModel<D>> boolean areEqual(ModelFilter<D, M> x, ModelFilter<D, M> y) {

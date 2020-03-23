@@ -1,32 +1,32 @@
 package scheduler.observables;
 
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerPropertyBase;
-import javafx.beans.property.SimpleIntegerProperty;
-import scheduler.util.Values;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectPropertyBase;
+import javafx.beans.property.SimpleObjectProperty;
+import scheduler.dao.UserStatus;
 
 /**
  *
  * @author erwinel
  */
-public class UserStatusProperty extends SimpleIntegerProperty {
+public class UserStatusProperty extends SimpleObjectProperty<UserStatus> {
 
-    private ReadOnlyIntegerProperty readOnlyProperty;
+    private ReadOnlyObjectProperty<UserStatus> readOnlyProperty;
 
     public UserStatusProperty() {
-        this(Values.USER_STATUS_NORMAL);
+        this(UserStatus.NORMAL);
     }
 
-    public UserStatusProperty(int initialValue) {
-        super(Values.asValidUserStatus(initialValue));
+    public UserStatusProperty(UserStatus initialValue) {
+        super((null == initialValue) ? UserStatus.NORMAL : initialValue);
     }
 
     public UserStatusProperty(Object bean, String name) {
-        this(bean, name, Values.USER_STATUS_NORMAL);
+        this(bean, name, UserStatus.NORMAL);
     }
 
-    public UserStatusProperty(Object bean, String name, int initialValue) {
-        super(bean, name, Values.asValidUserStatus(initialValue));
+    public UserStatusProperty(Object bean, String name, UserStatus initialValue) {
+        super(bean, name, (null == initialValue) ? UserStatus.NORMAL : initialValue);
     }
 
     /**
@@ -34,7 +34,7 @@ public class UserStatusProperty extends SimpleIntegerProperty {
      *
      * @return the readonly property
      */
-    public ReadOnlyIntegerProperty getReadOnlyProperty() {
+    public ReadOnlyObjectProperty<UserStatus> getReadOnlyProperty() {
         if (readOnlyProperty == null) {
             readOnlyProperty = new ReadOnlyPropertyImpl();
         }
@@ -42,14 +42,14 @@ public class UserStatusProperty extends SimpleIntegerProperty {
     }
 
     @Override
-    public void set(int newValue) {
-        super.set(Values.asValidUserStatus(newValue));
+    public void set(UserStatus newValue) {
+        super.set((null == newValue) ? UserStatus.NORMAL : newValue);
     }
 
-    private class ReadOnlyPropertyImpl extends ReadOnlyIntegerPropertyBase {
+    private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<UserStatus> {
 
         @Override
-        public int get() {
+        public UserStatus get() {
             return UserStatusProperty.this.get();
         }
 

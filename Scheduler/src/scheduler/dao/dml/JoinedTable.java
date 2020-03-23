@@ -1,12 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao.dml;
 
 import scheduler.dao.schema.DbColumn;
-import scheduler.dao.schema.DbTable;
 
 /**
  * Represents a table that was joined to another table.

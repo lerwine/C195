@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import scheduler.App;
+import scheduler.Scheduler;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CREATEDBYON;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_MODIFIEDBYON;
 import scheduler.AppResources;
@@ -469,7 +469,7 @@ public final class ResourceBundleLoader {
         }
 
         public void setCurrent() {
-            assert null == App.getCurrentUser() : "Cannot change locale after user is logged in";
+            assert null == Scheduler.getCurrentUser() : "Cannot change locale after user is logged in";
             synchronized (ResourceBundleLoader.this) {
                 if (!current) {
                     resourceBundleByClassName.clear();

@@ -44,7 +44,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
-import scheduler.App;
+import scheduler.Scheduler;
 import scheduler.dao.Address;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.CityImpl;
@@ -731,7 +731,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             filter = new FilterOptionState();
             filter.setStartDateTime(LocalDateTime.now());
             filter.setStartOption(DateFilterType.INCLUSIVE);
-            filter.setUser(App.getCurrentUser());
+            filter.setUser(Scheduler.getCurrentUser());
         }
         TaskWaiter.execute(new InitializeTask(stage, filter));
         stage.showAndWait();

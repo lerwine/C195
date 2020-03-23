@@ -1,10 +1,15 @@
 package scheduler.util;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import scheduler.AppResources;
+import java.util.stream.Stream;
 
 /**
  * Utility class for validating and normalizing values.
@@ -14,34 +19,6 @@ import scheduler.AppResources;
 public class Values {
 
     public static final Pattern REGEX_NON_NORMAL_WHITESPACES = Pattern.compile(" \\s+|(?! )\\s+");
-
-    public static final String OPERATOR_EQUALS = "=";
-    public static final String OPERATOR_NOT_EQUALS = "<>";
-    public static final String OPERATOR_LIKE = "LIKE";
-    public static final String OPERATOR_NOT_LIKE = "NOT LIKE";
-    public static final String OPERATOR_STARTS_WITH = "LIKE ?%";
-    public static final String OPERATOR_ENDS_WITH = "LIKE %?";
-    public static final String OPERATOR_CONTAINS = "LIKE %?%";
-    public static final String OPERATOR_GREATER_THAN = ">";
-    public static final String OPERATOR_NOT_GREATER_THAN = "<=";
-    public static final String OPERATOR_LESS_THAN = "<";
-    public static final String OPERATOR_NOT_LESS_THAN = ">=";
-    public static final String OPERATOR_NONE = "";
-
-    /**
-     * Value of {@link scheduler.dao.User#getStatus()} for an inactive status.
-     */
-    public static final short USER_STATUS_INACTIVE = 0;
-
-    /**
-     * Value of {@link scheduler.dao.User#getStatus()} for a normal user account.
-     */
-    public static final short USER_STATUS_NORMAL = 1;
-
-    /**
-     * Value of {@link scheduler.dao.User#getStatus()} for an administrative user account.
-     */
-    public static final short USER_STATUS_ADMIN = 2;
 
     /**
      * Ensures a {@link String} value is not null.
@@ -237,93 +214,6 @@ public class Values {
     public static String requireNonWhitespace(String value, Supplier<String> messageSupplier) {
         assert !Objects.requireNonNull(value, messageSupplier).isEmpty()
                 && value.codePoints().anyMatch((c) -> !Character.isWhitespace(c)) : messageSupplier.get();
-        return value;
-    }
-
-    /**
-     * Ensures an integer valid is a valid user status value.
-     *
-     * @param value The source value.
-     * @return {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or {@link #USER_STATUS_INACTIVE}.
-     */
-    public static int asValidUserStatus(int value) {
-        switch (value) {
-            case USER_STATUS_INACTIVE:
-            case USER_STATUS_NORMAL:
-            case USER_STATUS_ADMIN:
-                return value;
-        }
-        return (value < USER_STATUS_INACTIVE) ? USER_STATUS_INACTIVE : USER_STATUS_NORMAL;
-    }
-
-    public static String toUserStatusDisplay(int value) {
-        switch (value) {
-            case USER_STATUS_INACTIVE:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_INACTIVE);
-            case USER_STATUS_NORMAL:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_ACTIVE);
-            case USER_STATUS_ADMIN:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_ADMINISTRATOR);
-        }
-        return String.format("%s: %d", AppResources.getResourceString(AppResources.RESOURCEKEY_UNKNOWN), value);
-    }
-
-    /**
-     * Checks that the specified value is a valid {@link scheduler.dao.User} status value.
-     *
-     * @param value The value to test.
-     * @param message The detail message to be used in the event that an {@link AssertionError} is thrown.
-     * @return {@code value} if it is equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or {@link #USER_STATUS_INACTIVE}.
-     * @throws AssertionError if {@code value} is not equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or
-     * {@link #USER_STATUS_INACTIVE}.
-     */
-    public static int requireValidUserStatus(int value, String message) {
-        assert (value == USER_STATUS_INACTIVE || value == USER_STATUS_NORMAL || value == USER_STATUS_ADMIN) : nonWhitespaceOrDefault(message, "Invalid user status value");
-        return value;
-    }
-
-    /**
-     * Checks that the specified value is a valid {@link scheduler.dao.User} status value.
-     *
-     * @param value The value to test.
-     * @param messageSupplier The supplier of the detail message to be used in the event that an {@link AssertionError} is thrown.
-     * @return {@code value} if it is equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or {@link #USER_STATUS_INACTIVE}.
-     * @throws AssertionError if {@code value} is not equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or
-     * {@link #USER_STATUS_INACTIVE}.
-     */
-    public static int requireValidUserStatus(int value, Supplier<String> messageSupplier) {
-        assert (value == USER_STATUS_INACTIVE || value == USER_STATUS_NORMAL || value == USER_STATUS_ADMIN) :
-                nonWhitespaceOrDefault(messageSupplier, () -> "Invalid user status value");
-        return value;
-    }
-
-    /**
-     * Checks that the specified value is not present or is a valid {@link scheduler.dao.User} status value.
-     *
-     * @param value The value to test.
-     * @param message The detail message to be used in the event that an {@link AssertionError} is thrown.
-     * @return {@code value} if it is not present or is equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or
-     * {@link #USER_STATUS_INACTIVE}.
-     * @throws AssertionError if {@code value} is present and is not equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or
-     * {@link #USER_STATUS_INACTIVE}.
-     */
-    public static Optional<Integer> requireValidUserStatus(Optional<Integer> value, String message) {
-        value.ifPresent((t) -> requireValidUserStatus(t, message));
-        return value;
-    }
-
-    /**
-     * Checks that the specified value is not present or is a valid {@link scheduler.dao.User} status value.
-     *
-     * @param value The value to test.
-     * @param messageSupplier The supplier of the detail message to be used in the event that an {@link AssertionError} is thrown.
-     * @return {@code value} if it is not present or is equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or
-     * {@link #USER_STATUS_INACTIVE}.
-     * @throws AssertionError if {@code value} is present and is not equal to {@link #USER_STATUS_NORMAL}, {@link #USER_STATUS_ADMIN} or
-     * {@link #USER_STATUS_INACTIVE}.
-     */
-    public static Optional<Integer> requireValidUserStatus(Optional<Integer> value, Supplier<String> messageSupplier) {
-        value.ifPresent((t) -> requireValidUserStatus(t, messageSupplier));
         return value;
     }
 

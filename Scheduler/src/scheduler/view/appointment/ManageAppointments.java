@@ -37,9 +37,9 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     /**
      * Loads {@link AppointmentModel} listing view and controller into the {@link MainController}.
      *
-     * @param mainController The {@link MainController} to contain the {@link CountryModel} listing.
+     * @param mainController The {@link MainController} to contain the {@link AppointmentModel} listing.
      * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param filter The {@link AppointmentFilter} to use for loading and filtering {@link CountryModel} items.
+     * @param filter The {@link AppointmentFilter} to use for loading and filtering {@link AppointmentModel} items.
      * @throws IOException if unable to load the view.
      */
     public static void setContent(MainController mainController, Stage stage, AppointmentFilter filter) throws IOException {

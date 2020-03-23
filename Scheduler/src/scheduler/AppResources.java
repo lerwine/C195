@@ -14,7 +14,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
 /**
- * Gets settings from the "appconfig.properties" file.
+ * Gets settings from the <a href="file:../../resources/scheduler/config.properties">/resources/scheduler/config.properties</a> file.
  *
  * @author Leonard T. Erwine
  */
