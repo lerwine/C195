@@ -1,0 +1,375 @@
+package scheduler.view.appointment;
+
+/**
+ * Defines resource bundle keys for the App resource bundle {@code AppResourceBundleConstants.java}.
+ *
+ * @author Leonard T. Erwine (Student ID 356334)
+ */
+public interface AppResourceBundleConstants {
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0928\u093f\u0930\u0938\u094d\u0924"}.
+     */
+    public static final String RESOURCEKEY_ABORT = "abort";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u0915\u094d\u0930\u093f\u092f"}.
+     */
+    public static final String RESOURCEKEY_ACTIVE = "active";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u0915\u094d\u0930\u093f\u092f \u0917\u094d\u0930\u093e\u0939\u0915"}.
+     */
+    public static final String RESOURCEKEY_ACTIVECUSTOMERS = "activeCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u0915\u094d\u0930\u093f\u092f \u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e"}.
+     */
+    public static final String RESOURCEKEY_ACTIVEUSERS = "activeUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092a\u094d\u0930\u0936\u093e\u0938\u0915"}.
+     */
+    public static final String RESOURCEKEY_ADMINISTRATOR = "administrator";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u092c"}.
+     */
+    public static final String RESOURCEKEY_ALL = "all";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u092d\u0940 \u0926\u0947\u0936"}.
+     */
+    public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u092d\u0940 \u0917\u094d\u0930\u093e\u0939\u0915"}.
+     */
+    public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u092d\u0940 \u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e\u0913\u0902"}.
+     */
+    public static final String RESOURCEKEY_ALLUSERS = "allUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0928\u093f\u092f\u0941\u0915\u094d\u0924\u093f \u0936\u0947\u0921\u094d\u092f\u0942\u0932\u0930"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSCHEDULER = "appointmentScheduler";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0917\u094d\u0930\u093e\u0939\u0915 \u0938\u093e\u0907\u091f"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER = "appointmentType_customer";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u091c\u0930\u094d\u092e\u0928\u0940 \u0915\u093e\u0930\u094d\u092f\u093e\u0932\u092f"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_DE = "appointmentType_DE";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0939\u094b\u0902\u0921\u0941\u0930\u093e\u0938 \u0915\u093e\u0930\u094d\u092f\u093e\u0932\u092f"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_HN = "appointmentType_HN";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0907\u0902\u0921\u093f\u092f\u093e \u0911\u092b\u093f\u0938"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_IN = "appointmentType_IN";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092c\u0948\u0920\u0915 \u092e\u0947\u0902 \u0905\u0928\u094d\u092f \u0935\u094d\u092f\u0915\u094d\u0924\u093f"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_OTHER = "appointmentType_other";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092b\u094b\u0928 \u0938\u092e\u094d\u092e\u0947\u0932\u0928"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_PHONE = "appointmentType_phone";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0918\u0930 \u0915\u093e\u0930\u094d\u092f\u093e\u0932\u092f"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_US = "appointmentType_US";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0935\u0930\u094d\u091a\u0941\u0905\u0932 \u092e\u0940\u091f\u093f\u0902\u0917"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL = "appointmentType_virtual";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0907\u0938 \u0915\u093e\u0930\u094d\u0930\u0935\u093e\u0908 \u0915\u094b \u092a\u0942\u0930\u094d\u0935\u0935\u0924 \u0928\u0939\u0940\u0902 \u0915\u093f\u092f\u093e \u091c\u093e \u0938\u0915\u0924\u093e \u0939\u0948!\n\n\u0915\u094d\u092f\u093e \u0906\u092a\u0938\u0941\u0928\u093f\u0936\u094d\u091a\u093f\u0924 \u0939\u0948\u0902 \u0915\u093f \u0906\u092a \u0907\u0938 \u0906\u0907\u091f\u092e \u0915\u094b \u0939\u091f\u093e\u0928\u093e \u091a\u093e\u0939\u0924\u0947 \u0939\u0948\u0902?"}.
+     */
+    public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0930\u0947\u0902\u091c \u0926\u094d\u0935\u093e\u0930\u093e"}.
+     */
+    public static final String RESOURCEKEY_BYRANGE = "byRange";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0930\u0926\u094d\u0926 \u0915\u0930\u0928\u093e"}.
+     */
+    public static final String RESOURCEKEY_CANCEL = "cancel";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0915\u0947 \u0915\u093e\u0930\u0923:"}.
+     */
+    public static final String RESOURCEKEY_CAUSEDBY = "causedBy";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u093f\u0932\u0940\u091f \u0915\u0940 \u092a\u0941\u0937\u094d\u091f\u093f \u0915\u0930\u0947\u0902"}.
+     */
+    public static final String RESOURCEKEY_CONFIRMDELETE = "confirmDelete";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u0938\u0947 \u091c\u0941\u0921\u093c\u093e \u0939\u0941\u0906"}.
+     */
+    public static final String RESOURCEKEY_CONNECTEDTODB = "connectedToDb";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u0938\u0947 \u0915\u0928\u0947\u0915\u094d\u091f \u0915\u0930\u0928\u093e"}.
+     */
+    public static final String RESOURCEKEY_CONNECTINGTODB = "connectingToDb";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%2$te %<tm, %<tY \u0915\u094b %1$s \u0926\u094d\u0935\u093e\u0930\u093e \u092c\u0928\u093e\u092f\u093e \u0917\u092f\u093e"}.
+     */
+    public static final String RESOURCEKEY_CREATEDBYON = "createdByOn";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u090f\u0915\u094d\u0938\u0947\u0938 \u0924\u094d\u0930\u0941\u091f\u093f"}.
+     */
+    public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u0938\u0947 \u0924\u094d\u0930\u0941\u091f\u093f \u0930\u0940\u0921\u093f\u0902\u0917 \u0921\u0947\u091f\u093e\u0964 \u0935\u093f\u0935\u0930\u0923 \u0915\u0947 \u0932\u093f\u090f \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_DBREADERROR = "dbReadError";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0939\u091f\u093e\u090f\u0901"}.
+     */
+    public static final String RESOURCEKEY_DELETE = "delete";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u0938\u0947 \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0915\u094b \u0939\u091f\u093e\u0928\u0947 \u092e\u0947\u0902 \u0905\u0938\u092e\u0930\u094d\u0925\u0964\n\u0938\u092c\u0938\u0947 \u0905\u0927\u093f\u0915 \u0938\u0902\u092d\u093e\u0935\u0928\u093e \u0939\u0948, \u0915\u093f\u0938\u0940 \u0914\u0930 \u0928\u0947 \u090f\u0915 \u0914\u0930 \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0915\u094b \u0938\u0902\u0936\u094b\u0927\u093f\u0924 \u0915\u093f\u092f\u093e \u0939\u0948 \u091c\u094b \u0907\u0938 \u092a\u0930 \u0928\u093f\u0930\u094d\u092d\u0930 \u0915\u0930\u0924\u093e \u0939\u0948\u0964"}.
+     */
+    public static final String RESOURCEKEY_DELETEDEPENDENCYERROR = "deleteDependencyError";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0935\u093f\u092b\u0932\u0924\u093e \u0915\u094b \u0939\u091f\u093e\u090f\u0902"}.
+     */
+    public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0907\u0938 \u0926\u0947\u0936 \u0915\u094b \u0938\u0902\u0926\u0930\u094d\u092d\u093f\u0924 \u0915\u0930\u0928\u0947 \u0935\u093e\u0932\u0947 %d \u0936\u0939\u0930 \u0939\u0948\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY = "deleteMsgMultipleCountry";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u090f\u0915 \u0936\u0939\u0930 \u0939\u0948 \u091c\u094b \u0907\u0938 \u0926\u0947\u0936 \u0915\u093e \u0938\u0902\u0926\u0930\u094d\u092d \u0926\u0947\u0924\u093e \u0939\u0948\u0964"}.
+     */
+    public static final String RESOURCEKEY_DELETEMSGSINGLECOUNTRY = "deleteMsgSingleCountry";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0939\u091f\u093e\u0928\u093e"}.
+     */
+    public static final String RESOURCEKEY_DELETINGRECORD = "deletingRecord";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u090f\u0930\u0930 \u0915\u094b\u0921:"}.
+     */
+    public static final String RESOURCEKEY_ERRORCODE = "errorCode";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u0938\u0947 \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0939\u091f\u093e\u0928\u0947 \u092e\u0947\u0902 \u0924\u094d\u0930\u0941\u091f\u093f\u0964\n\u0905\u0927\u093f\u0915 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0915\u0947 \u0932\u093f\u090f \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_ERRORDELETINGFROMDB = "errorDeletingFromDb";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0905\u092a\u0949\u0907\u0902\u091f\u092e\u0947\u0902\u091f \u0932\u094b\u0921 \u0915\u0930\u0928\u0947 \u092e\u0947\u0902 \u0924\u094d\u0930\u0941\u091f\u093f \u0939\u0941\u0908 \u0925\u0940\u0964\n\u0905\u0927\u093f\u0915 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0915\u0947 \u0932\u093f\u090f \u090f\u092a\u094d\u0932\u093f\u0915\u0947\u0936\u0928 \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u092e\u0947\u0902 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928 \u0915\u094b \u0938\u0939\u0947\u091c\u0928\u0947 \u0915\u093e \u092a\u094d\u0930\u092f\u093e\u0938 \u0915\u0930\u0924\u0947 \u0938\u092e\u092f \u090f\u0915 \u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u090f\u0915\u094d\u0938\u0947\u0938 \u0924\u094d\u0930\u0941\u091f\u093f \u0909\u0924\u094d\u092a\u0928\u094d\u0928 \u0939\u0941\u0908\u0964\n\u0905\u0927\u093f\u0915 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0915\u0947 \u0932\u093f\u090f \u0938\u093f\u0938\u094d\u091f\u092e \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_ERRORSAVINGCHANGES = "errorSavingChanges";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092b\u093c\u093e\u0907\u0932 "%s" \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940\u0964"}.
+     */
+    public static final String RESOURCEKEY_FILENOTFOUND = "fileNotFound";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0924\u094d\u0930\u0941\u091f\u093f \u0932\u094b\u0921\u093f\u0902\u0917 \u0932\u0949\u0917\u093f\u0928 \u0926\u0943\u0936\u094d\u092f \u0938\u093e\u092e\u0917\u094d\u0930\u0940\u0964\n\u0935\u093f\u0935\u0930\u0923 \u0915\u0947 \u0932\u093f\u090f \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_FXMLLOADERERRORMESSAGE = "fxmlLoaderErrorMessage";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u090f\u092b\u090f\u0915\u094d\u0938\u090f\u092e\u090f\u0932 \u0932\u094b\u0921\u0930 \u090f\u0930\u0930 \u090f\u0930\u0930"}.
+     */
+    public static final String RESOURCEKEY_FXMLLOADERERRORTITLE = "fxmlLoaderErrorTitle";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0928\u093f\u0937\u094d\u0915\u094d\u0930\u093f\u092f"}.
+     */
+    public static final String RESOURCEKEY_INACTIVE = "inactive";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0928\u093f\u0937\u094d\u0915\u094d\u0930\u093f\u092f \u0917\u094d\u0930\u093e\u0939\u0915"}.
+     */
+    public static final String RESOURCEKEY_INACTIVECUSTOMERS = "inactiveCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0928\u093f\u0937\u094d\u0915\u094d\u0930\u093f\u092f \u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e"}.
+     */
+    public static final String RESOURCEKEY_INACTIVEUSERS = "inactiveUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092a\u094d\u0930\u093e\u0930\u0902\u092d \u0915\u0930\u0947\u0902, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902 ..."}.
+     */
+    public static final String RESOURCEKEY_INITIALIZING = "initializing";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0905\u092a\u094d\u0930\u0924\u094d\u092f\u093e\u0936\u093f\u0924 \u0924\u094d\u0930\u0941\u091f\u093f \u092c\u091a\u094d\u091a\u0947 \u0915\u0940 \u0916\u093f\u0921\u093c\u0915\u0940 \u0932\u094b\u0921 \u0915\u0930\u0928\u0947 \u0915\u0940 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930 \u0930\u0939\u093e \u0964\n\u0935\u093f\u0935\u0930\u0923 \u0915\u0947 \u0932\u093f\u090f \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0932\u094b\u0921 \u090f\u0930\u0930"}.
+     */
+    public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0905\u092a\u094d\u0935\u093e\u0907\u0902\u091f\u092e\u0947\u0902\u091f \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948"}.
+     */
+    public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0936\u0939\u0930 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u0947 \u0939\u0948\u0902, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0926\u0947\u0936\u094b\u0902 \u0915\u094b \u0932\u094b\u0921 \u0915\u0930\u0947\u0902, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0917\u094d\u0930\u093e\u0939\u0915 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u0947 \u0939\u0948\u0902, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u0947 \u0939\u0948\u0902, \u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u0947\u0902..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0932\u0949\u0917 \u0907\u0928 \u0915\u0930\u0947\u0902..."}.
+     */
+    public static final String RESOURCEKEY_LOGGINGIN = "loggingIn";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0932\u0949\u0917 \u0938\u0902\u0926\u0947\u0936:"}.
+     */
+    public static final String RESOURCEKEY_LOGMESSAGE = "logMessage";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u0902\u0926\u0947\u0936:"}.
+     */
+    public static final String RESOURCEKEY_MESSAGE = "message";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%2$te %<tm, %<tY \u0915\u094b %1$s \u0926\u094d\u0935\u093e\u0930\u093e \u0938\u0902\u0936\u094b\u0927\u093f\u0924"}.
+     */
+    public static final String RESOURCEKEY_MODIFIEDBYON = "modifiedByOn";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0915\u093f\u0938\u0940 \u0906\u0907\u091f\u092e \u0915\u093e \u091a\u092f\u0928 \u0928\u0939\u0940\u0902 \u0915\u093f\u092f\u093e \u0917\u092f\u093e\u0964"}.
+     */
+    public static final String RESOURCEKEY_NOITEMWASSELECTED = "noItemWasSelected";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "(\u0915\u094b\u0908 \u0928\u0939\u0940\u0902)"}.
+     */
+    public static final String RESOURCEKEY_NONE = "none";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0915\u0941\u091b \u092d\u0940 \u091a\u092f\u0928\u093f\u0924 \u0928\u0939\u0940\u0902"}.
+     */
+    public static final String RESOURCEKEY_NOTHINGSELECTED = "nothingSelected";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0915\u0943\u092a\u092f\u093e \u092a\u094d\u0930\u0924\u0940\u0915\u094d\u0937\u093e \u0915\u0930\u094b..."}.
+     */
+    public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u0902\u092c\u0902\u0927\u093f\u0924 \u0905\u092a\u0935\u093e\u0926:"}.
+     */
+    public static final String RESOURCEKEY_RELATEDEXCEPTIONS = "relatedExceptions";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0921\u0947\u091f\u093e\u092c\u0947\u0938 \u0915\u0947 \u0932\u093f\u090f \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0915\u094b \u092c\u091a\u093e\u0928\u0947 \u092e\u0947\u0902 \u0905\u0938\u092e\u0930\u094d\u0925\u0964\n\u0938\u092c\u0938\u0947 \u0905\u0927\u093f\u0915 \u0938\u0902\u092d\u093e\u0935\u0928\u093e \u0939\u0948, \u0915\u093f\u0938\u0940 \u0914\u0930 \u0928\u0947 \u090f\u0915 \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0915\u094b \u0939\u091f\u093e \u0926\u093f\u092f\u093e \u0939\u0948 \u092f\u093e \u0938\u0902\u0936\u094b\u0927\u093f\u0924 \u0915\u093f\u092f\u093e \u0939\u0948 \u091c\u094b \u0907\u0938 \u090f\u0915 \u0938\u0947 \u0938\u0902\u092c\u0902\u0927\u093f\u0924 \u0939\u0948\u0964"}.
+     */
+    public static final String RESOURCEKEY_SAVEDEPENDENCYERROR = "saveDependencyError";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0938\u0947\u0935 \u092b\u0947\u0932"}.
+     */
+    public static final String RESOURCEKEY_SAVEFAILURE = "saveFailure";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928 \u094b\u0902 \u0915\u094b \u0938\u0939\u0947\u091c\u0928\u093e"}.
+     */
+    public static final String RESOURCEKEY_SAVINGCHANGES = "savingChanges";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0938\u094d\u091f\u0948\u0915 \u091f\u094d\u0930\u0947\u0938:"}.
+     */
+    public static final String RESOURCEKEY_STACKTRACE = "stackTrace";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0930\u093e\u091c\u094d\u092f:"}.
+     */
+    public static final String RESOURCEKEY_STATE = "state";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u092a\u094d\u0930\u0915\u093e\u0930:"}.
+     */
+    public static final String RESOURCEKEY_TYPE = "type";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0924\u0915\u0928\u0940\u0915\u0940 \u0935\u093f\u0935\u0930\u0923 \u0915\u0947 \u0932\u093f\u090f \u0906\u0935\u0947\u0926\u0928 \u0932\u0949\u0917 \u0926\u0947\u0916\u0947\u0902\u0964"}.
+     */
+    public static final String RESOURCEKEY_UNEXPECTEDERRORDETAILS = "unexpectedErrorDetails";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u090f\u0915 \u0905\u0928\u092a\u0947\u0915\u094d\u0937\u093f\u0924 \u0924\u094d\u0930\u0941\u091f\u093f \u0939\u094b \u0917\u0908 \u0939\u0948"}.
+     */
+    public static final String RESOURCEKEY_UNEXPECTEDERRORHEADING = "unexpectedErrorHeading";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0905\u092a\u094d\u0930\u0924\u094d\u092f\u093e\u0936\u093f\u0924 \u0924\u094d\u0930\u0941\u091f\u093f"}.
+     */
+    public static final String RESOURCEKEY_UNEXPECTEDERRORTITLE = "unexpectedErrorTitle";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0905\u0928\u091c\u093e\u0928"}.
+     */
+    public static final String RESOURCEKEY_UNKNOWN = "unknown";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u091a\u0947\u0924\u093e\u0935\u0928\u0940"}.
+     */
+    public static final String RESOURCEKEY_WARNING = "warning";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "\u0915\u093e\u092e"}.
+     */
+    public static final String RESOURCEKEY_WORKING = "working";
+
+}
