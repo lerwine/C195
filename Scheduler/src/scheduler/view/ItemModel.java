@@ -5,7 +5,7 @@ import scheduler.dao.DataObjectImpl;
 /**
  * Java FX object model for a {@link DataObjectImpl} object.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link DataObjectImpl} to be used for data access operations.
  */
 public abstract class ItemModel<T extends DataObjectImpl> extends DataObjectImpl.DataObjectModel<T> implements ChildModel<T> {

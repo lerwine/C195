@@ -2,7 +2,7 @@ package scheduler.util;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> the type of the first argument to the function
  * @param <U> the type of the second argument to the function
  * @param <R> the type of the result of the function

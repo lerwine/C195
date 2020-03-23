@@ -13,7 +13,7 @@ import scheduler.util.ThrowableBiFunction;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public class OptionalValueProperty<T> extends SimpleObjectProperty<Optional<T>> {

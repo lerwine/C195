@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao.dml;
 
 import java.sql.PreparedStatement;
@@ -19,7 +14,7 @@ import scheduler.util.ReadOnlyList;
 /**
  * Represents a logical grouping of {@link WhereStatement} objects.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The data object type.
  */
 public interface LogicalStatement<T extends DataObject> extends WhereStatement<T>, ReadOnlyList<WhereStatement<T>> {

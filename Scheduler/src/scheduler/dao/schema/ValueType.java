@@ -7,7 +7,7 @@ import scheduler.util.ReadOnlyList;
  * Data types for reading and writing database values. The {@link ColumnType} enumeration uses this to map a value type to the respective database
  * column type.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum ValueType {
     /**

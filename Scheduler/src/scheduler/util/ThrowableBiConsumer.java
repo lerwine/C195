@@ -3,7 +3,7 @@ package scheduler.util;
 /**
  * Defines an operation that accepts a two arguments and may throw an exception.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of the first argument.
  * @param <U> The type of the second argument.
  * @param <E> The type of {@link Throwable} that can be thrown.

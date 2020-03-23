@@ -24,7 +24,7 @@ import scheduler.dao.schema.DbName;
  *   CONSTRAINT `customer_ibfk_1` FOREIGN KEY (`addressId`) REFERENCES `address` (`addressId`)
  * ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;</code>
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface Customer extends DataObject {
 

@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public final class JoinedSelectTable<T extends IDataRow> implements SelectStatementTable<T> {

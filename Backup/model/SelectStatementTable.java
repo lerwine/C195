@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public interface SelectStatementTable<T extends IDataRow> {

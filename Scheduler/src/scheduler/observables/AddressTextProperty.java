@@ -10,7 +10,7 @@ import scheduler.view.customer.CustomerReferenceModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AddressTextProperty extends StringBinding implements ReadOnlyProperty<String> {
 

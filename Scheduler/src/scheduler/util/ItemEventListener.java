@@ -2,7 +2,7 @@ package scheduler.util;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 @FunctionalInterface

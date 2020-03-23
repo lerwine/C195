@@ -39,7 +39,7 @@ import static scheduler.util.NodeUtil.restoreLabeled;
  * Controller / Task for showing a busy indicator while background process is running. If the current {@link Stage} is closed while this is executing,
  * the task will be canceled.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> Type of value produced by the task.
  */
 @GlobalizationResource("scheduler/App")

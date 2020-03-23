@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.observables;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -12,7 +7,7 @@ import scheduler.dao.AppointmentType;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentType> {
     private final ReadOnlyPropertyImpl readOnlyProperty;

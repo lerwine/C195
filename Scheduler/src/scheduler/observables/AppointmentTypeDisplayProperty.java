@@ -9,7 +9,7 @@ import scheduler.dao.AppointmentType;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AppointmentTypeDisplayProperty extends StringBinding implements ReadOnlyProperty<String> {
 

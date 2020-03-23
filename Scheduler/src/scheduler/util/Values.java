@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 /**
  * Utility class for validating and normalizing values.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class Values {
 

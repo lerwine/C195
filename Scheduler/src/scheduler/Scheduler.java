@@ -37,7 +37,7 @@ import scheduler.view.TaskWaiter;
  * <dt>show</dt><dd>An anonymous function created within {@link LoginTask#processResult(UserImpl, Stage)} replaces the {@link Scene}
  * of the primary {@link Stage} with the new FXML view.</dd>
  * </dl>
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class Scheduler extends Application {
 

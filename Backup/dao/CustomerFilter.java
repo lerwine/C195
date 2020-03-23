@@ -21,7 +21,7 @@ import scheduler.view.customer.ManageCustomers;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel> {
 

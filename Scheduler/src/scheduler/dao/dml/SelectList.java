@@ -20,7 +20,7 @@ import scheduler.util.ReadOnlyList;
  * A read-only list of {@link ColumnReference}s associated with a specific {@link scheduler.dao.schema.DbTable}. No two {@link ColumnReference}
  * elements are to have the same value for {@link ColumnReference#getName()}.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class SelectList implements JoinableTableColumnList<SelectList.Joined, SelectList.SelectColumn> {
     
@@ -310,7 +310,7 @@ public class SelectList implements JoinableTableColumnList<SelectList.Joined, Se
     /**
      * Represents a {@link SelectList} that has been joined to another.
      * 
-     * @author lerwi
+     * @author Leonard T. Erwine (Student ID 356334)
      */
     public static class Joined extends SelectList implements JoinedTableColumnList<Joined, SelectColumn> {
 

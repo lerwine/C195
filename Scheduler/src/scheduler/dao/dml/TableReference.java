@@ -5,7 +5,7 @@ import scheduler.dao.schema.DbTable;
 /**
  * A named reference to a {@link DbTable}.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface TableReference {
 

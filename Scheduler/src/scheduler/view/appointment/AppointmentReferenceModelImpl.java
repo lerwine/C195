@@ -23,7 +23,7 @@ import scheduler.view.user.UserReferenceModelImpl;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AppointmentReferenceModelImpl extends DataObjectImpl.DataObjectReferenceModelImpl<Appointment> implements AppointmentReferenceModel<Appointment> {
 

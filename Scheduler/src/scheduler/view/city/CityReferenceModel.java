@@ -10,7 +10,7 @@ import scheduler.view.country.CountryReferenceModel;
 /**
  * Models a {@link City} data object.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The city data object type.
  */
 public interface CityReferenceModel<T extends City> extends DataObjectReferenceModel<T> {

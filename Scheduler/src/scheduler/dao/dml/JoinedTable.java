@@ -5,7 +5,7 @@ import scheduler.dao.schema.DbColumn;
 /**
  * Represents a table that was joined to another table.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link JoinedTable} that references other joined tables.
  * This is typically a self-reference type when implemented in concrete classes.
  */

@@ -5,7 +5,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class OptionalUserStatusProperty extends OptionalValueProperty<UserStatus> {
 

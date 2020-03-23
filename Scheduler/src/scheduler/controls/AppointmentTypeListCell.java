@@ -5,7 +5,7 @@ import scheduler.dao.AppointmentType;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AppointmentTypeListCell extends ListCell<AppointmentType> {
 

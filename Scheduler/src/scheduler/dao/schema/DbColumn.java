@@ -5,7 +5,7 @@ import scheduler.util.ReadOnlyList;
 /**
  * Database table columns defined in the application database.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum DbColumn {
     /**

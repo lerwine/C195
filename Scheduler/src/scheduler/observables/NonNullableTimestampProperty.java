@@ -8,7 +8,7 @@ import javafx.beans.property.SimpleObjectProperty;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class NonNullableTimestampProperty extends SimpleObjectProperty<Timestamp> {
 

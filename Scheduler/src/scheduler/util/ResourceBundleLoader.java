@@ -35,7 +35,7 @@ import scheduler.view.annotations.GlobalizationResource;
 /**
  * Caches loaded resource bundles, reloading them if the default Display Locale has changed.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class ResourceBundleLoader {
 

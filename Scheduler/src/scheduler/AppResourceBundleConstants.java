@@ -3,7 +3,7 @@ package scheduler;
 /**
  * Defines resource bundle keys for the App resource bundle.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface AppResourceBundleConstants {
     

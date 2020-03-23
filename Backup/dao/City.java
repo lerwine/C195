@@ -19,7 +19,7 @@ import scheduler.util.Values;
  *   CONSTRAINT `city_ibfk_1` FOREIGN KEY (`countryId`) REFERENCES `country` (`countryId`)
  * ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;</code>
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface City extends DataObject {
 

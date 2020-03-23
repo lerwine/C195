@@ -15,7 +15,7 @@ import scheduler.util.ReadOnlyList;
 /**
  * A {@link TableReference} that includes references to {@link DbColumn}s.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <E> The type of {@link ColumnReference} contained in this list.
  */
 public interface TableColumnList<E extends ColumnReference> extends TableReference, ReadOnlyList<E> {

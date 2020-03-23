@@ -24,7 +24,7 @@ import scheduler.util.Values;
 /**
  * FXML Controller class
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class ErrorDialogDetailController {
 

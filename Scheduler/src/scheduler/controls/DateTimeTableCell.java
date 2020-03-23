@@ -9,7 +9,7 @@ import javafx.scene.control.TableCell;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <S> The row item type.
  * @param <T> The cell item type.
  */

@@ -7,7 +7,7 @@ import scheduler.util.ReadOnlyList;
 /**
  * Represents a table reference that can be joined to other table references.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link JoinedTable} object to represent the joined table.
  */
 public interface JoinableTable<T extends JoinedTable<? extends T>> extends TableReference {

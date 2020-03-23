@@ -9,7 +9,7 @@ import scheduler.dao.DataRowState;
 /**
  * A {@link SimpleIntegerProperty} that contains a {@link DataRowState}.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class RowStateProperty extends SimpleObjectProperty<DataRowState> {
 

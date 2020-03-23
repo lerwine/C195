@@ -3,7 +3,7 @@ package scheduler.util;
 /**
  * Manages a chain of {@link ItemEvent} listeners.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of event object.
  */
 public class ItemEventManager<T extends ItemEvent<?>> {

@@ -5,7 +5,7 @@ import scheduler.util.Values;
 /**
  * Base interface for all data objects representing a data row in the database.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface DataObject {
 

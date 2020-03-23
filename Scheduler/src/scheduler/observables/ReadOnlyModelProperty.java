@@ -9,7 +9,7 @@ import scheduler.dao.DataRowState;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <M>
  */
 public class ReadOnlyModelProperty<M extends scheduler.view.ItemModel<?>> extends ReadOnlyObjectWrapper<M> {

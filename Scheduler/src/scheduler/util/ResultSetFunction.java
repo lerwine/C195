@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <R> The result type.
  */
 @FunctionalInterface

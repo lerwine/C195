@@ -4,7 +4,7 @@ import java.util.Optional;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum FilterComparisonOperator {
     EQUAL_TO("=", true, Optional.empty(), false),

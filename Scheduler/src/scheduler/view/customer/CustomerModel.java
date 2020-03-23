@@ -18,7 +18,7 @@ import scheduler.view.address.AddressReferenceModelImpl;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class CustomerModel extends ItemModel<CustomerImpl> implements CustomerReferenceModel<CustomerImpl> {
 

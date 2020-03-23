@@ -3,7 +3,7 @@ package scheduler.dao.schema;
 /**
  * Represents a foreign key relationship to a {@link DbTable}.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class ForeignKey {
     private final String name;

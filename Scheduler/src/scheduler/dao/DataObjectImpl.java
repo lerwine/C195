@@ -35,7 +35,7 @@ import scheduler.view.ItemModel;
 
 /**
  * Base class for implementations of the {@link DataObject} interface.
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class DataObjectImpl extends PropertyBindable implements DataObject {
 

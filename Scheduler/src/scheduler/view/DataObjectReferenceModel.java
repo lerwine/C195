@@ -6,7 +6,7 @@ import scheduler.dao.DataObject;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public interface DataObjectReferenceModel<T extends DataObject> {

@@ -6,7 +6,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class UserStatusListCell extends ListCell<UserStatus> {
 

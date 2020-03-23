@@ -20,7 +20,7 @@ import scheduler.view.user.UserModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 // TODO: Deprecated this after it is replaced
 public interface AppointmentFilter extends ModelFilter<AppointmentImpl, AppointmentModel> {

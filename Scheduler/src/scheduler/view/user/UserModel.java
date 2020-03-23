@@ -12,7 +12,7 @@ import scheduler.view.ItemModel;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class UserModel extends ItemModel<UserImpl> implements UserReferenceModel<UserImpl> {
 

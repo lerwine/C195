@@ -30,7 +30,7 @@ import scheduler.view.annotations.GlobalizationResource;
 /**
  * Base FXML Controller class for editing {@link ItemModel} items in a new modal window.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <D> The type of data access object that the model represents.
  * @param <M> The type of model being edited.
  */

@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Defines an operation that accepts a single argument and may throw an exception.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of the input to the operation.
  * @param <E> The type of {@link Throwable} that can be thrown.
  */

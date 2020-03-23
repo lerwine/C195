@@ -7,7 +7,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <S> The item type.
  */
 public class UserStatusTableCellFactory<S> implements Callback<TableColumn<S, UserStatus>, TableCell<S, UserStatus>> {

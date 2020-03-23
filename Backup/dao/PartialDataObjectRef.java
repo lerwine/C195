@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 @FunctionalInterface
 interface PartialDataObjectRef<T extends DataObject> {

@@ -9,7 +9,7 @@ import scheduler.view.address.AddressReferenceModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public interface CustomerReferenceModel<T extends Customer> extends DataObjectReferenceModel<T> {

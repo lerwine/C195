@@ -9,7 +9,7 @@ import scheduler.view.city.CityReferenceModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public interface AddressReferenceModel<T extends Address> extends DataObjectReferenceModel<T> {

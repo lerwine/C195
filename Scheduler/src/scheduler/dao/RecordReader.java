@@ -13,7 +13,7 @@ import scheduler.view.ItemModel;
 /**
  * Interface for an object that reads {@link DataObjectImpl} objects from the database.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link DataObjectImpl} that will be read from the database.
  */
 // TODO: Deprecated this after it is replaced

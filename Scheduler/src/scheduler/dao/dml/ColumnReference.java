@@ -5,7 +5,7 @@ import scheduler.dao.schema.DbColumn;
 /**
  * A named reference to a {@link DbColumn}.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface ColumnReference {
     

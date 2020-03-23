@@ -6,7 +6,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <S> The item type.
  */
 public class UserStatusTableCell<S> extends TableCell<S, UserStatus> {

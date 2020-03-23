@@ -8,7 +8,7 @@ import scheduler.view.ItemModel;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class CountryModel extends ItemModel<CountryImpl> implements CountryReferenceModel<CountryImpl> {
 

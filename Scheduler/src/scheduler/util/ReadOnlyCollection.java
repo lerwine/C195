@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.util;
 
 import java.util.Arrays;
@@ -12,7 +7,7 @@ import java.util.function.Predicate;
 /**
  * Extends {@link Collection} interface with mutation methods overridden to throw {@link UnsupportedOperationException}.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <E> The type of elements in this collection.
  */
 public interface ReadOnlyCollection<E> extends Collection<E> {

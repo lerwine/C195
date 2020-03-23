@@ -9,7 +9,7 @@ import scheduler.view.DataObjectReferenceModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public interface UserReferenceModel<T extends User> extends DataObjectReferenceModel<T> {

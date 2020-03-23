@@ -6,7 +6,7 @@ import scheduler.AppResources;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum AppointmentType {
     PHONE("phone", AppointmentLocationSource.URL_FIELD, FieldUsage.ENCODED_PHONE_NUMER),

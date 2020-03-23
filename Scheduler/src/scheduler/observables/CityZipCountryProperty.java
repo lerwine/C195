@@ -10,7 +10,7 @@ import scheduler.view.address.AddressReferenceModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class CityZipCountryProperty extends StringBinding implements ReadOnlyProperty<String> {
 

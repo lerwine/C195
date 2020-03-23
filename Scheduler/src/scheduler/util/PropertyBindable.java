@@ -7,7 +7,7 @@ import java.beans.PropertyChangeSupport;
 /**
  * Base class for objects that support property binding through {@link PropertyChangeSupport}.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class PropertyBindable implements IPropertyBindable {
 

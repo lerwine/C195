@@ -12,7 +12,7 @@ import scheduler.observables.UserStatusProperty;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class UserReferenceModelImpl extends DataObjectImpl.DataObjectReferenceModelImpl<User> implements UserReferenceModel<User> {
 

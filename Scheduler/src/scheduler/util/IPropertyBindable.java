@@ -5,7 +5,7 @@ import java.beans.PropertyChangeListener;
 /**
  * Interface for providing property binding through {@link java.beans.PropertyChangeSupport}.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface IPropertyBindable {
     /**

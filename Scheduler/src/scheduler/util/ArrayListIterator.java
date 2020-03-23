@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class ArrayListIterator<T> implements ListIterator<T> {
     private final T[] backingArray;

@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface ISchedulerController {
 

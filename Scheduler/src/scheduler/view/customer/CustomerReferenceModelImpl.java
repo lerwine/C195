@@ -15,7 +15,7 @@ import scheduler.view.address.AddressReferenceModelImpl;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class CustomerReferenceModelImpl extends DataObjectImpl.DataObjectReferenceModelImpl<Customer> implements CustomerReferenceModel<Customer> {
 

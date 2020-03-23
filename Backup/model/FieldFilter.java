@@ -2,7 +2,7 @@ package scheduler.model;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public interface FieldFilter<T extends IDataRow> extends DataRowFilter<T> {

@@ -4,7 +4,7 @@ package scheduler.dao.schema;
  * Supported database column types.
  * This is used to indicate the types for each value of the {@link DbColumn} enumeration.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum ColumnType {
     /**

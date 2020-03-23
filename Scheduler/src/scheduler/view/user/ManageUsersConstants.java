@@ -2,7 +2,7 @@ package scheduler.view.user;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 interface ManageUsersConstants {
 

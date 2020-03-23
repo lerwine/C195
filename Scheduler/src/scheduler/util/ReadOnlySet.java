@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * Extends {@link Set} interface with mutation methods overridden to throw {@link UnsupportedOperationException}.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <E> The type of elements in this collection.
  */
 public interface ReadOnlySet<E> extends Set<E> {

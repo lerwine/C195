@@ -18,7 +18,7 @@ import scheduler.util.Values;
  *   PRIMARY KEY (`userId`)
  * ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;</code>
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface User extends DataObject {
 

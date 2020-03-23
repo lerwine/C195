@@ -5,7 +5,7 @@ import scheduler.dao.DataObject;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public class OptionalDataObjectProperty<T extends DataObject> extends OptionalValueProperty<T> {

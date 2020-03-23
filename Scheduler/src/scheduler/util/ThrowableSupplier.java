@@ -2,7 +2,7 @@ package scheduler.util;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> the type of results supplied by this supplier.
  * @param <E> the type of exception that could be thrown.
  */

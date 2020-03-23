@@ -9,7 +9,7 @@ import scheduler.view.user.UserModel;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface UserFilter extends ModelFilter<UserImpl, UserModel> {
 

@@ -2,7 +2,7 @@ package scheduler.view.appointment;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface EditAppointmentConstants {
 

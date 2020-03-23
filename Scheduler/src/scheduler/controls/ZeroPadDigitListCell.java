@@ -5,7 +5,7 @@ import javafx.scene.control.ListCell;
 /**
  * Formats a zero-padded 2-digit integer.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class ZeroPadDigitListCell extends ListCell<Integer> {
 

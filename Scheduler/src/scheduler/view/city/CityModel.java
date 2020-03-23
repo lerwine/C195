@@ -13,7 +13,7 @@ import scheduler.view.country.CountryReferenceModelImpl;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class CityModel extends scheduler.view.ItemModel<CityImpl> implements CityReferenceModel<CityImpl> {
 

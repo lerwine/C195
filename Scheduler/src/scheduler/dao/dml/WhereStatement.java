@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao.dml;
 
 import java.sql.PreparedStatement;
@@ -13,7 +8,7 @@ import scheduler.dao.DataObject;
 /**
  * Represents a statement within an SQL WHERE clause which can also filter corresponding data access objects.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The data access object type.
  */
 public interface WhereStatement<T extends DataObject> extends Predicate<T> {

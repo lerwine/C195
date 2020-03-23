@@ -19,7 +19,7 @@ import scheduler.view.city.CityReferenceModelImpl;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> implements AddressReferenceModel<AddressImpl> {
 

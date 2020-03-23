@@ -17,7 +17,7 @@ import scheduler.view.city.CityReferenceModelImpl;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AddressReferenceModelImpl extends DataObjectImpl.DataObjectReferenceModelImpl<Address> implements AddressReferenceModel<Address> {
 

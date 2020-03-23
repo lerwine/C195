@@ -2,7 +2,7 @@ package scheduler.view.customer;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 interface ManageCustomersConstants {
 

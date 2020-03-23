@@ -3,7 +3,7 @@ package scheduler.dao.schema;
 /**
  * Names used for tables and columns in the database.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum DbName {
     CUSTOMER("customer"),

@@ -4,7 +4,7 @@ import javafx.scene.control.ListCell;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The item type.
  */
 public class UserListCell<T extends scheduler.view.user.UserReferenceModel<?>> extends ListCell<T> {

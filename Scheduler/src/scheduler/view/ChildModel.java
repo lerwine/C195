@@ -6,7 +6,7 @@ import scheduler.dao.DataObject;
 /**
  * Java FX object model for a child item in a foreign key relationship.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <R> The type of object that is used for data operations.
  */
 public interface ChildModel<R extends DataObject> extends DataObjectReferenceModel<R> {

@@ -9,7 +9,7 @@ import scheduler.view.ItemModel;
 /**
  * Represents a data record filter.
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
  * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
  */

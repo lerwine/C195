@@ -26,7 +26,7 @@ import scheduler.view.user.UserReferenceModelImpl;
 /**
  * List item model for {@link AppointmentImpl} data access objects.
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public final class AppointmentModel extends ItemModel<AppointmentImpl> implements AppointmentReferenceModel<AppointmentImpl> {
 

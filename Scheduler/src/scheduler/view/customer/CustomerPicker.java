@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.customer;
 
 import com.sun.javafx.scene.control.behavior.OptionalBoolean;
@@ -52,7 +47,7 @@ import scheduler.view.country.CountryModel;
 /**
  * FXML Controller class
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 @GlobalizationResource("scheduler/view/appointment/CustomerPicker")
 @FXMLResource("/scheduler/view/appointment/CustomerPicker.fxml")

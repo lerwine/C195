@@ -15,7 +15,7 @@ import scheduler.view.ErrorDialogDetailController;
 
 /**
  *
- * @author erwinel
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class Alerts {
 

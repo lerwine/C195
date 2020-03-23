@@ -13,7 +13,7 @@ import scheduler.util.MapHelper;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class SchemaHelper {
     private static final Map<String, DbName> DB_NAME_MAP;

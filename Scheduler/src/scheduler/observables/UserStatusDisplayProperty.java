@@ -10,7 +10,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class UserStatusDisplayProperty extends StringBinding implements ReadOnlyProperty<String> {
 

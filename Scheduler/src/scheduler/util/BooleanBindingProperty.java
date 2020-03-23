@@ -8,7 +8,7 @@ import javafx.collections.ObservableList;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public abstract class BooleanBindingProperty extends BooleanBinding implements ReadOnlyProperty<Boolean> {
 

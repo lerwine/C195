@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.util;
 
 import javafx.beans.Observable;
@@ -13,7 +8,7 @@ import javafx.collections.ObservableList;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public abstract class StringBindingProperty extends StringBinding implements ReadOnlyProperty<String> {
 

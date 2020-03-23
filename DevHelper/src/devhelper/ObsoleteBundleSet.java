@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package devhelper;
 
 import java.io.File;
@@ -33,7 +29,7 @@ import javafx.util.Pair;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class ObsoleteBundleSet implements Map<String, String> {
     public final Pattern PATTERN_BUNDLENAMESUFFIX = Pattern.compile("^_([a-z]{2,3}(?:_[a-z\\d]+)*)\\.properties$", Pattern.CASE_INSENSITIVE);

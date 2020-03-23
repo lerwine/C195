@@ -4,7 +4,7 @@ import java.util.EventObject;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
 public class ItemEvent<T> extends EventObject {

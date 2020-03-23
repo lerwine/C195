@@ -5,7 +5,7 @@ import scheduler.dao.AppointmentType;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <S> The row item type.
  */
 public class AppointmentTypeTableCell<S> extends TableCell<S, AppointmentType> {

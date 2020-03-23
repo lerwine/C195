@@ -9,7 +9,7 @@ import scheduler.dao.schema.DbColumn;
  * A {@link TableColumnList} that is joined to zero or more {@link JoinedTableColumnList}s.
  * If {@link JoinableTableColumnList#isEmpty()} is {@code true}, then this will should be a "leaf" {@link JoinedTableColumnList} as well.
  * 
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link JoinedTableColumnList} that represents the joined list of table columns.
  * @param <E> The type of {@link ColumnReference} for table column references.
  */
