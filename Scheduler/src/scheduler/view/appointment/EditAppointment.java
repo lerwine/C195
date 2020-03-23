@@ -53,7 +53,6 @@ import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.TaskWaiter;
 import scheduler.view.address.AddressReferenceModel;
@@ -208,6 +207,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     private NonWhiteSpaceValidation contactValid;
 
     // Aggregate binding to indicate whether all controls are valid.
+    // TODO: Check why this is not used.
     private BooleanBinding valid;
 
     private int currentTimeZoneOffset;

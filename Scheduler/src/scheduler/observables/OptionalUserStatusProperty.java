@@ -2,7 +2,6 @@ package scheduler.observables;
 
 import java.util.Optional;
 import scheduler.dao.UserStatus;
-import scheduler.util.Values;
 
 /**
  *

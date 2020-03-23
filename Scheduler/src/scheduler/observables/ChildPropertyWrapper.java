@@ -21,6 +21,7 @@ import javafx.collections.ObservableList;
 public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> implements Binding<T> {
 
     private ReadOnlyObjectProperty<S> source;
+    // TODO: Find out why this is never used.
     private final Function<S, ReadOnlyProperty<T>> getChildProperty;
     private final Object bean;
     private final String name;

@@ -6,7 +6,6 @@
 package scheduler.dao.dml;
 
 import scheduler.dao.DataObject;
-import scheduler.dao.schema.DbColumn;
 
 /**
  *

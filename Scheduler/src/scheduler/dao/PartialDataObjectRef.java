@@ -25,7 +25,7 @@ interface PartialDataObjectRef<T extends DataObject> {
 
     public static <T extends DataObject> PartialDataObjectRef<T> partial(T dao) {
         Objects.requireNonNull(dao);
-        return new PartialDataObjectRef() {
+        return new PartialDataObjectRef<T>() {
             @Override
             public int getPrimaryKey() {
                 return dao.getPrimaryKey();

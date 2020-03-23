@@ -11,8 +11,9 @@ import javafx.util.Callback;
  */
 public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
 
+    // TODO: Check if the generic arguments are backwares on the return value.
     @Override
-    public TableCell<S, String> call(TableColumn<S, String> param) {
+    public TableCell<S, AppointmentType> call(TableColumn<S, String> param) {
         return new AppointmentTypeTableCell();
     }
 }

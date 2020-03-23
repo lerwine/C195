@@ -6,7 +6,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.DataRowState;
-import scheduler.util.Values;
 
 /**
  *

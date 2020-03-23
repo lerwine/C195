@@ -5,8 +5,6 @@
  */
 package scheduler.dao.schema;
 
-import java.util.Iterator;
-
 /**
  *
  * @author lerwi

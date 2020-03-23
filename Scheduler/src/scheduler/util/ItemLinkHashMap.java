@@ -10,6 +10,11 @@ import java.util.TreeMap;
  */
 public class ItemLinkHashMap<K, V extends ItemLinkHashMap.Item<K, V, ? extends ItemLinkHashMap<K, V>>> extends TreeMap<K, V> {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 6078057687833329460L;
+
     public static <K, V extends Item<K, V, P>, P extends ItemLinkHashMap<K, V>> K getItemKey(Item<K, V, P> item) {
         return (item == null) ? null : item.key;
     }

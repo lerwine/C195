@@ -2,7 +2,6 @@ package scheduler.controls;
 
 import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;
-import scheduler.dao.UserImpl;
 import scheduler.dao.UserStatus;
 
 /**

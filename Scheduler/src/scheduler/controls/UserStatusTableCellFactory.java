@@ -14,6 +14,6 @@ public class UserStatusTableCellFactory<S> implements Callback<TableColumn<S, Us
 
     @Override
     public TableCell<S, UserStatus> call(TableColumn<S, UserStatus> param) {
-        return new UserStatusTableCell();
+        return new UserStatusTableCell<S>();
     }
 }

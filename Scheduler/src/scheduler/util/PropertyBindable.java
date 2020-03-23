@@ -51,6 +51,11 @@ public class PropertyBindable implements IPropertyBindable {
 
     private class PropertyChangeSupportImpl extends PropertyChangeSupport {
 
+        /**
+         *
+         */
+        private static final long serialVersionUID = -5190875010028850398L;
+
         PropertyChangeSupportImpl() {
             super(PropertyBindable.this);
         }

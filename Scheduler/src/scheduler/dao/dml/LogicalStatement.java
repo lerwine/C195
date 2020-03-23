@@ -64,7 +64,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
     }
 
     public static <T extends DataObject> boolean isLogicalGroup(WhereStatement<T> filter, LogicalOperator op) {
-        return null != filter && filter instanceof LogicalStatement && ((LogicalStatement) filter).getOperator() == op;
+        return null != filter && filter instanceof LogicalStatement && ((LogicalStatement<T>) filter).getOperator() == op;
     }
     
     public static <T extends DataObject> LogicalStatement<T> and(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
@@ -119,7 +119,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
 
             @Override
             public boolean containsAll(Collection<?> c) {
-                return c.stream().allMatch((t) -> contains((WhereStatement) t));
+                return c.stream().allMatch((t) -> contains((WhereStatement<?>) t));
             }
 
             @Override
@@ -233,7 +233,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
 
             @Override
             public boolean containsAll(Collection<?> c) {
-                return c.stream().allMatch((t) -> contains((WhereStatement) t));
+                return c.stream().allMatch((t) -> contains((WhereStatement<?>) t));
             }
 
             @Override

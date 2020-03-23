@@ -8,7 +8,6 @@ import scheduler.dao.dml.ColumnReference;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
-import scheduler.util.Values;
 
 /**
  * Represents a data row from the "user" database table. This object contains the login credentials for users of the current application. Table definition: <code>CREATE TABLE `user` (

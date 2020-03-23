@@ -9,6 +9,10 @@ import java.util.EventObject;
  */
 public class ItemEvent<T> extends EventObject {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 654309295850528426L;
     private final T target;
 
     public final T getTarget() {
