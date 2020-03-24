@@ -1,0 +1,205 @@
+package scheduler.view.appointment;
+
+/**
+ * Defines resource bundle keys for the App resource bundle {@code view\appointment\EditAppointmentResourceBundleConstants.java}.
+ *
+ * @author Leonard T. Erwine (Student ID 356334)
+ */
+public interface EditAppointmentResourceBundleConstants {
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Hinzuf\u00fcgen Neuer Termine"}.
+     */
+    public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Terminkonflikt"}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Termine f\u00fcr Kunden "%s""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Termine f\u00fcr Benutzer "%s""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht im Widerspruch zu 1 Kundentermin. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um den Konflikt anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1 = "conflictCustomer1";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht im Widerspruch zu 1 Kundentermin und 1 Benutzertermin. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um Konflikte anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USER1 = "conflictCustomer1User1";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht in Konflikt mit 1 Kundentermin und %d Benutzerterminen. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um Konflikte anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMER1USERN = "conflictCustomer1UserN";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht in Konflikt mit %d Kundenterminen. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um Konflikte anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERN = "conflictCustomerN";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht in Konflikt mit %d Kundenterminen und 1 Benutzertermin. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um Konflikte anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSER1 = "conflictCustomerNUser1";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht in Konflikt mit %d Kundenterminen und %d Benutzerterminen. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um Konflikte anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Gefundene Konflikte"}.
+     */
+    public static final String RESOURCEKEY_CONFLICTSFOUND = "conflictsFound";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht in Konflikt mit 1 Benutzertermin. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um den Konflikt anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Dies steht in Konflikt mit %d-Benutzerterminen. Verwenden Sie die Schaltfl\u00e4che "Anzeigen", um Konflikte anzuzeigen."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Aktuelle und zuk\u00fcnftige Termine"}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Aktuelle Zeitzone:"}.
+     */
+    public static final String RESOURCEKEY_CURRENTTIMEZONE = "currentTimeZone";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Kunde:"}.
+     */
+    public static final String RESOURCEKEY_CUSTOMER = "customer";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Kunde nicht gefunden. Klicken Sie auf die Schaltfl\u00e4che "%s", um einen neuen Kunden hinzuzuf\u00fcgen."}.
+     */
+    public static final String RESOURCEKEY_CUSTOMERNOTFOUND = "customerNotFound";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Beschreibung:"}.
+     */
+    public static final String RESOURCEKEY_DESCRIPTION = "description";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Bearbeiten von Terminen"}.
+     */
+    public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Ende:"}.
+     */
+    public static final String RESOURCEKEY_END = "end";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End kann nicht vor Start sein."}.
+     */
+    public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Ung\u00fcltiger Stundenwert"}.
+     */
+    public static final String RESOURCEKEY_INVALIDHOUR = "invalidHour";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Ung\u00fcltiger Minutenwert"}.
+     */
+    public static final String RESOURCEKEY_INVALIDMINUTE = "invalidMinute";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Ung\u00fcltiges URL-Format"}.
+     */
+    public static final String RESOURCEKEY_INVALIDURL = "invalidUrl";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Kunden laden"}.
+     */
+    public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Benutzer laden"}.
+     */
+    public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Lage:"}.
+     */
+    public static final String RESOURCEKEY_LOCATION = "location";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Termine verwalten"}.
+     */
+    public static final String RESOURCEKEY_MANAGEAPPOINTMENTS = "manageAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Besprechungs-URL:"}.
+     */
+    public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Telefonnummer:"}.
+     */
+    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Ansprechpartner:"}.
+     */
+    public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Zeigen"}.
+     */
+    public static final String RESOURCEKEY_SHOW = "show";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Starten:"}.
+     */
+    public static final String RESOURCEKEY_START = "start";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%s bis %s"}.
+     */
+    public static final String RESOURCEKEY_TIMERANGE = "timeRange";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Zeitzone:"}.
+     */
+    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Titel:"}.
+     */
+    public static final String RESOURCEKEY_TITLE = "title";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Typ:"}.
+     */
+    public static final String RESOURCEKEY_TYPE = "type";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Benutzer:"}.
+     */
+    public static final String RESOURCEKEY_USER = "user";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Benutzer wurde nicht gefunden. Klicken Sie auf die Schaltfl\u00e4che "%s", um einen neuen Benutzer hinzuzuf\u00fcgen."}.
+     */
+    public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
+
+}
