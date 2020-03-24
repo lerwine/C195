@@ -3,17 +3,18 @@ package scheduler.controls;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
+import scheduler.dao.AppointmentType;
 
 /**
  *
  * @author Leonard T. Erwine
- * @param <S> The row item type.
+ * @param <T> The row item type.
  */
-public class AppointmentTypeTableCellFactory<S> implements Callback<TableColumn<S, String>, TableCell<S, String>> {
+public class AppointmentTypeTableCellFactory<T extends AppointmentType> implements Callback<TableColumn<String, T>, TableCell<String, T>> {
 
     // TODO: Check if the generic arguments are backwares on the return value.
     @Override
-    public TableCell<S, AppointmentType> call(TableColumn<S, String> param) {
-        return new AppointmentTypeTableCell();
+    public TableCell<String, T> call(TableColumn<String, T> param) {
+        return new AppointmentTypeTableCell<>();
     }
 }

@@ -13,7 +13,22 @@ import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.customer.CustomerModel;
 
-public class CustomerImpl extends DataObjectImpl implements Customer {
+public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
+
+    /**
+     * The name of the 'name' property.
+     */
+    public static final String PROP_NAME = "name";
+
+    /**
+     * The name of the 'address' property.
+     */
+    public static final String PROP_ADDRESS = "address";
+
+    /**
+     * The name of the 'active' property.
+     */
+    public static final String PROP_ACTIVE = "active";
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -22,7 +37,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     }
 
     private String name;
-    private DataObjectReference<AddressImpl, Address> address;
+    private Address address;
     private boolean active;
 
     /**
@@ -31,7 +46,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
     public CustomerImpl() {
         super();
         name = "";
-        address = DataObjectReference.of(null);
+        address = null;
         active = true;
     }
 
@@ -46,17 +61,14 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
      * @param name new value of name
      */
     public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public DataObjectReference<AddressImpl, Address> getAddressReference() {
-        return address;
+        String oldValue = this.name;
+        this.name = (name == null) ? "" : name;
+        firePropertyChange(PROP_NAME, oldValue, this.name);
     }
 
     @Override
     public Address getAddress() {
-        return address.getPartial();
+        return address;
     }
 
     /**
@@ -65,7 +77,9 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
      * @param address new value of address
      */
     public void setAddress(Address address) {
-        this.address = DataObjectReference.of(address);
+        Address oldValue = this.address;
+        this.address = address;
+        firePropertyChange(PROP_ADDRESS, oldValue, this.address);
     }
 
     @Override
@@ -79,7 +93,9 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
      * @param active new value of active
      */
     public void setActive(boolean active) {
+        boolean oldValue = this.active;
         this.active = active;
+        firePropertyChange(PROP_ADDRESS, oldValue, this.active);
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {
@@ -150,10 +166,10 @@ public class CustomerImpl extends DataObjectImpl implements Customer {
             target.name = columns.getString(resultSet, DbColumn.CUSTOMER_NAME, "");
             Optional<Integer> addressId = columns.tryGetInt(resultSet, DbColumn.CUSTOMER_ADDRESS);
             if (addressId.isPresent()) {
-                target.address = DataObjectReference.of(Address.of(addressId.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""),
-                        columns.getString(resultSet, DbColumn.ADDRESS2, ""), DataObjectReference.of(City.of(resultSet, columns)),
+                target.address = Address.of(addressId.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""),
+                        columns.getString(resultSet, DbColumn.ADDRESS2, ""), City.of(resultSet, columns),
                         columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
-                        columns.getString(resultSet, DbColumn.PHONE, "")));
+                        columns.getString(resultSet, DbColumn.PHONE, ""));
             } else {
                 target.address = null;
             }

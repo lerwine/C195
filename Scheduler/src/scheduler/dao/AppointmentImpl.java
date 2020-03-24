@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import scheduler.dao.dml.ColumnReference;
 import scheduler.dao.dml.SelectList;
 import scheduler.dao.dml.TableColumnList;
@@ -15,16 +14,66 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.util.DB;
 import scheduler.view.appointment.AppointmentModel;
 
-public class AppointmentImpl extends DataObjectImpl implements Appointment {
+public class AppointmentImpl extends DataObjectImpl implements Appointment<Customer, User> {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
+
+    /**
+     * The name of the 'customer' property.
+     */
+    public static final String PROP_CUSTOMER = "customer";
+
+    /**
+     * The name of the 'user' property.
+     */
+    public static final String PROP_USER = "user";
+
+    /**
+     * The name of the 'title' property.
+     */
+    public static final String PROP_TITLE = "title";
+
+    /**
+     * The name of the 'description' property.
+     */
+    public static final String PROP_DESCRIPTION = "description";
+
+    /**
+     * The name of the 'location' property.
+     */
+    public static final String PROP_LOCATION = "location";
+
+    /**
+     * The name of the 'contact' property.
+     */
+    public static final String PROP_CONTACT = "contact";
+
+    /**
+     * The name of the 'type' property.
+     */
+    public static final String PROP_TYPE = "type";
+
+    /**
+     * The name of the 'url' property.
+     */
+    public static final String PROP_URL = "url";
+
+    /**
+     * The name of the 'end' property.
+     */
+    public static final String PROP_END = "end";
 
     public static FactoryImpl getFactory() {
         return FACTORY;
     }
 
-    private DataObjectReference<CustomerImpl, Customer> customer;
-    private DataObjectReference<UserImpl, User> user;
+    /**
+     * The name of the 'start' property.
+     */
+    public static final String PROP_START = "start";
+
+    private Customer customer;
+    private User user;
     private String title;
     private String description;
     private String location;
@@ -38,8 +87,8 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
      * Initializes a {@link DataRowState#NEW} appointment object.
      */
     public AppointmentImpl() {
-        customer = DataObjectReference.of(null);
-        user = DataObjectReference.of(null);
+        customer = null;
+        user = null;
         title = "";
         description = "";
         location = "";
@@ -53,43 +102,35 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     }
 
     @Override
-    public DataObjectReference<CustomerImpl, Customer> getCustomerReference() {
-        return customer;
-    }
-
-    @Override
     public Customer getCustomer() {
-        return customer.getPartial();
+        return customer;
     }
 
     /**
      * Set the value of customer
      *
-     * @param value new value of customer
+     * @param customer new value of customer
      */
-    public void setCustomer(Customer value) {
-        Objects.requireNonNull(value);
-        customer = DataObjectReference.of(value);
-    }
-
-    @Override
-    public DataObjectReference<UserImpl, User> getUserReference() {
-        return user;
+    public void setCustomer(Customer customer) {
+        Customer oldValue = this.customer;
+        this.customer = customer;
+        firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
     }
 
     @Override
     public User getUser() {
-        return user.getPartial();
+        return user;
     }
 
     /**
      * Set the value of user
      *
-     * @param value new value of user
+     * @param user new value of user
      */
-    public void setUser(User value) {
-        Objects.requireNonNull(value);
-        user = DataObjectReference.of(value);
+    public void setUser(User user) {
+        User oldValue = this.user;
+        this.user = user;
+        firePropertyChange(PROP_USER, oldValue, this.user);
     }
 
     @Override
@@ -103,7 +144,9 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
      * @param value new value of title
      */
     public void setTitle(String value) {
-        title = (value == null) ? "" : value;
+        String oldValue = this.title;
+        this.title = (title == null) ? "" : title;
+        firePropertyChange(PROP_TITLE, oldValue, this.title);
     }
 
     @Override
@@ -114,10 +157,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     /**
      * Set the value of description
      *
-     * @param value new value of description
+     * @param description new value of description
      */
-    public void setDescription(String value) {
-        description = (value == null) ? "" : value;
+    public void setDescription(String description) {
+        String oldValue = this.description;
+        this.description = (description == null) ? "" : description;
+        firePropertyChange(PROP_DESCRIPTION, oldValue, this.description);
     }
 
     @Override
@@ -128,10 +173,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     /**
      * Set the value of location
      *
-     * @param value new value of location
+     * @param location new value of location
      */
-    public void setLocation(String value) {
-        location = (value == null) ? "" : value;
+    public void setLocation(String location) {
+        String oldValue = this.location;
+        this.location = (location == null) ? "" : location;
+        firePropertyChange(PROP_LOCATION, oldValue, this.location);
     }
 
     @Override
@@ -142,10 +189,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     /**
      * Set the value of contact
      *
-     * @param value new value of contact
+     * @param contact new value of contact
      */
-    public void setContact(String value) {
-        contact = (value == null) ? "" : value;
+    public void setContact(String contact) {
+        String oldValue = this.contact;
+        this.contact = (contact == null) ? "" : contact;
+        firePropertyChange(PROP_CONTACT, oldValue, this.contact);
     }
 
     @Override
@@ -153,8 +202,15 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
         return type;
     }
 
-    public void setType(AppointmentType value) {
-        type = (null == value) ? AppointmentType.OTHER : value;
+    /**
+     * Set the value of type
+     *
+     * @param type new value of type
+     */
+    public void setType(AppointmentType type) {
+        AppointmentType oldValue = this.type;
+        this.type = (null == type) ? AppointmentType.OTHER : type;
+        firePropertyChange(PROP_TYPE, oldValue, this.type);
     }
 
     @Override
@@ -165,10 +221,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     /**
      * Set the value of url
      *
-     * @param value new value of url
+     * @param url new value of url
      */
-    public void setUrl(String value) {
-        url = (value == null) ? "" : value;
+    public void setUrl(String url) {
+        String oldValue = this.url;
+        this.url = (url == null) ? "" : url;
+        firePropertyChange(PROP_URL, oldValue, this.url);
     }
 
     @Override
@@ -179,11 +237,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     /**
      * Set the value of start
      *
-     * @param value new value of start
+     * @param start new value of start
      */
-    public void setStart(Timestamp value) {
-        Objects.requireNonNull(value);
-        start = value;
+    public void setStart(Timestamp start) {
+        Timestamp oldValue = this.start;
+        this.start = start;
+        firePropertyChange(PROP_START, oldValue, this.start);
     }
 
     @Override
@@ -194,11 +253,12 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
     /**
      * Set the value of end
      *
-     * @param value new value of end
+     * @param end new value of end
      */
-    public void setEnd(Timestamp value) {
-        Objects.requireNonNull(value);
-        end = value;
+    public void setEnd(Timestamp end) {
+        Timestamp oldValue = this.end;
+        this.end = end;
+        firePropertyChange(PROP_END, oldValue, this.end);
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> {
@@ -281,8 +341,8 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment {
 
         @Override
         protected void onInitializeDao(AppointmentImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            target.customer = DataObjectReference.of(Customer.of(resultSet, columns));
-            target.user = DataObjectReference.of(User.of(resultSet, columns));
+            target.customer = Customer.of(resultSet, columns);
+            target.user = User.of(resultSet, columns);
             target.title = columns.getString(resultSet, DbColumn.TITLE, "");
             target.description = columns.getString(resultSet, DbColumn.DESCRIPTION, "");
             target.location = columns.getString(resultSet, DbColumn.LOCATION, "");

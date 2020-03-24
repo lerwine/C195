@@ -17,7 +17,17 @@ import scheduler.util.ResourceBundleLoader;
 import scheduler.view.city.CityModel;
 import scheduler.view.country.EditCountry;
 
-public class CityImpl extends DataObjectImpl implements City {
+public class CityImpl extends DataObjectImpl implements City<Country> {
+
+    /**
+     * The name of the 'name' property.
+     */
+    public static final String PROP_NAME = "name";
+
+    /**
+     * The name of the 'country' property.
+     */
+    public static final String PROP_COUNTRY = "country";
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -26,7 +36,7 @@ public class CityImpl extends DataObjectImpl implements City {
     }
 
     private String name;
-    private DataObjectReference<CountryImpl, Country> country;
+    private Country country;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -34,7 +44,7 @@ public class CityImpl extends DataObjectImpl implements City {
     public CityImpl() {
         super();
         name = "";
-        country = new DataObjectReference<>();
+        country = null;
     }
 
     @Override
@@ -47,18 +57,15 @@ public class CityImpl extends DataObjectImpl implements City {
      *
      * @param value new value of name
      */
-    public void setName(String value) {
-        name = (value == null) ? "" : value;
-    }
-
-    @Override
-    public DataObjectReference<CountryImpl, Country> getCountryReference() {
-        return country;
+    public void setName(String name) {
+        String oldValue = this.name;
+        this.name = (name == null) ? "" : name;
+        firePropertyChange(PROP_NAME, oldValue, this.name);
     }
 
     @Override
     public Country getCountry() {
-        return country.getPartial();
+        return country;
     }
 
     /**
@@ -67,7 +74,9 @@ public class CityImpl extends DataObjectImpl implements City {
      * @param country new value of country
      */
     public void setCountry(Country country) {
-        this.country = DataObjectReference.of(country);
+        Country oldValue = this.country;
+        this.country = country;
+        firePropertyChange(PROP_COUNTRY, oldValue, this.country);
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CityImpl, CityModel> {
@@ -125,9 +134,9 @@ public class CityImpl extends DataObjectImpl implements City {
             target.name = columns.getString(resultSet, DbColumn.CITY_NAME, "");
             Optional<Integer> countryId = columns.tryGetInt(resultSet, DbColumn.CITY_COUNTRY);
             if (countryId.isPresent()) {
-                target.country = DataObjectReference.of(Country.of(countryId.get(), columns.getString(resultSet, DbColumn.COUNTRY_NAME, "")));
+                target.country = Country.of(countryId.get(), columns.getString(resultSet, DbColumn.COUNTRY_NAME, ""));
             } else {
-                target.country = new DataObjectReference<>();
+                target.country = null;
             }
         }
 

@@ -27,8 +27,9 @@ import scheduler.dao.schema.DbName;
  * ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;</code>
  *
  * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The type of {@link City} data access object.
  */
-public interface Address extends DataObject {
+public interface Address<T extends City> extends DataObject {
 
     /**
      * Gets the first line of the current address. Column definition: <code>`address` varchar(50) NOT NULL</code>
@@ -51,9 +52,7 @@ public interface Address extends DataObject {
      *
      * @return The {@link City} for the current address.
      */
-    DataObjectReference<CityImpl, City> getCityReference();
-
-    City getCity();
+    T getCity();
 
     /**
      * Gets the postal code for the current address. Column definition: <code>`postalCode` varchar(10) NOT NULL</code>
@@ -77,19 +76,19 @@ public interface Address extends DataObject {
         String cityZipCountry = address.getPostalCode();
         City city;
         if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
-            if (null == (city = address.getCityReference().ensurePartial(CityImpl.getFactory()))) {
+            if (null == (city = address.getCity())) {
                 cityZipCountry = "";
             } else if ((cityZipCountry = City.toString(city).trim()).isEmpty()) {
-                cityZipCountry = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+                cityZipCountry = Country.toString(city.getCountry()).trim();
             } else {
-                String country = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+                String country = Country.toString(city.getCountry()).trim();
                 if (!country.isEmpty()) {
                     cityZipCountry = String.format("%s, %s", cityZipCountry, country);
                 }
             }
-        } else if (null != (city = address.getCityReference().ensurePartial(CityImpl.getFactory()))) {
+        } else if (null != (city = address.getCity())) {
             String cityName = city.getName();
-            String country = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+            String country = Country.toString(city.getCountry()).trim();
             if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
                 if (!country.isEmpty()) {
                     cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);
@@ -138,6 +137,7 @@ public interface Address extends DataObject {
     /**
      * Creates a read-only Address object from object values.
      *
+     * @param <T> The type of {@link City} data access object.
      * @param pk The value of the primary key.
      * @param address1 The first line of the current address.
      * @param address2 The second line of the current address.
@@ -146,14 +146,12 @@ public interface Address extends DataObject {
      * @param phone The phone number associated with the current address.
      * @return The read-only Address object.
      */
-    public static Address of(int pk, String address1, String address2, DataObjectReference<CityImpl, City> city, String postalCode, String phone) {
+    public static <T extends City> Address<T> of(int pk, String address1, String address2, T city, String postalCode, String phone) {
         Objects.requireNonNull(address1, "Address line 1 cannot be null");
         Objects.requireNonNull(address2, "Address line 2 cannot be null");
         Objects.requireNonNull(postalCode, "Postal Code cannot be null");
         Objects.requireNonNull(phone, "Phone cannot be null");
-        return new Address() {
-            private final DataObjectReference<CityImpl, City> cityReference = (null == city) ? DataObjectReference.of(null) : city;
-
+        return new Address<T>() {
             @Override
             public String getAddress1() {
                 return address1;
@@ -165,13 +163,8 @@ public interface Address extends DataObject {
             }
 
             @Override
-            public DataObjectReference<CityImpl, City> getCityReference() {
-                return cityReference;
-            }
-
-            @Override
-            public City getCity() {
-                return cityReference.getPartial();
+            public T getCity() {
+                return city;
             }
 
             @Override
@@ -208,7 +201,7 @@ public interface Address extends DataObject {
         Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
         if (id.isPresent()) {
             return of(id.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""), columns.getString(resultSet, DbColumn.ADDRESS2, ""),
-                    DataObjectReference.of(City.of(resultSet, columns)), columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
+                    City.of(resultSet, columns), columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
                     columns.getString(resultSet, DbName.PHONE, ""));
         }
 

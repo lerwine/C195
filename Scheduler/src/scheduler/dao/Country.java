@@ -25,11 +25,6 @@ import scheduler.dao.schema.DbName;
 public interface Country extends DataObject {
 
     /**
-     * The name of the "name" property.
-     */
-    public static final String PROP_NAME = "name";
-
-    /**
      * Gets the name of the current country.
      *
      * @return The name of the current country.

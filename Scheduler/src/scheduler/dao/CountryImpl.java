@@ -18,6 +18,11 @@ import scheduler.view.country.EditCountry;
 
 public class CountryImpl extends DataObjectImpl implements Country {
 
+    /**
+     * The name of the 'name' property.
+     */
+    public static final String PROP_NAME = "name";
+
     private String name;
 
     @Override
@@ -28,10 +33,12 @@ public class CountryImpl extends DataObjectImpl implements Country {
     /**
      * Set the value of name.
      *
-     * @param value new value of name.
+     * @param name new value of name.
      */
-    public void setName(String value) {
-        name = (value == null) ? "" : value;
+    public void setName(String name) {
+        String oldValue = this.name;
+        this.name = (name == null) ? "" : name;
+        firePropertyChange(PROP_NAME, oldValue, this.name);
     }
 
     /**

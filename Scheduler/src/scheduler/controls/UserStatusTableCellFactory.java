@@ -8,12 +8,12 @@ import scheduler.dao.UserStatus;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
- * @param <S> The item type.
+ * @param <T> The item type.
  */
-public class UserStatusTableCellFactory<S> implements Callback<TableColumn<S, UserStatus>, TableCell<S, UserStatus>> {
+public class UserStatusTableCellFactory<T extends UserStatus> implements Callback<TableColumn<String, T>, TableCell<String, T>> {
 
     @Override
-    public TableCell<S, UserStatus> call(TableColumn<S, UserStatus> param) {
-        return new UserStatusTableCell<S>();
+    public TableCell<String, T> call(TableColumn<String, T> param) {
+        return new UserStatusTableCell<>();
     }
 }

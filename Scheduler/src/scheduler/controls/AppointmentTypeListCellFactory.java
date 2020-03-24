@@ -8,11 +8,12 @@ import scheduler.dao.AppointmentType;
 /**
  *
  * @author Leonard T. Erwine
+ * @param <T> The type of the item represented by the {@link ListView}.
  */
-public class AppointmentTypeListCellFactory implements Callback<ListView<AppointmentType>, ListCell<AppointmentType>> {
+public class AppointmentTypeListCellFactory<T extends AppointmentType> implements Callback<ListView<T>, ListCell<T>> {
 
     @Override
-    public ListCell<AppointmentType> call(ListView<AppointmentType> param) {
-        return new AppointmentTypeListCell();
+    public ListCell<T> call(ListView<T> param) {
+        return new AppointmentTypeListCell<>();
     }
 }

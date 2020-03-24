@@ -24,8 +24,9 @@ import scheduler.dao.schema.DbName;
  * ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;</code>
  *
  * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The type of {@link Country} data access object.
  */
-public interface City extends DataObject {
+public interface City<T extends Country> extends DataObject {
 
     /**
      * Gets the name of the current city. This corresponds to the "city" database column.
@@ -39,14 +40,12 @@ public interface City extends DataObject {
      *
      * @return The {@link Country} for the current city.
      */
-    DataObjectReference<CountryImpl, Country> getCountryReference();
-
-    Country getCountry();
+    T getCountry();
 
     public static String toString(City city) throws SQLException, ClassNotFoundException {
         if (null != city) {
             String n = city.getName();
-            String country = Country.toString(city.getCountryReference().ensurePartial(CountryImpl.getFactory())).trim();
+            String country = Country.toString(city.getCountry()).trim();
             if (null == n || (n = n.trim()).isEmpty()) {
                 return country;
             }
@@ -58,16 +57,15 @@ public interface City extends DataObject {
     /**
      * Creates a read-only City object from object values.
      *
+     * @param <T> The type of {@link Country} data access object.
      * @param pk The value of the primary key.
      * @param name The name of the city.
      * @param country The country of the city.
      * @return The read-only City object.
      */
-    public static City of(int pk, String name, DataObjectReference<CountryImpl, Country> country) {
+    public static <T extends Country> City<T> of(int pk, String name, T country) {
         Objects.requireNonNull(name, "Name cannot be null");
         return new City() {
-            private final DataObjectReference<CountryImpl, Country> countryReference = (null == country) ? DataObjectReference.of(null) : country;
-
             @Override
             public String getName() {
                 return name;
@@ -79,13 +77,8 @@ public interface City extends DataObject {
             }
 
             @Override
-            public DataObjectReference<CountryImpl, Country> getCountryReference() {
-                return countryReference;
-            }
-
-            @Override
             public Country getCountry() {
-                return country.getPartial();
+                return country;
             }
 
             @Override
@@ -107,7 +100,7 @@ public interface City extends DataObject {
     public static City of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
         Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
         if (id.isPresent()) {
-            return of(id.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), DataObjectReference.of(Country.of(resultSet, columns)));
+            return of(id.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), Country.of(resultSet, columns));
         }
         return null;
     }

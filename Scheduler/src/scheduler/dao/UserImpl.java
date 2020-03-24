@@ -17,6 +17,21 @@ import scheduler.view.user.UserModel;
 
 public class UserImpl extends DataObjectImpl implements User {
 
+    /**
+     * The name of the 'userName' property.
+     */
+    public static final String PROP_USERNAME = "userName";
+    
+    /**
+     * The name of the 'password' property.
+     */
+    public static final String PROP_PASSWORD = "password";
+    
+    /**
+     * The name of the 'status' property.
+     */
+    public static final String PROP_STATUS = "status";
+    
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
@@ -48,7 +63,9 @@ public class UserImpl extends DataObjectImpl implements User {
      * @param userName new value of userName
      */
     public void setUserName(String userName) {
+        String oldValue = this.userName;
         this.userName = (userName == null) ? "" : userName;
+        firePropertyChange(PROP_USERNAME, oldValue, this.userName);
     }
 
     @Override
@@ -62,7 +79,9 @@ public class UserImpl extends DataObjectImpl implements User {
      * @param password new value of password
      */
     public void setPassword(String password) {
+        String oldValue = this.password;
         this.password = (password == null) ? "" : password;
+        firePropertyChange(PROP_PASSWORD, oldValue, this.password);
     }
 
     @Override
@@ -76,7 +95,9 @@ public class UserImpl extends DataObjectImpl implements User {
      * @param status new value of status
      */
     public void setStatus(UserStatus status) {
+        UserStatus oldValue = this.status;
         this.status = (null == status) ? UserStatus.NORMAL : status;
+        firePropertyChange(PROP_STATUS, oldValue, this.status);
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl, UserModel> {

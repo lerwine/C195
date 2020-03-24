@@ -3,6 +3,8 @@ package scheduler.util;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.sql.Timestamp;
+import scheduler.dao.DataObject;
 
 /**
  * Base class for objects that support property binding through {@link PropertyChangeSupport}.
@@ -37,8 +39,40 @@ public class PropertyBindable implements IPropertyBindable {
         propertyChangeSupport.fireIndexedPropertyChange(propertyName, index, oldValue, newValue);
     }
 
-    protected <T> void firePropertyChange(String propertyName, T oldValue, T newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+    protected void firePropertyChange(String propertyName, int oldValue, int newValue) {
+        if (newValue != newValue) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    protected void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
+        if (newValue != newValue) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    protected void firePropertyChange(String propertyName, String oldValue, String newValue) {
+        if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    protected void firePropertyChange(String propertyName, Timestamp oldValue, Timestamp newValue) {
+        if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    protected <T extends Enum> void firePropertyChange(String propertyName, T oldValue, T newValue) {
+        if ((null == oldValue) ? null != newValue : oldValue == newValue) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    protected <T extends DataObject> void firePropertyChange(String propertyName, T oldValue, T newValue) {
+        if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
     }
 
     /**

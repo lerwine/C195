@@ -12,7 +12,7 @@ import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.address.AddressModel;
 
-public class AddressImpl extends DataObjectImpl implements Address {
+public class AddressImpl extends DataObjectImpl implements Address<City> {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -22,7 +22,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
 
     private String address1;
     private String address2;
-    private DataObjectReference<CityImpl, City> city;
+    private City city;
     private String postalCode;
     private String phone;
 
@@ -32,7 +32,7 @@ public class AddressImpl extends DataObjectImpl implements Address {
     public AddressImpl() {
         address1 = "";
         address2 = "";
-        city = DataObjectReference.of(null);
+        city = null;
         postalCode = "";
         phone = "";
     }
@@ -43,12 +43,24 @@ public class AddressImpl extends DataObjectImpl implements Address {
     }
 
     /**
+     * The name of the 'address1' property.
+     */
+    public static final String PROP_ADDRESS1 = "address1";
+    
+    /**
+     * The name of the 'address2' property.
+     */
+    public static final String PROP_ADDRESS2 = "address2";
+    
+    /**
      * Set the value of address1
      *
      * @param value new value of address1
      */
     public void setAddress1(String value) {
+        String oldValue = address1;
         address1 = (value == null) ? "" : value;
+        firePropertyChange(PROP_ADDRESS1, oldValue, address1);
     }
 
     @Override
@@ -62,17 +74,19 @@ public class AddressImpl extends DataObjectImpl implements Address {
      * @param value new value of address2
      */
     public void setAddress2(String value) {
-        address2 = (value == null) ? "" : value;
+        String oldValue = address2;
+        address1 = (value == null) ? "" : value;
+        firePropertyChange(PROP_ADDRESS2, oldValue, address2);
     }
 
-    @Override
-    public DataObjectReference<CityImpl, City> getCityReference() {
-        return city;
-    }
-
+    /**
+     * The name of the 'city' property.
+     */
+    public static final String PROP_CITY = "city";
+    
     @Override
     public City getCity() {
-        return city.getPartial();
+        return city;
     }
 
     /**
@@ -81,7 +95,9 @@ public class AddressImpl extends DataObjectImpl implements Address {
      * @param city new value of city
      */
     public void setCity(City city) {
-        this.city = DataObjectReference.of(city);
+        City oldValue = this.city;
+        this.city = city;
+        firePropertyChange(PROP_CITY, oldValue, this.city);
     }
 
     @Override
@@ -95,9 +111,21 @@ public class AddressImpl extends DataObjectImpl implements Address {
      * @param value new value of postalCode
      */
     public void setPostalCode(String value) {
+        String oldValue = postalCode;
         postalCode = (value == null) ? "" : value;
+        firePropertyChange(PROP_POSTALCODE, oldValue, postalCode);
     }
 
+    /**
+     * The name of the 'postalCode' property.
+     */
+    public static final String PROP_POSTALCODE = "postalCode";
+    
+    /**
+     * The name of the 'phone' property.
+     */
+    public static final String PROP_PHONE = "phone";
+    
     @Override
     public String getPhone() {
         return phone;
@@ -109,7 +137,9 @@ public class AddressImpl extends DataObjectImpl implements Address {
      * @param value new value of phone
      */
     public void setPhone(String value) {
+        String oldValue = phone;
         phone = (value == null) ? "" : value;
+        firePropertyChange(PROP_PHONE, oldValue, phone);
     }
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {
@@ -180,10 +210,10 @@ public class AddressImpl extends DataObjectImpl implements Address {
             if (cityId.isPresent()) {
                 Optional<Integer> countryId = columns.tryGetInt(resultSet, DbColumn.CITY_COUNTRY);
                 if (countryId.isPresent()) {
-                    target.city = DataObjectReference.of(City.of(cityId.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""),
-                            DataObjectReference.of(Country.of(countryId.get(), columns.getString(resultSet, DbColumn.COUNTRY_NAME, "")))));
+                    target.city = City.of(cityId.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""),
+                            Country.of(countryId.get(), columns.getString(resultSet, DbColumn.COUNTRY_NAME, "")));
                 } else {
-                    target.city = DataObjectReference.of(City.of(cityId.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), null));
+                    target.city = City.of(cityId.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), null);
                 }
             } else {
                 target.city = null;

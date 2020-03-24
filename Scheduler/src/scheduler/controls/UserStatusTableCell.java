@@ -7,9 +7,9 @@ import scheduler.dao.UserStatus;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
- * @param <S> The item type.
+ * @param <T> The item type.
  */
-public class UserStatusTableCell<S> extends TableCell<S, UserStatus> {
+public class UserStatusTableCell<T extends UserStatus> extends TableCell<String, T> {
 
     UserStatusTableCell(ObservableMap<UserStatus, String> userStatusMap) {
     }
@@ -19,7 +19,7 @@ public class UserStatusTableCell<S> extends TableCell<S, UserStatus> {
     }
 
     @Override
-    protected void updateItem(UserStatus item, boolean empty) {
+    protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
         setText((item == null) ? "" : UserStatus.toDisplayValue(item));
     }

@@ -25,8 +25,9 @@ import scheduler.dao.schema.DbName;
  * ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;</code>
  *
  * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The type of {@link Address} data access object.
  */
-public interface Customer extends DataObject {
+public interface Customer<T extends Address> extends DataObject {
 
     /**
      * Gets the name of the current customer. This corresponds to the "customerName" database column.
@@ -40,9 +41,7 @@ public interface Customer extends DataObject {
      *
      * @return The {@link Address} for the current customer.
      */
-    DataObjectReference<AddressImpl, Address> getAddressReference();
-
-    Address getAddress();
+    T getAddress();
 
     /**
      * Gets a value that indicates whether the current customer is active. This corresponds to the "active" database column.
@@ -54,16 +53,16 @@ public interface Customer extends DataObject {
     /**
      * Creates a read-only Customer object from object values.
      *
+     * @param <T> The type of {@link Address} data access object.
      * @param pk The value of the primary key.
      * @param name The customer name.
      * @param address The customer's address
      * @param active {@code true} if the current customer is active; otherwise, {@code false}.
      * @return The read-only Customer object.
      */
-    public static Customer of(int pk, String name, DataObjectReference<AddressImpl, Address> address, boolean active) {
+    public static <T extends Address> Customer<T> of(int pk, String name, T address, boolean active) {
         Objects.requireNonNull(name, "Name cannot be null");
         return new Customer() {
-            private final DataObjectReference<AddressImpl, Address> addressReference = (null == address) ? DataObjectReference.of(null) : address;
 
             @Override
             public String getName() {
@@ -71,13 +70,8 @@ public interface Customer extends DataObject {
             }
 
             @Override
-            public DataObjectReference<AddressImpl, Address> getAddressReference() {
-                return addressReference;
-            }
-
-            @Override
             public Address getAddress() {
-                return addressReference.getPartial();
+                return address;
             }
 
             @Override
@@ -110,7 +104,7 @@ public interface Customer extends DataObject {
         Optional<Integer> id = columns.tryGetInt(resultSet, DbName.CUSTOMER_ID);
         if (id.isPresent()) {
             return Customer.of(id.get(), columns.getString(resultSet, DbColumn.CUSTOMER_NAME, ""),
-                    DataObjectReference.of(Address.of(resultSet, columns)), columns.getBoolean(resultSet, DbColumn.ACTIVE, false));
+                    Address.of(resultSet, columns), columns.getBoolean(resultSet, DbColumn.ACTIVE, false));
         }
         return null;
     }

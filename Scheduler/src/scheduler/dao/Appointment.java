@@ -27,30 +27,24 @@ import java.sql.Timestamp;
  * ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;</code>
  *
  * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The type of {@link Customer} data access object.
+ * @param <U> The type of {@link User} data access object.
  */
-public interface Appointment extends DataObject {
+public interface Appointment<T extends Customer, U extends User> extends DataObject {
 
     /**
-     * Gets the {@link Customer} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId" database
-     * column. Column definition: <code>`customerId` int(10) NOT NULL</code> Key constraint definition:
-     * <code>CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`customerId`) REFERENCES `customer` (`customerId`)</code>
+     * Gets the {@link Customer} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId" database column.
      *
      * @return The {@link Customer} for the current appointment.
      */
-    DataObjectReference<CustomerImpl, Customer> getCustomerReference();
-
-    Customer getCustomer();
+    T getCustomer();
 
     /**
-     * Gets the {@link User} for the current appointment. This corresponds to the "user" data row referenced by the "userId" database column. Column
-     * definition: <code>`userId` int(11) NOT NULL</code> Key constraint definition:
-     * <code>CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`)</code>
+     * Gets the {@link User} for the current appointment. This corresponds to the "user" data row referenced by the "userId" database column.
      *
      * @return The {@link User} for the current appointment.
      */
-    DataObjectReference<UserImpl, User> getUserReference();
-
-    User getUser();
+    U getUser();
 
     /**
      * Gets the title of the current appointment. This corresponds to the "title" database column. Column definition:

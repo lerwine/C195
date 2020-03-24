@@ -6,12 +6,12 @@ import scheduler.dao.AppointmentType;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
- * @param <S> The row item type.
+ * @param <T> The row item type.
  */
-public class AppointmentTypeTableCell<S> extends TableCell<S, AppointmentType> {
+public class AppointmentTypeTableCell<T extends AppointmentType> extends TableCell<String, T> {
 
     @Override
-    protected void updateItem(AppointmentType item, boolean empty) {
+    protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
         setText(AppointmentType.toAppointmentTypeDisplay(item));
     }
