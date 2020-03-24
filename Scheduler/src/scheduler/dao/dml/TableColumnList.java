@@ -3,6 +3,7 @@ package scheduler.dao.dml;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -19,6 +20,7 @@ import scheduler.util.ReadOnlyList;
  * @param <E> The type of {@link ColumnReference} contained in this list.
  */
 public interface TableColumnList<E extends ColumnReference> extends TableReference, ReadOnlyList<E> {
+    // TODO: Check all implementations. This should be a list that represents all columns from all joined tables.
     
     /**
      * Attempts to read a non-null string value from a {@link ResultSet}.
@@ -768,12 +770,16 @@ public interface TableColumnList<E extends ColumnReference> extends TableReferen
      * @return The first {@link ColumnReference} that refers to the specified {@link DbColumn} or {@code null} if no match was found.
      */
     default E findFirst(DbColumn column, boolean includeRelated) {
-        for (E e : this) {
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            E e = it.next();
             if (e.getColumn() == column)
                 return e;
         }
         if (includeRelated) {
-            for (E e : this) {
+            it = iterator();
+            while (it.hasNext()) {
+                E e = it.next();
                 if (SchemaHelper.areColumnsRelated(e.getColumn(), column))
                     return e;
             }
@@ -792,7 +798,9 @@ public interface TableColumnList<E extends ColumnReference> extends TableReferen
      * @return The first {@link ColumnReference} of a column that uses to the specified {@link DbName} or {@code null} if no match was found.
      */
     default E findFirstColumn(DbName name) {
-        for (E e : this) {
+        Iterator<E> it = iterator();
+        while (it.hasNext()) {
+            E e = it.next();
             if (e.getColumn().getDbName() == name)
                 return e;
         }
@@ -837,13 +845,14 @@ public interface TableColumnList<E extends ColumnReference> extends TableReferen
     }
     
     /**
-     * Gets the {@link ColumnReference} that is referenced by a specified name within the current list or in any child joins (if applicable).
+     * Gets the {@link ColumnReference} that is referenced by a specified name within the current list or in any joined tables (if applicable).
      * 
      * @param name The column reference name to search for.
      * @return The {@link ColumnReference} that is referenced by the specified {@code name} or {@code null} if no match was found within the
-     * current list or in any child joins.
+     * current list or in any joined tables.
      */
     default E get(String name) {
+        // TODO: Check all implementations since the usage has changed.
         if (null != name && !name.trim().isEmpty()) {
             Optional<E> result = stream().filter((t) -> t.getName().equalsIgnoreCase(name)).findFirst();
             if (result.isPresent())

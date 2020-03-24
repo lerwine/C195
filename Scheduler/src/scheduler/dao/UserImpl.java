@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.user.UserModel;
@@ -104,10 +104,10 @@ public class UserImpl extends DataObjectImpl implements User {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
-        private static final SelectList DETAIL_DML;
+        private static final SelectColumnList DETAIL_DML;
 
         static {
-            DETAIL_DML = new SelectList(DbTable.USER);
+            DETAIL_DML = new SelectColumnList(DbTable.USER);
             DETAIL_DML.makeUnmodifiable();
         }
 
@@ -124,7 +124,7 @@ public class UserImpl extends DataObjectImpl implements User {
          * @throws SQLException if unable to perform database query.
          */
         public Optional<UserImpl> findByUserName(Connection connection, String userName) throws SQLException {
-            SelectList dml = getDetailDml();
+            SelectColumnList dml = getDetailDml();
             String sql = dml.getSelectQuery().append(" WHERE `").append(DbColumn.USER_NAME.getDbName().getValue()).append("` = ?").toString();
             LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -154,7 +154,7 @@ public class UserImpl extends DataObjectImpl implements User {
         }
 
         @Override
-        public SelectList getDetailDml() {
+        public SelectColumnList getDetailDml() {
             return DETAIL_DML;
         }
 

@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.function.Predicate;
+import scheduler.dao.dml.WhereStatement;
 import scheduler.view.ItemModel;
 
 /**
@@ -17,9 +18,14 @@ import scheduler.view.ItemModel;
 public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D>, Predicate<M> {
 
     public static <D extends DataObjectImpl, M extends ItemModel<D>> boolean areEqual(ModelFilter<D, M> x, ModelFilter<D, M> y) {
-        String a, b;
-        return ((null == x || null == (a = x.getSqlFilterExpr())) ? "" : a.trim())
-                .equals((null == y || null == (b = y.getSqlFilterExpr())) ? "" : b.trim());
+        if (null == x)
+            return null == y;
+        if (null == y)
+            return false;
+        
+        WhereStatement<D> a = x.getWhereStatement();
+        WhereStatement<D> b = y.getWhereStatement();
+        return (null == a) ? null == b : null != b && a.equals(b);
     }
 
     /**

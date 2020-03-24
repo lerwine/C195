@@ -43,26 +43,26 @@ public class SelectListTest {
     @Test
     public void testGetName() {
         System.out.println("getName");
-        SelectList instance = new SelectList(DbTable.COUNTRY);
+        SelectColumnList instance = new SelectColumnList(DbTable.COUNTRY);
         String expResult = DbTable.COUNTRY.getAlias();
-        String result = instance.getName();
+        String result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new SelectList(DbTable.COUNTRY, (String) null);
-        result = instance.getName();
+        instance = new SelectColumnList(DbTable.COUNTRY, (String) null);
+        result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new SelectList(DbTable.COUNTRY, DbTable.COUNTRY.getAlias());
-        result = instance.getName();
+        instance = new SelectColumnList(DbTable.COUNTRY, DbTable.COUNTRY.getAlias());
+        result = instance.getTableAlias();
         assertEquals(expResult, result);
         expResult = DbTable.COUNTRY.getDbName().getValue();
-        instance = new SelectList(DbTable.COUNTRY, "");
-        result = instance.getName();
+        instance = new SelectColumnList(DbTable.COUNTRY, "");
+        result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new SelectList(DbTable.COUNTRY, DbTable.COUNTRY.getDbName().getValue());
-        result = instance.getName();
+        instance = new SelectColumnList(DbTable.COUNTRY, DbTable.COUNTRY.getDbName().getValue());
+        result = instance.getTableAlias();
         assertEquals(expResult, result);
         expResult = "xyz";
-        instance = new SelectList(DbTable.COUNTRY, "xyz");
-        result = instance.getName();
+        instance = new SelectColumnList(DbTable.COUNTRY, "xyz");
+        result = instance.getTableAlias();
         assertEquals(expResult, result);
     }
 
@@ -72,9 +72,9 @@ public class SelectListTest {
     @Test
     public void testGetJoinedTables() {
         System.out.println("getJoinedTables");
-        SelectList instance = new SelectList(DbTable.ADDRESS);
-        SelectList.Joined expResult = instance.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
-        List<SelectList.Joined> result = instance.getJoinedTables();
+        SelectColumnList instance = new SelectColumnList(DbTable.ADDRESS);
+        SelectColumnList.Joined expResult = instance.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
+        List<SelectColumnList.Joined> result = instance.getJoinedTables();
         assertEquals(1, result.size());
         assertEquals(expResult, result.get(0));
         expResult.leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
@@ -86,18 +86,18 @@ public class SelectListTest {
     @Test
     public void testGetTableName() {
         System.out.println("getTableName");
-        SelectList instance = new SelectList(DbTable.COUNTRY);
+        SelectColumnList instance = new SelectColumnList(DbTable.COUNTRY);
         DbTable expResult = DbTable.COUNTRY;
-        DbTable result = instance.getTableName();
+        DbTable result = instance.getTable();
         assertEquals(expResult, result);
-        instance = new SelectList(DbTable.ADDRESS, DbTable.COUNTRY.name());
+        instance = new SelectColumnList(DbTable.ADDRESS, DbTable.COUNTRY.name());
         expResult = DbTable.ADDRESS;
-        result = instance.getTableName();
+        result = instance.getTable();
         assertEquals(expResult, result);
         instance.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
-        result = instance.getTableName();
+        result = instance.getTable();
         assertEquals(expResult, result);
-        assertTrue(instance.getTableName() == expResult);
+        assertTrue(instance.getTable() == expResult);
     }
 
     /**
@@ -106,12 +106,12 @@ public class SelectListTest {
     @Test
     public void testGetSelectQuery() {
         System.out.println("getSelectQuery");
-        SelectList instance = new SelectList(DbTable.APPOINTMENT);
+        SelectColumnList instance = new SelectColumnList(DbTable.APPOINTMENT);
         String expResult = "SELECT `customerId`, `userId`, `title`, `description`, `location`, `contact`, `type`, `url`, `start`, `end`,"
                 + " `appointmentId`, `createDate`, `createdBy`, `lastUpdate`, `lastUpdateBy` FROM `appointment`";
         StringBuilder result = instance.getSelectQuery();
         assertEquals(expResult, result.toString());
-        instance = new SelectList(DbTable.CUSTOMER);
+        instance = new SelectColumnList(DbTable.CUSTOMER);
         expResult = "SELECT `customerName`, `addressId`, `active`, `customerId`, `createDate`, `createdBy`, `lastUpdate`, `lastUpdateBy`"
                 + " FROM `customer`";
         result = instance.getSelectQuery();
@@ -124,8 +124,8 @@ public class SelectListTest {
     @Test
     public void testInnerJoin() {
         System.out.println("innerJoin");
-        SelectList instance = new SelectList(DbTable.ADDRESS);
-        SelectList.Joined joinedTable = instance.innerJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
+        SelectColumnList instance = new SelectColumnList(DbTable.ADDRESS);
+        SelectColumnList.Joined joinedTable = instance.innerJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID);
         StringBuilder result = instance.getSelectQuery();
         String expResult = "SELECT l.`address` AS address, l.`address2` AS address2, l.`cityId` AS cityId, l.`postalCode` AS postalCode,"
                 + " l.`phone` AS phone, l.`addressId` AS addressId, l.`createDate` AS createDate, l.`createdBy` AS createdBy,"
@@ -151,7 +151,7 @@ public class SelectListTest {
     @Test
     public void testLeftJoin() {
         System.out.println("leftJoin");
-        SelectList instance = new SelectList(DbTable.CUSTOMER);
+        SelectColumnList instance = new SelectColumnList(DbTable.CUSTOMER);
         instance.leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
                 .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
                 .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
@@ -173,7 +173,7 @@ public class SelectListTest {
     @Test
     public void testRightJoin() {
         System.out.println("rightJoin");
-        SelectList instance = new SelectList(DbTable.APPOINTMENT);
+        SelectColumnList instance = new SelectColumnList(DbTable.APPOINTMENT);
         instance.rightJoin(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_ID)
                 .leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
                 .innerJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
@@ -207,7 +207,7 @@ public class SelectListTest {
         DbColumn rightColumn = DbColumn.USER_NAME;
         Predicate<DbColumn> columnSelector = (t) -> t == DbColumn.STATUS || t == DbColumn.USER_NAME|| t == DbColumn.USER_ID;
         Function<DbColumn, String> aliasMapper = (t) -> (t == DbColumn.USER_ID) ? "id" : null;
-        SelectList instance = new SelectList(DbTable.APPOINTMENT);
+        SelectColumnList instance = new SelectColumnList(DbTable.APPOINTMENT);
         instance.fullJoin(leftColumn, rightColumn, columnSelector, aliasMapper);
         String expResult = "SELECT a.`customerId` AS customerId, a.`userId` AS userId, a.`title` AS title,"
                 + " a.`description` AS description, a.`location` AS location, a.`contact` AS contact, a.`type` AS type, a.`url` AS url,"

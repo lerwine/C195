@@ -26,7 +26,7 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      * @return {@code true} if any {@link JoinableTable} is referenced by the specified {@code name}; otherwise, false.
      */
     default boolean isTableRefNameUsed(String name) {
-        return null != name && !name.trim().isEmpty() && (getName().equalsIgnoreCase(name) || 
+        return null != name && !name.trim().isEmpty() && (getTableAlias().equalsIgnoreCase(name) || 
                 getJoinedTables().stream().anyMatch((t) -> t.isTableRefNameUsed(name)));
     }
     
@@ -42,7 +42,7 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      * @return The {@link JoinableTable} that is referenced by the specified name or {@code null} if no match was found.
      */
     default JoinableTable<? extends T> getTable(String referenceName) {
-        if (getName().equalsIgnoreCase(referenceName))
+        if (getTableAlias().equalsIgnoreCase(referenceName))
             return this;
         
         for (T t : getJoinedTables()) {
@@ -73,7 +73,7 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      * @return {@code true} if any {@link JoinableTable} references the specified {@code tableName}; otherwise, false.
      */
     default boolean isTableReferenced(DbTable tableName) {
-        return null != tableName && (getTableName() == tableName || getJoinedTables().stream().anyMatch((t) -> t.getTableName() == tableName));
+        return null != tableName && (getTable() == tableName || getJoinedTables().stream().anyMatch((t) -> t.getTable() == tableName));
     }
     
     public static boolean isTableReferencedGlobally(JoinableTable<?> source, DbTable tableName) {
@@ -89,7 +89,7 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      * @return The first {@link JoinableTable} that references the specified {@code tableName}.
      */
     default JoinableTable<? extends T> findFirst(DbTable tableName) {
-        if (getTableName() == tableName)
+        if (getTable() == tableName)
             return this;
         
         for (T t : getJoinedTables()) {

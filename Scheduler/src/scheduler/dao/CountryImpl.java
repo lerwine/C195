@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import scheduler.AppResources;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
@@ -57,10 +57,10 @@ public class CountryImpl extends DataObjectImpl implements Country {
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CountryImpl, CountryModel> {
 
-        private static final SelectList DETAIL_DML;
+        private static final SelectColumnList DETAIL_DML;
 
         static {
-            DETAIL_DML = new SelectList(DbTable.COUNTRY);
+            DETAIL_DML = new SelectColumnList(DbTable.COUNTRY);
             DETAIL_DML.makeUnmodifiable();
         }
 
@@ -76,7 +76,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        public SelectList getDetailDml() {
+        public SelectColumnList getDetailDml() {
             return DETAIL_DML;
         }
 

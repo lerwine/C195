@@ -1,12 +1,12 @@
 package scheduler.dao.dml;
 
-import scheduler.dao.DataObject;
+import scheduler.dao.DataObjectImpl;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-interface ColumnComparisonStatement<T extends DataObject> extends ComparisonStatement<T> {
+interface ColumnComparisonStatement<T extends DataObjectImpl> extends ComparisonStatement<T> {
     
     ColumnReference getColumn();
     
@@ -17,8 +17,8 @@ interface ColumnComparisonStatement<T extends DataObject> extends ComparisonStat
         TableReference tr = getTable();
         String a;
         if (null != tr) {
-            a = tr.getName();
-            if (a.equalsIgnoreCase(tr.getTableName().getDbName().getValue()))
+            a = tr.getTableAlias();
+            if (a.equalsIgnoreCase(tr.getTable().getDbName().getValue()))
                 stringBuilder.append("`").append(a).append("`.");
             else
                 stringBuilder.append(a).append(".");

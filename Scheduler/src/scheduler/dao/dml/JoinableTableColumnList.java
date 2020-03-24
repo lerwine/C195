@@ -8,6 +8,13 @@ import scheduler.dao.schema.DbColumn;
 /**
  * A {@link TableColumnList} that is joined to zero or more {@link JoinedTableColumnList}s.
  * If {@link JoinableTableColumnList#isEmpty()} is {@code true}, then this will should be a "leaf" {@link JoinedTableColumnList} as well.
+ * <p>Extended interfaces:</p>
+ * <dl>
+ *  <dt>{@link JoinableTable}</dt>
+ *  <dd>A <strong>TableReference</strong> that is joined to another {@link JoinableTable} ({@link JoinedTable#getParentTable()}).</dd>
+ *  <dt>{@link TableColumnList}</dt>
+ *  <dd>A <strong>TableReference</strong> with columns for SELECT, INSERT or UPDATE.</dd>
+ * </dl>
  * 
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link JoinedTableColumnList} that represents the joined list of table columns.
@@ -18,6 +25,7 @@ public interface JoinableTableColumnList<T extends JoinedTableColumnList<T, E>, 
     
     @Override
     public default boolean isColumnRefNameUsed(String name) {
+        // TODO: Remove this - This cannot be implemented in this way, since it needs to be a global lookup.
         return null != name && !name.trim().isEmpty() && (stream().anyMatch((t) -> t.getName().equalsIgnoreCase(name)) ||
                 getJoinedTables().stream().anyMatch((t) -> t.isColumnRefNameUsed(name)));
     }
@@ -29,15 +37,19 @@ public interface JoinableTableColumnList<T extends JoinedTableColumnList<T, E>, 
      * @param name The column reference name to search for.
      * @return {@code true} if the column reference {@code name} is being used for any columns of the current list or in any related joins;
      * otherwise, {@code false}.
+     * @deprecated Don't need this anymore
      */
+    @Deprecated
     public static boolean isColumnRefNameUsedGlobally(JoinableTableColumnList<?, ?> source, String name) {
+        // TODO: Delete this method.
         if (source instanceof JoinedTableColumnList)
             source = (JoinableTableColumnList<?, ?>)((JoinedTableColumnList<?, ?>)source).getPrimaryTable();
         return source.isColumnRefNameUsed(name);
     }
-    
+   
     @Override
     public default E get(String name) {
+        // TODO: Remove this - This cannot be implemented in this way, since it needs to be a global lookup.
         if (null != name && !name.trim().isEmpty()) {
             Optional<E> result = stream().filter((t) -> t.getName().equalsIgnoreCase(name)).findFirst();
             if (!result.isPresent())
@@ -56,8 +68,11 @@ public interface JoinableTableColumnList<T extends JoinedTableColumnList<T, E>, 
      * @param name The column reference name to search for.
      * @return The {@link ColumnReference} that is referenced by the specified {@code name} or {@code null} if no match was found within the
      * current list or in any related joins.
+     * @deprecated Don't need this anymore
      */
+    @Deprecated
     public static <E extends ColumnReference> E getGlobal(JoinableTableColumnList<?, E> source, String name) {
+        // TODO: Delete this method.
         if (source instanceof JoinedTableColumnList)
             source = (JoinableTableColumnList<?, E>)((JoinedTableColumnList<?, E>)source).getPrimaryTable();
         return source.get(name);

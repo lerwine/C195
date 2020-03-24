@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Optional;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.customer.CustomerModel;
@@ -100,10 +100,10 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {
 
-        private static final SelectList DETAIL_DML;
+        private static final SelectColumnList DETAIL_DML;
 
         static {
-            DETAIL_DML = new SelectList(DbTable.CUSTOMER);
+            DETAIL_DML = new SelectColumnList(DbTable.CUSTOMER);
             DETAIL_DML.leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
                     .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
                     .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
@@ -130,7 +130,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
         }
 
         @Override
-        public SelectList getDetailDml() {
+        public SelectColumnList getDetailDml() {
             return DETAIL_DML;
         }
 

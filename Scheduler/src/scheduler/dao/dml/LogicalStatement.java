@@ -8,8 +8,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Stream;
-import scheduler.dao.DataObject;
+import scheduler.dao.DataObjectImpl;
 import scheduler.util.ReadOnlyList;
+import scheduler.view.ItemModel;
 
 /**
  * Represents a logical grouping of {@link WhereStatement} objects.
@@ -17,7 +18,7 @@ import scheduler.util.ReadOnlyList;
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The data object type.
  */
-public interface LogicalStatement<T extends DataObject> extends WhereStatement<T>, ReadOnlyList<WhereStatement<T>> {
+public interface LogicalStatement<T extends DataObjectImpl> extends WhereStatement<T>, ReadOnlyList<WhereStatement<T>> {
 
     LogicalOperator getOperator();
 
@@ -54,15 +55,15 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
         } while (it.hasNext());
     }
 
-    public static <T extends DataObject> boolean isLogicalGroup(WhereStatement<T> filter) {
+    public static <T extends DataObjectImpl> boolean isLogicalGroup(WhereStatement<T> filter) {
         return null != filter && filter instanceof LogicalStatement;
     }
 
-    public static <T extends DataObject> boolean isLogicalGroup(WhereStatement<T> filter, LogicalOperator op) {
+    public static <T extends DataObjectImpl> boolean isLogicalGroup(WhereStatement<T> filter, LogicalOperator op) {
         return null != filter && filter instanceof LogicalStatement && ((LogicalStatement<T>) filter).getOperator() == op;
     }
     
-    public static <T extends DataObject> LogicalStatement<T> and(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
+    public static <T extends DataObjectImpl> LogicalStatement<T> and(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
         if (null == x || null == y || (null != z && z.length > 0 || Arrays.stream(z).anyMatch((t) -> null == t))) {
             throw new NullPointerException();
         }
@@ -86,7 +87,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
             }
 
             @Override
-            public boolean test(T t) {
+            public boolean test(ItemModel<T> t) {
                 return Arrays.stream(items).allMatch((u) -> u.test(t));
             }
 
@@ -114,7 +115,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
 
             @Override
             public boolean containsAll(Collection<?> c) {
-                return c.stream().allMatch((t) -> contains((WhereStatement<?>) t));
+                return c.stream().allMatch((t) -> contains((WhereStatement<T>) t));
             }
 
             @Override
@@ -176,7 +177,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
         };
     }
 
-    public static <T extends DataObject> LogicalStatement<T> or(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
+    public static <T extends DataObjectImpl> LogicalStatement<T> or(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
         if (null == x || null == y || (null != z && z.length > 0 || Arrays.stream(z).anyMatch((t) -> null == t))) {
             throw new NullPointerException();
         }
@@ -200,7 +201,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
             }
 
             @Override
-            public boolean test(T t) {
+            public boolean test(ItemModel<T> t) {
                 return Arrays.stream(items).allMatch((u) -> u.test(t));
             }
 
@@ -228,7 +229,7 @@ public interface LogicalStatement<T extends DataObject> extends WhereStatement<T
 
             @Override
             public boolean containsAll(Collection<?> c) {
-                return c.stream().allMatch((t) -> contains((WhereStatement<?>) t));
+                return c.stream().allMatch((t) -> contains((WhereStatement<T>) t));
             }
 
             @Override

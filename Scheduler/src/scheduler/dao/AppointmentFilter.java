@@ -6,8 +6,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import scheduler.Scheduler;
+import scheduler.dao.dml.ComparisonOperator;
+import scheduler.dao.dml.IntegerComparisonStatement;
+import scheduler.dao.dml.SelectColumnList;
+import scheduler.dao.dml.WhereStatement;
+import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.util.DB;
 import scheduler.util.ResourceBundleLoader;
@@ -25,20 +31,17 @@ import scheduler.view.user.UserModel;
 // TODO: Deprecated this after it is replaced
 public interface AppointmentFilter extends ModelFilter<AppointmentImpl, AppointmentModel> {
 
-    public static AppointmentFilter of(FilterType type, String heading, String subHeading, Predicate<AppointmentModel> predicate, String sqlFilterExpr,
-            ThrowableBiFunction<PreparedStatement, Integer, Integer, SQLException> applyValues, Consumer<AppointmentModel> initializeNew) {
+    
+    public static AppointmentFilter of(FilterType type, String heading, String subHeading,
+            Function<SelectColumnList, WhereStatement<AppointmentImpl>> getFilter, Consumer<AppointmentModel> initializeNew) {
         if (null == subHeading) {
-            return of(type, heading, "", predicate, sqlFilterExpr, applyValues, initializeNew);
-        }
-
-        if (null == initializeNew) {
-            return of(type, heading, subHeading, predicate, sqlFilterExpr, applyValues, (m) -> m.setUser(new UserModel(Scheduler.getCurrentUser())));
+            return of(type, heading, "", getFilter, initializeNew);
         }
 
         Objects.requireNonNull(heading);
-        Objects.requireNonNull(applyValues);
-        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(getFilter);
         return new AppointmentFilter() {
+            private final WhereStatement<AppointmentImpl> whereStatement = getFilter.apply(AppointmentImpl.getFactory().getDetailDml());
             @Override
             public String getHeading() {
                 return heading;
@@ -50,23 +53,24 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return sqlFilterExpr;
+            public WhereStatement<AppointmentImpl> getWhereStatement() {
+                return whereStatement;
             }
-
+            
             @Override
             public int apply(PreparedStatement ps, int index) throws SQLException {
-                return applyValues.apply(ps, index);
+                return whereStatement.applyValues(ps, index);
             }
 
             @Override
             public boolean test(AppointmentModel t) {
-                return predicate.test(t);
+                return whereStatement.test(t);
             }
 
             @Override
             public void initializeNew(AppointmentModel model) {
-                initializeNew.accept(model);
+                if (null != initializeNew)
+                    initializeNew.accept(model);
             }
 
             @Override
@@ -82,16 +86,14 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
      *
      * @param type
      * @param heading The heading to display in the items listing view.
-     * @param predicate The {@link Predicate} that corresponds to the SQL filter expression.
-     * @param sqlFilterExpr The WHERE clause sub-expression for filtering results.
-     * @param applyValues Sets the parameterized values of the {@link PreparedStatement}. The second argument of this {@link ThrowableBiFunction} is
-     * the next sequential parameterized value index, and the return value is the next available sequential index.
+     * @param getFilter
      * @param initializeNew Initializes new {@link AppointmentModel} objects with default values appropriate for the filter.
      * @return A new appointment filter.
      */
-    public static AppointmentFilter of(FilterType type, String heading, Predicate<AppointmentModel> predicate, String sqlFilterExpr,
-            ThrowableBiFunction<PreparedStatement, Integer, Integer, SQLException> applyValues, Consumer<AppointmentModel> initializeNew) {
-        return of(type, heading, "", predicate, sqlFilterExpr, applyValues, initializeNew);
+    public static AppointmentFilter of(FilterType type, String heading,
+            Function<SelectColumnList, WhereStatement<AppointmentImpl>> getFilter,
+            Consumer<AppointmentModel> initializeNew) {
+        return of(type, heading, "", getFilter, initializeNew);
     }
 
     /**
@@ -106,9 +108,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (m) -> true,
                 // sqlFilterExpr
-                "",
-                // applyValues
-                (ps, i) -> i,
+                null,
                 // initializeNew
                 (m) -> m.setUser(new UserModel(Scheduler.getCurrentUser())));
     }
@@ -126,12 +126,8 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId,
                 // sqlFilterExpr
-                String.format("`%s`.`%s` = ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, customerId);
-                    return i;
-                },
+                (SelectColumnList t) -> IntegerComparisonStatement.columnEquals(t.findFirst(DbColumn.CONTACT), customerId,
+                        (AppointmentModel m) -> m.getCustomer().getPrimaryKey()),
                 // initializeNew
                 initializeNew);
     }

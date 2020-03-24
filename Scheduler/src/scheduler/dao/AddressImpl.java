@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.address.AddressModel;
@@ -144,10 +144,10 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {
 
-        private static final SelectList DETAIL_DML;
+        private static final SelectColumnList DETAIL_DML;
 
         static {
-            DETAIL_DML = new SelectList(DbTable.ADDRESS);
+            DETAIL_DML = new SelectColumnList(DbTable.ADDRESS);
             DETAIL_DML.leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
                     .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
             DETAIL_DML.makeUnmodifiable();
@@ -165,7 +165,7 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
         }
 
         @Override
-        public SelectList getDetailDml() {
+        public SelectColumnList getDetailDml() {
             return DETAIL_DML;
         }
 

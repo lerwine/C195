@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.util.DB;
@@ -263,10 +263,10 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> {
 
-        private static final SelectList DETAIL_DML;
+        private static final SelectColumnList DETAIL_DML;
 
         static {
-            DETAIL_DML = new SelectList(DbTable.APPOINTMENT);
+            DETAIL_DML = new SelectColumnList(DbTable.APPOINTMENT);
             DETAIL_DML.leftJoin(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_ID)
                     .leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
                     .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
@@ -287,7 +287,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
         }
 
         @Override
-        public SelectList getDetailDml() {
+        public SelectColumnList getDetailDml() {
             return DETAIL_DML;
         }
 

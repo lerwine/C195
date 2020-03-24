@@ -3,8 +3,33 @@ package scheduler.dao.dml;
 import scheduler.dao.schema.DbTable;
 
 /**
- * A named reference to a {@link DbTable}.
- * 
+ * A {@link DbTable} that can reference by an alias ({@link TableReference#getTableAlias()}).
+ * <p>Derived interfaces:</p>
+ * <ul>
+ *  <li>{@link JoinableTable} &mdash; A <strong>TableReference</strong> with foreign key relationships to other {@link JoinedTable}s ({@link JoinableTable#getJoinedTables()}).
+ *      <ul>
+ *          <li>{@link JoinedTable} &mdash; A <strong>TableReference</strong> that is joined to another {@link JoinableTable} ({@link TableJoinType}, {@link JoinedTable#getParentTable()}).
+*               <ul>
+*                   <li>{@link JoinedTable} + {@link JoinableTableColumnList} &rArr; {@link JoinedTableColumnList}</li>
+*               </ul>
+ *          </li>
+ *          <li>{@link JoinableTable} + {@link TableColumnList} &rArr; {@link JoinableTableColumnList}
+*               <ul>
+*                   <li>{@link JoinableTableColumnList} + {@link JoinedTable} &rArr; {@link JoinedTableColumnList}</li>
+*               </ul>
+*           </li>
+ *      </ul>
+ *  </li>
+ *  <li>{@link TableColumnList} - A <strong>TableReference</strong> with columns for SELECT, INSERT or UPDATE.
+ *      <ul>
+ *          <li>{@link TableColumnList} + {@link JoinableTable} &rArr; {@link JoinableTableColumnList}
+*               <ul>
+*                   <li>{@link JoinableTableColumnList} + {@link JoinedTable} &rArr; {@link JoinedTableColumnList}</li>
+*               </ul>
+*           </li>
+ *      </ul>
+ *  </li>
+ * </ul>
  * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface TableReference {
@@ -15,7 +40,7 @@ public interface TableReference {
      * 
      * @return The {@link DbTable} that this refers to.
      */
-    DbTable getTableName();
+    DbTable getTable();
  
     /**
      * Gets the name that refers to the target {@link DbTable}.
@@ -24,7 +49,7 @@ public interface TableReference {
      * 
      * @return The name that is used to reference the target {@link DbTable} value.
      */
-    default String getName() {
-        return getTableName().getDbName().getValue();
+    default String getTableAlias() {
+        return getTable().getDbName().getValue();
     }
 }

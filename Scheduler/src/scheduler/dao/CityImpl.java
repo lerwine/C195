@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import scheduler.AppResources;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
@@ -81,10 +81,10 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
 
     public static final class FactoryImpl extends DataObjectImpl.Factory<CityImpl, CityModel> {
 
-        private static final SelectList DETAIL_DML;
+        private static final SelectColumnList DETAIL_DML;
 
         static {
-            DETAIL_DML = new SelectList(DbTable.CITY);
+            DETAIL_DML = new SelectColumnList(DbTable.CITY);
             DETAIL_DML.leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
             DETAIL_DML.makeUnmodifiable();
         }
@@ -101,7 +101,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
         }
 
         @Override
-        public SelectList getDetailDml() {
+        public SelectColumnList getDetailDml() {
             return DETAIL_DML;
         }
 
@@ -204,7 +204,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
 
         public ArrayList<CityImpl> getByCountry(Connection connection, int countryId) throws SQLException {
             ArrayList<CityImpl> result = new ArrayList<>();
-            SelectList dml = getDetailDml();
+            SelectColumnList dml = getDetailDml();
             try (PreparedStatement ps = connection.prepareStatement(dml.getSelectQuery()
                     .append(" WHERE ").append(DbColumn.COUNTRY_ID.getTable().getAlias()).append(" = ?").toString())) {
                 ps.setInt(1, countryId);

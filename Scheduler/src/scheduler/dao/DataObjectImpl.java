@@ -24,7 +24,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.Scheduler;
 import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
@@ -371,7 +371,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
 
         protected abstract T fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
 
-        public abstract SelectList getDetailDml();
+        public abstract SelectColumnList getDetailDml();
 
         public abstract Class<? extends T> getDaoClass();
 
@@ -493,7 +493,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
                         pk = dao.getPrimaryKey();
                     }
                 }
-                SelectList dml = getDetailDml();
+                SelectColumnList dml = getDetailDml();
                 sql = dml.getSelectQuery();
                 sql.append(" WHERE `").append(getDbTable().getPkColName().getValue()).append("`=%");
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
@@ -509,7 +509,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
 
         public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
-            SelectList dml = getDetailDml();
+            SelectColumnList dml = getDetailDml();
             String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName().getValue()).append("`=?").toString();
             LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {

@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.dao.dml.SelectList;
+import scheduler.dao.dml.SelectColumnList;
+import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.WhereStatement;
 import scheduler.view.ItemModel;
 
 /**
@@ -26,12 +28,7 @@ public interface RecordReader<T extends DataObjectImpl> {
      */
     String getLoadingMessage();
 
-    /**
-     * Gets the WHERE clause sub-expression for filtering results.
-     *
-     * @return The WHERE clause sub-expression for filtering results.
-     */
-    String getSqlFilterExpr();
+    WhereStatement<T> getWhereStatement();
 
     /**
      * Gets the {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
@@ -59,11 +56,12 @@ public interface RecordReader<T extends DataObjectImpl> {
      */
     default ArrayList<T> get(Connection connection) throws SQLException {
         DataObjectImpl.Factory<T, ? extends ItemModel<T>> f = getFactory();
-        SelectList dml = f.getDetailDml();
+        SelectColumnList dml = f.getDetailDml();
         StringBuilder sb = dml.getSelectQuery();
-        String w = getSqlFilterExpr();
-        if (null != w && !(w = w.trim()).isEmpty()) {
-            sb.append(" WHERE ").append(w);
+        WhereStatement<T> whereStatement = getWhereStatement();
+        if (null != whereStatement) {
+            sb.append(" WHERE ");
+            whereStatement.appendSqlStatement(sb);
         }
         Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Executing query \"%s\"", sb.toString()));
         ArrayList<T> result = new ArrayList<>();

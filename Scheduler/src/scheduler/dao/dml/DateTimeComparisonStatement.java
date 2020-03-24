@@ -7,24 +7,25 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import scheduler.dao.DataObject;
+import scheduler.dao.DataObjectImpl;
 import scheduler.dao.schema.ValueType;
 import scheduler.util.DB;
+import scheduler.view.ItemModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
-public interface DateTimeComparisonStatement<T extends DataObject> extends ColumnComparisonStatement<T> {
+public interface DateTimeComparisonStatement<T extends DataObjectImpl> extends ColumnComparisonStatement<T> {
     
     LocalDateTime getValue();
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> of(TableReference table, ColumnReference column, ComparisonOperator op,
-            LocalDateTime value, Function<T, Timestamp> getColValue, BiPredicate<LocalDateTime, LocalDateTime> predicate) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> of(TableReference table, ColumnReference column, ComparisonOperator op,
+            LocalDateTime value, Function<ItemModel<T>, Timestamp> getColValue, BiPredicate<LocalDateTime, LocalDateTime> predicate) {
         ValueType valueType = column.getColumn().getType().getValueType();
         assert valueType == ValueType.TIMESTAMP : "Column type mismatch";
-        assert null == table || table.getTableName() == column.getColumn().getTable() : "Table/Column mismatch";
+        assert null == table || table.getTable() == column.getColumn().getTable() : "Table/Column mismatch";
         Objects.requireNonNull(op);
         Objects.requireNonNull(getColValue);
         Objects.requireNonNull(predicate);
@@ -57,51 +58,55 @@ public interface DateTimeComparisonStatement<T extends DataObject> extends Colum
             }
 
             @Override
-            public boolean test(T t) {
+            public boolean test(ItemModel<T> t) {
                 return predicate.test(DB.fromUtcTimestamp(getColValue.apply(t)), value);
             }
 
         };
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> of(ColumnReference column, ComparisonOperator op,
-            LocalDateTime value, Function<T, Timestamp> getColValue, BiPredicate<LocalDateTime, LocalDateTime> predicate) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> of(ColumnReference column, ComparisonOperator op,
+            LocalDateTime value, Function<ItemModel<T>, Timestamp> getColValue, BiPredicate<LocalDateTime, LocalDateTime> predicate) {
         return of(null, column, op, value, getColValue, predicate);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnGreaterThan(TableReference table, ColumnReference column, LocalDateTime value,
-            Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnGreaterThan(TableReference table, ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return of(table, column, ComparisonOperator.GREATER_THAN, value, getColValue, (x, y) -> x.compareTo(y) > 0);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnGreaterThan(ColumnReference column, LocalDateTime value, Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnGreaterThan(ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return columnGreaterThan(null, column, value, getColValue);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnGreaterThanOrEqualTo(TableReference table, ColumnReference column, LocalDateTime value,
-            Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnGreaterThanOrEqualTo(TableReference table, ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return of(table, column, ComparisonOperator.NOT_LESS_THAN, value, getColValue, (x, y) -> x.compareTo(y) >= 0);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnGreaterThanOrEqualTo(ColumnReference column, LocalDateTime value, Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnGreaterThanOrEqualTo(ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return columnGreaterThanOrEqualTo(null, column, value, getColValue);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnLessThan(TableReference table, ColumnReference column, LocalDateTime value,
-            Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnLessThan(TableReference table, ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return of(table, column, ComparisonOperator.LESS_THAN, value, getColValue, (x, y) -> x.compareTo(y) < 0);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnLessThan(ColumnReference column, LocalDateTime value, Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnLessThan(ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return columnLessThan(null, column, value, getColValue);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnLessThanOrEqualTo(TableReference table, ColumnReference column, LocalDateTime value,
-            Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnLessThanOrEqualTo(TableReference table, ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return of(table, column, ComparisonOperator.NOT_GREATER_THAN, value, getColValue, (x, y) -> x.compareTo(y) <= 0);
     }
     
-    public static <T extends DataObject> DateTimeComparisonStatement<T> columnLessThanOrEqualTo(ColumnReference column, LocalDateTime value, Function<T, Timestamp> getColValue) {
+    public static <T extends DataObjectImpl> DateTimeComparisonStatement<T> columnLessThanOrEqualTo(ColumnReference column, LocalDateTime value,
+            Function<ItemModel<T>, Timestamp> getColValue) {
         return columnLessThanOrEqualTo(null, column, value, getColValue);
     }
     
