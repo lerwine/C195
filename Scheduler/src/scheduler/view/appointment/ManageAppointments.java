@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 import scheduler.dao.AppointmentFilter;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
@@ -21,6 +20,7 @@ import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.dao.ModelListingFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items. This is loaded as content of {@link MainController} using
@@ -107,13 +107,13 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     }
 
     @Override
-    public synchronized void changeFilter(ModelFilter<AppointmentImpl, AppointmentModel> value, Stage stage, Consumer<Boolean> onChangeComplete) {
+    public synchronized void changeFilter(ModelListingFilter<AppointmentImpl, AppointmentModel> value, Stage stage, Consumer<Boolean> onChangeComplete) {
         assert null == value || value instanceof AppointmentFilter : "Invalid filter type";
         super.changeFilter(value, stage, onChangeComplete);
     }
 
     @Override
-    protected void onItemsLoaded(ModelFilter<AppointmentImpl, AppointmentModel> filter, Stage owner) {
+    protected void onItemsLoaded(ModelListingFilter<AppointmentImpl, AppointmentModel> filter, Stage owner) {
         super.onItemsLoaded(filter, owner);
 
         AppointmentFilter appointmentFilter = (AppointmentFilter) filter;

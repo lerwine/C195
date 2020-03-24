@@ -287,7 +287,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
         }
 
         @Override
-        public SelectColumnList getDetailDml() {
+        public SelectColumnList getSelectColumns() {
             return DETAIL_DML;
         }
 
@@ -302,7 +302,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
         }
 
         @Override
-        protected void setSaveStatementValue(AppointmentImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+        protected void setSqlParameter(AppointmentImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
             switch (column) {
                 case APPOINTMENT_CUSTOMER:
                     ps.setInt(index, dao.getCustomer().getPrimaryKey());

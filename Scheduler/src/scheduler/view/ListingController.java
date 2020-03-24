@@ -24,11 +24,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.ModelFilter;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventListener;
 import scheduler.util.ItemEventManager;
+import scheduler.dao.ModelListingFilter;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects. This is loaded as the content of
@@ -43,14 +43,14 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
 
     public static <T extends DataObjectImpl, S extends ItemModel<T>> ListingController<T, S> setContent(MainController mainController,
-            Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelFilter<T, S> filter) throws IOException {
+            Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelListingFilter<T, S> filter) throws IOException {
         ListingController<T, S> controller = setContent(mainController, controllerClass, stage);
         controller.changeFilter(filter, stage, null);
         return controller;
     }
     private ItemEventListener<ItemEvent<S>> itemAddedListener;
     private ItemEventListener<ItemEvent<S>> itemRemovedListener;
-    private ModelFilter<T, S> filter;
+    private ModelListingFilter<T, S> filter;
     private final ObservableList<S> itemsList = FXCollections.observableArrayList();
 
     /**
@@ -181,18 +181,18 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     /**
      * Sets the {@link #filter} and starts a {@link TaskWaiter} if the filter has changed.
      *
-     * @param value The new {@link ModelFilter}.
+     * @param value The new {@link ModelListingFilter}.
      * @param stage The {@link Stage} to whose content is to be masked while items are loaded from the database.
      * @param onChangeComplete The {@link Consumer} to invoke after the filter has been changed and items have been loaded. This will contain a
      * {@code true} parameter if the filter required items to be reloaded from the database or {@code false} if the filter was the same and no action
      * was needed. This can also pass a @code false} value if the filter is changed again before the items load task is finished.
      */
-    public synchronized void changeFilter(ModelFilter<T, S> value, Stage stage, Consumer<Boolean> onChangeComplete) {
+    public synchronized void changeFilter(ModelListingFilter<T, S> value, Stage stage, Consumer<Boolean> onChangeComplete) {
         Objects.requireNonNull(stage);
         if (null == value) {
             value = getDaoFactory().getDefaultFilter();
         }
-        if (null != filter && ModelFilter.areEqual(value, filter)) {
+        if (null != filter && ModelListingFilter.areEqual(value, filter)) {
             if (null != onChangeComplete) {
                 onChangeComplete.accept(Boolean.FALSE);
             }
@@ -360,18 +360,18 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     /**
      * This gets called after the filter has been changed and the items have been loaded into the current {@link #itemsList}.
      *
-     * @param filter The new {@link ModelFilter} being applied.
+     * @param filter The new {@link ModelListingFilter} being applied.
      * @param owner The {@link Stage} for the {@link javafx.event.ActionEvent} that triggered the filter change.
      */
-    protected void onItemsLoaded(ModelFilter<T, S> filter, Stage owner) {
+    protected void onItemsLoaded(ModelListingFilter<T, S> filter, Stage owner) {
     }
 
     /**
-     * A {@link TaskWaiter} that asynchronously retrieves data from the database, using a {@link ModelFilter}.
+     * A {@link TaskWaiter} that asynchronously retrieves data from the database, using a {@link ModelListingFilter}.
      */
     protected class ItemsLoadTask extends TaskWaiter<List<T>> {
 
-        private final ModelFilter<T, S> currentFilter;
+        private final ModelListingFilter<T, S> currentFilter;
         private final Consumer<Boolean> onComplete;
 
         /**

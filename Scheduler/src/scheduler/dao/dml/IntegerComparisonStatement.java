@@ -3,14 +3,15 @@ package scheduler.dao.dml;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.function.ToIntFunction;
+import java.util.function.BiPredicate;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.ItemIntComparer;
 import scheduler.dao.schema.ValueType;
-import scheduler.util.BiIntPredicate;
 import scheduler.view.ItemModel;
 
 /**
- *
+ * Interface for filtering {@link ItemModel} and {@link DataObjectImpl} items by integer values.
+ * 
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
@@ -18,13 +19,12 @@ public interface IntegerComparisonStatement<T extends DataObjectImpl> extends Co
     
     int getValue();
     
-    public static <T extends DataObjectImpl> IntegerComparisonStatement<T> of(TableReference table, ColumnReference column, ComparisonOperator op,
-            int value, ToIntFunction<ItemModel<T>> getColValue, BiIntPredicate predicate) {
+    static <T extends DataObjectImpl> IntegerComparisonStatement<T> of(TableReference table, ColumnReference column, ComparisonOperator op,
+            int value, BiPredicate<ItemModel<T>, Integer> predicate) {
         ValueType valueType = column.getColumn().getType().getValueType();
         assert valueType == ValueType.INT : "Column type mismatch";
         assert null == table || table.getTable() == column.getColumn().getTable() : "Table/Column mismatch";
         Objects.requireNonNull(op);
-        Objects.requireNonNull(getColValue);
         Objects.requireNonNull(predicate);
         return new IntegerComparisonStatement<T>() {
             @Override
@@ -55,75 +55,190 @@ public interface IntegerComparisonStatement<T extends DataObjectImpl> extends Co
 
             @Override
             public boolean test(ItemModel<T> t) {
-                return predicate.test(getColValue.applyAsInt(t), value);
+                
+                return predicate.test(t, value);
             }
 
         };
     }
     
-    public static <T extends DataObjectImpl> IntegerComparisonStatement<T> of(ColumnReference column, ComparisonOperator op,
-            int value, ToIntFunction<ItemModel<T>> getColValue, BiIntPredicate predicate) {
-        return of(null, column, op, value, getColValue, predicate);
+    static <T extends DataObjectImpl> IntegerComparisonStatement<T> of(ColumnReference column, ComparisonOperator op,
+            int value, BiPredicate<ItemModel<T>, Integer> predicate) {
+        return of(null, column, op, value, predicate);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`=?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param table The explicitly-defined database table.
+     * @param column The database column from the given {@link TableReference}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering by an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnEquals(TableReference table, ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return of(table, column, ComparisonOperator.EQUAL_TO, value, getColValue, (x, y) -> x == y);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return of(table, column, ComparisonOperator.EQUAL_TO, value, (x, y) -> valueAccessor.test(x, y));
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `field`=?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param column The database column from the source {@link TableColumnList}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering by a matching integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnEquals(ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return columnEquals(null, column, value, getColValue);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return columnEquals(null, column, value, valueAccessor);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`<>?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param table The explicitly-defined database table.
+     * @param column The database column from the given {@link TableReference}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for exclusive filtering by an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnNotEquals(TableReference table, ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return of(table, column, ComparisonOperator.NOT_EQUAL_TO, value, getColValue, (x, y) -> x != y);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return of(table, column, ComparisonOperator.NOT_EQUAL_TO, value, (x, y) -> !valueAccessor.test(x, y));
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`<>?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param column The database column from the source {@link TableColumnList}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for exclusive filtering by an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnNotEquals(ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return columnNotEquals(null, column, value, getColValue);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return columnNotEquals(null, column, value, valueAccessor);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`>?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param table The explicitly-defined database table.
+     * @param column The database column from the given {@link TableReference}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value greater than an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnGreaterThan(TableReference table, ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return of(table, column, ComparisonOperator.GREATER_THAN, value, getColValue, (x, y) -> x > y);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return of(table, column, ComparisonOperator.GREATER_THAN, value, (x, y) -> valueAccessor.compareTo(x, y) > 0);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`>?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param column The database column from the source {@link TableColumnList}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value greater than an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnGreaterThan(ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return columnGreaterThan(null, column, value, getColValue);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return columnGreaterThan(null, column, value, valueAccessor);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`>=?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param table The explicitly-defined database table.
+     * @param column The database column from the given {@link TableReference}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value greater than or equal to an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnGreaterThanOrEqualTo(TableReference table, ColumnReference column,
-            int value, ToIntFunction<ItemModel<T>> getColValue) {
-        return of(table, column, ComparisonOperator.NOT_LESS_THAN, value, getColValue, (x, y) -> x >= y);
+            int value, ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return of(table, column, ComparisonOperator.NOT_LESS_THAN, value, (x, y) -> valueAccessor.compareTo(x, y) >= 0);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`>=?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param column The database column from the source {@link TableColumnList}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value greater than or equal to an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnGreaterThanOrEqualTo(ColumnReference column,
-            int value, ToIntFunction<ItemModel<T>> getColValue) {
-        return columnGreaterThanOrEqualTo(null, column, value, getColValue);
+            int value, ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return columnGreaterThanOrEqualTo(null, column, value, valueAccessor);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`<?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param table The explicitly-defined database table.
+     * @param column The database column from the given {@link TableReference}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value less than an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnLessThan(TableReference table, ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return of(table, column, ComparisonOperator.LESS_THAN, value, getColValue, (x, y) -> x < y);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return of(table, column, ComparisonOperator.LESS_THAN, value, (x, y) -> valueAccessor.compareTo(x, y) < 0);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`<?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param column The database column from the source {@link TableColumnList}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value less than an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnLessThan(ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return columnLessThan(null, column, value, getColValue);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return columnLessThan(null, column, value, valueAccessor);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`<=?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param table The explicitly-defined database table.
+     * @param column The database column from the given {@link TableReference}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value less than or equal to an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnLessThanOrEqualTo(TableReference table, ColumnReference column,
-            int value, ToIntFunction<ItemModel<T>> getColValue) {
-        return of(table, column, ComparisonOperator.NOT_GREATER_THAN, value, getColValue, (x, y) -> x <= y);
+            int value, ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return of(table, column, ComparisonOperator.NOT_GREATER_THAN, value, (x, y) -> valueAccessor.compareTo(x, y) <= 0);
     }
     
+    /**
+     * Creates a Filter and SQL query definition for {@code `table`.`field`<=?}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} represented by the target {@link ItemModel}.
+     * @param column The database column from the source {@link TableColumnList}.
+     * @param value The value to match.
+     * @param valueAccessor An {@link ItemIntComparer} that reads the corresponding property value from a prospective {@link ItemModel} and compares it to another value.
+     * @return A Filter and SQL query definition for generating a SQL query statement for filtering items with a specific column value less than or equal to an integer {@code value}.
+     */
     public static <T extends DataObjectImpl> IntegerComparisonStatement<T> columnLessThanOrEqualTo(ColumnReference column, int value,
-            ToIntFunction<ItemModel<T>> getColValue) {
-        return columnLessThanOrEqualTo(null, column, value, getColValue);
+            ItemIntComparer<T, ItemModel<T>> valueAccessor) {
+        return columnLessThanOrEqualTo(null, column, value, valueAccessor);
     }
     
 }

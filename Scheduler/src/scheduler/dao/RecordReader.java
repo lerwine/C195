@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.dml.WhereStatement;
 import scheduler.view.ItemModel;
 
@@ -28,6 +27,11 @@ public interface RecordReader<T extends DataObjectImpl> {
      */
     String getLoadingMessage();
 
+    /**
+     * Gets the object that is used to generate the SQL WHERE clause.
+     * 
+     * @return The {@link WhereStatement} that will generate the SQL WHERE clause or {@code null} if there will be no WHERE clause.
+     */
     WhereStatement<T> getWhereStatement();
 
     /**
@@ -56,7 +60,7 @@ public interface RecordReader<T extends DataObjectImpl> {
      */
     default ArrayList<T> get(Connection connection) throws SQLException {
         DataObjectImpl.Factory<T, ? extends ItemModel<T>> f = getFactory();
-        SelectColumnList dml = f.getDetailDml();
+        SelectColumnList dml = f.getSelectColumns();
         StringBuilder sb = dml.getSelectQuery();
         WhereStatement<T> whereStatement = getWhereStatement();
         if (null != whereStatement) {

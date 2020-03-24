@@ -14,10 +14,9 @@ import scheduler.view.ItemModel;
  * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
  * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
  */
-// TODO: Deprecated this after it is replaced
-public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D>, Predicate<M> {
+public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D>, Predicate<M> {
 
-    public static <D extends DataObjectImpl, M extends ItemModel<D>> boolean areEqual(ModelFilter<D, M> x, ModelFilter<D, M> y) {
+    public static <D extends DataObjectImpl, M extends ItemModel<D>> boolean areEqual(ModelListingFilter<D, M> x, ModelListingFilter<D, M> y) {
         if (null == x)
             return null == y;
         if (null == y)
@@ -29,7 +28,7 @@ public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> e
     }
 
     /**
-     * Creates a {@link ModelFilter} that returns all items.
+     * Creates a {@link ModelListingFilter} that returns all items.
      *
      * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
      * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
@@ -37,16 +36,16 @@ public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> e
      * @param loadingMessage The message to display while data is being loaded from the database.
      * @param heading The heading to display in the items listing view.
      * @param subHeading The sub-heading to display in the items listing view.
-     * @return The new {@link ModelFilter}.
+     * @return The new {@link ModelListingFilter}.
      */
-    public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelFilter<D, M> all(DataObjectImpl.Factory<D, ? extends ItemModel<D>> factory,
+    public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelListingFilter<D, M> all(DataObjectImpl.Factory<D, ? extends ItemModel<D>> factory,
             String loadingMessage, String heading, String subHeading) {
         if (null == subHeading) {
             return all(factory, loadingMessage, heading, "");
         }
         Objects.requireNonNull(loadingMessage);
         Objects.requireNonNull(heading);
-        return new ModelFilter<D, M>() {
+        return new ModelListingFilter<D, M>() {
             @Override
             public String getHeading() {
                 return heading;
@@ -63,8 +62,8 @@ public interface ModelFilter<D extends DataObjectImpl, M extends ItemModel<D>> e
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return "";
+            public WhereStatement<D> getWhereStatement() {
+                return null;
             }
 
             @Override

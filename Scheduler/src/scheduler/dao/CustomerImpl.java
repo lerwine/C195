@@ -130,7 +130,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
         }
 
         @Override
-        public SelectColumnList getDetailDml() {
+        public SelectColumnList getSelectColumns() {
             return DETAIL_DML;
         }
 
@@ -145,7 +145,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
         }
 
         @Override
-        protected void setSaveStatementValue(CustomerImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+        protected void setSqlParameter(CustomerImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
             switch (column) {
                 case CUSTOMER_NAME:
                     ps.setString(index, dao.getName());

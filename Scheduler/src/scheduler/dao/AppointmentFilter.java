@@ -29,10 +29,10 @@ import scheduler.view.user.UserModel;
  * @author Leonard T. Erwine (Student ID 356334)
  */
 // TODO: Deprecated this after it is replaced
-public interface AppointmentFilter extends ModelFilter<AppointmentImpl, AppointmentModel> {
+public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, AppointmentModel> {
 
     
-    public static AppointmentFilter of(FilterType type, String heading, String subHeading,
+    static AppointmentFilter of(FilterType type, String heading, String subHeading,
             Function<SelectColumnList, WhereStatement<AppointmentImpl>> getFilter, Consumer<AppointmentModel> initializeNew) {
         if (null == subHeading) {
             return of(type, heading, "", getFilter, initializeNew);
@@ -41,7 +41,7 @@ public interface AppointmentFilter extends ModelFilter<AppointmentImpl, Appointm
         Objects.requireNonNull(heading);
         Objects.requireNonNull(getFilter);
         return new AppointmentFilter() {
-            private final WhereStatement<AppointmentImpl> whereStatement = getFilter.apply(AppointmentImpl.getFactory().getDetailDml());
+            private final WhereStatement<AppointmentImpl> whereStatement = getFilter.apply(AppointmentImpl.getFactory().getSelectColumns());
             @Override
             public String getHeading() {
                 return heading;

@@ -124,7 +124,7 @@ public class UserImpl extends DataObjectImpl implements User {
          * @throws SQLException if unable to perform database query.
          */
         public Optional<UserImpl> findByUserName(Connection connection, String userName) throws SQLException {
-            SelectColumnList dml = getDetailDml();
+            SelectColumnList dml = getSelectColumns();
             String sql = dml.getSelectQuery().append(" WHERE `").append(DbColumn.USER_NAME.getDbName().getValue()).append("` = ?").toString();
             LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -154,7 +154,7 @@ public class UserImpl extends DataObjectImpl implements User {
         }
 
         @Override
-        public SelectColumnList getDetailDml() {
+        public SelectColumnList getSelectColumns() {
             return DETAIL_DML;
         }
 
@@ -169,7 +169,7 @@ public class UserImpl extends DataObjectImpl implements User {
         }
 
         @Override
-        protected void setSaveStatementValue(UserImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+        protected void setSqlParameter(UserImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
             switch (column) {
                 case USER_NAME:
                     ps.setString(index, dao.getUserName());

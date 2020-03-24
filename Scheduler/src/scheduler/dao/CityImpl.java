@@ -101,7 +101,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
         }
 
         @Override
-        public SelectColumnList getDetailDml() {
+        public SelectColumnList getSelectColumns() {
             return DETAIL_DML;
         }
 
@@ -116,7 +116,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
         }
 
         @Override
-        protected void setSaveStatementValue(CityImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+        protected void setSqlParameter(CityImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
             switch (column) {
                 case CITY_NAME:
                     ps.setString(index, dao.getName());
@@ -141,13 +141,13 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
         }
 
         @Override
-        public ModelFilter<CityImpl, CityModel> getAllItemsFilter() {
-            return ModelFilter.all(this, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES),
+        public ModelListingFilter<CityImpl, CityModel> getAllItemsFilter() {
+            return ModelListingFilter.all(this, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES),
                     ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_CITIES), null);
         }
 
         @Override
-        public ModelFilter<CityImpl, CityModel> getDefaultFilter() {
+        public ModelListingFilter<CityImpl, CityModel> getDefaultFilter() {
             return getAllItemsFilter();
         }
 
@@ -204,7 +204,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
 
         public ArrayList<CityImpl> getByCountry(Connection connection, int countryId) throws SQLException {
             ArrayList<CityImpl> result = new ArrayList<>();
-            SelectColumnList dml = getDetailDml();
+            SelectColumnList dml = getSelectColumns();
             try (PreparedStatement ps = connection.prepareStatement(dml.getSelectQuery()
                     .append(" WHERE ").append(DbColumn.COUNTRY_ID.getTable().getAlias()).append(" = ?").toString())) {
                 ps.setInt(1, countryId);

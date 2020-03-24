@@ -9,10 +9,10 @@ import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.dao.ModelFilter;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
 import scheduler.view.MainController;
+import scheduler.dao.ModelListingFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items. This is loaded as content of {@link MainController} using
@@ -31,10 +31,10 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
      *
      * @param mainController The {@link MainController} to contain the {@link CountryModel} listing.
      * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param filter The {@link ModelFilter} to use for loading and filtering {@link CountryModel} items.
+     * @param filter The {@link ModelListingFilter} to use for loading and filtering {@link CountryModel} items.
      * @throws IOException if unable to load the view.
      */
-    public static void setContent(MainController mainController, Stage stage, ModelFilter<CountryImpl, CountryModel> filter) throws IOException {
+    public static void setContent(MainController mainController, Stage stage, ModelListingFilter<CountryImpl, CountryModel> filter) throws IOException {
         setContent(mainController, ManageCountries.class, stage, filter);
     }
 

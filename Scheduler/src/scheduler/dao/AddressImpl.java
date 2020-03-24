@@ -165,7 +165,7 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
         }
 
         @Override
-        public SelectColumnList getDetailDml() {
+        public SelectColumnList getSelectColumns() {
             return DETAIL_DML;
         }
 
@@ -180,7 +180,7 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
         }
 
         @Override
-        protected void setSaveStatementValue(AddressImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+        protected void setSqlParameter(AddressImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
             switch (column) {
                 case ADDRESS1:
                     ps.setString(index, dao.getAddress1());
@@ -223,12 +223,12 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
         }
 
         @Override
-        public ModelFilter<AddressImpl, AddressModel> getAllItemsFilter() {
+        public ModelListingFilter<AddressImpl, AddressModel> getAllItemsFilter() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
-        public ModelFilter<AddressImpl, AddressModel> getDefaultFilter() {
+        public ModelListingFilter<AddressImpl, AddressModel> getDefaultFilter() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 

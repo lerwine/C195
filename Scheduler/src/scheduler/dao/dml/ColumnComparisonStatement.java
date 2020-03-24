@@ -6,7 +6,7 @@ import scheduler.dao.DataObjectImpl;
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-interface ColumnComparisonStatement<T extends DataObjectImpl> extends ComparisonStatement<T> {
+public interface ColumnComparisonStatement<T extends DataObjectImpl> extends ComparisonStatement<T> {
     
     ColumnReference getColumn();
     

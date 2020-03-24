@@ -56,6 +56,9 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
      * The name of the 'lastModifiedBy' property.
      */
     public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
+    /**
+     * The name of the 'rowState' property.
+     */
     public static final String PROP_ROWSTATE = "rowState";
 
     private int primaryKey;
@@ -196,6 +199,12 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         }
     }
 
+    /**
+     * Base class for FXML models of {@link DataObject} properties.
+     * This gives controlled access to the underlying {@link DataObject}.
+     * 
+     * @param <T> The type of {@link DataObject} being represented.
+     */
     public static abstract class DataObjectReferenceModelImpl<T extends DataObject> implements DataObjectReferenceModel<T> {
 
         private final ReadOnlyObjectProperty<T> dataObject;
@@ -243,6 +252,12 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         }
     }
 
+    /**
+     * Base class for FXML models of {@link DataObjectImpl} properties.
+     * This gives controlled access to the DataObjectImpl {@link DataObject}.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} being represented.
+     */
     public static abstract class DataObjectModel<T extends DataObjectImpl> implements DataObjectReferenceModel<T> {
 
         private final ReadOnlyObjectProperty<T> dataObject;
@@ -365,14 +380,31 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         }
     }
 
+    /**
+     * Base class for CRUD operations on {@link scheduler.dao.DataObjectImpl} objects.
+     * 
+     * @param <T> The type of {@link DataObjectImpl} supported.
+     * @param <M> The type of {@link ItemModel} object that corresponds to the target {@link DataObjectImpl}.
+     */
     public static abstract class Factory<T extends DataObjectImpl, M extends ItemModel<T>> {
 
         private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
         protected abstract T fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
 
-        public abstract SelectColumnList getDetailDml();
+        /**
+         * Gets the object responsible for generating base SQL select statements.
+         * 
+         * @return The {@link SelectColumnList} object that will be used to generate SELECT statements that correspond
+         * to the target {@link DataObjectImpl}.
+         */
+        public abstract SelectColumnList getSelectColumns();
 
+        /**
+         * Gets the {@link Class} for the target {@link DataObjectImpl} type.
+         * 
+         * @return The {@link Class} for the target {@link DataObjectImpl} type.
+         */
         public abstract Class<? extends T> getDaoClass();
 
         public abstract DbTable getDbTable();
@@ -419,6 +451,13 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
             dao.getPropertyChangeSupport().firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, dao.lastModifiedDate);
         }
         
+        /**
+         * Saves a {@link DataObjectImpl} to the database.
+         * 
+         * @param dao The {@link DataObjectImpl} to be inserted or updated.
+         * @param connection The database connection to use.
+         * @throws SQLException If unable to perform the database operation.
+         */
         public void save(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
@@ -479,7 +518,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
                         index = 2;
                     }
                     for (DbColumn col : columns) {
-                        setSaveStatementValue(dao, col, ps, ++index);
+                        setSqlParameter(dao, col, ps, ++index);
                     }
                     if (dao.getRowState() != DataRowState.NEW) {
                         ps.setInt(index, dao.getPrimaryKey());
@@ -493,7 +532,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
                         pk = dao.getPrimaryKey();
                     }
                 }
-                SelectColumnList dml = getDetailDml();
+                SelectColumnList dml = getSelectColumns();
                 sql = dml.getSelectQuery();
                 sql.append(" WHERE `").append(getDbTable().getPkColName().getValue()).append("`=%");
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
@@ -507,9 +546,17 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
             }
         }
 
+        /**
+         * Retrieves the {@link DataObjectImpl} from the database which matches the given primary key.
+         * 
+         * @param connection The database connection to use.
+         * @param pk The value of the primary key for the {@link DataObjectImpl}.
+         * @return An {@link Optional} {@link DataObjectImpl} which will be empty if no match was found.
+         * @throws SQLException If unable to perform the database operation.
+         */
         public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
-            SelectColumnList dml = getDetailDml();
+            SelectColumnList dml = getSelectColumns();
             String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName().getValue()).append("`=?").toString();
             LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -523,6 +570,13 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
             return Optional.empty();
         }
 
+        /**
+         * Deletes the corresponding {@link DataObjectImpl} from the database.
+         * 
+         * @param dao The {@link DataObjectImpl} to delete.
+         * @param connection The database connection to use.
+         * @throws SQLException If unable to perform the database operation.
+         */
         public void delete(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
@@ -540,17 +594,54 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
             }
         }
 
+        /**
+         * Checks to see if the current {@link DataObjectImpl} can safely be deleted from the database.
+         * 
+         * @param dao The {@link DataObjectImpl} intended for deletion.
+         * @param connection The database connection to use.
+         * @return A user-friendly description of the reason that the {@link DataObjectImpl} cannot be deleted or an
+         * empty string if it can be safely deleted.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        // TODO: Make sure no implementations return a null value.
         public abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
 
+        /**
+         * Checks to see if any impending changes cause any database conflicts.
+         * 
+         * @param dao The target {@link DataObjectImpl}.
+         * @param connection The database connection to use.
+         * @return A user-friendly description of the reason that the changes to the {@link DataObjectImpl} cannot be saved or an
+         * empty string if it can be safely deleted.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        // TODO: Make sure no implementations return a null value.
         public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
 
+        /**
+         * @deprecated Filters will be defined outside of the item factory.
+         */
+        // TODO: Remove this
         @Deprecated
-        public abstract ModelFilter<T, M> getAllItemsFilter();
+        public abstract ModelListingFilter<T, M> getAllItemsFilter();
 
+        /**
+         * @deprecated Filters will be defined outside of the item factory.
+         */
+        // TODO: Remove this
         @Deprecated
-        public abstract ModelFilter<T, M> getDefaultFilter();
+        public abstract ModelListingFilter<T, M> getDefaultFilter();
 
-        protected abstract void setSaveStatementValue(T dao, DbColumn column, PreparedStatement ps, int index) throws SQLException;
+        /**
+         * Sets parameterized SQL query values.
+         * 
+         * @param dao The {@link DataObjectImpl} to be updated.
+         * @param column The target database column column.
+         * @param ps The {@link PreparedStatement} to apply the value to.
+         * @param index The index to use when setting the value.
+         * @throws SQLException if unable to set the value.
+         */
+        protected abstract void setSqlParameter(T dao, DbColumn column, PreparedStatement ps, int index) throws SQLException;
     }
 
 }

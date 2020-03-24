@@ -9,11 +9,11 @@ import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.dao.ModelFilter;
 import scheduler.dao.UserFilter;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
 import scheduler.view.MainController;
+import scheduler.dao.ModelListingFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link UserModel} items. This is loaded as content of {@link MainController} using

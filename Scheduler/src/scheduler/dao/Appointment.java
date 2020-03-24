@@ -3,7 +3,9 @@ package scheduler.dao;
 import java.sql.Timestamp;
 
 /**
- * Represents a data row from the "appointment" database table. Table definition: <code>CREATE TABLE `appointment` (
+ * Represents a data row from the "appointment" database table.
+ * 
+ * Table definition: <code>CREATE TABLE `appointment` (
  *   `appointmentId` int(10) NOT NULL AUTO_INCREMENT,
  *   `customerId` int(10) NOT NULL,
  *   `userId` int(11) NOT NULL,

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResources;
+import scheduler.dao.dml.WhereStatement;
 import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.ItemModel;
@@ -20,7 +21,7 @@ import scheduler.view.customer.ManageCustomers;
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel> {
+public interface CustomerFilter extends ModelListingFilter<CustomerImpl, CustomerModel> {
 
     public static CustomerFilter all() {
         return new CustomerFilter() {
@@ -30,8 +31,8 @@ public interface CustomerFilter extends ModelFilter<CustomerImpl, CustomerModel>
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return "";
+            public WhereStatement<CustomerImpl> getWhereStatement() {
+                return null;
             }
 
             @Override

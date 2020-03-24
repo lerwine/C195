@@ -76,7 +76,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        public SelectColumnList getDetailDml() {
+        public SelectColumnList getSelectColumns() {
             return DETAIL_DML;
         }
 
@@ -91,7 +91,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        protected void setSaveStatementValue(CountryImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
+        protected void setSqlParameter(CountryImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
             if (column != DbColumn.COUNTRY_NAME) {
                 throw new UnsupportedOperationException("Unexpected column name");
             }
@@ -107,13 +107,13 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        public ModelFilter<CountryImpl, CountryModel> getAllItemsFilter() {
-            return ModelFilter.all(this, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCOUNTRIES),
+        public ModelListingFilter<CountryImpl, CountryModel> getAllItemsFilter() {
+            return ModelListingFilter.all(this, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCOUNTRIES),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_ALLCOUNTRIES), null);
         }
 
         @Override
-        public ModelFilter<CountryImpl, CountryModel> getDefaultFilter() {
+        public ModelListingFilter<CountryImpl, CountryModel> getDefaultFilter() {
             return getAllItemsFilter();
         }
 

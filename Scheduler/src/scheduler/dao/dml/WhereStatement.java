@@ -36,6 +36,7 @@ import scheduler.view.ItemModel;
  * @param <T> The data access object type.
  * 
  */
+// BUG: Need to have a U generic parameter for ItemModel<T>.
 public interface WhereStatement<T extends DataObjectImpl> extends Predicate<ItemModel<T>> {
     /**
      * Appends the current SQL statement to a {@link StringBuilder}.
