@@ -55,7 +55,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
     /**
      * Set the value of name
      *
-     * @param value new value of name
+     * @param name new value of name
      */
     public void setName(String name) {
         String oldValue = this.name;

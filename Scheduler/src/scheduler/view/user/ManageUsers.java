@@ -13,7 +13,6 @@ import scheduler.dao.UserFilter;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
 import scheduler.view.MainController;
-import scheduler.dao.ModelListingFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link UserModel} items. This is loaded as content of {@link MainController} using
@@ -32,7 +31,7 @@ public final class ManageUsers extends ListingController<UserImpl, UserModel> im
      *
      * @param mainController The {@link MainController} to contain the {@link UserModel} listing.
      * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param filter The {@link ModelFilter} to use for loading and filtering {@link UserModel} items.
+     * @param filter The {@link UserFilter} to use for loading and filtering {@link UserModel} items.
      * @throws IOException if unable to load the view.
      */
     public static void setContent(MainController mainController, Stage stage, UserFilter filter) throws IOException {

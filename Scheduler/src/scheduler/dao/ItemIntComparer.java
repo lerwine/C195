@@ -48,24 +48,24 @@ public interface ItemIntComparer<T extends DataObjectImpl, U extends ItemModel<T
     public static final ItemIntComparer<AppointmentImpl, AppointmentModel> CUSTOMER_APPOINTMENTS = new ItemIntComparer<AppointmentImpl, AppointmentModel>() {
         @Override
         public int get(AppointmentImpl dao) {
-            return dao.getPrimaryKey();
+            return dao.getCustomer().getPrimaryKey();
         }
 
         @Override
         public int get(AppointmentModel model) {
-            return model.getDataObject().getPrimaryKey();
+            return model.getCustomer().getPrimaryKey();
         }
     };
     
-    public static ItemIntComparer<UserImpl, UserModel> USER_APPOINTMENTS = new ItemIntComparer<UserImpl, UserModel>() {
+    public static ItemIntComparer<AppointmentImpl, AppointmentModel> USER_APPOINTMENTS = new ItemIntComparer<AppointmentImpl, AppointmentModel>() {
         @Override
-        public int get(UserImpl dao) {
-            return dao.getPrimaryKey();
+        public int get(AppointmentImpl dao) {
+            return dao.getUser().getPrimaryKey();
         }
 
         @Override
-        public int get(UserModel model) {
-            return model.getDataObject().getPrimaryKey();
+        public int get(AppointmentModel model) {
+            return model.getUser().getPrimaryKey();
         }
     };
     

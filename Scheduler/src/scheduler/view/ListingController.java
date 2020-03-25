@@ -24,15 +24,15 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.ModelListingFilter;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventListener;
 import scheduler.util.ItemEventManager;
-import scheduler.dao.ModelListingFilter;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects. This is loaded as the content of
- * {@link MainController} using {@link #setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage, scheduler.dao.ModelFilter)}.
+ * {@link MainController} using {@link #setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage, scheduler.dao.ModelListingFilter)}.
  *
  * @author Leonard T. Erwine
  * @param <T> The type of data access object that corresponds to the model object type.

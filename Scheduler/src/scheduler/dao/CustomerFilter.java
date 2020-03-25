@@ -63,9 +63,15 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.ACTIVE);
+            public WhereStatement<CustomerImpl, CustomerModel> getWhereStatement() {
+                // TODO: Implement this
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
+
+//            @Override
+//            public String getSqlFilterExpr() {
+//                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.ACTIVE);
+//            }
 
             @Override
             public int apply(PreparedStatement ps, int index) throws SQLException {
@@ -114,9 +120,15 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.CITY_ID);
+            public WhereStatement<CustomerImpl, CustomerModel> getWhereStatement() {
+                // TODO: Implement this
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
+
+//            @Override
+//            public String getSqlFilterExpr() {
+//                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.CITY_ID);
+//            }
 
             @Override
             public int apply(PreparedStatement ps, int index) throws SQLException {
@@ -154,9 +166,15 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.CITY_ID);
+            public WhereStatement<CustomerImpl, CustomerModel> getWhereStatement() {
+                // TODO: Implement this
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
+
+//            @Override
+//            public String getSqlFilterExpr() {
+//                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.CITY_ID);
+//            }
 
             @Override
             public int apply(PreparedStatement ps, int index) throws SQLException {
@@ -199,9 +217,15 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
             }
 
             @Override
-            public String getSqlFilterExpr() {
-                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.COUNTRY_ID);
+            public WhereStatement<CustomerImpl, CustomerModel> getWhereStatement() {
+                // TODO: Implement this
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
+
+//            @Override
+//            public String getSqlFilterExpr() {
+//                return String.format("`%s`.`%s` = ?", DbName.CUSTOMER, DbName.COUNTRY_ID);
+//            }
 
             @Override
             public int apply(PreparedStatement ps, int index) throws SQLException {
@@ -226,7 +250,7 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
     }
 
     @Override
-    public default DataObjectImpl.Factory<CustomerImpl, ? extends ItemModel<CustomerImpl>> getFactory() {
+    public default DataObjectImpl.Factory<CustomerImpl, CustomerModel> getFactory() {
         return CustomerImpl.getFactory();
     }
 

@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import scheduler.dao.AppointmentFilter;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.DataObjectImpl;
+import scheduler.dao.ModelListingFilter;
 import scheduler.util.Alerts;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
@@ -20,7 +21,6 @@ import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.dao.ModelListingFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items. This is loaded as content of {@link MainController} using

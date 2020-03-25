@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import scheduler.Scheduler;
 import scheduler.dao.dml.IntegerComparisonStatement;
+import scheduler.dao.dml.LogicalStatement;
 import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.WhereStatement;
 import scheduler.dao.schema.DbColumn;
@@ -25,7 +26,6 @@ import scheduler.view.user.UserModel;
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-// TODO: Deprecated this after it is replaced
 public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, AppointmentModel> {
 
     
@@ -102,9 +102,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         return AppointmentFilter.of(FilterType.ALL,
                 // heading
                 ResourceBundleLoader.getResourceString(ManageAppointments.class, ManageAppointments.RESOURCEKEY_ALLAPPOINTMENTS),
-                // predicate
-                (m) -> true,
-                // sqlFilterExpr
+                // getFilter
                 null,
                 // initializeNew
                 (m) -> m.setUser(new UserModel(Scheduler.getCurrentUser())));
@@ -120,18 +118,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
      */
     public static AppointmentFilter byCustomer(int customerId, String heading, Consumer<AppointmentModel> initializeNew) {
         return AppointmentFilter.of(FilterType.ALL, Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId,
-                // sqlFilterExpr
-                new Function<SelectColumnList, WhereStatement<AppointmentImpl, AppointmentModel>>() {
-                    @Override
-                    public WhereStatement<AppointmentImpl, AppointmentModel> apply(SelectColumnList t) {
-                        SelectColumnList.SelectColumn column = t.findFirst(DbColumn.CONTACT);
-                        
-                        return IntegerComparisonStatement.columnEquals(column, customerId, ItemIntComparer.CUSTOMER_APPOINTMENTS);
-                    }
-                },
-                // initializeNew
+                (SelectColumnList t) -> IntegerComparisonStatement.columnEquals(t.findFirst(DbColumn.APPOINTMENT_CUSTOMER), customerId, ItemIntComparer.CUSTOMER_APPOINTMENTS),
                 initializeNew);
     }
 
@@ -161,16 +148,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
      */
     public static AppointmentFilter byUser(int userId, String heading, Consumer<AppointmentModel> initializeNew) {
         return AppointmentFilter.of(FilterType.ALL, Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getUser().getPrimaryKey() == userId,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ?", DbName.APPOINTMENT, DbName.USER_ID),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, userId);
-                    return i;
-                },
-                // initializeNew
+                (SelectColumnList t) -> IntegerComparisonStatement.columnEquals(t.findFirst(DbColumn.APPOINTMENT_USER), userId, ItemIntComparer.USER_APPOINTMENTS),
                 initializeNew);
     }
 
@@ -210,17 +188,10 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
      */
     public static AppointmentFilter byCustomerAndUser(int customerId, int userId, String heading, Consumer<AppointmentModel> initializeNew) {
         return AppointmentFilter.of(FilterType.ALL, Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` = ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.USER_ID),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, customerId);
-                    ps.setInt(i++, userId);
-                    return i;
-                },
-                // initializeNew
+                (SelectColumnList t) -> LogicalStatement.and(
+                        IntegerComparisonStatement.columnEquals(t.findFirst(DbColumn.APPOINTMENT_CUSTOMER), userId, ItemIntComparer.CUSTOMER_APPOINTMENTS),
+                        IntegerComparisonStatement.columnEquals(t.findFirst(DbColumn.APPOINTMENT_USER), userId, ItemIntComparer.USER_APPOINTMENTS)
+                ),
                 initializeNew);
     }
 
@@ -252,15 +223,33 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
                 : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getEnd().compareTo(e) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` < ?", DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    return i;
+//                // predicate
+//                (t) -> t.getEnd().compareTo(e) < 0,
+                // getFilter
+                (SelectColumnList t) ->  new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` < ?", DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    return i;
+//                },
                 // initializeNew
                 null);
     }
@@ -290,16 +279,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
                 : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getEnd().compareTo(e) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, customerId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getEnd().compareTo(e) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, customerId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -334,16 +341,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
                 : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, userId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, userId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -390,16 +415,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_PAST
                 : ((date.compareTo(LocalDate.now().minusDays(1L)) == 0) ? FilterType.PAST : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, userId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getEnd().compareTo(e) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, userId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -434,15 +477,33 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
                 : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getStart().compareTo(d) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
-                    return i;
+//                // predicate
+//                (t) -> t.getStart().compareTo(d) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
+//                    return i;
+//                },
                 // initializeNew
                 null);
     }
@@ -472,16 +533,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
                 : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(d) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, customerId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(d) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, customerId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -516,16 +595,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
                 : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, userId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, userId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -572,16 +669,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime d = date.atTime(0, 0, 0, 0);
         return AppointmentFilter.of((date.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT_AND_FUTURE
                 : ((date.compareTo(LocalDate.now().plusDays(1L)) == 0) ? FilterType.FUTURE : FilterType.CUSTOM), Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, userId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == userId && t.getStart().compareTo(d) < 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, userId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(d));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -617,16 +732,34 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
         return AppointmentFilter.of((start.compareTo(end) == 0 && start.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT : FilterType.CUSTOM,
                 Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
-                    return i;
+//                // predicate
+//                (t) -> t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
+//                    return i;
+//                },
                 // initializeNew
                 null);
     }
@@ -659,17 +792,35 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
         return AppointmentFilter.of((start.compareTo(end) == 0 && start.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT : FilterType.CUSTOM,
                 Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, customerId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, customerId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -690,17 +841,35 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
         return AppointmentFilter.of((start.compareTo(end) == 0 && start.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT : FilterType.CUSTOM,
                 Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, userId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
-                    return i;
+//                // predicate
+//                (t) -> t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0 && t.getEnd().compareTo(s) >= 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, userId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -722,19 +891,37 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         final LocalDateTime e = end.atTime(0, 0, 0, 0).plusDays(1L);
         return AppointmentFilter.of((start.compareTo(end) == 0 && start.compareTo(LocalDate.now()) == 0) ? FilterType.CURRENT : FilterType.CUSTOM,
                 Objects.requireNonNull(heading),
-                // predicate
-                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0
-                && t.getEnd().compareTo(s) >= 0,
-                // sqlFilterExpr
-                String.format("`%s`.`%s` = ? AND `%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
-                // applyValues
-                (ps, i) -> {
-                    ps.setInt(i++, customerId);
-                    ps.setInt(i++, userId);
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
-                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
-                    return i;
+//                // predicate
+//                (t) -> t.getCustomer().getPrimaryKey() == customerId && t.getUser().getPrimaryKey() == userId && t.getStart().compareTo(e) < 0
+//                && t.getEnd().compareTo(s) >= 0,
+                // getFilter
+                (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
+                    // TODO: Implement this
+                    @Override
+                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public boolean test(AppointmentModel t) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
                 },
+//                // sqlFilterExpr
+//                String.format("`%s`.`%s` = ? AND `%s`.`%s` = ? AND `%s`.`%s` < ? AND `%s`.`%s` >= ?", DbName.APPOINTMENT, DbName.CUSTOMER_ID, DbName.APPOINTMENT, DbName.USER_ID, DbName.APPOINTMENT, DbName.START, DbName.APPOINTMENT, DbName.END),
+//                // applyValues
+//                (ps, i) -> {
+//                    ps.setInt(i++, customerId);
+//                    ps.setInt(i++, userId);
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(e));
+//                    ps.setTimestamp(i++, DB.toUtcTimestamp(s));
+//                    return i;
+//                },
                 // initializeNew
                 initializeNew);
     }
@@ -1061,7 +1248,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
     void initializeNew(AppointmentModel model);
 
     @Override
-    public default DataObjectImpl.Factory<AppointmentImpl, ? extends ItemModel<AppointmentImpl>> getFactory() {
+    public default DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> getFactory() {
         return AppointmentImpl.getFactory();
     }
 

@@ -52,7 +52,7 @@ import scheduler.view.user.UserReferenceModelImpl;
 /**
  * FXML Controller class for main application content. All application views are loaded into the {@link #contentPane} using
  * {@link MainContentController#setContent(scheduler.view.MainController, Class, Stage)}. The initial content is loaded using
- * {@link ManageAppointments#setContent(MainController, Class, Stage, scheduler.dao.ModelFilter)}.
+ * {@link ManageAppointments#setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.AppointmentFilter)}.
  * All Create, Update and Delete operations on {@link ItemModel} objects are to be initiated through this controller.
  *
  * @author Leonard T. Erwine

@@ -12,7 +12,6 @@ import scheduler.dao.AppointmentType;
  */
 public class AppointmentTypeTableCellFactory<T extends AppointmentType> implements Callback<TableColumn<String, T>, TableCell<String, T>> {
 
-    // TODO: Check if the generic arguments are backwares on the return value.
     @Override
     public TableCell<String, T> call(TableColumn<String, T> param) {
         return new AppointmentTypeTableCell<>();

@@ -13,9 +13,10 @@ import scheduler.view.ItemModel;
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
  * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
+ * @author erwinel
  */
-public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D>, Predicate<M> {
-
+public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemModel<D>> extends RecordReader<D, M>, Predicate<M> {
+    
     public static <D extends DataObjectImpl, M extends ItemModel<D>> boolean areEqual(ModelListingFilter<D, M> x, ModelListingFilter<D, M> y) {
         if (null == x)
             return null == y;
@@ -38,7 +39,7 @@ public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemMode
      * @param subHeading The sub-heading to display in the items listing view.
      * @return The new {@link ModelListingFilter}.
      */
-    public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelListingFilter<D, M> all(DataObjectImpl.Factory<D, ? extends ItemModel<D>> factory,
+    public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelListingFilter<D, M> all(DataObjectImpl.Factory<D, M> factory,
             String loadingMessage, String heading, String subHeading) {
         if (null == subHeading) {
             return all(factory, loadingMessage, heading, "");
@@ -62,12 +63,12 @@ public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemMode
             }
 
             @Override
-            public WhereStatement<D, ? extends ItemModel<D>> getWhereStatement() {
+            public WhereStatement<D, M> getWhereStatement() {
                 return null;
             }
 
             @Override
-            public DataObjectImpl.Factory<D, ? extends ItemModel<D>> getFactory() {
+            public DataObjectImpl.Factory<D, M> getFactory() {
                 return factory;
             }
 

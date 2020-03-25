@@ -135,9 +135,15 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_INACTIVEUSERS);
             }
 
+//            @Override
+//            public String getSqlFilterExpr() {
+//                return String.format("`%s` = ?", DbName.ACTIVE);
+//            }
+
             @Override
-            public String getSqlFilterExpr() {
-                return String.format("`%s` = ?", DbName.ACTIVE);
+            public WhereStatement<UserImpl, UserModel> getWhereStatement() {
+                // TODO: Implement this
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
@@ -155,7 +161,7 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
     }
 
     @Override
-    public default DataObjectImpl.Factory<UserImpl, ? extends ItemModel<UserImpl>> getFactory() {
+    public default DataObjectImpl.Factory<UserImpl, UserModel> getFactory() {
         return UserImpl.getFactory();
     }
 

@@ -20,6 +20,55 @@ public interface StringComparisonStatement<T extends DataObjectImpl, U extends I
     String getValue();
     
     public static <T extends DataObjectImpl, U extends ItemModel<T>> StringComparisonStatement<T, U> of(TableReference table, ColumnReference column, ComparisonOperator op,
+            String value, BiPredicate<U, String> predicate) {
+        ValueType valueType = column.getColumn().getType().getValueType();
+        assert valueType == ValueType.STRING : "Column type mismatch";
+        assert null == table || table.getTable() == column.getColumn().getTable() : "Table/Column mismatch";
+        Objects.requireNonNull(op);
+        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(value);
+        return new StringComparisonStatement<T, U>() {
+            @Override
+            public ColumnReference getColumn() {
+                return column;
+            }
+
+            @Override
+            public TableReference getTable() {
+                return table;
+            }
+            
+            @Override
+            public String getValue() {
+                return value;
+            }
+
+            @Override
+            public ComparisonOperator getOperator() {
+                return op;
+            }
+
+            @Override
+            public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                ps.setString(currentIndex, ComparisonOperator.toStringParam(value, op));
+                return currentIndex + 1;
+            }
+
+            @Override
+            public boolean test(U t) {
+                return predicate.test(t, value);
+            }
+
+        };
+    }
+    
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> StringComparisonStatement<T, U> of(ColumnReference column, ComparisonOperator op,
+            String value, BiPredicate<U, String> predicate) {
+        return of(null, column, op, value, predicate);
+    }
+    
+    @Deprecated
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> StringComparisonStatement<T, U> of(TableReference table, ColumnReference column, ComparisonOperator op,
             String value, Function<U, String> getColValue, BiPredicate<String, String> predicate) {
         ValueType valueType = column.getColumn().getType().getValueType();
         assert valueType == ValueType.STRING : "Column type mismatch";
@@ -63,6 +112,7 @@ public interface StringComparisonStatement<T extends DataObjectImpl, U extends I
         };
     }
     
+    @Deprecated
     public static <T extends DataObjectImpl, U extends ItemModel<T>> StringComparisonStatement<T, U> of(ColumnReference column, ComparisonOperator op,
             String value, Function<U, String> getColValue, BiPredicate<String, String> predicate) {
         return of(null, column, op, value, getColValue, predicate);

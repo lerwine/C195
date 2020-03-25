@@ -23,6 +23,55 @@ public interface DateTimeComparisonStatement<T extends DataObjectImpl, U extends
     LocalDateTime getValue();
     
     public static <T extends DataObjectImpl, U extends ItemModel<T>> DateTimeComparisonStatement<T, U> of(TableReference table, ColumnReference column, ComparisonOperator op,
+            LocalDateTime value, BiPredicate<U, LocalDateTime> predicate) {
+        ValueType valueType = column.getColumn().getType().getValueType();
+        assert valueType == ValueType.TIMESTAMP : "Column type mismatch";
+        assert null == table || table.getTable() == column.getColumn().getTable() : "Table/Column mismatch";
+        Objects.requireNonNull(op);
+        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(value);
+        return new DateTimeComparisonStatement<T, U>() {
+            @Override
+            public ColumnReference getColumn() {
+                return column;
+            }
+
+            @Override
+            public TableReference getTable() {
+                return table;
+            }
+            
+            @Override
+            public LocalDateTime getValue() {
+                return value;
+            }
+
+            @Override
+            public ComparisonOperator getOperator() {
+                return op;
+            }
+
+            @Override
+            public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                ps.setTimestamp(currentIndex, DB.toUtcTimestamp(value));
+                return currentIndex + 1;
+            }
+
+            @Override
+            public boolean test(U t) {
+                return predicate.test(t, value);
+            }
+
+        };
+    }
+    
+    static <T extends DataObjectImpl, U extends ItemModel<T>> DateTimeComparisonStatement<T, U> of(ColumnReference column, ComparisonOperator op,
+            LocalDateTime value, BiPredicate<U, LocalDateTime> predicate) {
+        return of(null, column, op, value, predicate);
+    }
+    
+    @Deprecated
+    static <T extends DataObjectImpl, U extends ItemModel<T>> DateTimeComparisonStatement<T, U> of(TableReference table, ColumnReference column, ComparisonOperator op,
             LocalDateTime value, Function<U, Timestamp> getColValue, BiPredicate<LocalDateTime, LocalDateTime> predicate) {
         ValueType valueType = column.getColumn().getType().getValueType();
         assert valueType == ValueType.TIMESTAMP : "Column type mismatch";
@@ -66,7 +115,8 @@ public interface DateTimeComparisonStatement<T extends DataObjectImpl, U extends
         };
     }
     
-    public static <T extends DataObjectImpl, U extends ItemModel<T>> DateTimeComparisonStatement<T, U> of(ColumnReference column, ComparisonOperator op,
+    @Deprecated
+    static <T extends DataObjectImpl, U extends ItemModel<T>> DateTimeComparisonStatement<T, U> of(ColumnReference column, ComparisonOperator op,
             LocalDateTime value, Function<U, Timestamp> getColValue, BiPredicate<LocalDateTime, LocalDateTime> predicate) {
         return of(null, column, op, value, getColValue, predicate);
     }

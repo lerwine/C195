@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
 import scheduler.dao.CountryImpl;
+import scheduler.dao.ModelListingFilter;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
@@ -12,11 +13,10 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
 import scheduler.view.MainController;
-import scheduler.dao.ModelListingFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items. This is loaded as content of {@link MainController} using
- * {@link #setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.ModelFilter)}.
+ * {@link #setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.ModelListingFilter)}.
  *
  * @author Leonard T. Erwine
  */

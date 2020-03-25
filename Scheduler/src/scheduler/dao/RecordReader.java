@@ -16,10 +16,10 @@ import scheduler.view.ItemModel;
  *
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link DataObjectImpl} that will be read from the database.
+ * @param <U> The type of {@link ItemModel} that will be created from the data access object.
  */
-// TODO: Deprecated this after it is replaced
-public interface RecordReader<T extends DataObjectImpl> {
-
+public interface RecordReader<T extends DataObjectImpl, U extends ItemModel<T>> {
+    
     /**
      * Gets the message to display while data is being loaded from the database.
      *
@@ -32,17 +32,17 @@ public interface RecordReader<T extends DataObjectImpl> {
      * 
      * @return The {@link WhereStatement} that will generate the SQL WHERE clause or {@code null} if there will be no WHERE clause.
      */
-    WhereStatement<T, ? extends ItemModel<T>> getWhereStatement();
+    WhereStatement<T, U> getWhereStatement();
 
     /**
      * Gets the {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
      *
      * @return The {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
      */
-    DataObjectImpl.Factory<T, ? extends ItemModel<T>> getFactory();
+    DataObjectImpl.Factory<T, U> getFactory();
 
     /**
-     * Sets the parameterized values that correspond to place-holders in {@link #getSqlFilterExpr()}.
+     * Sets the parameterized values that correspond to place-holders in {@link #getWhereStatement()}.
      *
      * @param ps The {@link PreparedStatement} to initialize.
      * @param index The first parameter index to use.
@@ -59,10 +59,10 @@ public interface RecordReader<T extends DataObjectImpl> {
      * @throws SQLException if unable to read data from the database.
      */
     default ArrayList<T> get(Connection connection) throws SQLException {
-        DataObjectImpl.Factory<T, ? extends ItemModel<T>> f = getFactory();
+        DataObjectImpl.Factory<T, U> f = getFactory();
         SelectColumnList dml = f.getSelectColumns();
         StringBuilder sb = dml.getSelectQuery();
-        WhereStatement<T, ? extends ItemModel<T>> whereStatement = getWhereStatement();
+        WhereStatement<T, U> whereStatement = getWhereStatement();
         if (null != whereStatement) {
             sb.append(" WHERE ");
             whereStatement.appendSqlStatement(sb);
@@ -79,4 +79,5 @@ public interface RecordReader<T extends DataObjectImpl> {
         }
         return result;
     }
+    
 }

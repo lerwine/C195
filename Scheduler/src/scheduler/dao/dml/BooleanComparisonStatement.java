@@ -17,9 +17,9 @@ import scheduler.view.ItemModel;
 public interface BooleanComparisonStatement<T extends DataObjectImpl, U extends ItemModel<T>> extends ColumnComparisonStatement<T, U> {
     
     boolean getValue();
-    
+   
     public static <T extends DataObjectImpl, U extends ItemModel<T>> BooleanComparisonStatement<T, U> of(TableReference table, ColumnReference column, boolean value,
-            Predicate<ItemModel<T>> getColValue) {
+            Predicate<U> getColValue) {
         ValueType valueType = column.getColumn().getType().getValueType();
         assert valueType == ValueType.BOOLEAN : "Column type mismatch";
         assert null == table || table.getTable() == column.getColumn().getTable() : "Table/Column mismatch";
@@ -59,7 +59,7 @@ public interface BooleanComparisonStatement<T extends DataObjectImpl, U extends 
         };
     }
     
-    public static <T extends DataObjectImpl, U extends ItemModel<T>> BooleanComparisonStatement<T, U> of(ColumnReference column, boolean value, Predicate<ItemModel<T>> getColValue) {
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> BooleanComparisonStatement<T, U> of(ColumnReference column, boolean value, Predicate<U> getColValue) {
         return of(null, column, value, getColValue);
     }
 }
