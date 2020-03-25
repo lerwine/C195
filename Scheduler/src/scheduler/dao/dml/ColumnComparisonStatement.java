@@ -1,12 +1,15 @@
 package scheduler.dao.dml;
 
 import scheduler.dao.DataObjectImpl;
+import scheduler.view.ItemModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The data access object type.
+ * @param <U> The item model type.
  */
-public interface ColumnComparisonStatement<T extends DataObjectImpl> extends ComparisonStatement<T> {
+public interface ColumnComparisonStatement<T extends DataObjectImpl, U extends ItemModel<T>> extends ComparisonStatement<T, U> {
     
     ColumnReference getColumn();
     

@@ -11,19 +11,20 @@ import scheduler.view.ItemModel;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
- * @param <T>
+ * @param <T> The data access object type.
+ * @param <U> The item model type.
  */
-public interface BooleanComparisonStatement<T extends DataObjectImpl> extends ColumnComparisonStatement<T> {
+public interface BooleanComparisonStatement<T extends DataObjectImpl, U extends ItemModel<T>> extends ColumnComparisonStatement<T, U> {
     
     boolean getValue();
     
-    public static <T extends DataObjectImpl> BooleanComparisonStatement<T> of(TableReference table, ColumnReference column, boolean value,
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> BooleanComparisonStatement<T, U> of(TableReference table, ColumnReference column, boolean value,
             Predicate<ItemModel<T>> getColValue) {
         ValueType valueType = column.getColumn().getType().getValueType();
         assert valueType == ValueType.BOOLEAN : "Column type mismatch";
         assert null == table || table.getTable() == column.getColumn().getTable() : "Table/Column mismatch";
         Objects.requireNonNull(getColValue);
-        return new BooleanComparisonStatement<T>() {
+        return new BooleanComparisonStatement<T, U>() {
             @Override
             public ColumnReference getColumn() {
                 return column;
@@ -51,14 +52,14 @@ public interface BooleanComparisonStatement<T extends DataObjectImpl> extends Co
             }
 
             @Override
-            public boolean test(ItemModel<T> t) {
-                return getColValue.test(t) == value;
+            public boolean test(U u) {
+                return getColValue.test(u) == value;
             }
 
         };
     }
     
-    public static <T extends DataObjectImpl> BooleanComparisonStatement<T> of(ColumnReference column, boolean value, Predicate<ItemModel<T>> getColValue) {
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> BooleanComparisonStatement<T, U> of(ColumnReference column, boolean value, Predicate<ItemModel<T>> getColValue) {
         return of(null, column, value, getColValue);
     }
 }

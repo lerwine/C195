@@ -14,7 +14,7 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.util.DB;
 import scheduler.view.appointment.AppointmentModel;
 
-public class AppointmentImpl extends DataObjectImpl implements Appointment<Customer, User> {
+public class AppointmentImpl extends DataObjectImpl implements Appointment<Customer<? extends Address>, User> {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -72,7 +72,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
      */
     public static final String PROP_START = "start";
 
-    private Customer customer;
+    private Customer<? extends Address> customer;
     private User user;
     private String title;
     private String description;
@@ -102,7 +102,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
     }
 
     @Override
-    public Customer getCustomer() {
+    public Customer<? extends Address> getCustomer() {
         return customer;
     }
 
@@ -111,7 +111,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
      *
      * @param customer new value of customer
      */
-    public void setCustomer(Customer customer) {
+    public void setCustomer(Customer<? extends Address> customer) {
         Customer oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);

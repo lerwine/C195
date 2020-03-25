@@ -161,6 +161,7 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
     protected void refreshFromDAO(AddressImpl dao) {
         address1.set(dao.getAddress1());
         address2.set(dao.getAddress2());
+        // TODO: Parameterize this
         City c = dao.getCity();
         city.set((null == c) ? null : new CityReferenceModelImpl(c));
         postalCode.set(dao.getPostalCode());

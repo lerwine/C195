@@ -32,7 +32,7 @@ public interface RecordReader<T extends DataObjectImpl> {
      * 
      * @return The {@link WhereStatement} that will generate the SQL WHERE clause or {@code null} if there will be no WHERE clause.
      */
-    WhereStatement<T> getWhereStatement();
+    WhereStatement<T, ? extends ItemModel<T>> getWhereStatement();
 
     /**
      * Gets the {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
@@ -62,7 +62,7 @@ public interface RecordReader<T extends DataObjectImpl> {
         DataObjectImpl.Factory<T, ? extends ItemModel<T>> f = getFactory();
         SelectColumnList dml = f.getSelectColumns();
         StringBuilder sb = dml.getSelectQuery();
-        WhereStatement<T> whereStatement = getWhereStatement();
+        WhereStatement<T, ? extends ItemModel<T>> whereStatement = getWhereStatement();
         if (null != whereStatement) {
             sb.append(" WHERE ");
             whereStatement.appendSqlStatement(sb);

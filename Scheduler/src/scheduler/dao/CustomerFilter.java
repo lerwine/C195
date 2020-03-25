@@ -31,7 +31,7 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
             }
 
             @Override
-            public WhereStatement<CustomerImpl> getWhereStatement() {
+            public WhereStatement<CustomerImpl, CustomerModel> getWhereStatement() {
                 return null;
             }
 

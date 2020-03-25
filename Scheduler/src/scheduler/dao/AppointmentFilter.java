@@ -7,9 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import scheduler.Scheduler;
-import scheduler.dao.dml.ComparisonOperator;
 import scheduler.dao.dml.IntegerComparisonStatement;
 import scheduler.dao.dml.SelectColumnList;
 import scheduler.dao.dml.WhereStatement;
@@ -17,7 +15,6 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.util.DB;
 import scheduler.util.ResourceBundleLoader;
-import scheduler.util.ThrowableBiFunction;
 import scheduler.view.ItemModel;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.ManageAppointments;
@@ -33,7 +30,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
 
     
     static AppointmentFilter of(FilterType type, String heading, String subHeading,
-            Function<SelectColumnList, WhereStatement<AppointmentImpl>> getFilter, Consumer<AppointmentModel> initializeNew) {
+            Function<SelectColumnList, WhereStatement<AppointmentImpl, AppointmentModel>> getFilter, Consumer<AppointmentModel> initializeNew) {
         if (null == subHeading) {
             return of(type, heading, "", getFilter, initializeNew);
         }
@@ -41,7 +38,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
         Objects.requireNonNull(heading);
         Objects.requireNonNull(getFilter);
         return new AppointmentFilter() {
-            private final WhereStatement<AppointmentImpl> whereStatement = getFilter.apply(AppointmentImpl.getFactory().getSelectColumns());
+            private final WhereStatement<AppointmentImpl, AppointmentModel> whereStatement = getFilter.apply(AppointmentImpl.getFactory().getSelectColumns());
             @Override
             public String getHeading() {
                 return heading;
@@ -53,7 +50,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
             }
 
             @Override
-            public WhereStatement<AppointmentImpl> getWhereStatement() {
+            public WhereStatement<AppointmentImpl, AppointmentModel> getWhereStatement() {
                 return whereStatement;
             }
             
@@ -91,7 +88,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
      * @return A new appointment filter.
      */
     public static AppointmentFilter of(FilterType type, String heading,
-            Function<SelectColumnList, WhereStatement<AppointmentImpl>> getFilter,
+            Function<SelectColumnList, WhereStatement<AppointmentImpl, AppointmentModel>> getFilter,
             Consumer<AppointmentModel> initializeNew) {
         return of(type, heading, "", getFilter, initializeNew);
     }
@@ -126,8 +123,14 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 // predicate
                 (t) -> t.getCustomer().getPrimaryKey() == customerId,
                 // sqlFilterExpr
-                (SelectColumnList t) -> IntegerComparisonStatement.columnEquals(t.findFirst(DbColumn.CONTACT), customerId,
-                        (AppointmentModel m) -> m.getCustomer().getPrimaryKey()),
+                new Function<SelectColumnList, WhereStatement<AppointmentImpl, AppointmentModel>>() {
+                    @Override
+                    public WhereStatement<AppointmentImpl, AppointmentModel> apply(SelectColumnList t) {
+                        SelectColumnList.SelectColumn column = t.findFirst(DbColumn.CONTACT);
+                        
+                        return IntegerComparisonStatement.columnEquals(column, customerId, ItemIntComparer.CUSTOMER_APPOINTMENTS);
+                    }
+                },
                 // initializeNew
                 initializeNew);
     }

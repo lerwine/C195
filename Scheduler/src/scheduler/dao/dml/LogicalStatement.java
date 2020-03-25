@@ -16,15 +16,16 @@ import scheduler.view.ItemModel;
  * Represents a logical grouping of {@link WhereStatement} objects.
  *
  * @author Leonard T. Erwine (Student ID 356334)
- * @param <T> The data object type.
+ * @param <T> The data access object type.
+ * @param <U> The item model type.
  */
-public interface LogicalStatement<T extends DataObjectImpl> extends WhereStatement<T>, ReadOnlyList<WhereStatement<T>> {
+public interface LogicalStatement<T extends DataObjectImpl, U extends ItemModel<T>> extends WhereStatement<T, U>, ReadOnlyList<WhereStatement<T, U>> {
 
     LogicalOperator getOperator();
 
     @Override
     public default int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
-        Iterator<WhereStatement<T>> it = iterator();
+        Iterator<WhereStatement<T, U>> it = iterator();
         do {
             currentIndex = it.next().applyValues(ps, currentIndex);
         } while (it.hasNext());
@@ -33,8 +34,8 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
 
     @Override
     public default void appendSqlStatement(StringBuilder stringBuilder) {
-        Iterator<WhereStatement<T>> it = iterator();
-        WhereStatement<T> filter = it.next();
+        Iterator<WhereStatement<T, U>> it = iterator();
+        WhereStatement<T, U> filter = it.next();
         if (isLogicalGroup(filter)) {
             stringBuilder.append("(");
             filter.appendSqlStatement(stringBuilder);
@@ -55,15 +56,15 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
         } while (it.hasNext());
     }
 
-    public static <T extends DataObjectImpl> boolean isLogicalGroup(WhereStatement<T> filter) {
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> boolean isLogicalGroup(WhereStatement<T, U> filter) {
         return null != filter && filter instanceof LogicalStatement;
     }
 
-    public static <T extends DataObjectImpl> boolean isLogicalGroup(WhereStatement<T> filter, LogicalOperator op) {
-        return null != filter && filter instanceof LogicalStatement && ((LogicalStatement<T>) filter).getOperator() == op;
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> boolean isLogicalGroup(WhereStatement<T, U> filter, LogicalOperator op) {
+        return null != filter && filter instanceof LogicalStatement && ((LogicalStatement<T, U>) filter).getOperator() == op;
     }
     
-    public static <T extends DataObjectImpl> LogicalStatement<T> and(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> LogicalStatement<T, U> and(WhereStatement<T, U> x, WhereStatement<T, U> y, WhereStatement<T, U>... z) {
         if (null == x || null == y || (null != z && z.length > 0 || Arrays.stream(z).anyMatch((t) -> null == t))) {
             throw new NullPointerException();
         }
@@ -72,9 +73,9 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             throw new IllegalArgumentException();
         }
 
-        return new LogicalStatement<T>() {
+        return new LogicalStatement<T, U>() {
             private final LogicalOperator operator = LogicalOperator.AND;
-            private final WhereStatement<T>[] items = (WhereStatement<T>[]) ((null == z || z.length == 0) ? Stream.of(x, y) : Stream.concat(Stream.of(x, y), Arrays.stream(z))).toArray();
+            private final WhereStatement<T, U>[] items = (WhereStatement<T, U>[]) ((null == z || z.length == 0) ? Stream.of(x, y) : Stream.concat(Stream.of(x, y), Arrays.stream(z))).toArray();
 
             @Override
             public LogicalOperator getOperator() {
@@ -87,7 +88,7 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             }
 
             @Override
-            public boolean test(ItemModel<T> t) {
+            public boolean test(U t) {
                 return Arrays.stream(items).allMatch((u) -> u.test(t));
             }
 
@@ -102,7 +103,7 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             }
 
             @Override
-            public Iterator<WhereStatement<T>> iterator() {
+            public Iterator<WhereStatement<T, U>> iterator() {
                 return ReadOnlyList.of(items).iterator();
             }
 
@@ -115,11 +116,11 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
 
             @Override
             public boolean containsAll(Collection<?> c) {
-                return c.stream().allMatch((t) -> contains((WhereStatement<T>) t));
+                return c.stream().allMatch((t) -> contains((WhereStatement<T, U>) t));
             }
 
             @Override
-            public WhereStatement<T> get(int index) {
+            public WhereStatement<T, U> get(int index) {
                 return items[index];
             }
 
@@ -160,24 +161,24 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             }
 
             @Override
-            public ListIterator<WhereStatement<T>> listIterator() {
+            public ListIterator<WhereStatement<T, U>> listIterator() {
                 return ReadOnlyList.of(items).listIterator();
             }
 
             @Override
-            public ListIterator<WhereStatement<T>> listIterator(int index) {
+            public ListIterator<WhereStatement<T, U>> listIterator(int index) {
                 return ReadOnlyList.of(items).listIterator(index);
             }
 
             @Override
-            public List<WhereStatement<T>> subList(int fromIndex, int toIndex) {
+            public List<WhereStatement<T, U>> subList(int fromIndex, int toIndex) {
                 return ReadOnlyList.of(items, fromIndex, toIndex);
             }
 
         };
     }
 
-    public static <T extends DataObjectImpl> LogicalStatement<T> or(WhereStatement<T> x, WhereStatement<T> y, WhereStatement<T>... z) {
+    public static <T extends DataObjectImpl, U extends ItemModel<T>> LogicalStatement<T, U> or(WhereStatement<T, U> x, WhereStatement<T, U> y, WhereStatement<T, U>... z) {
         if (null == x || null == y || (null != z && z.length > 0 || Arrays.stream(z).anyMatch((t) -> null == t))) {
             throw new NullPointerException();
         }
@@ -186,9 +187,9 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             throw new IllegalArgumentException();
         }
 
-        return new LogicalStatement<T>() {
+        return new LogicalStatement<T, U>() {
             private final LogicalOperator operator = LogicalOperator.OR;
-            private final WhereStatement<T>[] items = (WhereStatement<T>[]) ((null == z || z.length == 0) ? Stream.of(x, y) : Stream.concat(Stream.of(x, y), Arrays.stream(z))).toArray();
+            private final WhereStatement<T, U>[] items = (WhereStatement<T, U>[]) ((null == z || z.length == 0) ? Stream.of(x, y) : Stream.concat(Stream.of(x, y), Arrays.stream(z))).toArray();
 
             @Override
             public LogicalOperator getOperator() {
@@ -201,7 +202,7 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             }
 
             @Override
-            public boolean test(ItemModel<T> t) {
+            public boolean test(U t) {
                 return Arrays.stream(items).allMatch((u) -> u.test(t));
             }
 
@@ -216,7 +217,7 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             }
 
             @Override
-            public Iterator<WhereStatement<T>> iterator() {
+            public Iterator<WhereStatement<T, U>> iterator() {
                 return ReadOnlyList.of(items).iterator();
             }
 
@@ -229,11 +230,11 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
 
             @Override
             public boolean containsAll(Collection<?> c) {
-                return c.stream().allMatch((t) -> contains((WhereStatement<T>) t));
+                return c.stream().allMatch((t) -> contains((WhereStatement<T, U>) t));
             }
 
             @Override
-            public WhereStatement<T> get(int index) {
+            public WhereStatement<T, U> get(int index) {
                 return items[index];
             }
 
@@ -274,17 +275,17 @@ public interface LogicalStatement<T extends DataObjectImpl> extends WhereStateme
             }
 
             @Override
-            public ListIterator<WhereStatement<T>> listIterator() {
+            public ListIterator<WhereStatement<T, U>> listIterator() {
                 return ReadOnlyList.of(items).listIterator();
             }
 
             @Override
-            public ListIterator<WhereStatement<T>> listIterator(int index) {
+            public ListIterator<WhereStatement<T, U>> listIterator(int index) {
                 return ReadOnlyList.of(items).listIterator(index);
             }
 
             @Override
-            public List<WhereStatement<T>> subList(int fromIndex, int toIndex) {
+            public List<WhereStatement<T, U>> subList(int fromIndex, int toIndex) {
                 return ReadOnlyList.of(items, fromIndex, toIndex);
             }
 

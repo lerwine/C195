@@ -12,7 +12,7 @@ import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.address.AddressModel;
 
-public class AddressImpl extends DataObjectImpl implements Address<City> {
+public class AddressImpl extends DataObjectImpl implements Address<City<? extends Country>> {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -22,7 +22,7 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
 
     private String address1;
     private String address2;
-    private City city;
+    private City<? extends Country> city;
     private String postalCode;
     private String phone;
 
@@ -85,7 +85,7 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
     public static final String PROP_CITY = "city";
     
     @Override
-    public City getCity() {
+    public City<? extends Country> getCity() {
         return city;
     }
 
@@ -94,8 +94,8 @@ public class AddressImpl extends DataObjectImpl implements Address<City> {
      *
      * @param city new value of city
      */
-    public void setCity(City city) {
-        City oldValue = this.city;
+    public void setCity(City<? extends Country> city) {
+        City<? extends Country> oldValue = this.city;
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
     }

@@ -29,7 +29,7 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
             }
 
             @Override
-            public WhereStatement<UserImpl> getWhereStatement() {
+            public WhereStatement<UserImpl, UserModel> getWhereStatement() {
                 return null;
             }
 
@@ -51,7 +51,7 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
             return new UserFilter() {
                 private final SelectColumnList table = UserImpl.getFactory().getSelectColumns();
                 private final ColumnReference column = table.findFirst(DbColumn.STATUS);
-                private final ColumnComparisonStatement whereStatement = (isActive) ? new ColumnComparisonStatement<UserImpl>() {
+                private final ColumnComparisonStatement<UserImpl, UserModel> whereStatement = (isActive) ? new ColumnComparisonStatement<UserImpl, UserModel>() {
                     @Override
                     public ColumnReference getColumn() {
                         return column;
@@ -74,12 +74,12 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
                     }
 
                     @Override
-                    public boolean test(ItemModel<UserImpl> t) {
+                    public boolean test(UserModel t) {
                         // TODO: Need to add generic for ItemModel to the ColumnComparisonStatement interface.
                         return ((UserModel)t).getStatus() != UserStatus.INACTIVE;
                     }
 
-                    } : new ColumnComparisonStatement<UserImpl>() {
+                    } : new ColumnComparisonStatement<UserImpl, UserModel>() {
                     @Override
                     public ColumnReference getColumn() {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -101,7 +101,7 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
                     }
 
                     @Override
-                    public boolean test(ItemModel<UserImpl> t) {
+                    public boolean test(UserModel t) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -112,7 +112,7 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
                 }
 
                 @Override
-                public WhereStatement<UserImpl> getWhereStatement() {
+                public WhereStatement<UserImpl, UserModel> getWhereStatement() {
                     return whereStatement;
                 }
 

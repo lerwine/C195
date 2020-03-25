@@ -42,7 +42,7 @@ public interface City<T extends Country> extends DataObject {
      */
     T getCountry();
 
-    public static String toString(City city) throws SQLException, ClassNotFoundException {
+    public static String toString(City<? extends Country> city) throws SQLException, ClassNotFoundException {
         if (null != city) {
             String n = city.getName();
             String country = Country.toString(city.getCountry()).trim();
@@ -65,7 +65,7 @@ public interface City<T extends Country> extends DataObject {
      */
     public static <T extends Country> City<T> of(int pk, String name, T country) {
         Objects.requireNonNull(name, "Name cannot be null");
-        return new City() {
+        return new City<T>() {
             @Override
             public String getName() {
                 return name;
@@ -77,7 +77,7 @@ public interface City<T extends Country> extends DataObject {
             }
 
             @Override
-            public Country getCountry() {
+            public T getCountry() {
                 return country;
             }
 
@@ -97,7 +97,7 @@ public interface City<T extends Country> extends DataObject {
      * @return The read-only City object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static City of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+    public static City<? extends Country> of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
         Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
         if (id.isPresent()) {
             return of(id.get(), columns.getString(resultSet, DbColumn.CITY_NAME, ""), Country.of(resultSet, columns));

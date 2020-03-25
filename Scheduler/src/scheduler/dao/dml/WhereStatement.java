@@ -34,10 +34,10 @@ import scheduler.view.ItemModel;
  * 
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The data access object type.
+ * @param <U> The item model type.
  * 
  */
-// BUG: Need to have a U generic parameter for ItemModel<T>.
-public interface WhereStatement<T extends DataObjectImpl> extends Predicate<ItemModel<T>> {
+public interface WhereStatement<T extends DataObjectImpl, U extends ItemModel<T>> extends Predicate<U> {
     /**
      * Appends the current SQL statement to a {@link StringBuilder}.
      * This does not add any leading or trailing whitespace.

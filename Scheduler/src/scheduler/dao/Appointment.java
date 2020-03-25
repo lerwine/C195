@@ -32,7 +32,7 @@ import java.sql.Timestamp;
  * @param <T> The type of {@link Customer} data access object.
  * @param <U> The type of {@link User} data access object.
  */
-public interface Appointment<T extends Customer, U extends User> extends DataObject {
+public interface Appointment<T extends Customer<? extends Address>, U extends User> extends DataObject {
 
     /**
      * Gets the {@link Customer} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId" database column.

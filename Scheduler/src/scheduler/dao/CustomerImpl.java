@@ -13,7 +13,7 @@ import scheduler.dao.dml.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.customer.CustomerModel;
 
-public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
+public class CustomerImpl extends DataObjectImpl implements Customer<Address<? extends City>> {
 
     /**
      * The name of the 'name' property.
@@ -37,7 +37,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
     }
 
     private String name;
-    private Address address;
+    private Address<? extends City> address;
     private boolean active;
 
     /**
@@ -67,7 +67,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
     }
 
     @Override
-    public Address getAddress() {
+    public Address<? extends City> getAddress() {
         return address;
     }
 
@@ -76,7 +76,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address> {
      *
      * @param address new value of address
      */
-    public void setAddress(Address address) {
+    public void setAddress(Address<? extends City> address) {
         Address oldValue = this.address;
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);

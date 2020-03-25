@@ -19,11 +19,13 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
 
     private final Object bean;
     private final String name;
+    // TODO: Parameterize this
     private final ReadOnlyProperty<CustomerReferenceModel<? extends Customer>> customer;
     private final ReadOnlyProperty<AppointmentType> type;
     private final ReadOnlyProperty<String> location;
     private final ReadOnlyProperty<String> url;
 
+    // TODO: Parameterize this
     public EffectiveLocationProperty(Object bean, String name, AppointmentReferenceModel<? extends Appointment> source) {
         customer = source.customerProperty();
         type = source.typeProperty();

@@ -27,7 +27,7 @@ import scheduler.dao.schema.DbName;
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link Address} data access object.
  */
-public interface Customer<T extends Address> extends DataObject {
+public interface Customer<T extends Address<? extends City>> extends DataObject {
 
     /**
      * Gets the name of the current customer. This corresponds to the "customerName" database column.
@@ -60,9 +60,9 @@ public interface Customer<T extends Address> extends DataObject {
      * @param active {@code true} if the current customer is active; otherwise, {@code false}.
      * @return The read-only Customer object.
      */
-    public static <T extends Address> Customer<T> of(int pk, String name, T address, boolean active) {
+    public static <T extends Address<? extends City>> Customer<T> of(int pk, String name, T address, boolean active) {
         Objects.requireNonNull(name, "Name cannot be null");
-        return new Customer() {
+        return new Customer<T>() {
 
             @Override
             public String getName() {
@@ -70,7 +70,7 @@ public interface Customer<T extends Address> extends DataObject {
             }
 
             @Override
-            public Address getAddress() {
+            public T getAddress() {
                 return address;
             }
 
@@ -95,16 +95,17 @@ public interface Customer<T extends Address> extends DataObject {
     /**
      * Creates a read-only Customer object from a result set.
      *
+     * @param <T>
      * @param resultSet The data retrieved from the database.
      * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only Customer object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static Customer of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
+    public static <T extends Address<? extends City>> Customer<T> of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
         Optional<Integer> id = columns.tryGetInt(resultSet, DbName.CUSTOMER_ID);
         if (id.isPresent()) {
             return Customer.of(id.get(), columns.getString(resultSet, DbColumn.CUSTOMER_NAME, ""),
-                    Address.of(resultSet, columns), columns.getBoolean(resultSet, DbColumn.ACTIVE, false));
+                    (T)Address.of(resultSet, columns), columns.getBoolean(resultSet, DbColumn.ACTIVE, false));
         }
         return null;
     }

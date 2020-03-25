@@ -12,6 +12,7 @@ import scheduler.view.city.CityReferenceModel;
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T>
  */
+    // TODO: Parameterize this
 public interface AddressReferenceModel<T extends Address> extends DataObjectReferenceModel<T> {
 
     String getAddress1();
@@ -26,12 +27,15 @@ public interface AddressReferenceModel<T extends Address> extends DataObjectRefe
 
     ReadOnlyProperty<String> addressLinesProperty();
 
+    // TODO: Parameterize this
     CityReferenceModel<? extends City> getCity();
 
+    // TODO: Parameterize this
     ReadOnlyProperty<CityReferenceModel<? extends City>> cityProperty();
 
     String getCityName();
 
+    // TODO: Parameterize this
     ChildPropertyWrapper<String, CityReferenceModel<? extends City>> cityNameProperty();
 
     String getCountryName();

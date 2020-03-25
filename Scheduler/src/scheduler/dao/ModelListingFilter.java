@@ -22,8 +22,8 @@ public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemMode
         if (null == y)
             return false;
         
-        WhereStatement<D> a = x.getWhereStatement();
-        WhereStatement<D> b = y.getWhereStatement();
+        WhereStatement<D, M> a = x.getWhereStatement();
+        WhereStatement<D, M> b = y.getWhereStatement();
         return (null == a) ? null == b : null != b && a.equals(b);
     }
 
@@ -62,7 +62,7 @@ public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemMode
             }
 
             @Override
-            public WhereStatement<D> getWhereStatement() {
+            public WhereStatement<D, ? extends ItemModel<D>> getWhereStatement() {
                 return null;
             }
 
