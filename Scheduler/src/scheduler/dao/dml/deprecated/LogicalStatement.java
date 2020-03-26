@@ -1,4 +1,4 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -33,25 +33,25 @@ public interface LogicalStatement<T extends DataObjectImpl, U extends ItemModel<
     }
 
     @Override
-    public default void appendSqlStatement(StringBuilder stringBuilder) {
+    public default void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
         Iterator<WhereStatement<T, U>> it = iterator();
         WhereStatement<T, U> filter = it.next();
         if (isLogicalGroup(filter)) {
             stringBuilder.append("(");
-            filter.appendSqlStatement(stringBuilder);
+            filter.appendSqlStatement(table, stringBuilder);
             stringBuilder.append(")");
         } else
-            filter.appendSqlStatement(stringBuilder);
+            filter.appendSqlStatement(table, stringBuilder);
         String op = getOperator().toString();
         do {
             filter = it.next();
             if (isLogicalGroup(filter)) {
                 stringBuilder.append(" ").append(op).append(" (");
-                filter.appendSqlStatement(stringBuilder);
+                filter.appendSqlStatement(table, stringBuilder);
                 stringBuilder.append(")");
             } else {
                 stringBuilder.append(" ").append(op).append(" ");
-                filter.appendSqlStatement(stringBuilder);
+                filter.appendSqlStatement(table, stringBuilder);
             }
         } while (it.hasNext());
     }

@@ -3,13 +3,14 @@ package scheduler.dao;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import scheduler.AppResources;
-import scheduler.dao.dml.BooleanComparisonStatement;
-import scheduler.dao.dml.ColumnComparisonStatement;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.ComparisonOperator;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableReference;
-import scheduler.dao.dml.WhereStatement;
+import scheduler.dao.dml.deprecated.BooleanComparisonStatement;
+import scheduler.dao.dml.deprecated.ColumnComparisonStatement;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.ComparisonOperator;
+import scheduler.dao.dml.deprecated.QueryColumnSelector;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableReference;
+import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.view.ItemModel;
@@ -49,63 +50,55 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
     public static UserFilter active(boolean isActive) {
         if (isActive) {
             return new UserFilter() {
-                private final SelectColumnList table = UserImpl.getFactory().getSelectColumns();
-                private final ColumnReference column = table.findFirst(DbColumn.STATUS);
-                private final ColumnComparisonStatement<UserImpl, UserModel> whereStatement = (isActive) ? new ColumnComparisonStatement<UserImpl, UserModel>() {
-                    @Override
-                    public ColumnReference getColumn() {
-                        return column;
-                    }
+                private final QueryColumnSelector selector = QueryColumnSelector.of(DbColumn.STATUS);
+                private final ColumnComparisonStatement<UserImpl, UserModel> whereStatement = (isActive) ?
+                        new ColumnComparisonStatement<UserImpl, UserModel>() {
+                            @Override
+                            public ComparisonOperator getOperator() {
+                                return ComparisonOperator.NOT_EQUAL_TO;
+                            }
 
-                    @Override
-                    public TableReference getTable() {
-                        return table;
-                    }
+                            @Override
+                            public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                                ps.setInt(currentIndex, UserStatus.INACTIVE.getValue());
+                                return currentIndex + 1;
+                            }
 
-                    @Override
-                    public ComparisonOperator getOperator() {
-                        return ComparisonOperator.NOT_EQUAL_TO;
-                    }
+                            @Override
+                            public boolean test(UserModel t) {
+                                return t.getStatus() != UserStatus.INACTIVE;
+                            }
 
-                    @Override
-                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
-                        ps.setInt(currentIndex, UserStatus.INACTIVE.getValue());
-                        return currentIndex + 1;
-                    }
+                            @Override
+                            public QueryColumnSelector getColumnSelector() {
+                                return selector;
+                            }
+                        } : 
+                        new ColumnComparisonStatement<UserImpl, UserModel>() {
 
-                    @Override
-                    public boolean test(UserModel t) {
-                        // TODO: Need to add generic for ItemModel to the ColumnComparisonStatement interface.
-                        return ((UserModel)t).getStatus() != UserStatus.INACTIVE;
-                    }
+                            @Override
+                            public QueryColumnSelector getColumnSelector() {
+                                return selector;
+                            }
 
-                    } : new ColumnComparisonStatement<UserImpl, UserModel>() {
-                    @Override
-                    public ColumnReference getColumn() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
+                            @Override
+                            public ComparisonOperator getOperator() {
+                                return ComparisonOperator.EQUAL_TO;
+                            }
 
-                    @Override
-                    public TableReference getTable() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
+                            @Override
+                            public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
+                                ps.setInt(currentIndex, UserStatus.INACTIVE.getValue());
+                                return currentIndex + 1;
+                            }
 
-                    @Override
-                    public ComparisonOperator getOperator() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
+                            @Override
+                            public boolean test(UserModel t) {
+                                return t.getStatus() == UserStatus.INACTIVE;
+                            }
 
-                    @Override
-                    public int applyValues(PreparedStatement ps, int currentIndex) throws SQLException {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-
-                    @Override
-                    public boolean test(UserModel t) {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-
-                    };
+                        };
+                
                 @Override
                 public String getHeading() {
                     return AppResources.getResourceString(AppResources.RESOURCEKEY_ACTIVEUSERS);
@@ -122,9 +115,10 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
                     return index;
                 }
 
+                // TODO: Is test necessary to be implemented every time since we have a WhereStatement? Can it be implemented as default on interface?
                 @Override
                 public boolean test(UserModel t) {
-                    return t.getStatus() != UserStatus.INACTIVE;
+                    return whereStatement.test(t);
                 }
 
             };
@@ -161,7 +155,7 @@ public interface UserFilter extends ModelListingFilter<UserImpl, UserModel> {
     }
 
     @Override
-    public default DataObjectImpl.Factory<UserImpl, UserModel> getFactory() {
+    public default DataObjectImpl.Factory_obsolete<UserImpl, UserModel> getFactory() {
         return UserImpl.getFactory();
     }
 

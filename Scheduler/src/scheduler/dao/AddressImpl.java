@@ -6,9 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.address.AddressModel;
 
@@ -142,7 +142,7 @@ public class AddressImpl extends DataObjectImpl implements Address<City<? extend
         firePropertyChange(PROP_PHONE, oldValue, phone);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory<AddressImpl, AddressModel> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<AddressImpl, AddressModel> {
 
         private static final SelectColumnList DETAIL_DML;
 

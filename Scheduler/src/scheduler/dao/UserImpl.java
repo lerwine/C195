@@ -9,9 +9,9 @@ import java.sql.SQLWarning;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.user.UserModel;
 
@@ -100,7 +100,7 @@ public class UserImpl extends DataObjectImpl implements User {
         firePropertyChange(PROP_STATUS, oldValue, this.status);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory<UserImpl, UserModel> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<UserImpl, UserModel> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

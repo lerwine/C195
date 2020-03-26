@@ -4,8 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 

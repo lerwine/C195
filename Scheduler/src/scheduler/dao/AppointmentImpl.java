@@ -7,9 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.util.DB;
 import scheduler.view.appointment.AppointmentModel;
@@ -261,7 +261,7 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
         firePropertyChange(PROP_END, oldValue, this.end);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<AppointmentImpl, AppointmentModel> {
 
         private static final SelectColumnList DETAIL_DML;
 

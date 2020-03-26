@@ -13,7 +13,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.dao.UserImpl;
 import scheduler.dao.UserStatus;
 import scheduler.util.ValueBindings;
@@ -282,7 +282,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     }
 
     @Override
-    protected Factory<UserImpl, UserModel> getDaoFactory() {
+    protected Factory_obsolete<UserImpl, UserModel> getDaoFactory() {
         return UserImpl.getFactory();
     }
 

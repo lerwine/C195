@@ -8,9 +8,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Optional;
 import scheduler.AppResources;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
@@ -79,7 +79,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory<CityImpl, CityModel> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<CityImpl, CityModel> {
 
         private static final SelectColumnList DETAIL_DML;
 

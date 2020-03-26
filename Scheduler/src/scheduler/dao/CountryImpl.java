@@ -7,9 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import scheduler.AppResources;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
@@ -55,7 +55,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
         return FACTORY;
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory<CountryImpl, CountryModel> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<CountryImpl, CountryModel> {
 
         private static final SelectColumnList DETAIL_DML;
 

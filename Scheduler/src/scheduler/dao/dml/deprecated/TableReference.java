@@ -1,4 +1,4 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 import scheduler.dao.schema.DbTable;
 

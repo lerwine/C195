@@ -9,7 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NonNullableStringProperty;
@@ -169,7 +169,7 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
     }
 
     @Override
-    public Factory<AddressImpl, AddressModel> getDaoFactory() {
+    public Factory_obsolete<AddressImpl, AddressModel> getDaoFactory() {
         return AddressImpl.getFactory();
     }
 

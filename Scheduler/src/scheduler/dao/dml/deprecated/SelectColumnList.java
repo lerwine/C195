@@ -1,5 +1,6 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
+import scheduler.dao.dml.TableJoinType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;

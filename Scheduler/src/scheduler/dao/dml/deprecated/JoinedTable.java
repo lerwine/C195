@@ -1,5 +1,6 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
+import scheduler.dao.dml.TableJoinType;
 import scheduler.dao.schema.DbColumn;
 
 /**

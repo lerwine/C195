@@ -7,9 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Optional;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.customer.CustomerModel;
 
@@ -98,7 +98,7 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address<? e
         firePropertyChange(PROP_ADDRESS, oldValue, this.active);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory<CustomerImpl, CustomerModel> {
+    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<CustomerImpl, CustomerModel> {
 
         private static final SelectColumnList DETAIL_DML;
 

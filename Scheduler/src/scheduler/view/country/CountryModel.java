@@ -2,7 +2,7 @@ package scheduler.view.country;
 
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CountryImpl;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.view.ItemModel;
 
@@ -39,7 +39,7 @@ public final class CountryModel extends ItemModel<CountryImpl> implements Countr
     }
 
     @Override
-    public Factory<CountryImpl, CountryModel> getDaoFactory() {
+    public Factory_obsolete<CountryImpl, CountryModel> getDaoFactory() {
         return CountryImpl.getFactory();
     }
 

@@ -359,11 +359,11 @@ public final class EditItem<D extends DataObjectImpl, M extends ItemModel<D>> ex
         }
 
         /**
-         * This gets called to get an instance of the {@link DataObjectImpl.Factory}.
+         * This gets called to get an instance of the {@link DataObjectImpl.Factory_obsolete}.
          *
-         * @return An instance of the {@link DataObjectImpl.Factory}.
+         * @return An instance of the {@link DataObjectImpl.Factory_obsolete}.
          */
-        protected abstract DataObjectImpl.Factory<D, M> getDaoFactory();
+        protected abstract DataObjectImpl.Factory_obsolete<D, M> getDaoFactory();
 
         /**
          * Gets the {@link BooleanExpression} that indicates whether the property values for the current item are valid.

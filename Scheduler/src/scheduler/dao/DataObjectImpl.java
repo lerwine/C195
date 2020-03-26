@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -23,9 +24,10 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.Scheduler;
-import scheduler.dao.dml.ColumnReference;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.TableColumnList;
+import scheduler.dao.dml.deprecated.ColumnReference;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableColumnList;
+import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.SchemaHelper;
@@ -367,7 +369,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
 
         protected abstract void refreshFromDAO(T dao);
 
-        public abstract DataObjectImpl.Factory<T, ? extends ItemModel<T>> getDaoFactory();
+        public abstract DataObjectImpl.Factory_obsolete<T, ? extends ItemModel<T>> getDaoFactory();
 
         public void refreshFromDAO() throws SQLException, ClassNotFoundException {
             T dao = getDataObject();
@@ -380,15 +382,130 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         }
     }
 
+    public static abstract class DaoFactory<T extends DataObjectImpl> {
+        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
+
+        public List<T> get(Connection connection, WhereStatement<T, ? extends ItemModel<T>> filter) {
+            // TODO: Implement this.
+            throw new UnsupportedOperationException();
+        }
+        
+        /**
+         * Gets the object responsible for generating base SQL select statements.
+         * 
+         * @return The {@link SelectColumnList} object that will be used to generate SELECT statements that correspond
+         * to the target {@link DataObjectImpl}.
+         */
+        public abstract SelectColumnList getSelectColumns();
+
+        /**
+         * Gets the {@link Class} for the target {@link DataObjectImpl} type.
+         * 
+         * @return The {@link Class} for the target {@link DataObjectImpl} type.
+         */
+        public abstract Class<? extends T> getDaoClass();
+
+        /**
+         * Saves a {@link DataObjectImpl} to the database.
+         * 
+         * @param dao The {@link DataObjectImpl} to be inserted or updated.
+         * @param connection The database connection to use.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        public void save(T dao, Connection connection) throws SQLException {
+            // TODO: Implement this.
+            throw new UnsupportedOperationException();
+        }
+        
+        /**
+         * Retrieves the {@link DataObjectImpl} from the database which matches the given primary key.
+         * 
+         * @param connection The database connection to use.
+         * @param pk The value of the primary key for the {@link DataObjectImpl}.
+         * @return An {@link Optional} {@link DataObjectImpl} which will be empty if no match was found.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
+//            Objects.requireNonNull(connection, "Connection cannot be null");
+//            SelectColumnList dml = getSelectColumns();
+//            String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName().getValue()).append("`=?").toString();
+//            LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
+//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//                ps.setInt(1, pk);
+//                try (ResultSet rs = ps.executeQuery()) {
+//                    if (rs.next()) {
+//                        return Optional.of(fromResultSet(rs, dml));
+//                    }
+//                }
+//            }
+//            return Optional.empty();
+            // TODO: Implement this.
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Deletes the corresponding {@link DataObjectImpl} from the database.
+         * 
+         * @param dao The {@link DataObjectImpl} to delete.
+         * @param connection The database connection to use.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        public void delete(T dao, Connection connection) throws SQLException {
+//            Objects.requireNonNull(dao, "Data access object cannot be null");
+//            Objects.requireNonNull(connection, "Connection cannot be null");
+//            synchronized (dao) {
+//                assert dao.getRowState() != DataRowState.DELETED : String.format("%s has already been deleted", getClass().getName());
+//                assert dao.getRowState() != DataRowState.NEW : String.format("%s has not been inserted into the database", getClass().getName());
+//                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getDbTable().getDbName().getValue(), getDbTable().getPkColName().getValue());
+//                LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
+//                try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//                    ps.setInt(1, dao.getPrimaryKey());
+//                    assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
+//                            getDbTable().getDbName().getValue(), getDbTable().getPkColName().getValue(), dao.getPrimaryKey());
+//                }
+//                dao.setDeleted();
+//            }
+            // TODO: Implement this.
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Checks to see if the current {@link DataObjectImpl} can safely be deleted from the database.
+         * 
+         * @param dao The {@link DataObjectImpl} intended for deletion.
+         * @param connection The database connection to use.
+         * @return A user-friendly description of the reason that the {@link DataObjectImpl} cannot be deleted or an
+         * empty string if it can be safely deleted.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        // TODO: Make sure no implementations return a null value.
+        public abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
+
+        /**
+         * Checks to see if any impending changes cause any database conflicts.
+         * 
+         * @param dao The target {@link DataObjectImpl}.
+         * @param connection The database connection to use.
+         * @return A user-friendly description of the reason that the changes to the {@link DataObjectImpl} cannot be saved or an
+         * empty string if it can be safely deleted.
+         * @throws SQLException If unable to perform the database operation.
+         */
+        // TODO: Make sure no implementations return a null value.
+        public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
+
+    }
+    
     /**
      * Base class for CRUD operations on {@link scheduler.dao.DataObjectImpl} objects.
      * 
      * @param <T> The type of {@link DataObjectImpl} supported.
      * @param <M> The type of {@link ItemModel} object that corresponds to the target {@link DataObjectImpl}.
+     * @deprecated Use {@link DaoFactory}
      */
-    public static abstract class Factory<T extends DataObjectImpl, M extends ItemModel<T>> {
+    @Deprecated
+    public static abstract class Factory_obsolete<T extends DataObjectImpl, M extends ItemModel<T>> {
 
-        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
+        private static final Logger LOG = Logger.getLogger(Factory_obsolete.class.getName());
 
         protected abstract T fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
 

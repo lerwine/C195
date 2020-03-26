@@ -8,7 +8,7 @@ import javafx.beans.property.StringProperty;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.dao.User;
 import scheduler.dao.UserStatus;
 import scheduler.observables.AppointmentTypeDisplayProperty;
@@ -394,7 +394,7 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     }
 
     @Override
-    public Factory<AppointmentImpl, AppointmentModel> getDaoFactory() {
+    public Factory_obsolete<AppointmentImpl, AppointmentModel> getDaoFactory() {
         return AppointmentImpl.getFactory();
     }
 

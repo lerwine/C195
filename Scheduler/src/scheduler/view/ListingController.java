@@ -343,11 +343,11 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
     }
 
     /**
-     * Gets the {@link DataObjectImpl.Factory} to be used with this listing.
+     * Gets the {@link DataObjectImpl.Factory_obsolete} to be used with this listing.
      *
-     * @return The {@link DataObjectImpl.Factory} to be used with this listing.
+     * @return The {@link DataObjectImpl.Factory_obsolete} to be used with this listing.
      */
-    protected abstract DataObjectImpl.Factory<T, S> getDaoFactory();
+    protected abstract DataObjectImpl.Factory_obsolete<T, S> getDaoFactory();
 
     /**
      * Creates an {@link ItemModel} from a {@link DataObjectImpl}.

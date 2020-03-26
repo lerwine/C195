@@ -8,10 +8,11 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import scheduler.Scheduler;
-import scheduler.dao.dml.IntegerComparisonStatement;
-import scheduler.dao.dml.LogicalStatement;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.WhereStatement;
+import scheduler.dao.dml.deprecated.IntegerComparisonStatement;
+import scheduler.dao.dml.deprecated.LogicalStatement;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.TableReference;
+import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.util.DB;
@@ -229,7 +230,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) ->  new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -285,7 +286,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -347,7 +348,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -421,7 +422,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -483,7 +484,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -539,7 +540,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -601,7 +602,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -675,7 +676,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -738,7 +739,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -798,7 +799,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -847,7 +848,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -898,7 +899,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
                 (SelectColumnList t) -> new WhereStatement<AppointmentImpl, AppointmentModel>() {
                     // TODO: Implement this
                     @Override
-                    public void appendSqlStatement(StringBuilder stringBuilder) {
+                    public void appendSqlStatement(TableReference table, StringBuilder stringBuilder) {
                         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                     }
 
@@ -1248,7 +1249,7 @@ public interface AppointmentFilter extends ModelListingFilter<AppointmentImpl, A
     void initializeNew(AppointmentModel model);
 
     @Override
-    public default DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> getFactory() {
+    public default DataObjectImpl.Factory_obsolete<AppointmentImpl, AppointmentModel> getFactory() {
         return AppointmentImpl.getFactory();
     }
 

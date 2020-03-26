@@ -102,7 +102,7 @@ public final class DataObjectReference<T extends U, U extends DataObject> implem
      * @throws SQLException if unable to retrieve data from the database.
      */
     public static <T extends DataObjectImpl> DataObjectReference<T, ? super T> of(int primaryKey,
-            DataObjectImpl.Factory<T, ?> factory, Connection connection) throws SQLException {
+            DataObjectImpl.Factory_obsolete<T, ?> factory, Connection connection) throws SQLException {
         Optional<T> result = factory.loadByPrimaryKey(connection, primaryKey);
         if (result.isPresent()) {
             return new DataObjectReference<>(result.get());
@@ -110,7 +110,7 @@ public final class DataObjectReference<T extends U, U extends DataObject> implem
         return new DataObjectReference<>(null);
     }
 
-    private void loadFull(DataObjectImpl.Factory<? super T, ?> factory, Connection connection) throws SQLException {
+    private void loadFull(DataObjectImpl.Factory_obsolete<? super T, ?> factory, Connection connection) throws SQLException {
         Optional<? super T> result = factory.loadByPrimaryKey(connection, primaryKeySuppler.get());
         if (result.isPresent()) {
             partial = full = (T) result.get();
@@ -129,7 +129,7 @@ public final class DataObjectReference<T extends U, U extends DataObject> implem
      * this.
      * @throws SQLException if unable to retrieve data from the database.
      */
-    public U ensurePartial(DataObjectImpl.Factory<? super T, ?> factory,
+    public U ensurePartial(DataObjectImpl.Factory_obsolete<? super T, ?> factory,
             Connection connection) throws SQLException {
         if (null == partial && null != primaryKeySuppler) {
             loadFull(factory, connection);
@@ -147,7 +147,7 @@ public final class DataObjectReference<T extends U, U extends DataObject> implem
      * @throws ClassNotFoundException if unable to load the database driver.
      */
     public U ensurePartial(
-            DataObjectImpl.Factory<? super T, ?> factory) throws SQLException, ClassNotFoundException {
+            DataObjectImpl.Factory_obsolete<? super T, ?> factory) throws SQLException, ClassNotFoundException {
         if (null == partial && null != primaryKeySuppler) {
             DbConnector.accept((connection) -> loadFull(factory, connection));
         }
@@ -162,7 +162,7 @@ public final class DataObjectReference<T extends U, U extends DataObject> implem
      * @return The loaded {@link #full} data object or {@code null} if it does not exist. If the record does not exist, then {@link #isEmpty()} will return {@code true} after this.
      * @throws SQLException if unable to retrieve data from the database.
      */
-    public T ensureFull(DataObjectImpl.Factory<? super T, ?> factory,
+    public T ensureFull(DataObjectImpl.Factory_obsolete<? super T, ?> factory,
             Connection connection) throws SQLException {
         if (null == full && null != primaryKeySuppler) {
             loadFull(factory, connection);
@@ -179,7 +179,7 @@ public final class DataObjectReference<T extends U, U extends DataObject> implem
      * @throws ClassNotFoundException if unable to load the database driver.
      */
     public T ensureFull(
-            DataObjectImpl.Factory<? super T, ?> factory) throws SQLException, ClassNotFoundException {
+            DataObjectImpl.Factory_obsolete<? super T, ?> factory) throws SQLException, ClassNotFoundException {
         if (null == full && null != primaryKeySuppler) {
             DbConnector.accept((connection) -> loadFull(factory, connection));
         }

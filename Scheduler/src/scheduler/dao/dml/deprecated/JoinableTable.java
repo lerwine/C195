@@ -1,7 +1,8 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
+import scheduler.util.ReadOnlyCollection;
 import scheduler.util.ReadOnlyList;
 
 /**
@@ -19,17 +20,29 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      */
     ReadOnlyList<T> getJoinedTables();
     
+    default ReadOnlyCollection<T> getAllTables() {
+        // TODO: Remove this as default and implement.
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Indicates whether any {@link JoinableTable} are referenced by the specified name.
      * @param name The name to search for.
      * @return {@code true} if any {@link JoinableTable} is referenced by the specified {@code name}; otherwise, false.
      */
+    // TODO: Remove any implementations of this - no longer necessary when using getAllTables()
     default boolean isTableRefNameUsed(String name) {
-        return null != name && !name.trim().isEmpty() && (getTableAlias().equalsIgnoreCase(name) || 
-                getJoinedTables().stream().anyMatch((t) -> t.isTableRefNameUsed(name)));
+        return getTableAlias().equalsIgnoreCase(name) || getAllTables().stream().anyMatch((t) -> t.getTableAlias().equalsIgnoreCase(name));
     }
     
+    /**
+     * 
+     * @param source
+     * @param name
+     * @return 
+     * @deprecated Searches should be global, anyway
+     */
+    @Deprecated
     public static boolean isTableRefNameUsedGlobally(JoinableTable<?> source, String name) {
         if (source instanceof JoinedTable)
             source = (JoinableTable<?>)((JoinedTable<?>)source).getPrimaryTable();
@@ -41,25 +54,44 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      * @param referenceName The name to search for.
      * @return The {@link JoinableTable} that is referenced by the specified name or {@code null} if no match was found.
      */
+    // TODO: Remove any implementations of this - no longer necessary when using getAllTables()
     default JoinableTable<? extends T> getTable(String referenceName) {
+        
         if (getTableAlias().equalsIgnoreCase(referenceName))
             return this;
         
-        for (T t : getJoinedTables()) {
-            JoinableTable<? extends T> result = t.getTable(referenceName);
-            if (null != result)
-                return result;
+        for (T t : getAllTables()) {
+            if (t.getTableAlias().equalsIgnoreCase(referenceName))
+                return t;
         }
         
         return null;
     }
     
+    /**
+     * 
+     * @param <T>
+     * @param source
+     * @param name
+     * @return 
+     * @deprecated Searches should be global, anyway
+     */
+    @Deprecated
     public static <T extends JoinedTable<? extends T>> JoinableTable<? extends T> getTableGlobal(JoinableTable<? extends T> source, String name) {
         if (source instanceof JoinedTable)
             source = ((JoinedTable<? extends T>)source).getPrimaryTable();
         return source.getTable(name);
     }
 
+    /**
+     * 
+     * @param <T>
+     * @param source
+     * @param tableName
+     * @return 
+     * @deprecated Searches should be global, anyway
+     */
+    @Deprecated
     public static <T extends JoinedTable<? extends T>> JoinableTable<? extends T> findFirstGlobally(JoinableTable<? extends T> source, DbTable tableName) {
         if (source instanceof JoinedTable)
             source = ((JoinedTable<? extends T>)source).getPrimaryTable();
@@ -72,10 +104,19 @@ public interface JoinableTable<T extends JoinedTable<? extends T>> extends Table
      * @param tableName The {@link DbTable} to look for.
      * @return {@code true} if any {@link JoinableTable} references the specified {@code tableName}; otherwise, false.
      */
+    // TODO: Remove any implementations of this - no longer necessary when using getAllTables()
     default boolean isTableReferenced(DbTable tableName) {
-        return null != tableName && (getTable() == tableName || getJoinedTables().stream().anyMatch((t) -> t.getTable() == tableName));
+        return null != tableName && (getTable() == tableName || getAllTables().stream().anyMatch((t) -> t.getTable() == tableName));
     }
     
+    /**
+     * 
+     * @param source
+     * @param tableName
+     * @return 
+     * @deprecated Searches should be global, anyway
+     */
+    @Deprecated
     public static boolean isTableReferencedGlobally(JoinableTable<?> source, DbTable tableName) {
         if (source instanceof JoinedTable)
             source = (JoinableTable<?>)((JoinedTable<?>)source).getPrimaryTable();

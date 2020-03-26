@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.dao.dml.SelectColumnList;
-import scheduler.dao.dml.WhereStatement;
+import scheduler.dao.dml.deprecated.SelectColumnList;
+import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.view.ItemModel;
 
 /**
@@ -35,11 +35,11 @@ public interface RecordReader<T extends DataObjectImpl, U extends ItemModel<T>> 
     WhereStatement<T, U> getWhereStatement();
 
     /**
-     * Gets the {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
+     * Gets the {@link DataObjectImpl.Factory_obsolete} responsible for creating the result {@link DataObjectImpl} objects.
      *
-     * @return The {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
+     * @return The {@link DataObjectImpl.Factory_obsolete} responsible for creating the result {@link DataObjectImpl} objects.
      */
-    DataObjectImpl.Factory<T, U> getFactory();
+    DataObjectImpl.Factory_obsolete<T, U> getFactory();
 
     /**
      * Sets the parameterized values that correspond to place-holders in {@link #getWhereStatement()}.
@@ -59,13 +59,13 @@ public interface RecordReader<T extends DataObjectImpl, U extends ItemModel<T>> 
      * @throws SQLException if unable to read data from the database.
      */
     default ArrayList<T> get(Connection connection) throws SQLException {
-        DataObjectImpl.Factory<T, U> f = getFactory();
+        DataObjectImpl.Factory_obsolete<T, U> f = getFactory();
         SelectColumnList dml = f.getSelectColumns();
         StringBuilder sb = dml.getSelectQuery();
         WhereStatement<T, U> whereStatement = getWhereStatement();
         if (null != whereStatement) {
             sb.append(" WHERE ");
-            whereStatement.appendSqlStatement(sb);
+            whereStatement.appendSqlStatement(dml, sb);
         }
         Logger.getLogger(getClass().getName()).log(Level.INFO, String.format("Executing query \"%s\"", sb.toString()));
         ArrayList<T> result = new ArrayList<>();

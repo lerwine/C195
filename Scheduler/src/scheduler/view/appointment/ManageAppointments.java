@@ -92,7 +92,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
     }
 
     @Override
-    protected DataObjectImpl.Factory<AppointmentImpl, AppointmentModel> getDaoFactory() {
+    protected DataObjectImpl.Factory_obsolete<AppointmentImpl, AppointmentModel> getDaoFactory() {
         return AppointmentImpl.getFactory();
     }
 

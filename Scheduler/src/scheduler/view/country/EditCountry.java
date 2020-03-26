@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.AppResources;
 import scheduler.dao.CountryImpl;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ValueBindings;
@@ -104,7 +104,7 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     }
 
     @Override
-    protected Factory<CountryImpl, CountryModel> getDaoFactory() {
+    protected Factory_obsolete<CountryImpl, CountryModel> getDaoFactory() {
         return CountryImpl.getFactory();
     }
 }

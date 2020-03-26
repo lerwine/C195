@@ -1,4 +1,4 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -8,29 +8,30 @@ import scheduler.view.ItemModel;
 
 /**
  * Represents a statement within an SQL WHERE clause which can also filter corresponding data access objects.
- *      <dl>
- *          <dt>{@link ComparisonStatement}</dt>
- *          <dd>{@link ComparisonOperator} {@link ComparisonStatement#getOperator()}
- *              <dl>
- *                  <dt>&rArr; {@link ColumnComparisonStatement}</dt>
- *                  <dd>&rArr; {@link ComparisonOperator}
- *                      <ul style="list-style-type: none; margin-top:0px;margin-bottom:0px">
- *                          <li>&rArr; {@link StringComparisonStatement}, {@link BooleanComparisonStatement},
- *                              {@link DateTimeComparisonStatement}, {@link IntegerComparisonStatement}</li>
- *                      </ul>
- *                  </dd>
- *              </dl>
- *          </dd>
- *          <dt>{@link LogicalStatement}</dt>
- *          <dd>
- *              <dl>
- *                  <dt>OR</dt>
- *                  <dd>{@link LogicalStatement#or(WhereStatement, WhereStatement, WhereStatement...)}</dd>
- *                  <dt>AND</dt>
- *                  <dd>{@link LogicalStatement#and(WhereStatement, WhereStatement, WhereStatement...)}</dd>
- *              </dl>
- *          </dd>
- *      </dl>
+ * 
+ * <dl>
+ *    <dt>{@link ComparisonStatement}</dt>
+ *    <dd>{@link ComparisonOperator} {@link ComparisonStatement#getOperator()}
+ *        <dl>
+ *            <dt>&rArr; {@link ColumnComparisonStatement}</dt>
+ *            <dd>&rArr; {@link ComparisonOperator}
+ *                <ul style="list-style-type: none; margin-top:0px;margin-bottom:0px">
+ *                    <li>&rArr; {@link StringComparisonStatement}, {@link BooleanComparisonStatement},
+ *                        {@link DateTimeComparisonStatement}, {@link IntegerComparisonStatement}</li>
+ *                </ul>
+ *            </dd>
+ *        </dl>
+ *    </dd>
+ *    <dt>{@link LogicalStatement}</dt>
+ *    <dd>
+ *        <dl>
+ *            <dt>OR</dt>
+ *            <dd>{@link LogicalStatement#or(WhereStatement, WhereStatement, WhereStatement...)}</dd>
+ *            <dt>AND</dt>
+ *            <dd>{@link LogicalStatement#and(WhereStatement, WhereStatement, WhereStatement...)}</dd>
+ *        </dl>
+ *    </dd>
+ * </dl>
  * 
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The data access object type.
@@ -41,9 +42,10 @@ public interface WhereStatement<T extends DataObjectImpl, U extends ItemModel<T>
      * Appends the current SQL statement to a {@link StringBuilder}.
      * This does not add any leading or trailing whitespace.
      * 
+     * @param table The associated table.
      * @param stringBuilder The {@link StringBuilder} to append to.
      */
-    void appendSqlStatement(StringBuilder stringBuilder);
+    void appendSqlStatement(TableReference table, StringBuilder stringBuilder);
     
     /**
      * Applies any values to a {@link PreparedStatement} and returns the next index.

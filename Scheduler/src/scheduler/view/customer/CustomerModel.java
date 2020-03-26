@@ -8,7 +8,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.Address;
 import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
@@ -161,7 +161,7 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
     }
 
     @Override
-    public Factory<CustomerImpl, CustomerModel> getDaoFactory() {
+    public Factory_obsolete<CustomerImpl, CustomerModel> getDaoFactory() {
         return CustomerImpl.getFactory();
     }
 

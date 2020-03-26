@@ -4,7 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.function.Predicate;
-import scheduler.dao.dml.WhereStatement;
+import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.view.ItemModel;
 
 /**
@@ -33,13 +33,13 @@ public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemMode
      *
      * @param <D> The type of {@link DataObjectImpl} object that represents the data from the database.
      * @param <M> The type of {@link ItemModel} that corresponds to the {@link DataObjectImpl} type.
-     * @param factory The {@link DataObjectImpl.Factory} responsible for creating the result {@link DataObjectImpl} objects.
+     * @param factory The {@link DataObjectImpl.Factory_obsolete} responsible for creating the result {@link DataObjectImpl} objects.
      * @param loadingMessage The message to display while data is being loaded from the database.
      * @param heading The heading to display in the items listing view.
      * @param subHeading The sub-heading to display in the items listing view.
      * @return The new {@link ModelListingFilter}.
      */
-    public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelListingFilter<D, M> all(DataObjectImpl.Factory<D, M> factory,
+    public static <D extends DataObjectImpl, M extends ItemModel<D>> ModelListingFilter<D, M> all(DataObjectImpl.Factory_obsolete<D, M> factory,
             String loadingMessage, String heading, String subHeading) {
         if (null == subHeading) {
             return all(factory, loadingMessage, heading, "");
@@ -68,7 +68,7 @@ public interface ModelListingFilter<D extends DataObjectImpl, M extends ItemMode
             }
 
             @Override
-            public DataObjectImpl.Factory<D, M> getFactory() {
+            public DataObjectImpl.Factory_obsolete<D, M> getFactory() {
                 return factory;
             }
 

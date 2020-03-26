@@ -10,7 +10,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ValueBindings;
@@ -240,7 +240,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
     }
 
     @Override
-    protected Factory<CustomerImpl, CustomerModel> getDaoFactory() {
+    protected Factory_obsolete<CustomerImpl, CustomerModel> getDaoFactory() {
         return CustomerImpl.getFactory();
     }
 

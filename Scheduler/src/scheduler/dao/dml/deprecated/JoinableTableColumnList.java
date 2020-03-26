@@ -1,4 +1,4 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -22,13 +22,6 @@ import scheduler.dao.schema.DbColumn;
  */
 public interface JoinableTableColumnList<T extends JoinedTableColumnList<T, E>, E extends ColumnReference> extends JoinableTable<T>,
         TableColumnList<E> {
-    
-    @Override
-    public default boolean isColumnRefNameUsed(String name) {
-        // TODO: Remove this - This cannot be implemented in this way, since it needs to be a global lookup.
-        return null != name && !name.trim().isEmpty() && (stream().anyMatch((t) -> t.getName().equalsIgnoreCase(name)) ||
-                getJoinedTables().stream().anyMatch((t) -> t.isColumnRefNameUsed(name)));
-    }
     
     /**
      * Checks whether a column reference name is being used for any columns of the current list or in any related joins.

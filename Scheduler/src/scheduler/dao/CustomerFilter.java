@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResources;
-import scheduler.dao.dml.WhereStatement;
+import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.ItemModel;
@@ -250,7 +250,7 @@ public interface CustomerFilter extends ModelListingFilter<CustomerImpl, Custome
     }
 
     @Override
-    public default DataObjectImpl.Factory<CustomerImpl, CustomerModel> getFactory() {
+    public default DataObjectImpl.Factory_obsolete<CustomerImpl, CustomerModel> getFactory() {
         return CustomerImpl.getFactory();
     }
 

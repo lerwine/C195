@@ -1,4 +1,4 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -787,6 +787,12 @@ public interface TableColumnList<E extends ColumnReference> extends TableReferen
         return null;
     }
     
+    /**
+     * Gets the first {@link ColumnReference} that refers to the specified {@link DbColumn}.
+     * 
+     * @param column The {@link DbColumn} to look for.
+     * @return The first {@link ColumnReference} that refers to the specified {@link DbColumn} or {@code null} if no match was found.
+     */
     default E findFirst(DbColumn column) {
         return findFirst(column, false);
     }

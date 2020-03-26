@@ -45,7 +45,7 @@ import scheduler.dao.AppointmentImpl;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.dao.UserFilter;
 import scheduler.dao.UserImpl;
 import scheduler.util.Alerts;
@@ -213,7 +213,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     private int currentTimeZoneOffset;
 
     @Override
-    protected Factory<AppointmentImpl, AppointmentModel> getDaoFactory() {
+    protected Factory_obsolete<AppointmentImpl, AppointmentModel> getDaoFactory() {
         return AppointmentImpl.getFactory();
     }
 

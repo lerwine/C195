@@ -1,4 +1,4 @@
-package scheduler.dao.dml;
+package scheduler.dao.dml.deprecated;
 
 /**
  * Represents a list of table columns that has been joined to another.

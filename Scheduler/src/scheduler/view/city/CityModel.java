@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CityImpl;
 import scheduler.dao.Country;
-import scheduler.dao.DataObjectImpl.Factory;
+import scheduler.dao.DataObjectImpl.Factory_obsolete;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.view.country.CountryReferenceModel;
@@ -75,7 +75,7 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
     }
 
     @Override
-    public Factory<CityImpl, CityModel> getDaoFactory() {
+    public Factory_obsolete<CityImpl, CityModel> getDaoFactory() {
         return CityImpl.getFactory();
     }
 
