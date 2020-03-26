@@ -1,6 +1,9 @@
 package scheduler.util;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 
 /**
@@ -136,4 +139,69 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
         throw new UnsupportedOperationException("Map is read-only.");
     }
     
+    public static class Wrapper<K, V> extends HashMap<K, V> {
+        private final ReadOnlyMap<K, V> readOnlyMap = new ReadOnlyMap<K, V>() {
+            @Override
+            public int size() {
+                return Wrapper.this.size();
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return Wrapper.this.isEmpty();
+            }
+
+            @Override
+            public boolean containsKey(Object key) {
+                return Wrapper.this.containsKey(key);
+            }
+
+            @Override
+            public boolean containsValue(Object value) {
+                return Wrapper.this.containsValue(value);
+            }
+
+            @Override
+            public V get(Object key) {
+                return Wrapper.this.get(key);
+            }
+
+            @Override
+            public Set<K> keySet() {
+                return Wrapper.this.keySet();
+            }
+
+            @Override
+            public Collection<V> values() {
+                return Wrapper.this.values();
+            }
+
+            @Override
+            public Set<Entry<K, V>> entrySet() {
+                return Wrapper.this.entrySet();
+            }
+            
+        };
+        
+        public Wrapper() {
+            super();
+        }
+        
+        public Wrapper(int initialCapacity, float loadFactor) {
+            super(initialCapacity, loadFactor);
+        }
+        
+        public Wrapper(int initialCapacity) {
+            super(initialCapacity);
+        }
+        
+        public Wrapper(Map<? extends K, ? extends V> m) {
+            super(m);
+        }
+
+        public ReadOnlyMap<K, V> getReadOnlyMap() {
+            return readOnlyMap;
+        }
+        
+    }
 }
