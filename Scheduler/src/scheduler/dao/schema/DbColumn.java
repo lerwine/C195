@@ -254,7 +254,7 @@ public enum DbColumn {
     }
 
     private DbColumn(DbName dbName, ColumnType type, int maxLength, DbTable table, ColumnUsage usage, ForeignKey ...foreignKeys) {
-        this(dbName, type, dbName.getValue(), maxLength, table, usage, foreignKeys);
+        this(dbName, type, dbName.toString(), maxLength, table, usage, foreignKeys);
     }
 
     private DbColumn(DbName dbName, ColumnType type, DbTable table, ColumnUsage usage, ForeignKey ...foreignKeys) {
@@ -277,15 +277,6 @@ public enum DbColumn {
      */
     public ColumnType getType() {
         return type;
-    }
-
-    /**
-     * Gets the default alias for this column.
-     * 
-     * @return The default column alias for use in SQL query strings.
-     */
-    public String getDefaultAlias() {
-        return defaultAlias;
     }
 
     /**
@@ -349,6 +340,11 @@ public enum DbColumn {
         return foreignKeys.stream().anyMatch((t) -> t.getTable() == o && t.getColumnName() == n);
     }
     
+    /**
+     * Gets the default alias for this column.
+     * 
+     * @return The default column alias for use in SQL query strings.
+     */
     @Override
     public String toString() {
         return defaultAlias;

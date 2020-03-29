@@ -50,6 +50,6 @@ public interface TableReference {
      * @return The name that is used to reference the target {@link DbTable} value.
      */
     default String getTableAlias() {
-        return getTable().getDbName().getValue();
+        return getTable().getDbName().toString();
     }
 }

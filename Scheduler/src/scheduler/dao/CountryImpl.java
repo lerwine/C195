@@ -100,7 +100,7 @@ public class CountryImpl extends DataObjectImpl implements Country {
 
         @Override
         protected void onInitializeDao(CountryImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            target.name = resultSet.getString(DbColumn.COUNTRY_NAME.getDbName().getValue());
+            target.name = resultSet.getString(DbColumn.COUNTRY_NAME.getDbName().toString());
             if (resultSet.wasNull()) {
                 target.name = "";
             }

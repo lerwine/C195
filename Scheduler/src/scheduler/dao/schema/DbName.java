@@ -40,15 +40,6 @@ public enum DbName {
     
     private final String value;
 
-    /**
-     * Gets the name used in the database.
-     * 
-     * @return 
-     */
-    public String getValue() {
-        return value;
-    }
-    
     private DbName(String value) {
         this.value = value;
     }

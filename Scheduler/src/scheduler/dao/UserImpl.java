@@ -125,7 +125,7 @@ public class UserImpl extends DataObjectImpl implements User {
          */
         public Optional<UserImpl> findByUserName(Connection connection, String userName) throws SQLException {
             SelectColumnList dml = getSelectColumns();
-            String sql = dml.getSelectQuery().append(" WHERE `").append(DbColumn.USER_NAME.getDbName().getValue()).append("` = ?").toString();
+            String sql = dml.getSelectQuery().append(" WHERE `").append(DbColumn.USER_NAME.getDbName()).append("` = ?").toString();
             LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 LOG.logp(Level.INFO, getClass().getName(), "findByUserName", String.format("Set first parametr to \"%s\"", userName));

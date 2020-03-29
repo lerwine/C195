@@ -12,30 +12,31 @@ public enum DbTable {
     APPOINTMENT(DbName.APPOINTMENT, "a", DbName.APPOINTMENT_ID),
     USER(DbName.USER_ID, "u", DbName.USER_ID);
     private final DbName dbName;
-    private final String alias;
+    private final String defaultAlias;
     private final DbName pkColName;
 
     public DbName getDbName() {
         return dbName;
     }
 
-    public String getAlias() {
-        return alias;
-    }
-
     public DbName getPkColName() {
         return pkColName;
     }
     
-    private DbTable(DbName dbName, String alias, DbName pkColName) {
+    private DbTable(DbName dbName, String defaultAlias, DbName pkColName) {
         this.dbName = dbName;
-        this.alias = alias;
+        this.defaultAlias = defaultAlias;
         this.pkColName = pkColName;
     }
     
+    /**
+     * Gets the default alias for this table.
+     * 
+     * @return The default table alias for use in SQL query strings.
+     */
     @Override
     public String toString() {
-        return alias;
+        return defaultAlias;
     }
 
 }

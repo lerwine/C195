@@ -45,20 +45,20 @@ public class SelectListTest {
     public void testGetName() {
         System.out.println("getName");
         SelectColumnList instance = new SelectColumnList(DbTable.COUNTRY);
-        String expResult = DbTable.COUNTRY.getAlias();
+        String expResult = DbTable.COUNTRY.toString();
         String result = instance.getTableAlias();
         assertEquals(expResult, result);
         instance = new SelectColumnList(DbTable.COUNTRY, (String) null);
         result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new SelectColumnList(DbTable.COUNTRY, DbTable.COUNTRY.getAlias());
+        instance = new SelectColumnList(DbTable.COUNTRY, DbTable.COUNTRY.toString());
         result = instance.getTableAlias();
         assertEquals(expResult, result);
-        expResult = DbTable.COUNTRY.getDbName().getValue();
+        expResult = DbTable.COUNTRY.getDbName().toString();
         instance = new SelectColumnList(DbTable.COUNTRY, "");
         result = instance.getTableAlias();
         assertEquals(expResult, result);
-        instance = new SelectColumnList(DbTable.COUNTRY, DbTable.COUNTRY.getDbName().getValue());
+        instance = new SelectColumnList(DbTable.COUNTRY, DbTable.COUNTRY.getDbName().toString());
         result = instance.getTableAlias();
         assertEquals(expResult, result);
         expResult = "xyz";

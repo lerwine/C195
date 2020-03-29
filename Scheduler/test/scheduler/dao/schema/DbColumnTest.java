@@ -205,7 +205,7 @@ public class DbColumnTest {
         Iterator<DbColumn> r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDbName().getValue());
+            assertEquals(n, r.next().getDbName().toString());
         }
         assertFalse(r.hasNext());
         
@@ -216,7 +216,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDbName().getValue());
+            assertEquals(n, r.next().getDbName().toString());
         }
         assertFalse(r.hasNext());
         
@@ -226,7 +226,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDbName().getValue());
+            assertEquals(n, r.next().getDbName().toString());
         }
         assertFalse(r.hasNext());
         
@@ -236,7 +236,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDbName().getValue());
+            assertEquals(n, r.next().getDbName().toString());
         }
         assertFalse(r.hasNext());
         
@@ -246,7 +246,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDbName().getValue());
+            assertEquals(n, r.next().getDbName().toString());
         }
         assertFalse(r.hasNext());
         
@@ -256,7 +256,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDbName().getValue());
+            assertEquals(n, r.next().getDbName().toString());
         }
         assertFalse(r.hasNext());
     }
@@ -274,7 +274,7 @@ public class DbColumnTest {
         Iterator<DbColumn> r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDefaultAlias());
+            assertEquals(n, r.next().toString());
         }
         assertFalse(r.hasNext());
         
@@ -285,7 +285,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDefaultAlias());
+            assertEquals(n, r.next().toString());
         }
         assertFalse(r.hasNext());
         
@@ -295,7 +295,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDefaultAlias());
+            assertEquals(n, r.next().toString());
         }
         assertFalse(r.hasNext());
         
@@ -305,7 +305,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDefaultAlias());
+            assertEquals(n, r.next().toString());
         }
         assertFalse(r.hasNext());
         
@@ -315,7 +315,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDefaultAlias());
+            assertEquals(n, r.next().toString());
         }
         assertFalse(r.hasNext());
         
@@ -325,7 +325,7 @@ public class DbColumnTest {
         r = result.iterator();
         for (String n : expResult) {
             assertTrue(r.hasNext());
-            assertEquals(n, r.next().getDefaultAlias());
+            assertEquals(n, r.next().toString());
         }
         assertFalse(r.hasNext());
     }

@@ -1,10 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.dao.dml;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.junit.After;
@@ -13,17 +12,37 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import scheduler.dao.schema.ColumnUsage;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
+import testHelpers.ReflectionHelper;
 
 /**
  *
- * @author erwinel
+ * @author lerwi
  */
-public class DmlTableTest {
+@RunWith(Parameterized.class)
+public class DmlTable_DbTable_AliasTest {
+    private final String title;
+    private final DbTable table;
+    private final Optional<String> alias;
+    private final String expAlias;
+    private final DbColumn[] expAllTableColumns;
+    private final DbColumn[] expFilteredTableColumns;
     
-    public DmlTableTest() {
+    public DmlTable_DbTable_AliasTest(String title, DbTable table, Optional<String> alias, DbColumn[] expAllTableColumns, DbColumn[] expFilteredTableColumns) {
+        this.title = title;
+        this.table = table;
+        this.alias = alias;
+        this.expAllTableColumns = expAllTableColumns;
+        this.expFilteredTableColumns = expFilteredTableColumns;
+        if (alias.isPresent()) {
+            String s = alias.get();
+            expAlias = (null == s) ? table.toString() : ((s.trim().isEmpty()) ? table.getDbName().toString() : s);
+        } else {
+            expAlias = table.toString();
+        }
     }
     
     @BeforeClass
@@ -42,399 +61,318 @@ public class DmlTableTest {
     public void tearDown() {
     }
 
+    @Parameterized.Parameters(name = "table={0}")
+    public static Collection getDbTables() {
+        ArrayList<Object[]> result = new ArrayList<>();
+        Object[][] items =  new Object[][] {
+                new Object[] {
+                    DbTable.ADDRESS.name(), DbTable.ADDRESS, Optional.empty(),
+                    new DbColumn[] {
+                        DbColumn.ADDRESS1, DbColumn.ADDRESS2, DbColumn.ADDRESS_CITY, DbColumn.POSTAL_CODE, DbColumn.PHONE, DbColumn.ADDRESS_ID,
+                        DbColumn.ADDRESS_CREATE_DATE, DbColumn.ADDRESS_CREATED_BY, DbColumn.ADDRESS_LAST_UPDATE, DbColumn.ADDRESS_LAST_UPDATE_BY
+                    },
+                    new DbColumn[] {
+                        DbColumn.ADDRESS1, DbColumn.ADDRESS2, DbColumn.POSTAL_CODE, DbColumn.PHONE
+                    }
+                }, new Object[] {
+                    DbTable.APPOINTMENT.name(), DbTable.APPOINTMENT, Optional.empty(),
+                    new DbColumn[] {
+                        DbColumn.APPOINTMENT_CUSTOMER, DbColumn.APPOINTMENT_USER, DbColumn.TITLE, DbColumn.DESCRIPTION, DbColumn.LOCATION,
+                        DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START, DbColumn.END, DbColumn.APPOINTMENT_ID,
+                        DbColumn.APPOINTMENT_CREATE_DATE, DbColumn.APPOINTMENT_CREATED_BY, DbColumn.APPOINTMENT_LAST_UPDATE,
+                        DbColumn.APPOINTMENT_LAST_UPDATE_BY
+                    },
+                    new DbColumn[] {
+                        DbColumn.TITLE, DbColumn.DESCRIPTION, DbColumn.LOCATION, DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START,
+                        DbColumn.END
+                    }
+                }, new Object[] {
+                    DbTable.CITY.name(), DbTable.CITY, Optional.empty(),
+                    new DbColumn[] {
+                        DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.CITY_ID, DbColumn.CITY_CREATE_DATE, DbColumn.CITY_CREATED_BY,
+                        DbColumn.CITY_LAST_UPDATE, DbColumn.CITY_LAST_UPDATE_BY
+                    },
+                    new DbColumn[] {
+                        DbColumn.CITY_NAME
+                    }
+                }, new Object[] {
+                    DbTable.COUNTRY.name(), DbTable.COUNTRY, Optional.empty(),
+                    new DbColumn[] {
+                        DbColumn.COUNTRY_NAME, DbColumn.COUNTRY_ID, DbColumn.COUNTRY_CREATE_DATE, DbColumn.COUNTRY_CREATED_BY,
+                        DbColumn.COUNTRY_LAST_UPDATE, DbColumn.COUNTRY_LAST_UPDATE_BY
+                    },
+                    new DbColumn[] {
+                        DbColumn.COUNTRY_NAME
+                    }
+                }, new Object[] {
+                    DbTable.CUSTOMER.name(), DbTable.CUSTOMER, Optional.empty(),
+                    new DbColumn[] {
+                        DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ACTIVE, DbColumn.CUSTOMER_ID, DbColumn.CUSTOMER_CREATE_DATE,
+                        DbColumn.CUSTOMER_CREATED_BY, DbColumn.CUSTOMER_LAST_UPDATE, DbColumn.CUSTOMER_LAST_UPDATE_BY
+                    },
+                    new DbColumn[] {
+                        DbColumn.CUSTOMER_NAME, DbColumn.ACTIVE
+                    }
+                }, new Object[] {
+                    DbTable.USER.name(), DbTable.USER, Optional.empty(),
+                    new DbColumn[] {
+                        DbColumn.USER_NAME, DbColumn.PASSWORD, DbColumn.STATUS, DbColumn.USER_ID, DbColumn.USER_CREATE_DATE,
+                        DbColumn.USER_CREATED_BY, DbColumn.USER_LAST_UPDATE, DbColumn.USER_LAST_UPDATE_BY
+                    },
+                    new DbColumn[] {
+                        DbColumn.USER_NAME, DbColumn.PASSWORD, DbColumn.STATUS
+                    }
+                }
+        };
+        for (Object[] a : items) {
+            result.add(a);
+            result.add(new Object[] { String.format("%s, alias=null", a), a[1], Optional.ofNullable(null), a[3], a[4] });
+            result.add(new Object[] { String.format("%s, alias=\"\"", a), a[1], Optional.of(""), a[3], a[4] });
+            result.add(new Object[] { String.format("%s, alias=\"test\"", a), a[1], Optional.of("test"), a[3], a[4] });
+        }
+        return result;
+    }
+    
     /**
      * Test of builder method, of class DmlTable.
      */
     @Test
-    public void testBuilder_4args() {
-        System.out.println("builder");
-        Predicate<DbColumn> columnSelector = (t) -> t.getUsage() == ColumnUsage.DATA;
-        Function<DbColumn, String> aliasMapper = (t) -> "test_" + t.getDefaultAlias();
-        DmlTable.Builder result = DmlTable.builder(DbTable.CUSTOMER, "cc", columnSelector, aliasMapper);
-        
-        assertEquals("cc", result.getAlias());
-        assertEquals(DbTable.CUSTOMER, result.getTable());
-        assertEquals(1, result.getAllColumns().size());
-        assertTrue(result.getAllColumns().containsKey("test_active"));
-        DmlTable.BuilderColumn bc = result.getAllColumns().get("test_active");
-        assertEquals("test_active", bc.getAlias());
-        assertEquals(DbColumn.ACTIVE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        assertEquals(1, result.getAllTables().size());
-        assertTrue(result.getAllTables().containsKey("cc"));
-        assertEquals(result, result.getAllTables().get("cc"));
-        assertEquals(1, result.getColumns().size());
-        assertEquals(bc, result.getColumns().get(0));
-        assertTrue(result.getJoinedTables().isEmpty());
-        
+    public void testBuilder_Predicate_Function1() {
+        Predicate<DbColumn> columnSelector = null;
+        Function<DbColumn, String> aliasMapper = null;
+        DmlTable.Builder result;
+        if (alias.isPresent()) {
+            result = DmlTable.builder(table, alias.get(), columnSelector, aliasMapper);
+        } else {
+            result = DmlTable.builder(table, columnSelector, aliasMapper);
+        }
+        assertEquals("getTable()", table, result.getTable());
+        assertEquals("getAlias()", expAlias, result.getAlias());
+        assertEquals("getAllColumns().size()", expAllTableColumns.length, result.getAllColumns().size());
+        assertEquals("getColumns().size()", expAllTableColumns.length, result.getColumns().size());
+        Iterator<DmlTable.BuilderColumn> resultColumns = result.getColumns().iterator();
+        int index = -1;
+        for (DbColumn expColumn : expAllTableColumns) {
+            DmlTable.BuilderColumn actualColumn = resultColumns.next();
+            assertEquals(String.format("get(%s).getColumn()", ++index),
+                    expColumn, actualColumn.getColumn());
+            String a = expColumn.toString();
+            assertEquals(String.format("get(%s).getAlias()", index),
+                    a, actualColumn.getAlias());
+            assertTrue(String.format("containsKey(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    result.getAllColumns().containsKey(a));
+            assertEquals(String.format("get(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    actualColumn, result.getAllColumns().get(a));
+            assertEquals(String.format("get(%s).getOwner()", index),
+                    result, actualColumn.getOwner());
+            assertNull(String.format("get(%s).getParentJoin()", index),
+                    actualColumn.getParentJoin());
+            assertTrue(String.format("get(%s).getChildJoins()", index),
+                    actualColumn.getChildJoins().isEmpty());
+        }
+        assertEquals("getAllTables().size()", 1, result.getAllTables().size());
+        assertTrue(String.format("getAllTables().containsKey(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result.getAllTables().containsKey(expAlias));
+        assertEquals(String.format("getAllTables().get(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result, result.getAllTables().get(expAlias));
+        assertTrue("getJoinedTables().isEmpty()", result.getJoinedTables().isEmpty());
     }
 
     /**
      * Test of builder method, of class DmlTable.
      */
     @Test
-    public void testBuilder_3args_1() {
-        System.out.println("builder");
-        DbTable table = DbTable.ADDRESS;
-        String alias = "";
-        Predicate<DbColumn> columnSelector = (t) -> t.getUsage() == ColumnUsage.DATA;
-        DmlTable.Builder result = DmlTable.builder(table, alias, columnSelector);
-        
-        assertEquals(table.getDbName().toString(), result.getAlias());
-        assertEquals(DbTable.ADDRESS, result.getTable());
-        assertEquals(4, result.getAllColumns().size());
-        assertTrue(result.getAllColumns().containsKey(DbColumn.ADDRESS1.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.ADDRESS2.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.POSTAL_CODE.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.PHONE.getDefaultAlias()));
-        
-        DmlTable.BuilderColumn bc = result.getAllColumns().get(DbColumn.ADDRESS1.getDefaultAlias());
-        assertEquals(DbColumn.ADDRESS1.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.ADDRESS1, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.ADDRESS2.getDefaultAlias());
-        assertEquals(DbColumn.ADDRESS2.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.ADDRESS2, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.POSTAL_CODE.getDefaultAlias());
-        assertEquals(DbColumn.POSTAL_CODE.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.POSTAL_CODE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.PHONE.getDefaultAlias());
-        assertEquals(DbColumn.PHONE.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.PHONE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        assertEquals(1, result.getAllTables().size());
-        assertTrue(result.getAllTables().containsKey(table.getDbName().toString()));
-        assertEquals(result, result.getAllTables().get(table.getDbName().toString()));
-        assertEquals(4, result.getColumns().size());
-        
-        bc = result.getAllColumns().get(DbColumn.ADDRESS1.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(0));
-        
-        bc = result.getAllColumns().get(DbColumn.ADDRESS2.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(1));
-        
-        bc = result.getAllColumns().get(DbColumn.POSTAL_CODE.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(2));
-        
-        bc = result.getAllColumns().get(DbColumn.PHONE.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(3));
-        
-        assertTrue(result.getJoinedTables().isEmpty());
+    public void testBuilder_Predicate1() {
+        Predicate<DbColumn> columnSelector = null;
+        DmlTable.Builder result;
+        if (alias.isPresent()) {
+            result = DmlTable.builder(table, alias.get(), columnSelector);
+        } else {
+            result = DmlTable.builder(table, columnSelector);
+        }
+        assertEquals("getTable()", table, result.getTable());
+        assertEquals("getAlias()", expAlias, result.getAlias());
+        assertEquals("getAllColumns().size()", expAllTableColumns.length, result.getAllColumns().size());
+        assertEquals("getColumns().size()", expAllTableColumns.length, result.getColumns().size());
+        Iterator<DmlTable.BuilderColumn> allColumns = result.getColumns().iterator();
+        int index = -1;
+        for (DbColumn expColumn : expAllTableColumns) {
+            DmlTable.BuilderColumn actualColumn = allColumns.next();
+            assertEquals(String.format("get(%s).getColumn()", ++index),
+                    expColumn, actualColumn.getColumn());
+            String a = expColumn.toString();
+            assertEquals(String.format("get(%s).getAlias()", index),
+                    a, actualColumn.getAlias());
+            assertTrue(String.format("containsKey(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    result.getAllColumns().containsKey(a));
+            assertEquals(String.format("get(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    actualColumn, result.getAllColumns().get(a));
+            assertEquals(String.format("get(%s).getOwner()", index),
+                    result, actualColumn.getOwner());
+            assertNull(String.format("get(%s).getParentJoin()", index),
+                    actualColumn.getParentJoin());
+            assertTrue(String.format("get(%s).getChildJoins()", index),
+                    actualColumn.getChildJoins().isEmpty());
+        }
+        assertEquals("getAllTables().size()", 1, result.getAllTables().size());
+        assertTrue(String.format("getAllTables().containsKey(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result.getAllTables().containsKey(expAlias));
+        assertEquals(String.format("getAllTables().get(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result, result.getAllTables().get(expAlias));
+        assertTrue("getJoinedTables().isEmpty()", result.getJoinedTables().isEmpty());
     }
 
     /**
      * Test of builder method, of class DmlTable.
      */
     @Test
-    public void testBuilder_3args_2() {
-        System.out.println("builder");
-        DbTable table = DbTable.USER;
-        String alias = null;
-        Function<DbColumn, String> aliasMapper = (t) -> (t.getUsage() == ColumnUsage.DATA) ? "" : null;
-        DmlTable.Builder result = DmlTable.builder(table, alias, aliasMapper);
-        
-        
-        assertEquals(table.getDbName().toString(), result.getAlias());
-        assertEquals(DbTable.USER, result.getTable());
-        assertEquals(8, result.getAllColumns().size());
-        assertTrue(result.getAllColumns().containsKey(DbColumn.USER_NAME.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.PASSWORD.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.STATUS.getDbName().toString()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.USER_ID.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.USER_CREATE_DATE.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.USER_CREATED_BY.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.USER_LAST_UPDATE.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.USER_LAST_UPDATE_BY.getDefaultAlias()));
-        
-        DmlTable.BuilderColumn bc = result.getAllColumns().get(DbColumn.USER_NAME.getDefaultAlias());
-        assertEquals(DbColumn.USER_NAME.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.USER_NAME, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.PASSWORD.getDefaultAlias());
-        assertEquals(DbColumn.PASSWORD.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.PASSWORD, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.STATUS.getDbName().toString());
-        assertEquals(DbColumn.STATUS.getDbName().toString(), bc.getAlias());
-        assertEquals(DbColumn.STATUS, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.USER_ID.getDefaultAlias());
-        assertEquals(DbColumn.USER_ID.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.USER_ID, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.USER_CREATE_DATE.getDefaultAlias());
-        assertEquals(DbColumn.USER_CREATE_DATE.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.USER_CREATE_DATE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.USER_CREATED_BY.getDefaultAlias());
-        assertEquals(DbColumn.USER_CREATED_BY.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.USER_CREATED_BY, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.USER_LAST_UPDATE.getDefaultAlias());
-        assertEquals(DbColumn.USER_LAST_UPDATE.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.USER_LAST_UPDATE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.USER_LAST_UPDATE_BY.getDefaultAlias());
-        assertEquals(DbColumn.USER_LAST_UPDATE_BY.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.USER_LAST_UPDATE_BY, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        assertEquals(1, result.getAllTables().size());
-        assertTrue(result.getAllTables().containsKey(table.getDbName().toString()));
-        assertEquals(result, result.getAllTables().get(table.getDbName().toString()));
-        assertEquals(4, result.getColumns().size());
-        
-        bc = result.getAllColumns().get(DbColumn.USER_NAME.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(0));
-        
-        bc = result.getAllColumns().get(DbColumn.PASSWORD.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(1));
-        
-        bc = result.getAllColumns().get(DbColumn.STATUS.getDbName().toString());
-        assertEquals(bc, result.getColumns().get(2));
-        
-        bc = result.getAllColumns().get(DbColumn.USER_ID.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(3));
-        
-        bc = result.getAllColumns().get(DbColumn.USER_CREATE_DATE.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(4));
-        
-        bc = result.getAllColumns().get(DbColumn.USER_CREATED_BY.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(5));
-        
-        bc = result.getAllColumns().get(DbColumn.USER_LAST_UPDATE.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(6));
-        
-        bc = result.getAllColumns().get(DbColumn.USER_LAST_UPDATE_BY.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(7));
-        
-        assertTrue(result.getJoinedTables().isEmpty());
+    public void testBuilder_Function1() {
+        Function<DbColumn, String> aliasMapper = null;
+        DmlTable.Builder result;
+        if (alias.isPresent()) {
+            result = DmlTable.builder(table, alias.get(), aliasMapper);
+        } else {
+            result = DmlTable.builder(table, aliasMapper);
+        }
+        assertEquals("getTable()", table, result.getTable());
+        assertEquals("getAlias()", expAlias, result.getAlias());
+        assertEquals("getAllColumns().size()", expAllTableColumns.length, result.getAllColumns().size());
+        assertEquals("getColumns().size()", expAllTableColumns.length, result.getColumns().size());
+        Iterator<DmlTable.BuilderColumn> allColumns = result.getColumns().iterator();
+        int index = -1;
+        for (DbColumn expColumn : expAllTableColumns) {
+            DmlTable.BuilderColumn actualColumn = allColumns.next();
+            assertEquals(String.format("get(%s).getColumn()", ++index),
+                    expColumn, actualColumn.getColumn());
+            String a = expColumn.toString();
+            assertEquals(String.format("get(%s).getAlias()", index),
+                    a, actualColumn.getAlias());
+            assertTrue(String.format("containsKey(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    result.getAllColumns().containsKey(a));
+            assertEquals(String.format("get(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    actualColumn, result.getAllColumns().get(a));
+            assertEquals(String.format("get(%s).getOwner()", index),
+                    result, actualColumn.getOwner());
+            assertNull(String.format("get(%s).getParentJoin()", index),
+                    actualColumn.getParentJoin());
+            assertTrue(String.format("get(%s).getChildJoins()", index),
+                    actualColumn.getChildJoins().isEmpty());
+        }
+        assertEquals("getAllTables().size()", 1, result.getAllTables().size());
+        assertTrue(String.format("getAllTables().containsKey(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result.getAllTables().containsKey(expAlias));
+        assertEquals(String.format("getAllTables().get(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result, result.getAllTables().get(expAlias));
+        assertTrue("getJoinedTables().isEmpty()", result.getJoinedTables().isEmpty());
     }
 
     /**
      * Test of builder method, of class DmlTable.
      */
     @Test
-    public void testBuilder_3args_3() {
-        System.out.println("builder");
-        DbTable table = DbTable.COUNTRY;
-        String alias = "asdf";
-        DmlTable.Builder result = DmlTable.builder(table, alias, true);
-        
-        assertEquals(alias, result.getAlias());
-        assertEquals(DbTable.COUNTRY, result.getTable());
-        assertEquals(0, result.getAllColumns().size());
-        assertEquals(1, result.getAllTables().size());
-        assertTrue(result.getAllTables().containsKey(alias));
-        assertEquals(result, result.getAllTables().get(alias));
-        assertEquals(0, result.getColumns().size());
-        assertTrue(result.getJoinedTables().isEmpty());
-        
-        result = DmlTable.builder(table, alias, false);
-        
-        assertEquals(table.getDbName().toString(), result.getAlias());
-        assertEquals(DbTable.COUNTRY, result.getTable());
-        assertEquals(6, result.getAllColumns().size());
-        assertTrue(result.getAllColumns().containsKey(DbColumn.COUNTRY_NAME.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.COUNTRY_ID.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.COUNTRY_CREATE_DATE.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.COUNTRY_CREATED_BY.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.COUNTRY_LAST_UPDATE.getDefaultAlias()));
-        assertTrue(result.getAllColumns().containsKey(DbColumn.COUNTRY_LAST_UPDATE_BY.getDefaultAlias()));
-        
-        DmlTable.BuilderColumn bc = result.getAllColumns().get(DbColumn.COUNTRY_NAME.getDefaultAlias());
-        assertEquals(DbColumn.COUNTRY_NAME.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.COUNTRY_NAME, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_ID.getDefaultAlias());
-        assertEquals(DbColumn.COUNTRY_ID.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.COUNTRY_ID, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_CREATE_DATE.getDefaultAlias());
-        assertEquals(DbColumn.COUNTRY_CREATE_DATE.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.COUNTRY_CREATE_DATE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_CREATED_BY.getDefaultAlias());
-        assertEquals(DbColumn.COUNTRY_CREATED_BY.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.COUNTRY_CREATED_BY, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_LAST_UPDATE.getDefaultAlias());
-        assertEquals(DbColumn.COUNTRY_LAST_UPDATE.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.COUNTRY_LAST_UPDATE, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_LAST_UPDATE_BY.getDefaultAlias());
-        assertEquals(DbColumn.COUNTRY_LAST_UPDATE_BY.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.COUNTRY_LAST_UPDATE_BY, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        
-        assertEquals(1, result.getAllTables().size());
-        assertTrue(result.getAllTables().containsKey(table.getDbName().toString()));
-        assertEquals(result, result.getAllTables().get(table.getDbName().toString()));
-        assertEquals(4, result.getColumns().size());
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_NAME.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(0));
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_ID.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(1));
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_CREATE_DATE.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(2));
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_CREATED_BY.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(3));
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_LAST_UPDATE.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(4));
-        
-        bc = result.getAllColumns().get(DbColumn.COUNTRY_LAST_UPDATE_BY.getDefaultAlias());
-        assertEquals(bc, result.getColumns().get(5));
-        
-        assertTrue(result.getJoinedTables().isEmpty());
+    public void testBuilder_True() {
+        DmlTable.Builder result;
+        if (alias.isPresent()) {
+            result = DmlTable.builder(table, alias.get(), true);
+        } else {
+            result = DmlTable.builder(table, true);
+        }
+        assertEquals("getTable()", table, result.getTable());
+        assertEquals("getAlias()", expAlias, result.getAlias());
+        assertEquals("getAllColumns().size()", 0, result.getAllColumns().size());
+        assertEquals("getColumns().size()", 0, result.getColumns().size());
+        assertEquals("getAllTables().size()", 1, result.getAllTables().size());
+        assertTrue(String.format("getAllTables().containsKey(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result.getAllTables().containsKey(expAlias));
+        assertEquals(String.format("getAllTables().get(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result, result.getAllTables().get(expAlias));
+        assertTrue("getJoinedTables().isEmpty()", result.getJoinedTables().isEmpty());
     }
 
     /**
      * Test of builder method, of class DmlTable.
      */
     @Test
-    public void testBuilder_3args_4() {
-        System.out.println("builder");
-        Predicate<DbColumn> columnSelector = (t) -> t.getUsage() == ColumnUsage.DATA;
-        Function<DbColumn, String> aliasMapper = (t) -> null;
-        DmlTable.Builder result = DmlTable.builder(DbTable.USER, columnSelector, aliasMapper);
-        
-        assertEquals(DbTable.USER.getAlias(), result.getAlias());
-        assertEquals(DbTable.USER, result.getTable());
-        assertEquals(1, result.getAllColumns().size());
-        assertTrue(result.getAllColumns().containsKey(DbColumn.STATUS.getDefaultAlias()));
-        DmlTable.BuilderColumn bc = result.getAllColumns().get(DbColumn.STATUS.getDefaultAlias());
-        assertEquals(DbColumn.STATUS.getDefaultAlias(), bc.getAlias());
-        assertEquals(DbColumn.STATUS, bc.getColumn());
-        assertEquals(result, bc.getOwner());
-        assertEquals(0, bc.getChildJoins().size());
-        assertNull(bc.getParentJoin());
-        assertEquals(1, result.getAllTables().size());
-        assertTrue(result.getAllTables().containsKey(DbTable.USER.getAlias()));
-        assertEquals(result, result.getAllTables().get(DbTable.USER.getAlias()));
-        assertEquals(1, result.getColumns().size());
-        assertEquals(bc, result.getColumns().get(0));
-        assertTrue(result.getJoinedTables().isEmpty());
-        
+    public void testBuilder_False() {
+        DmlTable.Builder result;
+        if (alias.isPresent()) {
+            result = DmlTable.builder(table, alias.get(), false);
+        } else {
+            result = DmlTable.builder(table, false);
+        }
+        assertEquals("getTable()", table, result.getTable());
+        assertEquals("getAlias()", expAlias, result.getAlias());
+        assertEquals("getAllColumns().size()", expAllTableColumns.length, result.getAllColumns().size());
+        assertEquals("getColumns().size()", expAllTableColumns.length, result.getColumns().size());
+        Iterator<DmlTable.BuilderColumn> allColumns = result.getColumns().iterator();
+        int index = -1;
+        for (DbColumn expColumn : expAllTableColumns) {
+            DmlTable.BuilderColumn actualColumn = allColumns.next();
+            assertEquals(String.format("get(%s).getColumn()", ++index),
+                    expColumn, actualColumn.getColumn());
+            String a = expColumn.toString();
+            assertEquals(String.format("get(%s).getAlias()", index),
+                    a, actualColumn.getAlias());
+            assertTrue(String.format("containsKey(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    result.getAllColumns().containsKey(a));
+            assertEquals(String.format("get(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    actualColumn, result.getAllColumns().get(a));
+            assertEquals(String.format("get(%s).getOwner()", index),
+                    result, actualColumn.getOwner());
+            assertNull(String.format("get(%s).getParentJoin()", index),
+                    actualColumn.getParentJoin());
+            assertTrue(String.format("get(%s).getChildJoins()", index),
+                    actualColumn.getChildJoins().isEmpty());
+        }
+        assertEquals("getAllTables().size()", 1, result.getAllTables().size());
+        assertTrue(String.format("getAllTables().containsKey(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result.getAllTables().containsKey(expAlias));
+        assertEquals(String.format("getAllTables().get(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result, result.getAllTables().get(expAlias));
+        assertTrue("getJoinedTables().isEmpty()", result.getJoinedTables().isEmpty());
     }
 
-//    /**
-//     * Test of builder method, of class DmlTable.
-//     */
-//    @Test
-//    public void testBuilder_DbTable_Predicate() {
-//        System.out.println("builder");
-//        DbTable table = null;
-//        Predicate<DbColumn> columnSelector = null;
-//        DmlTable.Builder expResult = null;
-//        DmlTable.Builder result = DmlTable.builder(table, columnSelector);
-//        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail("The test case is a prototype.");
-//    }
-
-//    /**
-//     * Test of builder method, of class DmlTable.
-//     */
-//    @Test
-//    public void testBuilder_DbTable_Function() {
-//        System.out.println("builder");
-//        DbTable table = null;
-//        Function<DbColumn, String> aliasMapper = null;
-//        DmlTable.Builder expResult = null;
-//        DmlTable.Builder result = DmlTable.builder(table, aliasMapper);
-//        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail("The test case is a prototype.");
-//    }
-
-//    /**
-//     * Test of builder method, of class DmlTable.
-//     */
-//    @Test
-//    public void testBuilder_DbTable_boolean() {
-//        System.out.println("builder");
-//        DbTable table = null;
-//        boolean noColumns = false;
-//        DmlTable.Builder expResult = null;
-//        DmlTable.Builder result = DmlTable.builder(table, noColumns);
-//        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail("The test case is a prototype.");
-//    }
-
-//    /**
-//     * Test of builder method, of class DmlTable.
-//     */
-//    @Test
-//    public void testBuilder_DbTable() {
-//        System.out.println("builder");
-//        DbTable table = null;
-//        DmlTable.Builder expResult = null;
-//        DmlTable.Builder result = DmlTable.builder(table);
-//        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
-//        fail("The test case is a prototype.");
-//    }
-
+    /**
+     * Test of builder method, of class DmlTable.
+     */
+    @Test
+    public void testBuilder_DbTable() {
+        DmlTable.Builder result;
+        if (alias.isPresent()) {
+            result = DmlTable.builder(table, alias.get());
+        } else {
+            result = DmlTable.builder(table);
+        }
+        assertEquals("getTable()", table, result.getTable());
+        assertEquals("getAlias()", expAlias, result.getAlias());
+        assertEquals("getAllColumns().size()", expAllTableColumns.length, result.getAllColumns().size());
+        assertEquals("getColumns().size()", expAllTableColumns.length, result.getColumns().size());
+        Iterator<DmlTable.BuilderColumn> allColumns = result.getColumns().iterator();
+        int index = -1;
+        for (DbColumn expColumn : expAllTableColumns) {
+            DmlTable.BuilderColumn actualColumn = allColumns.next();
+            assertEquals(String.format("get(%s).getColumn()", ++index),
+                    expColumn, actualColumn.getColumn());
+            String a = expColumn.toString();
+            assertEquals(String.format("get(%s).getAlias()", index),
+                    a, actualColumn.getAlias());
+            assertTrue(String.format("containsKey(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    result.getAllColumns().containsKey(a));
+            assertEquals(String.format("get(%s)", ReflectionHelper.toJavaLiteral(a)),
+                    actualColumn, result.getAllColumns().get(a));
+            assertEquals(String.format("get(%s).getOwner()", index),
+                    result, actualColumn.getOwner());
+            assertNull(String.format("get(%s).getParentJoin()", index),
+                    actualColumn.getParentJoin());
+            assertTrue(String.format("get(%s).getChildJoins()", index),
+                    actualColumn.getChildJoins().isEmpty());
+        }
+        assertEquals("getAllTables().size()", 1, result.getAllTables().size());
+        assertTrue(String.format("getAllTables().containsKey(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result.getAllTables().containsKey(expAlias));
+        assertEquals(String.format("getAllTables().get(%s)", ReflectionHelper.toJavaLiteral(expAlias)),
+                result, result.getAllTables().get(expAlias));
+        assertTrue("getJoinedTables().isEmpty()", result.getJoinedTables().isEmpty());
+    }
+    
 }

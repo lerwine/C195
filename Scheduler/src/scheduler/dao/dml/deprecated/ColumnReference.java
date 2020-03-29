@@ -25,6 +25,6 @@ public interface ColumnReference {
      * @return The name that is used to reference the target {@link DbColumn} value.
      */
     default String getName() {
-        return getColumn().getDbName().getValue();
+        return getColumn().getDbName().toString();
     }
 }

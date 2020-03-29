@@ -38,7 +38,6 @@ public class PwHashTest {
      */
     @Test
     public void testToString() {
-        System.out.println("toString");
         PwHash instance = new PwHash("Password123!@#", true);
         int expLength = 50;
         String result = instance.toString();
@@ -50,7 +49,6 @@ public class PwHashTest {
      */
     @Test
     public void testTest() {
-        System.out.println("test");
         String password = "";
         PwHash instance = new PwHash("Password123!@#", true);
         boolean expResult = false;

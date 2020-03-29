@@ -206,7 +206,7 @@ public class CityImpl extends DataObjectImpl implements City<Country> {
             ArrayList<CityImpl> result = new ArrayList<>();
             SelectColumnList dml = getSelectColumns();
             try (PreparedStatement ps = connection.prepareStatement(dml.getSelectQuery()
-                    .append(" WHERE ").append(DbColumn.COUNTRY_ID.getTable().getAlias()).append(" = ?").toString())) {
+                    .append(" WHERE ").append(DbColumn.COUNTRY_ID.getTable()).append(" = ?").toString())) {
                 ps.setInt(1, countryId);
                 try (ResultSet rs = ps.getResultSet()) {
                     while (rs.next()) {

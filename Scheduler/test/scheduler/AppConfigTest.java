@@ -39,7 +39,6 @@ public class AppConfigTest {
      */
     @Test
     public void testGetDbServerName() {
-        System.out.println("getDbServerName");
         String expResult = "3.227.166.251";
         String result = AppResources.getDbServerName();
         assertEquals(expResult, result);
@@ -50,7 +49,6 @@ public class AppConfigTest {
      */
     @Test
     public void testGetDatabaseName() {
-        System.out.println("getDatabaseName");
         String expResult = "U03vHM";
         String result = AppResources.getDatabaseName();
         assertEquals(expResult, result);
@@ -61,7 +59,6 @@ public class AppConfigTest {
      */
     @Test
     public void testGetConnectionUrl() {
-        System.out.println("getConnectionUrl");
         String expResult = "jdbc:mysql://3.227.166.251/U03vHM";
         String result = AppResources.getConnectionUrl();
         assertEquals(expResult, result);
@@ -72,7 +69,6 @@ public class AppConfigTest {
      */
     @Test
     public void testGetDbLoginName() {
-        System.out.println("getDbLoginName");
         String expResult = "U03vHM";
         String result = AppResources.getDbLoginName();
         assertEquals(expResult, result);
@@ -83,7 +79,6 @@ public class AppConfigTest {
      */
     @Test
     public void testGetDbLoginPassword() {
-        System.out.println("getDbLoginPassword");
         String expResult = "53688096290";
         String result = AppResources.getDbLoginPassword();
         assertEquals(expResult, result);

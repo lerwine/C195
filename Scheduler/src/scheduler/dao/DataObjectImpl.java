@@ -595,13 +595,13 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
                 }).toArray(DbColumn[]::new);
 
                 if (dao.getRowState() == DataRowState.NEW) {
-                    sql.append("INSERT INTO `").append(getDbTable().getDbName().getValue()).append("` (`")
-                            .append(DbName.LAST_UPDATE.getValue()).append("`, `")
-                            .append(DbName.LAST_UPDATE_BY.getValue()).append("`, `")
-                            .append(DbName.CREATE_DATE.getValue()).append("`, `")
-                            .append(DbName.CREATED_BY.getValue());
+                    sql.append("INSERT INTO `").append(getDbTable().getDbName()).append("` (`")
+                            .append(DbName.LAST_UPDATE).append("`, `")
+                            .append(DbName.LAST_UPDATE_BY).append("`, `")
+                            .append(DbName.CREATE_DATE).append("`, `")
+                            .append(DbName.CREATED_BY);
                     for (DbColumn col : columns) {
-                        sql.append("`, `").append(col.getDbName().getValue());
+                        sql.append("`, `").append(col.getDbName());
                     }
                     sql.append("`) VALUES (?");
                     int e = columns.length + 4;
@@ -610,14 +610,14 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
                     }
                     sql.append(")");
                 } else {
-                    sql.append("UPDATE `").append(getDbTable().getDbName().getValue()).append("` SET `")
-                            .append(DbName.LAST_UPDATE.getValue()).append("` = ?, `")
-                            .append(DbName.LAST_UPDATE_BY.getValue());
+                    sql.append("UPDATE `").append(getDbTable().getDbName()).append("` SET `")
+                            .append(DbName.LAST_UPDATE).append("` = ?, `")
+                            .append(DbName.LAST_UPDATE_BY);
                     for (DbColumn col : columns) {
-                        sql.append("` = ?, `").append(col.getDbName().getValue());
+                        sql.append("` = ?, `").append(col.getDbName());
                     }
 
-                    sql.append("` = ? WHERE `").append(getDbTable().getPkColName().getValue()).append(" = ?");
+                    sql.append("` = ? WHERE `").append(getDbTable().getPkColName()).append(" = ?");
                 }
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
                 int pk;
@@ -651,7 +651,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
                 }
                 SelectColumnList dml = getSelectColumns();
                 sql = dml.getSelectQuery();
-                sql.append(" WHERE `").append(getDbTable().getPkColName().getValue()).append("`=%");
+                sql.append(" WHERE `").append(getDbTable().getPkColName()).append("`=%");
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
                 try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
                     ps.setInt(1, pk);
@@ -674,7 +674,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
             SelectColumnList dml = getSelectColumns();
-            String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName().getValue()).append("`=?").toString();
+            String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName()).append("`=?").toString();
             LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, pk);
@@ -700,12 +700,12 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
             synchronized (dao) {
                 assert dao.getRowState() != DataRowState.DELETED : String.format("%s has already been deleted", getClass().getName());
                 assert dao.getRowState() != DataRowState.NEW : String.format("%s has not been inserted into the database", getClass().getName());
-                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getDbTable().getDbName().getValue(), getDbTable().getPkColName().getValue());
+                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getDbTable().getDbName(), getDbTable().getPkColName());
                 LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setInt(1, dao.getPrimaryKey());
                     assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
-                            getDbTable().getDbName().getValue(), getDbTable().getPkColName().getValue(), dao.getPrimaryKey());
+                            getDbTable().getDbName(), getDbTable().getPkColName(), dao.getPrimaryKey());
                 }
                 dao.setDeleted();
             }
