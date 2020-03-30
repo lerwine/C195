@@ -9,6 +9,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.util.AnnotationHelper;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -60,22 +61,9 @@ public final class AppResources implements AppResourceBundleConstants {
             if (CLASSNAME_TO_FXMLNAME.containsKey(c)) {
                 return CLASSNAME_TO_FXMLNAME.get(c);
             }
-            Class<FXMLResource> ac = FXMLResource.class;
-            String message;
-            if (ctlClass.isAnnotationPresent(ac)) {
-                String n = ctlClass.getAnnotation(ac).value();
-                if (n != null && !n.trim().isEmpty()) {
-                    CLASSNAME_TO_FXMLNAME.put(c, n);
-                    return n;
-                }
-                message = String.format("Value not defined for annotation scene.annotations.FXMLResourceName in type %s",
-                        ctlClass.getName());
-            } else {
-                message = String.format("Annotation scene.annotations.FXMLResourceName not present in type %s", ctlClass.getName());
-            }
-            LOG.logp(Level.SEVERE, ResourceBundleLoader.class.getName(), "getFXMLResourceName", message);
-            CLASSNAME_TO_FXMLNAME.put(c, "");
-            return "";
+            String n = AnnotationHelper.getFXMLResourceName(ctlClass);
+            CLASSNAME_TO_FXMLNAME.put(c, n);
+            return n;
         }
     }
 

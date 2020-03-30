@@ -3,28 +3,9 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.Optional;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.TableColumnList;
-import scheduler.dao.schema.DbColumn;
-import scheduler.dao.schema.DbName;
 
 /**
- * Represents a data row from the "address" database table. Table definition: <code>CREATE TABLE `address` (
- *   `addressId` int(10) NOT NULL AUTO_INCREMENT,
- *   `address` varchar(50) NOT NULL,
- *   `address2` varchar(50) NOT NULL,
- *   `cityId` int(10) NOT NULL,
- *   `postalCode` varchar(10) NOT NULL,
- *   `phone` varchar(20) NOT NULL,
- *   `createDate` datetime NOT NULL,
- *   `createdBy` varchar(40) NOT NULL,
- *   `lastUpdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
- *   `lastUpdateBy` varchar(40) NOT NULL,
- *   PRIMARY KEY (`addressId`),
- *   KEY `cityId` (`cityId`),
- *   CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;</code>
+ * Represents a data row from the "address" database table.
  *
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link City} data access object.
@@ -194,18 +175,11 @@ public interface Address<T extends City<? extends Country>> extends DataObject {
      *
      * @param <T>
      * @param resultSet The data retrieved from the database.
-     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only Address object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static <T extends City<? extends Country>> Address<T> of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
-        if (id.isPresent()) {
-            return (Address<T>)of(id.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""), columns.getString(resultSet, DbColumn.ADDRESS2, ""),
-                    City.of(resultSet, columns), columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
-                    columns.getString(resultSet, DbName.PHONE, ""));
-        }
-
-        return null;
+    public static <T extends City<? extends Country>> Address<T> of(ResultSet resultSet) throws SQLException {
+        // TODO: Implement this
+        throw new UnsupportedOperationException();
     }
 }

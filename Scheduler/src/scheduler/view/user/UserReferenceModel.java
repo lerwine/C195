@@ -18,10 +18,6 @@ public interface UserReferenceModel<T extends User> extends DataObjectReferenceM
 
     ReadOnlyProperty<String> userNameProperty();
 
-    String getPassword();
-
-    ReadOnlyProperty<String> passwordProperty();
-
     UserStatus getStatus();
 
     ReadOnlyObjectProperty<UserStatus> statusProperty();

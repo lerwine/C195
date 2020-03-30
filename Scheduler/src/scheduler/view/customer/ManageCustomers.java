@@ -1,18 +1,15 @@
 package scheduler.view.customer;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.stage.Stage;
-import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
-import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
+import scheduler.view.ItemModel;
 import scheduler.view.MainController;
 
 /**
@@ -27,18 +24,6 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
-    /**
-     * Loads {@link CustomerModel} listing view and controller into the {@link MainController}.
-     *
-     * @param mainController The {@link MainController} to contain the {@link CustomerModel} listing.
-     * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param filter The {@link CustomerFilter} to use for loading and filtering {@link CustomerModel} items.
-     * @throws IOException if unable to load the view.
-     */
-    public static void setContent(MainController mainController, Stage stage, CustomerFilter filter) throws IOException {
-        setContent(mainController, ManageCustomers.class, stage, filter);
-    }
-
     @FXML
     @Override
     protected void initialize() {
@@ -51,8 +36,8 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
     }
 
     @Override
-    protected EditItem.ShowAndWaitResult<CustomerModel> onEditItem(Event event, CustomerModel item) {
-        return getMainController().editCustomer(event, item);
+    protected void onEditItem(Event event, CustomerModel item) {
+        getMainController().editCustomer(event, item);
     }
 
     @Override
@@ -71,13 +56,8 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
     }
 
     @Override
-    protected ItemEventManager<ItemEvent<CustomerModel>> getItemAddManager() {
-        return getMainController().getCustomerAddManager();
-    }
-
-    @Override
-    protected ItemEventManager<ItemEvent<CustomerModel>> getItemRemoveManager() {
-        return getMainController().getCustomerRemoveManager();
+    protected ItemModel.ModelFactory<CustomerImpl, CustomerModel> getModelFactory() {
+        return CustomerModel.getFactory();
     }
 
 }

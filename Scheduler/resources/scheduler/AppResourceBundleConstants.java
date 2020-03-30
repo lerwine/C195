@@ -1,4 +1,4 @@
-package scheduler.view.appointment;
+package scheduler;
 
 /**
  * Defines resource bundle keys for the App resource bundle {@code AppResourceBundleConstants.java}.
@@ -243,6 +243,11 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_LOADERRORTITLE = "loadErrorTitle";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Addresses"}.
+     */
+    public static final String RESOURCEKEY_LOADINGADDRESSES = "loadingAddresses";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cargando citas"}.
      */
     public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
@@ -306,6 +311,11 @@ public interface AppResourceBundleConstants {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Espera..."}.
      */
     public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Reading from Database"}.
+     */
+    public static final String RESOURCEKEY_READINGFROMDB = "readingFromDb";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Excepciones Relacionadas:"}.

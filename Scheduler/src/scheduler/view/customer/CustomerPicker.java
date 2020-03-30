@@ -31,9 +31,8 @@ import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.CityImpl;
 import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
-import scheduler.util.Alerts;
+import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleLoader;
@@ -41,6 +40,8 @@ import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesViewLifecycleEvent;
+import scheduler.view.annotations.ViewLifecycleEventType;
 import scheduler.view.city.CityModel;
 import scheduler.view.country.CountryModel;
 
@@ -164,16 +165,18 @@ public class CustomerPicker extends SchedulerController {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(parent);
-        try {
-            CustomerPicker ctrl = load(parent, CustomerPicker.class, (Parent v, CustomerPicker c) -> {
-                stage.setScene(new Scene(v));
-            });
-            stage.showAndWait();
-            return ctrl.selectedCustomer;
-        } catch (IOException ex) {
-            Alerts.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
-        }
-        return null;
+//        try {
+//            CustomerPicker ctrl = loadViewAndController(parent, CustomerPicker.class, (Parent v, CustomerPicker c) -> {
+//                stage.setScene(new Scene(v));
+//            });
+//            stage.showAndWait();
+//            return ctrl.selectedCustomer;
+//        } catch (IOException ex) {
+//            AlertHelper.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
+//        }
+//        return null;
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
     }
     private ObservableList<CountryModel> countries;
     private ObservableList<CityModel> cities;
@@ -303,10 +306,9 @@ public class CustomerPicker extends SchedulerController {
         selectCustomerButton.setDisable(false);
     }
 
-    @Override
+    @HandlesViewLifecycleEvent(type = ViewLifecycleEventType.ADDED)
     protected void onBeforeShow(Node currentView, Stage stage) {
         TaskWaiter.execute(new LoadCountriesTask(stage));
-        super.onBeforeShow(currentView, stage);
     }
 
     @FXML
@@ -512,7 +514,7 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
@@ -541,7 +543,7 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
@@ -591,38 +593,40 @@ public class CustomerPicker extends SchedulerController {
         @Override
         protected void processException(Throwable ex, Stage stage) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
-            Alerts.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override
         protected ArrayList<CustomerImpl> getResult(Connection connection) throws SQLException {
-            switch (active) {
-                case TRUE:
-                    if (null == country) {
-                        return CustomerFilter.byStatus(true).get(connection);
-                    }
-                    if (null == city) {
-                        return CustomerFilter.byCountry(country, true).get(connection);
-                    }
-                    return CustomerFilter.byCity(city, true).get(connection);
-                case FALSE:
-                    if (null == country) {
-                        return CustomerFilter.byStatus(false).get(connection);
-                    }
-                    if (null == city) {
-                        return CustomerFilter.byCountry(country, false).get(connection);
-                    }
-                    return CustomerFilter.byCity(city, false).get(connection);
-            }
-            if (null == country) {
-                return CustomerImpl.getFactory().getAll(connection);
-            }
-            if (null == city) {
-                return CustomerFilter.byCountry(country).get(connection);
-            }
-            return CustomerFilter.byCity(city).get(connection);
+//            switch (active) {
+//                case TRUE:
+//                    if (null == country) {
+//                        return CustomerFilter.byStatus(true).get(connection);
+//                    }
+//                    if (null == city) {
+//                        return CustomerFilter.byCountry(country, true).get(connection);
+//                    }
+//                    return CustomerFilter.byCity(city, true).get(connection);
+//                case FALSE:
+//                    if (null == country) {
+//                        return CustomerFilter.byStatus(false).get(connection);
+//                    }
+//                    if (null == city) {
+//                        return CustomerFilter.byCountry(country, false).get(connection);
+//                    }
+//                    return CustomerFilter.byCity(city, false).get(connection);
+//            }
+//            if (null == country) {
+//                return CustomerImpl.getFactory().getAll(connection);
+//            }
+//            if (null == city) {
+//                return CustomerFilter.byCountry(country).get(connection);
+//            }
+//            return CustomerFilter.byCity(city).get(connection);
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
 
     }

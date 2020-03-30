@@ -4,29 +4,6 @@ import java.sql.Timestamp;
 
 /**
  * Represents a data row from the "appointment" database table.
- * 
- * Table definition: <code>CREATE TABLE `appointment` (
- *   `appointmentId` int(10) NOT NULL AUTO_INCREMENT,
- *   `customerId` int(10) NOT NULL,
- *   `userId` int(11) NOT NULL,
- *   `title` varchar(255) NOT NULL,
- *   `description` text NOT NULL,
- *   `location` text NOT NULL,
- *   `contact` text NOT NULL,
- *   `type` text NOT NULL,
- *   `url` varchar(255) NOT NULL,
- *   `start` datetime NOT NULL,
- *   `end` datetime NOT NULL,
- *   `createDate` datetime NOT NULL,
- *   `createdBy` varchar(40) NOT NULL,
- *   `lastUpdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
- *   `lastUpdateBy` varchar(40) NOT NULL,
- *   PRIMARY KEY (`appointmentId`),
- *   KEY `userId` (`userId`),
- *   KEY `appointment_ibfk_1` (`customerId`),
- *   CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`customerId`) REFERENCES `customer` (`customerId`),
- *   CONSTRAINT `appointment_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;</code>
  *
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of {@link Customer} data access object.

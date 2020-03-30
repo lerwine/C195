@@ -16,20 +16,24 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserImpl;
-import scheduler.util.Alerts;
+import scheduler.util.AlertHelper;
+import scheduler.util.AnnotationHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.PwHash;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.Login;
 import scheduler.view.MainController;
 import scheduler.view.SchedulerController;
 import scheduler.view.TaskWaiter;
+import scheduler.view.ViewAndController;
+import scheduler.view.ViewLifecycleEventReason;
 
 /**
  * Main Application class for the Scheduler application.
- * Upon startup, {@link Login#loadInto(Stage)} is called to load the Login form into the scene of the primary stage.
- * To validate credentials, the {@link Login} controller invokes {@link #tryLoginUser(Stage, String, String, Consumer)}
+ * Upon startup, {@link Login#loadInto(Stage)} is called to loadViewAndController the Login form into the scene of the primary stage.
+ To validate credentials, the {@link Login} controller invokes {@link #tryLoginUser(Stage, String, String, Consumer)}
  * After successful authentication, the current user data object is stored in {@link Scheduler#currentUser}, and the view for
- * {@link MainController} is loaded into the primary stage using {@link SchedulerController#load(Stage, Class, BiConsumer)} the following
+ * {@link MainController} is loaded into the primary stage using {@link SchedulerController#loadViewAndController(Stage, Class, BiConsumer)} the following
  * parameter values:
  * <dl>
  * <dt>stage</dt><dd>The primary application stage.</dd>
@@ -108,11 +112,14 @@ public final class Scheduler extends Application {
                 }
             } else {
                 try {
-                    SchedulerController.load((Stage) owner, MainController.class, (Parent v, MainController c) -> {
-                        ((Stage) owner).setScene(new Scene(v));
-                    });
+                    ViewAndController<Parent, MainController> viewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+                    AnnotationHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            viewAndController.toEvent(this, ViewLifecycleEventReason.LOADED, owner));
+                    ((Stage) owner).setScene(new Scene(viewAndController.getView()));
+                    AnnotationHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            viewAndController.toEvent(this, ViewLifecycleEventReason.ADDED, owner));
                 } catch (IOException ex) {
-                    Alerts.logAndAlertError(owner, LOG, getClass(), "processResult", "Error loading main content", ex);
+                    AlertHelper.logAndAlertError(owner, LOG, getClass(), "processResult", "Error loading main content", ex);
                 }
             }
         }

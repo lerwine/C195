@@ -1,17 +1,15 @@
 package scheduler.dao;
 
-import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.SelectColumnList;
-import scheduler.dao.dml.deprecated.TableColumnList;
+import scheduler.AppResourceBundleConstants;
+import scheduler.AppResources;
 import scheduler.dao.schema.DbColumn;
-import scheduler.view.customer.CustomerModel;
+import scheduler.dao.schema.DbTable;
 
 public class CustomerImpl extends DataObjectImpl implements Customer<Address<? extends City>> {
 
@@ -98,45 +96,39 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address<? e
         firePropertyChange(PROP_ADDRESS, oldValue, this.active);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<CustomerImpl, CustomerModel> {
-
-        private static final SelectColumnList DETAIL_DML;
-
-        static {
-            DETAIL_DML = new SelectColumnList(DbTable.CUSTOMER);
-            DETAIL_DML.leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
-                    .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
-                    .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
-            DETAIL_DML.makeUnmodifiable();
+    @Override
+    public int hashCode() {
+        if (this.getRowState() != DataRowState.NEW) {
+            return this.getPrimaryKey();
         }
+        int hash = 5;
+        hash = 29 * hash + Objects.hashCode(this.name);
+        hash = 29 * hash + Objects.hashCode(this.address);
+        hash = 29 * hash + (this.active ? 1 : 0);
+        return hash;
+    }
 
-        // This is a singleton instance
-        private FactoryImpl() {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
+        if (null != obj && obj instanceof Customer) {
+            Customer other = (Customer) obj;
+            if (getRowState() == DataRowState.NEW) {
+                return other.getRowState() == DataRowState.NEW && name.equals(other.getName()) && address.equals(other.getAddress())
+                        && active == other.isActive();
+            }
+            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
+        }
+        return false;
+    }
 
-        public Optional<CustomerImpl> findByName(Connection connection, String value) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
-
-        public int countByAddress(Connection connection, int addressId) throws SQLException {
-            throw new UnsupportedOperationException("Not implemented");
-        }
+    public static final class FactoryImpl extends DataObjectImpl.DaoFactory<CustomerImpl> {
 
         @Override
-        protected CustomerImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            CustomerImpl r = new CustomerImpl();
-            initializeDao(r, resultSet, columns);
-            return r;
-        }
-
-        @Override
-        public SelectColumnList getSelectColumns() {
-            return DETAIL_DML;
-        }
-
-        @Override
-        public Class<? extends CustomerImpl> getDaoClass() {
-            return CustomerImpl.class;
+        public boolean isAssignableFrom(DataObjectImpl dao) {
+            return null != dao && dao instanceof CustomerImpl;
         }
 
         @Override
@@ -145,63 +137,158 @@ public class CustomerImpl extends DataObjectImpl implements Customer<Address<? e
         }
 
         @Override
-        protected void setSqlParameter(CustomerImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
-            switch (column) {
-                case CUSTOMER_NAME:
-                    ps.setString(index, dao.getName());
-                    break;
-                case ACTIVE:
-                    ps.setBoolean(index, dao.isActive());
-                    break;
-                case CUSTOMER_ADDRESS:
-                    ps.setInt(index, dao.getAddress().getPrimaryKey());
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unexpected column name");
-            }
+        public DbColumn getPrimaryKeyColumn() {
+            return DbColumn.CUSTOMER_ID;
         }
 
         @Override
-        protected void onInitializeDao(CustomerImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            target.name = columns.getString(resultSet, DbColumn.CUSTOMER_NAME, "");
-            Optional<Integer> addressId = columns.tryGetInt(resultSet, DbColumn.CUSTOMER_ADDRESS);
-            if (addressId.isPresent()) {
-                target.address = Address.of(addressId.get(), columns.getString(resultSet, DbColumn.ADDRESS1, ""),
-                        columns.getString(resultSet, DbColumn.ADDRESS2, ""), City.of(resultSet, columns),
-                        columns.getString(resultSet, DbColumn.POSTAL_CODE, ""),
-                        columns.getString(resultSet, DbColumn.PHONE, ""));
-            } else {
-                target.address = null;
-            }
-
-            target.active = columns.getBoolean(resultSet, DbColumn.ACTIVE, false);
-            if (resultSet.wasNull()) {
-                target.active = false;
-            }
+        public CustomerImpl createNew() {
+            return new CustomerImpl();
         }
 
         @Override
-        public CustomerFilter getAllItemsFilter() {
-            return CustomerFilter.all();
+        public DaoFilter<CustomerImpl> getAllItemsFilter() {
+            return DaoFilter.all(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB),
+                    AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCUSTOMERS));
         }
 
         @Override
-        public CustomerFilter getDefaultFilter() {
-            return CustomerFilter.byStatus(true);
+        public DaoFilter<CustomerImpl> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public StringBuilder getBaseSelectQuery() {
+            StringBuilder sb = new StringBuilder();
+            CityImpl.getFactory().appendSelectColumns(sb.append("SELECT ")
+                    .append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_ID).append(" AS ").append(DbColumn.CUSTOMER_ID)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_NAME).append(" AS ").append(DbColumn.CUSTOMER_NAME)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_ADDRESS).append(" AS ").append(DbColumn.CUSTOMER_ADDRESS));
+            CityImpl.getFactory().appendJoinStatement(sb
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.ACTIVE).append(" AS ").append(DbColumn.ACTIVE)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_CREATE_DATE).append(" AS ").append(DbColumn.CUSTOMER_CREATE_DATE)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_CREATED_BY).append(" AS ").append(DbColumn.CUSTOMER_CREATED_BY)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_LAST_UPDATE).append(" AS ").append(DbColumn.CUSTOMER_LAST_UPDATE)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_LAST_UPDATE_BY).append(" AS ").append(DbColumn.CUSTOMER_LAST_UPDATE_BY)
+                    .append(" FROM ").append(DbTable.CUSTOMER.getDbName()).append(" ").append(DbTable.CUSTOMER));
+            return sb;
+        }
+
+        void appendSelectColumns(StringBuilder sb) {
+            CityImpl.getFactory().appendSelectColumns(sb
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_NAME).append(" AS ").append(DbColumn.CUSTOMER_NAME)
+                    .append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_ADDRESS).append(" AS ").append(DbColumn.CUSTOMER_ADDRESS));
+            sb.append(", ").append(DbTable.CUSTOMER).append(".").append(DbColumn.ACTIVE).append(" AS ").append(DbColumn.ACTIVE);
+        }
+
+        void appendJoinStatement(StringBuilder sb) {
+            CityImpl.getFactory().appendJoinStatement(sb.append(" LEFT JOIN ").append(DbTable.CUSTOMER.getDbName()).append(" ").append(DbTable.CUSTOMER)
+                    .append(" ON ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_CUSTOMER).append(" = ")
+                    .append(DbTable.CUSTOMER).append(".").append(DbColumn.CUSTOMER_ID));
+        }
+
+        @Override
+        protected void onInitializeFromResultSet(CustomerImpl dao, ResultSet rs) throws SQLException {
+            String oldName = dao.name;
+            dao.name = rs.getString(DbColumn.CUSTOMER_NAME.toString());
+            Address<? extends City> oldAddress = dao.address;
+            dao.address = AddressImpl.getFactory().fromJoinedResultSet(rs);
+            boolean oldActive = dao.active;
+            dao.active = rs.getBoolean(DbColumn.ACTIVE.toString());
+            dao.firePropertyChange(PROP_NAME, oldName, dao.name);
+            dao.firePropertyChange(PROP_ADDRESS, oldAddress, dao.address);
+            dao.firePropertyChange(PROP_ACTIVE, oldActive, dao.active);
+        }
+
+        Customer<? extends Address> fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new Customer<Address<? extends City>>() {
+                private final String name = rs.getString(DbColumn.CUSTOMER_NAME.toString());
+                private final Address<? extends City> address = AddressImpl.getFactory().fromJoinedResultSet(rs);
+                private final boolean active = rs.getBoolean(DbColumn.ACTIVE.toString());
+                private final int primaryKey = rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString());
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public Address<? extends City> getAddress() {
+                    return address;
+                }
+
+                @Override
+                public boolean isActive() {
+                    return active;
+                }
+
+                @Override
+                public int getPrimaryKey() {
+                    return primaryKey;
+                }
+
+                @Override
+                public DataRowState getRowState() {
+                    return DataRowState.UNMODIFIED;
+                }
+
+                @Override
+                public boolean isExisting() {
+                    return true;
+                }
+
+                @Override
+                public int hashCode() {
+                    return primaryKey;
+                }
+
+                @Override
+                public boolean equals(Object obj) {
+                    if (null != obj && obj instanceof Customer) {
+                        Customer<? extends Address> other = (Customer<? extends Address>) obj;
+                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
+                    }
+                    return false;
+                }
+
+            };
+        }
+
+        // This is a singleton instance
+        private FactoryImpl() {
+        }
+
+        public Optional<CustomerImpl> findByName(Connection connection, String value) throws SQLException {
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public int countByAddress(Connection connection, int addressId) throws SQLException {
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public Class<? extends CustomerImpl> getDaoClass() {
+            return CustomerImpl.class;
         }
 
         @Override
         public String getDeleteDependencyMessage(CustomerImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
         public String getSaveConflictMessage(CustomerImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         public ArrayList<CustomerImpl> getAll(Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
     }

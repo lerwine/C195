@@ -10,7 +10,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -23,11 +22,12 @@ import javafx.stage.Window;
 import scheduler.Scheduler;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.util.Alerts;
+import scheduler.util.AlertHelper;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ValueBindings;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ViewControllerLoader;
 
 /**
  * FXML Controller class for the application login screen.
@@ -56,11 +56,11 @@ public final class Login extends SchedulerController {
         // Populate list of Locale objects.
         ObservableList<ResourceBundleLoader.SupportedLocale> languages = FXCollections.observableArrayList();
         ResourceBundleLoader.getSupportedLocales().forEach((t) -> languages.add(t));
+        ViewAndController<Parent, Login> viewAndController = ViewControllerLoader.loadViewAndController(Login.class);
 
-        SchedulerController.load(stage, Login.class, (Parent v, Login c) -> {
-            c.languageComboBox.setItems(languages);
-            stage.setScene(new Scene(v));
-        });
+        viewAndController.getController().onBeforeShow(languages, stage);
+        stage.setScene(new Scene(viewAndController.getView()));
+
     }
 
     /**
@@ -135,8 +135,8 @@ public final class Login extends SchedulerController {
         currentResourceBundle = getResources();
     }
 
-    @Override
-    protected void onBeforeShow(Node currentView, Stage stage) {
+    protected void onBeforeShow(ObservableList<ResourceBundleLoader.SupportedLocale> languages, Stage stage) {
+        languageComboBox.setItems(languages);
         stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
         languageComboBox.getSelectionModel().select(ResourceBundleLoader.getSupportedLocales().filter((l) -> l.isCurrent()).findFirst().get());
         valid = new Validation();
@@ -144,17 +144,16 @@ public final class Login extends SchedulerController {
             loginButton.setDisable(!newValue);
         });
         loginButton.setDisable(!valid.get());
-        super.onBeforeShow(currentView, stage);
     }
 
     @FXML
     void loginButtonClick(ActionEvent event) {
         Scheduler.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null) {
-                Alerts.showErrorAlert(((Button)event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
+                AlertHelper.showErrorAlert(((Button) event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             } else {
                 LOG.logp(Level.SEVERE, getClass().getName(), "loginButtonClick", "Error logging in user", ex);
-                Alerts.showErrorAlert(((Button)event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
+                AlertHelper.showErrorAlert(((Button) event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
             }
         });
     }

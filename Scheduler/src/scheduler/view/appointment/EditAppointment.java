@@ -43,21 +43,22 @@ import scheduler.AppResources;
 import scheduler.dao.Address;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.AppointmentType;
-import scheduler.dao.CustomerFilter;
 import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
-import scheduler.dao.UserFilter;
+import scheduler.dao.DataObjectImpl.DaoFactory;
 import scheduler.dao.UserImpl;
-import scheduler.util.Alerts;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
+import scheduler.view.ItemModel;
 import scheduler.view.TaskWaiter;
 import scheduler.view.address.AddressReferenceModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesViewLifecycleEvent;
+import scheduler.view.annotations.ViewLifecycleEventType;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.user.UserModel;
 
@@ -212,11 +213,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     private int currentTimeZoneOffset;
 
-    @Override
-    protected Factory_obsolete<AppointmentImpl, AppointmentModel> getDaoFactory() {
-        return AppointmentImpl.getFactory();
-    }
-
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         assert customerComboBox != null : String.format("fx:id=\"customerComboBox\" was not injected: check your FXML file '%s'.",
@@ -348,15 +344,14 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                 .and(conflictLookupState.conflictMessage.isEmpty()).and(urlValidation.isEmpty());
     }
 
-    @Override
+    @HandlesViewLifecycleEvent(type = ViewLifecycleEventType.ADDED)
     protected void onBeforeShow(Node currentView, Stage stage) {
         TaskWaiter.execute(new ItemsLoadTask(stage));
-        super.onBeforeShow(currentView, stage);
     }
 
     @FXML
     void addCustomerClick(ActionEvent event) {
-        Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addCustomerClick not implemented");
+        AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addCustomerClick not implemented");
 //        CustomerModel customer = EditCustomer.addNew(getViewManager());
 //        if (null == customer)
 //            return;
@@ -366,7 +361,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void addUserClick(ActionEvent event) {
-        Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addUserClick not implemented");
+        AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addUserClick not implemented");
 //        UserModel user = EditUser.addNew(getViewManager());
 //        if (null == user)
 //            return;
@@ -376,12 +371,17 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
-        Alerts.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "showConflictsButtonClick not implemented");
+        AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "showConflictsButtonClick not implemented");
     }
 
     @Override
     protected BooleanExpression getValidationExpression() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected ItemModel.ModelFactory<AppointmentImpl, AppointmentModel> getFactory() {
+        return AppointmentModel.getFactory();
     }
 
     private class ItemsLoadTask extends TaskWaiter<Boolean> {
@@ -409,19 +409,21 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            Alerts.showErrorAlert(owner, ex);
+            AlertHelper.showErrorAlert(owner, ex);
             owner.close();
         }
 
         @Override
         protected Boolean getResult(Connection connection) throws SQLException {
-            CustomerFilter cf = CustomerFilter.byStatus(true);
-            updateMessage(cf.getLoadingMessage());
-            customerList = cf.get(connection);
-            UserFilter uf = UserFilter.active(true);
-            updateMessage(uf.getLoadingMessage());
-            userList = uf.get(connection);
-            return null == customerList || null == userList || customerList.isEmpty() || userList.isEmpty();
+//            CustomerFilter cf = CustomerFilter.byStatus(true);
+//            updateMessage(cf.getLoadingMessage());
+//            customerList = cf.get(connection);
+//            UserFilter uf = UserFilter.active(true);
+//            updateMessage(uf.getLoadingMessage());
+//            userList = uf.get(connection);
+//            return null == customerList || null == userList || customerList.isEmpty() || userList.isEmpty();
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
 
     }

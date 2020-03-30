@@ -13,7 +13,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
+import scheduler.dao.DataObjectImpl.DaoFactory;
 import scheduler.dao.UserImpl;
 import scheduler.dao.UserStatus;
 import scheduler.util.ValueBindings;
@@ -25,6 +25,7 @@ import scheduler.view.appointment.AppointmentModel;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.ItemModel;
 
 /**
  * FXML Controller class
@@ -282,8 +283,8 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     }
 
     @Override
-    protected Factory_obsolete<UserImpl, UserModel> getDaoFactory() {
-        return UserImpl.getFactory();
+    protected ItemModel.ModelFactory<UserImpl, UserModel> getFactory() {
+        return UserModel.getFactory();
     }
 
 }

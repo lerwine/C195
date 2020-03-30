@@ -1,13 +1,16 @@
 package scheduler.view.city;
 
+import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CityImpl;
 import scheduler.dao.Country;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
+import scheduler.dao.DataObjectImpl.DaoFactory;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
+import scheduler.view.ItemModel;
+import scheduler.view.ModelFilter;
 import scheduler.view.country.CountryReferenceModel;
 import scheduler.view.country.CountryReferenceModelImpl;
 
@@ -68,20 +71,78 @@ public final class CityModel extends scheduler.view.ItemModel<CityImpl> implemen
     }
 
     @Override
-    protected void refreshFromDAO(CityImpl dao) {
-        name.set(dao.getName());
-        Country c = dao.getCountry();
-        country.set((null == c) ? null : new CountryReferenceModelImpl(c));
-    }
-
-    @Override
-    public Factory_obsolete<CityImpl, CityModel> getDaoFactory() {
-        return CityImpl.getFactory();
-    }
-
-    @Override
     public String toString() {
         return name.get();
     }
 
+    private static final Factory FACTORY = new Factory();
+
+    public static final Factory getFactory() {
+        return FACTORY;
+    }
+
+    @Override
+    public int hashCode() {
+        if (isNewItem()) {
+            int hash = 7;
+            hash = 23 * hash + Objects.hashCode(this.name);
+            hash = 23 * hash + Objects.hashCode(this.country);
+            return hash;
+        }
+        return getPrimaryKey();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null != obj && obj instanceof CityModel) {
+            final CityModel other = (CityModel) obj;
+            if (isNewItem()) {
+                return name.isEqualTo(other.name).get() && country.isEqualTo(other.country).get();
+            }
+            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+        }
+        return false;
+    }
+    
+    public final static class Factory extends ItemModel.ModelFactory<CityImpl, CityModel> {
+
+        private Factory() { }
+        
+        @Override
+        public DaoFactory<CityImpl> getDaoFactory() {
+            return CityImpl.getFactory();
+        }
+
+        @Override
+        public CityModel createNew(CityImpl dao) {
+            return new CityModel(dao);
+        }
+
+        @Override
+        protected void updateItem(CityModel item, CityImpl dao) {
+            super.updateItem(item, dao);
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<CityImpl, CityModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<CityImpl, CityModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public CityImpl applyChanges(CityModel item) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    }
 }

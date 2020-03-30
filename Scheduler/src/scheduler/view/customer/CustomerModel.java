@@ -1,5 +1,6 @@
 package scheduler.view.customer;
 
+import java.util.Objects;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
@@ -8,11 +9,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.Address;
 import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
+import scheduler.dao.DataObjectImpl.DaoFactory;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.view.ItemModel;
+import scheduler.view.ModelFilter;
 import scheduler.view.address.AddressReferenceModel;
 import scheduler.view.address.AddressReferenceModelImpl;
 
@@ -153,19 +155,6 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
     }
 
     @Override
-    protected void refreshFromDAO(CustomerImpl dao) {
-        name.set(dao.getName());
-        Address a = dao.getAddress();
-        address.set((null == a) ? null : new AddressReferenceModelImpl(a));
-        active.set(dao.isActive());
-    }
-
-    @Override
-    public Factory_obsolete<CustomerImpl, CustomerModel> getDaoFactory() {
-        return CustomerImpl.getFactory();
-    }
-
-    @Override
     public String getCityZipCountry() {
         return cityZipCountry.get();
     }
@@ -188,6 +177,78 @@ public final class CustomerModel extends ItemModel<CustomerImpl> implements Cust
     @Override
     public String toString() {
         return name.get();
+    }
+
+    private static final Factory FACTORY = new Factory();
+
+    public static final Factory getFactory() {
+        return FACTORY;
+    }
+
+    @Override
+    public int hashCode() {
+        if (isNewItem()) {
+            int hash = 5;
+            hash = 73 * hash + Objects.hashCode(name.get());
+            hash = 73 * hash + Objects.hashCode(address.get());
+            hash = 73 * hash + Objects.hashCode(active.get());
+            return hash;
+        }
+        return getPrimaryKey();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null != obj && obj instanceof CustomerModel) {
+            final CustomerModel other = (CustomerModel) obj;
+            if (isNewItem()) {
+                return name.isEqualTo(other.name).get() && address.isEqualTo(other.address).get() && active.isEqualTo(other.active).get();
+            }
+            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+        }
+        return false;
+    }
+    
+    public final static class Factory extends ItemModel.ModelFactory<CustomerImpl, CustomerModel> {
+
+        private Factory() { }
+        
+        @Override
+        public DaoFactory<CustomerImpl> getDaoFactory() {
+            return CustomerImpl.getFactory();
+        }
+
+        @Override
+        public CustomerModel createNew(CustomerImpl dao) {
+            return new CustomerModel(dao);
+        }
+
+        @Override
+        protected void updateItem(CustomerModel item, CustomerImpl dao) {
+            super.updateItem(item, dao);
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<CustomerImpl, CustomerModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<CustomerImpl, CustomerModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public CustomerImpl applyChanges(CustomerModel item) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
 
 }

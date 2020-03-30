@@ -54,7 +54,7 @@ import scheduler.dao.DataObjectImpl;
 import scheduler.dao.DateFilterType;
 import scheduler.dao.TextFilterType;
 import scheduler.dao.UserImpl;
-import scheduler.util.Alerts;
+import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabel;
 import static scheduler.util.NodeUtil.selectSelection;
@@ -69,17 +69,6 @@ import scheduler.view.annotations.GlobalizationResource;
 public class EditAppointmentFilter extends SchedulerController implements ManageAppointmentsResourceKeys {
 
     private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
-
-    public static FilterOptionState waitEdit(FilterOptionState filter, Stage parent) {
-        try {
-            return load(parent, EditAppointmentFilter.class, null, (Parent v, EditAppointmentFilter ctrl) -> {
-                ctrl.onShow(v, filter, ctrl, parent);
-            }).resultFilter;
-        } catch (IOException ex) {
-            Alerts.logAndAlertError(parent, LOG, EditAppointmentFilter.class, "waitEdit", String.format("Error loading FXML for %s", EditAppointmentFilter.class.getName()), ex);
-        }
-        return null;
-    }
 
     private static <T extends DataObjectImpl, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
         if (null == obj) {
@@ -803,19 +792,21 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                     "Error loading reloading customers and  users", ex);
         }
 
         @Override
         protected Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>> getResult(Connection connection) throws SQLException {
-            ArrayList<CustomerImpl> customers = (this.includeInactiveCustomers) ? CustomerImpl.getFactory().getAll(connection)
-                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
-            return new Pair<>(customers,
-                    (this.includeInactiveUsers)
-                            ? UserImpl.getFactory().getAllItemsFilter().get(connection)
-                            : UserImpl.getFactory().getDefaultFilter().get(connection)
-            );
+//            ArrayList<CustomerImpl> customers = (this.includeInactiveCustomers) ? CustomerImpl.getFactory().getAll(connection)
+//                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
+//            return new Pair<>(customers,
+//                    (this.includeInactiveUsers)
+//                            ? UserImpl.getFactory().getAllItemsFilter().get(connection)
+//                            : UserImpl.getFactory().getDefaultFilter().get(connection)
+//            );
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
 
     }
@@ -862,14 +853,16 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                     "Error loading reloading customers", ex);
         }
 
         @Override
         protected ArrayList<CustomerImpl> getResult(Connection connection) throws SQLException {
-            return (this.includeInactive) ? CustomerImpl.getFactory().getAll(connection)
-                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
+//            return (this.includeInactive) ? CustomerImpl.getFactory().getAll(connection)
+//                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
 
     }
@@ -902,16 +895,18 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                     "Error loading reloading users", ex);
         }
 
         @Override
         protected ArrayList<UserImpl> getResult(Connection connection) throws SQLException {
-            if (includeInactive) {
-                return UserImpl.getFactory().getAllItemsFilter().get(connection);
-            }
-            return UserImpl.getFactory().getDefaultFilter().get(connection);
+//            if (includeInactive) {
+//                return UserImpl.getFactory().getAllItemsFilter().get(connection);
+//            }
+//            return UserImpl.getFactory().getDefaultFilter().get(connection);
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
 
     }
@@ -1011,7 +1006,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            Alerts.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                     "Error loading appointment filter data", ex);
         }
 
@@ -1020,11 +1015,13 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             OptionItems result = new OptionItems();
             AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
             CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
-            result.customers = CustomerImpl.getFactory().getDefaultFilter().get(connection);
-            result.users = UserImpl.getFactory().getDefaultFilter().get(connection);
-            result.cities = CityImpl.getFactory().getAllItemsFilter().get(connection);
-            result.countries = CountryImpl.getFactory().getAllItemsFilter().get(connection);
-            return result;
+//            result.customers = CustomerImpl.getFactory().getDefaultFilter().get(connection);
+//            result.users = UserImpl.getFactory().getDefaultFilter().get(connection);
+//            result.cities = CityImpl.getFactory().getAllItemsFilter().get(connection);
+//            result.countries = CountryImpl.getFactory().getAllItemsFilter().get(connection);
+//            return result;
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
     }
 

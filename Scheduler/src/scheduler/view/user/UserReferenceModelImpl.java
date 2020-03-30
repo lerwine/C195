@@ -1,6 +1,5 @@
 package scheduler.view.user;
 
-import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -17,14 +16,12 @@ import scheduler.observables.UserStatusProperty;
 public class UserReferenceModelImpl extends DataObjectImpl.DataObjectReferenceModelImpl<User> implements UserReferenceModel<User> {
 
     private final ReadOnlyStringWrapper userName;
-    private final ReadOnlyStringWrapper password;
     private final UserStatusProperty status;
     private final UserStatusDisplayProperty statusDisplay;
 
     public UserReferenceModelImpl(User dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
-        password = new ReadOnlyStringWrapper(this, "password", dao.getPassword());
         status = new UserStatusProperty(this, "status", dao.getStatus());
         statusDisplay = new UserStatusDisplayProperty(this, "statusDisplay", status);
     }
@@ -37,16 +34,6 @@ public class UserReferenceModelImpl extends DataObjectImpl.DataObjectReferenceMo
     @Override
     public ReadOnlyProperty<String> userNameProperty() {
         return userName.getReadOnlyProperty();
-    }
-
-    @Override
-    public String getPassword() {
-        return password.get();
-    }
-
-    @Override
-    public ReadOnlyProperty<String> passwordProperty() {
-        return password.getReadOnlyProperty();
     }
 
     @Override

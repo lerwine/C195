@@ -1,6 +1,5 @@
 package scheduler.dao;
 
-import scheduler.dao.schema.DbTable;
 import scheduler.util.PropertyBindable;
 import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
@@ -9,10 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Level;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -23,17 +23,14 @@ import javafx.beans.property.ReadOnlyObjectPropertyBase;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.stage.Stage;
 import scheduler.Scheduler;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.SelectColumnList;
-import scheduler.dao.dml.deprecated.TableColumnList;
-import scheduler.dao.dml.deprecated.WhereStatement;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
-import scheduler.dao.schema.SchemaHelper;
+import scheduler.dao.schema.DbTable;
 import scheduler.util.DB;
 import scheduler.view.DataObjectReferenceModel;
-import scheduler.view.ItemModel;
+import scheduler.view.TaskWaiter;
 
 /**
  * Base class for implementations of the {@link DataObject} interface.
@@ -369,7 +366,7 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
 
         protected abstract void refreshFromDAO(T dao);
 
-        public abstract DataObjectImpl.Factory_obsolete<T, ? extends ItemModel<T>> getDaoFactory();
+        public abstract DataObjectImpl.DaoFactory<T> getDaoFactory();
 
         public void refreshFromDAO() throws SQLException, ClassNotFoundException {
             T dao = getDataObject();
@@ -382,22 +379,103 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         }
     }
 
+    private static class LoadTask<T extends DataObjectImpl> extends TaskWaiter<List<T>> {
+        private final DaoFactory<T> factory;
+        private final DaoFilter<T> filter;
+        private final Consumer<List<T>> onSuccess;
+        private final Consumer<Throwable> onFail;
+        LoadTask(Stage stage, DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+            super(stage, filter.getLoadingTitle(), filter.getLoadingMessage());
+            this.factory = Objects.requireNonNull(factory);
+            this.filter = Objects.requireNonNull(filter);
+            this.onSuccess = Objects.requireNonNull(onSuccess);
+            this.onFail = onFail;
+        }
+
+        @Override
+        protected void processResult(List<T> result, Stage stage) {
+            onSuccess.accept(result);
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            if (null != onFail)
+                onFail.accept(ex);
+        }
+
+        @Override
+        protected List<T> getResult(Connection connection) throws SQLException {
+            StringBuilder sql = factory.getBaseSelectQuery();
+            filter.appendWhereClause(sql);
+            ArrayList<T> result = new ArrayList<>();
+            try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+                filter.applyWhereParameters(ps, 1);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (null != rs) {
+                        while (rs.next()) {
+                            T item = factory.fromResultSet(rs);
+                            result.add(item);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+    }
+    
     public static abstract class DaoFactory<T extends DataObjectImpl> {
         private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
 
-        public List<T> get(Connection connection, WhereStatement<T, ? extends ItemModel<T>> filter) {
-            // TODO: Implement this.
-            throw new UnsupportedOperationException();
+        public void loadAsync(Stage stage, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+            if (null == filter)
+                filter = getDefaultFilter();
+            TaskWaiter.execute(new LoadTask<>(stage, this, filter, onSuccess, onFail));
         }
         
-        /**
-         * Gets the object responsible for generating base SQL select statements.
-         * 
-         * @return The {@link SelectColumnList} object that will be used to generate SELECT statements that correspond
-         * to the target {@link DataObjectImpl}.
-         */
-        public abstract SelectColumnList getSelectColumns();
-
+        private T fromResultSet(ResultSet rs) throws SQLException {
+            T item = createNew();
+            initializeFromResultSet(item, rs);
+            return item;
+        }
+        
+        public abstract T createNew();
+        
+        public abstract DaoFilter<T> getAllItemsFilter();
+        
+        public abstract DaoFilter<T> getDefaultFilter();
+        
+        protected abstract void onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
+        
+        public abstract DbTable getDbTable();
+        
+        public abstract DbColumn getPrimaryKeyColumn();
+        
+        protected final void initializeFromResultSet(T dao, ResultSet rs) throws SQLException {
+            DataObjectImpl obj = (DataObjectImpl)dao;
+            int oldPrimaryKey = obj.primaryKey;
+            Timestamp oldCreateDate = obj.createDate;
+            String oldCreatedBy = obj.createdBy;
+            Timestamp oldLastModifiedDate = obj.lastModifiedDate;
+            String oldLastModifiedBy = obj.lastModifiedBy;
+            DataRowState oldRowState = obj.rowState;
+            obj.primaryKey = rs.getInt(getPrimaryKeyColumn().toString());
+            obj.createDate = rs.getTimestamp(DbName.CREATE_DATE.toString());
+            obj.createdBy = rs.getString(DbName.CREATED_BY.toString());
+            obj.lastModifiedDate = rs.getTimestamp(DbName.LAST_UPDATE.toString());
+            obj.lastModifiedBy = rs.getString(DbName.LAST_UPDATE_BY.toString());
+            obj.rowState = DataRowState.UNMODIFIED;
+            try {
+                onInitializeFromResultSet(dao, rs);
+            } finally {
+                obj.firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, obj.primaryKey);
+                obj.firePropertyChange(PROP_CREATEDATE, oldCreateDate, obj.createDate);
+                obj.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, obj.createdBy);
+                obj.firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, obj.lastModifiedDate);
+                obj.firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, obj.lastModifiedBy);
+                obj.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
+            }
+        }
+        
         /**
          * Gets the {@link Class} for the target {@link DataObjectImpl} type.
          * 
@@ -405,6 +483,8 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
          */
         public abstract Class<? extends T> getDaoClass();
 
+        public abstract StringBuilder getBaseSelectQuery();
+        
         /**
          * Saves a {@link DataObjectImpl} to the database.
          * 
@@ -493,272 +573,8 @@ public class DataObjectImpl extends PropertyBindable implements DataObject {
         // TODO: Make sure no implementations return a null value.
         public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
 
+        public abstract boolean isAssignableFrom(DataObjectImpl dao);
+
     }
     
-    /**
-     * Base class for CRUD operations on {@link scheduler.dao.DataObjectImpl} objects.
-     * 
-     * @param <T> The type of {@link DataObjectImpl} supported.
-     * @param <M> The type of {@link ItemModel} object that corresponds to the target {@link DataObjectImpl}.
-     * @deprecated Use {@link DaoFactory}
-     */
-    @Deprecated
-    public static abstract class Factory_obsolete<T extends DataObjectImpl, M extends ItemModel<T>> {
-
-        private static final Logger LOG = Logger.getLogger(Factory_obsolete.class.getName());
-
-        protected abstract T fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
-
-        /**
-         * Gets the object responsible for generating base SQL select statements.
-         * 
-         * @return The {@link SelectColumnList} object that will be used to generate SELECT statements that correspond
-         * to the target {@link DataObjectImpl}.
-         */
-        public abstract SelectColumnList getSelectColumns();
-
-        /**
-         * Gets the {@link Class} for the target {@link DataObjectImpl} type.
-         * 
-         * @return The {@link Class} for the target {@link DataObjectImpl} type.
-         */
-        public abstract Class<? extends T> getDaoClass();
-
-        public abstract DbTable getDbTable();
-
-        /**
-         * Finishes updating a data access object from a {@link ResultSet}. Do not call this directly. User
-         * {@link #initializeDao(DataObjectImpl, ResultSet, TableColumnList) }, instead.
-         *
-         * @param target The {@link DataObjectImpl} to be initialized.
-         * @param resultSet The data retrieved from the database.
-         * @param columns The {@link TableColumnList} that was used to create query string.
-         * @throws SQLException if not able to read data from the {@link ResultSet}.
-         */
-        protected abstract void onInitializeDao(T target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException;
-        
-        /**
-         * Initializes a data access object from a {@link ResultSet}.
-         *
-         * @param target The {@link DataObjectImpl} to be initialized.
-         * @param resultSet The data retrieved from the database.
-         * @param columns The {@link TableColumnList} that was used to create query string.
-         * @throws SQLException if not able to read data from the {@link ResultSet}.
-         */
-        protected final void initializeDao(T target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            DataObjectImpl dao = (DataObjectImpl)target;
-            int oldPrimaryKey = dao.primaryKey;
-            String oldCreatedBy = dao.createdBy;
-            Timestamp oldCreateDate = dao.createDate;
-            String oldLastModifiedBy = dao.lastModifiedBy;
-            Timestamp oldLastModifiedDate = dao.lastModifiedDate;
-            dao.primaryKey = columns.getInt(resultSet, SchemaHelper.getPrimaryKey(getDbTable()));
-            dao.lastModifiedBy = columns.getString(resultSet, DbName.LAST_UPDATE_BY);
-            dao.lastModifiedDate = columns.getTimestamp(resultSet, DbName.LAST_UPDATE);
-            dao.createdBy = columns.getString(resultSet, DbName.CREATED_BY);
-            dao.createDate = columns.getTimestamp(resultSet, DbName.CREATE_DATE);
-            onInitializeDao(target, resultSet, columns);
-            DataRowState oldRowState = dao.rowState;
-            dao.rowState = DataRowState.UNMODIFIED;
-            dao.getPropertyChangeSupport().firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
-            dao.getPropertyChangeSupport().firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, dao.primaryKey);
-            dao.getPropertyChangeSupport().firePropertyChange(PROP_CREATEDBY, oldCreatedBy, dao.createdBy);
-            dao.getPropertyChangeSupport().firePropertyChange(PROP_CREATEDATE, oldCreateDate, dao.createDate);
-            dao.getPropertyChangeSupport().firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, dao.lastModifiedBy);
-            dao.getPropertyChangeSupport().firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, dao.lastModifiedDate);
-        }
-        
-        /**
-         * Saves a {@link DataObjectImpl} to the database.
-         * 
-         * @param dao The {@link DataObjectImpl} to be inserted or updated.
-         * @param connection The database connection to use.
-         * @throws SQLException If unable to perform the database operation.
-         */
-        public void save(T dao, Connection connection) throws SQLException {
-            Objects.requireNonNull(dao, "Data access object cannot be null");
-            Objects.requireNonNull(connection, "Connection cannot be null");
-            synchronized (dao) {
-                assert dao.getRowState() != DataRowState.DELETED : String.format("%s has been deleted", getClass().getName());
-                StringBuilder sql = new StringBuilder();
-                //HashMap<String, Integer> indexes = new HashMap<>();
-
-                DbColumn[] columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> {
-                    switch (t.getDbName()) {
-                        case CREATED_BY:
-                        case CREATE_DATE:
-                        case LAST_UPDATE:
-                        case LAST_UPDATE_BY:
-                            return false;
-                    }
-                    return true;
-                }).toArray(DbColumn[]::new);
-
-                if (dao.getRowState() == DataRowState.NEW) {
-                    sql.append("INSERT INTO `").append(getDbTable().getDbName()).append("` (`")
-                            .append(DbName.LAST_UPDATE).append("`, `")
-                            .append(DbName.LAST_UPDATE_BY).append("`, `")
-                            .append(DbName.CREATE_DATE).append("`, `")
-                            .append(DbName.CREATED_BY);
-                    for (DbColumn col : columns) {
-                        sql.append("`, `").append(col.getDbName());
-                    }
-                    sql.append("`) VALUES (?");
-                    int e = columns.length + 4;
-                    for (int i = 1; i < e; i++) {
-                        sql.append(", ?");
-                    }
-                    sql.append(")");
-                } else {
-                    sql.append("UPDATE `").append(getDbTable().getDbName()).append("` SET `")
-                            .append(DbName.LAST_UPDATE).append("` = ?, `")
-                            .append(DbName.LAST_UPDATE_BY);
-                    for (DbColumn col : columns) {
-                        sql.append("` = ?, `").append(col.getDbName());
-                    }
-
-                    sql.append("` = ? WHERE `").append(getDbTable().getPkColName()).append(" = ?");
-                }
-                LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
-                int pk;
-                try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-                    int index;
-                    if (dao.getRowState() == DataRowState.NEW) {
-                        ps.setTimestamp(1, dao.getCreateDate());
-                        ps.setString(2, dao.getCreatedBy());
-                        ps.setTimestamp(3, dao.getCreateDate());
-                        ps.setString(4, dao.getCreatedBy());
-                        index = 4;
-                    } else {
-                        ps.setTimestamp(1, dao.getLastModifiedDate());
-                        ps.setString(2, dao.getLastModifiedBy());
-                        index = 2;
-                    }
-                    for (DbColumn col : columns) {
-                        setSqlParameter(dao, col, ps, ++index);
-                    }
-                    if (dao.getRowState() != DataRowState.NEW) {
-                        ps.setInt(index, dao.getPrimaryKey());
-                    }
-                    ps.executeUpdate();
-                    if (dao.getRowState() == DataRowState.NEW) {
-                        try (ResultSet rs = ps.getGeneratedKeys()) {
-                            pk = rs.getInt(1);
-                        }
-                    } else {
-                        pk = dao.getPrimaryKey();
-                    }
-                }
-                SelectColumnList dml = getSelectColumns();
-                sql = dml.getSelectQuery();
-                sql.append(" WHERE `").append(getDbTable().getPkColName()).append("`=%");
-                LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql.toString()));
-                try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-                    ps.setInt(1, pk);
-                    try (ResultSet rs = ps.getResultSet()) {
-                        assert rs.next() : "Updated record not found";
-                        initializeDao(dao, rs, dml);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Retrieves the {@link DataObjectImpl} from the database which matches the given primary key.
-         * 
-         * @param connection The database connection to use.
-         * @param pk The value of the primary key for the {@link DataObjectImpl}.
-         * @return An {@link Optional} {@link DataObjectImpl} which will be empty if no match was found.
-         * @throws SQLException If unable to perform the database operation.
-         */
-        public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
-            Objects.requireNonNull(connection, "Connection cannot be null");
-            SelectColumnList dml = getSelectColumns();
-            String sql = dml.getSelectQuery().append(" WHERE p.`").append(getDbTable().getPkColName()).append("`=?").toString();
-            LOG.log(Level.SEVERE, String.format("Finalizing query \"%s\"", sql));
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, pk);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return Optional.of(fromResultSet(rs, dml));
-                    }
-                }
-            }
-            return Optional.empty();
-        }
-
-        /**
-         * Deletes the corresponding {@link DataObjectImpl} from the database.
-         * 
-         * @param dao The {@link DataObjectImpl} to delete.
-         * @param connection The database connection to use.
-         * @throws SQLException If unable to perform the database operation.
-         */
-        public void delete(T dao, Connection connection) throws SQLException {
-            Objects.requireNonNull(dao, "Data access object cannot be null");
-            Objects.requireNonNull(connection, "Connection cannot be null");
-            synchronized (dao) {
-                assert dao.getRowState() != DataRowState.DELETED : String.format("%s has already been deleted", getClass().getName());
-                assert dao.getRowState() != DataRowState.NEW : String.format("%s has not been inserted into the database", getClass().getName());
-                String sql = String.format("DELETE FROM `%s` WHERE `%s` = ?", getDbTable().getDbName(), getDbTable().getPkColName());
-                LOG.log(Level.SEVERE, String.format("Executing query \"%s\"", sql));
-                try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                    ps.setInt(1, dao.getPrimaryKey());
-                    assert ps.executeUpdate() > 0 : String.format("Failed to delete associated database row on %s where %s = %d",
-                            getDbTable().getDbName(), getDbTable().getPkColName(), dao.getPrimaryKey());
-                }
-                dao.setDeleted();
-            }
-        }
-
-        /**
-         * Checks to see if the current {@link DataObjectImpl} can safely be deleted from the database.
-         * 
-         * @param dao The {@link DataObjectImpl} intended for deletion.
-         * @param connection The database connection to use.
-         * @return A user-friendly description of the reason that the {@link DataObjectImpl} cannot be deleted or an
-         * empty string if it can be safely deleted.
-         * @throws SQLException If unable to perform the database operation.
-         */
-        // TODO: Make sure no implementations return a null value.
-        public abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
-
-        /**
-         * Checks to see if any impending changes cause any database conflicts.
-         * 
-         * @param dao The target {@link DataObjectImpl}.
-         * @param connection The database connection to use.
-         * @return A user-friendly description of the reason that the changes to the {@link DataObjectImpl} cannot be saved or an
-         * empty string if it can be safely deleted.
-         * @throws SQLException If unable to perform the database operation.
-         */
-        // TODO: Make sure no implementations return a null value.
-        public abstract String getSaveConflictMessage(T dao, Connection connection) throws SQLException;
-
-        /**
-         * @deprecated Filters will be defined outside of the item factory.
-         */
-        // TODO: Remove this
-        @Deprecated
-        public abstract ModelListingFilter<T, M> getAllItemsFilter();
-
-        /**
-         * @deprecated Filters will be defined outside of the item factory.
-         */
-        // TODO: Remove this
-        @Deprecated
-        public abstract ModelListingFilter<T, M> getDefaultFilter();
-
-        /**
-         * Sets parameterized SQL query values.
-         * 
-         * @param dao The {@link DataObjectImpl} to be updated.
-         * @param column The target database column column.
-         * @param ps The {@link PreparedStatement} to apply the value to.
-         * @param index The index to use when setting the value.
-         * @throws SQLException if unable to set the value.
-         */
-        protected abstract void setSqlParameter(T dao, DbColumn column, PreparedStatement ps, int index) throws SQLException;
-    }
-
 }

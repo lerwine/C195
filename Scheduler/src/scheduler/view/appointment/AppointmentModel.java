@@ -1,6 +1,7 @@
 package scheduler.view.appointment;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -8,7 +9,7 @@ import javafx.beans.property.StringProperty;
 import scheduler.dao.AppointmentImpl;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.Customer;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
+import scheduler.dao.DataObjectImpl.DaoFactory;
 import scheduler.dao.User;
 import scheduler.dao.UserStatus;
 import scheduler.observables.AppointmentTypeDisplayProperty;
@@ -18,6 +19,7 @@ import scheduler.observables.EffectiveLocationProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.util.DB;
 import scheduler.view.ItemModel;
+import scheduler.view.ModelFilter;
 import scheduler.view.customer.CustomerReferenceModel;
 import scheduler.view.customer.CustomerReferenceModelImpl;
 import scheduler.view.user.UserReferenceModel;
@@ -376,26 +378,86 @@ public final class AppointmentModel extends ItemModel<AppointmentImpl> implement
     public ObjectProperty<LocalDateTime> endProperty() {
         return end;
     }
+    
+    private static final Factory FACTORY = new Factory();
 
-    @Override
-    protected void refreshFromDAO(AppointmentImpl dao) {
-        Customer c = dao.getCustomer();
-        customer.set((null == c) ? null : new CustomerReferenceModelImpl(c));
-        User u = dao.getUser();
-        user.set((null == u) ? null : new UserReferenceModelImpl(u));
-        title.set(dao.getTitle());
-        description.set(dao.getDescription());
-        location.set(dao.getLocation());
-        contact.set(dao.getContact());
-        type.set(dao.getType());
-        url.set(dao.getUrl());
-        start.set(DB.fromUtcTimestamp(dao.getStart()));
-        end.set(DB.fromUtcTimestamp(dao.getEnd()));
+    public static final Factory getFactory() {
+        return FACTORY;
     }
 
     @Override
-    public Factory_obsolete<AppointmentImpl, AppointmentModel> getDaoFactory() {
-        return AppointmentImpl.getFactory();
+    public int hashCode() {
+        if (isNewItem()) {
+            int hash = 7;
+            hash = 71 * hash + Objects.hashCode(customer.get());
+            hash = 71 * hash + Objects.hashCode(user.get());
+            hash = 71 * hash + Objects.hashCode(title.get());
+            hash = 71 * hash + Objects.hashCode(description.get());
+            hash = 71 * hash + Objects.hashCode(location.get());
+            hash = 71 * hash + Objects.hashCode(contact.get());
+            hash = 71 * hash + Objects.hashCode(type.get());
+            hash = 71 * hash + Objects.hashCode(url.get());
+            hash = 71 * hash + Objects.hashCode(start.get());
+            hash = 71 * hash + Objects.hashCode(end.get());
+            return hash;
+        }
+        return getPrimaryKey();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null != obj && obj instanceof AppointmentModel) {
+            final AppointmentModel other = (AppointmentModel) obj;
+            if (isNewItem()) {
+                return customer.isEqualTo(other.customer).get() && user.isEqualTo(other.user).get() && title.isEqualTo(other.title).get() &&
+                        description.isEqualTo(other.description).get() && location.isEqualTo(other.location).get() &&
+                        contact.isEqualTo(other.contact).get() && type.isEqualTo(other.type).get() && url.isEqualTo(other.url).get() &&
+                        start.isEqualTo(other.start).get() && end.isEqualTo(other.end).get();
+            }
+            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+        }
+        return false;
+    }
+    
+    public final static class Factory extends ItemModel.ModelFactory<AppointmentImpl, AppointmentModel> {
+
+        private Factory() { }
+        
+        @Override
+        public DaoFactory<AppointmentImpl> getDaoFactory() {
+            return AppointmentImpl.getFactory();
+        }
+
+        @Override
+        public AppointmentModel createNew(AppointmentImpl dao) {
+            return new AppointmentModel(dao);
+        }
+
+        @Override
+        protected void updateItem(AppointmentModel item, AppointmentImpl dao) {
+            super.updateItem(item, dao);
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<AppointmentImpl, AppointmentModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<AppointmentImpl, AppointmentModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public AppointmentImpl applyChanges(AppointmentModel item) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+    }
 }

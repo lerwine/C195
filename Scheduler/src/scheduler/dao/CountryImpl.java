@@ -5,15 +5,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import scheduler.AppResourceBundleConstants;
 import scheduler.AppResources;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.SelectColumnList;
-import scheduler.dao.dml.deprecated.TableColumnList;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbName;
 import scheduler.util.ResourceBundleLoader;
-import scheduler.view.country.CountryModel;
 import scheduler.view.country.EditCountry;
 
 public class CountryImpl extends DataObjectImpl implements Country {
@@ -22,8 +22,21 @@ public class CountryImpl extends DataObjectImpl implements Country {
      * The name of the 'name' property.
      */
     public static final String PROP_NAME = "name";
+    private static final FactoryImpl FACTORY = new FactoryImpl();
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
 
     private String name;
+
+    /**
+     * Initializes a {@link DataRowState#NEW} country object.
+     */
+    public CountryImpl() {
+        super();
+        name = "";
+    }
 
     @Override
     public String getName() {
@@ -41,49 +54,37 @@ public class CountryImpl extends DataObjectImpl implements Country {
         firePropertyChange(PROP_NAME, oldValue, this.name);
     }
 
-    /**
-     * Initializes a {@link DataRowState#NEW} country object.
-     */
-    public CountryImpl() {
-        super();
-        name = "";
+    @Override
+    public int hashCode() {
+        if (this.getRowState() != DataRowState.NEW) {
+            return this.getPrimaryKey();
+        }
+        return name.hashCode();
     }
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null != obj && obj instanceof Country) {
+            Country other = (Country) obj;
+            if (getRowState() == DataRowState.NEW) {
+                return other.getRowState() == DataRowState.NEW && name.equals(other.getName());
+            }
+            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
+        }
+        return false;
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<CountryImpl, CountryModel> {
-
-        private static final SelectColumnList DETAIL_DML;
-
-        static {
-            DETAIL_DML = new SelectColumnList(DbTable.COUNTRY);
-            DETAIL_DML.makeUnmodifiable();
-        }
-
-        // This is a singleton instance
-        private FactoryImpl() {
-        }
+    public static final class FactoryImpl extends DataObjectImpl.DaoFactory<CountryImpl> {
 
         @Override
-        protected CountryImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            CountryImpl result = new CountryImpl();
-            initializeDao(result, resultSet, columns);
-            return result;
+        public boolean isAssignableFrom(DataObjectImpl dao) {
+            return null != dao && dao instanceof CountryImpl;
         }
 
-        @Override
-        public SelectColumnList getSelectColumns() {
-            return DETAIL_DML;
-        }
-
-        @Override
-        public Class<? extends CountryImpl> getDaoClass() {
-            return CountryImpl.class;
-        }
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         @Override
         public DbTable getDbTable() {
@@ -91,30 +92,100 @@ public class CountryImpl extends DataObjectImpl implements Country {
         }
 
         @Override
-        protected void setSqlParameter(CountryImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
-            if (column != DbColumn.COUNTRY_NAME) {
-                throw new UnsupportedOperationException("Unexpected column name");
-            }
-            ps.setString(index, dao.getName());
+        public DbColumn getPrimaryKeyColumn() {
+            return DbColumn.COUNTRY_ID;
         }
 
         @Override
-        protected void onInitializeDao(CountryImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            target.name = resultSet.getString(DbColumn.COUNTRY_NAME.getDbName().toString());
-            if (resultSet.wasNull()) {
-                target.name = "";
-            }
+        public CountryImpl createNew() {
+            return new CountryImpl();
         }
 
         @Override
-        public ModelListingFilter<CountryImpl, CountryModel> getAllItemsFilter() {
-            return ModelListingFilter.all(this, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCOUNTRIES),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_ALLCOUNTRIES), null);
+        public DaoFilter<CountryImpl> getAllItemsFilter() {
+            return DaoFilter.all(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB),
+                    AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
         @Override
-        public ModelListingFilter<CountryImpl, CountryModel> getDefaultFilter() {
+        public DaoFilter<CountryImpl> getDefaultFilter() {
             return getAllItemsFilter();
+        }
+
+        @Override
+        protected void onInitializeFromResultSet(CountryImpl dao, ResultSet rs) throws SQLException {
+            String oldName = dao.name;
+            dao.name = rs.getString(DbColumn.COUNTRY_NAME.toString());
+            dao.firePropertyChange(PROP_NAME, oldName, dao.name);
+        }
+
+        Country fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new Country() {
+                private final String name = rs.getString(DbColumn.CITY_NAME.toString());
+                private final int primaryKey = rs.getInt(DbColumn.CITY_COUNTRY.toString());
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public int getPrimaryKey() {
+                    return primaryKey;
+                }
+
+                @Override
+                public DataRowState getRowState() {
+                    return DataRowState.UNMODIFIED;
+                }
+
+                @Override
+                public boolean isExisting() {
+                    return true;
+                }
+
+                @Override
+                public int hashCode() {
+                    return primaryKey;
+                }
+
+                @Override
+                public boolean equals(Object obj) {
+                    if (null != obj && obj instanceof Country) {
+                        Country other = (Country) obj;
+                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
+                    }
+                    return false;
+                }
+
+            };
+        }
+
+        @Override
+        public StringBuilder getBaseSelectQuery() {
+            StringBuilder sb = new StringBuilder();
+            return sb.append("SELECT ").append(DbColumn.COUNTRY_ID).append(", ").append(DbColumn.COUNTRY_NAME)
+                    .append(", ").append(DbColumn.COUNTRY_CREATE_DATE).append(", ").append(DbColumn.COUNTRY_CREATED_BY).append(", ")
+                    .append(DbColumn.COUNTRY_LAST_UPDATE).append(", ").append(DbColumn.COUNTRY_LAST_UPDATE_BY);
+        }
+
+        void appendSelectColumns(StringBuilder sb) {
+            sb.append(", ").append(DbTable.COUNTRY).append(".").append(DbColumn.COUNTRY_NAME).append(" AS ").append(DbColumn.COUNTRY_NAME);
+        }
+
+        void appendJoinStatement(StringBuilder sb) {
+            sb.append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName()).append(" ").append(DbTable.COUNTRY).append(" ON ")
+                    .append(DbTable.CITY).append(".").append(DbColumn.CITY_COUNTRY).append(" = ")
+                    .append(DbTable.COUNTRY).append(".").append(DbColumn.COUNTRY_ID);
+        }
+
+        // This is a singleton instance
+        private FactoryImpl() {
+        }
+
+        @Override
+        public Class<? extends CountryImpl> getDaoClass() {
+            return CountryImpl.class;
         }
 
         @Override
@@ -167,8 +238,28 @@ public class CountryImpl extends DataObjectImpl implements Country {
             return "";
         }
 
-        public ArrayList<CountryImpl> getAllCountries(Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public ArrayList<CountryImpl> getAllCountries(Connection connection) throws SQLException {
+            String sql = getBaseSelectQuery().toString();
+            LOG.logp(Level.INFO, getClass().getName(), "getAllCountries", String.format("Executing query \"%s\"", sql));
+            ArrayList<CountryImpl> result = new ArrayList<>();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (null != rs) {
+                        while (rs.next()) {
+                            CountryImpl e = new CountryImpl();
+                            initializeFromResultSet(e, rs);
+                            result.add(e);
+                        }
+                    }
+                    SQLWarning w = connection.getWarnings();
+                    if (null == w) {
+                        LOG.logp(Level.WARNING, getClass().getName(), "getAllCountries", "Null results, no warnings.");
+                    } else {
+                        LOG.logp(Level.WARNING, getClass().getName(), "getAllCountries", "Encountered warning", w);
+                    }
+                }
+            }
+            return result;
         }
 
     }

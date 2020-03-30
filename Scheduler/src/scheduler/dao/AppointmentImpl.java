@@ -1,18 +1,16 @@
 package scheduler.dao;
 
-import scheduler.dao.schema.DbTable;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.SelectColumnList;
-import scheduler.dao.dml.deprecated.TableColumnList;
+import java.util.Objects;
+import scheduler.AppResourceBundleConstants;
+import scheduler.AppResources;
 import scheduler.dao.schema.DbColumn;
+import scheduler.dao.schema.DbTable;
 import scheduler.util.DB;
-import scheduler.view.appointment.AppointmentModel;
 
 public class AppointmentImpl extends DataObjectImpl implements Appointment<Customer<? extends Address>, User> {
 
@@ -63,14 +61,14 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
      */
     public static final String PROP_END = "end";
 
-    public static FactoryImpl getFactory() {
-        return FACTORY;
-    }
-
     /**
      * The name of the 'start' property.
      */
     public static final String PROP_START = "start";
+
+    public static FactoryImpl getFactory() {
+        return FACTORY;
+    }
 
     private Customer<? extends Address> customer;
     private User user;
@@ -261,39 +259,48 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
         firePropertyChange(PROP_END, oldValue, this.end);
     }
 
-    public static final class FactoryImpl extends DataObjectImpl.Factory_obsolete<AppointmentImpl, AppointmentModel> {
-
-        private static final SelectColumnList DETAIL_DML;
-
-        static {
-            DETAIL_DML = new SelectColumnList(DbTable.APPOINTMENT);
-            DETAIL_DML.leftJoin(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_ID)
-                    .leftJoin(DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS_ID)
-                    .leftJoin(DbColumn.ADDRESS_CITY, DbColumn.CITY_ID)
-                    .leftJoin(DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_ID);
-            DETAIL_DML.leftJoin(DbColumn.APPOINTMENT_USER, DbColumn.USER_ID);
-            DETAIL_DML.makeUnmodifiable();
+    @Override
+    public int hashCode() {
+        if (this.getRowState() != DataRowState.NEW) {
+            return this.getPrimaryKey();
         }
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.customer);
+        hash = 97 * hash + Objects.hashCode(this.user);
+        hash = 97 * hash + Objects.hashCode(this.title);
+        hash = 97 * hash + Objects.hashCode(this.description);
+        hash = 97 * hash + Objects.hashCode(this.location);
+        hash = 97 * hash + Objects.hashCode(this.contact);
+        hash = 97 * hash + Objects.hashCode(this.type);
+        hash = 97 * hash + Objects.hashCode(this.url);
+        hash = 97 * hash + Objects.hashCode(this.start);
+        hash = 97 * hash + Objects.hashCode(this.end);
+        return hash;
+    }
 
-        // This is a singleton instance
-        private FactoryImpl() {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
+        if (null != obj && obj instanceof Appointment) {
+            Appointment other = (Appointment) obj;
+            if (getRowState() == DataRowState.NEW) {
+                return other.getRowState() == DataRowState.NEW && customer.equals(other.getCustomer()) && user.equals(other.getUser())
+                        && title.equals(other.getTitle()) && description.equals(other.getDescription()) && location.equals(other.getLocation())
+                        && contact.equals(other.getContact()) && type.equals(other.getType()) && url.equals(other.getUrl())
+                        && start.equals(other.getStart()) && end.equals(other.getEnd());
+            }
+            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
+        }
+        return false;
+    }
+
+    public static final class FactoryImpl extends DataObjectImpl.DaoFactory<AppointmentImpl> {
 
         @Override
-        protected AppointmentImpl fromResultSet(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            AppointmentImpl r = new AppointmentImpl();
-            initializeDao(r, resultSet, columns);
-            return r;
-        }
-
-        @Override
-        public SelectColumnList getSelectColumns() {
-            return DETAIL_DML;
-        }
-
-        @Override
-        public Class<? extends AppointmentImpl> getDaoClass() {
-            return AppointmentImpl.class;
+        public boolean isAssignableFrom(DataObjectImpl dao) {
+            return null != dao && dao instanceof AppointmentImpl;
         }
 
         @Override
@@ -302,91 +309,126 @@ public class AppointmentImpl extends DataObjectImpl implements Appointment<Custo
         }
 
         @Override
-        protected void setSqlParameter(AppointmentImpl dao, DbColumn column, PreparedStatement ps, int index) throws SQLException {
-            switch (column) {
-                case APPOINTMENT_CUSTOMER:
-                    ps.setInt(index, dao.getCustomer().getPrimaryKey());
-                    break;
-                case CUSTOMER_ADDRESS:
-                    ps.setInt(index, dao.getUser().getPrimaryKey());
-                    break;
-                case TITLE:
-                    ps.setString(index, dao.getTitle());
-                    break;
-                case DESCRIPTION:
-                    ps.setString(index, dao.getDescription());
-                    break;
-                case LOCATION:
-                    ps.setString(index, dao.getLocation());
-                    break;
-                case CONTACT:
-                    ps.setString(index, dao.getContact());
-                    break;
-                case TYPE:
-                    ps.setString(index, dao.getType().getDbValue());
-                    break;
-                case URL:
-                    ps.setString(index, dao.getUrl());
-                    break;
-                case START:
-                    ps.setTimestamp(index, dao.getStart());
-                    break;
-                case END:
-                    ps.setTimestamp(index, dao.getEnd());
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unexpected column name");
-            }
+        public DbColumn getPrimaryKeyColumn() {
+            return DbColumn.APPOINTMENT_ID;
         }
 
         @Override
-        protected void onInitializeDao(AppointmentImpl target, ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-            target.customer = Customer.of(resultSet, columns);
-            target.user = User.of(resultSet, columns);
-            target.title = columns.getString(resultSet, DbColumn.TITLE, "");
-            target.description = columns.getString(resultSet, DbColumn.DESCRIPTION, "");
-            target.location = columns.getString(resultSet, DbColumn.LOCATION, "");
-            target.contact = columns.getString(resultSet, DbColumn.CONTACT, "");
-            target.type = AppointmentType.of(columns.getString(resultSet, DbColumn.TYPE, ""), AppointmentType.OTHER);
-            target.url = columns.getString(resultSet, DbColumn.URL, "");
-            target.start = columns.getTimestamp(resultSet, DbColumn.START);
-            target.end = columns.getTimestamp(resultSet, DbColumn.END);
+        public AppointmentImpl createNew() {
+            return new AppointmentImpl();
         }
 
         @Override
-        public AppointmentFilter getAllItemsFilter() {
-            return AppointmentFilter.all();
+        public DaoFilter<AppointmentImpl> getAllItemsFilter() {
+            return DaoFilter.all(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB),
+                    AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGAPPOINTMENTS));
         }
 
         @Override
-        public AppointmentFilter getDefaultFilter() {
-            return AppointmentFilter.myCurrentAndFuture();
+        public DaoFilter<AppointmentImpl> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public StringBuilder getBaseSelectQuery() {
+            StringBuilder sb = new StringBuilder();
+            CustomerImpl.getFactory().appendSelectColumns(sb.append("SELECT ")
+                    .append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_ID).append(" AS ").append(DbColumn.APPOINTMENT_ID)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_ID).append(" AS ").append(DbColumn.APPOINTMENT_ID));
+            UserImpl.getFactory().appendSelectColumns(sb
+                    .append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_USER).append(" AS ").append(DbColumn.APPOINTMENT_USER));
+            CustomerImpl.getFactory().appendJoinStatement(sb
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.TITLE).append(" AS ").append(DbColumn.TITLE)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.DESCRIPTION).append(" AS ").append(DbColumn.DESCRIPTION)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.LOCATION).append(" AS ").append(DbColumn.LOCATION)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.CONTACT).append(" AS ").append(DbColumn.CONTACT)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.TYPE).append(" AS ").append(DbColumn.TYPE)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.URL).append(" AS ").append(DbColumn.URL)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.START).append(" AS ").append(DbColumn.START)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.END).append(" AS ").append(DbColumn.END)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_CREATE_DATE).append(" AS ").append(DbColumn.APPOINTMENT_CREATE_DATE)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_CREATED_BY).append(" AS ").append(DbColumn.APPOINTMENT_CREATED_BY)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_LAST_UPDATE).append(" AS ").append(DbColumn.APPOINTMENT_LAST_UPDATE)
+                    .append(", ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.APPOINTMENT_LAST_UPDATE_BY).append(" AS ").append(DbColumn.APPOINTMENT_LAST_UPDATE_BY)
+                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName()).append(" ").append(DbTable.APPOINTMENT));
+            UserImpl.getFactory().appendJoinStatement(sb);
+            return sb;
+        }
+
+        @Override
+        protected void onInitializeFromResultSet(AppointmentImpl dao, ResultSet rs) throws SQLException {
+            Customer oldCustomer = dao.customer;
+            dao.customer = CustomerImpl.getFactory().fromJoinedResultSet(rs);
+            User oldUser = dao.user;
+            dao.user = UserImpl.getFactory().fromJoinedResultSet(rs);
+            String oldTitle = dao.title;
+            dao.title = rs.getString(DbColumn.TITLE.toString());
+            String oldDescription = dao.description;
+            dao.description = rs.getString(DbColumn.DESCRIPTION.toString());
+            String oldLocation = dao.location;
+            dao.location = rs.getString(DbColumn.LOCATION.toString());
+            String oldContact = dao.contact;
+            dao.contact = rs.getString(DbColumn.CONTACT.toString());
+            AppointmentType oldType = dao.type;
+            dao.type = AppointmentType.of(rs.getString(DbColumn.TYPE.toString()), oldType);
+            String oldUrl = dao.url;
+            dao.url = rs.getString(DbColumn.URL.toString());
+            Timestamp oldStart = dao.start;
+            dao.start = rs.getTimestamp(DbColumn.START.toString());
+            Timestamp oldEnd = dao.end;
+            dao.end = rs.getTimestamp(DbColumn.END.toString());
+            dao.firePropertyChange(PROP_CUSTOMER, oldCustomer, dao.customer);
+            dao.firePropertyChange(PROP_USER, oldUser, dao.user);
+            dao.firePropertyChange(PROP_TITLE, oldTitle, dao.title);
+            dao.firePropertyChange(PROP_DESCRIPTION, oldDescription, dao.description);
+            dao.firePropertyChange(PROP_LOCATION, oldLocation, dao.location);
+            dao.firePropertyChange(PROP_CONTACT, oldContact, dao.contact);
+            dao.firePropertyChange(PROP_TYPE, oldType, dao.type);
+            dao.firePropertyChange(PROP_URL, oldUrl, dao.url);
+            dao.firePropertyChange(PROP_START, oldStart, dao.start);
+            dao.firePropertyChange(PROP_END, oldEnd, dao.end);
+        }
+
+        // This is a singleton instance
+        private FactoryImpl() {
+        }
+
+        @Override
+        public Class<? extends AppointmentImpl> getDaoClass() {
+            return AppointmentImpl.class;
         }
 
         public int countByCustomer(Connection connection, int customerId, LocalDateTime start, LocalDateTime end) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
+            // TODO: Implement this if used
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         public int countByCustomer(Connection connection, int customerId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
+            // TODO: Implement this if used
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         public int countByUser(Connection connection, int userId, LocalDateTime start, LocalDateTime end) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
+            // TODO: Implement this if used
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         public int countByUser(Connection connection, int userId) throws Exception {
-            throw new UnsupportedOperationException("Not implemented");
+            // TODO: Implement this if used
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
         public String getDeleteDependencyMessage(AppointmentImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
         @Override
         public String getSaveConflictMessage(AppointmentImpl dao, Connection connection) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            // TODO: Implement this
+            throw new UnsupportedOperationException("Not supported yet.");
         }
 
     }

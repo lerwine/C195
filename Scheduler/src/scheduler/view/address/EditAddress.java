@@ -8,7 +8,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
+import scheduler.dao.DataObjectImpl.DaoFactory;
+import scheduler.view.ItemModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.CityReferenceModel;
@@ -108,8 +109,8 @@ public final class EditAddress extends EditItem.EditController<AddressImpl, Addr
     }
 
     @Override
-    protected Factory_obsolete<AddressImpl, AddressModel> getDaoFactory() {
-        return AddressImpl.getFactory();
+    protected ItemModel.ModelFactory<AddressImpl, AddressModel> getFactory() {
+        return AddressModel.getFactory();
     }
 
 }

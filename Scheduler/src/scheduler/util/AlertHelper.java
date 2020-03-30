@@ -17,7 +17,7 @@ import scheduler.view.ErrorDialogDetailController;
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-public class Alerts {
+public class AlertHelper {
 
     public static final String CSS_CLASS_FORMCONTROLLABEL = "formControlLabel";
 
@@ -57,7 +57,7 @@ public class Alerts {
         try {
             alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
         } catch (IOException ex) {
-            Logger.getLogger(Alerts.class.getName()).logp(Level.SEVERE, Alerts.class.getName(), "logAndAlert", "Error loading exception detail", ex);
+            Logger.getLogger(AlertHelper.class.getName()).logp(Level.SEVERE, AlertHelper.class.getName(), "logAndAlert", "Error loading exception detail", ex);
         }
         return alert.showAndWait();
     }
@@ -76,7 +76,7 @@ public class Alerts {
         try {
             alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
         } catch (IOException ex) {
-            Logger.getLogger(Alerts.class.getName()).logp(Level.SEVERE, Alerts.class.getName(), "logAndAlert", "Error loading exception detail", ex);
+            Logger.getLogger(AlertHelper.class.getName()).logp(Level.SEVERE, AlertHelper.class.getName(), "logAndAlert", "Error loading exception detail", ex);
         }
         return alert.showAndWait();
     }
@@ -123,7 +123,7 @@ public class Alerts {
             try {
                 alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, null));
             } catch (IOException ex) {
-                Logger.getLogger(Alerts.class.getName()).logp(Level.SEVERE, Alerts.class.getName(), "logAndAlert", "Error loading exception detail", ex);
+                Logger.getLogger(AlertHelper.class.getName()).logp(Level.SEVERE, AlertHelper.class.getName(), "logAndAlert", "Error loading exception detail", ex);
             }
         }
         return alert.showAndWait();

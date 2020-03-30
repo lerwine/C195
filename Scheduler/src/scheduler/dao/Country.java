@@ -3,22 +3,9 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.Optional;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.TableColumnList;
-import scheduler.dao.schema.DbColumn;
-import scheduler.dao.schema.DbName;
 
 /**
- * Represents a data row from the country data table. Table definition: <code>CREATE TABLE `country` (
- *   `countryId` int(10) NOT NULL AUTO_INCREMENT,
- *   `country` varchar(50) NOT NULL,
- *   `createDate` datetime NOT NULL,
- *   `createdBy` varchar(40) NOT NULL,
- *   `lastUpdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
- *   `lastUpdateBy` varchar(40) NOT NULL,
- *   PRIMARY KEY (`countryId`)
- * ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;</code>
+ * Represents a data row from the country data table.
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
@@ -71,15 +58,11 @@ public interface Country extends DataObject {
      * Creates a read-only Country object from a result set.
      *
      * @param resultSet The data retrieved from the database.
-     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only Country object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static Country of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.ADDRESS_ID);
-        if (id.isPresent()) {
-            return of(id.get(), columns.getString(resultSet, DbColumn.COUNTRY_NAME, ""));
-        }
-        return null;
+    public static Country of(ResultSet resultSet) throws SQLException {
+        // TODO: Implement this
+        throw new UnsupportedOperationException();
     }
 }

@@ -5,14 +5,15 @@ import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.stage.Stage;
 import scheduler.dao.CountryImpl;
-import scheduler.dao.ModelListingFilter;
 import scheduler.view.EditItem;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.ItemEvent;
 import scheduler.util.ItemEventManager;
+import scheduler.view.ItemModel;
 import scheduler.view.MainController;
+import scheduler.view.ModelFilter;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items. This is loaded as content of {@link MainController} using
@@ -26,26 +27,14 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
 
     private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
 
-    /**
-     * Loads {@link CountryModel} listing view and controller into the {@link MainController}.
-     *
-     * @param mainController The {@link MainController} to contain the {@link CountryModel} listing.
-     * @param stage The {@link Stage} for the view associated with the current main controller.
-     * @param filter The {@link ModelListingFilter} to use for loading and filtering {@link CountryModel} items.
-     * @throws IOException if unable to load the view.
-     */
-    public static void setContent(MainController mainController, Stage stage, ModelListingFilter<CountryImpl, CountryModel> filter) throws IOException {
-        setContent(mainController, ManageCountries.class, stage, filter);
-    }
-
     @Override
     protected void onAddNewItem(Event event) {
         getMainController().addNewCountry(event);
     }
 
     @Override
-    protected EditItem.ShowAndWaitResult<CountryModel> onEditItem(Event event, CountryModel item) {
-        return getMainController().editCountry(event, item);
+    protected void onEditItem(Event event, CountryModel item) {
+        getMainController().editCountry(event, item);
     }
 
     @Override
@@ -64,13 +53,8 @@ public final class ManageCountries extends ListingController<CountryImpl, Countr
     }
 
     @Override
-    protected ItemEventManager<ItemEvent<CountryModel>> getItemAddManager() {
-        return getMainController().getCountryAddManager();
-    }
-
-    @Override
-    protected ItemEventManager<ItemEvent<CountryModel>> getItemRemoveManager() {
-        return getMainController().getCountryRemoveManager();
+    protected ItemModel.ModelFactory<CountryImpl, CountryModel> getModelFactory() {
+        return CountryModel.getFactory();
     }
 
 }

@@ -1,5 +1,6 @@
 package scheduler.view.address;
 
+import java.util.Objects;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
@@ -9,11 +10,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.AddressImpl;
 import scheduler.dao.City;
-import scheduler.dao.DataObjectImpl.Factory_obsolete;
+import scheduler.dao.DataObjectImpl.DaoFactory;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.util.Values;
+import scheduler.view.ItemModel;
+import scheduler.view.ModelFilter;
 import scheduler.view.city.CityReferenceModel;
 import scheduler.view.city.CityReferenceModelImpl;
 
@@ -157,22 +160,6 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
         cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
     }
 
-    @Override
-    protected void refreshFromDAO(AddressImpl dao) {
-        address1.set(dao.getAddress1());
-        address2.set(dao.getAddress2());
-        // TODO: Parameterize this
-        City c = dao.getCity();
-        city.set((null == c) ? null : new CityReferenceModelImpl(c));
-        postalCode.set(dao.getPostalCode());
-        phone.set(dao.getPhone());
-    }
-
-    @Override
-    public Factory_obsolete<AddressImpl, AddressModel> getDaoFactory() {
-        return AddressImpl.getFactory();
-    }
-
     class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {
 
         AddressLinesProperty() {
@@ -212,4 +199,78 @@ public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> im
 
     }
 
+    private static final Factory FACTORY = new Factory();
+
+    public static final Factory getFactory() {
+        return FACTORY;
+    }
+
+    @Override
+    public int hashCode() {
+        if (isNewItem()) {
+            int hash = 3;
+            hash = 19 * hash + Objects.hashCode(address1.get());
+            hash = 19 * hash + Objects.hashCode(address2.get());
+            hash = 19 * hash + Objects.hashCode(city.get());
+            hash = 19 * hash + Objects.hashCode(postalCode.get());
+            hash = 19 * hash + Objects.hashCode(phone.get());
+            return hash;
+        }
+        return getPrimaryKey();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null != obj && obj instanceof AddressModel) {
+            final AddressModel other = (AddressModel) obj;
+            if (isNewItem()) {
+                return address1.isEqualTo(other.address1).get() && address2.isEqualTo(other.address2).get() && city.isEqualTo(other.city).get() &&
+                        postalCode.isEqualTo(other.postalCode).get() && phone.isEqualTo(other.phone).get();
+            }
+            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+        }
+        return false;
+    }
+
+    public final static class Factory extends ItemModel.ModelFactory<AddressImpl, AddressModel> {
+
+        private Factory() { }
+        
+        @Override
+        public DaoFactory<AddressImpl> getDaoFactory() {
+            return AddressImpl.getFactory();
+        }
+
+        @Override
+        public AddressModel createNew(AddressImpl dao) {
+            return new AddressModel(dao);
+        }
+
+        @Override
+        protected void updateItem(AddressModel item, AddressImpl dao) {
+            super.updateItem(item, dao);
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<AddressImpl, AddressModel> getAllItemsFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public ModelFilter<AddressImpl, AddressModel> getDefaultFilter() {
+            throw new UnsupportedOperationException("Not supported yet.");
+            // TODO: Implement this
+        }
+
+        @Override
+        public AddressImpl applyChanges(AddressModel item) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    }
 }

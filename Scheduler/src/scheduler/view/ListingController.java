@@ -1,6 +1,5 @@
 package scheduler.view;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Iterator;
@@ -15,7 +14,6 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
@@ -23,16 +21,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import scheduler.AppResources;
+import scheduler.dao.DataObjectEvent;
 import scheduler.dao.DataObjectImpl;
-import scheduler.dao.ModelListingFilter;
-import scheduler.util.Alerts;
-import scheduler.util.ItemEvent;
-import scheduler.util.ItemEventListener;
-import scheduler.util.ItemEventManager;
+import scheduler.util.AlertHelper;
+import scheduler.view.annotations.HandlesDataObjectEvent;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects. This is loaded as the content of
- * {@link MainController} using {@link #setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage, scheduler.dao.ModelListingFilter)}.
+ * {@link MainController} using
+ * {@link #setContent(scheduler.view.MainController, java.lang.Class, javafx.stage.Stage, scheduler.dao.ModelListingFilter)}.
  *
  * @author Leonard T. Erwine
  * @param <T> The type of data access object that corresponds to the model object type.
@@ -42,15 +39,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
 
     private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
 
-    public static <T extends DataObjectImpl, S extends ItemModel<T>> ListingController<T, S> setContent(MainController mainController,
-            Class<? extends ListingController<T, S>> controllerClass, Stage stage, ModelListingFilter<T, S> filter) throws IOException {
-        ListingController<T, S> controller = setContent(mainController, controllerClass, stage);
-        controller.changeFilter(filter, stage, null);
-        return controller;
-    }
-    private ItemEventListener<ItemEvent<S>> itemAddedListener;
-    private ItemEventListener<ItemEvent<S>> itemRemovedListener;
-    private ModelListingFilter<T, S> filter;
+    private ModelFilter<T, S> filter;
     private final ObservableList<S> itemsList = FXCollections.observableArrayList();
 
     /**
@@ -123,7 +112,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
             S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = AppResources.getResources();
-                Alerts.showWarningAlert(rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+                AlertHelper.showWarningAlert(rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
             } else {
                 onEditItem(event, item);
             }
@@ -133,49 +122,27 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
             S item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = AppResources.getResources();
-                Alerts.showWarningAlert(rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+                AlertHelper.showWarningAlert(rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
             } else {
                 onDeleteItem(event, item);
             }
         });
         Objects.requireNonNull(newButton, String.format("fx:id=\"newButton\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> onAddNewItem(event));
-        itemAddedListener = (event) -> {
-            if (null == filter || filter.test(event.getTarget())) {
-                itemsList.add(event.getTarget());
+    }
+
+    protected abstract ItemModel.ModelFactory<T, S> getModelFactory();
+
+    @HandlesDataObjectEvent
+    protected void onDataObjectEvent(DataObjectEvent<? extends DataObjectImpl> event) {
+        DataObjectImpl dao = event.getDataObject();
+        if (getModelFactory().getDaoFactory().isAssignableFrom(dao)) {
+            switch (event.getChangeAction()) {
+                case DELETED:
+                    removeListItemByPrimaryKey(dao.getPrimaryKey());
+                    break;
             }
-        };
-        itemRemovedListener = (event) -> {
-            removeListItemByPrimaryKey(event.getTarget().getPrimaryKey());
-        };
-    }
-
-    /**
-     * Gets the {@link ItemEventManager} from the {@link MainController} that emits an event whenever a new item has been inserted into the database.
-     *
-     * @return The {@link ItemEventManager} from the {@link MainController}.
-     */
-    protected abstract ItemEventManager<ItemEvent<S>> getItemAddManager();
-
-    /**
-     * Gets the {@link ItemEventManager} from the {@link MainController} that emits an event whenever an item has been removed into the database.
-     *
-     * @return The {@link ItemEventManager} from the {@link MainController}.
-     */
-    protected abstract ItemEventManager<ItemEvent<S>> getItemRemoveManager();
-
-    @Override
-    protected void onBeforeShow(Node currentView, Stage stage) {
-        getItemAddManager().addListener(itemAddedListener);
-        getItemAddManager().addListener(itemRemovedListener);
-        super.onBeforeShow(currentView, stage);
-    }
-
-    @Override
-    protected void onUnloaded(Node view) {
-        getItemAddManager().removeListener(itemAddedListener);
-        getItemAddManager().removeListener(itemRemovedListener);
-        super.onUnloaded(view);
+        }
     }
 
     /**
@@ -185,21 +152,25 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
      * @param stage The {@link Stage} to whose content is to be masked while items are loaded from the database.
      * @param onChangeComplete The {@link Consumer} to invoke after the filter has been changed and items have been loaded. This will contain a
      * {@code true} parameter if the filter required items to be reloaded from the database or {@code false} if the filter was the same and no action
-     * was needed. This can also pass a @code false} value if the filter is changed again before the items load task is finished.
+     * was needed. This can also pass a @code false} value if the filter is changed again before the items loadViewAndController task is finished.
      */
-    public synchronized void changeFilter(ModelListingFilter<T, S> value, Stage stage, Consumer<Boolean> onChangeComplete) {
+    public synchronized void changeFilter(ModelFilter<T, S> value, Stage stage, Consumer<Boolean> onChangeComplete) {
         Objects.requireNonNull(stage);
         if (null == value) {
-            value = getDaoFactory().getDefaultFilter();
+//            value = getDaoFactory().getDefaultFilter();
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
-        if (null != filter && ModelListingFilter.areEqual(value, filter)) {
-            if (null != onChangeComplete) {
-                onChangeComplete.accept(Boolean.FALSE);
-            }
-            return;
-        }
-        filter = value;
-        TaskWaiter.execute(createItemsLoadTask(stage, onChangeComplete));
+//        if (null != filter && ModelFilter.areEqual(value, filter)) {
+//            if (null != onChangeComplete) {
+//                onChangeComplete.accept(Boolean.FALSE);
+//            }
+//            return;
+//        }
+        throw new UnsupportedOperationException();
+        // TODO: Implement this
+//        filter = value;
+//        TaskWaiter.execute(createItemsLoadTask(stage, onChangeComplete));
     }
 
     /**
@@ -227,9 +198,8 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
      *
      * @param event Contextual information about the event.
      * @param item The selected item to be edited.
-     * @return
      */
-    protected abstract EditItem.ShowAndWaitResult<S> onEditItem(Event event, S item);
+    protected abstract void onEditItem(Event event, S item);
 
     /**
      * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
@@ -347,7 +317,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
      *
      * @return The {@link DataObjectImpl.Factory_obsolete} to be used with this listing.
      */
-    protected abstract DataObjectImpl.Factory_obsolete<T, S> getDaoFactory();
+    protected abstract DataObjectImpl.DaoFactory<T> getDaoFactory();
 
     /**
      * Creates an {@link ItemModel} from a {@link DataObjectImpl}.
@@ -363,7 +333,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
      * @param filter The new {@link ModelListingFilter} being applied.
      * @param owner The {@link Stage} for the {@link javafx.event.ActionEvent} that triggered the filter change.
      */
-    protected void onItemsLoaded(ModelListingFilter<T, S> filter, Stage owner) {
+    protected void onItemsLoaded(ModelFilter<T, S> filter, Stage owner) {
     }
 
     /**
@@ -371,7 +341,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
      */
     protected class ItemsLoadTask extends TaskWaiter<List<T>> {
 
-        private final ModelListingFilter<T, S> currentFilter;
+        private final ModelFilter<T, S> currentFilter;
         private final Consumer<Boolean> onComplete;
 
         /**
@@ -398,7 +368,9 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
 
         @Override
         protected final List<T> getResult(Connection connection) throws SQLException {
-            return currentFilter.get(connection);
+//            return currentFilter.get(connection);
+            throw new UnsupportedOperationException();
+            // TODO: Implement this
         }
 
         @Override
@@ -430,7 +402,7 @@ public abstract class ListingController<T extends DataObjectImpl, S extends Item
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.logp(Level.SEVERE, getClass().getName(), "processException", String.format("\"%s\" operation error", getTitle()), ex);
-            Alerts.showErrorAlert(owner, ex);
+            AlertHelper.showErrorAlert(owner, ex);
         }
 
     }

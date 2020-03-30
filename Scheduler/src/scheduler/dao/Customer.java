@@ -3,11 +3,6 @@ package scheduler.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
-import java.util.Optional;
-import scheduler.dao.dml.deprecated.ColumnReference;
-import scheduler.dao.dml.deprecated.TableColumnList;
-import scheduler.dao.schema.DbColumn;
-import scheduler.dao.schema.DbName;
 
 /**
  * Represents a data row from the "customer" database table. Table definition: <code>CREATE TABLE `customer` (
@@ -97,16 +92,11 @@ public interface Customer<T extends Address<? extends City>> extends DataObject 
      *
      * @param <T>
      * @param resultSet The data retrieved from the database.
-     * @param columns The {@link TableColumnList} that created the current lookup query.
      * @return The read-only Customer object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static <T extends Address<? extends City>> Customer<T> of(ResultSet resultSet, TableColumnList<? extends ColumnReference> columns) throws SQLException {
-        Optional<Integer> id = columns.tryGetInt(resultSet, DbName.CUSTOMER_ID);
-        if (id.isPresent()) {
-            return Customer.of(id.get(), columns.getString(resultSet, DbColumn.CUSTOMER_NAME, ""),
-                    (T)Address.of(resultSet, columns), columns.getBoolean(resultSet, DbColumn.ACTIVE, false));
-        }
-        return null;
+    public static <T extends Address<? extends City>> Customer<T> of(ResultSet resultSet) throws SQLException {
+        // TODO: Implement this
+        throw new UnsupportedOperationException();
     }
 }

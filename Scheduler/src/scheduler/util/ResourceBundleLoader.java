@@ -30,7 +30,6 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_MODIFIEDBYON;
 import scheduler.AppResources;
 import static scheduler.AppResources.PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER;
 import static scheduler.AppResources.PROPERTYKEY_SUPPORTEDLOCALES;
-import scheduler.view.annotations.GlobalizationResource;
 
 /**
  * Caches loaded resource bundles, reloading them if the default Display Locale has changed.
@@ -153,22 +152,9 @@ public final class ResourceBundleLoader {
             if (map.containsKey(c)) {
                 return map.get(c);
             }
-            Class<GlobalizationResource> ac = GlobalizationResource.class;
-            String message;
-            if (target.isAnnotationPresent(ac)) {
-                String n = target.getAnnotation(ac).value();
-                if (n != null && !n.trim().isEmpty()) {
-                    map.put(c, n);
-                    return n;
-                }
-                message = String.format("Value not defined for annotation scene.annotations.GlobalizationResource in type %s",
-                        target.getName());
-            } else {
-                message = String.format("Annotation scene.annotations.GlobalizationResource not present in type %s", target.getName());
-            }
-            LOG.logp(Level.SEVERE, ResourceBundleLoader.class.getName(), "getGlobalizationResourceName", message);
-            map.put(c, "");
-            return "";
+            String n = AnnotationHelper.getGlobalizationResourceName(target);
+            map.put(c, n);
+            return n;
         }
     }
 
