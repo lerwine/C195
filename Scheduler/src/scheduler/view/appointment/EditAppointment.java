@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
@@ -10,11 +11,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
@@ -29,7 +30,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -37,30 +38,29 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import scheduler.AppResources;
-import scheduler.dao.Address;
-import scheduler.dao.AppointmentImpl;
+import scheduler.dao.AddressElement;
+import scheduler.dao.AppointmentDAO;
 import scheduler.dao.AppointmentType;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.DaoFactory;
-import scheduler.dao.UserImpl;
+import scheduler.dao.CustomerDAO;
+import scheduler.dao.UserDAO;
 import scheduler.util.AlertHelper;
-import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
-import scheduler.view.ItemModel;
-import scheduler.view.TaskWaiter;
-import scheduler.view.address.AddressReferenceModel;
+import scheduler.view.MainController;
+import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesViewLifecycleEvent;
-import scheduler.view.annotations.ViewLifecycleEventType;
-import scheduler.view.customer.CustomerModel;
-import scheduler.view.user.UserModel;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.event.FxmlViewEvent;
+import scheduler.view.model.ItemModel;
+import scheduler.view.task.TaskWaiter;
+import scheduler.view.user.UserModelImpl;
 
 /**
  * FXML Controller class
@@ -69,22 +69,29 @@ import scheduler.view.user.UserModel;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public final class EditAppointment extends EditItem.EditController<AppointmentImpl, AppointmentModel> implements EditAppointmentConstants {
+public final class EditAppointment extends EditItem.EditController<AppointmentDAO, AppointmentModel> implements EditAppointmentConstants {
 
     private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
-    @FXML // Customer selection control
-    private ComboBox<CustomerModel> customerComboBox;
+    public static AppointmentModel editNew(MainController mainController, Stage stage) throws IOException {
+        return editNew(EditAppointment.class, mainController, stage);
+    }
 
-    @FXML // User selection control.
-    private ComboBox<UserModel> userComboBox;
+    public static AppointmentModel edit(AppointmentModel model, MainController mainController, Stage stage) throws IOException {
+        return edit(model, EditAppointment.class, mainController, stage);
+    }
+
+    @FXML // CustomerDAO selection control
+    private ComboBox<CustomerModelImpl> customerComboBox;
+
+    @FXML // UserDAO selection control.
+    private ComboBox<UserModelImpl> userComboBox;
 
     @FXML // Label for displaying customer selection validation message.
     private Label customerValidationLabel;
 
-    @FXML // Label for displaying user selection validation message.
-    private Text customerValidationText;
-
+//    @FXML // Label for displaying user selection validation message.
+//    private Text customerValidationText;
     @FXML // Label for displaying user selection validation message.
     private Label userValidationLabel;
 
@@ -136,7 +143,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @FXML // Field label for phone number control as well as explicit and implicit location.
     private Label locationLabel;
 
-    @FXML // Appointment type selection control.
+    @FXML // AppointmentDAO type selection control.
     private ComboBox<AppointmentType> typeComboBox;
 
     @FXML // Explicit location input control.
@@ -145,7 +152,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @FXML // Phone number input control.
     private TextField phoneTextField;
 
-    @FXML // Label to contain the implicit location (Customer's address).
+    @FXML // Label to contain the implicit location (CustomerDAO's address).
     private Label implicitLocationLabel;
 
     @FXML // Label for displaying phone or explicit location validation message.
@@ -166,14 +173,14 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @FXML // Label for displaying point-of-contact validation message.
     private Label contactValidationLabel;
 
-    @FXML // Appointment description input control.
+    @FXML // AppointmentDAO description input control.
     private TextArea descriptionTextArea;
 
     // Items for the customerComboBox control.
-    private ObservableList<CustomerModel> customers;
+    private ObservableList<CustomerModelImpl> customers;
 
     // Items for the userComboBox control.
-    private ObservableList<UserModel> users;
+    private ObservableList<UserModelImpl> users;
 
     // Items for the startHourComboBox and endHourComboBox controls.
     private ObservableList<Integer> hourOptions;
@@ -202,13 +209,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     // Produces the validation message for the virtual meeting URL or an empty string if the virtual meeting URL is valid.
     private UrlValidation urlValidation;
 
-    private SimpleRequirementValidation<CustomerModel> customerValid;
-    private SimpleRequirementValidation<UserModel> userValid;
+    private SimpleRequirementValidation<CustomerModelImpl> customerValid;
+    private SimpleRequirementValidation<UserModelImpl> userValid;
     private NonWhiteSpaceValidation titleValid;
     private NonWhiteSpaceValidation contactValid;
 
     // Aggregate binding to indicate whether all controls are valid.
-    // TODO: Check why this is not used.
     private BooleanBinding valid;
 
     private int currentTimeZoneOffset;
@@ -219,10 +225,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                 AppResources.getFXMLResourceName(getClass()));
         assert userComboBox != null : String.format("fx:id=\"userComboBox\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
-        assert customerValidationText != null : String.format("fx:id=\"customerValidationText\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()));
-//        assert customerValidationLabel != null : String.format("fx:id=\"customerValidationLabel\" was not injected: check your FXML file '%s'.",
+//        assert customerValidationText != null : String.format("fx:id=\"customerValidationText\" was not injected: check your FXML file '%s'.",
 //                AppResources.getFXMLResourceName(getClass()));
+        assert customerValidationLabel != null : String.format("fx:id=\"customerValidationLabel\" was not injected: check your FXML file '%s'.",
+                AppResources.getFXMLResourceName(getClass()));
         assert userValidationLabel != null : String.format("fx:id=\"userValidationLabel\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
         assert titleTextField != null : String.format("fx:id=\"titleTextField\" was not injected: check your FXML file '%s'.",
@@ -318,16 +324,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         timeZoneComboBox.getSelectionModel().select((tz.isPresent()) ? tz.get() : timeZones.get(0));
         typeComboBox.setItems(types);
         typeComboBox.getSelectionModel().select(types.get(0));
-        try (DbConnector dep = new DbConnector()) {
-        } catch (Exception ex) {
-            if (customers == null) {
-                customers = FXCollections.observableArrayList();
-            }
-            if (users == null) {
-                users = FXCollections.observableArrayList();
-            }
-            LOG.log(Level.SEVERE, null, ex);
-        }
         customers = FXCollections.observableArrayList();
         users = FXCollections.observableArrayList();
         // Initialize validation and control state bindings
@@ -344,15 +340,16 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                 .and(conflictLookupState.conflictMessage.isEmpty()).and(urlValidation.isEmpty());
     }
 
-    @HandlesViewLifecycleEvent(type = ViewLifecycleEventType.ADDED)
-    protected void onBeforeShow(Node currentView, Stage stage) {
-        TaskWaiter.execute(new ItemsLoadTask(stage));
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.ADDED)
+    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
+        TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
     }
 
     @FXML
     void addCustomerClick(ActionEvent event) {
         AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addCustomerClick not implemented");
-//        CustomerModel customer = EditCustomer.addNew(getViewManager());
+        // TODO: Implement addCustomerClick(ActionEvent event)
+//        CustomerModelImpl customer = EditCustomer.addNew(getViewManager());
 //        if (null == customer)
 //            return;
 //        customers.add(customer);
@@ -362,7 +359,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @FXML
     void addUserClick(ActionEvent event) {
         AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "addUserClick not implemented");
-//        UserModel user = EditUser.addNew(getViewManager());
+        // TODO: Implement addUserClick(ActionEvent event)
+//        UserModelImpl user = EditUser.addNew(getViewManager());
 //        if (null == user)
 //            return;
 //        users.add(user);
@@ -372,22 +370,23 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
         AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "showConflictsButtonClick not implemented");
+        // TODO: Implement showConflictsButtonClick(ActionEvent event)
     }
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return valid;
     }
 
     @Override
-    protected ItemModel.ModelFactory<AppointmentImpl, AppointmentModel> getFactory() {
+    protected ItemModel.ModelFactory<AppointmentDAO, AppointmentModel> getFactory() {
         return AppointmentModel.getFactory();
     }
 
     private class ItemsLoadTask extends TaskWaiter<Boolean> {
 
-        private ArrayList<CustomerImpl> customerList;
-        private ArrayList<UserImpl> userList;
+        private List<CustomerDAO> customerList;
+        private List<UserDAO> userList;
 
         public ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(AppResources.RESOURCEKEY_INITIALIZING));
@@ -398,10 +397,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         @Override
         protected void processResult(Boolean result, Stage owner) {
             if (null != customerList && !customerList.isEmpty()) {
-                customerList.forEach((c) -> customers.add(new CustomerModel(c)));
+                customerList.forEach((c) -> customers.add(new CustomerModelImpl(c)));
             }
             if (null != userList && !userList.isEmpty()) {
-                userList.forEach((u) -> users.add(new UserModel(u)));
+                userList.forEach((u) -> users.add(new UserModelImpl(u)));
             }
             customerComboBox.setItems(customers);
             userComboBox.setItems(users);
@@ -415,15 +414,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         @Override
         protected Boolean getResult(Connection connection) throws SQLException {
-//            CustomerFilter cf = CustomerFilter.byStatus(true);
-//            updateMessage(cf.getLoadingMessage());
-//            customerList = cf.get(connection);
-//            UserFilter uf = UserFilter.active(true);
-//            updateMessage(uf.getLoadingMessage());
-//            userList = uf.get(connection);
-//            return null == customerList || null == userList || customerList.isEmpty() || userList.isEmpty();
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+            UserDAO.FactoryImpl uf = UserDAO.getFactory();
+            customerList = cf.load(connection, cf.getActiveStatusFilter(true));
+            userList = uf.load(connection, uf.getActiveUsersFilter());
+            return null == customerList || null == userList || customerList.isEmpty() || userList.isEmpty();
         }
 
     }
@@ -445,7 +440,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
         /**
          * The currently selected customer from the {@link #customerComboBox} control.
          */
-        final ObjectProperty<CustomerModel> selectedCustomerProperty;
+        final ObjectProperty<CustomerModelImpl> selectedCustomerProperty;
         /**
          * Indicates whether the selected appointment type is for an explicitly defined location
          * ({@link #selectedTypeProperty} == {@link #APPOINTMENT_CODE_OTHER}).
@@ -488,10 +483,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                     // If appointment type is for an appointment at the customer's location, return the customer's address;
                     // otherwise, return an emtpty string to indicate that the implicit location text label should not be shown.
                     AppointmentType t = selectedTypeProperty.get();
-                    CustomerModel c = selectedCustomerProperty.get();
+                    CustomerModelImpl c = selectedCustomerProperty.get();
                     if (t.equals(AppointmentType.CUSTOMER_SITE) && c != null) {
-                        AddressReferenceModel<? extends Address> a = c.getAddress();
-                        
+                        AddressModel<? extends AddressElement> a = c.getAddress();
+
                         if (a != null) {
                             String l = a.getAddressLines();
                             l = (null == l) ? "" : l.trim();
@@ -500,12 +495,14 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
                             String p = a.getPhone();
                             p = (null == p) ? "" : p.trim();
                             if (l.isEmpty()) {
-                                if (z.isEmpty())
+                                if (z.isEmpty()) {
                                     return p;
+                                }
                                 return (p.isEmpty()) ? z : String.format("%s%n%s", z, p);
                             }
-                            if (z.isEmpty())
+                            if (z.isEmpty()) {
                                 return (p.isEmpty()) ? l : String.format("%s%n%s", l, p);
+                            }
                             return (p.isEmpty()) ? String.format("%s%n%s", l, z) : String.format("%s%n%s%n%s", l, z, p);
                         }
                     }
@@ -660,8 +657,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         final SimpleIntegerProperty customerConflictCount;
         final SimpleIntegerProperty userConflictCount;
-        final ObjectProperty<CustomerModel> selectedCustomerProperty;
-        final ObjectProperty<UserModel> selectedUserProperty;
+        final ObjectProperty<CustomerModelImpl> selectedCustomerProperty;
+        final ObjectProperty<UserModelImpl> selectedUserProperty;
         final StringBinding conflictMessage;
 
         ConflictLookupState() {
@@ -741,11 +738,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
             if (start != null) {
                 LocalDateTime end = dateRangeValidation.endValidation.selectedDateTime.get();
                 if (end != null && start.compareTo(end) <= 0) {
-                    CustomerModel c = selectedCustomerProperty.get();
+                    CustomerModelImpl c = selectedCustomerProperty.get();
                     if (c != null) {
-                        UserModel u = selectedUserProperty.get();
+                        UserModelImpl u = selectedUserProperty.get();
                         if (u != null) {
-                            AppointmentImpl.FactoryImpl factory = AppointmentImpl.getFactory();
+                            AppointmentDAO.FactoryImpl factory = AppointmentDAO.getFactory();
                             int cc = factory.countByCustomer(connection, c.getPrimaryKey(), start, end);
                             int uc = factory.countByUser(connection, u.getPrimaryKey(), start, end);
                             customerConflictCount.set(cc);
@@ -768,7 +765,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentIm
 
         SimpleRequirementValidation(ComboBox<T> target, Label validationLabel) {
             valueProperty = target.valueProperty();
-            this.validationLabel = validationLabel;
+            this.validationLabel = Objects.requireNonNull(validationLabel);
             super.bind(valueProperty);
             super.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
                 onValidChanged(newValue);

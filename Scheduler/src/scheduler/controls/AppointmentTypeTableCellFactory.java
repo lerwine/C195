@@ -8,12 +8,11 @@ import scheduler.dao.AppointmentType;
 /**
  *
  * @author Leonard T. Erwine
- * @param <T> The row item type.
  */
-public class AppointmentTypeTableCellFactory<T extends AppointmentType> implements Callback<TableColumn<String, T>, TableCell<String, T>> {
+public class AppointmentTypeTableCellFactory implements Callback<TableColumn<String, AppointmentType>, TableCell<String, AppointmentType>> {
 
     @Override
-    public TableCell<String, T> call(TableColumn<String, T> param) {
-        return new AppointmentTypeTableCell<>();
+    public TableCell<String, AppointmentType> call(TableColumn<String, AppointmentType> param) {
+        return new AppointmentTypeTableCell();
     }
 }

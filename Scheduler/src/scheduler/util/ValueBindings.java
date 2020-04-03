@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
+import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -13,7 +14,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.DataObjectImpl;
+import scheduler.dao.DataAccessObject;
 
 /**
  *
@@ -225,7 +226,7 @@ public class ValueBindings {
             }
 
             @Override
-            public ObservableList<?> getDependencies() {
+            public ObservableList<Observable> getDependencies() {
                 return FXCollections.observableArrayList(date, hour, minute);
             }
 
@@ -236,7 +237,7 @@ public class ValueBindings {
         };
     }
 
-    public static <R extends DataObjectImpl> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
+    public static <R extends DataAccessObject> IntegerBinding primaryKeyBinding(final ObjectProperty<R> recordProperty) {
         if (recordProperty == null) {
             throw new NullPointerException("Record binding cannot be null.");
         }
@@ -248,7 +249,7 @@ public class ValueBindings {
 
             @Override
             protected int computeValue() {
-                DataObjectImpl record = recordProperty.get();
+                DataAccessObject record = recordProperty.get();
                 return (record == null) ? 0 : record.getPrimaryKey();
             }
         };

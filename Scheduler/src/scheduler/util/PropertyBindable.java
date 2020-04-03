@@ -4,7 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.sql.Timestamp;
-import scheduler.dao.DataObject;
+import scheduler.dao.DataElement;
 
 /**
  * Base class for objects that support property binding through {@link PropertyChangeSupport}.
@@ -15,7 +15,6 @@ public class PropertyBindable implements IPropertyBindable {
 
     private transient final PropertyChangeSupportImpl propertyChangeSupport = new PropertyChangeSupportImpl();
 
-    // TODO: Ensure all derrived classes are implementing property change support they should.
     /**
      * Gets the {@link PropertyChangeSupport} object for supporting bound properties.
      *
@@ -40,13 +39,13 @@ public class PropertyBindable implements IPropertyBindable {
     }
 
     protected void firePropertyChange(String propertyName, int oldValue, int newValue) {
-        if (newValue != newValue) {
+        if (newValue != oldValue) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
 
     protected void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
-        if (newValue != newValue) {
+        if (newValue != oldValue) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
@@ -63,13 +62,13 @@ public class PropertyBindable implements IPropertyBindable {
         }
     }
 
-    protected <T extends Enum> void firePropertyChange(String propertyName, T oldValue, T newValue) {
+    protected <T extends Enum<T>> void firePropertyChange(String propertyName, T oldValue, T newValue) {
         if ((null == oldValue) ? null != newValue : oldValue == newValue) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
 
-    protected <T extends DataObject> void firePropertyChange(String propertyName, T oldValue, T newValue) {
+    protected <T extends DataElement> void firePropertyChange(String propertyName, T oldValue, T newValue) {
         if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }

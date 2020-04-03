@@ -1,8 +1,8 @@
 package scheduler.util;
 
 /**
- * Defines an operation that accepts a two arguments and may throw an exception.
- *
+ * A functional interface similar to {@link java.util.function.BiConsumer} that can throw an error.
+ * 
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <T> The type of the first argument.
  * @param <U> The type of the second argument.

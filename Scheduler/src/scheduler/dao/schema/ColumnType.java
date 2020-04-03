@@ -2,8 +2,9 @@ package scheduler.dao.schema;
 
 /**
  * Supported database column types.
- * This is used to indicate the types for each value of the {@link DbColumn} enumeration.
- * 
+ * <p>
+ * This reflects database schema type compatibility. Refer to {@link ValueType} for Java type compatibility.</p>
+ *
  * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum ColumnType {
@@ -43,19 +44,19 @@ public enum ColumnType {
      * A Timestamp data column.
      */
     TIMESTAMP(ValueType.TIMESTAMP);
-    
+
     private final ValueType valueType;
 
+    private ColumnType(ValueType valueType) {
+        this.valueType = valueType;
+    }
+
     /**
-     * Gets the data type for the current column type.
-     * 
-     * @return A {@link ValueType} that describes the column data type.
+     * Gets the Java data type compatibility for the current column type.
+     *
+     * @return A {@link ValueType} that describes the corresponding Java type.
      */
     public ValueType getValueType() {
         return valueType;
-    }
-    
-    private ColumnType(ValueType valueType) {
-        this.valueType = valueType;
     }
 }

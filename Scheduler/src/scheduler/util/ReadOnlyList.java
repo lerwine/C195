@@ -430,7 +430,7 @@ public interface ReadOnlyList<E> extends List<E> {
         /**
          * Gets the index at which the next element will be placed.
          * 
-         * @return The index where the next call to {@link #putNext(java.lang.Object)} will place the element.
+         * @return The index where the next call to {@link #accept(java.lang.Object)} will place the element.
          */
         public int getBuildIndex() {
             return buildIndex;
@@ -439,7 +439,7 @@ public interface ReadOnlyList<E> extends List<E> {
         /**
          * Sets the index at which the next element will be placed.
          * 
-         * @param index The index where the next call to {@link #putNext(java.lang.Object)} will place the element.
+         * @param index The index where the next call to {@link #accept(java.lang.Object)} will place the element.
          * @throws IndexOutOfBoundsException if {@code buildIndex} is less than zero or greater than the buildIndex of the last built element.
          */
         public synchronized void setBuildIndex(int index) {
@@ -798,6 +798,10 @@ public interface ReadOnlyList<E> extends List<E> {
     }
     
     public static class Wrapper<E> extends ArrayList<E> {
+        /**
+         *
+         */
+        private static final long serialVersionUID = -7259044324459981946L;
         private final ReadOnlyList<E> readOnlyList = new ReadOnlyList<E>() {
                 @Override
                 public int size() {

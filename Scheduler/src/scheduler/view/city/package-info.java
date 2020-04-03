@@ -1,4 +1,4 @@
 /**
- * Views and controllers for listing and editing cities.
+ * Models and controllers for listing and editing items items from the city database table.
  */
 package scheduler.view.city;

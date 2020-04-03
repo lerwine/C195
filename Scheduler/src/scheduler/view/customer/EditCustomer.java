@@ -1,5 +1,6 @@
 package scheduler.view.customer;
 
+import java.io.IOException;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.fxml.FXML;
@@ -9,17 +10,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl.DaoFactory;
+import javafx.stage.Stage;
+import scheduler.dao.CustomerDAO;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
-import scheduler.view.ItemModel;
+import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.country.CountryModel;
+import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class
@@ -28,7 +30,7 @@ import scheduler.view.country.CountryModel;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
-public final class EditCustomer extends EditItem.EditController<CustomerImpl, CustomerModel> {
+public final class EditCustomer extends EditItem.EditController<CustomerDAO, CustomerModelImpl> {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active:"}.
@@ -36,7 +38,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
     public static final String RESOURCEKEY_ACTIVE = "active";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Customer"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New CustomerDAO"}.
      */
     public static final String RESOURCEKEY_ADDNEWCUSTOMER = "addNewCustomer";
 
@@ -56,7 +58,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Customer"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit CustomerDAO"}.
      */
     public static final String RESOURCEKEY_EDITCUSTOMER = "editCustomer";
 
@@ -151,6 +153,14 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
      */
     public static final String RESOURCEKEY_USER = "user";
 
+    public static CustomerModelImpl editNew(MainController mainController, Stage stage) throws IOException {
+        return editNew(EditCustomer.class, mainController, stage);
+    }
+
+    public static CustomerModelImpl edit(CustomerModelImpl model, MainController mainController, Stage stage) throws IOException {
+        return edit(model, EditCustomer.class, mainController, stage);
+    }
+
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
 
@@ -241,8 +251,8 @@ public final class EditCustomer extends EditItem.EditController<CustomerImpl, Cu
     }
 
     @Override
-    protected ItemModel.ModelFactory<CustomerImpl, CustomerModel> getFactory() {
-        return CustomerModel.getFactory();
+    protected ItemModel.ModelFactory<CustomerDAO, CustomerModelImpl> getFactory() {
+        return CustomerModelImpl.getFactory();
     }
 
 }

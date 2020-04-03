@@ -1,20 +1,37 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view;
 
-import scheduler.dao.DaoFilter;
-import scheduler.dao.DataObjectImpl;
+import java.util.function.Predicate;
+import scheduler.view.model.ItemModel;
+import scheduler.dao.filter.DaoFilter;
+import scheduler.dao.DataAccessObject;
 
 /**
- *
- * @author lerwi
- * @param <T>
- * @param <S>
+ * View model filter interface.
+ * 
+ * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The {@link DataAccessObject} type that the model supports.
+ * @param <U> The type of {@link ItemModel}.
+ * @param <S> The type of underlying {@link DaoFilter}.
  */
-public interface ModelFilter<T extends DataObjectImpl, S extends ItemModel<T>> extends DaoFilter<T> {
+public interface ModelFilter<T extends DataAccessObject, U extends ItemModel<T>, S extends DaoFilter<T>> extends Predicate<U> {
+    /**
+     * Gets the heading text to display in listing views.
+     * 
+     * @return The heading text to display in listing views.
+     */
     String getHeadingText();
-    String getSubHeadingText();
+    
+    /**
+     * Gets the sub-heading text to display in listing views.
+     * 
+     * @return The sub-heading text to display in listing views or an empty string if no sub-heading is to be displayed.
+     */
+    default String getSubHeadingText() { return ""; }
+    
+    /**
+     * Gets the underlying {@link DaoFilter} that is used to retrieve {@link DataAccessObject} items from the database.
+     * 
+     * @return The underlying {@link DaoFilter} that is used to retrieve {@link DataAccessObject} items from the database.
+     */
+    S getDaoFilter();
 }

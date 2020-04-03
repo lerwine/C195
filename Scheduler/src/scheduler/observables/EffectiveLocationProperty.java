@@ -5,11 +5,10 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.AppResources;
-import scheduler.dao.Appointment;
 import scheduler.dao.AppointmentType;
-import scheduler.dao.Customer;
-import scheduler.view.appointment.AppointmentReferenceModel;
-import scheduler.view.customer.CustomerReferenceModel;
+import scheduler.dao.CustomerElement;
+import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.customer.CustomerModel;
 
 /**
  *
@@ -19,14 +18,12 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
 
     private final Object bean;
     private final String name;
-    // TODO: Parameterize this
-    private final ReadOnlyProperty<CustomerReferenceModel<? extends Customer>> customer;
+    private final ReadOnlyProperty<CustomerModel<? extends CustomerElement>> customer;
     private final ReadOnlyProperty<AppointmentType> type;
     private final ReadOnlyProperty<String> location;
     private final ReadOnlyProperty<String> url;
 
-    // TODO: Parameterize this
-    public EffectiveLocationProperty(Object bean, String name, AppointmentReferenceModel<? extends Appointment> source) {
+    public EffectiveLocationProperty(Object bean, String name, AppointmentModel source) {
         customer = source.customerProperty();
         type = source.typeProperty();
         location = source.locationProperty();
@@ -40,7 +37,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
     protected String computeValue() {
         String l = location.getValue();
         String u = url.getValue();
-        //CustomerReferenceModel<? extends Customer> c = customer.getValue();
+        //CustomerReferenceModel<? extends CustomerElement> c = customer.getValue();
         switch (type.getValue()) {
             case GERMANY_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
@@ -55,8 +52,9 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
                 return (u.startsWith("tel:")) ? u.substring(4) : u;
             case VIRTUAL:
                 return u;
+            default:
+                return l;
         }
-        return l;
     }
 
     @Override

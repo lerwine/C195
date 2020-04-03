@@ -56,11 +56,10 @@ public class SchemaHelper_DbColumnTest {
     @Test
     public void testIsEntityData() {
         boolean expResult;
-        switch (column.getUsage()) {
+        switch (column.getUsageCategory()) {
             case AUDIT:
             case FOREIGN_KEY:
             case PRIMARY_KEY:
-            case CRYPTO_HASH:
                 expResult = false;
                 break;
             default:
@@ -77,7 +76,7 @@ public class SchemaHelper_DbColumnTest {
     @Test
     public void testIsEntityDataOrRef() {
         boolean expResult;
-        switch (column.getUsage()) {
+        switch (column.getUsageCategory()) {
             case AUDIT:
             case PRIMARY_KEY:
             case CRYPTO_HASH:
@@ -87,7 +86,7 @@ public class SchemaHelper_DbColumnTest {
                 expResult = true;
                 break;
         }
-        boolean result = SchemaHelper.isEntityDataOrRef(column);
+        boolean result = SchemaHelper.isForJoinedData(column);
         assertEquals(expResult, result);
     }
 

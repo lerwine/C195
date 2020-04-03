@@ -152,7 +152,7 @@ public final class Login extends SchedulerController {
             if (ex == null) {
                 AlertHelper.showErrorAlert(((Button) event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             } else {
-                LOG.logp(Level.SEVERE, getClass().getName(), "loginButtonClick", "Error logging in user", ex);
+                LOG.log(Level.SEVERE, "Error logging in user", ex);
                 AlertHelper.showErrorAlert(((Button) event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
             }
         });

@@ -1,7 +1,6 @@
 package scheduler.view.customer;
 
 import com.sun.javafx.scene.control.behavior.OptionalBoolean;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -29,21 +27,22 @@ import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import scheduler.AppResources;
-import scheduler.dao.CityImpl;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerImpl;
+import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.CustomerDAO;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.SchedulerController;
-import scheduler.view.TaskWaiter;
+import scheduler.view.task.TaskWaiter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesViewLifecycleEvent;
-import scheduler.view.annotations.ViewLifecycleEventType;
-import scheduler.view.city.CityModel;
+import scheduler.view.annotations.FxmlViewEventHandling;
+import scheduler.view.city.CityModelImpl;
 import scheduler.view.country.CountryModel;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.event.FxmlViewEvent;
 
 /**
  * FXML Controller class
@@ -72,12 +71,12 @@ public class CustomerPicker extends SchedulerController {
     public static final String RESOURCEKEY_INACTIVE = "inactive";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CountryDAO"}.
      */
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "City"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityDAO"}.
      */
     public static final String RESOURCEKEY_CITY = "city";
 
@@ -142,12 +141,12 @@ public class CustomerPicker extends SchedulerController {
     public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CountryDAO:"}.
      */
     public static final String RESOURCEKEY_COUNTRYLABEL = "countryLabel";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "City:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityDAO:"}.
      */
     public static final String RESOURCEKEY_CITYLABEL = "cityLabel";
 
@@ -161,7 +160,7 @@ public class CustomerPicker extends SchedulerController {
      */
     public static final String RESOURCEKEY_CREATED = "created";
 
-    public static CustomerModel pickCustomer(Stage parent) {
+    public static CustomerModelImpl pickCustomer(Stage parent) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(parent);
@@ -176,14 +175,14 @@ public class CustomerPicker extends SchedulerController {
 //        }
 //        return null;
             throw new UnsupportedOperationException();
-            // TODO: Implement this
+            // TODO: Implement pickCustomer(Stage parent)
     }
     private ObservableList<CountryModel> countries;
-    private ObservableList<CityModel> cities;
+    private ObservableList<CityModelImpl> cities;
     private ObservableList<StatusOption> statusOptions;
-    private ObservableList<CustomerModel> allCustomers;
-    private ObservableList<CustomerModel> filteredCustomers;
-    private CustomerModel selectedCustomer = null;
+    private ObservableList<CustomerModelImpl> allCustomers;
+    private ObservableList<CustomerModelImpl> filteredCustomers;
+    private CustomerModelImpl selectedCustomer = null;
 
     @FXML // fx:id="countryFilterCheckBox"
     private CheckBox countryFilterCheckBox; // Value injected by FXMLLoader
@@ -195,7 +194,7 @@ public class CustomerPicker extends SchedulerController {
     private CheckBox cityFilterCheckBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityModel> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityModelImpl> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameSearchTextField"
     private TextField nameSearchTextField; // Value injected by FXMLLoader
@@ -204,7 +203,7 @@ public class CustomerPicker extends SchedulerController {
     private ComboBox<StatusOption> statusComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="customersListView"
-    private ListView<CustomerModel> customersListView; // Value injected by FXMLLoader
+    private ListView<CustomerModelImpl> customersListView; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameLabel"
     private Label nameLabel; // Value injected by FXMLLoader
@@ -273,7 +272,7 @@ public class CustomerPicker extends SchedulerController {
         assert modifiedLabel != null : "fx:id=\"modifiedLabel\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
     }
 
-    void customerSelected(CustomerModel customer) {
+    void customerSelected(CustomerModelImpl customer) {
         selectedCustomer = customer;
         if (null == customer) {
             nameLabel.setText("");
@@ -306,9 +305,9 @@ public class CustomerPicker extends SchedulerController {
         selectCustomerButton.setDisable(false);
     }
 
-    @HandlesViewLifecycleEvent(type = ViewLifecycleEventType.ADDED)
-    protected void onBeforeShow(Node currentView, Stage stage) {
-        TaskWaiter.execute(new LoadCountriesTask(stage));
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.ADDED)
+    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
+        TaskWaiter.startNow(new LoadCountriesTask(event.getStage()));
     }
 
     @FXML
@@ -324,20 +323,20 @@ public class CustomerPicker extends SchedulerController {
 
     synchronized void filterCustomers() {
         String s = nameSearchTextField.getText().trim().toLowerCase();
-        CustomerModel c = selectedCustomer;
+        CustomerModelImpl c = selectedCustomer;
         filteredCustomers.clear();
         if (s.isEmpty()) {
             allCustomers.forEach((item) -> {
                 filteredCustomers.add(item);
             });
         } else {
-            allCustomers.stream().filter((CustomerModel item) -> item.getName().toLowerCase().contains(s)).forEach((item) -> {
+            allCustomers.stream().filter((CustomerModelImpl item) -> item.getName().toLowerCase().contains(s)).forEach((item) -> {
                 filteredCustomers.add(item);
             });
         }
         if (null != c) {
             int pk = c.getPrimaryKey();
-            Optional<CustomerModel> matching = filteredCustomers.stream().filter((CustomerModel item) -> item.getPrimaryKey() == pk).findFirst();
+            Optional<CustomerModelImpl> matching = filteredCustomers.stream().filter((CustomerModelImpl item) -> item.getPrimaryKey() == pk).findFirst();
             if (matching.isPresent()) {
                 customersListView.getSelectionModel().select(matching.get());
             } else {
@@ -358,7 +357,7 @@ public class CustomerPicker extends SchedulerController {
             countryComboBox.setDisable(false);
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                TaskWaiter.execute(new LoadCitiesTask(event, country.getDataObject(),
+                TaskWaiter.startNow(new LoadCitiesTask(event, country.getDataObject(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
             }
         } else {
@@ -368,7 +367,7 @@ public class CustomerPicker extends SchedulerController {
             cityFilterCheckBox.setDisable(true);
             countryComboBox.setDisable(true);
             cityComboBox.setDisable(true);
-            TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), null, null,
+            TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), null, null,
                     statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
         }
@@ -379,7 +378,7 @@ public class CustomerPicker extends SchedulerController {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                TaskWaiter.execute(new LoadCitiesTask(event, country.getDataObject(),
+                TaskWaiter.startNow(new LoadCitiesTask(event, country.getDataObject(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
             }
         }
@@ -391,14 +390,14 @@ public class CustomerPicker extends SchedulerController {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
                 if (cityFilterCheckBox.isSelected()) {
-                    CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
+                    CityModelImpl city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                        TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                     }
                 } else {
-                    TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                    TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                             null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                             (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 }
@@ -412,9 +411,9 @@ public class CustomerPicker extends SchedulerController {
         if (countryFilterCheckBox.isSelected() && cityFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
+                CityModelImpl city = cityComboBox.getSelectionModel().getSelectedItem();
                 if (null != city) {
-                    TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                    TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                             city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                             (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 }
@@ -428,21 +427,21 @@ public class CustomerPicker extends SchedulerController {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
                 if (cityFilterCheckBox.isSelected()) {
-                    CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
+                    CityModelImpl city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                        TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                         return;
                     }
                 }
-                TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                         null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 return;
             }
         }
-        TaskWaiter.execute(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), null, null,
+        TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), null, null,
                 statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
     }
@@ -490,79 +489,81 @@ public class CustomerPicker extends SchedulerController {
 
     }
 
-    class LoadCitiesTask extends TaskWaiter<ArrayList<CityImpl>> {
+    class LoadCitiesTask extends TaskWaiter<ArrayList<CityDAO>> {
 
-        private final CountryImpl country;
-        private final CustomerImpl customer;
+        private final CountryDAO country;
+        private final CustomerDAO customer;
 
-        public LoadCitiesTask(ActionEvent event, CountryImpl country, CustomerImpl customer) {
+        public LoadCitiesTask(ActionEvent event, CountryDAO country, CustomerDAO customer) {
             super((Stage) ((Node) event.getSource()).getScene().getWindow(), AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES));
             this.country = Objects.requireNonNull(country);
             this.customer = customer;
         }
 
         @Override
-        protected void processResult(ArrayList<CityImpl> result, Stage stage) {
+        protected void processResult(ArrayList<CityDAO> result, Stage stage) {
             cities.clear();
             result.forEach((item) -> {
-                cities.add(new CityModel(item));
+                cities.add(new CityModelImpl(item));
             });
-            TaskWaiter.execute(new LoadCustomersTask(stage, country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
+            TaskWaiter.startNow(new LoadCustomersTask(stage, country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     customer));
         }
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
+            LOG.log(Level.SEVERE, "Error getting countries", ex);
             AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override
-        protected ArrayList<CityImpl> getResult(Connection connection) throws SQLException {
-            return CityImpl.getFactory().getByCountry(connection, country.getPrimaryKey());
+        protected ArrayList<CityDAO> getResult(Connection connection) throws SQLException {
+            return CityDAO.getFactory().getByCountry(connection, country.getPrimaryKey());
         }
 
     }
 
-    class LoadCountriesTask extends TaskWaiter<ArrayList<CountryImpl>> {
+    class LoadCountriesTask extends TaskWaiter<ArrayList<CountryDAO>> {
 
         public LoadCountriesTask(Stage stage) {
             super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
         @Override
-        protected void processResult(ArrayList<CountryImpl> result, Stage stage) {
+        protected void processResult(ArrayList<CountryDAO> result, Stage stage) {
             result.stream().forEach((item) -> {
                 countries.add(new CountryModel(item));
             });
-            TaskWaiter.execute(new LoadCustomersTask(stage, null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
+            TaskWaiter.startNow(new LoadCustomersTask(stage, null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
         }
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
+            LOG.log(Level.SEVERE, "Error getting countries", ex);
             AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override
-        protected ArrayList<CountryImpl> getResult(Connection connection) throws SQLException {
-            return CountryImpl.getFactory().getAllCountries(connection);
+        protected ArrayList<CountryDAO> getResult(Connection connection) throws SQLException {
+            return CountryDAO.getFactory().getAllCountries(connection);
         }
 
     }
 
-    class LoadCustomersTask extends TaskWaiter<ArrayList<CustomerImpl>> {
-
-        private final CountryImpl country;
-        private final CityImpl city;
+    class LoadCustomersTask extends TaskWaiter<ArrayList<CustomerDAO>> {
+        // TODO: The value of the field CustomerPicker.LoadCustomersTask.country is not used
+        private final CountryDAO country;
+        // TODO: The value of the field CustomerPicker.LoadCustomersTask.city is not used
+        private final CityDAO city;
+        // TODO: The value of the field CustomerPicker.LoadCustomersTask.active is not used
         private final OptionalBoolean active;
-        private final CustomerImpl customer;
+        private final CustomerDAO customer;
 
-        public LoadCustomersTask(Stage stage, CountryImpl country, CityImpl city, OptionalBoolean active, CustomerImpl customer) {
+        public LoadCustomersTask(Stage stage, CountryDAO country, CityDAO city, OptionalBoolean active, CustomerDAO customer) {
             super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
             this.country = country;
             this.city = city;
@@ -571,17 +572,17 @@ public class CustomerPicker extends SchedulerController {
         }
 
         @Override
-        protected void processResult(ArrayList<CustomerImpl> result, Stage stage) {
+        protected void processResult(ArrayList<CustomerDAO> result, Stage stage) {
             allCustomers.clear();
 
             if (null == customer) {
                 result.stream().forEach((item) -> {
-                    allCustomers.add(new CustomerModel(item));
+                    allCustomers.add(new CustomerModelImpl(item));
                 });
                 selectedCustomer = null;
             } else {
                 int pk = customer.getPrimaryKey();
-                Optional<CustomerModel> matching = result.stream().map((item) -> new CustomerModel(item)).filter((CustomerModel item) -> {
+                Optional<CustomerModelImpl> matching = result.stream().map((item) -> new CustomerModelImpl(item)).filter((CustomerModelImpl item) -> {
                     allCustomers.add(item);
                     return item.getPrimaryKey() == pk;
                 }).findFirst();
@@ -592,14 +593,14 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error getting countries", ex);
+            LOG.log(Level.SEVERE, "Error getting countries", ex);
             AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
 
         @Override
-        protected ArrayList<CustomerImpl> getResult(Connection connection) throws SQLException {
+        protected ArrayList<CustomerDAO> getResult(Connection connection) throws SQLException {
 //            switch (active) {
 //                case TRUE:
 //                    if (null == country) {
@@ -619,14 +620,14 @@ public class CustomerPicker extends SchedulerController {
 //                    return CustomerFilter.byCity(city, false).get(connection);
 //            }
 //            if (null == country) {
-//                return CustomerImpl.getFactory().getAll(connection);
+//                return CustomerDAO.getFactory().getAll(connection);
 //            }
 //            if (null == city) {
 //                return CustomerFilter.byCountry(country).get(connection);
 //            }
 //            return CustomerFilter.byCity(city).get(connection);
             throw new UnsupportedOperationException();
-            // TODO: Implement this
+            // TODO: Implement getResult(Connection connection)
         }
 
     }

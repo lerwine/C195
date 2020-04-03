@@ -4,7 +4,7 @@ import java.util.function.Supplier;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface DialogWindowResult<T> extends Supplier<T> {
     Throwable getFault();

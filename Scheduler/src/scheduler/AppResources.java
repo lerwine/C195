@@ -107,9 +107,9 @@ public final class AppResources implements AppResourceBundleConstants {
             if (!d.isEmpty()) {
                 return String.format("jdbc:mysql://%s/%s", getDbServerName(), getDatabaseName());
             }
-            LOG.logp(Level.SEVERE, AppResources.class.getName(), "", String.format("Database name not provided in %s", PROPERTIES_FILE_APPCONFIG));
+            LOG.log(Level.SEVERE, String.format("Database name not provided in %s", PROPERTIES_FILE_APPCONFIG));
         } else {
-            LOG.logp(Level.SEVERE, AppResources.class.getName(), "", String.format("Database server name not provided in %s", PROPERTIES_FILE_APPCONFIG));
+            LOG.log(Level.SEVERE, String.format("Database server name not provided in %s", PROPERTIES_FILE_APPCONFIG));
         }
         return "";
     }

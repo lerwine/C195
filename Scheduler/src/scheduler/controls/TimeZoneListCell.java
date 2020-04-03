@@ -13,6 +13,17 @@ import javafx.scene.control.ListCell;
  */
 public class TimeZoneListCell extends ListCell<ZoneId> {
 
+    /*
+    
+                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+                            <cellFactory>
+                                <TimeZoneListCellFactory />
+                            </cellFactory>
+                            <buttonCell>
+                                <TimeZoneListCell />
+                            </buttonCell>
+                        </ComboBox>
+    */
     private final Locale locale;
 
     TimeZoneListCell(Locale locale) {

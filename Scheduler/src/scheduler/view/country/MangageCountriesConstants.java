@@ -5,7 +5,7 @@ package scheduler.view.country;
  * @author Leonard T. Erwine (Student ID 356334)
  */
 interface MangageCountriesConstants {
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
+    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit"}.
      */
@@ -72,5 +72,4 @@ interface MangageCountriesConstants {
      */
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
 
-    //</editor-fold>
 }

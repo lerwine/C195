@@ -1,59 +1,64 @@
 package scheduler.view.country;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 import javafx.event.Event;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
-import scheduler.dao.CountryImpl;
-import scheduler.view.EditItem;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.filter.DaoFilter;
 import scheduler.view.ListingController;
-import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.GlobalizationResource;
-import scheduler.util.ItemEvent;
-import scheduler.util.ItemEventManager;
-import scheduler.view.ItemModel;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
+import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.model.ItemModel;
 
 /**
- * FXML Controller class for viewing a list of {@link CountryModel} items. This is loaded as content of {@link MainController} using
- * {@link #setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.ModelListingFilter)}.
+ * FXML Controller class for viewing a list of {@link CountryModel} items.
  *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends ListingController<CountryImpl, CountryModel> implements MangageCountriesConstants {
+public final class ManageCountries extends ListingController<CountryDAO, CountryModel> implements MangageCountriesConstants {
 
-    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
+    public static ManageCountries loadInto(MainController mainController, Stage stage, ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter,
+            Object loadEventListener) throws IOException {
+        return loadInto(ManageCountries.class, mainController, stage, filter, loadEventListener);
+    }
 
-    @Override
-    protected void onAddNewItem(Event event) {
-        getMainController().addNewCountry(event);
+    public static ManageCountries loadInto(MainController mainController, Stage stage,
+            ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter) throws IOException {
+        return loadInto(mainController, stage, filter, null);
     }
 
     @Override
-    protected void onEditItem(Event event, CountryModel item) {
-        getMainController().editCountry(event, item);
+    protected void onAddNewItem(Event event) throws IOException {
+        getMainController().addNewCountry((Stage)((Button)event.getSource()).getScene().getWindow());
+    }
+
+    @Override
+    protected void onEditItem(Event event, CountryModel item) throws IOException {
+        getMainController().editCountry((Stage)((Button)event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
     protected void onDeleteItem(Event event, CountryModel item) {
-        getMainController().deleteCountry(event, item);
+        getMainController().deleteCountry((Stage)((Button)event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
-    protected CountryModel toModel(CountryImpl dao) {
+    protected CountryModel toModel(CountryDAO dao) {
         return new CountryModel(dao);
     }
 
     @Override
-    protected CountryImpl.FactoryImpl getDaoFactory() {
-        return CountryImpl.getFactory();
+    protected CountryDAO.FactoryImpl getDaoFactory() {
+        return CountryDAO.getFactory();
     }
 
     @Override
-    protected ItemModel.ModelFactory<CountryImpl, CountryModel> getModelFactory() {
+    protected ItemModel.ModelFactory<CountryDAO, CountryModel> getModelFactory() {
         return CountryModel.getFactory();
     }
 

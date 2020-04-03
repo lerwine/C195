@@ -23,6 +23,8 @@ import scheduler.observables.NonNullableStringProperty;
  */
 public final class PwHash {
 
+    private static final Logger LOG = Logger.getLogger(PwHash.class.getName());
+
     /**
      * The length of the password cipher hash as stored (minus salt).
      */
@@ -110,7 +112,7 @@ public final class PwHash {
             }
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             // This should never occur unless there is a typo or invalid constant in the code.
-            Logger.getLogger(PwHash.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "Unexpected failure", ex);
             throw new InternalException("Unexpected error generating hash", ex);
         }
 
@@ -139,7 +141,7 @@ public final class PwHash {
             encodedHash.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             // This should never occur unless there is a typo or invalid constant in the code.
-            Logger.getLogger(PwHash.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "Unexpected failure", ex);
             throw new InternalException("Unexpected error generating hash", ex);
         }
     }
@@ -188,7 +190,7 @@ public final class PwHash {
                     valid.set(true);
                     return;
                 } catch (Exception ex) {
-                    Logger.getLogger(PwHash.class.getName()).log(Level.SEVERE, null, ex);
+                    LOG.log(Level.SEVERE, "Error decoding hash", ex);
                 }
             }
             salt.set(null);

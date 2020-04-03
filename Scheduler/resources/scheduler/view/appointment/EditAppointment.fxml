@@ -13,7 +13,6 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
 <?import scheduler.controls.AppointmentTypeListCell?>
 <?import scheduler.controls.AppointmentTypeListCellFactory?>
 <?import scheduler.controls.CustomerListCell?>
@@ -24,7 +23,6 @@
 <?import scheduler.controls.UserListCellFactory?>
 <?import scheduler.controls.ZeroPadDigitListCell?>
 <?import scheduler.controls.ZeroPadDigitListCellFactory?>
-
 
 <GridPane stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
     <columnConstraints>
@@ -84,7 +82,6 @@
             </buttonCell>
         </ComboBox>
         <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#addUserClick" prefWidth="38.0" text="%add" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-        <Text fx:id="customerValidationText" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
         <Label fx:id="userValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="2" GridPane.rowIndex="2">
             <GridPane.margin>
                 <Insets left="8.0" />
@@ -182,14 +179,7 @@
                 <Label styleClass="formControlLabel" text="%timeZone" GridPane.columnIndex="2" />
                 <VBox GridPane.columnIndex="2" GridPane.rowIndex="1" HBox.hgrow="SOMETIMES">
                     <children>
-                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
-                            <cellFactory>
-                                <TimeZoneListCellFactory />
-                            </cellFactory>
-                            <buttonCell>
-                                <TimeZoneListCell />
-                            </buttonCell>
-                        </ComboBox>
+                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" />
                         <HBox>
                             <children>
                                 <Label fx:id="currentTimeZoneLabel" style="-fx-label-padding: 0 4 0 0;" text="%currentTimeZone">
@@ -284,5 +274,6 @@
             </GridPane.margin>
         </Label>
         <TextArea fx:id="descriptionTextArea" prefRowCount="4" GridPane.columnSpan="4" GridPane.rowIndex="18" />
+      <Label fx:id="customerValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="2" />
     </children>
 </GridPane>

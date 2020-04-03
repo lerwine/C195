@@ -1,5 +1,6 @@
 package scheduler.view;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -7,39 +8,54 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import scheduler.AppResources;
-import scheduler.dao.DaoChangeAction;
-import scheduler.dao.DataObjectEvent;
-import scheduler.dao.DataObjectImpl;
+import scheduler.dao.DataAccessObject;
+import scheduler.dao.event.DaoChangeAction;
+import scheduler.dao.event.DataObjectEvent;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
-import scheduler.view.address.AddressModel;
+import scheduler.util.EventHelper;
+import scheduler.util.ViewControllerLoader;
+import scheduler.view.address.AddressModelImpl;
+import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesDataObjectEvent;
-import scheduler.view.annotations.HandlesViewLifecycleEvent;
-import scheduler.view.annotations.ViewLifecycleEventType;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
-import scheduler.view.city.CityModel;
+import scheduler.view.city.CityModelImpl;
+import scheduler.view.city.EditCity;
 import scheduler.view.country.CountryModel;
-import scheduler.view.customer.CustomerModel;
-import scheduler.view.user.UserModel;
+import scheduler.view.country.EditCountry;
+import scheduler.view.country.ManageCountries;
+import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.customer.EditCustomer;
+import scheduler.view.customer.ManageCustomers;
+import scheduler.view.event.FxmlViewControllerEventListener;
+import scheduler.view.event.FxmlViewEvent;
+import scheduler.view.event.FxmlViewEventType;
+import scheduler.view.model.ItemModel;
+import scheduler.view.task.TaskWaiter;
+import scheduler.view.user.EditUser;
+import scheduler.view.user.ManageUsers;
+import scheduler.view.user.UserModelImpl;
 
 /**
- * FXML Controller class for main application content. All application views are loaded into the {@link #contentPane} using
- * {@link MainContentController#setContent(scheduler.view.MainController, Class, Stage)}. The initial content is loaded using
- * {@link ManageAppointments#setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.AppointmentFilter)}. All Create, Update and
- * Delete operations on {@link ItemModel} objects are to be initiated through this controller.
+ * FXML Controller class for main application content.
+ * <p>
+ * This controller will remain active from the time the user is logged in until the application exits.</p>
+ * <p>
+ * All data object create, update and delete operations should be initiated through this controller. This allows dynamically loaded views to be
+ * notified of changes, if necessary.</p>
  *
  * @author Leonard T. Erwine
  */
@@ -92,232 +108,227 @@ public final class MainController extends SchedulerController implements MainCon
     private MenuItem allUsersMenuItem;
 
     @FXML
-    private BorderPane contentPane;
+    private StackPane contentPane;
 
     private MainContentController contentController;
 
-//    private final ItemEventManager<ItemEvent<AppointmentModel>> appointmentAddManager;
-//    private final ItemEventManager<ItemEvent<AppointmentModel>> appointmentRemoveManager;
-//    private final ItemEventManager<ItemEvent<CustomerModel>> customerAddManager;
-//    private final ItemEventManager<ItemEvent<CustomerModel>> customerRemoveManager;
-//    private final ItemEventManager<ItemEvent<UserModel>> userAddManager;
-//    private final ItemEventManager<ItemEvent<UserModel>> userRemoveManager;
-//    private final ItemEventManager<ItemEvent<AddressModel>> addressAddManager;
-//    private final ItemEventManager<ItemEvent<AddressModel>> addressRemoveManager;
-//    private final ItemEventManager<ItemEvent<CityModel>> cityAddManager;
-//    private final ItemEventManager<ItemEvent<CityModel>> cityRemoveManager;
-//    private final ItemEventManager<ItemEvent<CountryModel>> countryAddManager;
-//    private final ItemEventManager<ItemEvent<CountryModel>> countryRemoveManager;
-    public MainController() {
-//        appointmentAddManager = new ItemEventManager<>();
-//        appointmentRemoveManager = new ItemEventManager<>();
-//        customerAddManager = new ItemEventManager<>();
-//        customerRemoveManager = new ItemEventManager<>();
-//        userAddManager = new ItemEventManager<>();
-//        userRemoveManager = new ItemEventManager<>();
-//        addressAddManager = new ItemEventManager<>();
-//        addressRemoveManager = new ItemEventManager<>();
-//        cityAddManager = new ItemEventManager<>();
-//        cityRemoveManager = new ItemEventManager<>();
-//        countryAddManager = new ItemEventManager<>();
-//        countryRemoveManager = new ItemEventManager<>();
-    }
-
-    public BorderPane getContentPane() {
+    public StackPane getContentPane() {
         return contentPane;
     }
 
-//    public ItemEventManager<ItemEvent<AppointmentModel>> getAppointmentAddManager() {
-//        return appointmentAddManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<AppointmentModel>> getAppointmentRemoveManager() {
-//        return appointmentRemoveManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<CustomerModel>> getCustomerAddManager() {
-//        return customerAddManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<CustomerModel>> getCustomerRemoveManager() {
-//        return customerRemoveManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<UserModel>> getUserAddManager() {
-//        return userAddManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<UserModel>> getUserRemoveManager() {
-//        return userRemoveManager;
-//    }
-//    public ItemEventManager<ItemEvent<AddressModel>> getAddressAddManager() {
-//        return addressAddManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<AddressModel>> getAddressRemoveManager() {
-//        return addressRemoveManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<CityModel>> getCityAddManager() {
-//        return cityAddManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<CityModel>> getCityRemoveManager() {
-//        return cityRemoveManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<CountryModel>> getCountryAddManager() {
-//        return countryAddManager;
-//    }
-//
-//    public ItemEventManager<ItemEvent<CountryModel>> getCountryRemoveManager() {
-//        return countryRemoveManager;
-//    }
-    @FXML // This method is called by the FXMLLoader when initialization is complete
+    @FXML
     private void initialize() {
         assert appointmentsMenu != null : String.format("fx:id=\"appointmentsMenu\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAppointment(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewAppointment((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading new appointment edit window", ex);
+            }
+        });
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-//            ManageAppointments.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
-//                        AppointmentImpl.getFactory().getAllItemsFilter());
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+            try {
+                ManageAppointments.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                        AppointmentModel.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading appointments listing", ex);
+            }
         });
         assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCustomer(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewCustomer((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading new customer edit window", ex);
+            }
+        });
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-//            ManageCustomers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
-//                        CustomerModel.getFactory().getAllItemsFilter());
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+            try {
+                ManageCustomers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                        CustomerModelImpl.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading customers listing", ex);
+            }
         });
         assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCountryMenuItem, String.format("fx:id=\"newCountryMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCountry(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewCountry((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading new country edit window", ex);
+            }
+        });
         Objects.requireNonNull(newCityMenuItem, String.format("fx:id=\"newCityMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewCity(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewCity((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading new city edit window", ex);
+            }
+        });
         Objects.requireNonNull(newAddressMenuItem, String.format("fx:id=\"newAddressMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewAddress(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewAddress((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading new address edit window", ex);
+            }
+        });
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-//            try {
-//                ManageCountries.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
-//                        CountryModel.getFactory().getAllItemsFilter());
-//            } catch (IOException ex) {
-//                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+            try {
+                ManageCountries.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                        CountryModel.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading countries listing", ex);
+            }
         });
         assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newUserMenuItem, String.format("fx:id=\"newUserMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> addNewUser(event));
+                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            try {
+                addNewUser((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading new user edit window", ex);
+            }
+        });
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-//            ManageUsers.setContent(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
-//                    UserImpl.getFactory().getAllItemsFilter());
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+            try {
+                ManageUsers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                        UserModelImpl.getFactory().getAllItemsFilter());
+            } catch (IOException ex) {
+                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        "Error loading users listing", ex);
+            }
         });
         assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
     }
 
-    @HandlesViewLifecycleEvent(type = ViewLifecycleEventType.ADDED)
-    private void onBeforeShow(Node currentView, Stage stage) {
-//        ManageAppointments.setContent(MainController.this, stage, AppointmentImpl.getFactory().getDefaultFilter());
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    /**
+     * Loads a view and controller for the {@link #contentPane}.
+     *
+     * @param <T> The type of controller that will be instantiated.
+     * @param controllerClass The controller class that will be used to load the FXML view.
+     * @param loadEventListener An object that can listen for FXML load events. This object can implement {@link FxmlViewControllerEventListener} or
+     * use the {@link scheduler.view.annotations.HandlesFxmlViewEvent} annotation to handle view/controller life-cycle events.
+     * @return The instantiated controller.
+     * @throws IOException if not able to load the FXML resource.
+     */
+    public <T extends MainContentController> T loadContent(Class<T> controllerClass, Object loadEventListener) throws IOException {
+        return ViewControllerLoader.replacePaneContent(this, contentPane, controllerClass,
+                (FxmlViewControllerEventListener<Parent, T>) (event) -> {
+                    if (event.getType() == FxmlViewEventType.SHOWN) {
+                        ((MainContentController) event.getController()).mainController = MainController.this;
+                        contentController = event.getController();
+                    }
+                    EventHelper.invokeViewLifecycleEventMethods(loadEventListener, event);
+                });
     }
 
-    @HandlesViewLifecycleEvent(type = ViewLifecycleEventType.UNLOADED)
-    private void onUnloaded(Node view) {
-        if (null != contentController) {
-            AnnotationHelper.invokeViewLifecycleEventMethods(contentController, new ViewLifecycleEvent<>(this, ViewLifecycleEventReason.UNLOADED,
-                    (Parent) view, (Stage) contentPane.getScene().getWindow()));
-        }
+    /**
+     * Loads a view and controller for the {@link #contentPane}.
+     *
+     * @param <T> The type of controller that will be instantiated.
+     * @param controllerClass The controller class that will be used to load the FXML view.
+     * @return The instantiated controller.
+     * @throws IOException if not able to load the FXML resource.
+     */
+    public <T extends MainContentController> T loadContent(Class<T> controllerClass) throws IOException {
+        return loadContent(controllerClass, null);
     }
 
     /**
      * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
      *
-     * @param event Contextual information about the initiating event.
+     * @param stage The current {@link Stage}.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
+     * @throws java.io.IOException
      */
-    public AppointmentModel addNewAppointment(Event event) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public AppointmentModel addNewAppointment(Stage stage) throws IOException {
+        return EditAppointment.editNew(this, stage);
     }
 
     /**
      * Opens an {@link EditItem} window to edit an {@link AppointmentModel}.
      *
-     * @param event Contextual information about the initiating event.
+     * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be edited.
+     * @throws java.io.IOException
      */
-    public void editAppointment(Event event, AppointmentModel item) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public void editAppointment(Stage stage, AppointmentModel item) throws IOException {
+        EditAppointment.edit(item, this, stage);
     }
 
     /**
      * Deletes an {@link AppointmentModel} item after confirming with user.
      *
-     * @param event Contextual information about the initiating event.
+     * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be deleted.
      */
-    public void deleteAppointment(Event event, AppointmentModel item) {
+    public void deleteAppointment(Stage stage, AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AppointmentModel.getFactory(),
-                    (m) -> AnnotationHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AppointmentModel.getFactory(),
+                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
+     * Opens an {@link EditItem} window to edit a new {@link CustomerModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link CustomerModelImpl} or {@code null} if the operation was canceled.
+     * @throws java.io.IOException
      */
-    public CustomerModel addNewCustomer(Event event) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public CustomerModelImpl addNewCustomer(Stage stage) throws IOException {
+        return EditCustomer.editNew(this, stage);
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a {@link CustomerModel}.
+     * Opens an {@link EditItem} window to edit a {@link CustomerModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link CustomerModel} to be edited.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link CustomerModelImpl} to be edited.
+     * @throws java.io.IOException
      */
-    public void editCustomer(Event event, CustomerModel item) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public void editCustomer(Stage stage, CustomerModelImpl item) throws IOException {
+        EditCustomer.edit(item, this, stage);
     }
 
     /**
-     * Deletes a {@link CustomerModel} item after confirming with user.
+     * Deletes a {@link CustomerModelImpl} item after confirming with user.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link CustomerModel} to be deleted.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link CustomerModelImpl} to be deleted.
      */
-    public void deleteCustomer(Event event, CustomerModel item) {
+    public void deleteCustomer(Stage stage, CustomerModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModel.getFactory(),
-                    (m) -> AnnotationHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModelImpl.getFactory(),
+                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -325,158 +336,167 @@ public final class MainController extends SchedulerController implements MainCon
     /**
      * Opens an {@link EditItem} window to edit a new {@link CountryModel}.
      *
-     * @param event Contextual information about the initiating event.
+     * @param stage The current {@link Stage}.
      * @return The newly added {@link CountryModel} or {@code null} if the operation was canceled.
+     * @throws java.io.IOException
      */
-    public CountryModel addNewCountry(Event event) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public CountryModel addNewCountry(Stage stage) throws IOException {
+        return EditCountry.editNew(this, stage);
     }
 
     /**
      * Opens an {@link EditItem} window to edit a {@link CountryModel}.
      *
-     * @param event Contextual information about the initiating event.
+     * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be edited.
+     * @throws java.io.IOException
      */
-    public void editCountry(Event event, CountryModel item) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public void editCountry(Stage stage, CountryModel item) throws IOException {
+        EditCountry.edit(item, this, stage);
     }
 
     /**
      * Deletes a {@link CountryModel} item after confirming with user.
      *
-     * @param event Contextual information about the initiating event.
+     * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be deleted.
      */
-    public void deleteCountry(Event event, CountryModel item) {
+    public void deleteCountry(Stage stage, CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CountryModel.getFactory(),
-                    (m) -> AnnotationHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CountryModel.getFactory(),
+                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link CityModel}.
+     * Opens an {@link EditItem} window to edit a new {@link CityModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @return The newly added {@link CityModel} or {@code null} if the operation was canceled.
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link CityModelImpl} or {@code null} if the operation was canceled.
+     * @throws java.io.IOException
      */
-    public CityModel addNewCity(Event event) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public CityModelImpl addNewCity(Stage stage) throws IOException {
+        return EditCity.editNew(this, stage);
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a {@link CityModel}.
+     * Opens an {@link EditItem} window to edit a {@link CityModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link CityModel} to be edited.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link CityModelImpl} to be edited.
+     * @throws java.io.IOException
      */
-    public void editCity(Event event, CityModel item) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public void editCity(Stage stage, CityModelImpl item) throws IOException {
+        EditCity.edit(item, this, stage);
     }
 
     /**
-     * Deletes a {@link CityModel} item after confirming with user.
+     * Deletes a {@link CityModelImpl} item after confirming with user.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link CityModel} to be deleted.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link CityModelImpl} to be deleted.
      */
-    public void deleteCity(Event event, CityModel item) {
+    public void deleteCity(Stage stage, CityModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModel.getFactory(),
-                    (m) -> AnnotationHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModelImpl.getFactory(),
+                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
+     * Opens an {@link EditItem} window to edit a new {@link AddressModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link AddressModelImpl} or {@code null} if the operation was canceled.
+     * @throws java.io.IOException
      */
-    public AddressModel addNewAddress(Event event) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public AddressModelImpl addNewAddress(Stage stage) throws IOException {
+        return EditAddress.editNew(this, stage);
     }
 
     /**
-     * Opens an {@link EditItem} window to edit an {@link AddressModel}.
+     * Opens an {@link EditItem} window to edit an {@link AddressModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link AddressModel} to be edited.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link AddressModelImpl} to be edited.
+     * @throws java.io.IOException
      */
-    public void editAddress(Event event, AddressModel item) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public void editAddress(Stage stage, AddressModelImpl item) throws IOException {
+        EditAddress.edit(item, this, stage);
     }
 
     /**
-     * Deletes an {@link AddressModel} item after confirming with user.
+     * Deletes an {@link AddressModelImpl} item after confirming with user.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link AddressModel} to be deleted.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link AddressModelImpl} to be deleted.
      */
-    public void deleteAddress(Event event, AddressModel item) {
+    public void deleteAddress(Stage stage, AddressModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModel.getFactory(),
-                    (m) -> AnnotationHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModelImpl.getFactory(),
+                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link UserModel}.
+     * Opens an {@link EditItem} window to edit a new {@link UserModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link UserModelImpl} or {@code null} if the operation was canceled.
+     * @throws java.io.IOException
      */
-    public UserModel addNewUser(Event event) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public UserModelImpl addNewUser(Stage stage) throws IOException {
+        return EditUser.editNew(this, stage);
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a {@link UserModel}.
+     * Opens an {@link EditItem} window to edit a {@link UserModelImpl}.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link UserModel} to be edited.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link UserModelImpl} to be edited.
+     * @throws java.io.IOException
      */
-    public void editUser(Event event, UserModel item) {
-        throw new UnsupportedOperationException();
-        // TODO: Implement this
+    public void editUser(Stage stage, UserModelImpl item) throws IOException {
+        EditUser.edit(item, this, stage);
     }
 
     /**
-     * Deletes a {@link UserModel} item after confirming with user.
+     * Deletes a {@link UserModelImpl} item after confirming with user.
      *
-     * @param event Contextual information about the initiating event.
-     * @param item The {@link UserModel} to be deleted.
+     * @param stage The current {@link Stage}.
+     * @param item The {@link UserModelImpl} to be deleted.
      */
-    public void deleteUser(Event event, UserModel item) {
+    public void deleteUser(Stage stage, UserModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.execute(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModel.getFactory(),
-                    (m) -> AnnotationHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModelImpl.getFactory(),
+                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
 
-    @HandlesDataObjectEvent
-    private void onDataObjectEvent(DataObjectEvent<? extends DataObjectImpl> event) {
-        AnnotationHelper.invokeDataObjectEventMethods(contentController, event);
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
+    private void onShown(FxmlViewEvent<? extends Parent> event) {
+        try {
+            ManageAppointments.loadInto(this, event.getStage(), AppointmentModel.getFactory().getDefaultFilter());
+        } catch (IOException ex) {
+            AlertHelper.logAndAlertError(event.getStage(), LOG, "Error loading appointments", ex);
+        }
+    }
+
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.UNLOADED)
+    private void onUnloaded(FxmlViewEvent<? extends Parent> event) {
+        ViewControllerLoader.clearPaneContent(this, contentPane);
     }
 
     /**
@@ -498,11 +518,11 @@ public final class MainController extends SchedulerController implements MainCon
 
     }
 
-    private class DeleteTask<D extends DataObjectImpl, M extends ItemModel<D>> extends TaskWaiter<String> {
+    private class DeleteTask<D extends DataAccessObject, M extends ItemModel<D>> extends TaskWaiter<String> {
 
         private final M model;
         private final Consumer<M> onDeleted;
-        private final DataObjectImpl.DaoFactory<D> factory;
+        private final DataAccessObject.DaoFactory<D> factory;
 
         DeleteTask(M model, Stage stage, ItemModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
             super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETINGRECORD));
@@ -522,7 +542,7 @@ public final class MainController extends SchedulerController implements MainCon
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            LOG.logp(Level.SEVERE, getClass().getName(), "processException", "Error deleting record", ex);
+            LOG.log(Level.SEVERE, "Error deleting record", ex);
             AlertHelper.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 

@@ -1,18 +1,20 @@
 package scheduler.view.address;
 
+import java.io.IOException;
 import javafx.beans.binding.BooleanExpression;
-import scheduler.view.EditItem;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import scheduler.dao.AddressImpl;
-import scheduler.dao.City;
-import scheduler.dao.DataObjectImpl.DaoFactory;
-import scheduler.view.ItemModel;
+import javafx.stage.Stage;
+import scheduler.dao.AddressDAO;
+import scheduler.dao.CityElement;
+import scheduler.view.EditItem;
+import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.CityReferenceModel;
+import scheduler.view.city.CityModel;
+import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class
@@ -21,26 +23,25 @@ import scheduler.view.city.CityReferenceModel;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public final class EditAddress extends EditItem.EditController<AddressImpl, AddressModel> {
+public final class EditAddress extends EditItem.EditController<AddressDAO, AddressModelImpl> {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Address"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New AddressDAO"}.
      */
     public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO:"}.
      */
     public static final String RESOURCEKEY_ADDRESS = "address";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address cannot be empty."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO cannot be empty."}.
      */
     public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "City:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityElement:"}.
      */
     public static final String RESOURCEKEY_CITY = "city";
 
@@ -50,7 +51,7 @@ public final class EditAddress extends EditItem.EditController<AddressImpl, Addr
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Address:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit AddressDAO:"}.
      */
     public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
 
@@ -70,12 +71,19 @@ public final class EditAddress extends EditItem.EditController<AddressImpl, Addr
     public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That address is referenced by one or more customers and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "That address is referenced by one or more customers and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_ADDRESSHASCUSTOMERS = "addressHasCustomers";
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="FXMLLoader Injections">
+    public static AddressModelImpl editNew(MainController mainController, Stage stage) throws IOException {
+        return editNew(EditAddress.class, mainController, stage);
+    }
+
+    public static AddressModelImpl edit(AddressModelImpl model, MainController mainController, Stage stage) throws IOException {
+        return edit(model, EditAddress.class, mainController, stage);
+    }
+
     @FXML
     private TextField address1TextField;
 
@@ -95,9 +103,8 @@ public final class EditAddress extends EditItem.EditController<AddressImpl, Addr
     private TextField phoneTextField;
 
     @FXML
-    private ComboBox<CityReferenceModel<? extends City>> cityComboBox;
+    private ComboBox<CityModel<? extends CityElement>> cityComboBox;
 
-    //</editor-fold>
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
 
@@ -109,8 +116,8 @@ public final class EditAddress extends EditItem.EditController<AddressImpl, Addr
     }
 
     @Override
-    protected ItemModel.ModelFactory<AddressImpl, AddressModel> getFactory() {
-        return AddressModel.getFactory();
+    protected ItemModel.ModelFactory<AddressDAO, AddressModelImpl> getFactory() {
+        return AddressModelImpl.getFactory();
     }
 
 }

@@ -1,5 +1,6 @@
 package scheduler.view.user;
 
+import java.io.IOException;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.FXCollections;
@@ -13,19 +14,20 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.DataObjectImpl.DaoFactory;
-import scheduler.dao.UserImpl;
+import javafx.stage.Stage;
+import scheduler.dao.UserDAO;
 import scheduler.dao.UserStatus;
-import scheduler.util.ValueBindings;
-import scheduler.view.EditItem;
-import scheduler.util.Values;
-import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.appointment.AppointmentModel;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.view.ItemModel;
+import scheduler.util.ValueBindings;
+import scheduler.util.Values;
+import scheduler.view.EditItem;
+import scheduler.view.MainController;
+import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class
@@ -34,7 +36,7 @@ import scheduler.view.ItemModel;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends EditItem.EditController<UserImpl, UserModel> {
+public final class EditUser extends EditItem.EditController<UserDAO, UserModelImpl> {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active State:"}.
@@ -47,12 +49,12 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     public static final String RESOURCEKEY_APPOINTMENTSLABELTEXT = "appointmentsLabelText";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New User"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New UserDAO"}.
      */
     public static final String RESOURCEKEY_ADDNEWUSER = "addNewUser";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Administrative User"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Administrative UserDAO"}.
      */
     public static final String RESOURCEKEY_ADMINISTRATIVEUSER = "administrativeUser";
 
@@ -67,7 +69,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     public static final String RESOURCEKEY_CONFIRMPASSWORDLABELTEXT = "confirmPasswordLabelText";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit User "%s""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit UserDAO "%s""}.
      */
     public static final String RESOURCEKEY_EDITUSER = "editUser";
 
@@ -82,7 +84,7 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     public static final String RESOURCEKEY_INACTIVE = "inactive";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Normal User"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Normal UserDAO"}.
      */
     public static final String RESOURCEKEY_NORMALUSER = "normalUser";
 
@@ -102,12 +104,12 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     public static final String RESOURCEKEY_PASSWORDMISMATCH = "passwordMismatch";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User Name:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "UserDAO Name:"}.
      */
     public static final String RESOURCEKEY_USERNAMELABELTEXT = "userNameLabelText";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User Name cannot be empty."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "UserDAO Name cannot be empty."}.
      */
     public static final String RESOURCEKEY_USERNAMECANNOTBEEMPTY = "userNameCannotBeEmpty";
 
@@ -126,6 +128,14 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
      * {@code "That user is referenced in one or more appointments...}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
+
+    public static UserModelImpl editNew(MainController mainController, Stage stage) throws IOException {
+        return editNew(EditUser.class, mainController, stage);
+    }
+
+    public static UserModelImpl edit(UserModelImpl model, MainController mainController, Stage stage) throws IOException {
+        return edit(model, EditUser.class, mainController, stage);
+    }
 
     @FXML // fx:id="userNameTextField"
     private TextField userNameTextField; // Value injected by FXMLLoader
@@ -283,8 +293,8 @@ public final class EditUser extends EditItem.EditController<UserImpl, UserModel>
     }
 
     @Override
-    protected ItemModel.ModelFactory<UserImpl, UserModel> getFactory() {
-        return UserModel.getFactory();
+    protected ItemModel.ModelFactory<UserDAO, UserModelImpl> getFactory() {
+        return UserModelImpl.getFactory();
     }
 
 }

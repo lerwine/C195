@@ -1,276 +1,53 @@
 package scheduler.view.address;
 
-import java.util.Objects;
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import scheduler.dao.AddressImpl;
-import scheduler.dao.City;
-import scheduler.dao.DataObjectImpl.DaoFactory;
+import scheduler.dao.AddressElement;
+import scheduler.dao.CityElement;
 import scheduler.observables.ChildPropertyWrapper;
-import scheduler.observables.CityZipCountryProperty;
-import scheduler.observables.NonNullableStringProperty;
-import scheduler.util.Values;
-import scheduler.view.ItemModel;
-import scheduler.view.ModelFilter;
-import scheduler.view.city.CityReferenceModel;
-import scheduler.view.city.CityReferenceModelImpl;
+import scheduler.view.city.CityModel;
+import scheduler.view.model.ElementModel;
 
 /**
+ * An {@link ElementModel} for an {@link AddressElement} data access object.
  *
  * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The type of {@link AddressElement} data access object this model represents.
  */
-public final class AddressModel extends scheduler.view.ItemModel<AddressImpl> implements AddressReferenceModel<AddressImpl> {
+public interface AddressModel<T extends AddressElement> extends ElementModel<T> {
 
-    private final NonNullableStringProperty address1;
-    private final NonNullableStringProperty address2;
-    private final AddressLinesProperty addressLines;
-    private final SimpleObjectProperty<CityReferenceModel<? extends City>> city;
-    private final ChildPropertyWrapper<String, CityReferenceModel<? extends City>> cityName;
-    private final ChildPropertyWrapper<String, CityReferenceModel<? extends City>> countryName;
-    private final NonNullableStringProperty postalCode;
-    private final NonNullableStringProperty phone;
-    private final CityZipCountryProperty cityZipCountry;
+    String getAddress1();
 
-    @Override
-    public String getAddress1() {
-        return address1.get();
-    }
+    ReadOnlyProperty<String> address1Property();
 
-    public void setAddress1(String value) {
-        address1.set(value);
-    }
+    String getAddress2();
 
-    @Override
-    public StringProperty address1Property() {
-        return address1;
-    }
+    ReadOnlyProperty<String> address2Property();
 
-    @Override
-    public String getAddress2() {
-        return address2.get();
-    }
+    String getAddressLines();
 
-    public void setAddress2(String value) {
-        address2.set(value);
-    }
+    ReadOnlyProperty<String> addressLinesProperty();
 
-    @Override
-    public StringProperty address2Property() {
-        return address2;
-    }
+    CityModel<? extends CityElement> getCity();
 
-    @Override
-    public String getAddressLines() {
-        return addressLines.get();
-    }
+    ReadOnlyProperty<CityModel<? extends CityElement>> cityProperty();
 
-    @Override
-    public ReadOnlyProperty<String> addressLinesProperty() {
-        return addressLines;
-    }
+    String getCityName();
 
-    @Override
-    public CityReferenceModel<? extends City> getCity() {
-        return city.get();
-    }
+    ChildPropertyWrapper<String, CityModel<? extends CityElement>> cityNameProperty();
 
-    public void setCity(CityReferenceModel<? extends City> value) {
-        city.set(value);
-    }
+    String getCountryName();
 
-    @Override
-    public ObjectProperty<CityReferenceModel<? extends City>> cityProperty() {
-        return city;
-    }
+    ChildPropertyWrapper<String, CityModel<? extends CityElement>> countryNameProperty();
 
-    @Override
-    public String getCityName() {
-        return cityName.get();
-    }
+    String getPostalCode();
 
-    @Override
-    public ChildPropertyWrapper<String, CityReferenceModel<? extends City>> cityNameProperty() {
-        return cityName;
-    }
+    ReadOnlyProperty<String> postalCodeProperty();
 
-    @Override
-    public String getCountryName() {
-        return countryName.get();
-    }
+    String getPhone();
 
-    @Override
-    public ChildPropertyWrapper<String, CityReferenceModel<? extends City>> countryNameProperty() {
-        return countryName;
-    }
+    ReadOnlyProperty<String> phoneProperty();
 
-    @Override
-    public String getPostalCode() {
-        return postalCode.get();
-    }
+    String getCityZipCountry();
 
-    public void setPostalCode(String value) {
-        postalCode.set(value);
-    }
-
-    @Override
-    public StringProperty postalCodeProperty() {
-        return postalCode;
-    }
-
-    @Override
-    public String getPhone() {
-        return phone.get();
-    }
-
-    public void setPhone(String value) {
-        phone.set(value);
-    }
-
-    @Override
-    public StringProperty phoneProperty() {
-        return phone;
-    }
-
-    @Override
-    public String getCityZipCountry() {
-        return cityZipCountry.get();
-    }
-
-    @Override
-    public ReadOnlyProperty<String> cityZipCountryProperty() {
-        return cityZipCountry;
-    }
-
-    public AddressModel(AddressImpl dao) {
-        super(dao);
-        address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
-        address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
-        addressLines = new AddressLinesProperty();
-        City c = dao.getCity();
-        city = new SimpleObjectProperty<>(this, "city", (null == c) ? null : new CityReferenceModelImpl(c));
-        cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
-        countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());
-        postalCode = new NonNullableStringProperty(this, "postalCode", dao.getPostalCode());
-        phone = new NonNullableStringProperty(this, "phone", dao.getPhone());
-        cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
-    }
-
-    class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {
-
-        AddressLinesProperty() {
-            super.bind(address1, address2);
-        }
-
-        @Override
-        protected String computeValue() {
-            String a1 = Values.asNonNullAndWsNormalized(address1.get());
-            String a2 = Values.asNonNullAndWsNormalized(address2.get());
-            if (a2.isEmpty()) {
-                return a1;
-            }
-            return a1.isEmpty() ? a2 : String.format("%s\n%s", a1, a2);
-        }
-
-        @Override
-        public Object getBean() {
-            return AddressModel.this;
-        }
-
-        @Override
-        public String getName() {
-            return "addressLines";
-        }
-
-        @Override
-        public ObservableList<?> getDependencies() {
-            return FXCollections.observableArrayList(address1, address2);
-        }
-
-        @Override
-        public void dispose() {
-            super.unbind(address1, address2);
-            super.dispose();
-        }
-
-    }
-
-    private static final Factory FACTORY = new Factory();
-
-    public static final Factory getFactory() {
-        return FACTORY;
-    }
-
-    @Override
-    public int hashCode() {
-        if (isNewItem()) {
-            int hash = 3;
-            hash = 19 * hash + Objects.hashCode(address1.get());
-            hash = 19 * hash + Objects.hashCode(address2.get());
-            hash = 19 * hash + Objects.hashCode(city.get());
-            hash = 19 * hash + Objects.hashCode(postalCode.get());
-            hash = 19 * hash + Objects.hashCode(phone.get());
-            return hash;
-        }
-        return getPrimaryKey();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof AddressModel) {
-            final AddressModel other = (AddressModel) obj;
-            if (isNewItem()) {
-                return address1.isEqualTo(other.address1).get() && address2.isEqualTo(other.address2).get() && city.isEqualTo(other.city).get() &&
-                        postalCode.isEqualTo(other.postalCode).get() && phone.isEqualTo(other.phone).get();
-            }
-            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
-        }
-        return false;
-    }
-
-    public final static class Factory extends ItemModel.ModelFactory<AddressImpl, AddressModel> {
-
-        private Factory() { }
-        
-        @Override
-        public DaoFactory<AddressImpl> getDaoFactory() {
-            return AddressImpl.getFactory();
-        }
-
-        @Override
-        public AddressModel createNew(AddressImpl dao) {
-            return new AddressModel(dao);
-        }
-
-        @Override
-        protected void updateItem(AddressModel item, AddressImpl dao) {
-            super.updateItem(item, dao);
-            // TODO: Implement this
-        }
-
-        @Override
-        public ModelFilter<AddressImpl, AddressModel> getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement this
-        }
-
-        @Override
-        public ModelFilter<AddressImpl, AddressModel> getDefaultFilter() {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement this
-        }
-
-        @Override
-        public AddressImpl applyChanges(AddressModel item) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-    }
+    ReadOnlyProperty<String> cityZipCountryProperty();
 }

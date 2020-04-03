@@ -3,12 +3,11 @@
  */
 package scheduler.view.appointment;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -45,24 +44,23 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
 import scheduler.Scheduler;
-import scheduler.dao.Address;
-import scheduler.dao.AddressImpl;
-import scheduler.dao.CityImpl;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.DataObjectImpl;
-import scheduler.dao.DateFilterType;
-import scheduler.dao.TextFilterType;
-import scheduler.dao.UserImpl;
+import scheduler.dao.AddressElement;
+import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
+import scheduler.dao.UserDAO;
+import scheduler.dao.filter.DateFilterType;
+import scheduler.dao.filter.TextFilterType;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabel;
 import static scheduler.util.NodeUtil.selectSelection;
 import scheduler.util.StringBindingProperty;
 import scheduler.view.SchedulerController;
-import scheduler.view.TaskWaiter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.task.TaskWaiter;
 
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
@@ -70,7 +68,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
-    private static <T extends DataObjectImpl, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
+    private static <T extends DataAccessObject, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
         if (null == obj) {
             return selectSelection(source.getSelectionModel(), source.getItems(), (t) -> null == t.getValue());
         }
@@ -93,6 +91,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
     private boolean includeInactiveCustomers = false;
     private boolean includeInactiveUsers = false;
+    // TODO: The value of the field EditAppointmentFilter.resultFilter is not used
     private FilterOptionState resultFilter;
     private ObservableList<RangeSelectionItem> rangeTypeOptionList;
     private ObservableList<CustomerSelectionItem> customerList;
@@ -342,18 +341,28 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     @FXML
     void lookupOptionsOkClick(ActionEvent event) {
+        Stage stage;
         if (lookupOptionCustomersCheckBox.isSelected() != includeInactiveCustomers) {
             includeInactiveCustomers = lookupOptionCustomersCheckBox.isSelected();
             if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
                 includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
-                TaskWaiter.execute(new ReloadCustomersAndUsersTask((Stage) ((Button) event.getSource()).getScene().getWindow(),
+                TaskWaiter.startNow(new ReloadCustomersAndUsersTask((Stage) ((Button) event.getSource()).getScene().getWindow(),
                         includeInactiveCustomers, includeInactiveUsers));
             } else {
-                TaskWaiter.execute(new ReloadCustomersTask((Stage) ((Button) event.getSource()).getScene().getWindow(), includeInactiveCustomers));
+                stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                cf.loadAsync(stage,
+                        (this.includeInactiveCustomers) ? cf.getAllItemsFilter() : cf.getActiveStatusFilter(true),
+                        (t) -> importCustomers(t), (t) -> AlertHelper.logAndAlertDbError(stage, LOG,
+                                resources.getString(RESOURCEKEY_ERRORLOADINGDATA), "Error loading reloading customers", t));
             }
         } else if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
             includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
-            TaskWaiter.execute(new ReloadUsersTask((Stage) ((Button) event.getSource()).getScene().getWindow(), includeInactiveUsers));
+            stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            UserDAO.FactoryImpl uf = UserDAO.getFactory();
+            uf.loadAsync(stage, (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getAllItemsFilter(), (t) -> importUsers(t),
+                    (t) -> AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                            "Error loading reloading users", t));
         }
         lookupOptionsBorderPane.setVisible(false);
     }
@@ -722,20 +731,66 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             filter.setStartOption(DateFilterType.INCLUSIVE);
             filter.setUser(Scheduler.getCurrentUser());
         }
-        TaskWaiter.execute(new InitializeTask(stage, filter));
+        TaskWaiter.startNow(new InitializeTask(stage, filter));
         stage.showAndWait();
+    }
+
+    private void importCustomers(List<CustomerDAO> result) {
+        CustomerSelectionItem currentCustomer = customerComboBox.getValue();
+        CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
+        customerList.clear();
+        customerList.add(new CustomerSelectionItem(null));
+        result.forEach((t) -> {
+            customerList.add(new CustomerSelectionItem(t));
+        });
+        if (null == currentCustomer || null == currentCustomer.getValue() || !selectItem(customerComboBox, currentCustomer.getValue())) {
+            selectItem(customerComboBox, null);
+        }
+        filteredCustomerList.clear();
+        CitySelectionItem cityItem = cityComboBox.getValue();
+        if (null != cityItem && null != cityItem.getValue()) {
+            int cityId = cityItem.getValue().getPrimaryKey();
+            filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
+        } else {
+            CountrySelectionItem countryItem = countryComboBox.getValue();
+            if (null != countryItem && null != countryItem.getValue()) {
+                int countryId = countryItem.getValue().getPrimaryKey();
+                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
+            } else {
+                filteredCustomerList.addAll(customerList);
+            }
+        }
+        if (null == currentCustomCustomer || null == currentCustomCustomer.getValue() || !selectItem(customCustomerComboBox, currentCustomCustomer.getValue())) {
+            selectItem(customCustomerComboBox, null);
+        }
+    }
+
+    private void importUsers(List<UserDAO> result) {
+        UserSelectionItem currentUser = userComboBox.getValue();
+        UserSelectionItem currentCustomUser = customUserComboBox.getValue();
+        userList.clear();
+        userList.add(new UserSelectionItem(null));
+        result.forEach((t) -> {
+            userList.add(new UserSelectionItem(t));
+        });
+        if (null == currentUser || null == currentUser.getValue() || !selectItem(userComboBox, currentUser.getValue())) {
+            selectItem(userComboBox, null);
+        }
+        if (null == currentCustomUser || null == currentCustomUser.getValue() || !selectItem(customUserComboBox, currentCustomUser.getValue())) {
+            selectItem(customUserComboBox, null);
+        }
     }
 
     private class OptionItems {
 
-        private ArrayList<CustomerImpl> customers;
-        private ArrayList<UserImpl> users;
-        private ArrayList<CityImpl> cities;
-        private ArrayList<CountryImpl> countries;
+        private List<CustomerDAO> customers;
+        private List<UserDAO> users;
+        private List<CityDAO> cities;
+        private List<CountryDAO> countries;
 
     }
 
-    private class ReloadCustomersAndUsersTask extends TaskWaiter<Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>>> {
+    private class ReloadCustomersAndUsersTask extends TaskWaiter<Pair<List<CustomerDAO>, List<UserDAO>>> {
 
         private final boolean includeInactiveCustomers;
         private final boolean includeInactiveUsers;
@@ -747,166 +802,25 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
 
         @Override
-        protected void processResult(Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>> result, Stage stage) {
-            CustomerSelectionItem currentCustomer = customerComboBox.getValue();
-            CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
-            UserSelectionItem currentUser = userComboBox.getValue();
-            UserSelectionItem currentCustomUser = customUserComboBox.getValue();
-            userList.clear();
-            customerList.clear();
-            userList.add(new UserSelectionItem(null));
-            customerList.add(new CustomerSelectionItem(null));
-            result.getKey().forEach((t) -> {
-                customerList.add(new CustomerSelectionItem(t));
-            });
-            result.getValue().forEach((t) -> {
-                userList.add(new UserSelectionItem(t));
-            });
-            if (null == currentCustomer || null == currentCustomer.getValue() || !selectItem(customerComboBox, currentCustomer.getValue())) {
-                selectItem(customerComboBox, null);
-            }
-            if (null == currentUser || null == currentUser.getValue() || !selectItem(userComboBox, currentUser.getValue())) {
-                selectItem(userComboBox, null);
-            }
-            if (null == currentCustomUser || null == currentCustomUser.getValue() || !selectItem(customUserComboBox, currentCustomUser.getValue())) {
-                selectItem(customUserComboBox, null);
-            }
-            filteredCustomerList.clear();
-            CitySelectionItem cityItem = cityComboBox.getValue();
-            if (null != cityItem && null != cityItem.getValue()) {
-                int cityId = cityItem.getValue().getPrimaryKey();
-                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
-            } else {
-                CountrySelectionItem countryItem = countryComboBox.getValue();
-                if (null != countryItem && null != countryItem.getValue()) {
-                    int countryId = countryItem.getValue().getPrimaryKey();
-                    filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
-                } else {
-                    filteredCustomerList.addAll(customerList);
-                }
-            }
-            if (null == currentCustomCustomer || null == currentCustomCustomer.getValue() || !selectItem(customCustomerComboBox, currentCustomCustomer.getValue())) {
-                selectItem(customCustomerComboBox, null);
-            }
+        protected void processResult(Pair<List<CustomerDAO>, List<UserDAO>> result, Stage stage) {
+            importCustomers(result.getKey());
+            importUsers(result.getValue());
         }
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+            AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                     "Error loading reloading customers and  users", ex);
         }
 
         @Override
-        protected Pair<ArrayList<CustomerImpl>, ArrayList<UserImpl>> getResult(Connection connection) throws SQLException {
-//            ArrayList<CustomerImpl> customers = (this.includeInactiveCustomers) ? CustomerImpl.getFactory().getAll(connection)
-//                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
-//            return new Pair<>(customers,
-//                    (this.includeInactiveUsers)
-//                            ? UserImpl.getFactory().getAllItemsFilter().get(connection)
-//                            : UserImpl.getFactory().getDefaultFilter().get(connection)
-//            );
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
-        }
-
-    }
-
-    private class ReloadCustomersTask extends TaskWaiter<ArrayList<CustomerImpl>> {
-
-        private final boolean includeInactive;
-
-        public ReloadCustomersTask(Stage stage, boolean includeInactive) {
-            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
-            this.includeInactive = includeInactive;
-        }
-
-        @Override
-        protected void processResult(ArrayList<CustomerImpl> result, Stage stage) {
-            CustomerSelectionItem currentCustomer = customerComboBox.getValue();
-            CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
-            customerList.clear();
-            customerList.add(new CustomerSelectionItem(null));
-            result.forEach((t) -> {
-                customerList.add(new CustomerSelectionItem(t));
-            });
-            if (null == currentCustomer || null == currentCustomer.getValue() || !selectItem(customerComboBox, currentCustomer.getValue())) {
-                selectItem(customerComboBox, null);
-            }
-            filteredCustomerList.clear();
-            CitySelectionItem cityItem = cityComboBox.getValue();
-            if (null != cityItem && null != cityItem.getValue()) {
-                int cityId = cityItem.getValue().getPrimaryKey();
-                filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCityId() == cityId));
-            } else {
-                CountrySelectionItem countryItem = countryComboBox.getValue();
-                if (null != countryItem && null != countryItem.getValue()) {
-                    int countryId = countryItem.getValue().getPrimaryKey();
-                    filteredCustomerList.addAll(customerList.filtered((t) -> null == t.getValue() || t.getCountryId() == countryId));
-                } else {
-                    filteredCustomerList.addAll(customerList);
-                }
-            }
-            if (null == currentCustomCustomer || null == currentCustomCustomer.getValue() || !selectItem(customCustomerComboBox, currentCustomCustomer.getValue())) {
-                selectItem(customCustomerComboBox, null);
-            }
-        }
-
-        @Override
-        protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                    "Error loading reloading customers", ex);
-        }
-
-        @Override
-        protected ArrayList<CustomerImpl> getResult(Connection connection) throws SQLException {
-//            return (this.includeInactive) ? CustomerImpl.getFactory().getAll(connection)
-//                    : CustomerImpl.getFactory().getDefaultFilter().get(connection);
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
-        }
-
-    }
-
-    private class ReloadUsersTask extends TaskWaiter<ArrayList<UserImpl>> {
-
-        private final boolean includeInactive;
-
-        public ReloadUsersTask(Stage stage, boolean includeInactive) {
-            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
-            this.includeInactive = includeInactive;
-        }
-
-        @Override
-        protected void processResult(ArrayList<UserImpl> result, Stage stage) {
-            UserSelectionItem currentUser = userComboBox.getValue();
-            UserSelectionItem currentCustomUser = customUserComboBox.getValue();
-            userList.clear();
-            userList.add(new UserSelectionItem(null));
-            result.forEach((t) -> {
-                userList.add(new UserSelectionItem(t));
-            });
-            if (null == currentUser || null == currentUser.getValue() || !selectItem(userComboBox, currentUser.getValue())) {
-                selectItem(userComboBox, null);
-            }
-            if (null == currentCustomUser || null == currentCustomUser.getValue() || !selectItem(customUserComboBox, currentCustomUser.getValue())) {
-                selectItem(customUserComboBox, null);
-            }
-        }
-
-        @Override
-        protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                    "Error loading reloading users", ex);
-        }
-
-        @Override
-        protected ArrayList<UserImpl> getResult(Connection connection) throws SQLException {
-//            if (includeInactive) {
-//                return UserImpl.getFactory().getAllItemsFilter().get(connection);
-//            }
-//            return UserImpl.getFactory().getDefaultFilter().get(connection);
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+        protected Pair<List<CustomerDAO>, List<UserDAO>> getResult(Connection connection) throws SQLException {
+            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+            UserDAO.FactoryImpl uf = UserDAO.getFactory();
+            return new Pair<>(
+                    cf.load(connection, (this.includeInactiveCustomers) ? cf.getActiveStatusFilter(true) : cf.getAllItemsFilter()),
+                    uf.load(connection, (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getActiveUsersFilter())
+            );
         }
 
     }
@@ -1006,22 +920,18 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.logAndAlertDbError(stage, LOG, getClass(), "processException", resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+            AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                     "Error loading appointment filter data", ex);
         }
 
         @Override
         protected OptionItems getResult(Connection connection) throws SQLException {
             OptionItems result = new OptionItems();
-            AddressImpl.FactoryImpl addrFactory = AddressImpl.getFactory();
-            CityImpl.FactoryImpl cityFactory = CityImpl.getFactory();
-//            result.customers = CustomerImpl.getFactory().getDefaultFilter().get(connection);
-//            result.users = UserImpl.getFactory().getDefaultFilter().get(connection);
-//            result.cities = CityImpl.getFactory().getAllItemsFilter().get(connection);
-//            result.countries = CountryImpl.getFactory().getAllItemsFilter().get(connection);
-//            return result;
-            throw new UnsupportedOperationException();
-            // TODO: Implement this
+            result.customers = CustomerDAO.getFactory().load(connection, CustomerDAO.getFactory().getActiveStatusFilter(true));
+            result.users = UserDAO.getFactory().load(connection, UserDAO.getFactory().getActiveUsersFilter());
+            result.cities = CityDAO.getFactory().load(connection, CityDAO.getFactory().getAllItemsFilter());
+            result.countries = CountryDAO.getFactory().load(connection, CountryDAO.getFactory().getAllItemsFilter());
+            return result;
         }
     }
 
@@ -1078,7 +988,6 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             if (null == startOpt || null == startVal || null == endOpt || null == endVal) {
                 return "";
             }
-
             switch (startOpt.getValue()) {
                 case EXCLUSIVE:
                     switch (endOpt.getValue()) {
@@ -1333,11 +1242,25 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
     }
 
-    public class CustomerSelectionItem extends DataObjectItem<CustomerImpl> {
+    public class CustomerSelectionItem extends DataObjectItem<CustomerDAO> {
 
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyIntegerWrapper cityId;
         private final ReadOnlyIntegerWrapper countryId;
+
+        public CustomerSelectionItem(CustomerDAO customer) {
+            super(customer);
+            if (null == customer) {
+                text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANY));
+                cityId = new ReadOnlyIntegerWrapper(-1);
+                countryId = new ReadOnlyIntegerWrapper(-1);
+            } else {
+                text = new ReadOnlyStringWrapper(customer.getName());
+                AddressElement addr = customer.getAddress();
+                cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
+                countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
+            }
+        }
 
         @Override
         public String getText() {
@@ -1365,22 +1288,9 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             return countryId.getReadOnlyProperty();
         }
 
-        public CustomerSelectionItem(CustomerImpl customer) {
-            super(customer);
-            if (null == customer) {
-                text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANY));
-                cityId = new ReadOnlyIntegerWrapper(-1);
-                countryId = new ReadOnlyIntegerWrapper(-1);
-            } else {
-                text = new ReadOnlyStringWrapper(customer.getName());
-                Address addr = customer.getAddress();
-                cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
-                countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
-            }
-        }
     }
 
-    public class CitySelectionItem extends DataObjectItem<CityImpl> {
+    public class CitySelectionItem extends DataObjectItem<CityDAO> {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1403,7 +1313,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             return countryId.getReadOnlyProperty();
         }
 
-        public CitySelectionItem(CityImpl city) {
+        public CitySelectionItem(CityDAO city) {
             super(city);
             if (null == city) {
                 text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANY));
@@ -1415,7 +1325,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
     }
 
-    public class CountrySelectionItem extends DataObjectItem<CountryImpl> {
+    public class CountrySelectionItem extends DataObjectItem<CountryDAO> {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1429,14 +1339,14 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             return text.getReadOnlyProperty();
         }
 
-        public CountrySelectionItem(CountryImpl country) {
+        public CountrySelectionItem(CountryDAO country) {
             super(country);
             text = new ReadOnlyStringWrapper((null == country) ? resources.getString(RESOURCEKEY_ANY) : country.getName());
         }
 
     }
 
-    public class UserSelectionItem extends DataObjectItem<UserImpl> {
+    public class UserSelectionItem extends DataObjectItem<UserDAO> {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1450,14 +1360,14 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             return text.getReadOnlyProperty();
         }
 
-        public UserSelectionItem(UserImpl user) {
+        public UserSelectionItem(UserDAO user) {
             super(user);
             text = new ReadOnlyStringWrapper((null == user) ? resources.getString(RESOURCEKEY_ANY) : user.getUserName());
         }
 
     }
 
-    public abstract class DataObjectItem<T extends DataObjectImpl> extends SelectionItem<T> {
+    public abstract class DataObjectItem<T extends DataAccessObject> extends SelectionItem<T> {
 
         protected DataObjectItem(T value) {
             super(value);

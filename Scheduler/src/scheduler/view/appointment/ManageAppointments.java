@@ -1,30 +1,41 @@
 package scheduler.view.appointment;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import scheduler.dao.AppointmentImpl;
-import scheduler.dao.DataObjectImpl;
-import scheduler.view.ItemModel;
+import javafx.stage.Stage;
+import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.model.ItemModel;
 
 /**
- * FXML Controller class for viewing a list of {@link AppointmentModel} items. This is loaded as content of {@link MainController} using
- * {@link #setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.AppointmentFilter)}.
+ * FXML Controller class for viewing a list of {@link AppointmentModel} items.
  *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public final class ManageAppointments extends ListingController<AppointmentImpl, AppointmentModel> implements ManageAppointmentsResourceKeys {
+public final class ManageAppointments extends ListingController<AppointmentDAO, AppointmentModel> implements ManageAppointmentsResourceKeys {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
 
+    public static ManageAppointments loadInto(MainController mainController, Stage stage, AppointmentModelFilter filter,
+            Object loadEventListener) throws IOException {
+        return loadInto(ManageAppointments.class, mainController, stage, filter, loadEventListener);
+    }
+
+    public static ManageAppointments loadInto(MainController mainController, Stage stage, AppointmentModelFilter filter) throws IOException {
+        return loadInto(mainController, stage, filter, null);
+    }
+    // TODO: The value of the field ManageAppointments.filterState is not used
     private FilterOptionState filterState = null;
 
     @FXML // fx:id="headingLabel"
@@ -41,7 +52,7 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 //            AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
 //        }
         throw new UnsupportedOperationException();
-        // TODO: Implement this
+        // TODO: Implement filterButtonClick(ActionEvent event)
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -55,31 +66,31 @@ public final class ManageAppointments extends ListingController<AppointmentImpl,
 
     @Override
     protected void onDeleteItem(Event event, AppointmentModel item) {
-        getMainController().deleteAppointment(event, item);
+        getMainController().deleteAppointment((Stage) ((Button) event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
-    protected AppointmentModel toModel(AppointmentImpl dao) {
+    protected AppointmentModel toModel(AppointmentDAO dao) {
         return new AppointmentModel(dao);
     }
 
     @Override
-    protected DataObjectImpl.DaoFactory<AppointmentImpl> getDaoFactory() {
-        return AppointmentImpl.getFactory();
+    protected DataAccessObject.DaoFactory<AppointmentDAO> getDaoFactory() {
+        return AppointmentDAO.getFactory();
     }
 
     @Override
-    protected void onAddNewItem(Event event) {
-        getMainController().addNewAppointment(event);
+    protected void onAddNewItem(Event event) throws IOException {
+        getMainController().addNewAppointment((Stage) ((Button) event.getSource()).getScene().getWindow());
     }
 
     @Override
-    protected void onEditItem(Event event, AppointmentModel item) {
-        getMainController().editAppointment(event, item);
+    protected void onEditItem(Event event, AppointmentModel item) throws IOException {
+        getMainController().editAppointment((Stage) ((Button) event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
-    protected ItemModel.ModelFactory<AppointmentImpl, AppointmentModel> getModelFactory() {
+    protected ItemModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
         return AppointmentModel.getFactory();
     }
 

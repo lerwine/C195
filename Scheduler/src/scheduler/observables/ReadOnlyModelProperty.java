@@ -12,7 +12,7 @@ import scheduler.dao.DataRowState;
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <M>
  */
-public class ReadOnlyModelProperty<M extends scheduler.view.ItemModel<?>> extends ReadOnlyObjectWrapper<M> {
+public class ReadOnlyModelProperty<M extends scheduler.view.model.ItemModel<?>> extends ReadOnlyObjectWrapper<M> {
 
     private final BooleanBinding newRow;
     private final BooleanBinding deleted;

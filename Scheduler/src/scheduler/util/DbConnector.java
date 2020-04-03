@@ -83,21 +83,20 @@ public final class DbConnector implements AutoCloseable {
                     ? CONNECTION_CLOSE_DELAY_MILLISECONDS : (int) closeIn);
             // See if we reached the date and time when the connection is supposed to be closed.
             if (delayMilliseconds > 0) {
-                LOG.logp(Level.INFO, DbConnector.class.getName(),
-                        "checkClose", "Not ready to close. Checking again in %d milliseconds", delayMilliseconds);
+                LOG.log(Level.INFO, String.format("Not ready to close. Checking again in %d milliseconds", delayMilliseconds));
                 scheduleClose(delayMilliseconds); // Check back later to see if we need to close the connection.
                 return false;
             }
             try {
                 CONNECTION.close();
             } catch (SQLException ex) {
-                LOG.logp(Level.SEVERE, DbConnector.class.getName(), "checkClose", String.format("Error closing database connection to %s",
+                LOG.log(Level.SEVERE, String.format("Error closing database connection to %s",
                         AppResources.getDbServerName()), ex);
             } finally {
                 CONNECTION = null;
                 CURRENT_STATE = STATE_NOT_CONNECTED;
             }
-            LOG.logp(Level.INFO, DbConnector.class.getName(), "checkClose", String.format("Disconnected from %s", AppResources.getDbServerName()));
+            LOG.log(Level.INFO, String.format("Disconnected from %s", AppResources.getDbServerName()));
         }
         return true;
     }

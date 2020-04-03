@@ -1,32 +1,32 @@
 package scheduler.view.annotations;
 
-import scheduler.dao.DaoChangeAction;
+import scheduler.dao.event.DaoChangeAction;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public enum DaoChangeType {
     /**
-     * Handles any {@link scheduler.dao.DataObjectEvent};
+     * Handles any {@link scheduler.dao.event.DataObjectEvent};
      */
     ANY(null),
     
     /**
-     * Handles {@link scheduler.dao.DataObjectEvent}s where {@link scheduler.dao.DataObjectEvent#changeAction} is
-     * {@link DaoChangeAction.CREATED}.
+     * Handles {@link scheduler.dao.event.DataObjectEvent}s where {@link scheduler.dao.event.DataObjectEvent#changeAction} is
+     * {@link DaoChangeAction#CREATED}.
      */
     CREATED(DaoChangeAction.CREATED),
     
     /**
-     * Handles {@link scheduler.dao.DataObjectEvent}s where {@link scheduler.dao.DataObjectEvent#changeAction} is
-     * {@link DaoChangeAction.DELETED}.
+     * Handles {@link scheduler.dao.event.DataObjectEvent}s where {@link scheduler.dao.event.DataObjectEvent#changeAction} is
+     * {@link DaoChangeAction#DELETED}.
      */
     DELETED(DaoChangeAction.DELETED),
     
     /**
-     * Handles {@link scheduler.dao.DataObjectEvent}s where {@link scheduler.dao.DataObjectEvent#changeAction} is
-     * {@link DaoChangeAction.UPDATED}.
+     * Handles {@link scheduler.dao.event.DataObjectEvent}s where {@link scheduler.dao.event.DataObjectEvent#changeAction} is
+     * {@link DaoChangeAction#UPDATED}.
      */
     UPDATED(DaoChangeAction.UPDATED);
     
@@ -35,7 +35,8 @@ public enum DaoChangeType {
     /**
      * The {@link DaoChangeAction} for the handling method.
      * 
-     * @return The {@link scheduler.dao.DataObjectEvent#changeAction} that the handling method is limited to or {@code null} if it handles all events.
+     * @return The {@link scheduler.dao.event.DataObjectEvent#changeAction} that the handling method is limited to or {@code null} if it handles all
+     * events.
      */
     public DaoChangeAction getChangeAction() {
         return changeAction;

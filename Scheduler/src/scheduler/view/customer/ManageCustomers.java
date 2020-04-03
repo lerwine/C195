@@ -1,28 +1,37 @@
 package scheduler.view.customer;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import scheduler.dao.CustomerImpl;
+import javafx.scene.control.Button;
+import javafx.stage.Stage;
+import scheduler.dao.CustomerDAO;
 import scheduler.view.ListingController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.util.ItemEvent;
-import scheduler.util.ItemEventManager;
-import scheduler.view.ItemModel;
+import scheduler.view.model.ItemModel;
 import scheduler.view.MainController;
 
 /**
- * FXML Controller class for viewing a list of {@link CustomerModel} items. This is loaded as content of {@link MainController} using
- * {@link #setContent(scheduler.view.MainController, javafx.stage.Stage, scheduler.dao.CustomerFilter)}.
+ * FXML Controller class for viewing a list of {@link CustomerModelImpl} items.
  *
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends ListingController<CustomerImpl, CustomerModel> implements ManageCustomersConstants {
+public final class ManageCustomers extends ListingController<CustomerDAO, CustomerModelImpl> implements ManageCustomersConstants {
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
+
+    public static ManageCustomers loadInto(MainController mainController, Stage stage, CustomerModelFilter filter,
+            Object loadEventListener) throws IOException {
+        return loadInto(ManageCustomers.class, mainController, stage, filter, loadEventListener);
+    }
+
+    public static ManageCustomers loadInto(MainController mainController, Stage stage, CustomerModelFilter filter) throws IOException {
+        return loadInto(mainController, stage, filter, null);
+    }
 
     @FXML
     @Override
@@ -31,33 +40,33 @@ public final class ManageCustomers extends ListingController<CustomerImpl, Custo
     }
 
     @Override
-    protected void onAddNewItem(Event event) {
-        getMainController().addNewCustomer(event);
+    protected void onAddNewItem(Event event) throws IOException {
+        getMainController().addNewCustomer((Stage)((Button)event.getSource()).getScene().getWindow());
     }
 
     @Override
-    protected void onEditItem(Event event, CustomerModel item) {
-        getMainController().editCustomer(event, item);
+    protected void onEditItem(Event event, CustomerModelImpl item) throws IOException {
+        getMainController().editCustomer((Stage)((Button)event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
-    protected void onDeleteItem(Event event, CustomerModel item) {
-        getMainController().deleteCustomer(event, item);
+    protected void onDeleteItem(Event event, CustomerModelImpl item) {
+        getMainController().deleteCustomer((Stage)((Button)event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
-    protected CustomerModel toModel(CustomerImpl dao) {
-        return new CustomerModel(dao);
+    protected CustomerModelImpl toModel(CustomerDAO dao) {
+        return new CustomerModelImpl(dao);
     }
 
     @Override
-    protected CustomerImpl.FactoryImpl getDaoFactory() {
-        return CustomerImpl.getFactory();
+    protected CustomerDAO.FactoryImpl getDaoFactory() {
+        return CustomerDAO.getFactory();
     }
 
     @Override
-    protected ItemModel.ModelFactory<CustomerImpl, CustomerModel> getModelFactory() {
-        return CustomerModel.getFactory();
+    protected ItemModel.ModelFactory<CustomerDAO, CustomerModelImpl> getModelFactory() {
+        return CustomerModelImpl.getFactory();
     }
 
 }

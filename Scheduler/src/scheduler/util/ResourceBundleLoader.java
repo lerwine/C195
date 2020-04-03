@@ -292,7 +292,7 @@ public final class ResourceBundleLoader {
         try {
             result = ResourceBundle.getBundle(baseName, currentDisplayLocale, resourceClass.getClassLoader());
         } catch (MissingResourceException ex) {
-            LOG.logp(Level.SEVERE, ResourceBundleLoader.class.getName(), "getBundle", "Error loading resource bundle", ex);
+            LOG.log(Level.SEVERE, "Error loading resource bundle", ex);
             map.put(baseName, null);
             return null;
         }

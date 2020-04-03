@@ -4,8 +4,9 @@ import java.sql.JDBCType;
 import scheduler.util.ReadOnlyList;
 
 /**
- * Data types for reading and writing database values. The {@link ColumnType} enumeration uses this to map a value type to the respective database
- * column type.
+ * Data types for reading and writing database values.
+ * <p>
+ * The {@link ColumnType} enumeration uses this to specify the Java type that is corresponds to the database column type.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
@@ -37,7 +38,7 @@ public enum ValueType {
     }
 
     /**
-     * Gets the primary associated JDBC data type.
+     * Gets the primary JDBC data type to use with this type.
      *
      * @return The primary {@code JDBCType}.
      */
@@ -46,7 +47,7 @@ public enum ValueType {
     }
 
     /**
-     * Gets alternate associated JDBC data types.
+     * Gets alternate JDBC data types that can be used with this type.
      *
      * @return Alternate {@code JDBCType}s.
      */

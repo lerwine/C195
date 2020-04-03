@@ -127,7 +127,7 @@ public class DbColumnTest {
         DbTable tableName = DbTable.ADDRESS;
         Stream<DbColumn> expResult = Stream.of(DbColumn.ADDRESS1, DbColumn.ADDRESS2, DbColumn.ADDRESS_CITY, DbColumn.POSTAL_CODE, DbColumn.PHONE,
                 DbColumn.ADDRESS_ID);
-        Stream<DbColumn> result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsage() != ColumnUsage.AUDIT);
+        Stream<DbColumn> result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsageCategory() != ColumnCategory.AUDIT);
         Iterator<DbColumn> x = expResult.iterator();
         Iterator<DbColumn> r = result.iterator();
         while (x.hasNext()) {
@@ -139,7 +139,7 @@ public class DbColumnTest {
         tableName = DbTable.APPOINTMENT;
         expResult = Stream.of(DbColumn.APPOINTMENT_CUSTOMER, DbColumn.APPOINTMENT_USER, DbColumn.TITLE, DbColumn.DESCRIPTION, DbColumn.LOCATION,
                 DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START, DbColumn.END, DbColumn.APPOINTMENT_ID);
-        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsage() != ColumnUsage.AUDIT);
+        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsageCategory() != ColumnCategory.AUDIT);
         x = expResult.iterator();
         r = result.iterator();
         while (x.hasNext()) {
@@ -150,7 +150,7 @@ public class DbColumnTest {
         
         tableName = DbTable.CITY;
         expResult = Stream.of(DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.CITY_ID);
-        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsage() != ColumnUsage.AUDIT);
+        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsageCategory() != ColumnCategory.AUDIT);
         x = expResult.iterator();
         r = result.iterator();
         while (x.hasNext()) {
@@ -161,7 +161,7 @@ public class DbColumnTest {
         
         tableName = DbTable.COUNTRY;
         expResult = Stream.of(DbColumn.COUNTRY_NAME, DbColumn.COUNTRY_ID);
-        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsage() != ColumnUsage.AUDIT);
+        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsageCategory() != ColumnCategory.AUDIT);
         x = expResult.iterator();
         r = result.iterator();
         while (x.hasNext()) {
@@ -172,7 +172,7 @@ public class DbColumnTest {
         
         tableName = DbTable.CUSTOMER;
         expResult = Stream.of(DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ACTIVE, DbColumn.CUSTOMER_ID);
-        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsage() != ColumnUsage.AUDIT);
+        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsageCategory() != ColumnCategory.AUDIT);
         x = expResult.iterator();
         r = result.iterator();
         while (x.hasNext()) {
@@ -183,7 +183,7 @@ public class DbColumnTest {
         
         tableName = DbTable.USER;
         expResult = Stream.of(DbColumn.USER_NAME, DbColumn.PASSWORD, DbColumn.STATUS, DbColumn.USER_ID);
-        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsage() != ColumnUsage.AUDIT);
+        result = SchemaHelper.getTableColumns(tableName, (t) -> t.getUsageCategory() != ColumnCategory.AUDIT);
         x = expResult.iterator();
         r = result.iterator();
         while (x.hasNext()) {

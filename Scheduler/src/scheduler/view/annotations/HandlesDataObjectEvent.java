@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a function can receive {@link scheduler.dao.DataObjectEvent}s.
+ * Indicates that a function can receive {@link scheduler.dao.event.DataObjectEvent}s.
  * This expects the annotated method to have the same signature as
- * {@link scheduler.dao.DataObjectEventListener#onDataObjectEvent(scheduler.dao.DataObjectEvent)}.
+ * {@link scheduler.dao.event.DataObjectEventListener#onDataObjectEvent(scheduler.dao.event.DataObjectEvent)}.
  *
  * @author Leonard T. Erwine
  */
@@ -16,9 +16,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface HandlesDataObjectEvent {
     /**
-     * If defined, this indicates what {@link scheduler.dao.DaoChangeAction} the annotated method is for.
+     * If defined, this indicates what {@link scheduler.dao.event.DaoChangeAction} the annotated method is for.
      * 
-     * @return A {@link DaoChangeType} that determines what {@link scheduler.dao.DaoChangeAction} the annotated method is for. 
+     * @return A {@link DaoChangeType} that determines what {@link scheduler.dao.event.DaoChangeAction} the annotated method is for. 
      */
     DaoChangeType type() default DaoChangeType.ANY;
 }

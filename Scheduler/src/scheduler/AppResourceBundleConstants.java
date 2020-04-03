@@ -2,11 +2,11 @@ package scheduler;
 
 /**
  * Defines resource bundle keys for the App resource bundle.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334)
  */
 public interface AppResourceBundleConstants {
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Abort"}.
      */
@@ -98,7 +98,8 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL = "appointmentType_virtual";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This action cannot be undone!\n\nAre you sure you want to delete this item?"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This action cannot be undone!\n\nAre you sure you want to delete this item?"}.
      */
     public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
 
@@ -143,7 +144,8 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error reading data from database. See logs for details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "Error reading data from database. See logs for details."}.
      */
     public static final String RESOURCEKEY_DBREADERROR = "dbReadError";
 
@@ -153,7 +155,8 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_DELETE = "delete";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unable to delete the record from the database.\nMost likely, someone else has modified another record that depends upon this one."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "Unable to delete the record from the database.\nMost likely, someone else has modified another record that depends upon this one."}.
      */
     public static final String RESOURCEKEY_DELETEDEPENDENCYERROR = "deleteDependencyError";
 
@@ -163,12 +166,14 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There are %d cities that reference this country."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "There are %d cities that reference this country."}.
      */
     public static final String RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY = "deleteMsgMultipleCountry";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There is one city that references this country."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "There is one city that references this country."}.
      */
     public static final String RESOURCEKEY_DELETEMSGSINGLECOUNTRY = "deleteMsgSingleCountry";
 
@@ -183,12 +188,14 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_ERRORCODE = "errorCode";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error deleting record from database.\nSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "Error deleting record from database.\nSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORDELETINGFROMDB = "errorDeletingFromDb";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "A database access error occurred while trying to save changes to the database.\nSee system logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "A database access error occurred while trying to save changes to the database.\nSee system logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORSAVINGCHANGES = "errorSavingChanges";
 
@@ -198,7 +205,8 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_FILENOTFOUND = "fileNotFound";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading login scene content.\nSee logs for details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "Error loading login scene content.\nSee logs for details."}.
      */
     public static final String RESOURCEKEY_FXMLLOADERERRORMESSAGE = "fxmlLoaderErrorMessage";
 
@@ -228,7 +236,8 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_INITIALIZING = "initializing";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unexpected error trying to load child window.\nSee logs for details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "Unexpected error trying to load child window.\nSee logs for details."}.
      */
     public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
 
@@ -303,7 +312,8 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_RELATEDEXCEPTIONS = "relatedExceptions";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unable to save the record to the database.\nMost likely, someone else has deleted or modified a record that is related to this one."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "Unable to save the record to the database.\nMost likely, someone else has deleted or modified a record that is related to this one."}.
      */
     public static final String RESOURCEKEY_SAVEDEPENDENCYERROR = "saveDependencyError";
 
@@ -361,5 +371,20 @@ public interface AppResourceBundleConstants {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Working"}.
      */
     public static final String RESOURCEKEY_WORKING = "working";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading appointments, please wait..."}.
+     */
+    public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Reading From Database"}.
+     */
+    public static final String RESOURCEKEY_READINGFROMDB = "readingFromDb";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Addresses"}.
+     */
+    public static final String RESOURCEKEY_LOADINGADDRESSES = "loadingAddresses";
 
 }

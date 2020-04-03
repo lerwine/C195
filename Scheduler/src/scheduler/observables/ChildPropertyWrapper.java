@@ -21,7 +21,6 @@ import javafx.collections.ObservableList;
 public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> implements Binding<T> {
 
     private ReadOnlyObjectProperty<S> source;
-    // TODO: Find out why this is never used.
     private final Function<S, ReadOnlyProperty<T>> getChildProperty;
     private final Object bean;
     private final String name;
@@ -31,14 +30,6 @@ public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> im
     private boolean valid = true;
     private final InvalidationListener sourceInvalidationListener;
     private final InvalidationListener propertyInvalidationListener;
-
-    public S getSource() {
-        return source.getValue();
-    }
-
-    public ReadOnlyObjectProperty<S> sourceProperty() {
-        return source;
-    }
 
     /**
      * Initializes a new child property wrapper object.
@@ -62,7 +53,7 @@ public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> im
         sourceInvalidationListener = (Observable observable) -> {
             ReadOnlyProperty<T> oldProperty = property;
             S u = this.source.getValue();
-            if ((property = (null == u) ? null : getChildProperty.apply(u)) == oldProperty) {
+            if ((property = (null == u) ? null : this.getChildProperty.apply(u)) == oldProperty) {
                 return;
             }
             try {
@@ -89,7 +80,7 @@ public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> im
         };
         S target = source.getValue();
         if (null != target) {
-            property = getChildProperty.apply(target);
+            property = this.getChildProperty.apply(target);
             if (null != property) {
                 dependencies.add(property);
                 property.addListener(propertyInvalidationListener);
@@ -108,6 +99,14 @@ public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> im
      */
     public ChildPropertyWrapper(ReadOnlyObjectProperty<S> source, Function<S, ReadOnlyProperty<T>> getChildProperty) {
         this(null, null, source, getChildProperty);
+    }
+
+    public S getSource() {
+        return source.getValue();
+    }
+
+    public ReadOnlyObjectProperty<S> sourceProperty() {
+        return source;
     }
 
     /**

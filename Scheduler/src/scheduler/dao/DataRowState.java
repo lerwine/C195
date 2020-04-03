@@ -11,6 +11,12 @@ public enum DataRowState {
     DELETED;
     
     public static boolean existsInDb(DataRowState status) {
-        return status == DataRowState.UNMODIFIED || status == DataRowState.MODIFIED;
+        switch (status) {
+            case MODIFIED:
+            case UNMODIFIED:
+                return true;
+            default:
+                return false;
+        }
     }
 }

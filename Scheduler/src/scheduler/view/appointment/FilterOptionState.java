@@ -1,12 +1,12 @@
 package scheduler.view.appointment;
 
 import java.time.LocalDateTime;
-import scheduler.dao.CityImpl;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.CustomerImpl;
-import scheduler.dao.DateFilterType;
-import scheduler.dao.TextFilterType;
-import scheduler.dao.UserImpl;
+import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.CustomerDAO;
+import scheduler.dao.filter.DateFilterType;
+import scheduler.dao.filter.TextFilterType;
+import scheduler.dao.UserDAO;
 
 /**
  *
@@ -29,10 +29,10 @@ public class FilterOptionState implements Cloneable {
     private DateFilterType startOption = DateFilterType.NONE;
     private LocalDateTime endDateTime = null;
     private DateFilterType endOption = DateFilterType.NONE;
-    private CustomerImpl customer = null;
-    private CityImpl city = null;
-    private CountryImpl country = null;
-    private UserImpl user = null;
+    private CustomerDAO customer = null;
+    private CityDAO city = null;
+    private CountryDAO country = null;
+    private UserDAO user = null;
     private String titleText = "";
     private TextFilterType titleOption = TextFilterType.NONE;
     private String locationText = "";
@@ -70,35 +70,35 @@ public class FilterOptionState implements Cloneable {
         this.endOption = endOption;
     }
 
-    public CustomerImpl getCustomer() {
+    public CustomerDAO getCustomer() {
         return customer;
     }
 
-    public synchronized void setCustomer(CustomerImpl customer) {
+    public synchronized void setCustomer(CustomerDAO customer) {
         this.customer = customer;
     }
 
-    public CityImpl getCity() {
+    public CityDAO getCity() {
         return city;
     }
 
-    public synchronized void setCity(CityImpl city) {
+    public synchronized void setCity(CityDAO city) {
         this.city = city;
     }
 
-    public CountryImpl getCountry() {
+    public CountryDAO getCountry() {
         return country;
     }
 
-    public synchronized void setCountry(CountryImpl country) {
+    public synchronized void setCountry(CountryDAO country) {
         this.country = country;
     }
 
-    public UserImpl getUser() {
+    public UserDAO getUser() {
         return user;
     }
 
-    public synchronized void setUser(UserImpl user) {
+    public synchronized void setUser(UserDAO user) {
         this.user = user;
     }
 

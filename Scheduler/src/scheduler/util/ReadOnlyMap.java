@@ -140,6 +140,10 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
     }
     
     public static class Wrapper<K, V> extends HashMap<K, V> {
+        /**
+         *
+         */
+        private static final long serialVersionUID = -6245260755716089941L;
         private final ReadOnlyMap<K, V> readOnlyMap = new ReadOnlyMap<K, V>() {
             @Override
             public int size() {

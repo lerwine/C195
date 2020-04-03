@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import scheduler.AppResources;
@@ -20,6 +21,7 @@ import scheduler.view.ErrorDialogDetailController;
 public class AlertHelper {
 
     public static final String CSS_CLASS_FORMCONTROLLABEL = "formControlLabel";
+    private static final Logger LOG = Logger.getLogger(AlertHelper.class.getName());
 
     public static Optional<ButtonType> showErrorAlert(Window parent, String title, Node content, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -43,8 +45,19 @@ public class AlertHelper {
         return showErrorAlert((Window) null, title, content, buttons);
     }
 
-    public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, Class<?> sourceClass, String sourceMethod, String userMessage, String logMessage, Throwable error, ButtonType... buttons) {
-        logger.logp(Level.SEVERE, sourceClass.getName(), sourceMethod, logMessage, error);
+    /**
+     * Logs a database-related exception and displays an application-modal {@link Alert}.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * @param logger The {@link Logger} to log the error to.
+     * @param userMessage The message to display to the user.
+     * @param logMessage The message to be written to the log.
+     * @param error The error that was thrown.
+     * @param buttons Dialog buttons to be displayed.
+     * @return An {@link Optional} {@link ButtonType} indicating which button the user clicked to close the {@link Alert} dialog.
+     */
+    public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, String userMessage, String logMessage, Throwable error, ButtonType... buttons) {
+        logger.log(Level.SEVERE, logMessage, error);
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};
         }
@@ -57,18 +70,33 @@ public class AlertHelper {
         try {
             alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
         } catch (IOException ex) {
-            Logger.getLogger(AlertHelper.class.getName()).logp(Level.SEVERE, AlertHelper.class.getName(), "logAndAlert", "Error loading exception detail", ex);
+            LOG.log(Level.SEVERE, "Error loading exception detail", ex);
         }
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> logAndAlertError(Window parent, Logger logger, Class<?> sourceClass, String sourceMethod, String logMessage, Throwable error, ButtonType... buttons) {
-        logger.logp(Level.SEVERE, sourceClass.getName(), sourceMethod, logMessage, error);
+    public static Optional<ButtonType> logAndAlertDbError(Logger logger, String userMessage, String logMessage, Throwable error, ButtonType... buttons) {
+        return logAndAlertDbError((Window) null, logger, userMessage, logMessage, error, buttons);
+    }
+
+    /**
+     * Logs an exception and displays an application-modal {@link Alert}.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * @param logger The {@link Logger} to log the error to.
+     * @param logMessage The message to be written to the log.
+     * @param error The error that was thrown.
+     * @param buttons Dialog buttons to be displayed.
+     * @return An {@link Optional} {@link ButtonType} indicating which button the user clicked to close the {@link Alert} dialog.
+     */
+    public static Optional<ButtonType> logAndAlertError(Window parent, Logger logger, String logMessage, Throwable error, ButtonType... buttons) {
+        logger.log(Level.SEVERE, logMessage, error);
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};
         }
         Alert alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), buttons);
         alert.initStyle(StageStyle.UTILITY);
+        alert.initModality(Modality.APPLICATION_MODAL);
         if (null != parent) {
             alert.initOwner(parent);
         }
@@ -76,13 +104,13 @@ public class AlertHelper {
         try {
             alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
         } catch (IOException ex) {
-            Logger.getLogger(AlertHelper.class.getName()).logp(Level.SEVERE, AlertHelper.class.getName(), "logAndAlert", "Error loading exception detail", ex);
+            LOG.log(Level.SEVERE, "Error loading exception detail", ex);
         }
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> logAndAlertError(Logger logger, Class<?> sourceClass, String sourceMethod, String logMessage, Throwable error, ButtonType... buttons) {
-        return logAndAlertError((Window) null, logger, sourceClass, sourceMethod, logMessage, error, buttons);
+    public static Optional<ButtonType> logAndAlertError(Logger logger, String logMessage, Throwable error, ButtonType... buttons) {
+        return logAndAlertError((Window) null, logger, logMessage, error, buttons);
     }
 
     /**
@@ -123,7 +151,7 @@ public class AlertHelper {
             try {
                 alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, null));
             } catch (IOException ex) {
-                Logger.getLogger(AlertHelper.class.getName()).logp(Level.SEVERE, AlertHelper.class.getName(), "logAndAlert", "Error loading exception detail", ex);
+                LOG.log(Level.SEVERE, "Error loading exception detail", ex);
             }
         }
         return alert.showAndWait();

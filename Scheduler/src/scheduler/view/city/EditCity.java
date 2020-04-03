@@ -1,5 +1,6 @@
 package scheduler.view.city;
 
+import java.io.IOException;
 import javafx.beans.binding.BooleanExpression;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -7,14 +8,15 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import scheduler.dao.CityImpl;
-import scheduler.dao.DataObjectImpl.DaoFactory;
+import javafx.stage.Stage;
+import scheduler.dao.CityDAO;
 import scheduler.view.EditItem;
-import scheduler.view.ItemModel;
-import scheduler.view.address.AddressModel;
+import scheduler.view.MainController;
+import scheduler.view.address.AddressModelImpl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.country.CountryModel;
+import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class
@@ -23,11 +25,10 @@ import scheduler.view.country.CountryModel;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends EditItem.EditController<CityImpl, CityModel> {
+public final class EditCity extends EditItem.EditController<CityDAO, CityModelImpl> {
 
-    //<editor-fold defaultstate="collapsed" desc="Resource bundle keys">
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New City"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New CityDAO"}.
      */
     public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
 
@@ -37,7 +38,7 @@ public final class EditCity extends EditItem.EditController<CityImpl, CityModel>
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit City"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit CityDAO"}.
      */
     public static final String RESOURCEKEY_EDITCITY = "editCity";
 
@@ -52,7 +53,8 @@ public final class EditCity extends EditItem.EditController<CityImpl, CityModel>
     public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That city is referenced by one or more addresses and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "That city is referenced by one or more addresses and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_CITYHASADDRESSES = "cityHasAddresses";
 
@@ -76,7 +78,15 @@ public final class EditCity extends EditItem.EditController<CityImpl, CityModel>
      */
     public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
-    //</editor-fold>
+    public static CityModelImpl editNew(MainController mainController, Stage stage) throws IOException {
+        return editNew(EditCity.class, mainController, stage);
+    }
+
+    public static CityModelImpl edit(CityModelImpl model, MainController mainController, Stage stage) throws IOException {
+        return edit(model, EditCity.class, mainController, stage);
+    }
+
+    // TODO: The value of the field EditCity.countryId is not used
     private int countryId;
 
     @FXML // fx:id="nameTextField"
@@ -95,7 +105,7 @@ public final class EditCity extends EditItem.EditController<CityImpl, CityModel>
     private Label addressesLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressTableView"
-    private TableView<AddressModel> addressTableView; // Value injected by FXMLLoader
+    private TableView<AddressModelImpl> addressTableView; // Value injected by FXMLLoader
 
     @FXML // fx:id="addAddressButton"
     private Button addAddressButton; // Value injected by FXMLLoader
@@ -118,8 +128,8 @@ public final class EditCity extends EditItem.EditController<CityImpl, CityModel>
     }
 
     @Override
-    protected ItemModel.ModelFactory<CityImpl, CityModel> getFactory() {
-        return CityModel.getFactory();
+    protected ItemModel.ModelFactory<CityDAO, CityModelImpl> getFactory() {
+        return CityModelImpl.getFactory();
     }
 
 }

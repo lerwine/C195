@@ -2,17 +2,18 @@ package scheduler.view.country;
 
 import java.util.Objects;
 import javafx.beans.property.StringProperty;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.DataObjectImpl.DaoFactory;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.filter.DaoFilter;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.view.ItemModel;
 import scheduler.view.ModelFilter;
+import scheduler.view.model.ItemModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-public final class CountryModel extends ItemModel<CountryImpl> implements CountryReferenceModel<CountryImpl> {
+public final class CountryModel extends ItemModel<CountryDAO> implements CityCountryModel<CountryDAO> {
 
     private final NonNullableStringProperty name;
 
@@ -30,7 +31,7 @@ public final class CountryModel extends ItemModel<CountryImpl> implements Countr
         return name;
     }
 
-    public CountryModel(CountryImpl dao) {
+    public CountryModel(CountryDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
     }
@@ -69,41 +70,35 @@ public final class CountryModel extends ItemModel<CountryImpl> implements Countr
         return false;
     }
     
-    public final static class Factory extends ItemModel.ModelFactory<CountryImpl, CountryModel> {
+    public final static class Factory extends ItemModel.ModelFactory<CountryDAO, CountryModel> {
 
         private Factory() { }
         
         @Override
-        public DaoFactory<CountryImpl> getDaoFactory() {
-            return CountryImpl.getFactory();
+        public DaoFactory<CountryDAO> getDaoFactory() {
+            return CountryDAO.getFactory();
         }
 
         @Override
-        public CountryModel createNew(CountryImpl dao) {
+        public CountryModel createNew(CountryDAO dao) {
             return new CountryModel(dao);
         }
 
         @Override
-        protected void updateItem(CountryModel item, CountryImpl dao) {
+        public void updateItem(CountryModel item, CountryDAO dao) {
             super.updateItem(item, dao);
-            // TODO: Implement this
+            // TODO: Implement updateItem(CountryModel item, CountryDAO dao)
         }
 
         @Override
-        public ModelFilter<CountryImpl, CountryModel> getAllItemsFilter() {
+        public CountryDAO applyChanges(CountryModel item) {
             throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement this
+            // TODO: Implement applyChanges(CountryModel item)
         }
 
-        @Override
-        public ModelFilter<CountryImpl, CountryModel> getDefaultFilter() {
+        public ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> getAllItemsFilter() {
             throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement this
-        }
-
-        @Override
-        public CountryImpl applyChanges(CountryModel item) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            // TODO: Implement getAllItemsFilter()
         }
 
     }

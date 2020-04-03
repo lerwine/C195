@@ -26,7 +26,9 @@ import javafx.collections.ObservableMap;
  * @author Leonard T. Erwine (Student ID 356334)
  * @param <V> The type of mapped values.
  */
-public class CaseInsensitiveStringMap<V> implements Map<String, V>, ObservableMap<String, V> {
+public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
+
+    private static final Logger LOG = Logger.getLogger(CaseInsensitiveStringMap.class.getName());
 
     private final LinkedList<Entry> backingList;
     private final boolean nullAllowed;
@@ -260,14 +262,14 @@ public class CaseInsensitiveStringMap<V> implements Map<String, V>, ObservableMa
                             try {
                                 e.vetoableChangeSupport.fireVetoableChange(Entry.PROP_KEY, oldKey, k);
                             } catch (PropertyVetoException ex) {
-                                Logger.getLogger(CaseInsensitiveStringMap.class.getName()).log(Level.FINE, "Key change cancelled", ex);
+                                LOG.log(Level.FINE, "Key change cancelled", ex);
                                 return e.value;
                             }
                         }
                         try {
                             e.vetoableChangeSupport.fireVetoableChange(Entry.PROP_VALUE, e.value, value);
                         } catch (PropertyVetoException ex) {
-                            Logger.getLogger(CaseInsensitiveStringMap.class.getName()).log(Level.FINE, "Value change cancelled", ex);
+                            LOG.log(Level.FINE, "Value change cancelled", ex);
                             return e.value;
                         }
                         oldValue = (changed = e).value;
@@ -427,7 +429,7 @@ public class CaseInsensitiveStringMap<V> implements Map<String, V>, ObservableMa
                 try {
                     vetoableChangeSupport.fireVetoableChange(PROP_VALUE, oldValue, value);
                 } catch (PropertyVetoException ex) {
-                    Logger.getLogger(CaseInsensitiveStringMap.class.getName()).log(Level.FINE, "Value change cancelled", ex);
+                    LOG.log(Level.FINE, "Value change cancelled", ex);
                     return this.value;
                 }
                 this.value = value;

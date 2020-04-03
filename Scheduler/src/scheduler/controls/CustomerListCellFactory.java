@@ -9,7 +9,7 @@ import javafx.util.Callback;
  * @author Leonard T. Erwine
  * @param <T> The item type.
  */
-public class CustomerListCellFactory<T extends scheduler.view.customer.CustomerReferenceModel<?>> implements Callback<ListView<T>, ListCell<T>> {
+public class CustomerListCellFactory<T extends scheduler.view.customer.CustomerModel<?>> implements Callback<ListView<T>, ListCell<T>> {
 
     @Override
     public ListCell<T> call(ListView<T> param) {

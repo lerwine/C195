@@ -1,21 +1,23 @@
 package scheduler.view.country;
 
+import java.io.IOException;
 import java.util.Objects;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import scheduler.AppResources;
-import scheduler.dao.CountryImpl;
-import scheduler.dao.DataObjectImpl.DaoFactory;
+import scheduler.dao.CountryDAO;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
-import scheduler.view.ItemModel;
+import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class
@@ -24,10 +26,10 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public final class EditCountry extends EditItem.EditController<CountryImpl, CountryModel> {
+public final class EditCountry extends EditItem.EditController<CountryDAO, CountryModel> {
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New Country"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New CountryDAO"}.
      */
     public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
 
@@ -37,17 +39,19 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     public static final String RESOURCEKEY_CITIES = "cities";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "There are %d addresses that reference this city."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "There are %d addresses that reference this city."}.
      */
     public static final String RESOURCEKEY_DELETEMSGMULTIPLE = "deleteMsgMultiple";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "This is one address that references this city."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "This is one address that references this city."}.
      */
     public static final String RESOURCEKEY_DELETEMSGSINGLE = "deleteMsgSingle";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit Country"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit CountryDAO"}.
      */
     public static final String RESOURCEKEY_EDITCOUNTRY = "editCountry";
 
@@ -73,9 +77,18 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "A city with that name has already been added."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+     * {@code "A city with that name has already been added."}.
      */
     public static final String RESOURCEKEY_SAVECONFLICTMESSAGE = "saveConflictMessage";
+
+    public static CountryModel editNew(MainController mainController, Stage stage) throws IOException {
+        return editNew(EditCountry.class, mainController, stage);
+    }
+
+    public static CountryModel edit(CountryModel model, MainController mainController, Stage stage) throws IOException {
+        return edit(model, EditCountry.class, mainController, stage);
+    }
 
     @FXML
     private TextField nameTextField;
@@ -105,8 +118,8 @@ public final class EditCountry extends EditItem.EditController<CountryImpl, Coun
     }
 
     @Override
-    protected ItemModel.ModelFactory<CountryImpl, CountryModel> getFactory() {
+    protected ItemModel.ModelFactory<CountryDAO, CountryModel> getFactory() {
         return CountryModel.getFactory();
     }
-    
+
 }

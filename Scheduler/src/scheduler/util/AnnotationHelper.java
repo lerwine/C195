@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.util;
 
 import java.lang.annotation.Annotation;
@@ -15,27 +10,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.scene.Parent;
-import scheduler.dao.DaoChangeAction;
-import scheduler.dao.DataObjectEvent;
-import scheduler.dao.DataObjectEventListener;
-import scheduler.dao.DataObjectImpl;
-import scheduler.view.ViewControllerLifecycleEvent;
-import scheduler.view.ViewControllerLifecycleEventListener;
-import scheduler.view.ViewLifecycleEvent;
-import scheduler.view.ViewLifecycleEventListener;
-import scheduler.view.ViewLifecycleEventReason;
+import scheduler.dao.event.DaoChangeAction;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DataObjectEventListener;
+import scheduler.dao.DataAccessObject;
+import scheduler.dao.schema.DatabaseTable;
+import scheduler.dao.schema.DbTable;
+import scheduler.view.event.FxmlViewControllerEvent;
+import scheduler.view.event.FxmlViewEvent;
+import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.annotations.DaoChangeType;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesDataObjectEvent;
-import scheduler.view.annotations.HandlesViewLifecycleEvent;
-import scheduler.view.annotations.ViewLifecycleEventType;
 
 /**
- *
- * @author lerwi
+ * Utility class for getting annotated information.
+ * 
+ * @author Leonard T. Erwine (Student ID 356334)
  */
 public class AnnotationHelper {
+
+    private static final Logger LOG = Logger.getLogger(AnnotationHelper.class.getName());
 
     public static final String getGlobalizationResourceName(Class<?> target) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
@@ -44,10 +39,10 @@ public class AnnotationHelper {
             if (n != null && !n.trim().isEmpty()) {
                 return n;
             }
-            Logger.getLogger(AnnotationHelper.class.getName()).log(Level.WARNING, String.format("Value not defined for annotation %s in type %s",
+            LOG.log(Level.WARNING, String.format("Value not defined for annotation %s in type %s",
                     ac.toGenericString(), target.getName()));
         } else {
-            Logger.getLogger(AnnotationHelper.class.getName()).log(Level.WARNING, String.format("Annotation %s not present in type %s",
+            LOG.log(Level.WARNING, String.format("Annotation %s not present in type %s",
                     ac.toGenericString(), target.getName()));
         }
         return "";
@@ -67,36 +62,48 @@ public class AnnotationHelper {
             if (n != null && !n.trim().isEmpty()) {
                 return n;
             }
-            Logger.getLogger(AnnotationHelper.class.getName()).log(Level.WARNING, String.format("Value not defined for annotation %s in type %s",
-                    ac.toGenericString(), target.getName()));
+            LOG.log(Level.WARNING, String.format("Value not defined for annotation %s in type %s", ac.toGenericString(), target.getName()));
         } else {
-            Logger.getLogger(AnnotationHelper.class.getName()).log(Level.WARNING, String.format("Annotation %s not present in type %s",
-                    ac.toGenericString(), target.getName()));
+            LOG.log(Level.WARNING, String.format("Annotation %s not present in type %s", ac.toGenericString(), target.getName()));
         }
         return "";
     }
 
-    private static <T extends Annotation> Stream<Method> getAnnotatedMethods(Class<?> targetClass, Class<T> annotationClass,
+    /**
+     * Gets methods that have a specific annotation.
+     * 
+     * @param <T> The type of {@link Annotation}.
+     * @param targetClass The class to search for annotated methods.
+     * @param annotationClass The type of {@link Annotation} to look for.
+     * @param eventClass The type of {@link EventObject} to look for in the single parameter.
+     * @param filter A {@link Predicate} that is used to filter the results or {@code null} to return all results.
+     * @return A {@link Stream} of {@link Method} objects.
+     */
+    public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
             Class<? extends EventObject> eventClass, Predicate<T> filter) {
+        LOG.log(Level.FINE, String.format("Checking methods of %s ", targetClass.getName()));
         Stream.Builder<Method> builder = Stream.builder();
         do {
             for (Method m : targetClass.getDeclaredMethods()) {
-                if (m.isAnnotationPresent(annotationClass) && (null == filter || filter.test(m.getAnnotation(annotationClass)))) {
-                    Class<?>[] parameters = m.getParameterTypes();
-                    if (parameters.length != 1) {
-                        Logger.getLogger(AnnotationHelper.class.getName()).log(Level.WARNING,
-                                String.format("Method %s uses the %s annotation, but has the wrong number arguments", m.toString(),
-                                        annotationClass.getName()));
-                    } else if (parameters[0].isAssignableFrom(eventClass))
-                        builder.accept(m);
-                    else if (parameters[0].isAssignableFrom(ViewLifecycleEvent.class))
-                        Logger.getLogger(AnnotationHelper.class.getName()).log(Level.INFO,
-                                String.format("Method %s uses the %s annotation, but was skipped because the argument is not assignable from %s",
-                                        m.toString(), annotationClass.getName(), eventClass.getName()));
-                    else
-                        Logger.getLogger(AnnotationHelper.class.getName()).log(Level.WARNING,
-                                String.format("Method %s uses the %s annotation, but has the wrong type of argument", m.toString(),
-                                        annotationClass.getName()));
+                if (m.isAnnotationPresent(annotationClass)) {
+                    LOG.log(Level.FINE, String.format("Method %s has annotation", m.getName()));
+                    if (null == filter || filter.test(m.getAnnotation(annotationClass))) {
+                        Class<?>[] parameters = m.getParameterTypes();
+                        if (parameters.length != 1) {
+                            LOG.log(Level.WARNING, String.format("Method %s uses the %s annotation, but has the wrong number arguments", m.toString(),
+                                    annotationClass.getName()));
+                        } else if (parameters[0].isAssignableFrom(eventClass)) {
+                            builder.accept(m);
+                        } else if (parameters[0].isAssignableFrom(FxmlViewEvent.class)) {
+                            LOG.log(Level.FINE,
+                                    String.format("Method %s uses the %s annotation, but was skipped because the argument is not assignable from %s",
+                                            m.toString(), annotationClass.getName(), eventClass.getName()));
+                        } else {
+                            LOG.log(Level.WARNING,
+                                    String.format("Method %s uses the %s annotation, but has the wrong type of argument", m.toString(),
+                                            annotationClass.getName()));
+                        }
+                    }
                 }
             }
             targetClass = targetClass.getSuperclass();
@@ -104,83 +111,19 @@ public class AnnotationHelper {
         return builder.build();
     }
 
-    private static void invokeEventMethods(Object target, Iterator<Method> methodIterator, EventObject event) {
-        if (!methodIterator.hasNext())
-            return;
-        Method method = methodIterator.next();
-        try {
-            boolean wasAccessible = method.isAccessible();
-            if (!wasAccessible) {
-                method.setAccessible(true);
-            }
-            try {
-                method.invoke(target, new Object[] { event });
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                Logger.getLogger(AnnotationHelper.class.getName()).log(Level.SEVERE, String.format("Error invoking %s", method.toGenericString()), ex);
-            } finally {
-                if (!wasAccessible) {
-                    method.setAccessible(false);
-                }
-            }
-        } finally {
-            invokeEventMethods(target, methodIterator, event);
+    /**
+     * Gets the {@code DbTable} from the {@link DatabaseTable} annotation of a given {@link Class}.
+     * This is used by classes that inherit from {@link scheduler.dao.DataAccessObject} to specify the data table which the data access object represents.
+     * 
+     * @param target The target {@link Class}.
+     * @return The {@code DbTable} value from the {@link Class}'s {@link DatabaseTable} or {@code null} if the annotation is not present.
+     */
+    public static final DbTable getDbTable(Class<?> target) {
+        Class<DatabaseTable> ac = DatabaseTable.class;
+        if (target.isAnnotationPresent(ac)) {
+            return target.getAnnotation(ac).value();
         }
-    }
-    
-    public static void invokeDataObjectEventMethods(Object target, DataObjectEvent<? extends DataObjectImpl> event) {
-        if (null == target)
-            return;
-        Class<?> targetClass = target.getClass();
-        Class<? extends EventObject> eventClass = event.getClass();
-        try {
-            if (target instanceof DataObjectEventListener) {
-                try {
-                    Method method = targetClass.getMethod("onDataObjectEvent", eventClass);
-                    if (method.getParameterTypes()[0].isAssignableFrom(eventClass))
-                        ((DataObjectEventListener)target).onDataObjectEvent(event);
-                } catch (NoSuchMethodException | SecurityException ex) {
-                    Logger.getLogger(AnnotationHelper.class.getName()).log(Level.SEVERE, "Error getting interface implementation method", ex);
-                }
-            }
-        } finally {
-            final DaoChangeAction action = event.getChangeAction();
-            Iterator<Method> methods = getAnnotatedMethods(targetClass, HandlesDataObjectEvent.class, eventClass, (t) ->
-                t.type() == DaoChangeType.ANY || t.type().getChangeAction() == action).iterator();
-            invokeEventMethods(target, methods, event);
-        }
-    }
-
-    public static void invokeViewLifecycleEventMethods(Object target, ViewLifecycleEvent<? extends Parent> event) {
-        if (null == target)
-            return;
-        Class<?> targetClass = target.getClass();
-        Class<? extends EventObject> eventClass = event.getClass();
-        try {
-            if (target instanceof ViewControllerLifecycleEventListener) {
-                if (event instanceof ViewControllerLifecycleEvent) {
-                    try {
-                        Method method = targetClass.getMethod("onViewControllerLifecycleEvent", eventClass);
-                        if (method.getParameterTypes()[0].isAssignableFrom(eventClass))
-                            ((ViewControllerLifecycleEventListener)target).onViewControllerLifecycleEvent((ViewControllerLifecycleEvent)event);
-                    } catch (NoSuchMethodException | SecurityException ex) {
-                        Logger.getLogger(AnnotationHelper.class.getName()).log(Level.SEVERE, "Error getting interface implementation method", ex);
-                    }
-                }
-            } else if (target instanceof ViewLifecycleEventListener) {
-                try {
-                    Method method = targetClass.getMethod("onViewLifecycleEvent", eventClass);
-                    if (method.getParameterTypes()[0].isAssignableFrom(eventClass))
-                        ((ViewLifecycleEventListener)target).onViewLifecycleEvent(event);
-                } catch (NoSuchMethodException | SecurityException ex) {
-                    Logger.getLogger(AnnotationHelper.class.getName()).log(Level.SEVERE, "Error getting interface implementation method", ex);
-                }
-            }
-        } finally {
-            final ViewLifecycleEventReason reason = event.getReason();
-            Iterator<Method> methods = getAnnotatedMethods(targetClass, HandlesViewLifecycleEvent.class, eventClass, (t) ->
-                t.type() == ViewLifecycleEventType.ANY || t.type().getReason() == reason).iterator();
-            invokeEventMethods(target, methods, event);
-        }
+        return null;
     }
 
 }
