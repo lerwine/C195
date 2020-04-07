@@ -91,7 +91,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
     private boolean includeInactiveCustomers = false;
     private boolean includeInactiveUsers = false;
-    // TODO: The value of the field EditAppointmentFilter.resultFilter is not used
+    // TODO: ~P2: The value of the field EditAppointmentFilter.resultFilter is not used
     private FilterOptionState resultFilter;
     private ObservableList<RangeSelectionItem> rangeTypeOptionList;
     private ObservableList<CustomerSelectionItem> customerList;

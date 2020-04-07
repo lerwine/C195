@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -553,11 +552,11 @@ public class CustomerPicker extends SchedulerController {
     }
 
     class LoadCustomersTask extends TaskWaiter<ArrayList<CustomerDAO>> {
-        // TODO: The value of the field CustomerPicker.LoadCustomersTask.country is not used
+        // TODO: ~P2: The value of the field CustomerPicker.LoadCustomersTask.country is not used
         private final CountryDAO country;
-        // TODO: The value of the field CustomerPicker.LoadCustomersTask.city is not used
+        // TODO: ~P2: The value of the field CustomerPicker.LoadCustomersTask.city is not used
         private final CityDAO city;
-        // TODO: The value of the field CustomerPicker.LoadCustomersTask.active is not used
+        // TODO: ~P2: The value of the field CustomerPicker.LoadCustomersTask.active is not used
         private final OptionalBoolean active;
         private final CustomerDAO customer;
 

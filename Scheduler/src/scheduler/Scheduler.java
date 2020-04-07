@@ -113,7 +113,7 @@ public final class Scheduler extends Application {
                     EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                             viewAndController.toEvent(this, FxmlViewEventType.SHOWN, owner));
                 } catch (IOException ex) {
-                    // TODO: Internationalize message
+                    // TODO: ~P2: Internationalize message
                     AlertHelper.showErrorAlert(owner, LOG, "Error loading main content", ex);
                 }
             }

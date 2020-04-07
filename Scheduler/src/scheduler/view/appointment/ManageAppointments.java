@@ -5,18 +5,14 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.model.ItemModel;
 
 /**
@@ -44,7 +40,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
         return loadInto(mainController, stage, filter, null);
     }
     
-    // TODO: The value of the field ManageAppointments.filterState is not used
+    // TODO: ~P2: The value of the field ManageAppointments.filterState is not used
     private FilterOptionState filterState = null;
 
     @FXML // fx:id="headingLabel"

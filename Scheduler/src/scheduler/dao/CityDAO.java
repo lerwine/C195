@@ -289,7 +289,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
                     }
                 }
             }
-            // TODO: Internationalize this
+            // TODO: ~P2: Internationalize this
             if (count > 0) {
                 return "Another city has the same name";
             }

@@ -332,7 +332,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
                 return "";
             }
             int count = AppointmentDAO.getFactory().countByCustomer(connection, dao.getPrimaryKey(), null, null);
-            // TODO: Internationalize these
+            // TODO: ~P2: Internationalize these
             switch (count) {
                 case 0:
                     return "";
@@ -369,7 +369,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
                     }
                 }
             }
-            // TODO: Internationalize this
+            // TODO: ~P2: Internationalize this
             if (count > 0) {
                 return "Another customer has the same name";
             }

@@ -363,7 +363,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
                 return "";
             }
             int count = CustomerDAO.getFactory().countByAddress(connection, dao.getPrimaryKey());
-            // TODO: Internationalize these
+            // TODO: ~P2: Internationalize these
             switch (count) {
                 case 0:
                     return "";
@@ -433,7 +433,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
                     }
                 }
             }
-            // TODO: Internationalize this
+            // TODO: ~P2: Internationalize this
             if (count > 0) {
                 return "Another matching address exists";
             }

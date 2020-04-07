@@ -74,9 +74,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         return edit(model, EditAppointment.class, mainController, stage);
     }
 
+    // TODO: Implement customerComboBox validation
     @FXML // Label for displaying customer selection validation message.
     private Label customerValidationLabel;
 
+    // TODO: Implement userComboBox validation
     @FXML // Label for displaying user selection validation message.
     private Label userValidationLabel;
 
@@ -86,12 +88,14 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // UserDAO selection control.
     private ComboBox<UserModelImpl> userComboBox;
 
+    // TODO: Implement titleTextField validation
     @FXML // Label for displaying appointment title validation message.
     private Label titleValidationLabel;
 
     @FXML // Control for the appointment title.
     private TextField titleTextField;
 
+    // TODO: Implement validation for startDatePicker, startHourSpinner, startMinuteSpinner, amPmSpinner and timeZoneComboBox
     @FXML // Label for displaying appointment start date validation message.
     private Label startValidationLabel;
 
@@ -107,6 +111,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Control for selecting the appointment start minute.
     private Spinner<Boolean> amPmSpinner;
 
+    // TODO: Implement validation for durationHourSpinner and durationMinuteSpinner
     @FXML // Label for displaying appointment duration validation message.
     private Label durationValidationLabel;
 
@@ -125,21 +130,27 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Label for displaying the selected time, converted to the default time zone.
     private Label currentTimeZoneValue;
 
+    // TODO: Hidden for AppointmentType.PHONE and AppointmentType.VIRTUAL
     @FXML // Field label for phone number control as well as explicit and implicit location.
     private Label locationLabel;
 
+    // TODO: Implement locationLabel validation - required only if type == AppointmentType.OTHER
     @FXML // Label for displaying phone or explicit location validation message.
     private Label locationValidationLabel;
 
+    // TODO: Read-only for AppointmentType CUSTOMER_SITE, CORPORATE_HQ_MEETING, GERMANY_SITE_MEETING, INDIA_SITE_MEETING, HONDURAS_SITE_MEETING
+    // TODO: Hidden for AppointmentType.PHONE and AppointmentType.VIRTUAL
     @FXML // Explicit location input control.
     private TextArea locationTextArea;
 
+    // TODO: Shown only for AppointmentType.PHONE
     @FXML // Phone number input control.
     private TextField phoneTextField;
 
     @FXML // AppointmentDAO type selection control.
     private ComboBox<AppointmentType> typeComboBox;
 
+    // TODO: Implement contactTextField validation
     @FXML // Label for displaying point-of-contact validation message.
     private Label contactValidationLabel;
 
@@ -149,6 +160,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Field label for the Meeting URL control.
     private Label urlLabel;
 
+    // TODO: Implement urlTextField validation, required only for AppointmentType.VIRTUAL
     @FXML // Label for displaying URL validation message.
     private Label urlValidationLabel;
 
@@ -158,6 +170,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Label to contain the implicit location (CustomerDAO's address).
     private Label implicitLocationLabel;
 
+    // TODO: See if this is even used
     @FXML // AppointmentDAO description input control.
     private TextArea descriptionTextArea;
 
@@ -277,7 +290,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML
     void addCustomerClick(ActionEvent event) {
         AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), LOG, "addCustomerClick not implemented");
-        // TODO: Implement addCustomerClick(ActionEvent event)
+        // TODO: Implement addCustomerClick(ActionEvent event) or see if this is no longer being used.
 //        CustomerModelImpl customer = EditCustomer.addNew(getViewManager());
 //        if (null == customer)
 //            return;
@@ -288,7 +301,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML
     void addUserClick(ActionEvent event) {
         AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), LOG, "addUserClick not implemented");
-        // TODO: Implement addUserClick(ActionEvent event)
+        // TODO: Implement addUserClick(ActionEvent event) or see if this is no longer being used.
 //        UserModelImpl user = EditUser.addNew(getViewManager());
 //        if (null == user)
 //            return;
@@ -299,7 +312,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
         AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), LOG, "showConflictsButtonClick not implemented");
-        // TODO: Implement showConflictsButtonClick(ActionEvent event)
+        // TODO: Implement showConflictsButtonClick(ActionEvent event) or see if this is no longer being used.
     }
 
     @Override

@@ -86,7 +86,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
         return edit(model, EditCity.class, mainController, stage);
     }
 
-    // TODO: The value of the field EditCity.countryId is not used
+    // TODO: ~P2: The value of the field EditCity.countryId is not used
     private int countryId;
 
     @FXML // fx:id="nameTextField"

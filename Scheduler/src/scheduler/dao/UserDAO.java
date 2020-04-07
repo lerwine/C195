@@ -336,7 +336,7 @@ public class UserDAO extends DataAccessObject implements UserElement {
                     }
                 }
             }
-            // TODO: Internationalize this
+            // TODO: ~P2: Internationalize this
             if (count > 0) {
                 return "Another user has the same name";
             }
@@ -349,7 +349,7 @@ public class UserDAO extends DataAccessObject implements UserElement {
                 return "";
             }
             int count = AppointmentDAO.getFactory().countByUser(connection, dao.getPrimaryKey(), null, null);
-            // TODO: Internationalize these
+            // TODO: ~P2: Internationalize these
             switch (count) {
                 case 0:
                     return "";

@@ -254,7 +254,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                                 EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                         viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
                             } catch (IOException ex) {
-                                // TODO: Internationalize message
+                                // TODO: ~P2: Internationalize message
                                 AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading edit window content", ex);
                             }
                             break;
