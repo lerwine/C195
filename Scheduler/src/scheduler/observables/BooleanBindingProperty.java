@@ -1,4 +1,4 @@
-package scheduler.util;
+package scheduler.observables;
 
 import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;

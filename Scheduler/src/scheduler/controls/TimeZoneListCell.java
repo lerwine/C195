@@ -1,17 +1,14 @@
 package scheduler.controls;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.TextStyle;
 import java.util.Locale;
+import java.util.TimeZone;
 import javafx.scene.control.ListCell;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334)
  */
-public class TimeZoneListCell extends ListCell<ZoneId> {
+public class TimeZoneListCell extends ListCell<TimeZone> {
 
     /*
     
@@ -24,31 +21,30 @@ public class TimeZoneListCell extends ListCell<ZoneId> {
                             </buttonCell>
                         </ComboBox>
     */
-    private final Locale locale;
-
-    TimeZoneListCell(Locale locale) {
-        this.locale = (null == locale) ? Locale.getDefault(Locale.Category.DISPLAY) : locale;
-    }
-
-    public TimeZoneListCell() {
-        this(null);
-    }
 
     @Override
-    protected void updateItem(ZoneId item, boolean empty) {
+    protected void updateItem(TimeZone item, boolean empty) {
         super.updateItem(item, empty);
         if (item == null) {
             setText("");
         } else {
-            ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(item);
-            if (zonedDateTime != null) {
-                String zoneOffset = zonedDateTime.getOffset().getId();
-                if (zoneOffset != null) {
-                    setText(String.format("%s (%s)", item.getDisplayName(TextStyle.FULL, locale), (zoneOffset.equalsIgnoreCase("Z")) ? "+00:00" : zoneOffset));
-                    return;
-                }
-            }
-            setText(item.getDisplayName(TextStyle.FULL, locale));
+            item.getDisplayName();
+            int u = item.getRawOffset();
+            boolean n = (u < 0);
+            if (n)
+                u *= -1;
+            int s = u / 1000;
+            u -= (s * 1000);
+            int m = s / 60;
+            s -= (m * 60);
+            int h = m / 60;
+            m -= (h * 60);
+            if (u > 0)
+                setText(String.format("%s (%s%02d:%02d:%02d.%d)", item.getID(), (n) ? "-" : "+", h, m, s, u));
+            else if (s > 0)
+                setText(String.format("%s (%s%02d:%02d:%02d)", item.getID(), (n) ? "-" : "+", h, m, s));
+            else
+                setText(String.format("%s (%s%02d:%02d)", item.getID(), (n) ? "-" : "+", h, m));
         }
     }
 }

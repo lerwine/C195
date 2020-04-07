@@ -53,11 +53,6 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
     }
 
     @Override
-    protected CountryDAO.FactoryImpl getDaoFactory() {
-        return CountryDAO.getFactory();
-    }
-
-    @Override
     protected ItemModel.ModelFactory<CountryDAO, CountryModel> getModelFactory() {
         return CountryModel.getFactory();
     }

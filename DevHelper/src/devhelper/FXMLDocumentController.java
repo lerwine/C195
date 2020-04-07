@@ -343,8 +343,18 @@ public class FXMLDocumentController {
         public ReadOnlyIntegerProperty totalSecondsProperty() {
             return totalSeconds.getReadOnlyProperty();
         }
+        private final ReadOnlyIntegerWrapper index;
 
-        public TimeZoneInfo(String id) {
+        public int getIndex() {
+            return index.get();
+        }
+
+        public ReadOnlyIntegerProperty indexProperty() {
+            return index.getReadOnlyProperty();
+        }
+
+        public TimeZoneInfo(String id, int index) {
+            this.index = new ReadOnlyIntegerWrapper(index);
             TimeZone tz = TimeZone.getTimeZone(id);
             this.availableID = new ReadOnlyStringWrapper(id);
             displayName = new ReadOnlyStringWrapper(tz.getDisplayName());
@@ -353,6 +363,7 @@ public class FXMLDocumentController {
             this.id = new ReadOnlyStringWrapper(tz.getID());
             observesDaylightTime = new ReadOnlyBooleanWrapper(tz.observesDaylightTime());
             useDaylightTime = new ReadOnlyBooleanWrapper(tz.useDaylightTime());
+           
             ZoneId z;
             try {
                 z = tz.toZoneId();
@@ -553,11 +564,22 @@ public class FXMLDocumentController {
         public ReadOnlyFloatProperty timeZoneOffsetProperty() {
             return timeZoneOffset.getReadOnlyProperty();
         }
+        private final ReadOnlyIntegerWrapper index;
 
-        public ZoneIdInfo(String id) {
+        public int getIndex() {
+            return index.get();
+        }
+
+        public ReadOnlyIntegerProperty indexProperty() {
+            return index.getReadOnlyProperty();
+        }
+
+        public ZoneIdInfo(String id, int index) {
+            this.index = new ReadOnlyIntegerWrapper(index);
             availableZoneId = new ReadOnlyStringWrapper(id);
             ZoneId z = ZoneId.of(id);
             Locale l = Locale.getDefault(Category.DISPLAY);
+            
             this.id = new ReadOnlyStringWrapper(z.getId());
             fullName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
             standaloneFull = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL_STANDALONE, l));
@@ -815,12 +837,25 @@ public class FXMLDocumentController {
                 scriptCodes.add(s);
             }
         });
-        Arrays.stream(TimeZone.getAvailableIDs()).map((String id) -> new TimeZoneInfo(id)).forEach((TimeZoneInfo item) -> {
+        Arrays.stream(TimeZone.getAvailableIDs()).map(new Function<String, TimeZoneInfo>() {
+            private int index = -1;
+            @Override
+            public TimeZoneInfo apply(String id) {
+                return new TimeZoneInfo(id, ++index);
+            }
+        }).forEach((TimeZoneInfo item) -> {
             availableTimeZones.add(item);
             filteredTimeZones.add(item);
             timeZoneIDs.add(item.getId());
         });
-        ZoneId.getAvailableZoneIds().stream().map((String id) -> new ZoneIdInfo(id)).forEach((ZoneIdInfo item) -> {
+        ZoneId.getAvailableZoneIds().stream().map(new Function<String, ZoneIdInfo>() {
+            private int index = -1;
+            @Override
+            public ZoneIdInfo apply(String id) {
+                return new ZoneIdInfo(id, ++index);
+            }
+            
+        }).forEach((ZoneIdInfo item) -> {
             availableZoneIds.add(item);
             filteredZoneIds.add(item);
             zoneIDs.add(item.getAvailableZoneId());

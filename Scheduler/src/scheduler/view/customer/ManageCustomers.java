@@ -60,11 +60,6 @@ public final class ManageCustomers extends ListingController<CustomerDAO, Custom
     }
 
     @Override
-    protected CustomerDAO.FactoryImpl getDaoFactory() {
-        return CustomerDAO.getFactory();
-    }
-
-    @Override
     protected ItemModel.ModelFactory<CustomerDAO, CustomerModelImpl> getModelFactory() {
         return CustomerModelImpl.getFactory();
     }

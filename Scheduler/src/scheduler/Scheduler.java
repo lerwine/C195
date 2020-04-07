@@ -17,7 +17,6 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserDAO;
 import scheduler.util.AlertHelper;
-import scheduler.util.AnnotationHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.EventHelper;
 import scheduler.util.PwHash;
@@ -106,15 +105,16 @@ public final class Scheduler extends Application {
             } else {
                 try {
                     ViewAndController<Parent, MainController> viewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
-                    EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                    EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                             viewAndController.toEvent(this, FxmlViewEventType.LOADED, owner));
                     ((Stage) owner).setScene(new Scene(viewAndController.getView()));
-                    EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                    EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                             viewAndController.toEvent(this, FxmlViewEventType.BEFORE_SHOW, owner));
-                    EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                    EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                             viewAndController.toEvent(this, FxmlViewEventType.SHOWN, owner));
                 } catch (IOException ex) {
-                    AlertHelper.logAndAlertError(owner, LOG, "Error loading main content", ex);
+                    // TODO: Internationalize message
+                    AlertHelper.showErrorAlert(owner, LOG, "Error loading main content", ex);
                 }
             }
         }

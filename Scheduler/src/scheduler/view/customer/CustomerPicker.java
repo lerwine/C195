@@ -512,8 +512,7 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            LOG.log(Level.SEVERE, "Error getting countries", ex);
-            AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
@@ -541,8 +540,7 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            LOG.log(Level.SEVERE, "Error getting countries", ex);
-            AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }
@@ -593,8 +591,7 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            LOG.log(Level.SEVERE, "Error getting countries", ex);
-            AlertHelper.showErrorAlert(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
+            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
         }

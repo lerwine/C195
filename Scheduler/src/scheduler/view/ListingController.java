@@ -28,6 +28,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import scheduler.view.annotations.HandlesDataObjectEvent;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.event.DataLoadedEvent;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.event.FxmlViewEventType;
@@ -35,7 +36,18 @@ import scheduler.view.model.ItemModel;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
- *
+ * <p>Inherited classes invoke {@link #loadInto(Class, MainController, Stage, ModelFilter)} or
+ * {@link #loadInto(Class, MainController, Stage, ModelFilter, Object)} to instantiate a new controller instance and its view.
+ * Typically, the {@link MainController} calls a method on the inherited class, so that method can pass the {@link MainController} to
+ * the aforementioned method.</p>
+ * 
+ * <p>The {@link #filter} field is set to the specified {@link ModelFilter} during the {@link FxmlViewEventType#LOADED} event.</p>
+ * 
+ * <p>List items are retrieved from the database by a background that that is started by {@link #onFxmlViewEvent(FxmlViewEvent)}
+ * during the {@link FxmlViewEventType#BEFORE_SHOW} event. The {@link DataLoadedEvent} event fired when the items have been loaded.
+ * Implementing classes can either use the {@link scheduler.view.annotations.HandlesDataLoaded} annotation on a method or implement the
+ * {@link scheduler.view.event.DataLoadedEventListener} to receive this event.</p>
+ * 
  * @author Leonard T. Erwine
  * @param <T> The type of data access object that corresponds to the model object type.
  * @param <U> The type of model objects presented by the ListingController.
@@ -82,7 +94,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 ((ListingController<T, U>) event.getController()).filter = filter;
             }
 
-            EventHelper.invokeViewLifecycleEventMethods(loadEventListener, event);
+            EventHelper.fireFxmlViewEvent(loadEventListener, event);
         });
     }
 
@@ -158,6 +170,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                     try {
                         onAddNewItem(event);
                     } catch (IOException ex) {
+                        // TODO: Use AlertHelper.logAndAlertError
                         LOG.log(Level.SEVERE, "Error loading view", ex);
                     }
                 }
@@ -176,6 +189,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 try {
                     onEditItem(event, item);
                 } catch (IOException ex) {
+                    // TODO: Use AlertHelper.logAndAlertError
                     LOG.log(Level.SEVERE, "Error loading view", ex);
                 }
             }
@@ -185,11 +199,13 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             U item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = AppResources.getResources();
-                AlertHelper.showWarningAlert(rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+                AlertHelper.showWarningAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
             } else {
                 try {
                     onEditItem(event, item);
                 } catch (IOException ex) {
+                    // TODO: Use AlertHelper.logAndAlertError
                     LOG.log(Level.SEVERE, "Error loading view", ex);
                 }
             }
@@ -199,7 +215,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             U item = listingTableView.getSelectionModel().getSelectedItem();
             if (item == null) {
                 ResourceBundle rb = AppResources.getResources();
-                AlertHelper.showWarningAlert(rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+                AlertHelper.showWarningAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                        rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
             } else {
                 onDeleteItem(event, item);
             }
@@ -209,9 +226,19 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             try {
                 onAddNewItem(event);
             } catch (IOException ex) {
+                // TODO: Use AlertHelper.logAndAlertError
                 LOG.log(Level.SEVERE, "Error loading view", ex);
             }
         });
+    }
+
+    /**
+     * Gets the filter being used for the items listing.
+     * 
+     * @return The {@link ModelFilter} being used for the items listing.
+     */
+    public ModelFilter<T, U, ? extends DaoFilter<T>> getFilter() {
+        return filter;
     }
 
     /**
@@ -229,14 +256,15 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     @HandlesFxmlViewEvent
     protected void onFxmlViewEvent(FxmlViewEvent<? extends Parent> event) {
         if (event.getType() == FxmlViewEventType.BEFORE_SHOW) {
-            getDaoFactory().loadAsync(event.getStage(), filter.getDaoFilter(), (List<T> t) -> {
+            getModelFactory().getDaoFactory().loadAsync(event.getStage(), filter.getDaoFilter(), (List<T> t) -> {
                 itemsList.clear();
                 ItemModel.ModelFactory<T, U> factory = getModelFactory();
                 t.forEach((u) -> {
                     itemsList.add(factory.createNew(u));
                 });
+                EventHelper.fireDataLoadedEvent(t, new DataLoadedEvent<>(this, itemsList));
             }, (Throwable t) -> {
-                AlertHelper.logAndAlertDbError(event.getStage(), LOG, AppResources.getProperty(RESOURCEKEY_DBREADERROR),
+                AlertHelper.showErrorAlert(event.getStage(), LOG, AppResources.getProperty(RESOURCEKEY_DBREADERROR),
                         "Unexpected error loading items from database", t);
             });
         }
@@ -259,7 +287,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                     // TODO: Add to list if matching the current filter.
                     break;
                 default:
-                    // Update listing item if it exists
+                    // TODO: Update listing item if it exists
                     break;
             }
         }
@@ -397,27 +425,11 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Gets the {@link DataAccessObject.DaoFactory} to be used with this listing.
-     *
-     * @return The {@link DataAccessObject.DaoFactory} to be used with this listing.
-     */
-    protected abstract DataAccessObject.DaoFactory<T> getDaoFactory();
-
-    /**
      * Creates an {@link ItemModel} from a {@link DataAccessObject}.
      *
      * @param dao The data access object.
      * @return The new {@link ItemModel}.
      */
     protected abstract U toModel(T dao);
-
-    /**
-     * This gets called after the filter has been changed and the items have been loaded into the current {@link #itemsList}.
-     *
-     * @param filter The new {@link ModelFilter} being applied.
-     * @param owner The {@link Stage} for the {@link javafx.event.ActionEvent} that triggered the filter change.
-     */
-    protected void onItemsLoaded(ModelFilter<T, U, ? extends DaoFilter<T>> filter, Stage owner) {
-    }
 
 }

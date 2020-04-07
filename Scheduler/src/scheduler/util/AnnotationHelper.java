@@ -1,25 +1,15 @@
 package scheduler.util;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.EventObject;
-import java.util.Iterator;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.scene.Parent;
-import scheduler.dao.event.DaoChangeAction;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DataObjectEventListener;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.schema.DatabaseTable;
 import scheduler.dao.schema.DbTable;
-import scheduler.view.event.FxmlViewControllerEvent;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventType;
-import scheduler.view.annotations.DaoChangeType;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -30,8 +20,13 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 public class AnnotationHelper {
 
-    private static final Logger LOG = Logger.getLogger(AnnotationHelper.class.getName());
+    private static final Logger LOG;
 
+    static {
+        LOG = Logger.getLogger(AnnotationHelper.class.getName());
+        LOG.setLevel(Level.FINER);
+    }
+    
     public static final String getGlobalizationResourceName(Class<?> target) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
         if (target.isAnnotationPresent(ac)) {
@@ -76,11 +71,13 @@ public class AnnotationHelper {
      * @param targetClass The class to search for annotated methods.
      * @param annotationClass The type of {@link Annotation} to look for.
      * @param eventClass The type of {@link EventObject} to look for in the single parameter.
+     * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters;
+     * otherwise {@code false} to require exactly 1 parameter.
      * @param filter A {@link Predicate} that is used to filter the results or {@code null} to return all results.
      * @return A {@link Stream} of {@link Method} objects.
      */
     public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
-            Class<? extends EventObject> eventClass, Predicate<T> filter) {
+            Class<? extends EventObject> eventClass, boolean allowZeroLengthParameters, Predicate<T> filter) {
         LOG.log(Level.FINE, String.format("Checking methods of %s ", targetClass.getName()));
         Stream.Builder<Method> builder = Stream.builder();
         do {
@@ -89,10 +86,10 @@ public class AnnotationHelper {
                     LOG.log(Level.FINE, String.format("Method %s has annotation", m.getName()));
                     if (null == filter || filter.test(m.getAnnotation(annotationClass))) {
                         Class<?>[] parameters = m.getParameterTypes();
-                        if (parameters.length != 1) {
+                        if ((allowZeroLengthParameters) ? parameters.length > 1 : parameters.length != 1) {
                             LOG.log(Level.WARNING, String.format("Method %s uses the %s annotation, but has the wrong number arguments", m.toString(),
                                     annotationClass.getName()));
-                        } else if (parameters[0].isAssignableFrom(eventClass)) {
+                        } else if (parameters.length == 0 || parameters[0].isAssignableFrom(eventClass)) {
                             builder.accept(m);
                         } else if (parameters[0].isAssignableFrom(FxmlViewEvent.class)) {
                             LOG.log(Level.FINE,
@@ -111,6 +108,51 @@ public class AnnotationHelper {
         return builder.build();
     }
 
+    /**
+     * Gets methods that have a specific annotation.
+     * 
+     * @param <T> The type of {@link Annotation}.
+     * @param targetClass The class to search for annotated methods.
+     * @param annotationClass The type of {@link Annotation} to look for.
+     * @param eventClass The type of {@link EventObject} to look for in the single parameter.
+     * @param filter A {@link Predicate} that is used to filter the results or {@code null} to return all results.
+     * @return A {@link Stream} of {@link Method} objects.
+     */
+     public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
+            Class<? extends EventObject> eventClass, Predicate<T> filter) {
+         return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, false, filter);
+     }
+     
+    /**
+     * Gets methods that have a specific annotation.
+     * 
+     * @param <T> The type of {@link Annotation}.
+     * @param targetClass The class to search for annotated methods.
+     * @param annotationClass The type of {@link Annotation} to look for.
+     * @param eventClass The type of {@link EventObject} to look for in the single parameter.
+     * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters;
+     * otherwise {@code false} to require exactly 1 parameter.
+     * @return A {@link Stream} of {@link Method} objects.
+     */
+    public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
+            Class<? extends EventObject> eventClass, boolean allowZeroLengthParameters) {
+         return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, allowZeroLengthParameters, null);
+    }
+     
+    /**
+     * Gets methods that have a specific annotation.
+     * 
+     * @param <T> The type of {@link Annotation}.
+     * @param targetClass The class to search for annotated methods.
+     * @param annotationClass The type of {@link Annotation} to look for.
+     * @param eventClass The type of {@link EventObject} to look for in the single parameter.
+     * @return A {@link Stream} of {@link Method} objects.
+     */
+    public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
+            Class<? extends EventObject> eventClass) {
+        return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, null);
+    }
+    
     /**
      * Gets the {@code DbTable} from the {@link DatabaseTable} annotation of a given {@link Class}.
      * This is used by classes that inherit from {@link scheduler.dao.DataAccessObject} to specify the data table which the data access object represents.

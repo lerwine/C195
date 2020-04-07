@@ -15,9 +15,6 @@ import javafx.stage.Window;
  */
 public class FxmlViewEvent<T extends Parent> extends EventObject {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -6648547745154985742L;
     private final FxmlViewEventType type;
     private final T view;

@@ -11,7 +11,8 @@ import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.customer.CustomerModel;
 
 /**
- *
+ * Binds to the properties of a {@link AppointmentModel} to create a string binding property representing the effective location.
+ * 
  * @author Leonard T. Erwine (Student ID 356334)
  */
 public class EffectiveLocationProperty extends StringBinding implements ReadOnlyProperty<String> {
@@ -37,7 +38,8 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
     protected String computeValue() {
         String l = location.getValue();
         String u = url.getValue();
-        //CustomerReferenceModel<? extends CustomerElement> c = customer.getValue();
+        CustomerModel<? extends CustomerElement> c = customer.getValue();
+        
         switch (type.getValue()) {
             case GERMANY_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
@@ -48,6 +50,10 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
             case INDIA_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
             case CUSTOMER_SITE:
+                if (null != c) {
+                    return c.getAddressText();
+                }
+                return "";
             case PHONE:
                 return (u.startsWith("tel:")) ? u.substring(4) : u;
             case VIRTUAL:

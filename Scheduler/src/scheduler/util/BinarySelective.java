@@ -1,0 +1,207 @@
+package scheduler.util;
+
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+/**
+ * An object that contains only one of 2 possible value options.
+ *
+ * @author Leonard T. Erwine (Student ID 356334)
+ * @param <T> The primary value type.
+ * @param <U> The secondary value type.
+ */
+public final class BinarySelective<T, U> {
+
+    /**
+     * Create a new {@code BinarySelective} object that contains the primary value option.
+     *
+     * @param <T> The primary value type.
+     * @param <U> The secondary value type.
+     * @param t The primary value.
+     * @return A {@code BinarySelective} object that contains the primary value option.
+     */
+    public static <T, U> BinarySelective<T, U> ofPrimary(T t) {
+        return new BinarySelective<>(Objects.requireNonNull(t), true);
+    }
+
+    /**
+     * Create a new {@code BinarySelective} object that contains a null primary value option.
+     *
+     * @param <T> The primary value type.
+     * @param <U> The secondary value type.
+     * @param t The primary value.
+     * @return A {@code BinarySelective} object that contains a null primary value option.
+     */
+    public static <T, U> BinarySelective<T, U> ofPrimaryNullable(T t) {
+        return new BinarySelective<>(t, true);
+    }
+
+    /**
+     * Create a new {@code BinarySelective} object that contains the secondary value option.
+     *
+     * @param <T> The primary value type.
+     * @param <U> The secondary value type.
+     * @param u The secondary value.
+     * @return A {@code BinarySelective} object that contains the secondary value option.
+     */
+    public static <T, U> BinarySelective<T, U> ofSecondary(U u) {
+        return new BinarySelective<>(Objects.requireNonNull(u), false);
+    }
+
+    /**
+     * Create a new {@code BinarySelective} object that contains a nullable secondary value option.
+     *
+     * @param <T> The primary value type.
+     * @param <U> The secondary value type.
+     * @param u The secondary value.
+     * @return A {@code BinarySelective} object that contains a nullable secondary value option.
+     */
+    public static <T, U> BinarySelective<T, U> ofSecondaryNullable(U u) {
+        return new BinarySelective<>(u, false);
+    }
+
+    private final Object value;
+    private final boolean primary;
+
+    private BinarySelective(Object obj, boolean primary) {
+        value = obj;
+        this.primary = primary;
+    }
+
+    /**
+     * Indicates whether the current object contains the primary value option.
+     *
+     * @return {@code true} if this object contains the primary value option; otherwise, {@code false} to indicate that this object contains the
+     * secondary value option.
+     */
+    public boolean isPrimary() {
+        return primary;
+    }
+
+    /**
+     * Gets the value of the primary option. This will only return a value if {@link #getPrimary()} is {@code true}.
+     *
+     * @return The primary value;
+     * @throws NoSuchElementException if this object does not contain the primary value option.
+     */
+    public T getPrimary() {
+        if (!primary) {
+            throw new NoSuchElementException("No value present");
+        }
+        return (T) value;
+    }
+
+    /**
+     * Gets the value of the secondary option. This will only return a value if {@link #getPrimary()} is {@code false}.
+     *
+     * @return The secondary value;
+     * @throws NoSuchElementException if this object does not contain the secondary value option.
+     */
+    public U getSecondary() {
+        if (primary) {
+            throw new NoSuchElementException("No value present");
+        }
+        return (U) value;
+    }
+
+    public Optional<T> toPrimaryOption() {
+        return (primary) ? Optional.of((T) value) : Optional.empty();
+    }
+    
+    public Optional<U> toSecondaryOption() {
+        return (primary) ? Optional.empty() : Optional.of((U) value);
+    }
+    
+    /**
+     * If this contains the primary value option, invoke the specified consumer with the value; otherwise, do nothing. This is similar to
+     * {@link Optional#ifPresent(Consumer)}.
+     *
+     * @param consumer The {@link Consumer} to invoke if this contains the primary value option,.
+     */
+    public void ifPrimary(Consumer<? super T> consumer) {
+        if (primary) {
+            consumer.accept((T) value);
+        }
+    }
+
+    /**
+     * If this contains the secondary value option, invoke the specified consumer with the value; otherwise, do nothing. This is similar to
+     * {@link Optional#ifPresent(Consumer)}.
+     *
+     * @param consumer The {@link Consumer} to invoke if this contains the secondary value option.
+     */
+    public void ifSecondary(Consumer<? super U> consumer) {
+        if (!primary) {
+            consumer.accept((U) value);
+        }
+    }
+
+    /**
+     * Invokes a {@link Consumer} according to the option value being stored.
+     *
+     * @param ifPrimary The {@link Consumer} to execute if this contains the primary option value.
+     * @param ifSecondary The {@link Consumer} to execute if this contains the secondary option value.
+     */
+    public void accept(Consumer<? super T> ifPrimary, Consumer<? super U> ifSecondary) {
+        if (this.primary) {
+            ifPrimary.accept((T) value);
+        } else {
+            ifSecondary.accept((U) value);
+        }
+    }
+
+    /**
+     * Applies a {@link Function} according to the option value being stored.
+     *
+     * @param <S> The type of value to be returned.
+     * @param primary The {@link Function} to apply if this contains the primary option value.
+     * @param secondary The {@link Function} to apply if this contains the secondary option value.
+     * @return The result from the {@link Function} that was applied.
+     */
+    public <S> S map(Function<? super T, S> primary, Function<? super U, S> secondary) {
+        if (this.primary) {
+            return primary.apply((T) value);
+        }
+        return secondary.apply((U) value);
+    }
+
+    /**
+     * Creates a {@code BinarySelective} value by swapping primary and secondary options.
+     *
+     * @return A new {@code BinarySelective} value with secondary and tertiary option values swapped.
+     */
+    public BinarySelective<U, T> shift() {
+        return new BinarySelective<>(value, !primary);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 37 * hash + Objects.hashCode(value);
+        if (primary) {
+            hash = 37 * hash + 1;
+        }
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (null != obj && obj instanceof BinarySelective) {
+            BinarySelective<?, ?> other = (BinarySelective<?, ?>)obj;
+            return primary == other.primary && Objects.equals(value, other.value);
+        }
+        return false;
+    }
+    
+    @Override
+    public String toString() {
+        if (primary) {
+            return (null == value) ? "BinarySwitch.PRIMARY" : String.format("BinarySwitch.PRIMARY[%s]", value);
+        }
+        return (null == value) ? "BinarySwitch.SECONDARY" : String.format("BinarySwitch.SECONDARY[%s]", value);
+    }
+
+}

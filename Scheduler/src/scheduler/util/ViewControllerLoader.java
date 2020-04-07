@@ -94,8 +94,8 @@ public class ViewControllerLoader {
     public static <T extends Parent, S> S showAndWait(Object source, Stage parent, ViewAndController<T, S> viewAndController,
             Object loadEventListener) throws IOException {
         FxmlViewControllerEvent<T, S> event = viewAndController.toEvent(source, FxmlViewEventType.LOADED, parent);
-        EventHelper.invokeViewLifecycleEventMethods(source, event);
-        EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), event);
+        EventHelper.fireFxmlViewEvent(source, event);
+        EventHelper.fireFxmlViewEvent(viewAndController.getController(), event);
         Stage childStage = new Stage();
         Scene scene = new Scene(viewAndController.getView());
         childStage.initOwner(parent);
@@ -103,17 +103,17 @@ public class ViewControllerLoader {
         childStage.initModality(Modality.APPLICATION_MODAL);
         childStage.setScene(scene);
         event = viewAndController.toEvent(source, FxmlViewEventType.BEFORE_SHOW, parent);
-        EventHelper.invokeViewLifecycleEventMethods(source, event);
-        EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), event);
+        EventHelper.fireFxmlViewEvent(source, event);
+        EventHelper.fireFxmlViewEvent(viewAndController.getController(), event);
         childStage.setOnHidden((WindowEvent we) -> {
             FxmlViewControllerEvent<T, S> e = viewAndController.toEvent(source, FxmlViewEventType.UNLOADED, parent);
-            EventHelper.invokeViewLifecycleEventMethods(source, e);
-            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), e);
+            EventHelper.fireFxmlViewEvent(source, e);
+            EventHelper.fireFxmlViewEvent(viewAndController.getController(), e);
         });
         childStage.setOnShown((WindowEvent we) -> {
             FxmlViewControllerEvent<T, S> e = viewAndController.toEvent(source, FxmlViewEventType.SHOWN, parent);
-            EventHelper.invokeViewLifecycleEventMethods(source, e);
-            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), e);
+            EventHelper.fireFxmlViewEvent(source, e);
+            EventHelper.fireFxmlViewEvent(viewAndController.getController(), e);
         });
         childStage.showAndWait();
         return viewAndController.getController();
@@ -258,7 +258,7 @@ public class ViewControllerLoader {
         children.clear();
 
         if (null != oldController) {
-            EventHelper.invokeViewLifecycleEventMethods(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED,
+            EventHelper.fireFxmlViewEvent(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED,
                     (Parent) oldView.get(), stage));
         }
     }
@@ -283,21 +283,21 @@ public class ViewControllerLoader {
         }
 
         FxmlViewControllerEvent<T, S> event = viewAndController.toEvent(source, FxmlViewEventType.LOADED, stage);
-        EventHelper.invokeViewLifecycleEventMethods(loadEventListener, event);
-        EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), event);
+        EventHelper.fireFxmlViewEvent(loadEventListener, event);
+        EventHelper.fireFxmlViewEvent(viewAndController.getController(), event);
 
         children.clear();
         children.add(viewAndController.getView());
         properties.put(PANE_CONTROLLER_PROPERTY_KEY, viewAndController.getController());
         event = viewAndController.toEvent(source, FxmlViewEventType.BEFORE_SHOW, stage);
-        EventHelper.invokeViewLifecycleEventMethods(loadEventListener, event);
-        EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), event);
+        EventHelper.fireFxmlViewEvent(loadEventListener, event);
+        EventHelper.fireFxmlViewEvent(viewAndController.getController(), event);
         event = viewAndController.toEvent(source, FxmlViewEventType.SHOWN, stage);
-        EventHelper.invokeViewLifecycleEventMethods(loadEventListener, event);
-        EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(), event);
+        EventHelper.fireFxmlViewEvent(loadEventListener, event);
+        EventHelper.fireFxmlViewEvent(viewAndController.getController(), event);
 
         if (null != oldController) {
-            EventHelper.invokeViewLifecycleEventMethods(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED,
+            EventHelper.fireFxmlViewEvent(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED,
                     (Parent) oldView.get(), stage));
         }
 

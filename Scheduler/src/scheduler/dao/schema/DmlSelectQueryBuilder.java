@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import scheduler.util.ReadOnlyList;
 
@@ -65,8 +67,11 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
             while (iterator.hasNext()) {
                 iterator.next().accept(t.append(", "));
             }
-            t.append(" FROM ").append(getName());
-            joins.values().forEach((j) -> j.accept(t));
+            String n = dbTable.getDbName().toString();
+            t.append("\n\tFROM ").append(n);
+            if (!n.equals(getName()))
+                t.append(" ").append(getName());
+            joinMap.values().forEach((j) -> j.accept(t));
         }
     }
     
@@ -81,27 +86,32 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
         return build();
     }
     
+    private static final Logger LOG = Logger.getLogger(DmlSelectQueryBuilder.class.getName());
+    
     private synchronized JoinedTable join(DmlSelectTable targetTable, HashMap<String, JoinedTable> targetMap, DbColumn joinFrom, TableJoinType type,
             DbColumn joinTo, String alias) {
+        LOG.log(Level.INFO, String.format("Joining (%s) %s.%s to %s.%s", targetTable.getDbTable().getDbName(), joinFrom.getTable().getDbName(), joinFrom.getDbName(), joinTo.getTable().getDbName(), joinTo.getDbName()));
         if (readOnly)
             throw new UnsupportedOperationException("Builder is read-only");
         if (joinFrom.getTable() != targetTable.getDbTable())
             throw new IllegalArgumentException("That column does not exist on the current table");
-        if (joinFrom.getType() != joinTo.getType())
+        if (joinFrom.getType().getValueType() != joinTo.getType().getValueType())
             throw new IllegalArgumentException("Join-from and Join-to columns are not the same type");
         if (tableCount == 1 && backingList.stream().anyMatch((t) -> t instanceof ColumnCount))
             throw new UnsupportedOperationException("Table joins not supported with grouping columns");
         JoinedTable joinedTable = new JoinedTable(targetTable, joinFrom, type, joinTo, alias);
         String name = joinedTable.getName();
-        if (getName().equalsIgnoreCase(name) || getResultTableNames().anyMatch((t) -> t.equalsIgnoreCase(name))) {
+        String a = (this.alias.isEmpty()) ? this.dbTable.toString() : this.alias;
+        if (a.equalsIgnoreCase(name) || getResultTableNames().anyMatch((t) -> t.equalsIgnoreCase(name))) {
             if (joinedTable.alias.isEmpty()) {
                 joinedTable.alias = joinedTable.getDbTable().toString();
-                if (joinedTable.alias.equalsIgnoreCase(name) || joinedTable.alias.equalsIgnoreCase(getName()) ||
+                if (joinedTable.alias.equalsIgnoreCase(name) || joinedTable.alias.equalsIgnoreCase(a) ||
                         getResultTableNames().anyMatch((t) -> t.equalsIgnoreCase(joinedTable.alias)))
                     throw new IllegalArgumentException("The default alias and table name are already being used");
             } else
                 throw new IllegalArgumentException("That alias name is already being used");
         }
+        this.alias = a;
         targetMap.put(joinedTable.getName(), joinedTable);
         tableCount++;
         return joinedTable;
@@ -110,6 +120,8 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
     private synchronized boolean add(DmlSelectTable targetTable, DbColumn column, String alias) {
         if (readOnly)
             throw new UnsupportedOperationException("Builder is read-only");
+        LOG.log(Level.INFO, String.format("Adding %s.%s to %s", column.getTable().getDbName(), column.getDbName(), targetTable.getDbTable().getDbName()));
+        
         if (targetTable.getDbTable() != column.getTable())
             throw new IllegalArgumentException("That column does not exist on the current table");
         TableColumn tableColumn = new TableColumn(targetTable, column, alias);
@@ -221,7 +233,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
     public JoinedTable join(DbColumn joinFrom, TableJoinType type, DbColumn joinTo, String alias, DbColumn ...toAdd) {
         JoinedTable result = join(this, joinMap, joinFrom, type, joinTo, alias);
         if (null != toAdd && toAdd.length > 0)
-            addAll(toAdd);
+            result.addAll(toAdd);
         return result;
     }
     
@@ -229,7 +241,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
     public JoinedTable join(DbColumn joinFrom, TableJoinType type, DbColumn joinTo, String alias, Stream<DbColumn> toAdd) {
         JoinedTable result = join(this, joinMap, joinFrom, type, joinTo, alias);
         if (null != toAdd)
-            addAll(toAdd);
+            result.addAll(toAdd);
         return result;
     }
     
@@ -503,7 +515,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
             this.joinedFrom = Objects.requireNonNull(joinedFrom);
             this.joinType = Objects.requireNonNull(joinType);
             this.joinedTo = Objects.requireNonNull(joinedTo);
-            this.alias = (null == alias) ? "" : alias;
+            this.alias = (null == alias || alias.isEmpty()) ? joinedTo.getTable().toString() : alias;
             joinMap = new HashMap<>();
             joins = Collections.unmodifiableMap(joinMap);
         }
@@ -568,7 +580,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
         public JoinedTable join(DbColumn joinFrom, TableJoinType type, DbColumn joinTo, String alias, DbColumn ...toAdd) {
             JoinedTable result = DmlSelectQueryBuilder.this.join(this, joinMap, joinFrom, type, joinTo, alias);
             if (null != toAdd && toAdd.length > 0)
-                addAll(toAdd);
+                result.addAll(toAdd);
             return result;
         }
 
@@ -576,7 +588,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
         public JoinedTable join(DbColumn joinFrom, TableJoinType type, DbColumn joinTo, String alias, Stream<DbColumn> toAdd) {
             JoinedTable result = DmlSelectQueryBuilder.this.join(this, joinMap, joinFrom, type, joinTo, alias);
             if (null != toAdd)
-                addAll(toAdd);
+                result.addAll(toAdd);
             return result;
         }
     
@@ -641,11 +653,12 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
 
         private void accept(StringBuffer t) {
             String name = joinedTo.getTable().getDbName().toString();
-            t.append(" ").append(joinType).append(" ").append(name);
+            t.append("\n\t").append(joinType).append(" ").append(name);
             if (!getName().equals(name))
                 t.append(" ").append(getName());
             t.append(" ON ").append(joinedFromTable.getName()).append(".").append(joinedFrom).append("=").append(getName())
                     .append(".").append(joinedTo);
+            joinMap.values().forEach((j) -> j.accept(t));
         }
         
     }

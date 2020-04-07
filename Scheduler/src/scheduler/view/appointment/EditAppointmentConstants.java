@@ -37,14 +37,9 @@ public interface EditAppointmentConstants {
     public static final String RESOURCEKEY_EDITAPPOINTMENT = "editAppointment";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Duration:"}.
      */
-    public static final String RESOURCEKEY_END = "end";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End cannot be before Start."}.
-     */
-    public static final String RESOURCEKEY_ENDCANNOTBEBEFORESTART = "endCannotBeBeforeStart";
+    public static final String RESOURCEKEY_DURATION = "duration";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Invalid URL format"}.

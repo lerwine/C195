@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
@@ -14,11 +15,18 @@ import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.event.FxmlViewEvent;
+import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
- *
+ * <p>Typically, {@link MainController} invokes {@link #loadInto(MainController, Stage, AppointmentModelFilter)} or
+ * {@link #loadInto(MainController, Stage, AppointmentModelFilter, Object)}, which loads the view and instantiates the controller by
+ * calling {@link #loadInto(Class, MainController, Stage, scheduler.view.ModelFilter)} or
+ * {@link #loadInto(Class, MainController, Stage, scheduler.view.ModelFilter, Object)}
+ * on the base class.</p>
+ * <p></p>
  * @author Leonard T. Erwine
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
@@ -35,6 +43,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     public static ManageAppointments loadInto(MainController mainController, Stage stage, AppointmentModelFilter filter) throws IOException {
         return loadInto(mainController, stage, filter, null);
     }
+    
     // TODO: The value of the field ManageAppointments.filterState is not used
     private FilterOptionState filterState = null;
 
@@ -72,11 +81,6 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     @Override
     protected AppointmentModel toModel(AppointmentDAO dao) {
         return new AppointmentModel(dao);
-    }
-
-    @Override
-    protected DataAccessObject.DaoFactory<AppointmentDAO> getDaoFactory() {
-        return AppointmentDAO.getFactory();
     }
 
     @Override

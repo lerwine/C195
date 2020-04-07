@@ -243,7 +243,7 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
             if (a2.isEmpty()) {
                 return a1;
             }
-            return a1.isEmpty() ? a2 : String.format("%s\n%s", a1, a2);
+            return a1.isEmpty() ? a2 : String.format("%s%n%s", a1, a2);
         }
 
         @Override

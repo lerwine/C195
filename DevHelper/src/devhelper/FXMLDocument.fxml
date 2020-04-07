@@ -239,6 +239,11 @@
                         </GridPane>
                         <TableView fx:id="timeZonesTableView" editable="false" maxHeight="1.7976931348623157E308" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                             <columns>
+                                <TableColumn editable="false" text="index">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="index" />
+                                    </cellValueFactory>
+                                </TableColumn>
                                 <TableColumn editable="false" text="availableID">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="availableID" />
@@ -334,6 +339,11 @@
                         </GridPane>
                         <TableView fx:id="zoneIdsTableView" editable="false" maxHeight="1.7976931348623157E308" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                             <columns>
+                                <TableColumn editable="false" text="index">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="index" />
+                                    </cellValueFactory>
+                                </TableColumn>
                                 <TableColumn editable="false" text="availableZoneId">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="availableZoneId" />

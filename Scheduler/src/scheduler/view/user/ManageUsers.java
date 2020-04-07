@@ -53,11 +53,6 @@ public final class ManageUsers extends ListingController<UserDAO, UserModelImpl>
     }
 
     @Override
-    protected UserDAO.FactoryImpl getDaoFactory() {
-        return UserDAO.getFactory();
-    }
-
-    @Override
     protected ItemModel.ModelFactory<UserDAO, UserModelImpl> getModelFactory() {
         return UserModelImpl.getFactory();
     }

@@ -26,6 +26,7 @@ public class AlertHelper {
     public static Optional<ButtonType> showErrorAlert(Window parent, String title, Node content, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.initStyle(StageStyle.UTILITY);
+        alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(title);
         if (null != parent) {
             alert.initOwner(parent);
@@ -56,7 +57,8 @@ public class AlertHelper {
      * @param buttons Dialog buttons to be displayed.
      * @return An {@link Optional} {@link ButtonType} indicating which button the user clicked to close the {@link Alert} dialog.
      */
-    public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, String userMessage, String logMessage, Throwable error, ButtonType... buttons) {
+    public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, String userMessage, String logMessage, Throwable error,
+            ButtonType... buttons) {
         logger.log(Level.SEVERE, logMessage, error);
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};
@@ -66,6 +68,7 @@ public class AlertHelper {
         if (null != parent) {
             alert.initOwner(parent);
         }
+        alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR));
         try {
             alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
@@ -75,57 +78,23 @@ public class AlertHelper {
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> logAndAlertDbError(Logger logger, String userMessage, String logMessage, Throwable error, ButtonType... buttons) {
-        return logAndAlertDbError((Window) null, logger, userMessage, logMessage, error, buttons);
-    }
-
-    /**
-     * Logs an exception and displays an application-modal {@link Alert}.
-     *
-     * @param parent The parent {@link Window} for the displayed {@link Alert}.
-     * @param logger The {@link Logger} to log the error to.
-     * @param logMessage The message to be written to the log.
-     * @param error The error that was thrown.
-     * @param buttons Dialog buttons to be displayed.
-     * @return An {@link Optional} {@link ButtonType} indicating which button the user clicked to close the {@link Alert} dialog.
-     */
-    public static Optional<ButtonType> logAndAlertError(Window parent, Logger logger, String logMessage, Throwable error, ButtonType... buttons) {
-        logger.log(Level.SEVERE, logMessage, error);
-        if (null == buttons || buttons.length == 0) {
-            buttons = new ButtonType[]{ButtonType.OK};
-        }
-        Alert alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), buttons);
-        alert.initStyle(StageStyle.UTILITY);
-        alert.initModality(Modality.APPLICATION_MODAL);
-        if (null != parent) {
-            alert.initOwner(parent);
-        }
-        alert.setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE));
-        try {
-            alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading exception detail", ex);
-        }
-        return alert.showAndWait();
-    }
-
-    public static Optional<ButtonType> logAndAlertError(Logger logger, String logMessage, Throwable error, ButtonType... buttons) {
-        return logAndAlertError((Window) null, logger, logMessage, error, buttons);
-    }
-
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param headerText The header of the {@link Alert} dialog.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param error The error to show as the details.
+     * @param logMessage The message to be written to the log.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, String title, String headerText, String contentText, Throwable error, ButtonType... buttons) {
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String title, String headerText, String contentText,
+            Throwable error, String logMessage, ButtonType... buttons) {
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};
         }
@@ -146,6 +115,7 @@ public class AlertHelper {
         if (null != parent) {
             alert.initOwner(parent);
         }
+        alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE)));
         if (null != error) {
             try {
@@ -157,14 +127,31 @@ public class AlertHelper {
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> showErrorAlert(String title, String headerText, String contentText, Throwable error, ButtonType... buttons) {
-        return showErrorAlert((Window) null, title, headerText, contentText, error, buttons);
+    /**
+     * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
+     * @param title The title of the {@link Alert} dialog.
+     * @param headerText The header of the {@link Alert} dialog.
+     * @param contentText The message to show in the {@link Alert} dialog content area.
+     * @param error The error to show as the details.
+     * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
+     * specified.
+     * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
+     */
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String title, String headerText, String contentText, Throwable error,
+            ButtonType... buttons) {
+        return showErrorAlert(parent, logger, title, headerText, contentText, error, null, buttons);
     }
 
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param text The header of the {@link Alert} dialog if {@code error} is {@code null} or whitespace; otherwise, the content.
      * @param error The error to show as the details.
@@ -172,55 +159,66 @@ public class AlertHelper {
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, String title, String text, Throwable error, ButtonType... buttons) {
-        return showErrorAlert(parent, title, text, null, error, buttons);
-    }
-
-    public static Optional<ButtonType> showErrorAlert(String title, String text, Throwable error, ButtonType... buttons) {
-        return showErrorAlert(title, text, null, error, buttons);
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String title, String text, Throwable error, ButtonType... buttons) {
+        return showErrorAlert(parent, logger, title, text, null, error, buttons);
     }
 
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
      * @param text The header of the {@link Alert} dialog if {@code error} is {@code null} or whitespace; otherwise, the content.
      * @param error The error to show as the details.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, String text, Throwable error, ButtonType... buttons) {
-        return showErrorAlert(parent, null, text, error, buttons);
-    }
-
-    public static Optional<ButtonType> showErrorAlert(String text, Throwable error, ButtonType... buttons) {
-        return showErrorAlert((String) null, text, error, buttons);
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String text, Throwable error, ButtonType... buttons) {
+        return showErrorAlert(parent, logger, null, text, error, buttons);
     }
 
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
+     * @param messageProvider A functional interface for providing dialog message text and log message.
      * @param error The error to show as the details.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, Throwable error, ButtonType... buttons) {
-        return showErrorAlert(parent, (String) null, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), Objects.requireNonNull(error, "Error cannot be null"), buttons);
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, MessageProvider messageProvider, Throwable error,
+            ButtonType... buttons) {
+        return showErrorAlert(parent, logger, messageProvider.getTitle(), messageProvider.getHeaderText(), messageProvider.getContentText(), error,
+                messageProvider.getLogMessage(), buttons);
     }
 
-    public static Optional<ButtonType> showErrorAlert(Throwable error, ButtonType... buttons) {
-        return showErrorAlert((String) null, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
+    /**
+     * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
+     * @param error The error to show as the details.
+     * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
+     * specified.
+     * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
+     */
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, Throwable error, ButtonType... buttons) {
+        return showErrorAlert(parent, logger, (String) null, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), Objects.requireNonNull(error, "Error cannot be null"), buttons);
     }
 
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param headerText The header of the {@link Alert} dialog.
      * @param contentText The message to show in the {@link Alert} dialog content area.
@@ -228,53 +226,64 @@ public class AlertHelper {
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, String title, String headerText, String contentText, ButtonType... buttons) {
-        return showErrorAlert(parent, title, headerText, contentText, null, buttons);
-    }
-
-    public static Optional<ButtonType> showErrorAlert(String title, String headerText, String contentText, ButtonType... buttons) {
-        return showErrorAlert(title, headerText, contentText, null, buttons);
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String title, String headerText, String contentText, ButtonType... buttons) {
+        return showErrorAlert(parent, logger, title, headerText, contentText, null, buttons);
     }
 
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, String title, String contentText, ButtonType... buttons) {
-        return showErrorAlert(parent, title, null, contentText, null, buttons);
-    }
-
-    public static Optional<ButtonType> showErrorAlert(String title, String contentText, ButtonType... buttons) {
-        return showErrorAlert(title, null, contentText, null, buttons);
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String title, String contentText, ButtonType... buttons) {
+        return showErrorAlert(parent, logger, title, null, contentText, null, buttons);
     }
 
     /**
      * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showErrorAlert(Window parent, String contentText, ButtonType... buttons) {
-        return showErrorAlert(parent, null, contentText, buttons);
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String contentText, ButtonType... buttons) {
+        return showErrorAlert(parent, logger, null, contentText, buttons);
     }
 
-    public static Optional<ButtonType> showErrorAlert(String contentText, ButtonType... buttons) {
-        return showErrorAlert((String) null, contentText, buttons);
+    /**
+     * Shows an {@link Alert.AlertType#ERROR} {@link Alert} dialog.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the error to. This can be {@code null} if you do not want to write to a log.
+     * @param messageProvider A functional interface for providing dialog message text and log message.
+     * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
+     * specified.
+     * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
+     */
+    public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, MessageProvider messageProvider,
+            ButtonType... buttons) {
+        return showErrorAlert(parent, logger, messageProvider.getTitle(), messageProvider.getHeaderText(), messageProvider.getContentText(), null,
+                messageProvider.getLogMessage(), buttons);
     }
 
     /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param headerText The header of the {@link Alert} dialog.
      * @param contentText The message to show in the {@link Alert} dialog content area.
@@ -282,12 +291,13 @@ public class AlertHelper {
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showWarningAlert(Window parent, String title, String headerText, String contentText, ButtonType... buttons) {
+    public static Optional<ButtonType> showWarningAlert(Window parent, Logger logger, String title, String headerText, String contentText, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.WARNING, Values.requireNonWhitespace(contentText, "Content text cannot be empty"), buttons);
         alert.initStyle(StageStyle.UTILITY);
         if (null != parent) {
             alert.initOwner(parent);
         }
+        alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResources.RESOURCEKEY_WARNING)));
         if (Values.isNullWhiteSpaceOrEmpty(headerText)) {
             alert.setHeaderText(headerText);
@@ -295,42 +305,35 @@ public class AlertHelper {
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> showWarningAlert(String title, String headerText, String contentText, ButtonType... buttons) {
-        return showWarningAlert(null, title, headerText, contentText, buttons);
-    }
-
     /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showWarningAlert(Window parent, String title, String contentText, ButtonType... buttons) {
-        return showWarningAlert(parent, title, null, contentText, buttons);
-    }
-
-    public static Optional<ButtonType> showWarningAlert(String title, String contentText, ButtonType... buttons) {
-        return showWarningAlert(title, null, contentText, buttons);
+    public static Optional<ButtonType> showWarningAlert(Window parent, Logger logger, String title, String contentText, ButtonType... buttons) {
+        return showWarningAlert(parent, logger, title, null, contentText, buttons);
     }
 
     /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
-     * @param parent
+     * @param parent The parent {@link Window} for the displayed {@link Alert}.
+     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
      * specified.
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
-    public static Optional<ButtonType> showWarningAlert(Window parent, String contentText, ButtonType... buttons) {
-        return showWarningAlert(parent, null, contentText, buttons);
+    public static Optional<ButtonType> showWarningAlert(Window parent, Logger logger, String contentText, ButtonType... buttons) {
+        return showWarningAlert(parent, logger, null, contentText, buttons);
     }
 
-    public static Optional<ButtonType> showWarningAlert(String contentText, ButtonType... buttons) {
-        return showWarningAlert((String) null, contentText, buttons);
-    }
 }

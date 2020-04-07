@@ -16,7 +16,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
@@ -25,7 +25,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.util.AlertHelper;
-import scheduler.util.AnnotationHelper;
 import scheduler.util.EventHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.ViewControllerLoader;
@@ -54,7 +53,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     private EditController<T, U> contentController;
 
     @FXML
-    private BorderPane contentBorderPane; // Value injected by FXMLLoader
+    private StackPane contentPane;
 
     @FXML
     private Label createdLabel; // Value injected by FXMLLoader
@@ -100,7 +99,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         contentController.model = model;
     }
 
-    private void onIntitForNew(Parent view, EditController<T, U> controller) {
+    private void onInitForNew(Parent view) {
         collapseNode(deleteButton);
         collapseNode(createdLabel);
         collapseNode(createDateValue);
@@ -110,27 +109,27 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         collapseNode(lastUpdateByValue);
         collapseNode(lastUpdateLabel);
         collapseNode(lastUpdateValue);
-        contentBorderPane.setCenter(view);
+        contentPane.getChildren().add(view);
     }
 
-    private void onIntitForEdit(Parent view, EditController<T, U> controller) {
+    private void onInitForEdit(Parent view, EditController<T, U> controller) {
         DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
         Locale.getDefault(Locale.Category.DISPLAY);
         createdByValue.setText(controller.model.getCreatedBy());
         createDateValue.setText(dtf.format(controller.model.getCreateDate()));
         lastUpdateByValue.setText(controller.model.getLastModifiedBy());
         lastUpdateValue.setText(dtf.format(controller.model.getLastModifiedDate()));
-        contentBorderPane.setCenter(view);
+        contentPane.getChildren().add(view);
     }
 
     @HandlesDataObjectEvent
     protected void onDataObjectEvent(DataObjectEvent<? extends DataAccessObject> event) {
-        EventHelper.invokeDataObjectEventMethods(contentController, event);
+        EventHelper.fireDataObjectEvent(contentController, event);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        assert contentBorderPane != null : String.format("fx:id=\"contentBorderPane\" was not injected: check your FXML file '%s'.",
+        assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
         assert createdLabel != null : String.format("fx:id=\"createdLabel\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()));
@@ -156,7 +155,8 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         });
         Objects.requireNonNull(deleteButton, String.format("fx:id=\"deleteButton\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) saveChangesButton.getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             if (response.isPresent() && response.get() == ButtonType.YES) {
                 TaskWaiter.startNow(new DeleteTask((Stage) saveChangesButton.getScene().getWindow()));
@@ -251,23 +251,24 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                             try {
                                 viewAndController = ViewControllerLoader.loadViewAndController(controllerClass, EditItem.class);
                                 event.getController().onContentLoaded(viewAndController);
+                                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
+                                        viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
                             } catch (IOException ex) {
-                                LOG.log(Level.SEVERE, "Error loading view", ex);
+                                // TODO: Internationalize message
+                                AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading edit window content", ex);
                             }
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
-                                    viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
                             break;
                         case BEFORE_SHOW:
-                            event.getController().onIntitForNew(viewAndController.getView(), viewAndController.getController());
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            event.getController().onInitForNew(viewAndController.getView());
+                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                     viewAndController.toEvent(event.getController(), FxmlViewEventType.BEFORE_SHOW, event.getStage()));
                             break;
                         case SHOWN:
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                     viewAndController.toEvent(event.getController(), FxmlViewEventType.SHOWN, event.getStage()));
                             break;
                         case UNLOADED:
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                     viewAndController.toEvent(event.getController(), FxmlViewEventType.UNLOADED, event.getStage()));
                             break;
                     }
@@ -278,7 +279,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             U model = fc.contentController.model;
             T dataAccessObject = (null == model) ? null : model.getDataObject();
             if (null != dataAccessObject) {
-                EventHelper.invokeDataObjectEventMethods(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.CREATED,
+                EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.CREATED,
                         dataAccessObject));
             }
             return model;
@@ -296,23 +297,23 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                         case LOADED:
                             try {
                                 event.getController().onContentLoaded(model, ViewControllerLoader.loadViewAndController(controllerClass));
+                                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
+                                        viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
                             } catch (IOException ex) {
-                                LOG.log(Level.SEVERE, "Error loading view", ex);
+                                AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading edit window content", ex);
                             }
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
-                                    viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
                             break;
                         case BEFORE_SHOW:
-                            event.getController().onIntitForEdit(viewAndController.getView(), viewAndController.getController());
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            event.getController().onInitForEdit(viewAndController.getView(), viewAndController.getController());
+                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                     viewAndController.toEvent(event.getController(), FxmlViewEventType.BEFORE_SHOW, event.getStage()));
                             break;
                         case SHOWN:
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                     viewAndController.toEvent(event.getController(), FxmlViewEventType.SHOWN, event.getStage()));
                             break;
                         case UNLOADED:
-                            EventHelper.invokeViewLifecycleEventMethods(viewAndController.getController(),
+                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                     viewAndController.toEvent(event.getController(), FxmlViewEventType.UNLOADED, event.getStage()));
                             break;
                     }
@@ -324,10 +325,10 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             T dataAccessObject = (null == r) ? null : r.getDataObject();
             if (null != dataAccessObject) {
                 if (dataAccessObject.getRowState() == DataRowState.DELETED) {
-                    EventHelper.invokeDataObjectEventMethods(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.DELETED,
+                    EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.DELETED,
                             dataAccessObject));
                 } else {
-                    EventHelper.invokeDataObjectEventMethods(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.UPDATED,
+                    EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.UPDATED,
                             dataAccessObject));
                 }
             }
@@ -373,14 +374,14 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                 contentController.getFactory().updateItem(contentController.model, dataAccessobject);
                 owner.hide();
             } else {
-                AlertHelper.showWarningAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), message);
+                AlertHelper.showWarningAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), message);
             }
         }
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            LOG.log(Level.SEVERE, "Error saving record", ex);
-            AlertHelper.showErrorAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
+            AlertHelper.showErrorAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
         }
 
         @Override
@@ -412,14 +413,13 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             if (null == message || message.trim().isEmpty()) {
                 owner.hide();
             } else {
-                AlertHelper.showWarningAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
+                AlertHelper.showWarningAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
             }
         }
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            LOG.log(Level.SEVERE, "Error deleting record", ex);
-            AlertHelper.showErrorAlert(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE),
+            AlertHelper.showErrorAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 

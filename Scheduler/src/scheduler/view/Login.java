@@ -148,12 +148,14 @@ public final class Login extends SchedulerController {
 
     @FXML
     void loginButtonClick(ActionEvent event) {
-        Scheduler.tryLoginUser((Stage) userNameTextField.getScene().getWindow(), userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        Stage stage = (Stage) userNameTextField.getScene().getWindow();
+        Scheduler.tryLoginUser(stage, userNameTextField.getText(), passwordField.getText(), (ex) -> {
             if (ex == null) {
-                AlertHelper.showErrorAlert(((Button) event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS));
+                AlertHelper.showErrorAlert(stage, LOG, currentResourceBundle.getString(RESOURCEKEY_LOGINERROR),
+                        currentResourceBundle.getString(RESOURCEKEY_INVALIDCREDENTIALS), ex);
             } else {
-                LOG.log(Level.SEVERE, "Error logging in user", ex);
-                AlertHelper.showErrorAlert(((Button) event.getSource()).getScene().getWindow(), currentResourceBundle.getString(RESOURCEKEY_LOGINERROR), currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR));
+                AlertHelper.showErrorAlert(stage, LOG, currentResourceBundle.getString(RESOURCEKEY_LOGINERROR),
+                        currentResourceBundle.getString(RESOURCEKEY_VALIDATIONERROR), ex);
             }
         });
     }

@@ -20,7 +20,6 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.util.AlertHelper;
-import scheduler.util.AnnotationHelper;
 import scheduler.util.EventHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.address.AddressModelImpl;
@@ -122,12 +121,7 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                addNewAppointment((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
-            } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        "Error loading new appointment edit window", ex);
-            }
+            addNewAppointment((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
         });
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
@@ -135,7 +129,8 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageAppointments.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         AppointmentModel.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                // TODO: Internationalize message
+                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading appointments listing", ex);
             }
         });
@@ -143,12 +138,7 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                addNewCustomer((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
-            } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        "Error loading new customer edit window", ex);
-            }
+            addNewCustomer((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
         });
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
@@ -156,7 +146,8 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageCustomers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CustomerModelImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                // TODO: Internationalize message
+                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading customers listing", ex);
             }
         });
@@ -164,30 +155,15 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCountryMenuItem, String.format("fx:id=\"newCountryMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                addNewCountry((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
-            } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        "Error loading new country edit window", ex);
-            }
+            addNewCountry((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
         });
         Objects.requireNonNull(newCityMenuItem, String.format("fx:id=\"newCityMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                addNewCity((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
-            } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        "Error loading new city edit window", ex);
-            }
+            addNewCity((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
         });
         Objects.requireNonNull(newAddressMenuItem, String.format("fx:id=\"newAddressMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                addNewAddress((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
-            } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        "Error loading new address edit window", ex);
-            }
+            addNewAddress((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
         });
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
@@ -195,7 +171,8 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageCountries.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CountryModel.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                // TODO: Internationalize message
+                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading countries listing", ex);
             }
         });
@@ -203,12 +180,7 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newUserMenuItem, String.format("fx:id=\"newUserMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                addNewUser((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
-            } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        "Error loading new user edit window", ex);
-            }
+            addNewUser((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
         });
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
@@ -216,7 +188,8 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageUsers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         UserModelImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                AlertHelper.logAndAlertError((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                // TODO: Internationalize message
+                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading users listing", ex);
             }
         });
@@ -241,7 +214,7 @@ public final class MainController extends SchedulerController implements MainCon
                         ((MainContentController) event.getController()).mainController = MainController.this;
                         contentController = event.getController();
                     }
-                    EventHelper.invokeViewLifecycleEventMethods(loadEventListener, event);
+                    EventHelper.fireFxmlViewEvent(loadEventListener, event);
                 });
     }
 
@@ -262,10 +235,15 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
-     * @throws java.io.IOException
      */
-    public AppointmentModel addNewAppointment(Stage stage) throws IOException {
-        return EditAppointment.editNew(this, stage);
+    public AppointmentModel addNewAppointment(Stage stage) {
+        try {
+            return EditAppointment.editNew(this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new appointment edit window", ex);
+        }
+        return null;
     }
 
     /**
@@ -273,10 +251,14 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be edited.
-     * @throws java.io.IOException
      */
-    public void editAppointment(Stage stage, AppointmentModel item) throws IOException {
-        EditAppointment.edit(item, this, stage);
+    public void editAppointment(Stage stage, AppointmentModel item) {
+        try {
+            EditAppointment.edit(item, this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading appointment edit window", ex);
+        }
     }
 
     /**
@@ -286,11 +268,12 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link AppointmentModel} to be deleted.
      */
     public void deleteAppointment(Stage stage, AppointmentModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AppointmentModel.getFactory(),
-                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+                    (m) -> EventHelper.fireDataObjectEvent(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -300,10 +283,15 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @return The newly added {@link CustomerModelImpl} or {@code null} if the operation was canceled.
-     * @throws java.io.IOException
      */
-    public CustomerModelImpl addNewCustomer(Stage stage) throws IOException {
-        return EditCustomer.editNew(this, stage);
+    public CustomerModelImpl addNewCustomer(Stage stage) {
+        try {
+            return EditCustomer.editNew(this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new customer edit window", ex);
+        }
+        return null;
     }
 
     /**
@@ -311,10 +299,14 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModelImpl} to be edited.
-     * @throws java.io.IOException
      */
-    public void editCustomer(Stage stage, CustomerModelImpl item) throws IOException {
-        EditCustomer.edit(item, this, stage);
+    public void editCustomer(Stage stage, CustomerModelImpl item) {
+        try {
+            EditCustomer.edit(item, this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading customer edit window", ex);
+        }
     }
 
     /**
@@ -324,11 +316,12 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link CustomerModelImpl} to be deleted.
      */
     public void deleteCustomer(Stage stage, CustomerModelImpl item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModelImpl.getFactory(),
-                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+                    (m) -> EventHelper.fireDataObjectEvent(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -338,10 +331,15 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @return The newly added {@link CountryModel} or {@code null} if the operation was canceled.
-     * @throws java.io.IOException
      */
-    public CountryModel addNewCountry(Stage stage) throws IOException {
-        return EditCountry.editNew(this, stage);
+    public CountryModel addNewCountry(Stage stage) {
+        try {
+            return EditCountry.editNew(this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new country edit window", ex);
+        }
+        return null;
     }
 
     /**
@@ -349,10 +347,14 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be edited.
-     * @throws java.io.IOException
      */
-    public void editCountry(Stage stage, CountryModel item) throws IOException {
-        EditCountry.edit(item, this, stage);
+    public void editCountry(Stage stage, CountryModel item) {
+        try {
+            EditCountry.edit(item, this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading country edit window", ex);
+        }
     }
 
     /**
@@ -362,11 +364,12 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link CountryModel} to be deleted.
      */
     public void deleteCountry(Stage stage, CountryModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CountryModel.getFactory(),
-                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+                    (m) -> EventHelper.fireDataObjectEvent(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -376,10 +379,15 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @return The newly added {@link CityModelImpl} or {@code null} if the operation was canceled.
-     * @throws java.io.IOException
      */
-    public CityModelImpl addNewCity(Stage stage) throws IOException {
-        return EditCity.editNew(this, stage);
+    public CityModelImpl addNewCity(Stage stage) {
+        try {
+            return EditCity.editNew(this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new city edit window", ex);
+        }
+        return null;
     }
 
     /**
@@ -387,10 +395,14 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link CityModelImpl} to be edited.
-     * @throws java.io.IOException
      */
-    public void editCity(Stage stage, CityModelImpl item) throws IOException {
-        EditCity.edit(item, this, stage);
+    public void editCity(Stage stage, CityModelImpl item) {
+        try {
+            EditCity.edit(item, this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading city edit window", ex);
+        }
     }
 
     /**
@@ -400,11 +412,12 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link CityModelImpl} to be deleted.
      */
     public void deleteCity(Stage stage, CityModelImpl item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModelImpl.getFactory(),
-                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+                    (m) -> EventHelper.fireDataObjectEvent(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -414,10 +427,15 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @return The newly added {@link AddressModelImpl} or {@code null} if the operation was canceled.
-     * @throws java.io.IOException
      */
-    public AddressModelImpl addNewAddress(Stage stage) throws IOException {
-        return EditAddress.editNew(this, stage);
+    public AddressModelImpl addNewAddress(Stage stage) {
+        try {
+            return EditAddress.editNew(this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new address edit window", ex);
+        }
+        return null;
     }
 
     /**
@@ -425,10 +443,14 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link AddressModelImpl} to be edited.
-     * @throws java.io.IOException
      */
-    public void editAddress(Stage stage, AddressModelImpl item) throws IOException {
-        EditAddress.edit(item, this, stage);
+    public void editAddress(Stage stage, AddressModelImpl item) {
+        try {
+            EditAddress.edit(item, this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading address edit window", ex);
+        }
     }
 
     /**
@@ -438,11 +460,12 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link AddressModelImpl} to be deleted.
      */
     public void deleteAddress(Stage stage, AddressModelImpl item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModelImpl.getFactory(),
-                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+                    (m) -> EventHelper.fireDataObjectEvent(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -452,10 +475,15 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @return The newly added {@link UserModelImpl} or {@code null} if the operation was canceled.
-     * @throws java.io.IOException
      */
-    public UserModelImpl addNewUser(Stage stage) throws IOException {
-        return EditUser.editNew(this, stage);
+    public UserModelImpl addNewUser(Stage stage) {
+        try {
+            return EditUser.editNew(this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new user edit window", ex);
+        }
+        return null;
     }
 
     /**
@@ -463,10 +491,14 @@ public final class MainController extends SchedulerController implements MainCon
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link UserModelImpl} to be edited.
-     * @throws java.io.IOException
      */
-    public void editUser(Stage stage, UserModelImpl item) throws IOException {
-        EditUser.edit(item, this, stage);
+    public void editUser(Stage stage, UserModelImpl item) {
+        try {
+            EditUser.edit(item, this, stage);
+        } catch (IOException ex) {
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading user edit window", ex);
+        }
     }
 
     /**
@@ -476,11 +508,12 @@ public final class MainController extends SchedulerController implements MainCon
      * @param item The {@link UserModelImpl} to be deleted.
      */
     public void deleteUser(Stage stage, UserModelImpl item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModelImpl.getFactory(),
-                    (m) -> EventHelper.invokeDataObjectEventMethods(contentController, new DataObjectEvent<>(this,
+                    (m) -> EventHelper.fireDataObjectEvent(contentController, new DataObjectEvent<>(this,
                             DaoChangeAction.DELETED, m.getDataObject()))));
         }
     }
@@ -490,7 +523,8 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             ManageAppointments.loadInto(this, event.getStage(), AppointmentModel.getFactory().getDefaultFilter());
         } catch (IOException ex) {
-            AlertHelper.logAndAlertError(event.getStage(), LOG, "Error loading appointments", ex);
+            // TODO: Internationalize message
+            AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading appointments", ex);
         }
     }
 
@@ -499,6 +533,7 @@ public final class MainController extends SchedulerController implements MainCon
         ViewControllerLoader.clearPaneContent(this, contentPane);
     }
 
+    // TODO: Replace with annotated field
     /**
      * Base class for controllers that represent content views for the {@link MainController}. This allows content controllers to raise events on the
      * main controller.
@@ -534,7 +569,7 @@ public final class MainController extends SchedulerController implements MainCon
         @Override
         protected void processResult(String message, Stage owner) {
             if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
+                AlertHelper.showWarningAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
             } else if (null != onDeleted) {
                 onDeleted.accept(model);
             }
@@ -543,7 +578,8 @@ public final class MainController extends SchedulerController implements MainCon
         @Override
         protected void processException(Throwable ex, Stage owner) {
             LOG.log(Level.SEVERE, "Error deleting record", ex);
-            AlertHelper.showErrorAlert(AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+            AlertHelper.showErrorAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
         }
 
         @Override

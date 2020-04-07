@@ -700,7 +700,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
 
     @Override
     protected T call() throws Exception {
-        LOG.log(Level.INFO, "Task called");
+        LOG.log(Level.FINE, "Task called");
         if (Platform.isFxApplicationThread()) {
             showBusyView();
         } else {
@@ -709,7 +709,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
             });
         }
         try {
-            LOG.log(Level.INFO, "Getting result");
+            LOG.log(Level.FINE, "Getting result");
             return DbConnector.apply((connection) -> getResult(connection));
         } finally {
             if (Platform.isFxApplicationThread()) {
@@ -732,7 +732,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
     protected abstract T getResult(Connection connection) throws SQLException;
 
     private void showBusyView() throws RuntimeException {
-        LOG.log(Level.INFO, "showBusyView called");
+        LOG.log(Level.FINE, "showBusyView called");
         if (null != contentPane) {
             return;
         }
@@ -754,7 +754,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
     }
 
     private void hideBusyView() {
-        LOG.log(Level.INFO, "hideBusyView called");
+        LOG.log(Level.FINE, "hideBusyView called");
         owner.setOnHidden(oldOnHidden);
         oldOnHidden = null;
         cancelButton.setOnAction(null);

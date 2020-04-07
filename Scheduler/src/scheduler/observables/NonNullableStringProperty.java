@@ -1,5 +1,6 @@
 package scheduler.observables;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringPropertyBase;
@@ -14,7 +15,6 @@ import javafx.beans.property.SimpleStringProperty;
 public class NonNullableStringProperty extends SimpleStringProperty {
 
     ReadOnlyStringProperty readOnlyProperty;
-    private final BooleanBinding whiteSpaceOrEmpty;
     private final boolean trimming;
 
     /**
@@ -25,7 +25,6 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     public NonNullableStringProperty(boolean trim) {
         super("");
         this.trimming = trim;
-        whiteSpaceOrEmpty = (trim) ? super.isEmpty() : new WhitespaceBinding();
     }
 
     /**
@@ -44,7 +43,6 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     public NonNullableStringProperty(String initialValue, boolean trim) {
         super((initialValue == null) ? "" : ((trim) ? initialValue.trim() : initialValue));
         this.trimming = trim;
-        whiteSpaceOrEmpty = (trim) ? super.isEmpty() : new WhitespaceBinding();
     }
 
     /**
@@ -66,7 +64,6 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     public NonNullableStringProperty(Object bean, String name, boolean trim) {
         super(bean, name, "");
         this.trimming = trim;
-        whiteSpaceOrEmpty = (trim) ? super.isEmpty() : new WhitespaceBinding();
     }
 
     /**
@@ -90,7 +87,6 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     public NonNullableStringProperty(Object bean, String name, String initialValue, boolean trim) {
         super(bean, name, (initialValue == null) ? "" : ((trim) ? initialValue.trim() : initialValue));
         this.trimming = trim;
-        whiteSpaceOrEmpty = (trim) ? super.isEmpty() : new WhitespaceBinding();
     }
 
     /**
@@ -122,7 +118,7 @@ public class NonNullableStringProperty extends SimpleStringProperty {
      * @return a {@link BooleanBinding} that returns {@code true} if the current value does not contain any non-whitespace characters.
      */
     public BooleanBinding isWhiteSpaceOrEmpty() {
-        return whiteSpaceOrEmpty;
+        return (trimming) ? isEmpty() : Bindings.createBooleanBinding(() -> get().trim().isEmpty(), this);
     }
 
     /**
@@ -142,14 +138,6 @@ public class NonNullableStringProperty extends SimpleStringProperty {
     @Override
     public void setValue(String v) {
         super.set((v == null) ? "" : ((trimming) ? v.trim() : v));
-    }
-
-    private class WhitespaceBinding extends BooleanBinding {
-
-        @Override
-        protected boolean computeValue() {
-            return NonNullableStringProperty.this.get().trim().isEmpty();
-        }
     }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyStringPropertyBase {
