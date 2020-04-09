@@ -150,7 +150,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         Objects.requireNonNull(saveChangesButton, String.format("fx:id=\"saveChangesButton\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             ItemModel.ModelFactory<T, U> factory = contentController.getFactory();
-            T dao = factory.applyChanges(contentController.model);
+            T dao = factory.updateDAO(contentController.model);
             TaskWaiter.startNow(new SaveTask(dao, (Stage) saveChangesButton.getScene().getWindow()));
         });
         Objects.requireNonNull(deleteButton, String.format("fx:id=\"deleteButton\" was not injected: check your FXML file '%s'.",
@@ -254,7 +254,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                                 EventHelper.fireFxmlViewEvent(viewAndController.getController(),
                                         viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
                             } catch (IOException ex) {
-                                // TODO: ~P2: Internationalize message
+                                // PENDING: Internationalize message
                                 AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading edit window content", ex);
                             }
                             break;

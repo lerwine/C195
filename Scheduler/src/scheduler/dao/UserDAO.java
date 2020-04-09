@@ -48,6 +48,7 @@ public class UserDAO extends DataAccessObject implements UserElement {
     }
 
     private String userName;
+    // PENDING: Change to using something that can accept raw password and produce hash.
     private String password;
     private UserStatus status;
 
@@ -336,7 +337,7 @@ public class UserDAO extends DataAccessObject implements UserElement {
                     }
                 }
             }
-            // TODO: ~P2: Internationalize this
+            // PENDING: Internationalize this
             if (count > 0) {
                 return "Another user has the same name";
             }
@@ -349,7 +350,7 @@ public class UserDAO extends DataAccessObject implements UserElement {
                 return "";
             }
             int count = AppointmentDAO.getFactory().countByUser(connection, dao.getPrimaryKey(), null, null);
-            // TODO: ~P2: Internationalize these
+            // PENDING: Internationalize these
             switch (count) {
                 case 0:
                     return "";

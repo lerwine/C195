@@ -2,7 +2,6 @@ package scheduler.view;
 
 import java.io.IOException;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableValue;

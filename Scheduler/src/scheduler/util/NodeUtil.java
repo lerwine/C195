@@ -2,6 +2,7 @@ package scheduler.util;
 
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import javafx.beans.binding.BooleanExpression;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -30,6 +31,15 @@ public class NodeUtil {
         }
     }
 
+    public static void bindCssCollapse(Node node, BooleanExpression isCollapsed) {
+        isCollapsed.addListener((observable) -> {
+            if (((BooleanExpression)observable).get())
+                collapseNode(node);
+            else
+                restoreNode(node);
+        });
+    }
+    
     /**
      * Restores the visibility and dimensions of a JavaFX scene graph {@link javafx.scene.Node}. This removes the CSS class "collapsed" from the
      * {@link javafx.scene.Node#styleClass} list.

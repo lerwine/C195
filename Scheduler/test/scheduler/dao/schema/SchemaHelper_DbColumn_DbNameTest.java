@@ -22,7 +22,7 @@ import org.junit.runners.Parameterized;
 
 /**
  *SchemaHelperTest_DbColumn_DbColumn
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 @RunWith(Parameterized.class)
 public class SchemaHelper_DbColumn_DbNameTest {

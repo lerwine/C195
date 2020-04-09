@@ -276,7 +276,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
         if (o instanceof DbColumn)
             return containsColumn((DbColumn)o);
         if (o instanceof String)
-            return contains((String)o);
+            return columnMap.containsKey((String)o);
         return backingList.contains(o);
     }
 

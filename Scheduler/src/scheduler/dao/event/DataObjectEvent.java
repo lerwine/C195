@@ -11,6 +11,10 @@ import scheduler.dao.DataAccessObject;
  * @param <T> The type of {@link DataAccessObject} affected.
  */
 public class DataObjectEvent<T extends DataAccessObject> extends EventObject {
+    /**
+     *
+     */
+    private static final long serialVersionUID = -4153967201114554143L;
     private final DaoChangeAction changeAction;
     private final T dataObject;
 

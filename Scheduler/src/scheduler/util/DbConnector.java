@@ -2,6 +2,7 @@ package scheduler.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -249,6 +250,11 @@ public final class DbConnector implements AutoCloseable {
                         "DriverManager.getConnection returned null");
                 LOG.log(Level.FINE, String.format("Connected to %s", url));
                 CURRENT_STATE = STATE_CONNECTED;
+                String sql = "SET @@session.time_zone = '+00:00'";
+                LOG.log(Level.FINE, String.format("Executing sql statement: %s", sql));
+                try (PreparedStatement ps = CONNECTION.prepareStatement(sql)) {
+                    ps.execute();
+                }
             } finally {
                 if (CURRENT_STATE == STATE_CONNECTING) {
                     CURRENT_STATE = STATE_CONNECTION_ERROR;

@@ -552,11 +552,11 @@ public class CustomerPicker extends SchedulerController {
     }
 
     class LoadCustomersTask extends TaskWaiter<ArrayList<CustomerDAO>> {
-        // TODO: ~P2: The value of the field CustomerPicker.LoadCustomersTask.country is not used
+        // PENDING: The value of the field CustomerPicker.LoadCustomersTask.country is not used
         private final CountryDAO country;
-        // TODO: ~P2: The value of the field CustomerPicker.LoadCustomersTask.city is not used
+        // PENDING: The value of the field CustomerPicker.LoadCustomersTask.city is not used
         private final CityDAO city;
-        // TODO: ~P2: The value of the field CustomerPicker.LoadCustomersTask.active is not used
+        // PENDING: The value of the field CustomerPicker.LoadCustomersTask.active is not used
         private final OptionalBoolean active;
         private final CustomerDAO customer;
 

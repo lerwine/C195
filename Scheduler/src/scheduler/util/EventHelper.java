@@ -27,7 +27,7 @@ import scheduler.view.event.DataLoadedEventListener;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 public class EventHelper {
 

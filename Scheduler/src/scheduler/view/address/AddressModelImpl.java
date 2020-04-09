@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NonNullableStringProperty;
@@ -223,9 +224,32 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
         }
 
         @Override
-        public AddressDAO applyChanges(AddressModelImpl item) {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement applyChanges(AddressModelImpl item)
+        public AddressDAO updateDAO(AddressModelImpl item) {
+            AddressDAO dao = item.getDataObject();
+            if (dao.getRowState() == DataRowState.DELETED)
+                throw new IllegalArgumentException("Address has been deleted");
+            String address1 = item.address1.get();
+            String address2 = item.address2.get();
+            if (address1.trim().isEmpty() && address2.trim().isEmpty())
+                throw new IllegalArgumentException("Address lines 1 and 2 are empty");
+            CityModel<? extends CityElement> cityModel = item.city.get();
+            if (null == cityModel)
+                throw new IllegalArgumentException("No associated city");
+            CityElement cityDAO = cityModel.getDataObject();
+            switch (cityDAO.getRowState()) {
+                case DELETED:
+                    throw new IllegalArgumentException("Associated city has been deleted");
+                case NEW:
+                    throw new IllegalArgumentException("Associated city has never been saved");
+                default:
+                    dao.setCity(cityDAO);
+                    break;
+            }
+            dao.setAddress1(address1);
+            dao.setAddress2(address2);
+            dao.setPostalCode(item.getPostalCode());
+            dao.setPhone(item.getPhone());
+            return dao;
         }
 
     }

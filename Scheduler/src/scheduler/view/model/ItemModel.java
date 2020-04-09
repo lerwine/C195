@@ -132,12 +132,12 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
         public abstract U createNew(T dao);
         
         /**
-         * Applies changes made in the model to the data access object.
+         * Applies changes made in the {@link ItemModel} to the underlying {@link DataAccessObject}.
          * 
          * @param item The model item.
-         * @return The data access object with changes applied.
+         * @return The {@link DataAccessObject} with changes applied.
          */
-        public abstract T applyChanges(U item);
+        public abstract T updateDAO(U item);
         
         /**
          * Updates the {@link ItemModel} with changes from a {@link DataAccessObject}.
@@ -146,7 +146,7 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
          */
         public void updateItem(U item, T dao) {
             assert dao.getRowState() != DataRowState.DELETED : String.format("%s has been deleted", dao.getClass().getName());
-            // TODO: ~P2: May want to add some checks in here to make sure we don't apply the new DAO to the wrong item
+            // PENDING: May want to add some checks in here to make sure we don't apply the new DAO to the wrong item
             ItemModel<T> model = (ItemModel<T>)item;
             if (item.isNewItem()) {
                 model.dataObject.set(dao);

@@ -12,6 +12,7 @@ import scheduler.view.model.ItemModel;
 import scheduler.view.country.CityCountryModelImpl;
 import scheduler.view.country.CityCountryModel;
 import scheduler.dao.CountryElement;
+import scheduler.dao.DataRowState;
 
 /**
  *
@@ -123,14 +124,34 @@ public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel
         @Override
         public void updateItem(CityModelImpl item, CityDAO dao) {
             super.updateItem(item, dao);
-            item.name.set(dao.getLastModifiedBy());
-            // TODO: Finish implementing updateItem(CityModelImpl item, CityDAO dao)
+            item.name.set(dao.getName());
+            CountryElement countryDAO = dao.getCountry();
+            item.setCountry((null == countryDAO) ? null : new CityCountryModelImpl(countryDAO));
         }
 
         @Override
-        public CityDAO applyChanges(CityModelImpl item) {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement applyChanges(CityModelImpl item)
+        public CityDAO updateDAO(CityModelImpl item) {
+            CityDAO dao = item.getDataObject();
+            if (dao.getRowState() == DataRowState.DELETED)
+                throw new IllegalArgumentException("City has been deleted");
+            String name = item.name.get();
+            if (name.trim().isEmpty())
+                throw new IllegalArgumentException("City name empty");
+            CityCountryModel<? extends CountryElement> countryModel = item.country.get();
+            if (null == countryModel)
+                throw new IllegalArgumentException("No associated country");
+            CountryElement countryDAO = countryModel.getDataObject();
+            switch (countryDAO.getRowState()) {
+                case DELETED:
+                    throw new IllegalArgumentException("Associated country has been deleted");
+                case NEW:
+                    throw new IllegalArgumentException("Associated country has never been saved");
+                default:
+                    dao.setCountry(countryDAO);
+                    break;
+            }
+            dao.setName(name);
+            return dao;
         }
 
     }

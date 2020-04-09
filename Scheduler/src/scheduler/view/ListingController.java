@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -165,13 +164,14 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             if (event.isAltDown() || event.isShortcutDown()) {
                 return;
             }
+            
             if (event.isMetaDown() || event.isControlDown()) {
                 if (event.getCode() == KeyCode.N) {
                     try {
                         onAddNewItem(event);
                     } catch (IOException ex) {
-                        // TODO: Use AlertHelper.logAndAlertError
-                        LOG.log(Level.SEVERE, "Error loading view", ex);
+                        // PENDING: Internationalize message
+                        AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
                     }
                 }
                 return;
@@ -189,8 +189,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 try {
                     onEditItem(event, item);
                 } catch (IOException ex) {
-                    // TODO: Use AlertHelper.logAndAlertError
-                    LOG.log(Level.SEVERE, "Error loading view", ex);
+                    // PENDING: Internationalize message
+                    AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
                 }
             }
         });
@@ -205,8 +205,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 try {
                     onEditItem(event, item);
                 } catch (IOException ex) {
-                    // TODO: Use AlertHelper.logAndAlertError
-                    LOG.log(Level.SEVERE, "Error loading view", ex);
+                    // PENDING: Internationalize message
+                    AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
                 }
             }
         });
@@ -226,8 +226,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             try {
                 onAddNewItem(event);
             } catch (IOException ex) {
-                // TODO: Use AlertHelper.logAndAlertError
-                LOG.log(Level.SEVERE, "Error loading view", ex);
+                // PENDING: Internationalize message
+                AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
             }
         });
     }

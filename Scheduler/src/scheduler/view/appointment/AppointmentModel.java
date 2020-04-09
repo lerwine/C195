@@ -1,15 +1,21 @@
 package scheduler.view.appointment;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.UserElement;
 import scheduler.dao.UserStatus;
 import scheduler.observables.AppointmentTypeDisplayProperty;
@@ -412,9 +418,95 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         }
 
         @Override
-        public AppointmentDAO applyChanges(AppointmentModel item) {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement applyChanges(AppointmentModel item)
+        public AppointmentDAO updateDAO(AppointmentModel item) {
+            AppointmentDAO dao = item.getDataObject();
+            if (dao.getRowState() == DataRowState.DELETED)
+                throw new IllegalArgumentException("Appointment has been deleted");
+            LocalDateTime start = item.start.get();
+            if (null == start)
+                throw new IllegalArgumentException("Appointment has no start date");
+            LocalDateTime end = item.end.get();
+            if (null == end)
+                throw new IllegalArgumentException("Appointment has no end date");
+            if (start.compareTo(end) > 0)
+                throw new IllegalArgumentException("Appointment start date is after its end date");
+            String title = item.title.get();
+            if (null == title || title.trim().isEmpty())
+                throw new IllegalArgumentException("Appointment has no title");
+            AppointmentType type = item.type.get();
+            String location;
+            String url = item.url.get();
+            URI uri;
+            if (url.trim().isEmpty())
+                uri = null;
+            else {
+                try {
+                    uri = new URI(url);
+                } catch (URISyntaxException ex) {
+                    Logger.getLogger(AppointmentModel.class.getName()).log(Level.WARNING, "Invalid URI", ex);
+                    throw new IllegalArgumentException("Invalid URI");
+                }
+            }
+            
+            switch (type) {
+                case CORPORATE_HQ_MEETING:
+                case GERMANY_SITE_MEETING:
+                case CUSTOMER_SITE:
+                case HONDURAS_SITE_MEETING:
+                case INDIA_SITE_MEETING:
+                    location = item.getEffectiveLocation();
+                    break;
+                case VIRTUAL:
+                    if (null == uri)
+                        throw new IllegalArgumentException("Appointment has no URL");
+                    location = item.getEffectiveLocation();
+                    break;
+                case PHONE:
+                    location = item.location.get();
+                    if (location.trim().isEmpty())
+                        throw new IllegalArgumentException("Appointment has no phone");
+                    break;
+                default:
+                    location = item.location.get();
+                    if (location.trim().isEmpty())
+                        throw new IllegalArgumentException("Appointment has no location");
+                    break;
+            }
+            CustomerModel<? extends CustomerElement> customerModel = item.customer.get();
+            if (null == customerModel)
+                throw new IllegalArgumentException("No associated customer");
+            UserModel<? extends UserElement> userModel = item.user.get();
+            if (null == userModel)
+                throw new IllegalArgumentException("No associated user");
+            CustomerElement customerDAO = customerModel.getDataObject();
+            switch (customerDAO.getRowState()) {
+                case DELETED:
+                    throw new IllegalArgumentException("Associated customer has been deleted");
+                case NEW:
+                    throw new IllegalArgumentException("Associated customer has never been saved");
+                default:
+                    UserElement userDAO = userModel.getDataObject();
+                    switch (userDAO.getRowState()) {
+                        case DELETED:
+                            throw new IllegalArgumentException("Associated user has been deleted");
+                        case NEW:
+                            throw new IllegalArgumentException("Associated user has never been saved");
+                        default:
+                            dao.setCustomer(customerDAO);
+                            dao.setUser(userDAO);
+                            break;
+                    }
+                    break;
+            }
+            dao.setTitle(title);
+            dao.setType(type);
+            dao.setContact(item.getContact());
+            dao.setDescription(item.getDescription());
+            dao.setStart(DB.toUtcTimestamp(start));
+            dao.setEnd(DB.toUtcTimestamp(end));
+            dao.setLocation(location);
+            dao.setUrl(url);
+            return dao;
         }
 
     }

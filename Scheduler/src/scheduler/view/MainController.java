@@ -129,7 +129,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageAppointments.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         AppointmentModel.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                // TODO: ~P2: Internationalize message
+                // PENDING: Internationalize message
                 AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading appointments listing", ex);
             }
@@ -146,7 +146,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageCustomers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CustomerModelImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                // TODO: ~P2: Internationalize message
+                // PENDING: Internationalize message
                 AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading customers listing", ex);
             }
@@ -171,7 +171,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageCountries.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         CountryModel.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                // TODO: ~P2: Internationalize message
+                // PENDING: Internationalize message
                 AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading countries listing", ex);
             }
@@ -188,7 +188,7 @@ public final class MainController extends SchedulerController implements MainCon
                 ManageUsers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
                         UserModelImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
-                // TODO: ~P2: Internationalize message
+                // PENDING: Internationalize message
                 AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
                         "Error loading users listing", ex);
             }
@@ -240,7 +240,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             return EditAppointment.editNew(this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading new appointment edit window", ex);
         }
         return null;
@@ -256,7 +256,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             EditAppointment.edit(item, this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading appointment edit window", ex);
         }
     }
@@ -288,7 +288,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             return EditCustomer.editNew(this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading new customer edit window", ex);
         }
         return null;
@@ -304,7 +304,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             EditCustomer.edit(item, this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading customer edit window", ex);
         }
     }
@@ -336,7 +336,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             return EditCountry.editNew(this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading new country edit window", ex);
         }
         return null;
@@ -352,7 +352,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             EditCountry.edit(item, this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading country edit window", ex);
         }
     }
@@ -384,7 +384,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             return EditCity.editNew(this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading new city edit window", ex);
         }
         return null;
@@ -400,7 +400,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             EditCity.edit(item, this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading city edit window", ex);
         }
     }
@@ -432,7 +432,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             return EditAddress.editNew(this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading new address edit window", ex);
         }
         return null;
@@ -448,7 +448,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             EditAddress.edit(item, this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading address edit window", ex);
         }
     }
@@ -480,7 +480,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             return EditUser.editNew(this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading new user edit window", ex);
         }
         return null;
@@ -496,7 +496,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             EditUser.edit(item, this, stage);
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading user edit window", ex);
         }
     }
@@ -523,7 +523,7 @@ public final class MainController extends SchedulerController implements MainCon
         try {
             ManageAppointments.loadInto(this, event.getStage(), AppointmentModel.getFactory().getDefaultFilter());
         } catch (IOException ex) {
-            // TODO: ~P2: Internationalize message
+            // PENDING: Internationalize message
             AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading appointments", ex);
         }
     }
@@ -533,7 +533,7 @@ public final class MainController extends SchedulerController implements MainCon
         ViewControllerLoader.clearPaneContent(this, contentPane);
     }
 
-    // TODO: ~P2: Replace with annotated field
+    // PENDING: Replace with annotated field
     /**
      * Base class for controllers that represent content views for the {@link MainController}. This allows content controllers to raise events on the
      * main controller.

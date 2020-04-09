@@ -70,7 +70,7 @@ public interface AppResourceBundleConstants {
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Home Office"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_HOME = "appointmentType_home";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_HQ = "appointmentType_HQ";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Honduras Office"}.

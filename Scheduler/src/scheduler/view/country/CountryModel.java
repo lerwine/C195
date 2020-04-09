@@ -2,10 +2,16 @@ package scheduler.view.country;
 
 import java.util.Objects;
 import javafx.beans.property.StringProperty;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLCOUNTRIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
+import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.observables.NonNullableStringProperty;
+import scheduler.util.ResourceBundleLoader;
 import scheduler.view.ModelFilter;
 import scheduler.view.model.ItemModel;
 
@@ -87,18 +93,42 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
         @Override
         public void updateItem(CountryModel item, CountryDAO dao) {
             super.updateItem(item, dao);
-            // TODO: Implement updateItem(CountryModel item, CountryDAO dao)
+            item.setName(dao.getName());
         }
 
         @Override
-        public CountryDAO applyChanges(CountryModel item) {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement applyChanges(CountryModel item)
+        public CountryDAO updateDAO(CountryModel item) {
+            CountryDAO dao = item.getDataObject();
+            if (dao.getRowState() == DataRowState.DELETED)
+                throw new IllegalArgumentException("Country has been deleted");
+            String name = item.name.get();
+            if (name.trim().isEmpty())
+                throw new IllegalArgumentException("Country name empty");
+            dao.setName(name);
+            return dao;
         }
 
         public ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement getAllItemsFilter()
+            return new ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>>() {
+                private final String headingText = AppResources.getProperty(RESOURCEKEY_ALLCOUNTRIES);
+                private final DaoFilter<CountryDAO> daoFilter = DaoFilter.all(AppResources.getProperty(RESOURCEKEY_READINGFROMDB),
+                            AppResources.getProperty(RESOURCEKEY_LOADINGCOUNTRIES));
+                @Override
+                public String getHeadingText() {
+                    return headingText;
+                }
+
+                @Override
+                public DaoFilter<CountryDAO> getDaoFilter() {
+                    return daoFilter;
+                }
+
+                @Override
+                public boolean test(CountryModel t) {
+                    return null != t;
+                }
+                
+            };
         }
 
     }

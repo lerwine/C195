@@ -1,6 +1,8 @@
 package scheduler.view.customer;
 
 import java.util.Objects;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
@@ -10,11 +12,15 @@ import javafx.beans.property.StringProperty;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
+import static scheduler.util.ResourceBundleLoader.getResourceString;
 import scheduler.view.address.AddressModel;
+import scheduler.view.address.EditAddress;
 import scheduler.view.address.RelatedAddressModel;
+import static scheduler.view.appointment.EditAppointmentConstants.RESOURCEKEY_PHONENUMBER;
 import scheduler.view.model.ItemModel;
 
 /**
@@ -40,6 +46,7 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
     private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final SimpleBooleanProperty active;
+    private final StringBinding multiLineAddress;
 
     public CustomerModelImpl(CustomerDAO dao) {
         super(dao);
@@ -55,6 +62,42 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
         cityZipCountry = new ChildPropertyWrapper<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
         addressText = new AddressTextProperty(this, "addressText", this);
         active = new SimpleBooleanProperty(this, "active", dao.isActive());
+        this.multiLineAddress = Bindings.createStringBinding(() -> {
+            String a1 = address1.get().trim();
+            String a2 = address2.get().trim();
+            String c = cityZipCountry.get().trim();
+            String p = phone.get().trim();
+            if (a1.isEmpty()) {
+                if (a2.isEmpty()) {
+                    if (c.isEmpty()) {
+                        return (p.isEmpty()) ? "" : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                    }
+                    return (p.isEmpty()) ? c : String.format("%s%n%s %s", c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                }
+                if (c.isEmpty()) {
+                    return (p.isEmpty()) ? a2 : String.format("%s%n%s %s", a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                }
+                return (p.isEmpty()) ? String.format("%s%n%s", a2, c)
+                        : String.format("%s%n%s%n%s %s", a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+            }
+            if (a2.isEmpty()) {
+                if (c.isEmpty()) {
+                    return (p.isEmpty()) ? a1 : String.format("%s%n%s %s", a1, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                }
+                return (p.isEmpty()) ? String.format("%s%n%s", a1, c)
+                        : String.format("%s%n%s%n%s %s", a1, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+            }
+            if (c.isEmpty()) {
+                return (p.isEmpty()) ? String.format("%s%n%s", a1, a2)
+                        : String.format("%s%n%s%n%s %s", a1, a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+            }
+            return (p.isEmpty()) ? String.format("%s%n%s%n%s", a1, a2, c)
+                    : String.format("%s%n%s%n%s%n%s %s", a1, a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+        }, address1, address2, cityZipCountry, phone);
+    }
+
+    public StringBinding getMultiLineAddress() {
+        return multiLineAddress;
     }
 
     @Override
@@ -229,18 +272,43 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
         @Override
         public void updateItem(CustomerModelImpl item, CustomerDAO dao) {
             super.updateItem(item, dao);
-            // TODO: Implement updateItem(CustomerModelImpl item, CustomerDAO dao)
+            item.setName(dao.getName());
+            item.setActive(item.isActive());
+            AddressElement addressDAO = dao.getAddress();
+            item.setAddress((null == addressDAO) ? null : new RelatedAddressModel(addressDAO));
         }
 
         public CustomerModelFilter getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement getAllItemsFilter()
+            return CustomerModelFilter.all();
         }
 
         @Override
-        public CustomerDAO applyChanges(CustomerModelImpl item) {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement applyChanges(CustomerModelImpl item)
+        public CustomerDAO updateDAO(CustomerModelImpl item) {
+            CustomerDAO dao = item.getDataObject();
+            if (dao.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Customer has been deleted");
+            }
+            String name = item.name.get();
+            if (name.trim().isEmpty()) {
+                throw new IllegalArgumentException("Customer name empty");
+            }
+            AddressModel<? extends AddressElement> addressModel = item.address.get();
+            if (null == addressModel) {
+                throw new IllegalArgumentException("No associated address");
+            }
+            AddressElement addressDAO = addressModel.getDataObject();
+            switch (addressDAO.getRowState()) {
+                case DELETED:
+                    throw new IllegalArgumentException("Associated address has been deleted");
+                case NEW:
+                    throw new IllegalArgumentException("Associated address has never been saved");
+                default:
+                    dao.setAddress(addressDAO);
+                    break;
+            }
+            dao.setName(name);
+            dao.setActive(item.isActive());
+            return dao;
         }
 
     }

@@ -10,7 +10,7 @@ import scheduler.AppResources;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 public interface MessageProvider {
     default String getTitle() { return AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE); }

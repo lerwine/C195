@@ -16,7 +16,7 @@ import scheduler.dao.filter.ComparisonOperator;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 public class BooleanValueFilterTest {
     

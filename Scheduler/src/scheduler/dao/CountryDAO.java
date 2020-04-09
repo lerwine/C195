@@ -258,7 +258,7 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
                             result.add(fromResultSet(rs));
                         }
                     }
-                    // TODO: ~P2: Check for warnings on other queries.
+                    // PENDING: Check for warnings on other queries.
                     SQLWarning w = connection.getWarnings();
                     if (null == w) {
                         LOG.log(Level.WARNING, "Null results, no warnings.");

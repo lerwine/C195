@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 <?import scheduler.controls.AppointmentTypeListCell?>
 <?import scheduler.controls.AppointmentTypeListCellFactory?>
 <?import scheduler.controls.CustomerListCell?>
@@ -22,238 +28,285 @@
 <?import scheduler.controls.UserListCell?>
 <?import scheduler.controls.UserListCellFactory?>
 
-<GridPane hgap="16.0" prefHeight="517.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
-    <columnConstraints>
-        <ColumnConstraints />
-        <ColumnConstraints />
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints />
-        <RowConstraints vgrow="ALWAYS" />
-    </rowConstraints>
-    <children>
-      <HBox GridPane.rowIndex="2">
-         <children>
-              <Label styleClass="formControlLabel" text="%customer" />
-            <Label fx:id="customerValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="8.0" right="8.0" />
-               </HBox.margin></Label>
-         </children>
-         <GridPane.margin>
-            <Insets top="16.0" />
-         </GridPane.margin>
-      </HBox>
-      <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-         <children>
-              <Label styleClass="formControlLabel" text="%user" />
-              <Label fx:id="userValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="8.0" right="8.0" />
-               </HBox.margin></Label>
-         </children>
-         <GridPane.margin>
-            <Insets top="16.0" />
-         </GridPane.margin>
-      </HBox>
-        <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
-            <cellFactory>
-                <CustomerListCellFactory />
-            </cellFactory>
-            <buttonCell>
-                <CustomerListCell />
-            </buttonCell>
-        </ComboBox>
-        <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
-            <cellFactory>
-                <UserListCellFactory />
-            </cellFactory>
-            <buttonCell>
-                <UserListCell />
-            </buttonCell>
-        </ComboBox>
-      <HBox GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
-         <children>
-              <Label styleClass="formControlLabel" text="%title" />
-              <Label fx:id="titleValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="8.0" right="8.0" />
-               </HBox.margin></Label>
-         </children>
-      </HBox>
-        <TextField fx:id="titleTextField" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-      <VBox GridPane.hgrow="ALWAYS" GridPane.rowIndex="6">
-         <children>
-              <GridPane alignment="CENTER">
-                  <columnConstraints>
-                      <ColumnConstraints />
-                      <ColumnConstraints />
-                      <ColumnConstraints />
-                  <ColumnConstraints />
-                  </columnConstraints>
-                  <rowConstraints>
-                      <RowConstraints />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  </rowConstraints>
-                  <children>
-                  <HBox GridPane.columnSpan="2">
-                     <children>
-                            <Label styleClass="formControlLabel" text="%start" />
-                        <Label fx:id="startValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
-                           <HBox.margin>
-                              <Insets left="8.0" right="16.0" />
-                           </HBox.margin>
-                        </Label>
-                     </children>
-                  </HBox>
-                  <DatePicker fx:id="startDatePicker" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
-                     <GridPane.margin>
-                        <Insets right="8.0" />
-                     </GridPane.margin></DatePicker>
-                  <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                     <GridPane.margin>
-                        <Insets left="8.0" />
-                     </GridPane.margin>
-                     <children>
-                        <Spinner fx:id="startHourSpinner" minWidth="75.0" prefWidth="75.0" />
-                        <Label text=":" />
-                        <Spinner fx:id="startMinuteSpinner" minWidth="75.0" prefWidth="75.0" />
-                        <Spinner fx:id="amPmSpinner" minWidth="75.0" prefWidth="75.0" />
-                     </children>
-                  </HBox>
-                  <HBox GridPane.rowIndex="2">
-                     <children>
-                        <Label text="%duration" />
-                        <Label fx:id="durationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
-                           <HBox.margin>
-                              <Insets left="8.0" right="8.0" />
-                           </HBox.margin>
-                        </Label>
-                     </children>
-                     <GridPane.margin>
-                        <Insets right="8.0" top="16.0" />
-                     </GridPane.margin>
-                  </HBox>
-                  <HBox GridPane.rowIndex="3">
-                     <children>
-                        <Spinner fx:id="durationHourSpinner" minWidth="75.0" prefWidth="75.0" />
-                        <Label text=":" />
-                        <Spinner fx:id="durationMinuteSpinner" minWidth="75.0" prefWidth="75.0" />
-                     </children>
-                     <GridPane.margin>
-                        <Insets right="8.0" />
-                     </GridPane.margin>
-                  </HBox>
-                  <Label text="%timeZone" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
-                     <GridPane.margin>
-                        <Insets left="8.0" top="16.0" />
-                     </GridPane.margin>
-                  </Label>
-                  <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" minWidth="125.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                     <GridPane.margin>
-                        <Insets left="8.0" />
-                     </GridPane.margin>
-                     <cellFactory>
-                            <TimeZoneListCellFactory />
-                        </cellFactory>
-                        <buttonCell>
-                            <TimeZoneListCell />
-                        </buttonCell>
-                  </ComboBox>
-                  </children>
-              </GridPane>
-            <Label fx:id="currentTimeZoneLabel" text="%currentTimeZone">
-               <VBox.margin>
-                  <Insets top="16.0" />
-               </VBox.margin>
-            </Label>
-            <Label fx:id="currentTimeZoneValue" />
-            <HBox>
+
+<StackPane prefHeight="517.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
+   <children>
+      <GridPane hgap="16.0">
+          <columnConstraints>
+              <ColumnConstraints />
+              <ColumnConstraints />
+          </columnConstraints>
+          <rowConstraints>
+              <RowConstraints />
+              <RowConstraints />
+              <RowConstraints />
+              <RowConstraints />
+              <RowConstraints />
+              <RowConstraints />
+              <RowConstraints vgrow="ALWAYS" />
+          </rowConstraints>
+          <children>
+            <HBox GridPane.rowIndex="2">
                <children>
-                    <Label fx:id="locationLabel" styleClass="formControlLabel" text="%location" />
-                    <Label fx:id="locationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                    <Label styleClass="formControlLabel" text="%customer" />
+                  <Label fx:id="customerValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                      <HBox.margin>
                         <Insets left="8.0" right="8.0" />
                      </HBox.margin>
                   </Label>
                </children>
-               <padding>
+               <GridPane.margin>
                   <Insets top="16.0" />
-               </padding>
+               </GridPane.margin>
             </HBox>
-            <StackPane>
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
                <children>
-                    <TextArea fx:id="locationTextArea" prefRowCount="4" />
-                  <TextField fx:id="phoneTextField" />
-               </children>
-            </StackPane>
-         </children>
-         <GridPane.margin>
-            <Insets top="16.0" />
-         </GridPane.margin>
-      </VBox>
-      <HBox GridPane.columnIndex="1" GridPane.rowIndex="4">
-         <children>
-              <Label styleClass="formControlLabel" text="%type" />
-         </children>
-         <GridPane.margin>
-            <Insets top="16.0" />
-         </GridPane.margin>
-      </HBox>
-        <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="5" GridPane.valignment="TOP">
-            <cellFactory>
-                <AppointmentTypeListCellFactory />
-            </cellFactory>
-            <buttonCell>
-                <AppointmentTypeListCell />
-            </buttonCell>
-        </ComboBox>
-      <HBox GridPane.rowIndex="4">
-         <children>
-              <Label styleClass="formControlLabel" text="%pointOfContact" />
-              <Label fx:id="contactValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="8.0" right="8.0" />
-               </HBox.margin></Label>
-         </children>
-         <GridPane.margin>
-            <Insets top="16.0" />
-         </GridPane.margin>
-      </HBox>
-        <TextField fx:id="contactTextField" GridPane.rowIndex="5" />
-      <VBox GridPane.columnIndex="1" GridPane.rowIndex="6">
-         <children>
-            <HBox>
-               <children>
-                  <Label fx:id="urlLabel" text="%meetingUrl" />
-                  <Label fx:id="urlValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                    <Label styleClass="formControlLabel" text="%user" />
+                    <Label fx:id="userValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                      <HBox.margin>
-                        <Insets left="8.0" />
+                        <Insets left="8.0" right="8.0" />
                      </HBox.margin>
                   </Label>
                </children>
-               <VBox.margin>
+               <GridPane.margin>
                   <Insets top="16.0" />
-               </VBox.margin>
+               </GridPane.margin>
             </HBox>
-            <TextField fx:id="urlTextField" />
-              <Label fx:id="implicitLocationLabel" styleClass="formControlLabel" text="%description">
-               <VBox.margin>
+              <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
+                  <cellFactory>
+                      <CustomerListCellFactory />
+                  </cellFactory>
+                  <buttonCell>
+                      <CustomerListCell />
+                  </buttonCell>
+              </ComboBox>
+              <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
+                  <cellFactory>
+                      <UserListCellFactory />
+                  </cellFactory>
+                  <buttonCell>
+                      <UserListCell />
+                  </buttonCell>
+              </ComboBox>
+            <HBox GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
+               <children>
+                    <Label styleClass="formControlLabel" text="%title" />
+                    <Label fx:id="titleValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets left="8.0" right="8.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+              <TextField fx:id="titleTextField" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+            <VBox GridPane.hgrow="ALWAYS" GridPane.rowIndex="6">
+               <children>
+                    <GridPane alignment="CENTER">
+                        <columnConstraints>
+                            <ColumnConstraints />
+                            <ColumnConstraints />
+                            <ColumnConstraints />
+                        <ColumnConstraints />
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        </rowConstraints>
+                        <children>
+                        <HBox GridPane.columnSpan="2">
+                           <children>
+                                  <Label styleClass="formControlLabel" text="%start" />
+                              <Label fx:id="startValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                                 <HBox.margin>
+                                    <Insets left="8.0" right="16.0" />
+                                 </HBox.margin>
+                              </Label>
+                              <Button fx:id="showConflictsButton" mnemonicParsing="false" onAction="#showConflictsButtonClick" text="Show">
+                                 <font>
+                                    <Font size="10.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </HBox>
+                        <DatePicker fx:id="startDatePicker" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                           <GridPane.margin>
+                              <Insets right="8.0" />
+                           </GridPane.margin>
+                        </DatePicker>
+                        <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <GridPane.margin>
+                              <Insets left="8.0" />
+                           </GridPane.margin>
+                           <children>
+                              <Spinner fx:id="startHourSpinner" minWidth="75.0" prefWidth="75.0" />
+                              <Label text=":" />
+                              <Spinner fx:id="startMinuteSpinner" minWidth="75.0" prefWidth="75.0" />
+                              <Spinner fx:id="amPmSpinner" minWidth="75.0" prefWidth="75.0" />
+                           </children>
+                        </HBox>
+                        <HBox GridPane.rowIndex="2">
+                           <children>
+                              <Label text="%duration" />
+                              <Label fx:id="durationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                                 <HBox.margin>
+                                    <Insets left="8.0" right="8.0" />
+                                 </HBox.margin>
+                              </Label>
+                           </children>
+                           <GridPane.margin>
+                              <Insets right="8.0" top="16.0" />
+                           </GridPane.margin>
+                        </HBox>
+                        <HBox GridPane.rowIndex="3">
+                           <children>
+                              <Spinner fx:id="durationHourSpinner" minWidth="75.0" prefWidth="75.0" />
+                              <Label text=":" />
+                              <Spinner fx:id="durationMinuteSpinner" minWidth="75.0" prefWidth="75.0" />
+                           </children>
+                           <GridPane.margin>
+                              <Insets right="8.0" />
+                           </GridPane.margin>
+                        </HBox>
+                        <Label text="%timeZone" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
+                           <GridPane.margin>
+                              <Insets left="8.0" top="16.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" minWidth="125.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                           <GridPane.margin>
+                              <Insets left="8.0" />
+                           </GridPane.margin>
+                           <cellFactory>
+                                  <TimeZoneListCellFactory />
+                              </cellFactory>
+                              <buttonCell>
+                                  <TimeZoneListCell />
+                              </buttonCell>
+                        </ComboBox>
+                        </children>
+                    </GridPane>
+                  <Label fx:id="currentTimeZoneLabel" text="%currentTimeZone">
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                  </Label>
+                  <Label fx:id="currentTimeZoneValue" />
+                  <HBox>
+                     <children>
+                          <Label fx:id="locationLabel" styleClass="formControlLabel" text="%location" />
+                          <Label fx:id="locationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets left="8.0" right="8.0" />
+                           </HBox.margin>
+                        </Label>
+                     </children>
+                     <padding>
+                        <Insets top="16.0" />
+                     </padding>
+                  </HBox>
+                  <StackPane>
+                     <children>
+                          <TextArea fx:id="locationTextArea" prefRowCount="4" />
+                        <TextField fx:id="phoneTextField" />
+                        <Label fx:id="implicitLocationLabel" />
+                     </children>
+                  </StackPane>
+               </children>
+               <GridPane.margin>
                   <Insets top="16.0" />
-               </VBox.margin>
-              </Label>
-              <TextArea fx:id="descriptionTextArea" prefRowCount="4" VBox.vgrow="ALWAYS" />
-         </children>
-         <GridPane.margin>
-            <Insets top="16.0" />
-         </GridPane.margin>
-      </VBox>
-    </children>
-</GridPane>
+               </GridPane.margin>
+            </VBox>
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="4">
+               <children>
+                    <Label styleClass="formControlLabel" text="%type" />
+               </children>
+               <GridPane.margin>
+                  <Insets top="16.0" />
+               </GridPane.margin>
+            </HBox>
+              <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="5" GridPane.valignment="TOP">
+                  <cellFactory>
+                      <AppointmentTypeListCellFactory />
+                  </cellFactory>
+                  <buttonCell>
+                      <AppointmentTypeListCell />
+                  </buttonCell>
+              </ComboBox>
+            <HBox GridPane.rowIndex="4">
+               <children>
+                    <Label styleClass="formControlLabel" text="%pointOfContact" />
+                    <Label fx:id="contactValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets left="8.0" right="8.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+               <GridPane.margin>
+                  <Insets top="16.0" />
+               </GridPane.margin>
+            </HBox>
+              <TextField fx:id="contactTextField" GridPane.rowIndex="5" />
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="6">
+               <children>
+                  <HBox>
+                     <children>
+                        <Label fx:id="urlLabel" text="%meetingUrl" />
+                        <Label fx:id="urlValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                           <HBox.margin>
+                              <Insets left="8.0" />
+                           </HBox.margin>
+                        </Label>
+                     </children>
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <TextField fx:id="urlTextField" />
+                    <Label styleClass="formControlLabel" text="%description">
+                     <VBox.margin>
+                        <Insets top="16.0" />
+                     </VBox.margin>
+                    </Label>
+                    <TextArea fx:id="descriptionTextArea" prefRowCount="4" VBox.vgrow="ALWAYS" />
+               </children>
+               <GridPane.margin>
+                  <Insets top="16.0" />
+               </GridPane.margin>
+            </VBox>
+          </children>
+      </GridPane>
+      <BorderPane fx:id="conflictsBorderPane" style="-fx-background-color: #7f7f7f7f;">
+         <center>
+            <BorderPane style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" BorderPane.alignment="CENTER">
+               <BorderPane.margin>
+                  <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
+               </BorderPane.margin>
+               <center>
+                  <VBox BorderPane.alignment="CENTER">
+                     <children>
+                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Conflicting Appointments" textAlignment="CENTER">
+                           <font>
+                              <Font size="18.0" />
+                           </font>
+                        </Label>
+                        <TableView fx:id="conflictingAppointmentsTableView" VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn prefWidth="75.0" text="C1" />
+                            <TableColumn prefWidth="75.0" text="C2" />
+                          </columns>
+                        </TableView>
+                        <ButtonBar>
+                          <buttons>
+                            <Button mnemonicParsing="false" onAction="#closeConflictsBorderPaneButtonClick" text="Close" />
+                          </buttons>
+                        </ButtonBar>
+                     </children>
+                  </VBox>
+               </center>
+            </BorderPane>
+         </center>
+      </BorderPane>
+   </children>
+</StackPane>

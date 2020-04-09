@@ -1,6 +1,5 @@
 package scheduler.controls;
 
-import java.util.Locale;
 import java.util.TimeZone;
 import javafx.scene.control.ListCell;
 

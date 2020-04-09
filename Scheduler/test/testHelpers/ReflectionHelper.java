@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 public class ReflectionHelper {
     public static final Function<Type, String> NULL_TYPE_PARAMETER = (t) -> String.format("(%s)null", t.getTypeName());

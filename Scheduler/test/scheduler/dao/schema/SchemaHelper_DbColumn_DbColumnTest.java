@@ -20,7 +20,7 @@ import testHelpers.ReflectionHelper;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 @RunWith(Parameterized.class)
 public class SchemaHelper_DbColumn_DbColumnTest {

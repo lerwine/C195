@@ -10,14 +10,13 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.util.BinarySelective;
 
 /**
  *
- * @author lerwi
+ * @author Leonard T. Erwine
  */
 public class LocalDateTimeBindingProperty extends ObjectBinding<BinarySelective<LocalDateTime, String>> implements ReadOnlyProperty<BinarySelective<LocalDateTime, String>> {
     private final String name;

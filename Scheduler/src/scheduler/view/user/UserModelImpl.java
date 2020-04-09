@@ -5,6 +5,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserStatus;
 import scheduler.observables.UserStatusDisplayProperty;
@@ -130,18 +131,30 @@ public final class UserModelImpl extends ItemModel<UserDAO> implements UserModel
         @Override
         public void updateItem(UserModelImpl item, UserDAO dao) {
             super.updateItem(item, dao);
-            // TODO: Implement updateItem(UserModelImpl item, UserDAO dao)
+            item.setPassword(dao.getPassword());
+            item.setUserName(dao.getUserName());
+            item.setStatus(dao.getStatus());
         }
 
         public UserModelFilter getAllItemsFilter() {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement getAllItemsFilter()
+            return UserModelFilter.all();
         }
 
         @Override
-        public UserDAO applyChanges(UserModelImpl item) {
-            throw new UnsupportedOperationException("Not supported yet.");
-            // TODO: Implement applyChanges(UserModelImpl item)
+        public UserDAO updateDAO(UserModelImpl item) {
+            UserDAO dao = item.getDataObject();
+            if (dao.getRowState() == DataRowState.DELETED)
+                throw new IllegalArgumentException("User has been deleted");
+            String name = item.userName.get();
+            if (name.trim().isEmpty())
+                throw new IllegalArgumentException("User name is empty");
+            String pwd = item.password.get();
+            if (name.trim().isEmpty())
+                throw new IllegalArgumentException("Password is empty");
+            dao.setUserName(name);
+            dao.setPassword(pwd);
+            dao.setStatus(item.getStatus());
+            return dao;
         }
 
     }

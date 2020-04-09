@@ -1,9 +1,6 @@
 package scheduler.controls;
 
 import java.time.ZoneId;
-import java.time.format.TextStyle;
-import java.util.HashSet;
-import java.util.Locale;
 import java.util.TimeZone;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;

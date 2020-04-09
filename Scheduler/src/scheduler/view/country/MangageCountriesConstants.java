@@ -62,11 +62,6 @@ interface MangageCountriesConstants {
     public static final String RESOURCEKEY_ERRORLOADINGCOUNTRIES = "errorLoadingCountries";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading Countries"}.
-     */
-    public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
-
-    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
      * {@code "That country is referenced by one or more cities..."}.
      */

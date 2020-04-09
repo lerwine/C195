@@ -46,7 +46,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
             case HONDURAS_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS);
             case CORPORATE_HQ_MEETING:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HOME);
+                return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HQ);
             case INDIA_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
             case CUSTOMER_SITE:
