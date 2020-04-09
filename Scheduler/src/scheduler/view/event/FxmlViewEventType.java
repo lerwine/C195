@@ -3,7 +3,7 @@ package scheduler.view.event;
 /**
  * Represents a {@link FxmlViewEvent} type.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public enum FxmlViewEventType {
     /**

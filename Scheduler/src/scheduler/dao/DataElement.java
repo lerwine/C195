@@ -3,7 +3,7 @@ package scheduler.dao;
 /**
  * Base interface for all data objects representing a data row or a related row in the database.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface DataElement {
 

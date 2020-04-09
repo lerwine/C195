@@ -33,7 +33,7 @@ import scheduler.view.event.FxmlViewEventType;
  * {@link #tryLoginUser(Stage, String, String, Consumer)} After successful authentication, the current user data object is stored in
  * {@link Scheduler#currentUser}, and the view for {@link MainController} is loaded into the primary stage by the {@link LoginTask}.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class Scheduler extends Application {
 

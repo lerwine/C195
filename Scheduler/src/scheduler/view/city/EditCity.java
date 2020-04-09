@@ -19,9 +19,11 @@ import scheduler.view.country.CountryModel;
 import scheduler.view.model.ItemModel;
 
 /**
- * FXML Controller class
+ * FXML Controller class for editing a {@link CityModelImpl}.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/city/EditCity.fxml">/resources/scheduler/view/city/EditCity.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
@@ -53,8 +55,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
     public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-     * {@code "That city is referenced by one or more addresses and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That city is referenced by one or more addresses and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_CITYHASADDRESSES = "cityHasAddresses";
 
@@ -123,18 +124,18 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
     }
 
     @Override
-    protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement getValidationExpression
-    }
-
-    @Override
     protected ItemModel.ModelFactory<CityDAO, CityModelImpl> getFactory() {
         return CityModelImpl.getFactory();
     }
 
     @Override
+    protected BooleanExpression getValidationExpression() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#getValidationExpression
+    }
+
+    @Override
     protected void updateModel(CityModelImpl model) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#updateModel
     }
 
 }

@@ -25,7 +25,7 @@ import scheduler.view.model.ItemModel;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements CustomerModel<CustomerDAO> {
 

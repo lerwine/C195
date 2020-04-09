@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * or to have the same parameters as {@link scheduler.view.event.FxmlViewEventListener#onFxmlViewEvent(scheduler.view.event.FxmlViewEvent)} or
  * {@link scheduler.view.event.FxmlViewControllerEventListener#onFxmlViewControllerEvent(scheduler.view.event.FxmlViewControllerEvent)}.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

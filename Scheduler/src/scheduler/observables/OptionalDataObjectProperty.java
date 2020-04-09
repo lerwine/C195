@@ -5,7 +5,7 @@ import scheduler.dao.DataElement;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T>
  */
 public class OptionalDataObjectProperty<T extends DataElement> extends OptionalValueProperty<T> {

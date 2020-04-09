@@ -10,7 +10,7 @@ import scheduler.view.model.ElementModel;
 /**
  * An {@link ElementModel} for an {@link AddressElement} data access object.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link AddressElement} data access object this model represents.
  */
 public interface AddressModel<T extends AddressElement> extends ElementModel<T> {

@@ -8,7 +8,7 @@ import scheduler.dao.schema.DbColumn;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T>
  */
 public interface BooleanColumnValueFilter<T extends DataAccessObject> extends ColumnValueFilter<T, Boolean, BooleanValueFilter> {

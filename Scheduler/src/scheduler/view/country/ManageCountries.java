@@ -15,8 +15,10 @@ import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/country/ManageCountries.fxml">/resources/scheduler/view/country/ManageCountries.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")

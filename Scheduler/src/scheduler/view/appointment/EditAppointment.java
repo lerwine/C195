@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,11 +34,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import scheduler.AppResources;
@@ -48,7 +51,10 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.CustomerElement;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserElement;
+import scheduler.dao.UserStatus;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.dao.filter.ComparisonOperator;
+import scheduler.dao.filter.UserFilter;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.bindCssCollapse;
 import scheduler.view.EditItem;
@@ -66,9 +72,11 @@ import scheduler.view.user.UserModel;
 import scheduler.view.user.UserModelImpl;
 
 /**
- * FXML Controller class for editing appointments
+ * FXML Controller class for editing an {@link AppointmentModel}.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/appointment/EditAppointment.fxml">/resources/scheduler/view/appointment/EditAppointment.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
@@ -179,9 +187,26 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // fx:id="conflictsBorderPane"
     private BorderPane conflictsBorderPane; // Value injected by FXMLLoader
 
-    // CURRENT: add columns in fxml
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptionsBorderPane"
+    private BorderPane dropdownOptionsBorderPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptionsInactiveRadioButton"
+    private RadioButton dropdownOptionsInactiveRadioButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptions"
+    private ToggleGroup dropdownOptions; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptionsLabel"
+    private Label dropdownOptionsLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptionsActiveRadioButton"
+    private RadioButton dropdownOptionsActiveRadioButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptionsAllRadioButton"
+    private RadioButton dropdownOptionsAllRadioButton; // Value injected by FXMLLoader
 
     // Items for the customerComboBox control.
     private ObservableList<CustomerModelImpl> customerModelList;
@@ -204,6 +229,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private DurationProperty duration;
     private DateTimeFormatter formatter;
     private ReadOnlyStringWrapper customerAddress;
+    private Optional<Boolean> showActiveCustomers;
+    private Optional<Boolean> showActiveUsers;
+    private boolean editingUserOptions;
 
     // PENDING: Internationalize button text in FXML
     @FXML
@@ -211,9 +239,53 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         conflictsBorderPane.setVisible(false);
     }
 
+    // PENDING: Internationalize button text in FXML
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
         conflictsBorderPane.setVisible(true);
+    }
+
+    // PENDING: Internationalize button text in FXML
+    @FXML
+    void customerDropDownOptionsButtonClick(ActionEvent event) {
+        editingUserOptions = false;
+        if (showActiveCustomers.isPresent()) {
+            dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
+        } else {
+            dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
+        }
+        dropdownOptionsLabel.setText("Customers to Show");
+        dropdownOptionsBorderPane.setVisible(true);
+    }
+
+    // PENDING: Internationalize button text in FXML
+    @FXML
+    void userDropDownOptionsButtonClick(ActionEvent event) {
+        editingUserOptions = true;
+        if (showActiveUsers.isPresent()) {
+            dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
+        } else {
+            dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
+        }
+        dropdownOptionsLabel.setText("Users to Show");
+        dropdownOptionsBorderPane.setVisible(true);
+    }
+
+    // PENDING: Internationalize button text in FXML
+    @FXML
+    void dropdownOptionsCancelButtonClick(ActionEvent event) {
+        dropdownOptionsBorderPane.setVisible(false);
+    }
+
+    // PENDING: Internationalize button text in FXML
+    @FXML
+    void dropdownOptionsOkButtonClick(ActionEvent event) {
+        if (editingUserOptions) {
+            TaskWaiter.startNow(new UserReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
+        } else {
+            TaskWaiter.startNow(new CustomerReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
+        }
+        dropdownOptionsBorderPane.setVisible(false);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -225,8 +297,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startValidationLabel != null : "fx:id=\"startValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startHourSpinner != null : "fx:id=\"startHourSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startMinuteSpinner != null : "fx:id=\"startMinuteSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert amPmSpinner != null : "fx:id=\"amPmSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -250,11 +322,19 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         assert descriptionTextArea != null : "fx:id=\"descriptionTextArea\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert conflictsBorderPane != null : "fx:id=\"conflictsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptionsBorderPane != null : "fx:id=\"dropdownOptionsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptionsInactiveRadioButton != null : "fx:id=\"dropdownOptionsInactiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptions != null : "fx:id=\"dropdownOptions\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptionsLabel != null : "fx:id=\"dropdownOptionsLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptionsActiveRadioButton != null : "fx:id=\"dropdownOptionsActiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
         customerModelList = FXCollections.observableArrayList();
         userModelList = FXCollections.observableArrayList();
         otherAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
+        showActiveCustomers = Optional.of(true);
+        showActiveUsers = Optional.of(true);
 
         formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
         startDateTime = new StartDateTimeProperty(this, "startDateTime", startDatePicker, startHourSpinner, startMinuteSpinner, amPmSpinner,
@@ -266,6 +346,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         typeComboBox.setItems(types);
         typeSelectionModel = typeComboBox.getSelectionModel();
         typeSelectionModel.select(AppointmentType.OTHER);
+        
+        // Set validation and label bindings
         titleValidationLabel.visibleProperty().bind(getTitleIsEmpty());
         bindCssCollapse(titleValidationLabel, getTitleIsEmpty().not());
         customerAddress = new ReadOnlyStringWrapper("");
@@ -425,8 +507,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     /**
-     * Gets the property that contains the multi-line customer address text. This will be bound to {@link CustomerModelImpl#multiLineAddress} if a
-     * customer is selected; otherwise, this will contain an empty string.
+     * Gets the property that contains the multi-line customer address text. This will be bound to {@link CustomerModelImpl#multiLineAddress} if a customer is selected; otherwise,
+     * this will contain an empty string.
      *
      * @return The {@link ReadOnlyStringProperty} that contains the multi-line customer address text.
      */
@@ -484,8 +566,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     /**
      * Creates a binding that indicates whether the point-of-contact is required and is empty.
      *
-     * @return A new {@link BooleanBinding} that returns {@code true} if {@link AppointmentType#OTHER} is selected in the {@link #typeComboBox} and
-     * the {@link #contactTextField} is empty.
+     * @return A new {@link BooleanBinding} that returns {@code true} if {@link AppointmentType#OTHER} is selected in the {@link #typeComboBox} and the {@link #contactTextField} is
+     * empty.
      */
     public BooleanBinding getPointOfContactNotValid() {
         return Bindings.createBooleanBinding(() -> {
@@ -583,11 +665,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } else {
             customerAddress.bind(customer.getMultiLineAddress());
         }
-        TaskWaiter.startNow(new AppointmentReloadTask());
+        TaskWaiter.startNow(new AppointmentReloadTask(customer, userSelectionModel.getSelectedItem()));
     }
 
     private void onUserChanged(UserModelImpl user) {
-        TaskWaiter.startNow(new AppointmentReloadTask());
+        TaskWaiter.startNow(new AppointmentReloadTask(customerSelectionModel.getSelectedItem(), user));
     }
 
     private void resetConflictingAppointments(ZonedDateTime start, Duration duration) {
@@ -621,8 +703,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     @Override
     protected void updateModel(AppointmentModel model) {
-        if (!getValidationExpression().get())
+        if (!getValidationExpression().get()) {
             throw new IllegalStateException();
+        }
         model.setTitle(titleTextField.getText().trim());
         model.setCustomer(customerSelectionModel.getSelectedItem());
         model.setUser(userSelectionModel.getSelectedItem());
@@ -653,11 +736,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         private final UserDAO user;
         private final AppointmentDAO toEdit;
 
-        private AppointmentReloadTask() {
+        private AppointmentReloadTask(CustomerModelImpl selectedCustomer, UserModelImpl selectedUser) {
             super((Stage) customerComboBox.getScene().getWindow());
-            CustomerModelImpl selectedCustomer = customerSelectionModel.getSelectedItem();
             customer = (null == selectedCustomer) ? null : selectedCustomer.getDataObject();
-            UserModelImpl selectedUser = userSelectionModel.getSelectedItem();
             user = (null == selectedUser) ? null : selectedUser.getDataObject();
             toEdit = getModel().getDataObject();
         }
@@ -705,11 +786,106 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     }
 
+    private class CustomerReloadTask extends TaskWaiter<List<CustomerDAO>> {
+
+        private final Optional<Boolean> loadOption;
+
+        private CustomerReloadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
+            loadOption = showActiveCustomers;
+        }
+
+        @Override
+        protected void processResult(List<CustomerDAO> result, Stage stage) {
+            CustomerModelImpl selectedItem = customerSelectionModel.getSelectedItem();
+            customerModelList.clear();
+            if (null != result && !result.isEmpty()) {
+                result.forEach((t) -> customerModelList.add(new CustomerModelImpl(t)));
+            }
+            if (null != selectedItem) {
+                int pk = selectedItem.getPrimaryKey();
+                Optional<CustomerModelImpl> matching = customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
+                if (matching.isPresent()) {
+                    customerSelectionModel.select(matching.get());
+                } else {
+                    customerSelectionModel.clearSelection();
+                }
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+        @Override
+        protected List<CustomerDAO> getResult(Connection connection) throws SQLException {
+            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+            if (loadOption.isPresent()) {
+                return cf.load(connection, cf.getActiveStatusFilter(loadOption.get()));
+            }
+            return cf.load(connection, cf.getAllItemsFilter());
+        }
+
+    }
+
+    private class UserReloadTask extends TaskWaiter<List<UserDAO>> {
+
+        private final Optional<Boolean> loadOption;
+
+        private UserReloadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
+            loadOption = showActiveUsers;
+        }
+
+        @Override
+        protected void processResult(List<UserDAO> result, Stage stage) {
+            UserModelImpl selectedItem = userSelectionModel.getSelectedItem();
+            userModelList.clear();
+            if (null != result && !result.isEmpty()) {
+                result.forEach((t) -> userModelList.add(new UserModelImpl(t)));
+            }
+            if (null != selectedItem) {
+                int pk = selectedItem.getPrimaryKey();
+                Optional<UserModelImpl> matching = userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
+                if (matching.isPresent()) {
+                    userSelectionModel.select(matching.get());
+                } else {
+                    userSelectionModel.clearSelection();
+                }
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+        @Override
+        protected List<UserDAO> getResult(Connection connection) throws SQLException {
+            UserDAO.FactoryImpl uf = UserDAO.getFactory();
+            if (loadOption.isPresent()) {
+                if (loadOption.get()) {
+                    return uf.load(connection, uf.getActiveUsersFilter());
+                }
+                return uf.load(connection, UserFilter.of(UserFilter.byStatus(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+            }
+            return uf.load(connection, uf.getAllItemsFilter());
+        }
+
+    }
+
     private class ItemsLoadTask extends TaskWaiter<List<AppointmentDAO>> {
 
         private List<CustomerDAO> customerDaoList;
         private List<UserDAO> userDaoList;
         private final AppointmentDAO toEdit;
+        private final Optional<Boolean> customerLoadOption;
+        private final Optional<Boolean> userLoadOption;
 
         private ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
@@ -717,6 +893,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             customerDaoList = null;
             userDaoList = null;
             toEdit = getModel().getDataObject();
+            customerLoadOption = showActiveCustomers;
+            userLoadOption = showActiveUsers;
         }
 
         @Override
@@ -774,8 +952,21 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
             UserDAO.FactoryImpl uf = UserDAO.getFactory();
             AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
-            customerDaoList = cf.load(connection, cf.getActiveStatusFilter(true));
-            userDaoList = uf.load(connection, uf.getActiveUsersFilter());
+            if (customerLoadOption.isPresent()) {
+                customerDaoList = cf.load(connection, cf.getActiveStatusFilter(customerLoadOption.get()));
+            } else {
+                customerDaoList = cf.load(connection, cf.getAllItemsFilter());
+            }
+            if (userLoadOption.isPresent()) {
+                if (userLoadOption.get()) {
+                    userDaoList = uf.load(connection, uf.getActiveUsersFilter());
+                } else {
+                    userDaoList = uf.load(connection, UserFilter.of(UserFilter.byStatus(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                }
+            } else {
+                userDaoList = uf.load(connection, uf.getAllItemsFilter());
+            }
+
             if (null != customerDaoList && null != userDaoList && !(customerDaoList.isEmpty() || userDaoList.isEmpty())) {
                 CustomerElement customer = toEdit.getCustomer();
                 UserElement user = toEdit.getUser();

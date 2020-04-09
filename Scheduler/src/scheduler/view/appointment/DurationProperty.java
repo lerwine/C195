@@ -19,7 +19,7 @@ import javafx.util.StringConverter;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class DurationProperty extends ObjectBinding<Duration>
         implements ReadOnlyProperty<Duration>, WritableObjectValue<Duration> {
@@ -190,7 +190,7 @@ public class DurationProperty extends ObjectBinding<Duration>
         ZonedDateTime start = startDateTime.get();
         if (null == start)
             throw new IllegalStateException("Start date/time not set");
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.DurationProperty#set
     }
 
     @Override

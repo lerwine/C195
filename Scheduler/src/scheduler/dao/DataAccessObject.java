@@ -41,7 +41,7 @@ import scheduler.view.task.TaskWaiter;
  * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
  * {@code getFactory()} method.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public abstract class DataAccessObject extends PropertyBindable implements DataElement {
 

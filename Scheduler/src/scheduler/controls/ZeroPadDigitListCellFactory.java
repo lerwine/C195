@@ -7,7 +7,7 @@ import javafx.util.Callback;
 /**
  * Creates a {@link ListCell} which formats a zero-padded 2-digit integer.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class ZeroPadDigitListCellFactory implements Callback<ListView<Integer>, ListCell<Integer>> {
 

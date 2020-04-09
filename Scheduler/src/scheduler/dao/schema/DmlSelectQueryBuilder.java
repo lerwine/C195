@@ -20,7 +20,7 @@ import scheduler.util.ReadOnlyList;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSelectQueryBuilder.ResultColumn>, Consumer<StringBuffer>, Supplier<StringBuffer> {
     private final DbTable dbTable;
@@ -636,7 +636,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
 
         @Override
         public boolean containsColumn(DbColumn column) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement containsColumn
         }
 
         @Override

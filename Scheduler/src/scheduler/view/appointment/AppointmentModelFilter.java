@@ -19,7 +19,7 @@ import static scheduler.view.appointment.ManageAppointmentsResourceKeys.RESOURCE
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, AppointmentModel, AppointmentFilter> {
 

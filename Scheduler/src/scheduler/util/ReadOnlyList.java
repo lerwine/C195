@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
 /**
  * Extends {@link List} interface with mutation methods overridden to throw {@link UnsupportedOperationException}.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <E> The type of elements in this collection.
  */
 public interface ReadOnlyList<E> extends List<E> {
@@ -909,7 +909,7 @@ public interface ReadOnlyList<E> extends List<E> {
 
                 @Override
                 public List<E> subList(int fromIndex, int toIndex) {
-                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement subList
                 }
                 
             };

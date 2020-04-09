@@ -24,9 +24,11 @@ import scheduler.view.country.CountryModel;
 import scheduler.view.model.ItemModel;
 
 /**
- * FXML Controller class
+ * FXML Controller class for editing a {@link CustomerModelImpl}.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/customer/EditCustomer.fxml">/resources/scheduler/view/customer/EditCustomer.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
@@ -246,18 +248,18 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     }
 
     @Override
-    protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement getValidationExpression
-    }
-
-    @Override
     protected ItemModel.ModelFactory<CustomerDAO, CustomerModelImpl> getFactory() {
         return CustomerModelImpl.getFactory();
     }
 
     @Override
+    protected BooleanExpression getValidationExpression() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#getValidationExpression
+    }
+
+    @Override
     protected void updateModel(CustomerModelImpl model) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#updateModel
     }
 
 }

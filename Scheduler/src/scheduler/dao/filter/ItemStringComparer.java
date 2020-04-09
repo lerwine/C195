@@ -12,7 +12,7 @@ import scheduler.view.user.UserModelImpl;
  *
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link ItemModel} object.
- * @author erwinel
+ @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface ItemStringComparer<T extends DataAccessObject, U extends ItemModel<T>> extends ItemValueComparer<T, U, String> {
 

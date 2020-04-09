@@ -7,7 +7,7 @@ import java.util.function.Predicate;
 /**
  * Extends {@link Collection} interface with mutation methods overridden to throw {@link UnsupportedOperationException}.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <E> The type of elements in this collection.
  */
 public interface ReadOnlyCollection<E> extends Collection<E> {

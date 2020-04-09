@@ -5,7 +5,7 @@ import scheduler.view.event.FxmlViewEventType;
 /**
  * Defines the type of events that a method annotated with {@link scheduler.view.annotations.HandlesFxmlViewEvent} can handle.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public enum FxmlViewEventHandling {
     /**

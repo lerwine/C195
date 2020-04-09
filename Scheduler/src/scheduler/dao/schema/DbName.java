@@ -6,7 +6,7 @@ package scheduler.dao.schema;
  * These are constant values that can be used to programmatically refer to {@link DbColumn#dbName}, {@link DbTable#dbName} and
  * {@link DbTable#pkColName}
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public enum DbName {
     /**

@@ -5,7 +5,7 @@ package scheduler.dao.schema;
  * <p>
  * This reflects database schema type compatibility. Refer to {@link ValueType} for Java type compatibility.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public enum ColumnType {
     /**

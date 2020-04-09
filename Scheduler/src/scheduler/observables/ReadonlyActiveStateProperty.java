@@ -5,7 +5,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class ReadonlyActiveStateProperty extends ReadOnlyObjectWrapper<UserStatus> {
 

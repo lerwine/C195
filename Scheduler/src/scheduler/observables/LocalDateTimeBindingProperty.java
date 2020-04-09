@@ -16,7 +16,7 @@ import scheduler.util.BinarySelective;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class LocalDateTimeBindingProperty extends ObjectBinding<BinarySelective<LocalDateTime, String>> implements ReadOnlyProperty<BinarySelective<LocalDateTime, String>> {
     private final String name;

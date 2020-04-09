@@ -8,7 +8,7 @@ import scheduler.util.ReadOnlyList;
  * <p>
  * The {@link ColumnType} enumeration uses this to specify the Java type that is corresponds to the database column type.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public enum ValueType {
     /**

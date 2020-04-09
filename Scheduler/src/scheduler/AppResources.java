@@ -17,7 +17,7 @@ import scheduler.view.annotations.GlobalizationResource;
 /**
  * Gets settings from the <a href="file:../../resources/scheduler/config.properties">/resources/scheduler/config.properties</a> file.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/App")
 public final class AppResources implements AppResourceBundleConstants {
@@ -53,7 +53,7 @@ public final class AppResources implements AppResourceBundleConstants {
      * {@link FXMLResource} annotation.
      *
      * @param ctlClass The {@link java.lang.Class} for the target controller.
-     * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
+     * @return The name of the FXML resource associated with the target controller or an empty string if resource name is not specified.
      */
     public static final String getFXMLResourceName(Class<?> ctlClass) {
         synchronized (CLASSNAME_TO_FXMLNAME) {

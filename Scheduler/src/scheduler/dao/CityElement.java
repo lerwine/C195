@@ -9,7 +9,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 /**
  * Represents a data row from the "city" database table.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface CityElement extends DataElement {
 

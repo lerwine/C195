@@ -7,7 +7,7 @@ import scheduler.dao.AppointmentType;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class AppointmentTypeTableCellFactory implements Callback<TableColumn<String, AppointmentType>, TableCell<String, AppointmentType>> {
 

@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 /**
  * Represents a data row from the "appointment" database table.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface AppointmentElement extends DataElement {
 

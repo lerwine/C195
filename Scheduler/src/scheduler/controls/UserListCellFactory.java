@@ -6,7 +6,7 @@ import javafx.util.Callback;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The item type.
  */
 public class UserListCellFactory<T extends scheduler.view.user.UserModel<?>> implements Callback<ListView<T>, ListCell<T>> {

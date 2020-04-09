@@ -8,15 +8,17 @@ import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import scheduler.dao.CustomerDAO;
 import scheduler.view.ListingController;
+import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.model.ItemModel;
-import scheduler.view.MainController;
 
 /**
  * FXML Controller class for viewing a list of {@link CustomerModelImpl} items.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/customer/ManageCustomers.fxml">/resources/scheduler/view/customer/ManageCustomers.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
@@ -41,17 +43,17 @@ public final class ManageCustomers extends ListingController<CustomerDAO, Custom
 
     @Override
     protected void onAddNewItem(Event event) throws IOException {
-        getMainController().addNewCustomer((Stage)((Button)event.getSource()).getScene().getWindow());
+        getMainController().addNewCustomer((Stage) ((Button) event.getSource()).getScene().getWindow());
     }
 
     @Override
     protected void onEditItem(Event event, CustomerModelImpl item) throws IOException {
-        getMainController().editCustomer((Stage)((Button)event.getSource()).getScene().getWindow(), item);
+        getMainController().editCustomer((Stage) ((Button) event.getSource()).getScene().getWindow(), item);
     }
 
     @Override
     protected void onDeleteItem(Event event, CustomerModelImpl item) {
-        getMainController().deleteCustomer((Stage)((Button)event.getSource()).getScene().getWindow(), item);
+        getMainController().deleteCustomer((Stage) ((Button) event.getSource()).getScene().getWindow(), item);
     }
 
     @Override

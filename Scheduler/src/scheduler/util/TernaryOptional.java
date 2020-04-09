@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 /**
  * An object that contains one or none of 3 possible value options.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The primary value type.
  * @param <U> The secondary value type.
  * @param <S> The tertiary value type.

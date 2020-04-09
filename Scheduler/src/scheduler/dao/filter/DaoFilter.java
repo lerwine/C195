@@ -12,7 +12,7 @@ import scheduler.dao.LoadingMessageProvider;
 /**
  * Data access object filter.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataAccessObject}.
  */
 public interface DaoFilter<T extends DataAccessObject> extends DaoFilterExpression<T>, LoadingMessageProvider {

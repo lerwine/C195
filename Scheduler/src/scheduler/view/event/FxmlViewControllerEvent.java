@@ -8,7 +8,7 @@ import scheduler.view.ViewAndController;
 /**
  * Represents an FXML view/controller loading event.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link Parent} at the root of the view.
  * @param <U> The type of controller for the view.
  */

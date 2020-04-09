@@ -2,7 +2,7 @@ package scheduler.dao;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 interface CustomerColumns extends AddressColumns {
     public static final String COLNAME_CUSTOMERID = "customerId";

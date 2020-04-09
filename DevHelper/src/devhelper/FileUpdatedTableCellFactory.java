@@ -16,7 +16,7 @@ import javafx.util.Callback;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class FileUpdatedTableCellFactory<S, T> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());

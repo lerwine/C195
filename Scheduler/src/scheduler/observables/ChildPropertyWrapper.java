@@ -14,7 +14,7 @@ import javafx.collections.ObservableList;
 /**
  * A wrapper binding for a child property
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T>
  * @param <S>
  */

@@ -9,7 +9,7 @@ import javafx.fxml.FXML;
  * resource to be associated with the current controller, and by {@link scheduler.view.annotations.GlobalizationResource} to specify the resource
  bundle to loadViewAndController with the target FXML resource.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public abstract class SchedulerController implements ISchedulerController {
 

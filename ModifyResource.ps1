@@ -305,7 +305,7 @@ Function Save-ConstantsFile {
         [System.IO.File]::Copy($FullPath, $p);
     }
     
-    $Lines = @("package scheduler$ns;", '', '/**', " * Defines resource bundle keys for the App resource bundle {@code $Path}.", ' *', ' * @author Leonard T. Erwine (Student ID 356334)', ' */',
+    $Lines = @("package scheduler$ns;", '', '/**', " * Defines resource bundle keys for the App resource bundle {@code $Path}.", ' *', ' * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>', ' */',
         "public interface $([System.IO.Path]::GetFileNameWithoutExtension($Path)) {");
     $PropertiesFile.Content.Keys | Sort-Object | ForEach-Object {
         $Lines += @('', '    /**', "     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code `"$($PropertiesFile.Content[$_].Value)`"}.",

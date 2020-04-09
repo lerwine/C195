@@ -20,9 +20,11 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.model.ItemModel;
 
 /**
- * FXML Controller class
+ * FXML Controller class for editing a {@link CountryModel}.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/country/EditCountry.fxml">/resources/scheduler/view/country/EditCountry.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
@@ -124,7 +126,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
 
     @Override
     protected void updateModel(CountryModel model) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#updateModel
     }
 
 }

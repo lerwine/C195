@@ -19,7 +19,7 @@ import scheduler.observables.NonNullableStringProperty;
 /**
  * Contains a password hashed intended to be stored (in string format) in the database.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class PwHash {
 

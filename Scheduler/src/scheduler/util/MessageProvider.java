@@ -10,7 +10,7 @@ import scheduler.AppResources;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface MessageProvider {
     default String getTitle() { return AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE); }

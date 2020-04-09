@@ -30,9 +30,11 @@ import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.model.ItemModel;
 
 /**
- * FXML Controller class
+ * FXML Controller class for editing a {@link UserModelImpl}.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/user/EditUser.fxml">/resources/scheduler/view/user/EditUser.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
@@ -124,8 +126,7 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-     * {@code "That user is referenced in one or more appointments...}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That user is referenced in one or more appointments...}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 
@@ -299,7 +300,7 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
 
     @Override
     protected void updateModel(UserModelImpl model) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#updateModel
     }
 
 }

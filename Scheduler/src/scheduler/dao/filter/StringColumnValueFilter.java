@@ -11,7 +11,7 @@ import scheduler.dao.schema.ValueType;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T>
  */
 public interface StringColumnValueFilter<T extends DataAccessObject> extends ColumnValueFilter<T, String, StringValueFilter> {

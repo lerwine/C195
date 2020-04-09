@@ -11,7 +11,7 @@ import scheduler.view.ModelFilter;
 /**
  * Model filter for customers.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerModelImpl, CustomerFilter> {
 

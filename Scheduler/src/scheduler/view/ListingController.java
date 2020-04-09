@@ -47,7 +47,7 @@ import scheduler.view.model.ItemModel;
  * Implementing classes can either use the {@link scheduler.view.annotations.HandlesDataLoaded} annotation on a method or implement the
  * {@link scheduler.view.event.DataLoadedEventListener} to receive this event.</p>
  * 
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of data access object that corresponds to the model object type.
  * @param <U> The type of model objects presented by the ListingController.
  */

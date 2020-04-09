@@ -42,7 +42,7 @@ import scheduler.util.PwHash;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class FXMLDocumentController {
 

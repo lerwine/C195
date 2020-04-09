@@ -55,8 +55,10 @@ import scheduler.view.user.UserModelImpl;
  * <p>
  * All data object create, update and delete operations should be initiated through this controller. This allows dynamically loaded views to be
  * notified of changes, if necessary.</p>
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/MainView.fxml">/resources/scheduler/view/MainView.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")

@@ -6,7 +6,7 @@ import scheduler.view.model.ItemModel;
 /**
  * Compares {@link DataAccessObject} and {@link ItemModel} to generic values.
  * 
- * @author erwinel
+ @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link ItemModel} object.
  * @param <S> The type of value being compared.

@@ -8,7 +8,7 @@ import javafx.collections.ObservableList;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public abstract class ObjectBindingProperty<T> extends ObjectBinding<T> implements ReadOnlyProperty<T> {
 

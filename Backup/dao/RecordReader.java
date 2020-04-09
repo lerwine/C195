@@ -12,7 +12,7 @@ import scheduler.view.ItemModel;
 /**
  * Interface for an object that reads {@link DataObjectImpl} objects from the database.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataObjectImpl} that will be read from the database.
  */
 public interface RecordReader<T extends DataObjectImpl> {

@@ -14,7 +14,7 @@ import scheduler.util.MapHelper;
 /**
  * Utility class for getting database schema-related information.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class SchemaHelper {
 

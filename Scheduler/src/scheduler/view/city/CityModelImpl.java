@@ -16,7 +16,7 @@ import scheduler.dao.DataRowState;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel<CityDAO> {
 

@@ -6,7 +6,7 @@ import scheduler.view.model.ItemModel;
 /**
  * Compares {@link DataAccessObject} and {@link ItemModel} to boolean values.
  *
- * @author erwinel
+ @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link ItemModel} object.
  */

@@ -5,7 +5,7 @@ import java.beans.PropertyChangeSupport;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class UserDataRow extends DataRow implements IUserDataRow {
     

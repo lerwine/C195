@@ -20,14 +20,17 @@ import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.event.FxmlViewEventType;
 
 /**
- *
- * @author Leonard T. Erwine (Student ID 356334)
+ * Utility class for loading an FXML resource and instantiating its controller.
+ * 
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class ViewControllerLoader {
 
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {
         FXMLLoader loader = new FXMLLoader(controllerClass.getResource(AppResources.getFXMLResourceName(controllerClass)), resourceBundle);
+        if (null == loader.getController())
+            throw new InternalException("");
         ViewAndController<T, S> result = new ViewAndController<T, S>() {
             private final T view = loader.load();
             private final S controller = loader.getController();

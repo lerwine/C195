@@ -1,6 +1,3 @@
-/**
- * Sample Skeleton for 'EditAppointmentFilter.fxml' Controller Class
- */
 package scheduler.view.appointment;
 
 import java.sql.Connection;
@@ -62,6 +59,14 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.TaskWaiter;
 
+/**
+ * FXML Controller class for editing the appointment listing filter.
+ * <p>
+ * The associated view is
+ * <a href="file:../../resources/scheduler/view/appointment/EditAppointmentFilter.fxml">/resources/scheduler/view/appointment/EditAppointmentFilter.fxml</a>.</p>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
 public class EditAppointmentFilter extends SchedulerController implements ManageAppointmentsResourceKeys {

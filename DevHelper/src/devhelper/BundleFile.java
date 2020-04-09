@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class BundleFile extends HashMap<String, String> implements ILoadedProperties {
     private boolean changed;

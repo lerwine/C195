@@ -16,7 +16,7 @@ import scheduler.util.Values;
  *   PRIMARY KEY (`countryId`)
  * ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;</code>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface Country extends DataObject {
 

@@ -7,7 +7,7 @@ import scheduler.dao.DataAccessObject;
 /**
  * Represents a {@link DaoChangeAction#CREATED}, {@link DaoChangeAction#CREATED} or {@link DaoChangeAction#CREATED} event for a {@link DataAccessObject}.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataAccessObject} affected.
  */
 public class DataObjectEvent<T extends DataAccessObject> extends EventObject {

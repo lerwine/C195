@@ -19,19 +19,21 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.Scheduler;
-import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.GlobalizationResource;
 import scheduler.util.AlertHelper;
-import scheduler.util.ResourceBundleLoader;
-import scheduler.util.ValueBindings;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ValueBindings;
 import scheduler.util.ViewControllerLoader;
+import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class for the application login screen.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/Login.fxml">/resources/scheduler/view/Login.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/Login")
 @FXMLResource("/scheduler/view/Login.fxml")

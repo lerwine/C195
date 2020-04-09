@@ -34,19 +34,21 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.view.SchedulerController;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
+import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.city.CityModelImpl;
 import scheduler.view.country.CountryModel;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.event.FxmlViewEvent;
+import scheduler.view.task.TaskWaiter;
 
 /**
- * FXML Controller class
+ * FXML Controller class for picking a {@link CustomerModelImpl}.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/appointment/CustomerPicker.fxml">/resources/scheduler/view/appointment/CustomerPicker.fxml</a>.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/appointment/CustomerPicker")
 @FXMLResource("/scheduler/view/appointment/CustomerPicker.fxml")
@@ -173,8 +175,8 @@ public class CustomerPicker extends SchedulerController {
 //            AlertHelper.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
 //        }
 //        return null;
-            throw new UnsupportedOperationException();
-            // TODO: Implement pickCustomer(Stage parent)
+        throw new UnsupportedOperationException();
+        // TODO: Implement pickCustomer(Stage parent)
     }
     private ObservableList<CountryModel> countries;
     private ObservableList<CityModelImpl> cities;
@@ -552,6 +554,7 @@ public class CustomerPicker extends SchedulerController {
     }
 
     class LoadCustomersTask extends TaskWaiter<ArrayList<CustomerDAO>> {
+
         // PENDING: The value of the field CustomerPicker.LoadCustomersTask.country is not used
         private final CountryDAO country;
         // PENDING: The value of the field CustomerPicker.LoadCustomersTask.city is not used

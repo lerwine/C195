@@ -7,7 +7,7 @@ import java.util.Locale;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface ILoadedProperties extends Map<String, String> {
     Locale getLocale();

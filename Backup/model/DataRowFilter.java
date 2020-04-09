@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T>
  */
 public interface DataRowFilter<T extends IDataRow> extends BiFunction<Integer, PreparedStatement, Integer>, Predicate<T> {

@@ -22,7 +22,7 @@ import scheduler.view.model.ItemModel;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class AddressModelImpl extends scheduler.view.model.ItemModel<AddressDAO> implements AddressModel<AddressDAO> {
 

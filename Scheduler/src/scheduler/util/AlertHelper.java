@@ -3,6 +3,7 @@ package scheduler.util;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -15,14 +16,44 @@ import scheduler.AppResources;
 import scheduler.view.ErrorDialogDetailController;
 
 /**
- *
- * @author Leonard T. Erwine (Student ID 356334)
+ * Utility class for alerts and logging.
+ * 
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class AlertHelper {
 
     public static final String CSS_CLASS_FORMCONTROLLABEL = "formControlLabel";
     private static final Logger LOG = Logger.getLogger(AlertHelper.class.getName());
 
+    /**
+     * Ensures that the {@link Handler}s are configured to emit according to the {@link Level} of the {@link Logger}.
+     * 
+     * @param logger The target {@link Logger}.
+     */
+    public static void ensureLoggerHandlerLevels(Logger logger) {
+        Level level = logger.getLevel();
+        int i = level.intValue();
+        for (Handler h : LOG.getHandlers()) {
+            if (h.getLevel().intValue() > i)
+                h.setLevel(level);
+        }
+    }
+    
+    /**
+     * Sets the {@link Level} for the {@link Logger} and ensures that its {@link Handler}s are configured to emit accordingly.
+     * <p>Example:<p>
+     * <code>private static final Logger LOG = scheduler.util.AlertHelper.setLoggerAndHandlerLevels(Logger.getLogger(MyClas.class.getName()), Level.FINE);</code>
+     * 
+     * @param logger The {@link Logger} to configure.
+     * @param level The log level.
+     * @return The {@link Logger} with the {@link Level} configured.
+     */
+    public static Logger setLoggerAndHandlerLevels(Logger logger, Level level) {
+        logger.setLevel(level);
+        ensureLoggerHandlerLevels(logger);
+        return logger;
+    }
+    
     public static Optional<ButtonType> showErrorAlert(Window parent, String title, Node content, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.initStyle(StageStyle.UTILITY);

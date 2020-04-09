@@ -5,7 +5,7 @@ import javafx.scene.Parent;
 /**
  * Interface for handling {@link FxmlViewEvent}s.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T>
  */
 public interface FxmlViewEventListener<T extends Parent> {

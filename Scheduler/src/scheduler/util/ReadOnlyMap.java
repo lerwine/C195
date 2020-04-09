@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 /**
  * Extends {@link Map} interface with mutation methods overridden to throw {@link UnsupportedOperationException}.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <K> The type of keys maintained by this map.
  * @param <V> The type of mapped values.
  */

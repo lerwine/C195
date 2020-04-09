@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * parameters or to have the same parameters as
  * {@link scheduler.dao.event.DataObjectEventListener#onDataObjectEvent(scheduler.dao.event.DataObjectEvent)}.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

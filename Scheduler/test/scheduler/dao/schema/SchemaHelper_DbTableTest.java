@@ -21,7 +21,7 @@ import testHelpers.ReflectionHelper;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @RunWith(Parameterized.class)
 public class SchemaHelper_DbTableTest {

@@ -2,7 +2,7 @@ package scheduler.view.customer;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 interface ManageCustomersConstants {
 

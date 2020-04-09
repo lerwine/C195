@@ -22,7 +22,7 @@ import scheduler.util.DB;
 /**
  * Java FX object model for a {@link DataAccessObject} object.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
 public abstract class ItemModel<T extends DataAccessObject> implements ElementModel<T> {

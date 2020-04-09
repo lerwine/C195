@@ -33,7 +33,7 @@ import scheduler.view.user.UserModel;
 /**
  * List item model for {@link AppointmentDAO} data access objects.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class AppointmentModel extends ItemModel<AppointmentDAO> {
 

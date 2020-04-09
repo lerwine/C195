@@ -6,11 +6,14 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -23,6 +26,7 @@
 <?import scheduler.controls.AppointmentTypeListCellFactory?>
 <?import scheduler.controls.CustomerListCell?>
 <?import scheduler.controls.CustomerListCellFactory?>
+<?import scheduler.controls.DateTimeTableCellFactory?>
 <?import scheduler.controls.TimeZoneListCell?>
 <?import scheduler.controls.TimeZoneListCellFactory?>
 <?import scheduler.controls.UserListCell?>
@@ -38,37 +42,59 @@
             <rowConstraints>
                 <RowConstraints />
                 <RowConstraints />
-                <RowConstraints />
+                <RowConstraints valignment="BOTTOM" />
                 <RowConstraints />
                 <RowConstraints />
                 <RowConstraints />
                 <RowConstraints vgrow="ALWAYS" />
             </rowConstraints>
             <children>
-                <HBox GridPane.rowIndex="2">
+                <HBox GridPane.rowIndex="2" GridPane.valignment="BOTTOM">
                     <children>
-                        <Label styleClass="formControlLabel" text="%customer" />
+                        <Label alignment="CENTER" styleClass="formControlLabel" text="%customer">
+                     <HBox.margin>
+                        <Insets top="6.0" />
+                     </HBox.margin></Label>
                         <Label fx:id="customerValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                             <HBox.margin>
-                                <Insets left="8.0" right="8.0" />
+                                <Insets left="8.0" right="8.0" top="6.0" />
                             </HBox.margin>
                         </Label>
+                  <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerDropDownOptionsButtonClick" text="">
+                     <font>
+                        <Font name="Segoe UI Symbol" size="10.0" />
+                     </font>
+                     <opaqueInsets>
+                        <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                     </opaqueInsets>
+                  </Button>
                     </children>
                     <GridPane.margin>
-                        <Insets top="16.0" />
+                        <Insets top="10.0" />
                     </GridPane.margin>
                 </HBox>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
                     <children>
-                        <Label styleClass="formControlLabel" text="%user" />
+                        <Label styleClass="formControlLabel" text="%user">
+                     <HBox.margin>
+                        <Insets top="6.0" />
+                     </HBox.margin></Label>
                         <Label fx:id="userValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                             <HBox.margin>
-                                <Insets left="8.0" right="8.0" />
+                                <Insets left="8.0" right="8.0" top="6.0" />
                             </HBox.margin>
                         </Label>
+                  <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#userDropDownOptionsButtonClick" text="">
+                     <font>
+                        <Font name="Segoe UI Symbol" size="10.0" />
+                     </font>
+                     <opaqueInsets>
+                        <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                     </opaqueInsets>
+                  </Button>
                     </children>
                     <GridPane.margin>
-                        <Insets top="16.0" />
+                        <Insets top="10.0" />
                     </GridPane.margin>
                 </HBox>
                 <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
@@ -148,8 +174,7 @@
                                 <HBox GridPane.rowIndex="2">
                                     <children>
                                         <Label text="%duration" />
-                                        <Label fx:id="durationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required"
-                                               HBox.hgrow="ALWAYS">
+                                        <Label fx:id="durationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                                             <HBox.margin>
                                                 <Insets left="8.0" right="8.0" />
                                             </HBox.margin>
@@ -196,8 +221,7 @@
                         <HBox>
                             <children>
                                 <Label fx:id="locationLabel" styleClass="formControlLabel" text="%location" />
-                                <Label fx:id="locationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required"
-                                       HBox.hgrow="ALWAYS">
+                                <Label fx:id="locationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                                     <HBox.margin>
                                         <Insets left="8.0" right="8.0" />
                                     </HBox.margin>
@@ -285,29 +309,131 @@
                         <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
                     </BorderPane.margin>
                     <center>
-                        <VBox BorderPane.alignment="CENTER">
-                            <children>
-                                <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Conflicting Appointments" textAlignment="CENTER">
-                                    <font>
-                                        <Font size="18.0" />
-                                    </font>
-                                </Label>
-                                <TableView fx:id="conflictingAppointmentsTableView" VBox.vgrow="ALWAYS">
-                                    <columns>
-                                        <TableColumn prefWidth="75.0" text="C1" />
-                                        <TableColumn prefWidth="75.0" text="C2" />
-                                    </columns>
-                                </TableView>
-                                <ButtonBar>
-                                    <buttons>
-                                        <Button mnemonicParsing="false" onAction="#closeConflictsBorderPaneButtonClick" text="Close" />
-                                    </buttons>
-                                </ButtonBar>
-                            </children>
-                        </VBox>
+                          <TableView fx:id="conflictingAppointmentsTableView">
+                              <columns>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="title" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="start" />
+                                      </cellValueFactory>
+                                      <cellFactory>
+                                          <DateTimeTableCellFactory />
+                                      </cellFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="end" />
+                                      </cellValueFactory>
+                                      <cellFactory>
+                                          <DateTimeTableCellFactory />
+                                      </cellFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="type" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customer">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="customerName" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%user">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="userName" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="effectiveLocation" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="createDate" />
+                                      </cellValueFactory>
+                                      <cellFactory>
+                                          <DateTimeTableCellFactory />
+                                      </cellFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="createdBy" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="lastUpdate" />
+                                      </cellValueFactory>
+                                      <cellFactory>
+                                          <DateTimeTableCellFactory />
+                                      </cellFactory>
+                                  </TableColumn>
+                                  <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                                      <cellValueFactory>
+                                          <PropertyValueFactory property="lastUpdateBy" />
+                                      </cellValueFactory>
+                                  </TableColumn>
+                              </columns>
+                          </TableView>
                     </center>
+               <top>
+                          <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Conflicting Appointments" textAlignment="CENTER" BorderPane.alignment="CENTER">
+                              <font>
+                                  <Font size="18.0" />
+                              </font>
+                          </Label>
+               </top>
+               <bottom>
+                          <ButtonBar BorderPane.alignment="CENTER">
+                              <buttons>
+                                  <Button mnemonicParsing="false" onAction="#closeConflictsBorderPaneButtonClick" text="Close" />
+                              </buttons>
+                          </ButtonBar>
+               </bottom>
                 </BorderPane>
             </center>
         </BorderPane>
+      <BorderPane fx:id="dropdownOptionsBorderPane" layoutX="10.0" layoutY="10.0" style="-fx-background-color: #7f7f7f7f;" visible="false">
+         <center>
+            <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="132.0" prefWidth="200.0" style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" BorderPane.alignment="CENTER">
+               <center>
+                  <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="Inactive">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="dropdownOptions" />
+                     </toggleGroup>
+                  </RadioButton>
+               </center>
+               <top>
+                  <Label fx:id="dropdownOptionsLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Customers to Show" textAlignment="CENTER" BorderPane.alignment="CENTER">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+               </top>
+               <left>
+                  <RadioButton fx:id="dropdownOptionsActiveRadioButton" mnemonicParsing="false" selected="true" text="Active" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
+               </left>
+               <right>
+                  <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" text="All" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
+               </right>
+               <bottom>
+                  <ButtonBar BorderPane.alignment="CENTER">
+                     <buttons>
+                        <Button mnemonicParsing="false" onAction="#dropdownOptionsOkButtonClick" text="OK" />
+                        <Button layoutX="687.0" layoutY="10.0" mnemonicParsing="false" onAction="#dropdownOptionsCancelButtonClick" text="Close" />
+                     </buttons>
+                  </ButtonBar>
+               </bottom>
+               <padding>
+                  <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+               </padding>
+            </BorderPane>
+         </center>
+      </BorderPane>
     </children>
 </StackPane>

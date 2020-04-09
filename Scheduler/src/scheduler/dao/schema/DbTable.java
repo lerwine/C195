@@ -6,7 +6,7 @@ package scheduler.dao.schema;
  * This provides constant naming definitions for database tables. Methods from {@link SchemaHelper} can be used to get the {@link DbColumn}s
  * associated with a specific table.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public enum DbTable {
     /**

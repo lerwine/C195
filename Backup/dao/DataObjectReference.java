@@ -9,7 +9,7 @@ import scheduler.util.DbConnector;
 /**
  * Represents a reference to another data object.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The full data access object type.
  * @param <U> The partial data access object type.
  */

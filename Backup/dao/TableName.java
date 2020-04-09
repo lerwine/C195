@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Specifies the database table name associated with the class. This is used by {@link scheduler.dao.DataObjectImpl} for database operations.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

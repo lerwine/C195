@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.EventObject;
 import java.util.function.Predicate;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -16,17 +17,20 @@ import scheduler.view.annotations.GlobalizationResource;
 /**
  * Utility class for getting annotated information.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class AnnotationHelper {
 
-    private static final Logger LOG;
+    private static final Logger LOG = Logger.getLogger(AnnotationHelper.class.getName());
 
-    static {
-        LOG = Logger.getLogger(AnnotationHelper.class.getName());
-        LOG.setLevel(Level.FINER);
-    }
-    
+    /**
+     * Gets the base name of the {@link java.util.ResourceBundle} to be loaded along with the FXML resource for the specified {@link java.lang.Class}.
+     * <p>This value is specified using the {@link GlobalizationResource} annotation.</p>
+     *
+     * @param target The {@link java.lang.Class} for the target controller.
+     * @return The base name of the {@link java.util.ResourceBundle} associated with the {@code target} controller or an empty string if the {@link java.util.ResourceBundle}
+     * is not specified in a {@link GlobalizationResource} annotation.
+     */
     public static final String getGlobalizationResourceName(Class<?> target) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
         if (target.isAnnotationPresent(ac)) {
@@ -44,11 +48,11 @@ public class AnnotationHelper {
     }
 
     /**
-     * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}. This value is specified using the
-     * {@link FXMLResource} annotation.
+     * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}.
+     * <p>This value is specified using the {@link FXMLResource} annotation.</p>
      *
      * @param target The {@link java.lang.Class} for the target controller.
-     * @return The name of the FXML resource associated with the target controller or null if resource name is not specified.
+     * @return The name of the FXML resource associated with the target controller or an empty string if the FXML resource is not specified in an {@link FXMLResource} annotation.
      */
     public static final String getFXMLResourceName(Class<?> target) {
         Class<FXMLResource> ac = FXMLResource.class;

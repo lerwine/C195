@@ -8,7 +8,7 @@ import scheduler.dao.DataAccessObject;
 /**
  * View model filter interface.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The {@link DataAccessObject} type that the model supports.
  * @param <U> The type of {@link ItemModel}.
  * @param <S> The type of underlying {@link DaoFilter}.

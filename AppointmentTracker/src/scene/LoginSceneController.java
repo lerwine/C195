@@ -15,7 +15,7 @@ import javafx.scene.control.ComboBox;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class LoginSceneController implements Initializable {
     public static final String FXML_ABS_NAME = "/scene/login/LoginScene";

@@ -5,7 +5,7 @@ import javafx.scene.control.ListCell;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class TimeZoneListCell extends ListCell<TimeZone> {
 

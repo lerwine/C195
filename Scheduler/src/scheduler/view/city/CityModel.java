@@ -10,7 +10,7 @@ import scheduler.view.model.ElementModel;
 /**
  * Models a {@link CityElement} data object.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The city data object type.
  */
 public interface CityModel<T extends CityElement> extends ElementModel<T> {

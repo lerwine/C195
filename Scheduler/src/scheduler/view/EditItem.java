@@ -38,9 +38,15 @@ import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
 
 /**
- * Base FXML Controller class for editing {@link ItemModel} items in a new modal window.
+ * Wrapper FXML Controller class for editing {@link ItemModel} items in a new modal window.
+ * <p>This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, {@link #cancelButton} controls as well as labels for displaying the values for
+ * the {@link ItemModel#createdBy}, {@link ItemModel#createDate}, {@link ItemModel#lastModifiedBy} and {@link ItemModel#lastModifiedDate} properties. Properties that are
+ * specific to the {@link ItemModel} type are edited in a nested view and controller. Controllers for the nested editor views inherit from {@link EditItem.EditController}.</p>
+ * <p>The nested editor view can load the {@code EditItem} view and controller, including the nested view and controller using
+ * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
+ * <p>The view for this controller is <a href="file:../../resources/scheduler/view/user/EditUser.fxml">/resources/scheduler/view/user/EditUser.fxml</a>.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  */
@@ -167,13 +173,15 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         });
         Objects.requireNonNull(cancelButton, String.format("fx:id=\"cancelButton\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            contentController.model = null;
             cancelButton.getScene().getWindow().hide();
         });
     }
 
     /**
-     * Base class for item edit content controllers.
-     *
+     * Base class for item edit content controllers that are nested within an {@code EditItem} view and controller.
+     * <p>The parent {@code EditItem} view and controller and the nested view and controller are loaded and instantiated using
+     * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
      * @param <T> The type of data access object that the model represents.
      * @param <U> The type of model being edited.
      */
@@ -239,6 +247,17 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
          */
         public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
 
+        /**
+         * Load an {@code EditItem} view and controller and the nested view and controller for editing a new {@link ItemModel}.
+         * 
+         * @param <T> The type of {@link DataAccessObject} supported by the {@link ItemModel}.
+         * @param <U> The {@link ItemModel} type.
+         * @param controllerClass The class of the controller for the nested edit controls.
+         * @param mainController The {@link MainController} instance that will contain the {@code EditItem} view and controller.
+         * @param stage The {@link Stage} of the initiating event for this action.
+         * @return The newly saved {@link ItemModel} or {@code null} if the edit was canceled.
+         * @throws IOException if unable to load any of the FXML resources.
+         */
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new FxmlViewControllerEventListener<Parent, EditItem<T, U>>() {
@@ -288,6 +307,18 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             return model;
         }
 
+        /**
+         * Load an {@code EditItem} view and controller and the nested view and controller for editing an existing {@link ItemModel}.
+         * 
+         * @param <T> The type of {@link DataAccessObject} supported by the {@link ItemModel}.
+         * @param <U> The {@link ItemModel} type.
+         * @param model The {@link ItemModel} to be edited.
+         * @param controllerClass The class of the controller for the nested edit controls.
+         * @param mainController The {@link MainController} instance that will contain the {@code EditItem} view and controller.
+         * @param stage The {@link Stage} of the initiating event for this action.
+         * @return The edited or deleted {@link ItemModel} or {@code null} if the edit was canceled.
+         * @throws IOException if unable to load any of the FXML resources.
+         */
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U edit(U model, Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new FxmlViewControllerEventListener<Parent, EditItem<T, U>>() {
@@ -358,6 +389,11 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
          */
         protected abstract BooleanExpression getValidationExpression();
 
+        /**
+         * Applies changes contained within the controller to the {@link ItemModel} being edited.
+         * 
+         * @param model The {@link ItemModel} being edited.
+         */
         protected abstract void updateModel(U model);
 
     }

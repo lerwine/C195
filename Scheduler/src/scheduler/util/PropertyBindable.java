@@ -9,7 +9,7 @@ import scheduler.dao.DataElement;
 /**
  * Base class for objects that support property binding through {@link PropertyChangeSupport}.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class PropertyBindable implements IPropertyBindable {
 

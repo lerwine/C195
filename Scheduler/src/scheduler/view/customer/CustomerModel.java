@@ -10,7 +10,7 @@ import scheduler.view.model.ElementModel;
 /**
  * Interface that represents a customer model object.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of underlying {@link CustomerElement} for the model.
  */
 public interface CustomerModel<T extends CustomerElement> extends ElementModel<T> {

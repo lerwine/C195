@@ -6,7 +6,7 @@ import scheduler.util.IPropertyBindable;
 /**
  * Interface for objects that represent a data row in the scheduler database.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface IDataRow extends IPropertyBindable {
     

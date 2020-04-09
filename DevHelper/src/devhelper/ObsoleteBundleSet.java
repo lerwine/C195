@@ -29,7 +29,7 @@ import javafx.util.Pair;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class ObsoleteBundleSet implements Map<String, String> {
     public final Pattern PATTERN_BUNDLENAMESUFFIX = Pattern.compile("^_([a-z]{2,3}(?:_[a-z\\d]+)*)\\.properties$", Pattern.CASE_INSENSITIVE);

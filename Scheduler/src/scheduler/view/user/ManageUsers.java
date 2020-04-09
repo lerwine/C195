@@ -7,15 +7,17 @@ import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import scheduler.dao.UserDAO;
 import scheduler.view.ListingController;
+import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.model.ItemModel;
-import scheduler.view.MainController;
 
 /**
  * FXML Controller class for viewing a list of {@link UserModelImpl} items.
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/user/ManageUsers.fxml">/resources/scheduler/view/user/ManageUsers.fxml</a>.</p>
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")

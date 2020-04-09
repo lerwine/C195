@@ -8,7 +8,7 @@ import javafx.collections.ObservableList;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public abstract class StringBindingProperty extends StringBinding implements ReadOnlyProperty<String> {
 

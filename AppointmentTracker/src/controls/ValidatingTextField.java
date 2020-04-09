@@ -27,7 +27,7 @@ import property.NonNullableStringProperty;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class ValidatingTextField extends AnchorPane {
 

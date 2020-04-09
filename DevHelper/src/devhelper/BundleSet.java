@@ -17,7 +17,7 @@ import javafx.util.Pair;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class BundleSet {
     public static final Pattern PATTERN_BUNDLENAME = Pattern.compile("(^.+)_([a-z]{2,3}(?:_[a-z\\d]+)*)(\\.properties)$", Pattern.CASE_INSENSITIVE);

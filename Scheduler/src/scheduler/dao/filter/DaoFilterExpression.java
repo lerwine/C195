@@ -9,7 +9,7 @@ import scheduler.dao.DataAccessObject;
  * Base interface for DAO filter expressions.
  * This is used to generate DML conditional statements and as a filtering predicate for {@link DataAccessObject}s.
  * 
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link DataAccessObject}.
  */
 public interface DaoFilterExpression<T extends DataAccessObject> extends Predicate<T> {

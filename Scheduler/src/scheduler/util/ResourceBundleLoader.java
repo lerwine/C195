@@ -34,7 +34,7 @@ import static scheduler.AppResources.PROPERTYKEY_SUPPORTEDLOCALES;
 /**
  * Caches loaded resource bundles, reloading them if the default Display Locale has changed.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public final class ResourceBundleLoader {
 
@@ -974,7 +974,7 @@ public final class ResourceBundleLoader {
 
                 @Override
                 public ListIterator<SupportedCity> listIterator() {
-                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    return listIterator(0); 
                 }
 
                 @Override

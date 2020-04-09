@@ -27,7 +27,7 @@ import scheduler.view.event.DataLoadedEventListener;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class EventHelper {
 
@@ -75,8 +75,7 @@ public class EventHelper {
      * @param event The {@link DataObjectEvent} to be fired.
      */
     public static <T extends DataAccessObject> void fireDataObjectEvent(Object target, DataObjectEvent<T> event) {
-        LOG.log(Level.INFO, String.format("Firing DataObjectEvent %s on %s", event.getChangeAction().name(),
-                event.getDataObject().getClass().getName()));
+        LOG.log(Level.FINE, () -> String.format("Firing DataObjectEvent %s on %s", event.getChangeAction().name(), event.getDataObject().getClass().getName()));
         if (null == target) {
             return;
         }
@@ -116,10 +115,10 @@ public class EventHelper {
      */
     public static <T extends Parent, U> void fireFxmlViewEvent(Object target, FxmlViewEvent<T> event) {
         if (event instanceof FxmlViewControllerEvent) {
-            LOG.log(Level.INFO, String.format("Firing FxmlViewControllerEvent %s for %s", event.getType().name(),
+            LOG.log(Level.FINE, () -> String.format("Firing FxmlViewControllerEvent %s for %s", event.getType().name(),
                     ((FxmlViewControllerEvent<T, U>) event).getController().getClass().getName()));
         } else {
-            LOG.log(Level.INFO, String.format("Firing FxmlViewEvent %s", event.getType().name()));
+            LOG.log(Level.FINE, () -> String.format("Firing FxmlViewEvent %s", event.getType().name()));
         }
         if (null == target) {
             return;
@@ -129,16 +128,16 @@ public class EventHelper {
         final FxmlViewEventType reason = event.getType();
         Iterator<Method> methods = getAnnotatedEventHandlerMethods(targetClass, HandlesFxmlViewEvent.class, eventClass, true, (t) -> {
             FxmlViewEventHandling h = t.value();
-            LOG.log(Level.FINE, String.format("Found annotation %s", h.name()));
+            LOG.log(Level.FINER, () -> String.format("Found annotation %s", h.name()));
             if (h == FxmlViewEventHandling.ANY) {
-                LOG.log(Level.FINE, "Returning true because annotation was for ANY");
+                LOG.log(Level.FINER, () -> "Returning true because annotation was for ANY");
                 return true;
             }
             if (h.getType() == reason) {
-                LOG.log(Level.FINE, "Returning true because type matched");
+                LOG.log(Level.FINER, () -> "Returning true because type matched");
                 return true;
             }
-            LOG.log(Level.FINE, "Returning false");
+            LOG.log(Level.FINER, () -> "Returning false");
             return false;
         }
         ).iterator();
@@ -178,7 +177,7 @@ public class EventHelper {
      * @param event The {@link DataObjectEvent} to be fired.
      */
     public static <T> void fireDataLoadedEvent(Object target, DataLoadedEvent<T> event) {
-        LOG.log(Level.INFO, (null == event.getSource()) ? "Firing DataLoadedEvent"
+        LOG.log(Level.FINE, () -> (null == event.getSource()) ? "Firing DataLoadedEvent"
                 : String.format("Firing DataLoadedEvent for %s", event.getSource().getClass().getName()));
         if (null == target) {
             return;

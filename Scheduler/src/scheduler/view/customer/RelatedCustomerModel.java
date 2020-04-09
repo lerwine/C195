@@ -15,7 +15,7 @@ import scheduler.view.model.RelatedItemModel;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class RelatedCustomerModel extends RelatedItemModel<CustomerElement> implements CustomerModel<CustomerElement> {
 

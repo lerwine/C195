@@ -7,7 +7,7 @@ import scheduler.dao.UserStatus;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class UserStatusTableCellFactory implements Callback<TableColumn<String, UserStatus>, TableCell<String, UserStatus>> {
 

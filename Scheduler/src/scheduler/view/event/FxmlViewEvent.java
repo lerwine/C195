@@ -10,7 +10,7 @@ import javafx.stage.Window;
 /**
  * Represents an event in the view life-cycle of this application.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The type of {@link Parent} node for the view.
  */
 public class FxmlViewEvent<T extends Parent> extends EventObject {

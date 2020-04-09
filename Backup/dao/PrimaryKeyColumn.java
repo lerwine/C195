@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Specifies the name of the primary key column for the associated table in the database. This is used by {@link scheduler.dao.DataObjectImpl} for database operations. The
  * {@link TableName} annotation specifies the data table name.
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

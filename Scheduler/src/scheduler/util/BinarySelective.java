@@ -9,7 +9,7 @@ import java.util.function.Function;
 /**
  * An object that contains only one of 2 possible value options.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  * @param <T> The primary value type.
  * @param <U> The secondary value type.
  */

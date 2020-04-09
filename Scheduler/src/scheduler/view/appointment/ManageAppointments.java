@@ -22,8 +22,10 @@ import scheduler.view.model.ItemModel;
  * calling {@link #loadInto(Class, MainController, Stage, scheduler.view.ModelFilter)} or
  * {@link #loadInto(Class, MainController, Stage, scheduler.view.ModelFilter, Object)}
  * on the base class.</p>
- * <p></p>
- * @author Leonard T. Erwine
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/appointment/ManageAppointments.fxml">/resources/scheduler/view/appointment/ManageAppointments.fxml</a>.</p>
+ * 
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")

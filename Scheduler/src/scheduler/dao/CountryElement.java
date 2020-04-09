@@ -8,7 +8,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 /**
  * Represents a data row from the country data table.
  *
- * @author Leonard T. Erwine (Student ID 356334)
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public interface CountryElement extends DataElement {
 

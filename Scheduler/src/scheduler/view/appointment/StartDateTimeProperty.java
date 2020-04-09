@@ -31,7 +31,7 @@ import scheduler.controls.TimeZoneListCellFactory;
 
 /**
  *
- * @author Leonard T. Erwine
+ * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class StartDateTimeProperty extends ObjectBinding<ZonedDateTime>
         implements ReadOnlyProperty<ZonedDateTime>, WritableObjectValue<ZonedDateTime> {
