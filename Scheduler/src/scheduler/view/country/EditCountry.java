@@ -122,4 +122,9 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
         return CountryModel.getFactory();
     }
 
+    @Override
+    protected void updateModel(CountryModel model) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
+    }
+
 }

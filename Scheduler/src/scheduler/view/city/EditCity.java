@@ -124,12 +124,17 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement getValidationExpression
     }
 
     @Override
     protected ItemModel.ModelFactory<CityDAO, CityModelImpl> getFactory() {
         return CityModelImpl.getFactory();
+    }
+
+    @Override
+    protected void updateModel(CityModelImpl model) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
     }
 
 }

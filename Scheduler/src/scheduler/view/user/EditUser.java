@@ -297,4 +297,9 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
         return UserModelImpl.getFactory();
     }
 
+    @Override
+    protected void updateModel(UserModelImpl model) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
+    }
+
 }

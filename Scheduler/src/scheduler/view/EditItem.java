@@ -110,6 +110,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         collapseNode(lastUpdateLabel);
         collapseNode(lastUpdateValue);
         contentPane.getChildren().add(view);
+        saveChangesButton.disableProperty().bind(contentController.getValidationExpression().not());
     }
 
     private void onInitForEdit(Parent view, EditController<T, U> controller) {
@@ -120,6 +121,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         lastUpdateByValue.setText(controller.model.getLastModifiedBy());
         lastUpdateValue.setText(dtf.format(controller.model.getLastModifiedDate()));
         contentPane.getChildren().add(view);
+        saveChangesButton.disableProperty().bind(contentController.getValidationExpression().not());
     }
 
     @HandlesDataObjectEvent
@@ -149,6 +151,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(saveChangesButton, String.format("fx:id=\"saveChangesButton\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+            contentController.updateModel(contentController.model);
             ItemModel.ModelFactory<T, U> factory = contentController.getFactory();
             T dao = factory.updateDAO(contentController.model);
             TaskWaiter.startNow(new SaveTask(dao, (Stage) saveChangesButton.getScene().getWindow()));
@@ -354,6 +357,8 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
          * @return the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
          */
         protected abstract BooleanExpression getValidationExpression();
+
+        protected abstract void updateModel(U model);
 
     }
 

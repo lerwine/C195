@@ -112,12 +112,17 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement getValidationExpression
     }
 
     @Override
     protected ItemModel.ModelFactory<AddressDAO, AddressModelImpl> getFactory() {
         return AddressModelImpl.getFactory();
+    }
+
+    @Override
+    protected void updateModel(AddressModelImpl model) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
     }
 
 }

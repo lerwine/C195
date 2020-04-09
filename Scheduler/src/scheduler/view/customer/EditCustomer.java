@@ -247,12 +247,17 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement getValidationExpression
     }
 
     @Override
     protected ItemModel.ModelFactory<CustomerDAO, CustomerModelImpl> getFactory() {
         return CustomerModelImpl.getFactory();
+    }
+
+    @Override
+    protected void updateModel(CustomerModelImpl model) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement updateModel
     }
 
 }

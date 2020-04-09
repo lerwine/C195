@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -104,6 +105,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Label for displaying appointment start date validation message.
     private Label startValidationLabel;
 
+    // PENDING: Internationalize text in FXML
     @FXML // fx:id="showConflictsButton"
     private Button showConflictsButton; // Value injected by FXMLLoader
 
@@ -173,9 +175,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // AppointmentDAO description input control.
     private TextArea descriptionTextArea;
 
+    // PENDING: Internationalize heading label text in FXML
     @FXML // fx:id="conflictsBorderPane"
     private BorderPane conflictsBorderPane; // Value injected by FXMLLoader
 
+    // CURRENT: add columns in fxml
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
 
@@ -195,11 +199,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     private SingleSelectionModel<AppointmentType> typeSelectionModel;
     private SingleSelectionModel<CustomerModelImpl> customerSelectionModel;
+    private SingleSelectionModel<UserModelImpl> userSelectionModel;
     private StartDateTimeProperty startDateTime;
     private DurationProperty duration;
     private DateTimeFormatter formatter;
     private ReadOnlyStringWrapper customerAddress;
 
+    // PENDING: Internationalize button text in FXML
     @FXML
     void closeConflictsBorderPaneButtonClick(ActionEvent event) {
         conflictsBorderPane.setVisible(false);
@@ -250,6 +256,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         otherAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
 
+        formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
         startDateTime = new StartDateTimeProperty(this, "startDateTime", startDatePicker, startHourSpinner, startMinuteSpinner, amPmSpinner,
                 timeZoneComboBox);
         duration = new DurationProperty(this, "duration", startDateTime, durationHourSpinner, durationMinuteSpinner);
@@ -265,6 +272,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         customerSelectionModel = customerComboBox.getSelectionModel();
         customerValidationLabel.visibleProperty().bind(getCustomerNotSelected());
         bindCssCollapse(customerValidationLabel, getCustomerNotSelected().not());
+        userSelectionModel = userComboBox.getSelectionModel();
         userValidationLabel.visibleProperty().bind(getUserNotSelected());
         bindCssCollapse(userValidationLabel, getUserNotSelected().not());
         contactValidationLabel.visibleProperty().bind(getPointOfContactNotValid());
@@ -307,7 +315,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         urlValidationLabel.textProperty().bind(getUrlValidationMessage());
         urlValidationLabel.visibleProperty().bind(getUrlValidationMessage().isNotEmpty());
         bindCssCollapse(urlValidationLabel, getUrlValidationMessage().isEmpty());
-        formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
         startDateTime.addListener((observable) -> resetConflictingAppointments(((StartDateTimeProperty) observable).get(), duration.get()));
         duration.addListener((observable) -> resetConflictingAppointments(startDateTime.get(), ((DurationProperty) observable).get()));
         showConflictsButton.visibleProperty().bind(Bindings.createBooleanBinding(() -> !conflictingAppointments.isEmpty(), conflictingAppointments));
@@ -329,7 +336,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     public IntegerBinding getUserConflictCount() {
         return Bindings.createIntegerBinding(() -> {
-            UserModelImpl selectedItem = userComboBox.getSelectionModel().getSelectedItem();
+            UserModelImpl selectedItem = userSelectionModel.getSelectedItem();
             if (null != selectedItem) {
                 UserDAO dataObject = selectedItem.getDataObject();
                 if (dataObject.isExisting()) {
@@ -379,10 +386,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     public StringBinding getCurrentTimeZoneText() {
         return Bindings.createStringBinding(() -> {
-            ZonedDateTime s = startDateTime.get();
+            LocalDateTime s = startDateTime.get().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
             Duration d = duration.get();
             if (null != s && null != d) {
-                ZonedDateTime e = s.plus(d);
+                LocalDateTime e = s.plus(d);
                 return String.format(getResourceString(RESOURCEKEY_TIMERANGE), s.format(formatter), e.format(formatter));
             }
             return "";
@@ -470,8 +477,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
      * @return A new {@link BooleanBinding} that returns {@code true} if the {@link #userComboBox} has no selection.
      */
     public BooleanBinding getUserNotSelected() {
-        return Bindings.createBooleanBinding(() -> null != userComboBox.getSelectionModel().getSelectedItem(),
-                userComboBox.getSelectionModel().selectedItemProperty());
+        return Bindings.createBooleanBinding(() -> null == userSelectionModel.getSelectedItem(),
+                userSelectionModel.selectedItemProperty());
     }
 
     /**
@@ -586,7 +593,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private void resetConflictingAppointments(ZonedDateTime start, Duration duration) {
         conflictingAppointments.clear();
         CustomerModelImpl selectedCustomer = customerSelectionModel.getSelectedItem();
-        UserModelImpl selectedUser = userComboBox.getSelectionModel().getSelectedItem();
+        UserModelImpl selectedUser = userSelectionModel.getSelectedItem();
         Stream<AppointmentModel> stream;
         if (null != selectedCustomer) {
             int cpk = selectedCustomer.getPrimaryKey();
@@ -612,6 +619,34 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         });
     }
 
+    @Override
+    protected void updateModel(AppointmentModel model) {
+        if (!getValidationExpression().get())
+            throw new IllegalStateException();
+        model.setTitle(titleTextField.getText().trim());
+        model.setCustomer(customerSelectionModel.getSelectedItem());
+        model.setUser(userSelectionModel.getSelectedItem());
+        model.setUrl(urlTextField.getText().trim());
+        AppointmentType type = typeSelectionModel.getSelectedItem();
+        model.setType(type);
+        LocalDateTime s = startDateTime.get().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        model.setStart(s);
+        model.setEnd(s.plus(duration.get()));
+        switch (type) {
+            case PHONE:
+                model.setLocation(phoneTextField.getText().trim());
+                break;
+            case OTHER:
+                model.setLocation(locationTextArea.getText().trim());
+                break;
+            default:
+                model.setLocation("");
+                break;
+        }
+        model.setDescription(descriptionTextArea.getText().trim());
+        model.setContact(contactTextField.getText().trim());
+    }
+
     private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {
 
         private final CustomerDAO customer;
@@ -622,7 +657,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             super((Stage) customerComboBox.getScene().getWindow());
             CustomerModelImpl selectedCustomer = customerSelectionModel.getSelectedItem();
             customer = (null == selectedCustomer) ? null : selectedCustomer.getDataObject();
-            UserModelImpl selectedUser = userComboBox.getSelectionModel().getSelectedItem();
+            UserModelImpl selectedUser = userSelectionModel.getSelectedItem();
             user = (null == selectedUser) ? null : selectedUser.getDataObject();
             toEdit = getModel().getDataObject();
         }
@@ -718,11 +753,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             UserModel<? extends UserElement> user = getModel().getUser();
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
-                    -> userComboBox.getSelectionModel().select(t));
+                    -> userSelectionModel.select(t));
             customerSelectionModel.selectedItemProperty().addListener((observable) -> {
                 onCustomerChanged(((ObservableObjectValue<CustomerModelImpl>) observable).get());
             });
-            userComboBox.getSelectionModel().selectedItemProperty().addListener((observable) -> {
+            userSelectionModel.selectedItemProperty().addListener((observable) -> {
                 onUserChanged(((ObservableObjectValue<UserModelImpl>) observable).get());
             });
             resetConflictingAppointments(startDateTime.get(), duration.get());
