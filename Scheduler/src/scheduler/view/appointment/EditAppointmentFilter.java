@@ -65,7 +65,7 @@ import scheduler.view.task.TaskWaiter;
  * The associated view is
  * <a href="file:../../resources/scheduler/view/appointment/EditAppointmentFilter.fxml">/resources/scheduler/view/appointment/EditAppointmentFilter.fxml</a>.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")

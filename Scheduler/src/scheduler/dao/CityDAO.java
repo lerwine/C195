@@ -262,7 +262,9 @@ public class CityDAO extends DataAccessObject implements CityElement {
 
         @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
-            assert dao.getRowState() != DataRowState.DELETED : "Data access object already deleted";
+            if (dao.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Data access object already deleted");
+            }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
                     .append(") FROM ").append(DbTable.CITY.getDbName())

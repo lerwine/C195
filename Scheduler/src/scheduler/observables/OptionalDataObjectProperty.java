@@ -5,7 +5,7 @@ import scheduler.dao.DataElement;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
 public class OptionalDataObjectProperty<T extends DataElement> extends OptionalValueProperty<T> {
@@ -33,7 +33,9 @@ public class OptionalDataObjectProperty<T extends DataElement> extends OptionalV
     private static <V extends DataElement> Optional<V> requireExisting(Optional<V> value, String message) {
         if (value != null) {
             value.ifPresent((t) -> {
-                assert t.isExisting() : message;
+                if (!t.isExisting()) {
+                    throw new IllegalArgumentException(message);
+                }
             });
         }
         return value;

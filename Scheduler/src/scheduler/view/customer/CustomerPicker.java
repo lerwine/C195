@@ -46,9 +46,9 @@ import scheduler.view.task.TaskWaiter;
 /**
  * FXML Controller class for picking a {@link CustomerModelImpl}.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/appointment/CustomerPicker.fxml">/resources/scheduler/view/appointment/CustomerPicker.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/appointment/CustomerPicker.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/CustomerPicker")
 @FXMLResource("/scheduler/view/appointment/CustomerPicker.fxml")
@@ -176,7 +176,7 @@ public class CustomerPicker extends SchedulerController {
 //        }
 //        return null;
         throw new UnsupportedOperationException();
-        // TODO: Implement pickCustomer(Stage parent)
+        // TODO: Implement scheduler.view.customer.CustomerPicker#pickCustomer(Stage parent)
     }
     private ObservableList<CountryModel> countries;
     private ObservableList<CityModelImpl> cities;
@@ -306,7 +306,7 @@ public class CustomerPicker extends SchedulerController {
         selectCustomerButton.setDisable(false);
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.ADDED)
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new LoadCountriesTask(event.getStage()));
     }
@@ -626,7 +626,7 @@ public class CustomerPicker extends SchedulerController {
 //            }
 //            return CustomerFilter.byCity(city).get(connection);
             throw new UnsupportedOperationException();
-            // TODO: Implement getResult(Connection connection)
+            // TODO: Implement scheduler.view.customer.CustomerPicker#getResult(Connection connection)
         }
 
     }

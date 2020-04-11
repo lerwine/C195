@@ -13,7 +13,7 @@ import scheduler.view.customer.CustomerModel;
 /**
  * Binds to the properties of a {@link AppointmentModel} to create a string binding property representing the effective location.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class EffectiveLocationProperty extends StringBinding implements ReadOnlyProperty<String> {
 

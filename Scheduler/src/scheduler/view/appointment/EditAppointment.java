@@ -63,6 +63,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.CustomerModelImpl;
 import scheduler.view.event.FxmlViewEvent;
@@ -74,13 +75,13 @@ import scheduler.view.user.UserModelImpl;
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/appointment/EditAppointment.fxml">/resources/scheduler/view/appointment/EditAppointment.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/appointment/EditAppointment.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public final class EditAppointment extends EditItem.EditController<AppointmentDAO, AppointmentModel> implements EditAppointmentConstants {
+public final class EditAppointment extends EditItem.EditController<AppointmentDAO, AppointmentModel> {
 
     private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
@@ -369,7 +370,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         currentTimeZoneValue.textProperty().bind(getCurrentTimeZoneText());
         locationLabel.textProperty().bind(Bindings.createStringBinding(() -> {
             return (typeSelectionModel.getSelectedItem() == AppointmentType.PHONE) ? getResourceString(RESOURCEKEY_PHONENUMBER)
-                    : getResourceString(RESOURCEKEY_LOCATION);
+                    : getResourceString(RESOURCEKEY_LOCATIONLABELTEXT);
         }, typeSelectionModel.selectedItemProperty()));
         locationLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() != AppointmentType.VIRTUAL,
                 typeSelectionModel.selectedItemProperty()));
@@ -444,7 +445,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                     return "Invalid URL";
                 }
             } catch (URISyntaxException ex) {
-                LOG.log(Level.INFO, "Caught URI syntax exception", ex);
+                LOG.log(Level.FINER, "Caught URI syntax exception", ex);
                 return "Invalid URI syntax";
             }
             return "";
@@ -625,7 +626,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         }, customerConflictCount, userConflictCount);
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.ADDED)
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
     }
@@ -837,7 +838,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         private UserReloadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGUSERS));
             loadOption = showActiveUsers;
         }
 
@@ -872,7 +873,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 if (loadOption.get()) {
                     return uf.load(connection, uf.getActiveUsersFilter());
                 }
-                return uf.load(connection, UserFilter.of(UserFilter.byStatus(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                return uf.load(connection, UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
             }
             return uf.load(connection, uf.getAllItemsFilter());
         }
@@ -961,7 +962,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 if (userLoadOption.get()) {
                     userDaoList = uf.load(connection, uf.getActiveUsersFilter());
                 } else {
-                    userDaoList = uf.load(connection, UserFilter.of(UserFilter.byStatus(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                    userDaoList = uf.load(connection, UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
                 }
             } else {
                 userDaoList = uf.load(connection, uf.getAllItemsFilter());

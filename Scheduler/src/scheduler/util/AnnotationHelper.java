@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.EventObject;
 import java.util.function.Predicate;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -17,7 +16,7 @@ import scheduler.view.annotations.GlobalizationResource;
 /**
  * Utility class for getting annotated information.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class AnnotationHelper {
 

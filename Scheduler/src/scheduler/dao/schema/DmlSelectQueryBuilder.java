@@ -20,7 +20,7 @@ import scheduler.util.ReadOnlyList;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSelectQueryBuilder.ResultColumn>, Consumer<StringBuffer>, Supplier<StringBuffer> {
     private final DbTable dbTable;
@@ -90,7 +90,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
     
     private synchronized JoinedTable join(DmlSelectTable targetTable, HashMap<String, JoinedTable> targetMap, DbColumn joinFrom, TableJoinType type,
             DbColumn joinTo, String alias) {
-        LOG.log(Level.INFO, String.format("Joining (%s) %s.%s to %s.%s", targetTable.getDbTable().getDbName(), joinFrom.getTable().getDbName(), joinFrom.getDbName(), joinTo.getTable().getDbName(), joinTo.getDbName()));
+        LOG.log(Level.FINER, String.format("Joining (%s) %s.%s to %s.%s", targetTable.getDbTable().getDbName(), joinFrom.getTable().getDbName(), joinFrom.getDbName(), joinTo.getTable().getDbName(), joinTo.getDbName()));
         if (readOnly)
             throw new UnsupportedOperationException("Builder is read-only");
         if (joinFrom.getTable() != targetTable.getDbTable())
@@ -120,7 +120,7 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
     private synchronized boolean add(DmlSelectTable targetTable, DbColumn column, String alias) {
         if (readOnly)
             throw new UnsupportedOperationException("Builder is read-only");
-        LOG.log(Level.INFO, String.format("Adding %s.%s to %s", column.getTable().getDbName(), column.getDbName(), targetTable.getDbTable().getDbName()));
+        LOG.log(Level.FINER, String.format("Adding %s.%s to %s", column.getTable().getDbName(), column.getDbName(), targetTable.getDbTable().getDbName()));
         
         if (targetTable.getDbTable() != column.getTable())
             throw new IllegalArgumentException("That column does not exist on the current table");
@@ -636,7 +636,14 @@ public final class DmlSelectQueryBuilder implements DmlSelectTable, List<DmlSele
 
         @Override
         public boolean containsColumn(DbColumn column) {
-            throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement containsColumn
+            Iterator<ResultColumn> iterator = backingList.iterator();
+            while (iterator.hasNext()) {
+                ResultColumn c = iterator.next();
+                if (c.getResultTable() == this && c.isMatch(column)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override

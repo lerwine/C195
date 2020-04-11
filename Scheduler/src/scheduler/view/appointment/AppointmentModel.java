@@ -10,7 +10,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerElement;
@@ -33,7 +32,7 @@ import scheduler.view.user.UserModel;
 /**
  * List item model for {@link AppointmentDAO} data access objects.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class AppointmentModel extends ItemModel<AppointmentDAO> {
 

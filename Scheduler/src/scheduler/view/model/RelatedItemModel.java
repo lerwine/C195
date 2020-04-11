@@ -9,7 +9,7 @@ import scheduler.dao.DataElement;
 /**
  * A model that is the related child item of another.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of related {@link DataElement}.
  */
 public abstract class RelatedItemModel<T extends DataElement> implements ElementModel<T> {

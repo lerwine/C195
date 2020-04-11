@@ -11,7 +11,7 @@ import javafx.util.Callback;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <S> The row item type.
  * @param <T> The cell item type.
  */

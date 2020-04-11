@@ -1,6 +1,5 @@
 package scheduler.view;
 
-import java.io.IOException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
@@ -9,13 +8,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.Scheduler;
@@ -24,16 +23,18 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ResourceBundleLoader;
 import scheduler.util.ValueBindings;
-import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.event.FxmlViewEvent;
 
 /**
  * FXML Controller class for the application login screen.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/Login.fxml">/resources/scheduler/view/Login.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/Login.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/Login")
 @FXMLResource("/scheduler/view/Login.fxml")
@@ -52,17 +53,6 @@ public final class Login extends SchedulerController {
     public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
     public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
-
-    public static void loadInto(Stage stage) throws IOException {
-        // Populate list of Locale objects.
-        ObservableList<ResourceBundleLoader.SupportedLocale> languages = FXCollections.observableArrayList();
-        ResourceBundleLoader.getSupportedLocales().forEach((t) -> languages.add(t));
-        ViewAndController<Parent, Login> viewAndController = ViewControllerLoader.loadViewAndController(Login.class);
-
-        viewAndController.getController().onBeforeShow(languages, stage);
-        stage.setScene(new Scene(viewAndController.getView()));
-
-    }
 
     /**
      * The {@link ComboBox} that lets the user select their preferred language.
@@ -136,10 +126,13 @@ public final class Login extends SchedulerController {
         currentResourceBundle = getResources();
     }
 
-    protected void onBeforeShow(ObservableList<ResourceBundleLoader.SupportedLocale> languages, Stage stage) {
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
+    private void onBeforeShow(FxmlViewEvent<BorderPane> event) {
+        ObservableList<ResourceBundleLoader.SupportedLocale> languages = FXCollections.observableArrayList();
+        ResourceBundleLoader.getSupportedLocales().forEach((t) -> languages.add(t));
         languageComboBox.setItems(languages);
-        stage.setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-        languageComboBox.getSelectionModel().select(ResourceBundleLoader.getSupportedLocales().filter((l) -> l.isCurrent()).findFirst().get());
+        event.getStage().setTitle(currentResourceBundle.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+        languageComboBox.getSelectionModel().select(ResourceBundleLoader.getSupportedLocales().stream().filter((l) -> l.isCurrent()).findFirst().get());
         valid = new Validation();
         valid.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             loginButton.setDisable(!newValue);

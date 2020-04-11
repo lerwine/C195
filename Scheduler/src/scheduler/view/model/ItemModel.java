@@ -22,7 +22,7 @@ import scheduler.util.DB;
 /**
  * Java FX object model for a {@link DataAccessObject} object.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
 public abstract class ItemModel<T extends DataAccessObject> implements ElementModel<T> {
@@ -111,7 +111,9 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
      * @param dao The {@link DataAccessObject} to be used for data access operations.
      */
     protected ItemModel(T dao) {
-        assert dao.getRowState() != DataRowState.DELETED : String.format("%s has been deleted", dao.getClass().getName());
+        if (dao.getRowState() == DataRowState.DELETED) {
+            throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
+        }
         dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
         primaryKey = new ReadOnlyIntegerWrapper(this, "primaryKey", dao.getPrimaryKey());
         createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.fromUtcTimestamp(dao.getCreateDate()));
@@ -124,36 +126,41 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
     public boolean modelEquals(T model) {
         return null != model && dataObject.get().equals(model);
     }
-    
+
     public static abstract class ModelFactory<T extends DataAccessObject, U extends ItemModel<T>> {
-        
+
         public abstract DataAccessObject.DaoFactory<T> getDaoFactory();
 
         public abstract U createNew(T dao);
-        
+
         /**
          * Applies changes made in the {@link ItemModel} to the underlying {@link DataAccessObject}.
-         * 
+         *
          * @param item The model item.
          * @return The {@link DataAccessObject} with changes applied.
          */
         public abstract T updateDAO(U item);
-        
+
         /**
          * Updates the {@link ItemModel} with changes from a {@link DataAccessObject}.
+         *
          * @param item The {@link ItemModel} to be updated.
-         * @param dao 
+         * @param dao
          */
         public void updateItem(U item, T dao) {
-            assert dao.getRowState() != DataRowState.DELETED : String.format("%s has been deleted", dao.getClass().getName());
+            if (dao.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
+            }
             // PENDING: May want to add some checks in here to make sure we don't apply the new DAO to the wrong item
-            ItemModel<T> model = (ItemModel<T>)item;
+            ItemModel<T> model = (ItemModel<T>) item;
             if (item.isNewItem()) {
                 model.dataObject.set(dao);
                 model.primaryKey.set(dao.getPrimaryKey());
                 model.newItem.set(dao.getRowState() == DataRowState.NEW);
             } else {
-                assert dao.getRowState() != DataRowState.NEW && dao.getPrimaryKey() == item.getPrimaryKey() : "Invalid data access object";
+                if (dao.getRowState() == DataRowState.NEW || dao.getPrimaryKey() != item.getPrimaryKey()) {
+                    throw new IllegalArgumentException("Invalid data access object");
+                }
                 model.dataObject.set(dao);
             }
             model.createDate.set(DB.fromUtcTimestamp(dao.getCreateDate()));
@@ -161,7 +168,7 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
             model.lastModifiedDate.set(DB.fromUtcTimestamp(dao.getLastModifiedDate()));
             model.lastModifiedBy.set(dao.getLastModifiedBy());
         }
-        
+
         public final void loadAsync(Stage stage, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess, Consumer<Throwable> onFail) {
             DataAccessObject.DaoFactory<T> factory = getDaoFactory();
             factory.loadAsync(stage, filter, (t) -> {
@@ -178,14 +185,17 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
                 for (int i = 0; i < target.size() && i < newItems.size(); i++) {
                     target.set(i, newItems.get(i));
                 }
-                while (target.size() < newItems.size())
+                while (target.size() < newItems.size()) {
                     target.add(newItems.get(target.size()));
-                while (target.size() > newItems.size())
+                }
+                while (target.size() > newItems.size()) {
                     target.remove(newItems.size());
-                if (null != onSuccess)
+                }
+                if (null != onSuccess) {
                     onSuccess.accept(target);
+                }
             }, onFail);
         }
     }
-    
+
 }

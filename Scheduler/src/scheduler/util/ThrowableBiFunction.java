@@ -3,7 +3,7 @@ package scheduler.util;
 /**
  * A functional interface similar to {@link java.util.function.BiFunction} that can throw an error.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> the type of the first argument to the function
  * @param <U> the type of the second argument to the function
  * @param <R> the type of the result of the function

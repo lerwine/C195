@@ -8,7 +8,7 @@ import scheduler.view.event.FxmlViewEventType;
 /**
  * Contains a view and it's controller.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link Parent} at the root of the view.
  * @param <U> The type of controller for the view.
  */

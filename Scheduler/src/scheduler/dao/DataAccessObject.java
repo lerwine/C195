@@ -6,9 +6,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,7 +43,7 @@ import scheduler.view.task.TaskWaiter;
  * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
  * {@code getFactory()} method.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public abstract class DataAccessObject extends PropertyBindable implements DataElement {
 
@@ -518,11 +520,14 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                     int index;
                     propertyChangeInfo = dataObj.getPropertyStateInfo();
                     Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+                    DbColumn[] columns;
                     switch (((DataAccessObject) dao).rowState) {
                         case NEW:
                             sb = new StringBuilder();
                             sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (");
-                            iterator = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).iterator();
+                            columns = SchemaHelper.getTableColumns(getDbTable(),
+                                    (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
+                            iterator = Arrays.stream(columns).iterator();
                             sb.append(iterator.next().getDbName());
                             index = 1;
                             while (iterator.hasNext()) {
@@ -535,11 +540,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                             }
                             sb.append(")");
                             sql = sb.toString();
-                            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                            try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                                 index = 1;
-                                iterator = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).iterator();
+                                iterator = Arrays.stream(columns).iterator();
                                 do {
                                     DbColumn column = iterator.next();
+                                    LOG.log(Level.INFO, String.format("Setting value for %s at index %d", column.getDbName(), index));
                                     if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                                         switch (column.getDbName()) {
                                             case CREATE_DATE:
@@ -561,8 +567,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                                             default:
                                                 throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
                                         }
+                                    } else {
+                                        applyColumnValue(dao, column, ps, index++);
                                     }
-                                    applyColumnValue(dao, iterator.next(), ps, index++);
                                 } while (iterator.hasNext());
                                 LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
                                 if (ps.executeUpdate() < 1) {
@@ -581,7 +588,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                         case MODIFIED:
                             sb = new StringBuilder();
                             sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
-                            iterator = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).iterator();
+                            columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
+                            iterator = Arrays.stream(columns).iterator();
                             sb.append(iterator.next().getDbName()).append("=?");
                             while (iterator.hasNext()) {
                                 sb.append(", ").append(iterator.next().getDbName()).append("=?");
@@ -589,7 +597,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                             sb.append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
                             sql = sb.toString();
                             try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
-                                iterator = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).iterator();
+                                iterator = Arrays.stream(columns).iterator();
                                 index = 1;
                                 do {
                                     DbColumn column = iterator.next();
@@ -696,8 +704,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
             PropertyStateInfo propertyChangeInfo = null;
             try {
                 synchronized (dao) {
-                    assert dataObj.rowState != DataRowState.DELETED : String.format("%s has already been deleted", getClass().getName());
-                    assert dataObj.rowState != DataRowState.NEW : String.format("%s has not been inserted into the database", getClass().getName());
+                    if (dao.getRowState() == DataRowState.DELETED) {
+                        throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
+                    }
+                    if (dao.getRowState() == DataRowState.NEW) {
+                        throw new IllegalArgumentException(String.format("%s has not been inserted into the database", dao.getClass().getName()));
+                    }
                     StringBuilder sb = new StringBuilder("DELETE FROM ");
                     sb.append(getDbTable().getDbName()).append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
                     String sql = sb.toString();

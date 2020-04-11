@@ -1,7 +1,6 @@
 package scheduler.view.user;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
@@ -15,15 +14,13 @@ import scheduler.view.model.ItemModel;
 /**
  * FXML Controller class for viewing a list of {@link UserModelImpl} items.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/user/ManageUsers.fxml">/resources/scheduler/view/user/ManageUsers.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/user/ManageUsers.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends ListingController<UserDAO, UserModelImpl> implements ManageUsersConstants {
-
-    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
+public final class ManageUsers extends ListingController<UserDAO, UserModelImpl> {
 
     public static ManageUsers loadInto(MainController mainController, Stage stage, UserModelFilter filter,
             Object loadEventListener) throws IOException {

@@ -17,7 +17,7 @@ import scheduler.view.annotations.GlobalizationResource;
 /**
  * Gets settings from the <a href="file:../../resources/scheduler/config.properties">/resources/scheduler/config.properties</a> file.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/App")
 public final class AppResources implements AppResourceBundleConstants {
@@ -30,7 +30,6 @@ public final class AppResources implements AppResourceBundleConstants {
     public static final String PROPERTYKEY_DBLOGIN = "dbLogin";
     public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
     public static final String PROPERTYKEY_SUPPORTEDLOCALES = "supportedLocales";
-    public static final String PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER = "altStringPlaceholderOrder";
     public static final String PROPERTIES_FILE_APPCONFIG = "scheduler/config.properties";
 
     static {
@@ -39,7 +38,7 @@ public final class AppResources implements AppResourceBundleConstants {
         ClassLoader classLoader = AppResources.class.getClassLoader();
         try (InputStream iStream = classLoader.getResourceAsStream(PROPERTIES_FILE_APPCONFIG)) {
             if (iStream == null) {
-                LOG.log(Level.SEVERE, String.format("File \"%s\" not found.", PROPERTIES_FILE_APPCONFIG));
+                LOG.log(Level.SEVERE, String.format("Resource \"%s\" not found.", PROPERTIES_FILE_APPCONFIG));
             } else {
                 APPCONFIG_PROPERTIES.load(iStream);
             }

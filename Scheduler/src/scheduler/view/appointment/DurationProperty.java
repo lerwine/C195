@@ -1,7 +1,6 @@
 package scheduler.view.appointment;
 
 import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.Observable;
@@ -19,7 +18,7 @@ import javafx.util.StringConverter;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class DurationProperty extends ObjectBinding<Duration>
         implements ReadOnlyProperty<Duration>, WritableObjectValue<Duration> {
@@ -144,7 +143,7 @@ public class DurationProperty extends ObjectBinding<Duration>
                     Integer i = hourConverter.fromString(ht);
                     success = null != i && i > 0 && i < 13;
                 } catch (NumberFormatException ex) {
-                    LOG.log(Level.INFO, "Caught duration hour string parse error", ex);
+                    LOG.log(Level.FINER, "Caught duration hour string parse error", ex);
                     success = false;
                 }
             }
@@ -156,7 +155,7 @@ public class DurationProperty extends ObjectBinding<Duration>
                     Integer i = minuteConverter.fromString(mt);
                     success = null != i && i >= 0 && i < 60;
                 } catch (NumberFormatException ex) {
-                    LOG.log(Level.INFO, "Caught duration minute string parse error", ex);
+                    LOG.log(Level.FINER, "Caught duration minute string parse error", ex);
                     success = false;
                 }
             }
@@ -187,10 +186,17 @@ public class DurationProperty extends ObjectBinding<Duration>
 
     @Override
     public void set(Duration value) {
-        ZonedDateTime start = startDateTime.get();
-        if (null == start)
-            throw new IllegalStateException("Start date/time not set");
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.DurationProperty#set
+        if (value.isNegative())
+            throw new IllegalArgumentException("Duration cannot be negative");
+        long m = value.toMinutes() % 60L;
+        long h = (value.toMinutes() - m) / 60L;
+        if (h > Integer.MAX_VALUE)
+            throw new IllegalArgumentException("Duration too large");
+            
+        if (minuteValueFactory.getValue() != m)
+            minuteValueFactory.setValue((int)m);
+        if (minuteValueFactory.getValue() != h)
+            minuteValueFactory.setValue((int)h);
     }
 
     @Override

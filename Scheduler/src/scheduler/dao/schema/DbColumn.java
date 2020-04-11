@@ -8,7 +8,7 @@ import scheduler.util.ReadOnlyList;
  * This provides constant naming definitions as well as values for programmatic compatibility checking. {@link SchemaHelper} can be used to get column
  * reference information.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public enum DbColumn {
     /**

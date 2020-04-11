@@ -9,7 +9,7 @@ import scheduler.dao.DataAccessObject;
  * Base interface for DAO filter expressions.
  * This is used to generate DML conditional statements and as a filtering predicate for {@link DataAccessObject}s.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject}.
  */
 public interface DaoFilterExpression<T extends DataAccessObject> extends Predicate<T> {
@@ -71,5 +71,21 @@ public interface DaoFilterExpression<T extends DataAccessObject> extends Predica
             }
         });
         return expr;
+    }
+    
+    default DaoFilterExpression<T> and(DaoFilterExpression<T> other) {
+        if (null == other || other.isEmpty() || this == other)
+            return this;
+        if (isEmpty())
+            return other;
+        return LogicalFilter.of(LogicalOperator.AND, this, other);
+    }
+    
+    default DaoFilterExpression<T> or(DaoFilterExpression<T> other) {
+        if (null == other || other.isEmpty() || this == other)
+            return this;
+        if (isEmpty())
+            return other;
+        return LogicalFilter.of(LogicalOperator.OR, this, other);
     }
 }

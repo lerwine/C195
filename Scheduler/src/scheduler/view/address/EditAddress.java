@@ -20,7 +20,7 @@ import scheduler.view.model.ItemModel;
  * FXML Controller class for editing an {@link AddressModelImpl}.
  * <p>The associated view is <a href="file:../../resources/scheduler/view/address/EditAddress.fxml">/resources/scheduler/view/address/EditAddress.fxml</a>.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
@@ -123,6 +123,9 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
 
     @Override
     protected void updateModel(AddressModelImpl model) {
+        if (!getValidationExpression().get()) {
+            throw new IllegalStateException();
+        }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#updateModel
     }
 

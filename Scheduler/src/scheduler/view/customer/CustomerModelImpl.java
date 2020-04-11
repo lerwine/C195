@@ -20,12 +20,12 @@ import static scheduler.util.ResourceBundleLoader.getResourceString;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
 import scheduler.view.address.RelatedAddressModel;
-import static scheduler.view.appointment.EditAppointmentConstants.RESOURCEKEY_PHONENUMBER;
+import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
 import scheduler.view.model.ItemModel;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements CustomerModel<CustomerDAO> {
 

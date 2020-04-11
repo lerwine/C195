@@ -6,7 +6,7 @@ import scheduler.dao.UserStatus;
 /**
  * An integer property that only stores specific integer values that represent active status for users.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class ActiveStateProperty extends SimpleObjectProperty<UserStatus> {
 

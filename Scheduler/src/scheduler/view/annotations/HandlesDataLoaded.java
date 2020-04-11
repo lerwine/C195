@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * This expects the annotated method to have zero-length parameters or to have the same parameters as
  * {@link scheduler.view.event.DataLoadedEventListener#onDataLoaded(scheduler.view.event.DataLoadedEvent)}.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

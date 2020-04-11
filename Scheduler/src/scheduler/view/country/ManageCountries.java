@@ -16,13 +16,13 @@ import scheduler.view.model.ItemModel;
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/country/ManageCountries.fxml">/resources/scheduler/view/country/ManageCountries.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/country/ManageCountries.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends ListingController<CountryDAO, CountryModel> implements MangageCountriesConstants {
+public final class ManageCountries extends ListingController<CountryDAO, CountryModel> {
 
     public static ManageCountries loadInto(MainController mainController, Stage stage, ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter,
             Object loadEventListener) throws IOException {

@@ -9,7 +9,7 @@ import scheduler.util.ThrowableFunction;
 /**
  * Implementation of the {@link TaskWaiter} interface.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The result type.
  */
 public class TaskWaiterImpl<T> extends TaskWaiter<T> {

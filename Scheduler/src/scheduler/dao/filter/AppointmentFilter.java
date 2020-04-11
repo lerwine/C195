@@ -13,12 +13,12 @@ import scheduler.dao.schema.DbColumn;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
 
     DaoFilterExpression<AppointmentDAO> getExpression();
-    
+
     @Override
     public default String getLoadingMessage() {
         return AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS);
@@ -36,7 +36,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
             public void appendJoinedDmlConditional(StringBuffer sb) {
                 expr.appendJoinedDmlConditional(sb);
             }
-            
+
             @Override
             public DaoFilterExpression<AppointmentDAO> getExpression() {
                 return expr;
@@ -55,9 +55,9 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof AppointmentFilter) {
-                    AppointmentFilter other = (AppointmentFilter)obj;
-                    return other.getLoadingMessage().equals(getLoadingMessage()) && other.getLoadingTitle().equals(getLoadingTitle()) &&
-                            other.getExpression().equals(expr);
+                    AppointmentFilter other = (AppointmentFilter) obj;
+                    return other.getLoadingMessage().equals(getLoadingMessage()) && other.getLoadingTitle().equals(getLoadingTitle())
+                            && other.getExpression().equals(expr);
                 }
                 return false;
             }
@@ -73,120 +73,78 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
 
         };
     }
-    
-    public static AppointmentFilter of(CustomerElement customer, UserElement user, Timestamp start, Timestamp end) {
-        if (null != customer && customer.isExisting()) {
-            if (null != user && user.isExisting()) {
-                if (null != start) {
-                    if (null != end) {
-                        return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                                LogicalFilter.of(LogicalOperator.OR,
-                                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                                (t) -> t.getCustomer().getPrimaryKey()),
-                                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                                (t) -> t.getUser().getPrimaryKey())
-                                ),
-                                TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart()),
-                                TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
-                        ));
-                    }
-                    return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                            LogicalFilter.of(LogicalOperator.OR,
-                                    IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                            (t) -> t.getCustomer().getPrimaryKey()),
-                                    IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                            (t) -> t.getUser().getPrimaryKey())
-                            ),
-                            TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
-                    ));
-                }
-                if (null != end) {
-                    return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                            LogicalFilter.of(LogicalOperator.OR,
-                                    IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                            (t) -> t.getCustomer().getPrimaryKey()),
-                                    IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                            (t) -> t.getUser().getPrimaryKey())
-                            ),
-                            TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart())
-                    ));
-                }
-                return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.OR,
-                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                (t) -> t.getCustomer().getPrimaryKey()),
-                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                (t) -> t.getUser().getPrimaryKey())
-                ));
-            }
-            
-            if (null != start) {
-                if (null != end) {
-                    return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                            IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                            (t) -> t.getCustomer().getPrimaryKey()),
-                            TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart()),
-                            TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
-                    ));
-                }
-                return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                        (t) -> t.getCustomer().getPrimaryKey()),
-                        TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
-                ));
-            }
-            if (null != end) {
-                return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                                        (t) -> t.getCustomer().getPrimaryKey()),
-                        TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart())
-                ));
-            }
-            return AppointmentFilter.of(IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                            (t) -> t.getCustomer().getPrimaryKey()));
-        }
-        
-        
-        
-        
-        if (null != user && user.isExisting()) {
-            if (null != start) {
-                if (null != end) {
-                    return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                            IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                            (t) -> t.getUser().getPrimaryKey()),
-                            TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart()),
-                            TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
-                    ));
-                }
-                return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                        (t) -> t.getUser().getPrimaryKey()),
-                        TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
-                ));
-            }
-            if (null != end) {
-                return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                        IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                                        (t) -> t.getUser().getPrimaryKey()),
-                        TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart())
-                ));
-            }
-            return AppointmentFilter.of(IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                            (t) -> t.getUser().getPrimaryKey()));
-        }
 
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer) {
+        if (null != customer && customer.isExisting()) {
+            return IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
+                    (t) -> t.getCustomer().getPrimaryKey());
+        }
+        return DaoFilterExpression.empty();
+    }
+
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(UserElement user) {
+        if (null != user && user.isExisting()) {
+            return IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
+                    (t) -> t.getUser().getPrimaryKey());
+        }
+        return DaoFilterExpression.empty();
+    }
+
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer, UserElement user) {
+        return expressionOf(customer).or(expressionOf(user));
+    }
+
+    /**
+     * Creates a filter expression for a date range.
+     *
+     * @param start The inclusive start date/time.
+     * @param end The exclusive end date/time.
+     * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
+     */
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(Timestamp start, Timestamp end) {
         if (null != start) {
             if (null != end) {
                 return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
-                        TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart()),
-                        TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart())
+                        TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.LESS_THAN, end, (t) -> t.getStart()),
+                        TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.GREATER_THAN, start, (t) -> t.getEnd())
                 ));
             }
-            return AppointmentFilter.of(TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.NOT_LESS_THAN, start, (t) -> t.getStart()));
+            return TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.GREATER_THAN, start, (t) -> t.getEnd());
         }
         if (null != end) {
-            return AppointmentFilter.of(TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.NOT_GREATER_THAN, end, (t) -> t.getStart()));
+            return TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.LESS_THAN, end, (t) -> t.getStart());
         }
-        return AppointmentFilter.of(DaoFilterExpression.empty());
+        return DaoFilterExpression.empty();
     }
+
+    /**
+     * Creates a filter expression for a date range.
+     *
+     * @param customer
+     * @param start The inclusive start date/time.
+     * @param end The exclusive end date/time.
+     * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
+     */
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer, Timestamp start, Timestamp end) {
+        if (null == customer || !customer.isExisting())
+            return expressionOf(start, end);
+        if (null != start) {
+            if (null != end) {
+                return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
+                        TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.LESS_THAN, end, (t) -> t.getStart()),
+                        TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.GREATER_THAN, start, (t) -> t.getEnd())
+                ));
+            }
+            return TimestampColumnValueFilter.of(DbColumn.END, ComparisonOperator.GREATER_THAN, start, (t) -> t.getEnd());
+        }
+        if (null != end) {
+            return TimestampColumnValueFilter.of(DbColumn.START, ComparisonOperator.LESS_THAN, end, (t) -> t.getStart());
+        }
+        return DaoFilterExpression.empty();
+    }
+
+    public static AppointmentFilter of(CustomerElement customer, UserElement user, Timestamp start, Timestamp end) {
+        return AppointmentFilter.of(expressionOf(customer, user).and(expressionOf(start, end)));
+    }
+
 }

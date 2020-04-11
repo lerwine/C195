@@ -11,7 +11,7 @@ import scheduler.dao.schema.DbColumn;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface UserFilter extends DaoFilter<UserDAO> {
 
@@ -71,11 +71,11 @@ public interface UserFilter extends DaoFilter<UserDAO> {
         };
     }
     
-    public static IntColumnValueFilter<UserDAO> byStatus(UserStatus status, ComparisonOperator operator) {
+    public static IntColumnValueFilter<UserDAO> expressionOf(UserStatus status, ComparisonOperator operator) {
         return IntColumnValueFilter.of(DbColumn.STATUS, operator, status.getValue(), (t) -> t.getStatus().getValue());
     }
     
-    public static StringColumnValueFilter<UserDAO> byUserName(String userName) {
+    public static StringColumnValueFilter<UserDAO> expressionOf(String userName) {
         return StringColumnValueFilter.of(DbColumn.USER_NAME, ComparisonOperator.EQUALS_CASE_INSENSITIVE, userName, (t) -> t.getUserName());
     }
 }

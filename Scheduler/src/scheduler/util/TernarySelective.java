@@ -9,7 +9,7 @@ import java.util.function.Function;
 /**
  * An object that contains only one of 3 possible value options.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The primary value type.
  * @param <U> The secondary value type.
  * @param <S> The tertiary value type.
@@ -63,7 +63,7 @@ public final class TernarySelective<T, U, S> {
      * @param <T> The primary value type.
      * @param <U> The secondary value type.
      * @param <S> The tertiary value type.
-     * @param u The secondary value.
+     * @param t The secondary value.
      * @return A {@code TernarySelective} object that contains a null secondary value option.
      */
     public static <T, U, S> TernarySelective<T, U, S> ofSecondaryNullable(U t) {

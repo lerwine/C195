@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 /**
  * Utility class for validating and normalizing values.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class Values {
 
@@ -189,8 +189,9 @@ public class Values {
      * @throws AssertionError if {@code value} does not contain at least one non-whitespace character.
      */
     public static String requireNonWhitespace(String value, String message) {
-        assert !Objects.requireNonNull(value, message).isEmpty()
-                && value.codePoints().anyMatch((c) -> !Character.isWhitespace(c)) : message;
+        if (Objects.requireNonNull(value, message).isEmpty() || !value.codePoints().anyMatch((c) -> !Character.isWhitespace(c))) {
+            throw new IllegalArgumentException(message);
+        }
         return value;
     }
 
@@ -205,8 +206,9 @@ public class Values {
      * @throws AssertionError if {@code value} does not contain at least one non-whitespace character.
      */
     public static String requireNonWhitespace(String value, Supplier<String> messageSupplier) {
-        assert !Objects.requireNonNull(value, messageSupplier).isEmpty()
-                && value.codePoints().anyMatch((c) -> !Character.isWhitespace(c)) : messageSupplier.get();
+        if (Objects.requireNonNull(value, messageSupplier).isEmpty() || !value.codePoints().anyMatch((c) -> !Character.isWhitespace(c))) {
+            throw new IllegalArgumentException(messageSupplier.get());
+        }
         return value;
     }
 

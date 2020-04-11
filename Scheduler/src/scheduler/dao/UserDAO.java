@@ -191,7 +191,7 @@ public class UserDAO extends DataAccessObject implements UserElement {
         }
 
         public DaoFilter<UserDAO> getActiveUsersFilter() {
-            return UserFilter.of(UserFilter.byStatus(UserStatus.INACTIVE, ComparisonOperator.NOT_EQUALS));
+            return UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.NOT_EQUALS));
         }
 
         @Override
@@ -311,7 +311,9 @@ public class UserDAO extends DataAccessObject implements UserElement {
 
         @Override
         public String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
-            assert dao.getRowState() != DataRowState.DELETED : "Data access object already deleted";
+            if (dao.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Data access object already deleted");
+            }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
                     .append(") FROM ").append(DbTable.USER.getDbName())

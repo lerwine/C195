@@ -40,7 +40,7 @@ import static scheduler.util.NodeUtil.restoreLabeled;
  * the task will be canceled.
  * <p>The associated view is <a href="file:../../resources/scheduler/view/TaskWaiter.fxml">/resources/scheduler/view/TaskWaiter.fxml</a>.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of value produced by the task.
  */
 @GlobalizationResource("scheduler/App")

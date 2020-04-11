@@ -3,7 +3,7 @@ package scheduler;
 /**
  * Defines resource bundle keys for the App resource bundle.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface AppResourceBundleConstants {
 

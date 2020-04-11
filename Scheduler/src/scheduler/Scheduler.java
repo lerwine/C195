@@ -1,6 +1,5 @@
 package scheduler;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -9,14 +8,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.scene.Parent;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserDAO;
-import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.EventHelper;
 import scheduler.util.PwHash;
@@ -28,12 +30,15 @@ import scheduler.view.ViewAndController;
 import scheduler.view.event.FxmlViewEventType;
 
 /**
- * Main Application class for the Scheduler application. Upon startup, {@link Login#loadInto(Stage)} is called to loadViewAndController the Login form
- * into the scene of the primary stage. To validate credentials, the {@link Login} controller invokes
- * {@link #tryLoginUser(Stage, String, String, Consumer)} After successful authentication, the current user data object is stored in
- * {@link Scheduler#currentUser}, and the view for {@link MainController} is loaded into the primary stage by the {@link LoginTask}.
+ * Main Application class for the Scheduler application.
+ * <p>
+ * Upon startup, a temporary {@link StackPane} is created as the root node a the {@link Scene} of the primary {@link Stage}. The view for
+ * {@link MainController} is added, and then the {@link Login} view is added over top of it. To validate credentials, the {@link Login} controller
+ * invokes {@link #tryLoginUser(Stage, String, String, Consumer)}. After successful authentication, the current user data object is stored in
+ * {@link Scheduler#currentUser}, and the view for {@link MainController} is removed from its temporary parent {@link StackPane} and becomes the root
+ * node a new permanent {@link Scene} for the primary {@link Stage}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class Scheduler extends Application {
 
@@ -72,10 +77,29 @@ public final class Scheduler extends Application {
         TaskWaiter.startNow(new LoginTask(stage, userName, password, onNotSucceeded));
     }
 
+    private static final String PROPERTY_MAINVIEWANDCONTROLLER = "mainViewAndController";
+
     @Override
     public void start(Stage stage) throws Exception {
-        Login.loadInto(stage);
+        ViewAndController<BorderPane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
+        ViewAndController<VBox, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+        StackPane initialPane = new StackPane();
+        initialPane.setPrefSize(mainViewAndController.getView().getPrefWidth(), mainViewAndController.getView().getPrefHeight());
+        initialPane.setMaxSize(mainViewAndController.getView().getMaxWidth(), mainViewAndController.getView().getMaxHeight());
+        loginViewAndController.getView().setPrefSize(mainViewAndController.getView().getPrefWidth(), mainViewAndController.getView().getPrefHeight());
+        loginViewAndController.getView().setMaxSize(mainViewAndController.getView().getMaxWidth(), mainViewAndController.getView().getMaxHeight());
+        EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
+                loginViewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
+        stage.setScene(new Scene(initialPane));
+        initialPane.getProperties().put(PROPERTY_MAINVIEWANDCONTROLLER, mainViewAndController);
+        ObservableList<Node> children = initialPane.getChildren();
+        children.add(mainViewAndController.getView());
+        children.add(loginViewAndController.getView());
+        EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
+                loginViewAndController.toEvent(this, FxmlViewEventType.BEFORE_SHOW, stage));
         stage.show();
+        EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
+                loginViewAndController.toEvent(this, FxmlViewEventType.SHOWN, stage));
     }
 
     @Override
@@ -88,9 +112,12 @@ public final class Scheduler extends Application {
 
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
+        private final ViewAndController<VBox, MainController> viewAndController;
 
         LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
+            viewAndController = (ViewAndController<VBox, MainController>) (((StackPane) stage.getScene().getRoot())
+                    .getProperties().get(PROPERTY_MAINVIEWANDCONTROLLER));
             this.userName = userName;
             this.password = password;
             this.onNotSucceeded = onNotSucceeded;
@@ -103,19 +130,14 @@ public final class Scheduler extends Application {
                     onNotSucceeded.accept(null);
                 }
             } else {
-                try {
-                    ViewAndController<Parent, MainController> viewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
-                    EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                            viewAndController.toEvent(this, FxmlViewEventType.LOADED, owner));
-                    ((Stage) owner).setScene(new Scene(viewAndController.getView()));
-                    EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                            viewAndController.toEvent(this, FxmlViewEventType.BEFORE_SHOW, owner));
-                    EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                            viewAndController.toEvent(this, FxmlViewEventType.SHOWN, owner));
-                } catch (IOException ex) {
-                    // PENDING: Internationalize message
-                    AlertHelper.showErrorAlert(owner, LOG, "Error loading main content", ex);
-                }
+                ((StackPane) viewAndController.getView().getParent()).getChildren().clear();
+                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
+                        viewAndController.toEvent(this, FxmlViewEventType.LOADED, owner));
+                owner.setScene(new Scene(viewAndController.getView()));
+                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
+                        viewAndController.toEvent(this, FxmlViewEventType.BEFORE_SHOW, owner));
+                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
+                        viewAndController.toEvent(this, FxmlViewEventType.SHOWN, owner));
             }
         }
 
@@ -144,7 +166,7 @@ public final class Scheduler extends Application {
                 }
                 LOG.log(Level.WARNING, "Password mismatch");
             } else {
-                LOG.log(Level.WARNING,"No matching userName found");
+                LOG.log(Level.WARNING, "No matching userName found");
             }
             return null;
         }

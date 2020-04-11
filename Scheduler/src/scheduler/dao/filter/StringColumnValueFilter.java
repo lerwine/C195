@@ -11,14 +11,16 @@ import scheduler.dao.schema.ValueType;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
 public interface StringColumnValueFilter<T extends DataAccessObject> extends ColumnValueFilter<T, String, StringValueFilter> {
 
     public static <T extends DataAccessObject> StringColumnValueFilter<T> of(DbColumn column, StringValueFilter filter,
             Function<T, String> getColumnValue) {
-        assert column.getType().getValueType() == ValueType.STRING : "Column is not a string type";
+        if (column.getType().getValueType() != ValueType.STRING) {
+            throw new IllegalArgumentException("Column is not a string type");
+        }
         int h = 0;
         Objects.requireNonNull(column);
         for (DbColumn c : DbColumn.values()) {
@@ -57,23 +59,24 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof StringColumnValueFilter) {
-                    StringColumnValueFilter<T> other = (StringColumnValueFilter<T>)obj;
+                    StringColumnValueFilter<T> other = (StringColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }
                 return false;
             }
-            
+
         };
     }
-    
+
     public static <T extends DataAccessObject> StringColumnValueFilter<T> of(DbColumn column, ComparisonOperator operator, String value,
             Function<T, String> getColumnValue) {
         return of(column, StringValueFilter.of(value, operator), getColumnValue);
     }
-    
+
     public static <T extends DataAccessObject> StringColumnValueFilter<T> ofEmptyString(DbColumn column, Function<T, String> getColumnValue) {
         return new StringColumnValueFilter<T>() {
             private final StringValueFilter valueFilter = StringValueFilter.ofEmptyString(false);
+
             @Override
             public DbColumn getColumn() {
                 return column;
@@ -115,7 +118,7 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
             public String apply(T t) {
                 return getColumnValue.apply(t);
             }
-            
+
             @Override
             public int hashCode() {
                 return valueFilter.hashCode();
@@ -124,18 +127,19 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof StringColumnValueFilter) {
-                    StringColumnValueFilter<T> other = (StringColumnValueFilter<T>)obj;
+                    StringColumnValueFilter<T> other = (StringColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }
                 return false;
             }
-            
+
         };
     }
-    
+
     public static <T extends DataAccessObject> StringColumnValueFilter<T> ofNotEmptyString(DbColumn column, Function<T, String> getColumnValue) {
         return new StringColumnValueFilter<T>() {
             private final StringValueFilter valueFilter = StringValueFilter.ofEmptyString(true);
+
             @Override
             public DbColumn getColumn() {
                 return column;
@@ -177,7 +181,7 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
             public String apply(T t) {
                 return getColumnValue.apply(t);
             }
-            
+
             @Override
             public int hashCode() {
                 return valueFilter.hashCode();
@@ -186,13 +190,13 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof StringColumnValueFilter) {
-                    StringColumnValueFilter<T> other = (StringColumnValueFilter<T>)obj;
+                    StringColumnValueFilter<T> other = (StringColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }
                 return false;
             }
-            
+
         };
     }
-    
+
 }

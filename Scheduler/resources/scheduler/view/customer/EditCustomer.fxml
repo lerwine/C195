@@ -6,136 +6,228 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.EditCustomer">
-    <children>
-      <GridPane hgap="4.0" vgap="4.0">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
-          <ColumnConstraints hgrow="SOMETIMES" />
-            <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints vgrow="SOMETIMES" />
-          <RowConstraints vgrow="SOMETIMES" />
-          <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-                <Label styleClass="topControlLabel" text="%name" GridPane.columnSpan="3" />
-                <TextField fx:id="nameTextField" styleClass="topLabeledControl" GridPane.columnSpan="3" GridPane.rowIndex="1" />
-                <Label fx:id="nameErrorLabel" styleClass="error" text="%nameCannotBeEmpty" GridPane.columnSpan="3" GridPane.rowIndex="2" />
-                <HBox styleClass="topLabeledControl" GridPane.columnSpan="3" GridPane.rowIndex="14">
+<SplitPane fx:id="rootSplitPane" dividerPositions="0.35" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.EditCustomer">
+    <items>
+        <GridPane hgap="4.0">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints valignment="TOP" vgrow="ALWAYS" />
+            </rowConstraints>
+            <children>
+                <Label styleClass="leftControlLabel" text="%name" />
+                <TextField fx:id="nameTextField" GridPane.columnIndex="1" />
+                <Label fx:id="nameValidationLabel" styleClass="formControlValidationMessage" text="%nameCannotBeEmpty" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label styleClass="leftControlLabel" text="%active" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <HBox spacing="16.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                     <children>
-                      <Label styleClass="leftControlLabel" text="%active" />
-                        <RadioButton fx:id="activeYesRadioButton" mnemonicParsing="false" styleClass="leftLabeledControl" text="%yes" />
-                        <RadioButton fx:id="activeNoRadioButton" mnemonicParsing="false" styleClass="leftLabeledControl" text="%no">
-                            <padding>
-                                <Insets left="6.0" />
-                            </padding>
+                        <RadioButton fx:id="activeTrueRadioButton" mnemonicParsing="false" selected="true" text="%yes">
+                            <toggleGroup>
+                                <ToggleGroup fx:id="activeToggleGroup" />
+                            </toggleGroup>
                         </RadioButton>
+                        <RadioButton fx:id="activeFalseRadioButton" mnemonicParsing="false" text="%no" toggleGroup="$activeToggleGroup" />
                     </children>
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
                 </HBox>
-                <Label styleClass="topControlLabel" text="%address" GridPane.columnSpan="3" GridPane.rowIndex="3" GridPane.valignment="TOP" />
-                  <TextField fx:id="address1TextField" styleClass="topLabeledControl" GridPane.columnSpan="3" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
-                  <Label styleClass="error" text="%required" GridPane.columnSpan="3" GridPane.halignment="LEFT" GridPane.rowIndex="5" />
-                  <TextField fx:id="address2TextField" styleClass="topLabeledControl" GridPane.columnSpan="2" GridPane.rowIndex="6" GridPane.vgrow="ALWAYS" />
-                  <Label styleClass="topControlLabel" text="%phoneNumber" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="12" />
-                  <TextField styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="13" />
-                  <Label styleClass="topControlLabel" text="%city" GridPane.rowIndex="8" />
-                   <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.rowIndex="9" />
-                  <Label styleClass="topControlLabel" text="%postalCode" GridPane.rowIndex="12" />
-                  <TextField styleClass="topLabeledControl" GridPane.rowIndex="13" />
-                  <HBox alignment="TOP_RIGHT" GridPane.rowIndex="11">
-                      <Button fx:id="editCityButton" mnemonicParsing="false" text="%edit" />
-                      <Button fx:id="newCityButton" mnemonicParsing="false" text="%new" />
-                  </HBox>
-                   <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-                  <HBox alignment="TOP_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="11">
-                      <Button fx:id="editCountryButton" mnemonicParsing="false" text="%edit" />
-                      <Button fx:id="newCountryButton" mnemonicParsing="false" text="%new" />
-                  </HBox>
-                  <Label styleClass="topControlLabel" text="%country" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="8" />
-                  <Label styleClass="error" text="%required" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="10" />
-            <HBox alignment="TOP_RIGHT" GridPane.columnIndex="2" GridPane.rowIndex="6" GridPane.valignment="TOP">
-               <children>
-                      <Button fx:id="changeAddressButton" mnemonicParsing="false" text="%change" />
-               </children>
-            </HBox>
-            <Label styleClass="error" text="%required" GridPane.rowIndex="10" />
-         </children>
-      </GridPane>
-        <HBox VBox.vgrow="ALWAYS">
-            <Label fx:id="appointmentsLabel" styleClass="leftControlLabel" text="%appointments" />
-            <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" HBox.hgrow="ALWAYS" />
-        </HBox>
-        <TableView fx:id="appointmentsTableView" maxWidth="1.7976931348623157E308" tableMenuButtonVisible="true">
-            <columns>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%title">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="title" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%type">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="type" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%start">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="start" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%end">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="end" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%user">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="userName" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="effectiveLocation" />
-                    </cellValueFactory>
-                </TableColumn>
-            </columns>
-        </TableView>
-      <ButtonBar>
-         <buttons>
-              <Button fx:id="addAppointmentButton" mnemonicParsing="false" text="%add" />
-         </buttons>
-      </ButtonBar>
-    </children>
-</VBox>
+                <Label styleClass="leftControlLabel" text="%address" GridPane.rowIndex="3">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP">
+                    <children>
+                        <Label fx:id="addressValueLabel" styleClass="leftLabeledControl" text="Label" wrapText="true" />
+                        <TextField fx:id="address1TextField" />
+                    </children>
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </StackPane>
+                <TextField fx:id="address2TextField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label fx:id="cityLabel" styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP">
+                    <children>
+                        <Label fx:id="cityZipCountryLabel" text="Label" wrapText="true" />
+                        <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" />
+                    </children>
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </StackPane>
+                <Label styleClass="leftControlLabel" text="%country" GridPane.rowIndex="11">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="11">
+                    <children>
+                        <Label fx:id="countryValueLabel" text="Label" wrapText="true" />
+                        <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" />
+                    </children>
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </StackPane>
+                <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="13" GridPane.valignment="TOP">
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#selectExistingButtonAction" text="Select Existing" />
+                        <Button mnemonicParsing="false" onAction="#createNewButtonAction" text="Create New" />
+                    </buttons>
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </ButtonBar>
+                <Label fx:id="addressValidationLabel" styleClass="formControlValidationMessage" text="Address cannot be empty." GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                <Label fx:id="postalCodeLabel" styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="8">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                  <TextField fx:id="postalCodeTextField" GridPane.columnIndex="1" GridPane.rowIndex="8">
+               <GridPane.margin>
+                  <Insets top="16.0" />
+               </GridPane.margin>
+            </TextField>
+                <Label fx:id="postalCodeValidationLabel" styleClass="formControlValidationMessage" text="Postal code cannot be empty." GridPane.columnIndex="1" GridPane.rowIndex="9" />
+                <Label fx:id="countryValidationLabel" styleClass="formControlValidationMessage" text="Country must be selected." GridPane.columnIndex="1" GridPane.rowIndex="12" />
+                <Label fx:id="cityValidationLabel" styleClass="formControlValidationMessage" text="City must be selected." GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                <Label styleClass="leftControlLabel" text="%phoneNumber" GridPane.rowIndex="10">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="10" GridPane.valignment="TOP">
+                    <children>
+                        <Label fx:id="phoneNumberValueLabel" text="Label" />
+                        <TextField fx:id="phoneNumberTextField" />
+                    </children>
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </StackPane>
+            </children>
+            <padding>
+                <Insets right="8.0" />
+            </padding>
+        </GridPane>
+        <VBox fx:id="appointmentsVBox" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
+            <children>
+                <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" />
+                <TableView fx:id="appointmentsTableView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="title" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="start" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="end" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="type" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%user">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="userName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="effectiveLocation" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createDate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createdBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdateBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+                <ButtonBar>
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#addAppointmentButtonAction" text="Add" />
+                    </buttons>
+                </ButtonBar>
+            </children>
+            <padding>
+                <Insets left="7.0" />
+            </padding>
+        </VBox>
+    </items>
+</SplitPane>

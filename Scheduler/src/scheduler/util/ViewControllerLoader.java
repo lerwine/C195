@@ -22,15 +22,13 @@ import scheduler.view.event.FxmlViewEventType;
 /**
  * Utility class for loading an FXML resource and instantiating its controller.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class ViewControllerLoader {
 
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {
         FXMLLoader loader = new FXMLLoader(controllerClass.getResource(AppResources.getFXMLResourceName(controllerClass)), resourceBundle);
-        if (null == loader.getController())
-            throw new InternalException("");
         ViewAndController<T, S> result = new ViewAndController<T, S>() {
             private final T view = loader.load();
             private final S controller = loader.getController();
@@ -45,6 +43,10 @@ public class ViewControllerLoader {
                 return controller;
             }
         };
+        if (null == result.getController())
+            throw new InternalException("Controller not instantiated");
+        if (!controllerClass.isAssignableFrom(result.getController().getClass()))
+            throw new InternalException("Controller type mismatch.");
         return result;
     }
 

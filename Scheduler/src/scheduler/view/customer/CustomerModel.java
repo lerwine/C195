@@ -10,7 +10,7 @@ import scheduler.view.model.ElementModel;
 /**
  * Interface that represents a customer model object.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of underlying {@link CustomerElement} for the model.
  */
 public interface CustomerModel<T extends CustomerElement> extends ElementModel<T> {
@@ -74,28 +74,28 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
     /**
      * Gets the the name of the city.
      * 
-     * @return The value of the {@link CityModel#nameProperty()} or an empty string if the {@link #cityProperty()} is null.
+     * @return The value of the {@link AddressModel#cityNameProperty()} or an empty string if the {@link #addressProperty()} is null.
      */
     String getCityName();
 
     /**
      * Gets the binding for the name of the city.
      * 
-     * @return A {@link ChildPropertyWrapper} gets the value of the {@link CityModel#nameProperty()} from the {@link #cityProperty()}
+     * @return A {@link ChildPropertyWrapper} gets the value of the {@link AddressModel#cityNameProperty()} from the {@link #addressProperty()}
      */
     ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityNameProperty();
 
     /**
      * Gets the name of the country.
      * 
-     * @return The value of the {@link CityModel#countryNameProperty()} or an empty string if the {@link #cityProperty()} is null.
+     * @return The value of the {@link AddressModel#countryNameProperty()} or an empty string if the {@link #addressProperty()} is null.
      */
     String getCountryName();
 
     /**
      * Gets the binding for the name of the country.
      * 
-     * @return A {@link ChildPropertyWrapper} gets the value of the {@link CityModel#countryNameProperty()} from the {@link #cityProperty()}
+     * @return A {@link ChildPropertyWrapper} gets the value of the {@link AddressModel#countryNameProperty()} from the {@link #addressProperty()}
      */
     ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> countryNameProperty();
 

@@ -15,7 +15,7 @@ import scheduler.view.customer.CustomerModelImpl;
 /**
  * Compares {@link DataAccessObject} and {@link ItemModel} to integer values.
  *
- @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link ItemModel} object.
  */

@@ -41,7 +41,6 @@ import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.EditUser;
@@ -56,9 +55,9 @@ import scheduler.view.user.UserModelImpl;
  * All data object create, update and delete operations should be initiated through this controller. This allows dynamically loaded views to be
  * notified of changes, if necessary.</p>
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/MainView.fxml">/resources/scheduler/view/MainView.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/MainView.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
@@ -123,16 +122,16 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewAppointment((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            addNewAppointment((Stage) contentPane.getScene().getWindow());
         });
         Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageAppointments.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                ManageAppointments.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
                         AppointmentModel.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
                         "Error loading appointments listing", ex);
             }
         });
@@ -140,16 +139,16 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewCustomer((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            addNewCustomer((Stage) contentPane.getScene().getWindow());
         });
         Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageCustomers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                ManageCustomers.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
                         CustomerModelImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
                         "Error loading customers listing", ex);
             }
         });
@@ -157,24 +156,24 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newCountryMenuItem, String.format("fx:id=\"newCountryMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewCountry((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            addNewCountry((Stage) contentPane.getScene().getWindow());
         });
         Objects.requireNonNull(newCityMenuItem, String.format("fx:id=\"newCityMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewCity((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            addNewCity((Stage) contentPane.getScene().getWindow());
         });
         Objects.requireNonNull(newAddressMenuItem, String.format("fx:id=\"newAddressMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewAddress((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            addNewAddress((Stage) contentPane.getScene().getWindow());
         });
         Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageCountries.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                ManageCountries.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
                         CountryModel.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
                         "Error loading countries listing", ex);
             }
         });
@@ -182,16 +181,16 @@ public final class MainController extends SchedulerController implements MainCon
                 AppResources.getFXMLResourceName(getClass()));
         Objects.requireNonNull(newUserMenuItem, String.format("fx:id=\"newUserMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewUser((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow());
+            addNewUser((Stage) contentPane.getScene().getWindow());
         });
         Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
                 AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
             try {
-                ManageUsers.loadInto(MainController.this, (Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(),
+                ManageUsers.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
                         UserModelImpl.getFactory().getAllItemsFilter());
             } catch (IOException ex) {
                 // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
+                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
                         "Error loading users listing", ex);
             }
         });
@@ -212,9 +211,14 @@ public final class MainController extends SchedulerController implements MainCon
     public <T extends MainContentController> T loadContent(Class<T> controllerClass, Object loadEventListener) throws IOException {
         return ViewControllerLoader.replacePaneContent(this, contentPane, controllerClass,
                 (FxmlViewControllerEventListener<Parent, T>) (event) -> {
-                    if (event.getType() == FxmlViewEventType.SHOWN) {
-                        ((MainContentController) event.getController()).mainController = MainController.this;
-                        contentController = event.getController();
+                    switch (event.getType()) {
+                        case LOADED:
+                            event.getStage().setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTSCHEDULER));
+                            break;
+                        case SHOWN:
+                            ((MainContentController) event.getController()).mainController = MainController.this;
+                            contentController = event.getController();
+                            break;
                     }
                     EventHelper.fireFxmlViewEvent(loadEventListener, event);
                 });
@@ -522,6 +526,7 @@ public final class MainController extends SchedulerController implements MainCon
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
     private void onShown(FxmlViewEvent<? extends Parent> event) {
+        event.getStage().setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTSCHEDULER));
         try {
             ManageAppointments.loadInto(this, event.getStage(), AppointmentModel.getFactory().getDefaultFilter());
         } catch (IOException ex) {

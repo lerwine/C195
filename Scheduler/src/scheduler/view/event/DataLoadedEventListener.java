@@ -3,7 +3,7 @@ package scheduler.view.event;
 /**
  * Interface for handling {@link DataLoadedEvent}s.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data loaded by the base controller.
  */
 @FunctionalInterface
@@ -17,5 +17,5 @@ public interface DataLoadedEventListener<T> {
      * 
      * @param event The {@link DataLoadedEvent} that occurred.
      */
-    void onDataLoaded(DataLoadedEvent event);
+    void onDataLoaded(DataLoadedEvent<T> event);
 }

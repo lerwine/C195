@@ -4,7 +4,7 @@ import javafx.scene.control.ListCell;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The item type.
  */
 public class CustomerListCell<T extends scheduler.view.customer.CustomerModel<?>> extends ListCell<T> {

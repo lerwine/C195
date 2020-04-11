@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
 /**
  * Extends {@link List} interface with mutation methods overridden to throw {@link UnsupportedOperationException}.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <E> The type of elements in this collection.
  */
 public interface ReadOnlyList<E> extends List<E> {
@@ -798,9 +798,6 @@ public interface ReadOnlyList<E> extends List<E> {
     }
     
     public static class Wrapper<E> extends ArrayList<E> {
-        /**
-         *
-         */
         private static final long serialVersionUID = -7259044324459981946L;
         private final ReadOnlyList<E> readOnlyList = new ReadOnlyList<E>() {
                 @Override
@@ -909,7 +906,7 @@ public interface ReadOnlyList<E> extends List<E> {
 
                 @Override
                 public List<E> subList(int fromIndex, int toIndex) {
-                    throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement subList
+                    return Wrapper.this.subList(fromIndex, toIndex);
                 }
                 
             };

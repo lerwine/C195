@@ -7,7 +7,7 @@ import scheduler.dao.DataElement;
 /**
  * Interface for object models that reference a {@link DataElement}.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataElement} being represented.
  */
 public interface ElementModel<T extends DataElement> {

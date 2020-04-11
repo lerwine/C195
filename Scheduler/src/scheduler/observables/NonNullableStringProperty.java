@@ -10,7 +10,7 @@ import javafx.beans.property.SimpleStringProperty;
  * A {@link SimpleStringProperty} that stores non-null {@link String} values. Null values supplied to this property will be converted to empty
  * strings.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class NonNullableStringProperty extends SimpleStringProperty {
 

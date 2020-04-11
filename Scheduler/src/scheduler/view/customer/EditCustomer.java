@@ -1,159 +1,71 @@
 package scheduler.view.customer;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.SingleSelectionModel;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGUSERS;
+import scheduler.AppResources;
+import scheduler.dao.AddressElement;
+import scheduler.dao.AppointmentDAO;
+import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.util.AlertHelper;
+import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.util.ValueBindings;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
+import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.country.CountryModel;
+import scheduler.view.appointment.AppointmentModelFilter;
+import scheduler.view.city.CityModelImpl;
+import scheduler.view.country.CityCountryModelImpl;
+import static scheduler.view.customer.EditCustomerResourceKeys.*    ;
+import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
+import scheduler.view.task.TaskWaiter;
 
 /**
  * FXML Controller class for editing a {@link CustomerModelImpl}.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/customer/EditCustomer.fxml">/resources/scheduler/view/customer/EditCustomer.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/customer/EditCustomer.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
 public final class EditCustomer extends EditItem.EditController<CustomerDAO, CustomerModelImpl> {
 
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active:"}.
-     */
-    public static final String RESOURCEKEY_ACTIVE = "active";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New CustomerDAO"}.
-     */
-    public static final String RESOURCEKEY_ADDNEWCUSTOMER = "addNewCustomer";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address:"}.
-     */
-    public static final String RESOURCEKEY_ADDRESS = "address";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "City:"}.
-     */
-    public static final String RESOURCEKEY_CITY = "city";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
-     */
-    public static final String RESOURCEKEY_COUNTRY = "country";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit CustomerDAO"}.
-     */
-    public static final String RESOURCEKEY_EDITCUSTOMER = "editCustomer";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name:"}.
-     */
-    public static final String RESOURCEKEY_NAME = "name";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name cannot be empty."}.
-     */
-    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "No"}.
-     */
-    public static final String RESOURCEKEY_NO = "no";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Yes"}.
-     */
-    public static final String RESOURCEKEY_YES = "yes";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading customers..."}.
-     */
-    public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-     * {@code "That customer is referenced in one or more appointments and cannot be deleted."}.
-     */
-    public static final String RESOURCEKEY_CUSTOMERHASAPPOINTMENTS = "customerHasAppointments";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code:"}.
-     */
-    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
-     */
-    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Change"}.
-     */
-    public static final String RESOURCEKEY_CHANGE = "change";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments"}.
-     */
-    public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and Future"}.
-     */
-    public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Past"}.
-     */
-    public static final String RESOURCEKEY_PAST = "past";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All"}.
-     */
-    public static final String RESOURCEKEY_ALL = "all";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "End"}.
-     */
-    public static final String RESOURCEKEY_END = "end";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start"}.
-     */
-    public static final String RESOURCEKEY_START = "start";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Title"}.
-     */
-    public static final String RESOURCEKEY_TITLE = "title";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Type"}.
-     */
-    public static final String RESOURCEKEY_TYPE = "type";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "User"}.
-     */
-    public static final String RESOURCEKEY_USER = "user";
+    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
     public static CustomerModelImpl editNew(MainController mainController, Stage stage) throws IOException {
         return editNew(EditCustomer.class, mainController, stage);
@@ -163,20 +75,26 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         return edit(model, EditCustomer.class, mainController, stage);
     }
 
+    @FXML // fx:id="rootSplitPane"
+    private SplitPane rootSplitPane; // Value injected by FXMLLoader
+
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="nameErrorLabel"
-    private Label nameErrorLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="nameValidationLabel"
+    private Label nameValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="activeYesRadioButton"
-    private RadioButton activeYesRadioButton; // Value injected by FXMLLoader
+    @FXML // fx:id="activeTrueRadioButton"
+    private RadioButton activeTrueRadioButton; // Value injected by FXMLLoader
 
-    @FXML // fx:id="activeNoRadioButton"
-    private RadioButton activeNoRadioButton; // Value injected by FXMLLoader
+    @FXML // fx:id="activeToggleGroup"
+    private ToggleGroup activeToggleGroup; // Value injected by FXMLLoader
 
-    @FXML // fx:id="changeAddressButton"
-    private Button changeAddressButton; // Value injected by FXMLLoader
+    @FXML // fx:id="activeFalseRadioButton"
+    private RadioButton activeFalseRadioButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="addressValueLabel"
+    private Label addressValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="address1TextField"
     private TextField address1TextField; // Value injected by FXMLLoader
@@ -184,67 +102,208 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     @FXML // fx:id="address2TextField"
     private TextField address2TextField; // Value injected by FXMLLoader
 
+    @FXML // fx:id="cityLabel"
+    private Label cityLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="cityZipCountryLabel"
+    private Label cityZipCountryLabel; // Value injected by FXMLLoader
+
     @FXML // fx:id="cityComboBox"
-    private ComboBox<?> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityModelImpl> cityComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="editCityButton"
-    private Button editCityButton; // Value injected by FXMLLoader
-
-    @FXML // fx:id="newCityButton"
-    private Button newCityButton; // Value injected by FXMLLoader
+    @FXML // fx:id="countryValueLabel"
+    private Label countryValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CountryModel> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityCountryModelImpl> countryComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="editCountryButton"
-    private Button editCountryButton; // Value injected by FXMLLoader
+    @FXML // fx:id="addressValidationLabel"
+    private Label addressValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="newCountryButton"
-    private Button newCountryButton; // Value injected by FXMLLoader
+    @FXML // fx:id="postalCodeLabel"
+    private Label postalCodeLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentsLabel"
-    private Label appointmentsLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="postalCodeTextField"
+    private TextField postalCodeTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentsFilterComboBox"
-    private ComboBox<String> appointmentsFilterComboBox; // Value injected by FXMLLoader
+    @FXML // fx:id="postalCodeValidationLabel"
+    private Label postalCodeValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="countryValidationLabel"
+    private Label countryValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="cityValidationLabel"
+    private Label cityValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="phoneNumberValueLabel"
+    private Label phoneNumberValueLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="phoneNumberTextField"
+    private TextField phoneNumberTextField; // Value injected by FXMLLoader
+
+    @FXML // fx:id="appointmentsVBox"
+    private VBox appointmentsVBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="appointmentFilterComboBox"
+    private ComboBox<AppointmentFilterItem> appointmentFilterComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
 
-    @FXML // fx:id="addAppointmentButton"
-    private Button addAppointmentButton; // Value injected by FXMLLoader
+    private ObservableList<String> unavailableNames;
 
-    private StringBinding normalizedName;
+    private ObservableList<AppointmentModel> customerAppointments;
+
+    private ObservableList<AppointmentFilterItem> filterOptions;
+    
+    private ReadOnlyObjectWrapper<AddressModel<? extends AddressElement>> selectedAddress;
+    private SingleSelectionModel<CityModelImpl> citySelectionModel;
+
+    public AddressModel<? extends AddressElement> getSelectedAddress() {
+        return selectedAddress.get();
+    }
+
+    public ReadOnlyObjectProperty<AddressModel<? extends AddressElement>> selectedAddressProperty() {
+        return selectedAddress.getReadOnlyProperty();
+    }
+
+    @FXML
+    void addAppointmentButtonAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void createNewButtonAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void selectExistingButtonAction(ActionEvent event) {
+
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
+        assert rootSplitPane != null : "fx:id=\"rootSplitPane\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert nameErrorLabel != null : "fx:id=\"nameErrorLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert activeYesRadioButton != null : "fx:id=\"activeYesRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert activeNoRadioButton != null : "fx:id=\"activeNoRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert changeAddressButton != null : "fx:id=\"changeAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert activeTrueRadioButton != null : "fx:id=\"activeTrueRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert activeToggleGroup != null : "fx:id=\"activeToggleGroup\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert activeFalseRadioButton != null : "fx:id=\"activeFalseRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert addressValueLabel != null : "fx:id=\"addressValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert address1TextField != null : "fx:id=\"address1TextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert address2TextField != null : "fx:id=\"address2TextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert cityLabel != null : "fx:id=\"cityLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert cityZipCountryLabel != null : "fx:id=\"cityZipCountryLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert cityComboBox != null : "fx:id=\"cityComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert editCityButton != null : "fx:id=\"editCityButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert newCityButton != null : "fx:id=\"newCityButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert countryValueLabel != null : "fx:id=\"countryValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert editCountryButton != null : "fx:id=\"editCountryButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert newCountryButton != null : "fx:id=\"newCountryButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert appointmentsLabel != null : "fx:id=\"appointmentsLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert appointmentsFilterComboBox != null : "fx:id=\"appointmentsFilterComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert addressValidationLabel != null : "fx:id=\"addressValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert postalCodeLabel != null : "fx:id=\"postalCodeLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert postalCodeTextField != null : "fx:id=\"postalCodeTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert postalCodeValidationLabel != null : "fx:id=\"postalCodeValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert countryValidationLabel != null : "fx:id=\"countryValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert cityValidationLabel != null : "fx:id=\"cityValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert phoneNumberValueLabel != null : "fx:id=\"phoneNumberValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert phoneNumberTextField != null : "fx:id=\"phoneNumberTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert appointmentsVBox != null : "fx:id=\"appointmentsVBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert appointmentFilterComboBox != null : "fx:id=\"appointmentFilterComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert addAppointmentButton != null : "fx:id=\"addAppointmentButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        normalizedName = ValueBindings.asNormalized(nameTextField.textProperty());
-        normalizedName.isEmpty().addListener((observable) -> nameEmptyChanged());
+
+        unavailableNames = FXCollections.observableArrayList();
+        customerAppointments = FXCollections.observableArrayList();
+        filterOptions = FXCollections.observableArrayList();
+        selectedAddress = new ReadOnlyObjectWrapper<>(null);
+        if (getModel().isNewItem()) {
+//            changePasswordCheckBox.setSelected(true);
+//            changePasswordCheckBox.setDisable(true);
+//            appointmentListingVBox.setVisible(false);
+            collapseNode(appointmentsVBox);
+            rootSplitPane.setDividerPosition(0, 1.0);
+        } else {
+            appointmentsTableView.setItems(customerAppointments);
+        }
+
+        nameValidationLabel.textProperty().bind(getNameValidationMessage());
+        nameValidationLabel.visibleProperty().bind(getNameValidationMessage().isNotEmpty());
+        bindCssCollapse(nameValidationLabel, getNameValidationMessage().isEmpty());
+        addressValueLabel.textProperty().bind(getSelectedAddressLines());
+        addressValueLabel.visibleProperty().bind(getSelectedAddressLines().isNotEmpty());
+        bindCssCollapse(addressValueLabel, getSelectedAddressLines().isEmpty());
+        address1TextField.visibleProperty().bind(selectedAddress.isNull());
+        bindCssCollapse(address1TextField, selectedAddress.isNotNull());
+        address2TextField.visibleProperty().bind(selectedAddress.isNull());
+        bindCssCollapse(address2TextField, selectedAddress.isNotNull());
+        addressValidationLabel.textProperty().bind(getAddressLinesValidationMessage());
+        addressValidationLabel.visibleProperty().bind(getAddressLinesValidationMessage().isNotEmpty());
+        bindCssCollapse(addressValidationLabel, getAddressLinesValidationMessage().isEmpty());
+        cityLabel.textProperty().bind(getCityLabelText());
+        cityZipCountryLabel.textProperty().bind(getSelectedCityZipCountry());
+        cityZipCountryLabel.visibleProperty().bind(getSelectedCityZipCountry().isNotEmpty());
+        bindCssCollapse(cityZipCountryLabel, getSelectedCityZipCountry().isEmpty());
+        // CURRENT: Bind cityComboBox
+        // CURRENT: Bind cityValidationLabel
+        // CURRENT: Bind postalLabel
+        // CURRENT: Bind postalCodeTextField
+        // CURRENT: Bind postalCodeTextField
+        // CURRENT: Bind postalCodeValidationLabel
+        // etc
     }
 
-    private void nameEmptyChanged() {
-        if (normalizedName.isEmpty().get()) {
-            restoreNode(nameErrorLabel);
-        } else {
-            collapseNode(nameErrorLabel);
-        }
+    public StringBinding getCityLabelText() {
+        return Bindings.createStringBinding(() -> {
+            AddressModel<? extends AddressElement> model = selectedAddress.get();
+            return (null == model) ? getResourceString(RESOURCEKEY_CITY) : getResourceString(RESOURCEKEY_CITYZIPCOUNTRY);
+        }, selectedAddress);
+    }
+    
+    public StringBinding getSelectedCityZipCountry() {
+        return Bindings.createStringBinding(() -> {
+            AddressModel<? extends AddressElement> model = selectedAddress.get();
+            return (null == model) ? "" : model.getCityZipCountry();
+        }, selectedAddress);
+    }
+    
+    public StringBinding getCityValidationMessage() {
+        return Bindings.createStringBinding(() -> {
+            AddressModel<? extends AddressElement> model = selectedAddress.get();
+            if (null == model && null == citySelectionModel.getSelectedItem()) {
+                return getResourceString(RESOURCEKEY_CITYMUSTBESELECTED);
+            }
+            return "";
+        }, citySelectionModel.selectedItemProperty(), selectedAddress);
+    }
+    
+    public StringBinding getSelectedAddressLines() {
+        return Bindings.createStringBinding(() -> {
+            AddressModel<? extends AddressElement> model = selectedAddress.get();
+            return (null == model) ? "" : model.getAddressLines();
+        }, selectedAddress);
+    }
+    
+    public StringBinding getAddressLinesValidationMessage() {
+        return Bindings.createStringBinding(() -> {
+            AddressModel<? extends AddressElement> model = selectedAddress.get();
+            if (null == model) {
+                String a = address1TextField.getText();
+                if (address2TextField.getText().trim().isEmpty() && a.isEmpty())
+                return getResourceString(RESOURCEKEY_ADDRESSCANNOTBEEMPTY);
+            }
+            return "";
+        }, address1TextField.textProperty(), address2TextField.textProperty(), selectedAddress);
+    }
+    
+    public StringBinding getNameValidationMessage() {
+        return Bindings.createStringBinding(() -> {
+            String n = nameTextField.getText().trim().toLowerCase();
+            if (n.isEmpty()) {
+                return getResourceString(RESOURCEKEY_NAMECANNOTBEEMPTY);
+            }
+            if (unavailableNames.contains(n)) {
+                return getResourceString(RESOURCEKEY_NAMEINUSE);
+            }
+            return "";
+        }, nameTextField.textProperty(), unavailableNames);
     }
 
     @Override
@@ -257,9 +316,126 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#getValidationExpression
     }
 
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
+    private void onBeforeShow(FxmlViewEvent<SplitPane> event) {
+        LocalDate today = LocalDate.now();
+        CustomerDAO dao = getModel().getDataObject();
+        if (dao.isExisting()) {
+            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_CURRENTANDFUTURE),
+                    AppointmentModelFilter.of(today, null, dao)));
+            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_CURRENTAPPOINTMENTS),
+                    AppointmentModelFilter.of(today, today.plusDays(1), dao)));
+            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_PASTAPPOINTMENTS),
+                    AppointmentModelFilter.of(null, today, dao)));
+            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+        }
+        TaskWaiter.startNow(new InitialLoadTask(event.getStage()));
+    }
+
     @Override
     protected void updateModel(CustomerModelImpl model) {
+        if (!getValidationExpression().get()) {
+            throw new IllegalStateException();
+        }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#updateModel
+    }
+
+    private class AppointmentFilterItem {
+
+        private final ReadOnlyStringWrapper text;
+
+        public String getText() {
+            return text.get();
+        }
+
+        public ReadOnlyStringProperty textProperty() {
+            return text.getReadOnlyProperty();
+        }
+        private final ReadOnlyObjectWrapper<AppointmentModelFilter> modelFilter;
+
+        public AppointmentModelFilter getModelFilter() {
+            return modelFilter.get();
+        }
+
+        public ReadOnlyObjectProperty<AppointmentModelFilter> modelFilterProperty() {
+            return modelFilter.getReadOnlyProperty();
+        }
+
+        AppointmentFilterItem(String text, AppointmentModelFilter modelFilter) {
+            this.text = new ReadOnlyStringWrapper(this, "text", text);
+            this.modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter", modelFilter);
+        }
+
+        @Override
+        public int hashCode() {
+            return text.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof AppointmentFilterItem && text.equals(((AppointmentFilterItem) obj).text);
+        }
+
+        @Override
+        public String toString() {
+            return text.get();
+        }
+
+    }
+
+    private class InitialLoadTask extends TaskWaiter<List<AppointmentDAO>> {
+
+        private List<CustomerDAO> customers;
+        private List<CityDAO> cities;
+        private List<CountryDAO> countries;
+
+        private InitialLoadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+        }
+
+        @Override
+        protected void processResult(List<AppointmentDAO> result, Stage stage) {
+            if (null != customers && !customers.isEmpty()) {
+                if (getModel().isNewItem()) {
+                    customers.forEach((t) -> unavailableNames.add(t.getName().toLowerCase()));
+                } else {
+                    int pk = getModel().getPrimaryKey();
+                    customers.forEach((t) -> {
+                        if (t.getPrimaryKey() != pk) {
+                            unavailableNames.add(t.getName().toLowerCase());
+                        }
+                    });
+                }
+            }
+            if (null != result && !result.isEmpty()) {
+                result.forEach((t) -> {
+                    customerAppointments.add(new AppointmentModel(t));
+                });
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+        @Override
+        protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
+            CustomerDAO.FactoryImpl uf = CustomerDAO.getFactory();
+            customers = uf.load(connection, uf.getAllItemsFilter());
+            CityDAO.FactoryImpl tf = CityDAO.getFactory();
+            cities = tf.load(connection, tf.getAllItemsFilter());
+            CountryDAO.FactoryImpl nf = CountryDAO.getFactory();
+            countries = nf.load(connection, nf.getAllItemsFilter());
+            if (!filterOptions.isEmpty()) {
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                return af.load(connection, filterOptions.get(0).getModelFilter().getDaoFilter());
+            }
+            return null;
+        }
+
     }
 
 }

@@ -44,9 +44,9 @@ import scheduler.view.task.TaskWaiter;
  * specific to the {@link ItemModel} type are edited in a nested view and controller. Controllers for the nested editor views inherit from {@link EditItem.EditController}.</p>
  * <p>The nested editor view can load the {@code EditItem} view and controller, including the nested view and controller using
  * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
- * <p>The view for this controller is <a href="file:../../resources/scheduler/view/user/EditUser.fxml">/resources/scheduler/view/user/EditUser.fxml</a>.</p>
+ * <p>The view for this controller is {@code /resources/scheduler/view/user/EditUser.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  */

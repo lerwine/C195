@@ -2,7 +2,7 @@ package scheduler.view.appointment;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface ManageAppointmentsResourceKeys {
 
@@ -175,6 +175,21 @@ public interface ManageAppointmentsResourceKeys {
      */
     public static final String RESOURCEKEY_APPOINTMENTSONORAFTERDATE = "appointmentsOnOrAfterDate";
 
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or after %tm %<te, %<tY for customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSONORAFTERFORCUST = "appointmentsOnOrAfterForCust";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or after %tm %<te, %<tY for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSONORAFTERFORUSER = "appointmentsOnOrAfterForUser";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or after %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_APPOINTMENTSONORAFTERFORBOTH = "appointmentsOnOrAfterForBoth";
+    
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Appointments on or before %tm %<te, %<tY"}.
      */
@@ -443,6 +458,11 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_MYPASTAPPOINTMENTS = "myPastAppointments";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "My Current and Past Appointments"}.
+     */
+    public static final String RESOURCEKEY_MYCURRENTANDPAST = "myCurrentAndPast";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
      */
     public static final String RESOURCEKEY_NEW = "new";
@@ -517,6 +537,21 @@ public interface ManageAppointmentsResourceKeys {
      * {@code "Past appointments for customer \"%s\" and user \"%s\""}.
      */
     public static final String RESOURCEKEY_PASTAPPOINTMENTSFORBOTH = "pastAppointmentsForBoth";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and past appointments for customer \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDPASTFORCUSTOMER = "currentAndPastForCustomer";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and past appointments for user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDPASTFORUSER = "currentAndPastForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Current and past appointments for customer \"%s\" and user \"%s\""}.
+     */
+    public static final String RESOURCEKEY_CURRENTANDPASTFORBOTH = "currentAndPastForBoth";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Start"}.

@@ -3,7 +3,7 @@ package scheduler.dao;
 /**
  * Represents a data row from the "user" database table. This object contains the login credentials for users of the current application.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface UserElement extends DataElement {
 

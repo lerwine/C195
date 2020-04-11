@@ -7,7 +7,7 @@ import scheduler.view.model.ElementModel;
 /**
  * Models a country data access object.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link CountryElement} data access object.
  */
 public interface CityCountryModel<T extends CountryElement> extends ElementModel<T> {

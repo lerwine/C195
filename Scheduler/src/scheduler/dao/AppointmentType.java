@@ -6,7 +6,7 @@ import scheduler.AppResources;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public enum AppointmentType {
     PHONE("phone", AppointmentLocationSource.URL_FIELD, FieldUsage.ENCODED_PHONE_NUMER),
@@ -21,7 +21,7 @@ public enum AppointmentType {
     public static AppointmentType of(String dbValue, AppointmentType defaultValue) {
         if (null != dbValue) {
             for (AppointmentType t : AppointmentType.values()) {
-                if (t.getDbValue().equalsIgnoreCase(dbValue)) {
+                if (t.dbValue.equalsIgnoreCase(dbValue)) {
                     return t;
                 }
             }
@@ -32,7 +32,7 @@ public enum AppointmentType {
     public static Optional<AppointmentType> of(String dbValue) {
         if (null != dbValue) {
             for (AppointmentType t : AppointmentType.values()) {
-                if (t.getDbValue().equalsIgnoreCase(dbValue)) {
+                if (t.dbValue.equalsIgnoreCase(dbValue)) {
                     return Optional.of(t);
                 }
             }
@@ -50,7 +50,8 @@ public enum AppointmentType {
         this.urlFieldusage = urlFieldusage;
     }
 
-    public String getDbValue() {
+    @Override
+    public String toString() {
         return dbValue;
     }
 
@@ -67,7 +68,7 @@ public enum AppointmentType {
             return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
         }
         ResourceBundle rb = AppResources.getResources();
-        String key = type.getDbValue();
+        String key = type.dbValue;
         return (rb.containsKey(key)) ? rb.getString(key) : key;
     }
 

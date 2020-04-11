@@ -5,7 +5,7 @@ import java.util.EventObject;
 /**
  * Represents an event that indicates all initialization data has been loaded and the base controller is finished.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data loaded by the base controller.
  */
 public class DataLoadedEvent<T> extends EventObject {

@@ -16,7 +16,7 @@ import java.util.function.Supplier;
  * An object that contains one or none of 2 possible value options.
  * This is is somewhat similar to {@link Optional} with a secondary option value.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The primary value type.
  * @param <U> The secondary value type.
  */

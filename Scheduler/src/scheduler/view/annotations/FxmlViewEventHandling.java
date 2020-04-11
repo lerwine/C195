@@ -5,7 +5,7 @@ import scheduler.view.event.FxmlViewEventType;
 /**
  * Defines the type of events that a method annotated with {@link scheduler.view.annotations.HandlesFxmlViewEvent} can handle.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public enum FxmlViewEventHandling {
     /**
@@ -23,7 +23,7 @@ public enum FxmlViewEventHandling {
      *  Only invoke the annotated method for {@link scheduler.view.event.FxmlViewEvent}s where {@link scheduler.view.event.FxmlViewEvent#type} is
      * {@link FxmlViewEventType#BEFORE_SHOW}.
      */
-    ADDED(FxmlViewEventType.BEFORE_SHOW),
+    BEFORE_SHOW(FxmlViewEventType.BEFORE_SHOW),
     
     /**
      *  Only invoke the annotated method for {@link scheduler.view.event.FxmlViewEvent}s where {@link scheduler.view.event.FxmlViewEvent#type} is

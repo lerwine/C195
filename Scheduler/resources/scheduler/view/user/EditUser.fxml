@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.controls.CustomerTableCellFactory?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="formControlLabel" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.EditUser">
-    <children>
-        <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" stylesheets="@../../defaultStyles.css">
+<SplitPane fx:id="userEditSplitPane" dividerPositions="0.36" prefHeight="517.0" prefWidth="884.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.EditUser">
+    <items>
+        <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" stylesheets="@../../defaultStyles.css" vgap="2.0">
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="99.0" />
-                <ColumnConstraints hgrow="ALWAYS" minWidth="164.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" valignment="CENTER" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="ALWAYS" />
@@ -37,68 +37,123 @@
                 <Label styleClass="formControlLabel" text="%userName" />
                 <TextField fx:id="userNameTextField" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" GridPane.columnIndex="1" />
                 <Label fx:id="userNameErrorMessageLabel" styleClass="error" text="%userNameCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <CheckBox fx:id="changePasswordCheckBox" mnemonicParsing="false" styleClass="formControlLabel" text="%password" GridPane.rowIndex="2" />
-                <PasswordField fx:id="passwordField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <Label fx:id="confirmLabel" styleClass="formControlLabel" text="%confirmPassword" GridPane.rowIndex="3" />
-                <PasswordField fx:id="confirmPasswordField" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                <Label fx:id="passwordErrorMessageLabel" styleClass="error" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                <Label styleClass="formControlLabel" text="%activeState" GridPane.rowIndex="5" />
-                <ComboBox fx:id="activeComboBox" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
+                <CheckBox fx:id="changePasswordCheckBox" mnemonicParsing="false" styleClass="formControlLabel" text="%password" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </CheckBox>
+                <PasswordField fx:id="passwordField" maxWidth="1.7976931348623157E308" styleClass="hFieldControl" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </PasswordField>
+                <Label fx:id="confirmLabel" styleClass="formControlLabel" text="%confirmPassword" GridPane.rowIndex="4">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <PasswordField fx:id="confirmPasswordField" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </PasswordField>
+                <Label fx:id="passwordErrorMessageLabel" styleClass="error" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label styleClass="formControlLabel" text="%activeState" GridPane.rowIndex="5">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </Label>
+                <ComboBox fx:id="activeComboBox" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5">
+                    <GridPane.margin>
+                        <Insets top="16.0" />
+                    </GridPane.margin>
+                </ComboBox>
             </children>
+            <padding>
+                <Insets right="8.0" />
+            </padding>
         </GridPane>
-        <HBox>
+        <VBox fx:id="appointmentListingVBox">
             <children>
-                <Label fx:id="appointmentsLabel" text="%appointments" />
-                <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" styleClass="formLabeledControl" />
+                <TableView fx:id="appointmentsTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="title" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="start" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="end" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="type" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customer">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="customerName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="effectiveLocation" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createDate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createdBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdateBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                    <VBox.margin>
+                        <Insets bottom="8.0" top="8.0" />
+                    </VBox.margin>
+                </TableView>
+                <ButtonBar>
+                    <buttons>
+                        <Button fx:id="addAppointmentButton" mnemonicParsing="false" text="%add" />
+                    </buttons>
+                </ButtonBar>
             </children>
-        </HBox>
-        <TableView fx:id="appointmentsTableView" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%title">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="title" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%type">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="type" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%start">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="start" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%end">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="end" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%customer">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="customer" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <CustomerTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="effectiveLocation" />
-                    </cellValueFactory>
-                </TableColumn>
-            </columns>
-        </TableView>
-        <ButtonBar>
-            <buttons>
-                <Button fx:id="addAppointmentButton" mnemonicParsing="false" text="%add" />
-            </buttons>
-        </ButtonBar>
-    </children>
-</VBox>
+            <padding>
+                <Insets left="8.0" />
+            </padding>
+        </VBox>
+    </items>
+</SplitPane>

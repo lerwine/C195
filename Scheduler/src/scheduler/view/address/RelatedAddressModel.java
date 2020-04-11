@@ -17,7 +17,7 @@ import scheduler.view.model.RelatedItemModel;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class RelatedAddressModel extends RelatedItemModel<AddressElement> implements AddressModel<AddressElement> {
 

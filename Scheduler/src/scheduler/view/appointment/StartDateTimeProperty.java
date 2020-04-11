@@ -31,7 +31,7 @@ import scheduler.controls.TimeZoneListCellFactory;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class StartDateTimeProperty extends ObjectBinding<ZonedDateTime>
         implements ReadOnlyProperty<ZonedDateTime>, WritableObjectValue<ZonedDateTime> {
@@ -253,7 +253,7 @@ public class StartDateTimeProperty extends ObjectBinding<ZonedDateTime>
             try {
                 success = null != startDateConverter.fromString(dt);
             } catch (DateTimeParseException ex) {
-                LOG.log(Level.INFO, "Caught start date string parse error", ex);
+                LOG.log(Level.FINER, "Caught start date string parse error", ex);
                 success = false;
             }
             if (!success)
@@ -262,7 +262,7 @@ public class StartDateTimeProperty extends ObjectBinding<ZonedDateTime>
                 Integer i = hourConverter.fromString(ht);
                 success = null != i && i > 0 && i < 13;
             } catch (NumberFormatException ex) {
-                LOG.log(Level.INFO, "Caught start hour string parse error", ex);
+                LOG.log(Level.FINER, "Caught start hour string parse error", ex);
                 success = false;
             }
             if (!success)
@@ -271,7 +271,7 @@ public class StartDateTimeProperty extends ObjectBinding<ZonedDateTime>
                 Integer i = minuteConverter.fromString(mt);
                 success = null != i && i >= 0 && i < 60;
             } catch (NumberFormatException ex) {
-                LOG.log(Level.INFO, "Caught start minute string parse error", ex);
+                LOG.log(Level.FINER, "Caught start minute string parse error", ex);
                 success = false;
             }
             if (!success)

@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Specifies the {@link DbTable} associated with a class.
  * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

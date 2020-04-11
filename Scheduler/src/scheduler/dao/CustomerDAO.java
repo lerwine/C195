@@ -192,7 +192,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
         }
 
         public DaoFilter<CustomerDAO> getActiveStatusFilter(boolean active) {
-            return CustomerFilter.of(CustomerFilter.byActiveStatus(active));
+            return CustomerFilter.of(CustomerFilter.expressionOf(active));
         }
 
         @Override
@@ -345,7 +345,9 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
 
         @Override
         public String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
-            assert dao.getRowState() != DataRowState.DELETED : "Data access object already deleted";
+            if (dao.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Data access object already deleted");
+            }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
                     .append(") FROM ").append(DbTable.CUSTOMER.getDbName())

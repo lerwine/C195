@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * This annotation is utilized by the {@link scheduler.util.ViewControllerLoader} to determine which {@link java.util.ResourceBundle} to load along with the FXML resource
  * specified by the {@link FXMLResource} annotation.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

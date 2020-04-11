@@ -21,9 +21,9 @@ import scheduler.view.model.ItemModel;
 /**
  * FXML Controller class for editing a {@link CityModelImpl}.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/city/EditCity.fxml">/resources/scheduler/view/city/EditCity.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/city/EditCity.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
@@ -135,6 +135,9 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
 
     @Override
     protected void updateModel(CityModelImpl model) {
+        if (!getValidationExpression().get()) {
+            throw new IllegalStateException();
+        }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#updateModel
     }
 

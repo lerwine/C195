@@ -15,7 +15,7 @@
     <children>
         <TableView fx:id="listingTableView" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="nameTableColumn" editable="false" prefWidth="62.0" text="Name" />
+                <TableColumn fx:id="nameTableColumn" editable="false" prefWidth="62.0" text="%name" />
                 <TableColumn editable="false" prefWidth="75.0" text="%createdOn">
                     <cellValueFactory>
                         <PropertyValueFactory property="createDate" />
@@ -54,7 +54,7 @@
         </TableView>
         <ButtonBar>
             <buttons>
-                <Button fx:id="newButton" mnemonicParsing="false" text="New" />
+                <Button fx:id="newButton" mnemonicParsing="false" text="%new" />
             </buttons>
             <padding>
                 <Insets bottom="8.0" right="8.0" />

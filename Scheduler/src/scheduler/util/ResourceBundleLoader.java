@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,13 +29,12 @@ import scheduler.Scheduler;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CREATEDBYON;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_MODIFIEDBYON;
 import scheduler.AppResources;
-import static scheduler.AppResources.PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER;
 import static scheduler.AppResources.PROPERTYKEY_SUPPORTEDLOCALES;
 
 /**
  * Caches loaded resource bundles, reloading them if the default Display Locale has changed.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class ResourceBundleLoader {
 
@@ -137,12 +137,12 @@ public final class ResourceBundleLoader {
         return result;
     }
 
-    public static Stream<SupportedLocale> getSupportedLocales() {
-        return Arrays.stream(INSTANCE.supportedLocales);
+    public static List<SupportedLocale> getSupportedLocales() {
+        return INSTANCE.supportedLocales;
     }
 
-    public static Stream<SupportedCountry> getSupportedCountries() {
-        return Arrays.stream(INSTANCE.supportedCountries);
+    public static List<SupportedCountry> getSupportedCountries() {
+        return INSTANCE.supportedCountries;
     }
 
     public static final String getGlobalizationResourceName(Class<?> target) {
@@ -184,12 +184,12 @@ public final class ResourceBundleLoader {
         return formatResourceString(AppResources.class, RESOURCEKEY_MODIFIEDBYON, modifiedBy, Objects.requireNonNull(lastModifiedDate));
     }
 
-    private final SupportedLocale[] supportedLocales;
+    private final List<SupportedLocale> supportedLocales;
     private final HashMap<String, String> classNameToResourceName;
     private final HashMap<String, ResourceBundle> resourceBundleByClassName;
     private final HashMap<CacheKey, ResourceBundle> mergedBundleCache;
     private final Properties supportedCityProperties;
-    private final SupportedCountry[] supportedCountries;
+    private final List<SupportedCountry> supportedCountries;
     private Locale currentDisplayLocale;
     private Locale currentFormatLocale;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -206,16 +206,10 @@ public final class ResourceBundleLoader {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, String.format("Error loading resource \"%s\"", PROPERTIES_FILE_CITIES), ex);
         }
-        supportedCountries = loadCities();
+        supportedCountries = Collections.unmodifiableList(loadCities());
         resourceBundleByClassName = new HashMap<>();
         mergedBundleCache = new HashMap<>();
         ArrayList<Locale> localeList = new ArrayList<>();
-        ArrayList<String> usesAlt = new ArrayList<>();
-        Arrays.stream(AppResources.getProperty(PROPERTYKEY_ALTSTRINGPLACEHOLDERORDER, "").split(",")).map((t) -> t.trim()).forEach((t) -> {
-            if (!t.isEmpty()) {
-                usesAlt.add(t);
-            }
-        });
         Arrays.stream(AppResources.getProperty(PROPERTYKEY_SUPPORTEDLOCALES, "").split(",")).forEach((String t) -> {
             String s = t.trim();
             if (s.isEmpty()) {
@@ -233,7 +227,7 @@ public final class ResourceBundleLoader {
             }
         });
         if (localeList.isEmpty()) {
-            supportedLocales = new SupportedLocale[0];
+            supportedLocales = Collections.emptyList();
             LOG.log(Level.SEVERE, String.format("Resource property %s in %s contains no language tags.",
                     PROPERTYKEY_SUPPORTEDLOCALES, AppResources.PROPERTIES_FILE_APPCONFIG));
             return;
@@ -259,12 +253,13 @@ public final class ResourceBundleLoader {
         }
         Locale toSelect = Locale.lookup(priorityList, Arrays.asList(localeList.stream().toArray(Locale[]::new)));
         if (null == toSelect) {
-            supportedLocales = localeList.stream().map((Locale t) -> new SupportedLocale(t, t, t)).toArray(SupportedLocale[]::new);
+            supportedLocales =  Collections.unmodifiableList(Arrays.asList(localeList.stream().map((Locale t) -> 
+                    new SupportedLocale(t, t, t)).toArray(SupportedLocale[]::new)));
         } else {
             String toMatch = toSelect.toLanguageTag();
-            supportedLocales = localeList.stream().map((Locale t) -> (t.toLanguageTag().equals(toMatch))
+            supportedLocales =  Collections.unmodifiableList(Arrays.asList(localeList.stream().map((Locale t) -> (t.toLanguageTag().equals(toMatch))
                     ? new SupportedLocale(t, originalDefaultLocale, Locale.getDefault(Locale.Category.FORMAT))
-                    : new SupportedLocale(t, t, t)).toArray(SupportedLocale[]::new);
+                    : new SupportedLocale(t, t, t)).toArray(SupportedLocale[]::new)));
 
             for (SupportedLocale l : supportedLocales) {
                 if (l.key.equals(toMatch)) {
@@ -274,7 +269,7 @@ public final class ResourceBundleLoader {
             }
         }
         if (null == currentDisplayLocale) {
-            supportedLocales[0].setCurrent();
+            supportedLocales.get(0).setCurrent();
         }
 
     }
@@ -318,7 +313,7 @@ public final class ResourceBundleLoader {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
 
-    private SupportedCountry[] loadCities() {
+    private List<SupportedCountry> loadCities() {
         final HashMap<String, Locale> parsedLocales = new HashMap<>();
         final HashMap<String, ZoneId> parsedZoneIds = new HashMap<>();
         final HashMap<String, ArrayList<String>> countryMap = new HashMap<>();
@@ -352,7 +347,7 @@ public final class ResourceBundleLoader {
             }
         });
 
-        return countryMap.keySet().stream().map((ck) -> {
+        return Arrays.asList(countryMap.keySet().stream().map((ck) -> {
             ArrayList<String> kList = countryMap.get(ck);
             SupportedCity[] arr = new SupportedCity[kList.size()];
             SupportedCountry country = new SupportedCountry(ck, arr);
@@ -361,7 +356,7 @@ public final class ResourceBundleLoader {
                 arr[i] = new SupportedCity(k, parsedLocales.get(k), parsedZoneIds.get(k), country);
             }
             return country;
-        }).toArray(SupportedCountry[]::new);
+        }).toArray(SupportedCountry[]::new));
     }
 
     private static final class CacheKey {

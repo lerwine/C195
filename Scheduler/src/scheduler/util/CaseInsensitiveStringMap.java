@@ -23,7 +23,7 @@ import javafx.collections.ObservableMap;
 /**
  * Maps case-insensitive string keys to values.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <V> The type of mapped values.
  */
 public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {

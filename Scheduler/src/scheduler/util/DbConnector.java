@@ -18,7 +18,7 @@ import scheduler.AppResources;
  * no dependencies after a predetermined delay. This allows nested method calls to use the same database connection without having to pass the
  * connection instance.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class DbConnector implements AutoCloseable {
 

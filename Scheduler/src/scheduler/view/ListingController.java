@@ -3,11 +3,11 @@ package scheduler.view;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -35,19 +35,21 @@ import scheduler.view.model.ItemModel;
 
 /**
  * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
- * <p>Inherited classes invoke {@link #loadInto(Class, MainController, Stage, ModelFilter)} or
- * {@link #loadInto(Class, MainController, Stage, ModelFilter, Object)} to instantiate a new controller instance and its view.
- * Typically, the {@link MainController} calls a method on the inherited class, so that method can pass the {@link MainController} to
- * the aforementioned method.</p>
- * 
- * <p>The {@link #filter} field is set to the specified {@link ModelFilter} during the {@link FxmlViewEventType#LOADED} event.</p>
- * 
- * <p>List items are retrieved from the database by a background that that is started by {@link #onFxmlViewEvent(FxmlViewEvent)}
- * during the {@link FxmlViewEventType#BEFORE_SHOW} event. The {@link DataLoadedEvent} event fired when the items have been loaded.
- * Implementing classes can either use the {@link scheduler.view.annotations.HandlesDataLoaded} annotation on a method or implement the
+ * <p>
+ * Inherited classes invoke {@link #loadInto(Class, MainController, Stage, ModelFilter)} or
+ * {@link #loadInto(Class, MainController, Stage, ModelFilter, Object)} to instantiate a new controller instance and its view. Typically, the
+ * {@link MainController} calls a method on the inherited class, so that method can pass the {@link MainController} to the aforementioned method.</p>
+ *
+ * <p>
+ * The {@link #filter} field is set to the specified {@link ModelFilter} during the {@link FxmlViewEventType#LOADED} event.</p>
+ *
+ * <p>
+ * List items are retrieved from the database by a background that that is started by {@link #onFxmlViewEvent(FxmlViewEvent)} during the
+ * {@link FxmlViewEventType#BEFORE_SHOW} event. The {@link DataLoadedEvent} event fired when the items have been loaded. Implementing classes can
+ * either use the {@link scheduler.view.annotations.HandlesDataLoaded} annotation on a method or implement the
  * {@link scheduler.view.event.DataLoadedEventListener} to receive this event.</p>
- * 
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data access object that corresponds to the model object type.
  * @param <U> The type of model objects presented by the ListingController.
  */
@@ -158,83 +160,92 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      */
     @FXML
     protected void initialize() {
-        Objects.requireNonNull(listingTableView, String.format("fx:id=\"listingTableView\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setItems(itemsList);
-        listingTableView.setOnKeyTyped((event) -> {
-            if (event.isAltDown() || event.isShortcutDown()) {
-                return;
-            }
-            
-            if (event.isMetaDown() || event.isControlDown()) {
-                if (event.getCode() == KeyCode.N) {
-                    try {
-                        onAddNewItem(event);
-                    } catch (IOException ex) {
-                        // PENDING: Internationalize message
-                        AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
-                    }
-                }
-                return;
-            }
-            if (event.isShiftDown()) {
-                return;
-            }
-            U item = listingTableView.getSelectionModel().getSelectedItem();
-            if (item == null) {
-                return;
-            }
-            if (event.getCode() == KeyCode.DELETE) {
-                onDeleteItem(event, item);
-            } else if (event.getCode() == KeyCode.ENTER) {
-                try {
-                    onEditItem(event, item);
-                } catch (IOException ex) {
-                    // PENDING: Internationalize message
-                    AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
-                }
-            }
-        });
-        Objects.requireNonNull(editMenuItem, String.format("fx:id=\"editMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            U item = listingTableView.getSelectionModel().getSelectedItem();
-            if (item == null) {
-                ResourceBundle rb = AppResources.getResources();
-                AlertHelper.showWarningAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
-            } else {
-                try {
-                    onEditItem(event, item);
-                } catch (IOException ex) {
-                    // PENDING: Internationalize message
-                    AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
-                }
-            }
-        });
-        Objects.requireNonNull(deleteMenuItem, String.format("fx:id=\"deleteMenuItem\" (Context menu item) was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            U item = listingTableView.getSelectionModel().getSelectedItem();
-            if (item == null) {
-                ResourceBundle rb = AppResources.getResources();
-                AlertHelper.showWarningAlert((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), LOG,
-                        rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
-            } else {
-                onDeleteItem(event, item);
-            }
-        });
-        Objects.requireNonNull(newButton, String.format("fx:id=\"newButton\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
+        assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert editMenuItem != null : "fx:id=\"editMenuItem\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert deleteMenuItem != null : "fx:id=\"deleteMenuItem\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert newButton != null : "fx:id=\"newButton\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+
+        listingTableView.setItems(itemsList);
+        listingTableView.setOnKeyTyped(this::onListingTableViewKeyTyped);
+        editMenuItem.setOnAction(this::onEditMenuItemAction);
+        deleteMenuItem.setOnAction(this::onDeleteMenuItemAction);
+        newButton.setOnAction(this::onNewButtonAction);
+    }
+
+    void onNewButtonAction(ActionEvent event) {
+        try {
+            onAddNewItem(event);
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+        }
+    }
+
+    void onEditMenuItemAction(ActionEvent event) {
+        U item = listingTableView.getSelectionModel().getSelectedItem();
+        if (item == null) {
+            ResourceBundle rb = AppResources.getResources();
+            AlertHelper.showWarningAlert((Stage) listingTableView.getScene().getWindow(), LOG,
+                    rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+        } else {
             try {
-                onAddNewItem(event);
+                onEditItem(event, item);
             } catch (IOException ex) {
                 // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage)((TableView<U>)event.getSource()).getScene().getWindow(), LOG, "Error loading view", ex);
+                AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
             }
-        });
+        }
+    }
+
+    void onDeleteMenuItemAction(ActionEvent event) {
+        U item = listingTableView.getSelectionModel().getSelectedItem();
+        if (item == null) {
+            ResourceBundle rb = AppResources.getResources();
+            AlertHelper.showWarningAlert((Stage) listingTableView.getScene().getWindow(), LOG,
+                    rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+        } else {
+            onDeleteItem(event, item);
+        }
+    }
+
+    void onListingTableViewKeyTyped(KeyEvent event) {
+        if (event.isAltDown() || event.isShortcutDown()) {
+            return;
+        }
+
+        if (event.isMetaDown() || event.isControlDown()) {
+            if (event.getCode() == KeyCode.N) {
+                try {
+                    onAddNewItem(event);
+                } catch (IOException ex) {
+                    // PENDING: Internationalize message
+                    AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+                }
+            }
+            return;
+        }
+        if (event.isShiftDown()) {
+            return;
+        }
+        U item = listingTableView.getSelectionModel().getSelectedItem();
+        if (item == null) {
+            return;
+        }
+        if (event.getCode() == KeyCode.DELETE) {
+            onDeleteItem(event, item);
+        } else if (event.getCode() == KeyCode.ENTER) {
+            try {
+                onEditItem(event, item);
+            } catch (IOException ex) {
+                // PENDING: Internationalize message
+                AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+            }
+        }
     }
 
     /**
      * Gets the filter being used for the items listing.
-     * 
+     *
      * @return The {@link ModelFilter} being used for the items listing.
      */
     public ModelFilter<T, U, ? extends DaoFilter<T>> getFilter() {
@@ -322,8 +333,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     protected abstract void onDeleteItem(Event event, U item);
 
     /**
-     * Gets the index of the {@link ItemModel} in the current {@link #itemsList} where the {@link ItemModel#primaryKeyProperty()} matches the
-     * given value.
+     * Gets the index of the {@link ItemModel} in the current {@link #itemsList} where the {@link ItemModel#primaryKeyProperty()} matches the given
+     * value.
      *
      * @param pk The value of the primary key.
      * @return The index of the list item whose {@link ItemModel#primaryKeyProperty()} matches {@code pk} or {@code -1} if no match was found.
@@ -344,8 +355,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      * Gets the {@link ItemModel} in the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value.
      *
      * @param pk The value of the primary key.
-     * @return The {@link ItemModel} whose {@link ItemModel#primaryKeyProperty()} matches the given value or {@code null} if no match was
-     * found.
+     * @return The {@link ItemModel} whose {@link ItemModel#primaryKeyProperty()} matches the given value or {@code null} if no match was found.
      */
     protected U getListItemByPrimaryKey(int pk) {
         Iterator<U> iterator = getItemsList().iterator();
@@ -359,8 +369,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Removes the {@link ItemModel} from the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value.
-     * This does not delete the item from the database.
+     * Removes the {@link ItemModel} from the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value. This
+     * does not delete the item from the database.
      *
      * @param pk The value of the primary key.
      * @return {@code true} if the item was removed or {@code false} if no match was found.
@@ -378,12 +388,12 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Replaces an {@link ItemModel} in the current {@link #itemsList} a matching {@link ItemModel#primaryKeyProperty()}. This does not update
-     * any item in the database.
+     * Replaces an {@link ItemModel} in the current {@link #itemsList} a matching {@link ItemModel#primaryKeyProperty()}. This does not update any
+     * item in the database.
      *
      * @param item The {@link ItemModel} to replace into the list.
-     * @return {@code true} if an item with a matching {@link ItemModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if
-     * no match was found.
+     * @return {@code true} if an item with a matching {@link ItemModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if no
+     * match was found.
      */
     protected boolean updateListItem(U item) {
         int pk = item.getPrimaryKey();
@@ -401,8 +411,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Inserts an {@link ItemModel} into the current {@link #itemsList}, replacing any with a matching {@link ItemModel#primaryKeyProperty()}.
-     * This does not insert or update any item in the database.
+     * Inserts an {@link ItemModel} into the current {@link #itemsList}, replacing any with a matching {@link ItemModel#primaryKeyProperty()}. This
+     * does not insert or update any item in the database.
      *
      * @param item The {@link ItemModel} to insert into the list.
      * @return {@code true} if the {@code item} was appended to the list; otherwise, {@code false} if it replaced one with a matching

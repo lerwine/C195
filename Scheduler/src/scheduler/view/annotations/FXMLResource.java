@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * {@link scheduler.util.ViewControllerLoader} to determine which FXML resource to load in order to load the appropriate view and instantiate the controller. The
  * {@link GlobalizationResource} annotation specifies which resource bundle to load along with the FXML.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

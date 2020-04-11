@@ -16,13 +16,13 @@ import scheduler.view.model.ItemModel;
 /**
  * FXML Controller class for viewing a list of {@link CustomerModelImpl} items.
  * <p>
- * The associated view is <a href="file:../../resources/scheduler/view/customer/ManageCustomers.fxml">/resources/scheduler/view/customer/ManageCustomers.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/customer/ManageCustomers.fxml}.</p>
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends ListingController<CustomerDAO, CustomerModelImpl> implements ManageCustomersConstants {
+public final class ManageCustomers extends ListingController<CustomerDAO, CustomerModelImpl> {
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 

@@ -4,7 +4,7 @@ package scheduler.util;
  * An exception for an internal application error.
  * This is intended for re-throwing exceptions that should never occur, usually indicating there is a bug in the code.
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class InternalException extends RuntimeException {
 
