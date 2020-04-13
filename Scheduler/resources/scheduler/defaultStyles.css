@@ -1,12 +1,21 @@
-.outerContainer {
+.mainFxmlClass {
     -fx-font-size: 12px;
     -fx-font-family: sans-serif;
     -fx-background-color: #ffffff;
 }
 
+.fiftyPercentTransparentBg {
+    -fx-background-color: #7f7f7f7f;
+}
+
 .topControlLabel {
     -fx-font-weight: bold;
     -fx-alignment: bottom-left;
+}
+
+.bordered {
+   -fx-border-color: black;
+   -fx-border-width: 2;
 }
 
 .topLabeledControl {
@@ -57,6 +66,10 @@ HBox.header-section {
 .formControlValidationMessage {
     -fx-text-fill: red;
     -fx-wrap-text: true;
+}
+.warningMessage {
+    -fx-font-style: italic;
+    -fx-text-fill:darkgoldenrod;
 }
 .error Label, Label.error {
     -fx-alignment: top-left;

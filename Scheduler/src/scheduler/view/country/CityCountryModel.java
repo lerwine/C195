@@ -15,4 +15,6 @@ public interface CityCountryModel<T extends CountryElement> extends ElementModel
     String getName();
 
     ReadOnlyProperty<String> nameProperty();
+    
+    CountryOptionModel getOptionModel();
 }

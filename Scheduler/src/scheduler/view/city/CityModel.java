@@ -5,6 +5,7 @@ import scheduler.dao.CityElement;
 import scheduler.dao.CountryElement;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.country.CityCountryModel;
+import scheduler.view.country.CityOptionModel;
 import scheduler.view.model.ElementModel;
 
 /**
@@ -26,4 +27,6 @@ public interface CityModel<T extends CityElement> extends ElementModel<T> {
     String getCountryName();
 
     ChildPropertyWrapper<String, CityCountryModel<? extends CountryElement>> countryNameProperty();
+    
+    CityOptionModel getOptionModel();
 }

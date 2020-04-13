@@ -172,6 +172,7 @@ public interface ReadOnlyList<E> extends List<E> {
         throw new UnsupportedOperationException("Target list is read-only.");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public default <T> T[] toArray(T[] a) {
         Object[] elementData = toArray();
@@ -185,6 +186,7 @@ public interface ReadOnlyList<E> extends List<E> {
         return a;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> ReadOnlyList<T> of(T initial, T ...additionalValues) {
         if (null == additionalValues || additionalValues.length == 0)
             return of((T[])(new Object[] { initial }), 0, 1);
@@ -245,6 +247,7 @@ public interface ReadOnlyList<E> extends List<E> {
                 return result;
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public boolean containsAll(Collection<?> c) {
                 return c.stream().allMatch((t) -> contains((T)t));
@@ -370,6 +373,7 @@ public interface ReadOnlyList<E> extends List<E> {
         return of(source, 0, source.length);
     }
     
+    @SuppressWarnings("unchecked")
     public static <T> ReadOnlyList<T> empty() {
             return of ((T[])new Object[0], 0, 0);
     }
@@ -411,6 +415,7 @@ public interface ReadOnlyList<E> extends List<E> {
          * @param targetSize The new size of the {@link ReadOnlyList} to be built.
          * @throws IllegalStateException if the target list was already built.
          */
+        @SuppressWarnings("unchecked")
         public synchronized void setTargetSize(int targetSize) {
             if (null != builtList)
                 throw new IllegalStateException("Cannot change size after target list is built");
@@ -453,6 +458,7 @@ public interface ReadOnlyList<E> extends List<E> {
          * 
          * @param length The length of the backing array which will also be the {@link Collection#size()} of the {@link ReadOnlyList}.
          */
+        @SuppressWarnings("unchecked")
         public Builder(int length) {
             backingArray = (E[])(new Object[length]);
             buildIndex = 0;
@@ -534,6 +540,7 @@ public interface ReadOnlyList<E> extends List<E> {
             return Arrays.copyOf(backingArray, backingArray.length);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <T> T[] toArray(T[] a) {
             if (a.length < backingArray.length) {
@@ -563,6 +570,7 @@ public interface ReadOnlyList<E> extends List<E> {
             return true;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public boolean containsAll(Collection<?> c) {
             return c.stream().allMatch((t) -> contains((E)t));
@@ -594,6 +602,7 @@ public interface ReadOnlyList<E> extends List<E> {
             return listModified;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public synchronized boolean removeAll(Collection<?> c) {
             boolean listModified = false;
@@ -782,6 +791,7 @@ public interface ReadOnlyList<E> extends List<E> {
             };
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public synchronized List<E> subList(int fromIndex, int toIndex) {
             if (null != builtList)

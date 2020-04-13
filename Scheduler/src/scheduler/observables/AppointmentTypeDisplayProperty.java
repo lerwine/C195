@@ -25,7 +25,7 @@ public class AppointmentTypeDisplayProperty extends StringBinding implements Rea
 
     @Override
     protected String computeValue() {
-        return AppointmentType.toAppointmentTypeDisplay(backingProperty.getValue());
+        return AppointmentType.toDisplayText(backingProperty.getValue());
     }
 
     @Override

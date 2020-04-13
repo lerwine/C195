@@ -10,6 +10,7 @@ import java.util.Set;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <E> The type of elements in this collection.
  */
+@SuppressWarnings("unchecked")
 public interface ReadOnlySet<E> extends Set<E> {
 
     @Override

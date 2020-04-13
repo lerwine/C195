@@ -27,6 +27,7 @@ public class MapHelper {
         }
     }
 
+    @SafeVarargs
     public static <T, K, V> void fillMap(Map<K, V> target, BiConsumer<T, Map<K, V>> builder, T... source) {
         fillMap(target, source, builder);
     }
@@ -43,6 +44,7 @@ public class MapHelper {
         fillMap(target, source, (T t, Map<K, V> m) -> m.put(getKey.apply(t), getValue.apply(t)));
     }
 
+    @SafeVarargs
     public static <T, K, V> void fillMap(Map<K, V> target, Function<T, K> getKey, Function<T, V> getValue, T... source) {
         fillMap(target, source, getKey, getValue);
     }
@@ -63,6 +65,7 @@ public class MapHelper {
         fillMap(target, source, (V v, Map<K, V> m) -> m.put(getKey.apply(v), v));
     }
 
+    @SafeVarargs
     public static <K, V> void fillMap(Map<K, V> target, Function<V, K> getKey, V... source) {
         fillMap(target, source, getKey);
     }
@@ -85,6 +88,7 @@ public class MapHelper {
         return result;
     }
 
+    @SafeVarargs
     public static <T, K, V> HashMap<K, V> toMap(BiConsumer<T, Map<K, V>> builder, T... source) {
         return toMap(source, builder);
     }
@@ -107,6 +111,7 @@ public class MapHelper {
         return toMap(source, (T t, Map<K, V> m) -> m.put(getKey.apply(t), getValue.apply(t)));
     }
 
+    @SafeVarargs
     public static <T, K, V> HashMap<K, V> toMap(Function<T, K> getKey, Function<T, V> getValue, T... source) {
         return toMap(source, getKey, getValue);
     }
@@ -127,6 +132,7 @@ public class MapHelper {
         return toMap(source, (V v, Map<K, V> m) -> m.put(getKey.apply(v), v));
     }
 
+    @SafeVarargs
     public static <K, V> HashMap<K, V> toMap(Function<V, K> getKey, V... source) {
         return toMap(source, getKey);
     }
@@ -156,6 +162,7 @@ public class MapHelper {
         });
     }
 
+    @SafeVarargs
     public static <T, K, V> HashMap<K, ArrayList<V>> groupMap(Function<T, K> getKey, Function<T, V> getValue, T... source) {
         return groupMap(source, getKey, getValue);
     }
@@ -194,6 +201,7 @@ public class MapHelper {
         });
     }
 
+    @SafeVarargs
     public static <K, V> HashMap<K, ArrayList<V>> groupMap(Function<V, K> getKey, V... source) {
         return groupMap(source, getKey);
     }

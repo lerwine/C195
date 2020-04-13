@@ -1,8 +1,6 @@
 package scheduler.view.country;
 
 import java.io.IOException;
-import javafx.event.Event;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
@@ -35,18 +33,18 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
     }
 
     @Override
-    protected void onAddNewItem(Event event) throws IOException {
-        getMainController().addNewCountry((Stage)((Button)event.getSource()).getScene().getWindow());
+    protected void onAddNewItem(Stage stage) throws IOException {
+        getMainController().addNewCountry(stage);
     }
 
     @Override
-    protected void onEditItem(Event event, CountryModel item) throws IOException {
-        getMainController().editCountry((Stage)((Button)event.getSource()).getScene().getWindow(), item);
+    protected void onEditItem(Stage stage, CountryModel item) throws IOException {
+        getMainController().editCountry(stage, item);
     }
 
     @Override
-    protected void onDeleteItem(Event event, CountryModel item) {
-        getMainController().deleteCountry((Stage)((Button)event.getSource()).getScene().getWindow(), item);
+    protected void onDeleteItem(Stage stage, CountryModel item) {
+        getMainController().deleteCountry(stage, item);
     }
 
     @Override

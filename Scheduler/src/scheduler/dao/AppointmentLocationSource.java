@@ -11,5 +11,5 @@ public enum AppointmentLocationSource {
     CORPORATE_HQ,
     GERMANY_OFFICE,
     INDIA_OFFICE,
-    HONDURAS_OFFICE;
+    GUATEMALA_OFFICE;
 }

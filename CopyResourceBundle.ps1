@@ -1,12 +1,53 @@
 ﻿Param(
-    [string]$SourcePath = 'view\user\EditUser',
-    [string]$TargetPath = 'view\customer\EditCustomer',
-    [string[]]$Keys = @('currentAppointments', 'pastAppointments', 'allAppointments'),
+    [string]$SourcePath = 'view\appointment\ManageAppointments',
+    [string]$TargetPath = 'view\appointment\EditAppointment',
+    #[string[]]$Keys = @(''),
+    [string[]]$Keys = @('durationHourNotSpecified', 'durationMinuteNotSpecified', 'invalidDurationHour', 'invalidDurationMinute'),
     [boolean]$Move = $false
 )
 $Script:BaseResourcesPath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\resources\scheduler';
 $Script:BaseCodePath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\src\scheduler';
 
+<#
+@SuppressWarnings("incomplete-switch")
+    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unused")
+    @SuppressWarnings("unusedArgument")
+    @SuppressWarnings("varargsCast")
+    @SuppressWarnings("ForLoopToFunctionalHint")
+    org.netbeans.modules.java.hints.jdk.mapreduce.ForLoopToFunctionalHint
+
+
+    अमान्य पूर्वाह्न / अपराह्न डिज़ाइनर।
+    
+    अमान्य पूर्वाह्न / अपराह्न डिजाइनर
+    अमान्य पूर्वाह्न/बजे डिजाइनर
+
+
+    पूर्वाह्न / पीएम निर्दिष्ट नहीं है।
+    A.M. / PM is not specified.
+    
+    बजे / पीएम निर्दिष्ट नहीं है।
+    प्रातः / पीएम निर्दिष्ट नहीं है।
+    हूँ / पीएम निर्दिष्ट नहीं है।
+
+    , रहा हूँ, बजे,
+
+    हूँ / पीएम निर्दिष्ट नहीं है।
+    हूँ / रहा निर्दिष्ट नहीं है।
+    हूँ / हूँ निर्दिष्ट नहीं है।
+    हूँ / बजे निर्दिष्ट नहीं है।
+
+
+    पूर्वाह्न या अपराह्न। निर्दिष्ट नहीं है।
+    Am or afternoon. Not specified.
+
+    a.m./p.m. designator not specified.
+    दोपहर से पूर्व दोपहर के बाद। निर्दिष्ट नहीं है।
+    a.m. or p.m. designator not specified.
+    पूर्वाह्न या अपराह्न। निर्दिष्ट नहीं है।
+
+#>
 $AllLocales = @('en', 'es', 'de', 'hi');
 
 $SourceProperties = @{};

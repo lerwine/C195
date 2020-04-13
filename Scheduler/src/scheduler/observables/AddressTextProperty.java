@@ -68,6 +68,7 @@ public class AddressTextProperty extends StringBinding implements ReadOnlyProper
         return name;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ObservableList<?> getDependencies() {
         return FXCollections.observableArrayList(address1, address2, cityZipCountry, phone);

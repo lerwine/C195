@@ -1,5 +1,6 @@
 package scheduler.view.customer;
 
+import java.time.ZoneId;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -11,13 +12,15 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.CustomerElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
-import static scheduler.util.ResourceBundleLoader.getResourceString;
+import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.view.address.AddressModel;
+import scheduler.view.address.AddressModelImpl;
 import scheduler.view.address.EditAddress;
 import scheduler.view.address.RelatedAddressModel;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
@@ -30,6 +33,13 @@ import scheduler.view.model.ItemModel;
 public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements CustomerModel<CustomerDAO> {
 
     private static final Factory FACTORY = new Factory();
+
+    public static ZoneId getZoneId(CustomerModel<? extends CustomerElement> customer) {
+        if (null != customer) {
+            return AddressModelImpl.getZoneId(customer.getAddress());
+        }
+        return ZoneId.systemDefault();
+    }
 
     public static final Factory getFactory() {
         return FACTORY;

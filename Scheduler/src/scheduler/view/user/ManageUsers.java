@@ -1,8 +1,6 @@
 package scheduler.view.user;
 
 import java.io.IOException;
-import javafx.event.Event;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import scheduler.dao.UserDAO;
 import scheduler.view.ListingController;
@@ -32,18 +30,18 @@ public final class ManageUsers extends ListingController<UserDAO, UserModelImpl>
     }
 
     @Override
-    protected void onAddNewItem(Event event) throws IOException {
-        getMainController().addNewUser((Stage)((Button)event.getSource()).getScene().getWindow());
+    protected void onAddNewItem(Stage stage) throws IOException {
+        getMainController().addNewUser(stage);
     }
 
     @Override
-    protected void onEditItem(Event event, UserModelImpl item) throws IOException {
-        getMainController().editUser((Stage)((Button)event.getSource()).getScene().getWindow(), item);
+    protected void onEditItem(Stage stage, UserModelImpl item) throws IOException {
+        getMainController().editUser(stage, item);
     }
 
     @Override
-    protected void onDeleteItem(Event event, UserModelImpl item) {
-        getMainController().deleteUser((Stage)((Button)event.getSource()).getScene().getWindow(), item);
+    protected void onDeleteItem(Stage stage, UserModelImpl item) {
+        getMainController().deleteUser(stage, item);
     }
 
     @Override

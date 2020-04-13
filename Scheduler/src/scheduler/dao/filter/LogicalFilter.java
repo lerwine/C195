@@ -47,6 +47,7 @@ public interface LogicalFilter<T extends DataAccessObject> extends DaoFilterExpr
         return null != expr && expr instanceof LogicalFilter && ((LogicalFilter<? extends DataAccessObject>) expr).getLogicalOperator() == op;
     }
 
+    @SafeVarargs
     public static <T extends DataAccessObject> DaoFilterExpression<T> of(LogicalOperator operator, DaoFilterExpression<T>... expr) {
         ArrayList<DaoFilterExpression<T>> items = new ArrayList<>();
         Arrays.stream(expr).forEach((t) -> {

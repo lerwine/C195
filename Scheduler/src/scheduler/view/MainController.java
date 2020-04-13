@@ -208,6 +208,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @return The instantiated controller.
      * @throws IOException if not able to load the FXML resource.
      */
+@SuppressWarnings("incomplete-switch")
     public <T extends MainContentController> T loadContent(Class<T> controllerClass, Object loadEventListener) throws IOException {
         return ViewControllerLoader.replacePaneContent(this, contentPane, controllerClass,
                 (FxmlViewControllerEventListener<Parent, T>) (event) -> {

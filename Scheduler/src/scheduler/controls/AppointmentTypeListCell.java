@@ -12,6 +12,6 @@ public class AppointmentTypeListCell extends ListCell<AppointmentType> {
     @Override
     protected void updateItem(AppointmentType item, boolean empty) {
         super.updateItem(item, empty);
-        setText(AppointmentType.toAppointmentTypeDisplay(item));
+        setText(AppointmentType.toDisplayText(item));
     }
 }

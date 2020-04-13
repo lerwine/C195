@@ -16,7 +16,6 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -87,14 +86,14 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     @FXML // fx:id="passwordField"
     private PasswordField passwordField; // Value injected by FXMLLoader
 
+    @FXML // fx:id="passwordErrorMessageLabel"
+    private Label passwordErrorMessageLabel; // Value injected by FXMLLoader
+
     @FXML // fx:id="confirmLabel"
     private Label confirmLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="confirmPasswordField"
     private PasswordField confirmPasswordField; // Value injected by FXMLLoader
-
-    @FXML // fx:id="passwordErrorMessageLabel"
-    private Label passwordErrorMessageLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="activeComboBox"
     private ComboBox<UserStatus> activeComboBox; // Value injected by FXMLLoader
@@ -108,9 +107,6 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
 
-    @FXML // fx:id="addAppointmentButton"
-    private Button addAppointmentButton; // Value injected by FXMLLoader
-
     private ObservableList<String> unavailableUserNames;
 
     private ObservableList<UserStatus> userActiveStateOptions;
@@ -120,20 +116,19 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     private ObservableList<AppointmentFilterItem> filterOptions;
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert userEditSplitPane != null : "fx:id=\"userEditSplitPane\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert passwordField != null : "fx:id=\"passwordField\" was not injected: check your FXML file 'EditUser.fxml'.";
+        assert passwordErrorMessageLabel != null : "fx:id=\"passwordErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert confirmLabel != null : "fx:id=\"confirmLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert confirmPasswordField != null : "fx:id=\"confirmPasswordField\" was not injected: check your FXML file 'EditUser.fxml'.";
-        assert passwordErrorMessageLabel != null : "fx:id=\"passwordErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert activeComboBox != null : "fx:id=\"activeComboBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert appointmentListingVBox != null : "fx:id=\"appointmentListingVBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert appointmentsFilterComboBox != null : "fx:id=\"appointmentsFilterComboBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditUser.fxml'.";
-        assert addAppointmentButton != null : "fx:id=\"addAppointmentButton\" was not injected: check your FXML file 'EditUser.fxml'.";
 
         userActiveStateOptions = FXCollections.observableArrayList(UserStatus.values());
         unavailableUserNames = FXCollections.observableArrayList();
@@ -171,44 +166,19 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
 
         userNameErrorMessageLabel.visibleProperty().bind(getUserNameValidationMessage().isNotEmpty());
         bindCssCollapse(userNameErrorMessageLabel, getUserNameValidationMessage().isEmpty());
+        
         passwordField.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
         bindCssCollapse(passwordField, changePasswordCheckBox.selectedProperty().not());
+        
         confirmLabel.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
         bindCssCollapse(confirmLabel, changePasswordCheckBox.selectedProperty().not());
+        
         confirmPasswordField.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
         bindCssCollapse(confirmPasswordField, changePasswordCheckBox.selectedProperty().not());
+        
         passwordErrorMessageLabel.textProperty().bind(getPasswordValidationMessage());
         passwordErrorMessageLabel.visibleProperty().bind(getPasswordValidationMessage().isNotEmpty());
         bindCssCollapse(passwordErrorMessageLabel, getPasswordValidationMessage().isEmpty());
-    }
-
-    public StringBinding getUserNameValidationMessage() {
-        return Bindings.createStringBinding(() -> {
-            String n = userNameTextField.getText().trim().toLowerCase();
-            if (n.isEmpty()) {
-                return getResourceString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
-            }
-            if (unavailableUserNames.contains(n)) {
-                return getResourceString(RESOURCEKEY_USERNAMEINUSE);
-            }
-            return "";
-        }, userNameTextField.textProperty(), unavailableUserNames);
-    }
-
-    public StringBinding getPasswordValidationMessage() {
-        return Bindings.createStringBinding(() -> {
-            String p = passwordField.getText();
-            String c = confirmPasswordField.getText();
-            if (changePasswordCheckBox.isSelected()) {
-                if (p.trim().isEmpty()) {
-                    return getResourceString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
-                }
-                if (!p.equals(c)) {
-                    return getResourceString(RESOURCEKEY_PASSWORDMISMATCH);
-                }
-            }
-            return "";
-        }, passwordField.textProperty(), confirmPasswordField.textProperty(), changePasswordCheckBox.selectedProperty());
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
@@ -225,6 +195,35 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
             filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         }
         TaskWaiter.startNow(new InitialLoadTask(event.getStage()));
+    }
+
+    private StringBinding getUserNameValidationMessage() {
+        return Bindings.createStringBinding(() -> {
+            String n = userNameTextField.getText().trim().toLowerCase();
+            if (n.isEmpty()) {
+                return getResourceString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
+            }
+            if (unavailableUserNames.contains(n)) {
+                return getResourceString(RESOURCEKEY_USERNAMEINUSE);
+            }
+            return "";
+        }, userNameTextField.textProperty(), unavailableUserNames);
+    }
+
+    private StringBinding getPasswordValidationMessage() {
+        return Bindings.createStringBinding(() -> {
+            String p = passwordField.getText();
+            String c = confirmPasswordField.getText();
+            if (changePasswordCheckBox.isSelected()) {
+                if (p.trim().isEmpty()) {
+                    return getResourceString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
+                }
+                if (!p.equals(c)) {
+                    return getResourceString(RESOURCEKEY_PASSWORDMISMATCH);
+                }
+            }
+            return "";
+        }, passwordField.textProperty(), confirmPasswordField.textProperty(), changePasswordCheckBox.selectedProperty());
     }
 
     @Override
@@ -254,10 +253,12 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
 
         private final ReadOnlyStringWrapper text;
 
+        @SuppressWarnings("unused")
         public String getText() {
             return text.get();
         }
 
+        @SuppressWarnings("unused")
         public ReadOnlyStringProperty textProperty() {
             return text.getReadOnlyProperty();
         }
@@ -267,6 +268,7 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
             return modelFilter.get();
         }
 
+        @SuppressWarnings("unused")
         public ReadOnlyObjectProperty<AppointmentModelFilter> modelFilterProperty() {
             return modelFilter.getReadOnlyProperty();
         }

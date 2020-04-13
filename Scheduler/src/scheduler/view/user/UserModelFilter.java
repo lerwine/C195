@@ -5,7 +5,7 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLUSERS;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DaoFilterExpression;
 import scheduler.dao.filter.UserFilter;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 
 /**
@@ -41,8 +41,7 @@ public interface UserModelFilter extends ModelFilter<UserDAO, UserModelImpl, Use
      * @return A model filter that matches any user.
      */
     public static UserModelFilter all() {
-        return UserModelFilter.of(
-                ResourceBundleLoader.getResourceString(ManageUsers.class, RESOURCEKEY_ALLUSERS),
+        return UserModelFilter.of(ResourceBundleHelper.getResourceString(ManageUsers.class, RESOURCEKEY_ALLUSERS),
                 UserFilter.of(DaoFilterExpression.empty()),
                 (t) -> true
         );

@@ -72,9 +72,9 @@
     </GridPane>
     <ButtonBar>
         <buttons>
-            <Button fx:id="saveChangesButton" mnemonicParsing="false" text="%save" />
-            <Button fx:id="deleteButton" mnemonicParsing="false" text="%delete" />
-            <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" />
+            <Button fx:id="saveChangesButton" mnemonicParsing="false" onAction="#onSaveButtonAction" text="%save" />
+            <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#onDeleteButtonAction" text="%delete" />
+            <Button mnemonicParsing="false" onAction="#onCancelButtonAction" text="%cancel" />
         </buttons>
     </ButtonBar>
    <padding>

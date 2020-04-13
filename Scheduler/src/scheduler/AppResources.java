@@ -10,9 +10,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.util.AnnotationHelper;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.city.SupportedLocale;
 
 /**
  * Gets settings from the <a href="file:../../resources/scheduler/config.properties">/resources/scheduler/config.properties</a> file.
@@ -29,8 +30,38 @@ public final class AppResources implements AppResourceBundleConstants {
     public static final String PROPERTYKEY_DBNAME = "dbName";
     public static final String PROPERTYKEY_DBLOGIN = "dbLogin";
     public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
-    public static final String PROPERTYKEY_SUPPORTEDLOCALES = "supportedLocales";
     public static final String PROPERTIES_FILE_APPCONFIG = "scheduler/config.properties";
+    private static final Locale ORIGINAL_LOCALE;
+    private static final Locale DEFAULT_LOCALE;
+    private static SupportedLocale currentLocale;
+
+    static {
+        ORIGINAL_LOCALE = Locale.getDefault();
+        SupportedLocale locale = SupportedLocale.fromLocale(ORIGINAL_LOCALE);
+        DEFAULT_LOCALE = (ORIGINAL_LOCALE.getLanguage().equals(locale.getLanguageCode())) ? ORIGINAL_LOCALE : locale.toLocale();
+        currentLocale = locale;
+    }
+    
+    /**
+     * Get the value of currentLocale
+     *
+     * @return the value of currentLocale
+     */
+    public static SupportedLocale getCurrentLocale() {
+        return currentLocale;
+    }
+    
+    public static void setCurrentLocale(SupportedLocale currentLocale) {
+        if (Scheduler.getCurrentUser() != null)
+            throw new IllegalStateException("Cannot change locale after user is loggged in");
+        if (AppResources.currentLocale != currentLocale) {
+            AppResources.currentLocale = currentLocale;
+            if (SupportedLocale.fromLocale(DEFAULT_LOCALE) == AppResources.currentLocale)
+                Locale.setDefault(DEFAULT_LOCALE);
+            else
+                Locale.setDefault(AppResources.currentLocale.toLocale());
+        }
+    }
 
     static {
         CLASSNAME_TO_FXMLNAME = new HashMap<>();
@@ -72,11 +103,11 @@ public final class AppResources implements AppResourceBundleConstants {
      * @return The application {@link ResourceBundle} for the current {@link Locale#defaultDisplayLocale}.
      */
     public static ResourceBundle getResources() {
-        return ResourceBundleLoader.getBundle(AppResources.class);
+        return ResourceBundleHelper.getBundle(AppResources.class);
     }
 
     public static String getResourceString(String key) {
-        return ResourceBundleLoader.getResourceString(AppResources.class, key);
+        return ResourceBundleHelper.getResourceString(AppResources.class, key);
     }
 
     public static Set<String> getPropertyNames() {

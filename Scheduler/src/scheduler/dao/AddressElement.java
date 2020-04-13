@@ -113,6 +113,7 @@ public interface AddressElement extends DataElement {
                 return address1.get();
             }
 
+            @SuppressWarnings("unused")
             public ReadOnlyStringProperty address1Property() {
                 return address1.getReadOnlyProperty();
             }
@@ -122,10 +123,12 @@ public interface AddressElement extends DataElement {
                 return address2.get();
             }
 
+            @SuppressWarnings("unused")
             public void setAddress2(String value) {
                 address2.set(value);
             }
 
+            @SuppressWarnings("unused")
             public StringProperty address2Property() {
                 return address2;
             }
@@ -135,6 +138,7 @@ public interface AddressElement extends DataElement {
                 return city.get();
             }
 
+            @SuppressWarnings("unused")
             public ReadOnlyObjectProperty<CityElement> cityProperty() {
                 return city.getReadOnlyProperty();
             }
@@ -144,6 +148,7 @@ public interface AddressElement extends DataElement {
                 return postalCode.get();
             }
 
+            @SuppressWarnings("unused")
             public ReadOnlyStringProperty postalCodeProperty() {
                 return postalCode.getReadOnlyProperty();
             }
@@ -153,6 +158,7 @@ public interface AddressElement extends DataElement {
                 return phone.get();
             }
 
+            @SuppressWarnings("unused")
             public ReadOnlyStringProperty phoneProperty() {
                 return phone.getReadOnlyProperty();
             }
@@ -162,6 +168,7 @@ public interface AddressElement extends DataElement {
                 return primaryKey.get();
             }
 
+            @SuppressWarnings("unused")
             public ReadOnlyIntegerProperty primaryKeyProperty() {
                 return primaryKey.getReadOnlyProperty();
             }
@@ -171,6 +178,7 @@ public interface AddressElement extends DataElement {
                 return rowState.get();
             }
 
+            @SuppressWarnings("unused")
             public ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
                 return rowState.getReadOnlyProperty();
             }

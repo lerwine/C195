@@ -497,7 +497,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
          * @param connection The database connection to use.
          * @throws SQLException If unable to perform the database operation.
          */
-        public void save(T dao, Connection connection) throws SQLException {
+        public final void save(T dao, Connection connection) throws SQLException {
             save(dao, connection, false);
         }
 
@@ -576,6 +576,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
                                 try (ResultSet rs = ps.getGeneratedKeys()) {
+                                    if (!rs.next())
+                                        throw new SQLException("No primary key returned");
                                     dataObj.primaryKey = rs.getInt(1);
                                 }
                             }

@@ -52,8 +52,7 @@
                 <HBox GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
                     <children>
                         <Label styleClass="formControlLabel" text="%titleLabelText" />
-                        <Label fx:id="titleValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308"
-                               styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                        <Label fx:id="titleValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                             <HBox.margin>
                                 <Insets left="8.0" right="8.0" />
                             </HBox.margin>
@@ -68,14 +67,12 @@
                                 <Insets top="6.0" />
                             </HBox.margin>
                         </Label>
-                        <Label fx:id="customerValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308"
-                               styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                        <Label fx:id="customerValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                             <HBox.margin>
                                 <Insets left="8.0" right="8.0" top="6.0" />
                             </HBox.margin>
                         </Label>
-                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false"
-                                onAction="#customerDropDownOptionsButtonClick" text="">
+                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerDropDownOptionsButtonClick" text="">
                             <font>
                                 <Font name="Segoe UI Symbol" size="10.0" />
                             </font>
@@ -95,14 +92,12 @@
                                 <Insets top="6.0" />
                             </HBox.margin>
                         </Label>
-                        <Label fx:id="userValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308"
-                               styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                        <Label fx:id="userValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                             <HBox.margin>
                                 <Insets left="8.0" right="8.0" top="6.0" />
                             </HBox.margin>
                         </Label>
-                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false"
-                                onAction="#userDropDownOptionsButtonClick" text="">
+                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#userDropDownOptionsButtonClick" text="">
                             <font>
                                 <Font name="Segoe UI Symbol" size="10.0" />
                             </font>
@@ -150,8 +145,7 @@
                                 <HBox GridPane.columnSpan="2">
                                     <children>
                                         <Label styleClass="formControlLabel" text="%startLabelText" />
-                                        <Label fx:id="startValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308"
-                                               styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                                        <Label fx:id="startValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                                             <HBox.margin>
                                                 <Insets left="8.0" right="16.0" />
                                             </HBox.margin>
@@ -182,8 +176,7 @@
                                 <HBox GridPane.rowIndex="2">
                                     <children>
                                         <Label text="%duration" />
-                                        <Label fx:id="durationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308"
-                                               styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
+                                        <Label fx:id="durationValidationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="formControlValidationMessage" text="%required" HBox.hgrow="ALWAYS">
                                             <HBox.margin>
                                                 <Insets left="8.0" right="8.0" />
                                             </HBox.margin>
@@ -208,8 +201,7 @@
                                         <Insets left="8.0" top="16.0" />
                                     </GridPane.margin>
                                 </Label>
-                                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" minWidth="125.0" GridPane.columnIndex="1"
-                                          GridPane.rowIndex="3">
+                                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" minWidth="125.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                                     <GridPane.margin>
                                         <Insets left="8.0" />
                                     </GridPane.margin>
@@ -314,7 +306,7 @@
         </GridPane>
         <BorderPane fx:id="conflictsBorderPane" style="-fx-background-color: #7f7f7f7f;" visible="false">
             <center>
-                <BorderPane style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" BorderPane.alignment="CENTER">
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" BorderPane.alignment="CENTER">
                     <BorderPane.margin>
                         <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
                     </BorderPane.margin>
@@ -392,7 +384,7 @@
                         </TableView>
                     </center>
                     <top>
-                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Conflicting Appointments" textAlignment="CENTER" BorderPane.alignment="CENTER">
+                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%conflictingAppointments" textAlignment="CENTER" BorderPane.alignment="CENTER">
                             <font>
                                 <Font size="18.0" />
                             </font>
@@ -401,7 +393,7 @@
                     <bottom>
                         <ButtonBar BorderPane.alignment="CENTER">
                             <buttons>
-                                <Button mnemonicParsing="false" onAction="#closeConflictsBorderPaneButtonClick" text="Close" />
+                                <Button mnemonicParsing="false" onAction="#closeConflictsBorderPaneButtonClick" text="%close" />
                             </buttons>
                         </ButtonBar>
                     </bottom>
@@ -410,33 +402,39 @@
         </BorderPane>
         <BorderPane fx:id="dropdownOptionsBorderPane" layoutX="10.0" layoutY="10.0" style="-fx-background-color: #7f7f7f7f;" visible="false">
             <center>
-                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="132.0" prefWidth="200.0" style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" BorderPane.alignment="CENTER">
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" BorderPane.alignment="CENTER">
                     <center>
-                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="Inactive">
+                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="%inactive">
                             <toggleGroup>
                                 <ToggleGroup fx:id="dropdownOptions" />
                             </toggleGroup>
                         </RadioButton>
                     </center>
                     <top>
-                        <Label fx:id="dropdownOptionsLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Customers to Show" textAlignment="CENTER" BorderPane.alignment="CENTER">
+                        <Label fx:id="dropdownOptionsLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%customersToShow" textAlignment="CENTER" BorderPane.alignment="CENTER">
                             <font>
                                 <Font size="18.0" />
                             </font>
+                     <BorderPane.margin>
+                        <Insets bottom="16.0" />
+                     </BorderPane.margin>
                         </Label>
                     </top>
                     <left>
-                        <RadioButton fx:id="dropdownOptionsActiveRadioButton" mnemonicParsing="false" selected="true" text="Active" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
+                        <RadioButton fx:id="dropdownOptionsActiveRadioButton" mnemonicParsing="false" selected="true" text="%active" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
                     </left>
                     <right>
-                        <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" text="All" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
+                        <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" text="%all" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
                     </right>
                     <bottom>
                         <ButtonBar BorderPane.alignment="CENTER">
                             <buttons>
-                                <Button mnemonicParsing="false" onAction="#dropdownOptionsOkButtonClick" text="OK" />
-                                <Button layoutX="687.0" layoutY="10.0" mnemonicParsing="false" onAction="#dropdownOptionsCancelButtonClick" text="Close" />
+                                <Button mnemonicParsing="false" onAction="#dropdownOptionsOkButtonClick" text="%apply" />
+                                <Button layoutX="687.0" layoutY="10.0" mnemonicParsing="false" onAction="#dropdownOptionsCancelButtonClick" text="%cancel" />
                             </buttons>
+                     <BorderPane.margin>
+                        <Insets top="16.0" />
+                     </BorderPane.margin>
                         </ButtonBar>
                     </bottom>
                     <padding>

@@ -87,6 +87,7 @@ public final class BinarySelective<T, U> {
      * @return The primary value;
      * @throws NoSuchElementException if this object does not contain the primary value option.
      */
+    @SuppressWarnings("unchecked")
     public T getPrimary() {
         if (!primary) {
             throw new NoSuchElementException("No value present");
@@ -100,6 +101,7 @@ public final class BinarySelective<T, U> {
      * @return The secondary value;
      * @throws NoSuchElementException if this object does not contain the secondary value option.
      */
+    @SuppressWarnings("unchecked")
     public U getSecondary() {
         if (primary) {
             throw new NoSuchElementException("No value present");
@@ -107,10 +109,12 @@ public final class BinarySelective<T, U> {
         return (U) value;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<T> toPrimaryOption() {
         return (primary) ? Optional.of((T) value) : Optional.empty();
     }
     
+    @SuppressWarnings("unchecked")
     public Optional<U> toSecondaryOption() {
         return (primary) ? Optional.empty() : Optional.of((U) value);
     }
@@ -121,6 +125,7 @@ public final class BinarySelective<T, U> {
      *
      * @param consumer The {@link Consumer} to invoke if this contains the primary value option,.
      */
+    @SuppressWarnings("unchecked")
     public void ifPrimary(Consumer<? super T> consumer) {
         if (primary) {
             consumer.accept((T) value);
@@ -133,6 +138,7 @@ public final class BinarySelective<T, U> {
      *
      * @param consumer The {@link Consumer} to invoke if this contains the secondary value option.
      */
+    @SuppressWarnings("unchecked")
     public void ifSecondary(Consumer<? super U> consumer) {
         if (!primary) {
             consumer.accept((U) value);
@@ -145,6 +151,7 @@ public final class BinarySelective<T, U> {
      * @param ifPrimary The {@link Consumer} to execute if this contains the primary option value.
      * @param ifSecondary The {@link Consumer} to execute if this contains the secondary option value.
      */
+    @SuppressWarnings("unchecked")
     public void accept(Consumer<? super T> ifPrimary, Consumer<? super U> ifSecondary) {
         if (this.primary) {
             ifPrimary.accept((T) value);
@@ -161,6 +168,7 @@ public final class BinarySelective<T, U> {
      * @param secondary The {@link Function} to apply if this contains the secondary option value.
      * @return The result from the {@link Function} that was applied.
      */
+    @SuppressWarnings("unchecked")
     public <S> S map(Function<? super T, S> primary, Function<? super U, S> secondary) {
         if (this.primary) {
             return primary.apply((T) value);

@@ -53,6 +53,7 @@ public interface BooleanColumnValueFilter<T extends DataAccessObject> extends Co
                 return hashcode;
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof BooleanColumnValueFilter) {

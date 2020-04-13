@@ -200,6 +200,7 @@ public class SchemaHelper {
      * @return {@code true} if {@link DbColumn#getUsageCategory()} is {@link ColumnCategory#DATA}, {@link ColumnCategory#UNIQUE_KEY} or
      * {@link ColumnCategory#CRYPTO_HASH}; otherwise, {@code false}.
      */
+    @SuppressWarnings("incomplete-switch")
     public static boolean isEntityData(DbColumn column) {
         switch (column.getUsageCategory()) {
             case DATA:
@@ -217,6 +218,7 @@ public class SchemaHelper {
      * @return {@code true} if {@link DbColumn#getUsageCategory()} is {@link ColumnCategory#DATA}, {@link ColumnCategory#UNIQUE_KEY} or
      * {@link ColumnCategory#FOREIGN_KEY}; otherwise, {@code false}.
      */
+    @SuppressWarnings("incomplete-switch")
     public static boolean isForJoinedData(DbColumn column) {
         switch (column.getUsageCategory()) {
             case DATA:

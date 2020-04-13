@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import scheduler.util.ValueBindings;
+import scheduler.observables.BindingHelper;
 import testHelpers.FakeApp;
 
 /**
@@ -84,7 +84,7 @@ public class utilTest {
     @Test
     public void testAsTrimmedAndNotNull() {
         TextField targetControl = new TextField();
-        StringBinding targetBinding = ValueBindings.asTrimmedAndNotNull(targetControl.textProperty());
+        StringBinding targetBinding = BindingHelper.asTrimmedAndNotNull(targetControl.textProperty());
 
         String inputString = " test\r\n";
         String expResult = "test";
@@ -114,7 +114,7 @@ public class utilTest {
     @Test
     public void testNotNullOrWhiteSpace() {
         TextField targetControl = new TextField();
-        BooleanBinding targetBinding = ValueBindings.notNullOrWhiteSpace(targetControl.textProperty());
+        BooleanBinding targetBinding = BindingHelper.notNullOrWhiteSpace(targetControl.textProperty());
         
         String inputString = "!";
         boolean expResult = true;
@@ -159,7 +159,7 @@ public class utilTest {
         ComboBox<Integer> targetMinuteControl = new ComboBox();
         ObservableList<Integer> minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
         targetMinuteControl.setItems(minuteOptions);
-        ObjectBinding<LocalDateTime> targetBinding = ValueBindings.asLocalDateTime(targetDateControl.valueProperty(), targetHourControl.valueProperty(), targetMinuteControl.valueProperty());
+        ObjectBinding<LocalDateTime> targetBinding = BindingHelper.asLocalDateTime(targetDateControl.valueProperty(), targetHourControl.valueProperty(), targetMinuteControl.valueProperty());
         
         LocalDateTime result = targetBinding.get();
         assertNull(result);
@@ -192,72 +192,6 @@ public class utilTest {
         expResult = LocalDateTime.of(selectedDate, LocalTime.of(hourOptions.get(selectedHourIndex), minuteOptions.get(selectedMinuteIndex), 0, 0));
         result = targetBinding.get();
         assertNotNull(result);
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of isRangeUndefinedOrValid method, of class Bindings.
-     */
-    @Test
-    public void testIsRangeUndefinedOrValid() {
-        ObservableList<Integer> hourOptions = FXCollections.observableArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
-        ObservableList<Integer> minuteOptions = FXCollections.observableArrayList(0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55);
-        DatePicker targetStartDateControl = new DatePicker();
-        ComboBox<Integer> targetStartHourControl = new ComboBox();
-        targetStartHourControl.setItems(hourOptions);
-        ComboBox<Integer> targetStartMinuteControl = new ComboBox();
-        targetStartMinuteControl.setItems(minuteOptions);
-        ObjectExpression<LocalDateTime> targetStartExpression = ValueBindings.asLocalDateTime(targetStartDateControl.valueProperty(), targetStartHourControl.valueProperty(), targetStartMinuteControl.valueProperty());
-        
-        DatePicker targetEndDateControl = new DatePicker();
-        ComboBox<Integer> targetEndHourControl = new ComboBox();
-        targetEndHourControl.setItems(hourOptions);
-        ComboBox<Integer> targetEndMinuteControl = new ComboBox();
-        targetEndMinuteControl.setItems(minuteOptions);
-        ObjectExpression<LocalDateTime> targetEndExpression = ValueBindings.asLocalDateTime(targetEndDateControl.valueProperty(), targetEndHourControl.valueProperty(), targetEndMinuteControl.valueProperty());
-        
-        BooleanBinding targetBinding = ValueBindings.isRangeUndefinedOrValid(targetStartExpression, targetEndExpression);
-        
-        boolean expResult = true;
-        boolean result = targetBinding.get();
-        assertEquals(expResult, result);
-        
-        LocalDate selectedStartDate = LocalDate.now();
-        int selectedStartHourIndex = 12;
-        int selectedStartMinuteIndex = 6;
-        expResult = true;
-        targetStartDateControl.setValue(selectedStartDate);
-        targetStartHourControl.getSelectionModel().select(selectedStartHourIndex);
-        targetStartMinuteControl.getSelectionModel().select(selectedStartMinuteIndex);
-        result = targetBinding.get();
-        assertEquals(expResult, result);
-        
-        LocalDate selectedEndDate = selectedStartDate;
-        int selectedEndHourIndex = selectedStartHourIndex;
-        int selectedEndMinuteIndex = selectedStartMinuteIndex;
-        expResult = true;
-        targetEndDateControl.setValue(selectedEndDate);
-        targetEndHourControl.getSelectionModel().select(selectedEndHourIndex);
-        targetEndMinuteControl.getSelectionModel().select(selectedEndMinuteIndex);
-        result = targetBinding.get();
-        assertEquals(expResult, result);
-        
-        selectedEndHourIndex = selectedStartHourIndex + 1;
-        expResult = true;
-        targetEndHourControl.getSelectionModel().select(selectedEndHourIndex);
-        result = targetBinding.get();
-        assertEquals(expResult, result);
-        
-        selectedEndHourIndex = selectedStartHourIndex - 1;
-        expResult = false;
-        targetEndHourControl.getSelectionModel().select(selectedEndHourIndex);
-        result = targetBinding.get();
-        assertEquals(expResult, result);
-        
-        expResult = true;
-        targetStartDateControl.setValue(selectedStartDate);
-        targetEndHourControl.getSelectionModel().clearSelection();
-        result = targetBinding.get();
         assertEquals(expResult, result);
     }
 

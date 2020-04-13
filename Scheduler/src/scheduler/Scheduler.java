@@ -114,6 +114,7 @@ public final class Scheduler extends Application {
         private final Consumer<Throwable> onNotSucceeded;
         private final ViewAndController<VBox, MainController> viewAndController;
 
+        @SuppressWarnings("unchecked")
         LoginTask(Stage stage, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
             viewAndController = (ViewAndController<VBox, MainController>) (((StackPane) stage.getScene().getRoot())

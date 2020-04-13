@@ -1,18 +1,24 @@
 package scheduler.view.country;
 
+import java.time.ZoneId;
 import java.util.Objects;
-import javafx.beans.property.StringProperty;
+import java.util.Optional;
+import javafx.beans.Observable;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.CountryElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.observables.NonNullableStringProperty;
-import scheduler.util.ResourceBundleLoader;
 import scheduler.view.ModelFilter;
+import scheduler.view.city.SupportedLocale;
 import scheduler.view.model.ItemModel;
 
 /**
@@ -21,27 +27,65 @@ import scheduler.view.model.ItemModel;
  */
 public final class CountryModel extends ItemModel<CountryDAO> implements CityCountryModel<CountryDAO> {
 
-    private final NonNullableStringProperty name;
+    public static ZoneId getZoneId(CityCountryModel<? extends CountryElement> country) {
+        if (null != country) {
+            CountryOptionModel optionModel = country.getOptionModel();
+            if (null != optionModel) {
+                Optional<SupportedLocale> sl = SupportedLocale.fromRegionCode(optionModel.getRegionCode());
+                if (sl.isPresent()) {
+                    CityOptionModel cityOption = CityOptionModel.getCityOption(sl.get().getHomeOfficeKey());
+                    if (null != cityOption)
+                        return cityOption.getZoneId();
+                }
+            }
+        }
+        return ZoneId.systemDefault();
+    }
+
+    private final ReadOnlyStringWrapper name;
+    private final ObjectProperty<CountryOptionModel> optionModel;
 
     @Override
     public String getName() {
         return name.get();
     }
 
-    public void setName(String value) {
-        name.set(value);
+    @Override
+    public ReadOnlyStringProperty nameProperty() {
+        return name.getReadOnlyProperty();
     }
 
     @Override
-    public StringProperty nameProperty() {
-        return name;
+    public CountryOptionModel getOptionModel() {
+        return optionModel.get();
     }
 
+    public void setOptionModel(CountryOptionModel value) {
+        optionModel.set(value);
+    }
+
+    public ObjectProperty<CountryOptionModel> optionModelProperty() {
+        return optionModel;
+    }
+    
     public CountryModel(CountryDAO dao) {
         super(dao);
-        name = new NonNullableStringProperty(this, "name", dao.getName());
+        optionModel = new SimpleObjectProperty<>(CountryOptionModel.getCountryOption(dao.getName()));
+        if (null == optionModel.get())
+            throw new IllegalArgumentException("Data access object does not map to an option model");
+        name = new ReadOnlyStringWrapper(this, "name");
+        name.bind(optionModel.get().nameProperty());
+        optionModel.addListener(this::onOptionModelChanged);
     }
 
+    @SuppressWarnings("unchecked")
+    private void onOptionModelChanged(Observable observable) {
+        name.unbind();
+        CountryOptionModel model = ((SimpleObjectProperty<CountryOptionModel>)observable).get();
+        if (null != model)
+            name.bind(model.nameProperty());
+    }
+    
     @Override
     public String toString() {
         return name.get();
@@ -56,7 +100,7 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
     @Override
     public int hashCode() {
         if (isNewItem()) {
-            return Objects.hashCode(this.name);
+            return Objects.hashCode(name.get());
         }
         return getPrimaryKey();
     }
@@ -69,7 +113,7 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
         if (null != obj && obj instanceof CountryModel) {
             final CountryModel other = (CountryModel) obj;
             if (isNewItem()) {
-                return name.isEqualTo(other.name).get();
+                return Objects.equals(optionModel.get(), other.optionModel.get());
             }
             return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
@@ -93,7 +137,10 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
         @Override
         public void updateItem(CountryModel item, CountryDAO dao) {
             super.updateItem(item, dao);
-            item.setName(dao.getName());
+            CountryOptionModel m = CountryOptionModel.getCountryOption(dao.getName());
+            if (null == m)
+                throw new IllegalArgumentException("Data access object does not map to an option model");
+            item.setOptionModel(m);
         }
 
         @Override
@@ -101,10 +148,10 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
             CountryDAO dao = item.getDataObject();
             if (dao.getRowState() == DataRowState.DELETED)
                 throw new IllegalArgumentException("Country has been deleted");
-            String name = item.name.get();
-            if (name.trim().isEmpty())
-                throw new IllegalArgumentException("Country name empty");
-            dao.setName(name);
+             CountryOptionModel m = item.optionModel.get();
+             if (null == m)
+                throw new IllegalArgumentException("Country does not have an option model");
+            dao.setName(m.getRegionCode());
             return dao;
         }
 

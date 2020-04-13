@@ -5,7 +5,7 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLCUSTOMERS;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 
 /**
@@ -41,8 +41,7 @@ public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerMo
      * @return A model filter that matches any customer.
      */
     public static CustomerModelFilter all() {
-        return CustomerModelFilter.of(
-                ResourceBundleLoader.getResourceString(ManageCustomers.class, RESOURCEKEY_ALLCUSTOMERS),
+        return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_ALLCUSTOMERS),
                 CustomerFilter.of(DaoFilterExpression.empty()),
                 (t) -> true
         );

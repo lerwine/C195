@@ -54,6 +54,7 @@ public interface IntColumnValueFilter<T extends DataAccessObject> extends Column
                 return hashcode;
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof IntColumnValueFilter) {

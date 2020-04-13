@@ -74,6 +74,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<LocalDateTime>) obj);
@@ -111,6 +112,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<LocalDateTime>) obj);
@@ -148,6 +150,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<LocalDateTime>) obj);
@@ -185,6 +188,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<LocalDateTime>) obj);
@@ -222,6 +226,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<LocalDateTime>) obj);
@@ -259,6 +264,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<LocalDateTime>) obj);
@@ -313,6 +319,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -350,6 +357,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -387,6 +395,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -424,6 +433,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -461,6 +471,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -498,6 +509,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -552,6 +564,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -589,6 +602,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -626,6 +640,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -663,6 +678,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -700,6 +716,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);
@@ -737,6 +754,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
                         return hashcode;
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public boolean equals(Object obj) {
                         return null != obj && obj instanceof TimestampValueFilter && areEqual(this, (TimestampValueFilter<? extends Temporal>) obj);

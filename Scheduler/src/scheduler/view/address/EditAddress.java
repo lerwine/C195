@@ -18,7 +18,7 @@ import scheduler.view.model.ItemModel;
 
 /**
  * FXML Controller class for editing an {@link AddressModelImpl}.
- * <p>The associated view is <a href="file:../../resources/scheduler/view/address/EditAddress.fxml">/resources/scheduler/view/address/EditAddress.fxml</a>.</p>
+ * <p>The associated view is {@code /resources/scheduler/view/address/EditAddress.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -26,56 +26,56 @@ import scheduler.view.model.ItemModel;
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public final class EditAddress extends EditItem.EditController<AddressDAO, AddressModelImpl> {
 
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New AddressDAO"}.
-     */
-    public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO:"}.
-     */
-    public static final String RESOURCEKEY_ADDRESS = "address";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO cannot be empty."}.
-     */
-    public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityElement:"}.
-     */
-    public static final String RESOURCEKEY_CITY = "city";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
-     */
-    public static final String RESOURCEKEY_COUNTRY = "country";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit AddressDAO:"}.
-     */
-    public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
-     */
-    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code:"}.
-     */
-    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code cannot be empty."}.
-     */
-    public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-     * {@code "That address is referenced by one or more customers and cannot be deleted."}.
-     */
-    public static final String RESOURCEKEY_ADDRESSHASCUSTOMERS = "addressHasCustomers";
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New AddressDAO"}.
+//     */
+//    public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO:"}.
+//     */
+//    public static final String RESOURCEKEY_ADDRESS = "address";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO cannot be empty."}.
+//     */
+//    public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityElement:"}.
+//     */
+//    public static final String RESOURCEKEY_CITY = "city";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
+//     */
+//    public static final String RESOURCEKEY_COUNTRY = "country";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit AddressDAO:"}.
+//     */
+//    public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
+//     */
+//    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code:"}.
+//     */
+//    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code cannot be empty."}.
+//     */
+//    public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
+//
+//    /**
+//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
+//     * {@code "That address is referenced by one or more customers and cannot be deleted."}.
+//     */
+//    public static final String RESOURCEKEY_ADDRESSHASCUSTOMERS = "addressHasCustomers";
 
     public static AddressModelImpl editNew(MainController mainController, Stage stage) throws IOException {
         return editNew(EditAddress.class, mainController, stage);

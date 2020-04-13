@@ -21,8 +21,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -36,11 +34,9 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
-import scheduler.Scheduler;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -58,18 +54,18 @@ import scheduler.view.SchedulerController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.TaskWaiter;
+import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
  * <p>
- * The associated view is
- * <a href="file:../../resources/scheduler/view/appointment/EditAppointmentFilter.fxml">/resources/scheduler/view/appointment/EditAppointmentFilter.fxml</a>.</p>
+ * The associated view is {@code /resources/scheduler/view/appointment/EditAppointmentFilter.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
-public class EditAppointmentFilter extends SchedulerController implements ManageAppointmentsResourceKeys {
+public final class EditAppointmentFilter extends SchedulerController {
 
     private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
@@ -96,8 +92,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
     private boolean includeInactiveCustomers = false;
     private boolean includeInactiveUsers = false;
-    // PENDING: The value of the field EditAppointmentFilter.resultFilter is not used
-    private FilterOptionState resultFilter;
+    private FilterOptionState filterOptions;
     private ObservableList<RangeSelectionItem> rangeTypeOptionList;
     private ObservableList<CustomerSelectionItem> customerList;
     private ObservableList<UserSelectionItem> userList;
@@ -110,6 +105,9 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     private ObservableList<TitleTextSelectionItem> titleTextSearchOptionList;
     private ObservableList<LocationTextSelectionItem> locationTextSearchOptionList;
     private StringBindingProperty dateRangeValidationBinding;
+
+    @FXML // fx:id="rootBorderPane"
+    private BorderPane rootBorderPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="searchTypesTabPane"
     private TabPane searchTypesTabPane; // Value injected by FXMLLoader
@@ -217,12 +215,12 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     private CheckBox lookupOptionUsersCheckBox; // Value injected by FXMLLoader
 
     @FXML
-    void cancelButtonAction(ActionEvent event) {
+    private void cancelButtonAction(ActionEvent event) {
         ((Button) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
-    void cityComboBoxChanged(ActionEvent event) {
+    private void cityComboBoxChanged(ActionEvent event) {
         CitySelectionItem cityItem = (countryRadioButton.isSelected()) ? null : cityComboBox.getValue();
         CustomerSelectionItem currentCustomer = (customerRadioButton.isSelected()) ? customCustomerComboBox.getValue() : null;
         if (null == cityItem || null == cityItem.getValue()) {
@@ -248,7 +246,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void countryComboBoxChanged(ActionEvent event) {
+    private void countryComboBoxChanged(ActionEvent event) {
         CountrySelectionItem countryItem = countryComboBox.getValue();
         CitySelectionItem currentCity = (countryRadioButton.isSelected()) ? null : cityComboBox.getValue();
         CustomerSelectionItem currentCustomer = (customerRadioButton.isSelected()) ? customCustomerComboBox.getValue() : null;
@@ -284,7 +282,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void customerRadioButtonChanged(ActionEvent event) {
+    private void customerRadioButtonChanged(ActionEvent event) {
         if (countryRadioButton.isSelected()) {
             selectItem(customCustomerComboBox, null);
             selectItem(cityComboBox, null);
@@ -304,7 +302,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void endComboBoxChanged(ActionEvent event) {
+    private void endComboBoxChanged(ActionEvent event) {
         DateTypeSelectionItem opt = endComboBox.getValue();
         if (null == opt || opt.getValue().equals(DateFilterType.NONE)) {
             endDatePicker.setDisable(true);
@@ -327,25 +325,25 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void locationComboBoxChanged(ActionEvent event) {
+    private void locationComboBoxChanged(ActionEvent event) {
         LocationTextSelectionItem opt = locationComboBox.getSelectionModel().getSelectedItem();
         locationTextField.setDisable(null == opt || opt.getValue().equals(TextFilterType.NONE));
     }
 
     @FXML
-    void lookupOptionsButtonClick(ActionEvent event) {
+    private void lookupOptionsButtonClick(ActionEvent event) {
         lookupOptionCustomersCheckBox.setSelected(includeInactiveCustomers);
         lookupOptionUsersCheckBox.setSelected(includeInactiveUsers);
         lookupOptionsBorderPane.setVisible(true);
     }
 
     @FXML
-    void lookupOptionsCancelClick(ActionEvent event) {
+    private void lookupOptionsCancelClick(ActionEvent event) {
         lookupOptionsBorderPane.setVisible(false);
     }
 
     @FXML
-    void lookupOptionsOkClick(ActionEvent event) {
+    private void lookupOptionsOkClick(ActionEvent event) {
         Stage stage;
         if (lookupOptionCustomersCheckBox.isSelected() != includeInactiveCustomers) {
             includeInactiveCustomers = lookupOptionCustomersCheckBox.isSelected();
@@ -373,12 +371,12 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void okButtonAction(ActionEvent event) {
+    private void okButtonAction(ActionEvent event) {
         ((Button) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
-    void searchTypesTabSelectionChanged(ActionEvent event) {
+    private void searchTypesTabSelectionChanged(ActionEvent event) {
         if (((Tab) event.getSource()).isSelected()) {
             if (customTab.isSelected()) {
                 RangeSelectionItem item = rangeTypeComboBox.getValue();
@@ -472,7 +470,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void startComboBoxChanged(ActionEvent event) {
+    private void startComboBoxChanged(ActionEvent event) {
         DateTypeSelectionItem opt = startComboBox.getSelectionModel().getSelectedItem();
         if (null == opt || opt.getValue().equals(DateFilterType.NONE)) {
             startDatePicker.setDisable(true);
@@ -503,7 +501,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void timeRadioButtonChanged(ActionEvent event) {
+    private void timeRadioButtonChanged(ActionEvent event) {
         DateTypeSelectionItem opt = startComboBox.getSelectionModel().getSelectedItem();
         if (null == opt || opt.getValue().equals(DateFilterType.NONE)) {
             return;
@@ -525,7 +523,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML
-    void titleComboBoxChanged(ActionEvent event) {
+    private void titleComboBoxChanged(ActionEvent event) {
         LocationTextSelectionItem opt = locationComboBox.getSelectionModel().getSelectedItem();
         locationTextField.setDisable(null == opt || opt.getValue().equals(TextFilterType.NONE));
     }
@@ -621,7 +619,8 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
+        assert rootBorderPane != null : "fx:id=\"rootBorderPane\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert searchTypesTabPane != null : "fx:id=\"searchTypesTabPane\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert preDefinedRangesTab != null : "fx:id=\"preDefinedRangesTab\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
@@ -658,6 +657,9 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         assert lookupOptionCustomersCheckBox != null : "fx:id=\"lookupOptionCustomersCheckBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert lookupOptionUsersCheckBox != null : "fx:id=\"lookupOptionUsersCheckBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
 
+        rootBorderPane.setVisible(false);
+        collapseNode(rootBorderPane);
+        
         rangeTypeOptionList = FXCollections.observableArrayList(new RangeSelectionItem(RangeOptionValue.CURRENT_AND_FUTURE),
                 new RangeSelectionItem(RangeOptionValue.CURRENT), new RangeSelectionItem(RangeOptionValue.PAST),
                 new RangeSelectionItem(RangeOptionValue.CURRENT_AND_PAST), new RangeSelectionItem(RangeOptionValue.ALL));
@@ -722,24 +724,19 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    private void onShow(Parent view, FilterOptionState filter, EditAppointmentFilter ctrl, Stage parent) {
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(parent);
-        stage.setScene(new Scene(view));
-
-        if (null != filter) {
-            filter = filter.asNormalized(true);
-        } else {
-            filter = new FilterOptionState();
-            filter.setStartDateTime(LocalDateTime.now());
-            filter.setStartOption(DateFilterType.INCLUSIVE);
-            filter.setUser(Scheduler.getCurrentUser());
-        }
-        TaskWaiter.startNow(new InitializeTask(stage, filter));
-        stage.showAndWait();
+    public FilterOptionState getFilterOptions() {
+        return filterOptions;
     }
 
+    public void show() {
+        // TODO: Start InitializeTask if it hasn't already been run.
+        // TODO: Implement show();
+    }
+    
+    public void hide() {
+        // TODO: Implement hide();
+    }
+    
     private void importCustomers(List<CustomerDAO> result) {
         CustomerSelectionItem currentCustomer = customerComboBox.getValue();
         CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
@@ -830,7 +827,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    private class InitializeTask extends TaskWaiter<OptionItems> {
+    private final class InitializeTask extends TaskWaiter<OptionItems> {
 
         private final FilterOptionState inputState;
 
@@ -940,7 +937,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
     }
 
-    class DateRangeValidationMessageBindingProperty extends StringBindingProperty {
+    private final class DateRangeValidationMessageBindingProperty extends StringBindingProperty {
 
         private final ObservableBooleanValue predefinedSelected;
         private final ObservableBooleanValue includeHour;
@@ -973,6 +970,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             endMinute = endMinuteSpinner.valueProperty();
         }
 
+        @SuppressWarnings("incomplete-switch")
         @Override
         protected String computeValue() {
             boolean includeM = includeMinute.get();
@@ -1027,7 +1025,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
     }
 
-    public enum RangeOptionValue {
+    private enum RangeOptionValue {
         CURRENT,
         CURRENT_AND_FUTURE,
         FUTURE,
@@ -1036,7 +1034,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         ALL
     }
 
-    public class RangeSelectionItem {
+    private final class RangeSelectionItem {
 
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyObjectWrapper<RangeOptionValue> value;
@@ -1099,7 +1097,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public class DateTypeSelectionItem {
+    private final class DateTypeSelectionItem {
 
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyObjectWrapper<DateFilterType> value;
@@ -1156,7 +1154,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public class TitleTextSelectionItem extends TextOption {
+    private final class TitleTextSelectionItem extends TextOption {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1193,7 +1191,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public class LocationTextSelectionItem extends TextOption {
+    private final class LocationTextSelectionItem extends TextOption {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1230,7 +1228,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public abstract class TextOption extends SelectionItem<TextFilterType> {
+    private abstract class TextOption extends SelectionItem<TextFilterType> {
 
         protected TextOption(TextFilterType value) {
             super(Objects.requireNonNull(value));
@@ -1247,7 +1245,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
     }
 
-    public class CustomerSelectionItem extends DataObjectItem<CustomerDAO> {
+    private final class CustomerSelectionItem extends DataObjectItem<CustomerDAO> {
 
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyIntegerWrapper cityId;
@@ -1295,7 +1293,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public class CitySelectionItem extends DataObjectItem<CityDAO> {
+    private final class CitySelectionItem extends DataObjectItem<CityDAO> {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1330,7 +1328,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
         }
     }
 
-    public class CountrySelectionItem extends DataObjectItem<CountryDAO> {
+    private final class CountrySelectionItem extends DataObjectItem<CountryDAO> {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1351,7 +1349,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public class UserSelectionItem extends DataObjectItem<UserDAO> {
+    private final class UserSelectionItem extends DataObjectItem<UserDAO> {
 
         private final ReadOnlyStringWrapper text;
 
@@ -1372,7 +1370,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public abstract class DataObjectItem<T extends DataAccessObject> extends SelectionItem<T> {
+    private abstract class DataObjectItem<T extends DataAccessObject> extends SelectionItem<T> {
 
         protected DataObjectItem(T value) {
             super(value);
@@ -1383,6 +1381,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
             return (null == getValue()) ? -1 : getValue().getPrimaryKey();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public boolean equals(Object obj) {
             if (null != obj && obj.getClass().equals(getClass())) {
@@ -1396,7 +1395,7 @@ public class EditAppointmentFilter extends SchedulerController implements Manage
 
     }
 
-    public abstract class SelectionItem<T> {
+    private abstract class SelectionItem<T> {
 
         private final ReadOnlyObjectWrapper<T> value;
 

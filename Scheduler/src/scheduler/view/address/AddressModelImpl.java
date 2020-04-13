@@ -1,5 +1,6 @@
 package scheduler.view.address;
 
+import java.time.ZoneId;
 import java.util.Objects;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
@@ -9,6 +10,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.AddressElement;
 import scheduler.dao.CityElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
@@ -17,6 +19,7 @@ import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.util.Values;
 import scheduler.view.city.CityModel;
+import scheduler.view.city.CityModelImpl;
 import scheduler.view.city.RelatedCityModel;
 import scheduler.view.model.ItemModel;
 
@@ -30,6 +33,13 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
 
     public static final Factory getFactory() {
         return FACTORY;
+    }
+
+    public static ZoneId getZoneId(AddressModel<? extends AddressElement> address) {
+        if (null != address) {
+            return CityModelImpl.getZoneId(address.getCity());
+        }
+        return ZoneId.systemDefault();
     }
 
     private final NonNullableStringProperty address1;

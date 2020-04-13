@@ -2,9 +2,7 @@ package scheduler.view.customer;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import scheduler.dao.CustomerDAO;
 import scheduler.view.ListingController;
@@ -42,18 +40,18 @@ public final class ManageCustomers extends ListingController<CustomerDAO, Custom
     }
 
     @Override
-    protected void onAddNewItem(Event event) throws IOException {
-        getMainController().addNewCustomer((Stage) ((Button) event.getSource()).getScene().getWindow());
+    protected void onAddNewItem(Stage stage) throws IOException {
+        getMainController().addNewCustomer(stage);
     }
 
     @Override
-    protected void onEditItem(Event event, CustomerModelImpl item) throws IOException {
-        getMainController().editCustomer((Stage) ((Button) event.getSource()).getScene().getWindow(), item);
+    protected void onEditItem(Stage stage, CustomerModelImpl item) throws IOException {
+        getMainController().editCustomer(stage, item);
     }
 
     @Override
-    protected void onDeleteItem(Event event, CustomerModelImpl item) {
-        getMainController().deleteCustomer((Stage) ((Button) event.getSource()).getScene().getWindow(), item);
+    protected void onDeleteItem(Stage stage, CustomerModelImpl item) {
+        getMainController().deleteCustomer(stage, item);
     }
 
     @Override

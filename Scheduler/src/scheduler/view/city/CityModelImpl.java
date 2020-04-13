@@ -1,18 +1,24 @@
 package scheduler.view.city;
 
+import java.time.ZoneId;
 import java.util.Objects;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.StringProperty;
 import scheduler.dao.CityDAO;
+import scheduler.dao.CityElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.observables.ChildPropertyWrapper;
-import scheduler.observables.NonNullableStringProperty;
 import scheduler.view.model.ItemModel;
 import scheduler.view.country.CityCountryModelImpl;
 import scheduler.view.country.CityCountryModel;
 import scheduler.dao.CountryElement;
 import scheduler.dao.DataRowState;
+import scheduler.view.country.CityOptionModel;
+import scheduler.view.country.CountryModel;
+import scheduler.view.country.CountryOptionModel;
 
 /**
  *
@@ -20,21 +26,29 @@ import scheduler.dao.DataRowState;
  */
 public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel<CityDAO> {
 
-    private final NonNullableStringProperty name;
+    public static ZoneId getZoneId(CityModel<? extends CityElement> city) {
+        if (null != city) {
+            CityOptionModel optionModel = city.getOptionModel();
+            if (null != optionModel) {
+                return optionModel.getZoneId();
+            }
+            return CountryModel.getZoneId(city.getCountry());
+        }
+        return ZoneId.systemDefault();
+    }
+
+    private final ReadOnlyStringWrapper name;
     private final SimpleObjectProperty<CityCountryModel<? extends CountryElement>> country;
     private final ChildPropertyWrapper<String, CityCountryModel<? extends CountryElement>> countryName;
+    private final ObjectProperty<CityOptionModel> optionModel;
 
     @Override
     public String getName() {
         return name.get();
     }
 
-    public void setName(String value) {
-        name.set(value);
-    }
-
     @Override
-    public StringProperty nameProperty() {
+    public ReadOnlyStringProperty nameProperty() {
         return name;
     }
 
@@ -62,14 +76,41 @@ public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel
         return countryName;
     }
 
+    @Override
+    public CityOptionModel getOptionModel() {
+        return optionModel.get();
+    }
+
+    public void setOptionModel(CityOptionModel value) {
+        optionModel.set(value);
+    }
+
+    public ObjectProperty<CityOptionModel> optionModelProperty() {
+        return optionModel;
+    }
+
     public CityModelImpl(CityDAO dao) {
         super(dao);
-        name = new NonNullableStringProperty(this, "name", dao.getName());
+        
+        optionModel = new SimpleObjectProperty<>(CityOptionModel.getCityOption(dao.getName()));
+        if (null == optionModel.get())
+            throw new IllegalArgumentException("Data access object does not map to an option model");
+        name = new ReadOnlyStringWrapper(this, "name");
+        name.bind(optionModel.get().nameProperty());
         CountryElement c = dao.getCountry();
         country = new SimpleObjectProperty<>(this, "country", (null == c) ? null : new CityCountryModelImpl(c));
         countryName = new ChildPropertyWrapper<>(this, "countryName", country, (t) -> t.nameProperty());
+        optionModel.addListener(this::onOptionModelChanged);
     }
 
+    @SuppressWarnings("unchecked")
+    private void onOptionModelChanged(Observable observable) {
+        name.unbind();
+        CityOptionModel model = ((SimpleObjectProperty<CityOptionModel>)observable).get();
+        if (null != model)
+            name.bind(model.nameProperty());
+    }
+    
     @Override
     public String toString() {
         return name.get();
@@ -124,7 +165,10 @@ public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel
         @Override
         public void updateItem(CityModelImpl item, CityDAO dao) {
             super.updateItem(item, dao);
-            item.name.set(dao.getName());
+            CityOptionModel m = CityOptionModel.getCityOption(dao.getName());
+            if (null == m)
+                throw new IllegalArgumentException("Data access object does not map to an option model");
+            item.setOptionModel(m);
             CountryElement countryDAO = dao.getCountry();
             item.setCountry((null == countryDAO) ? null : new CityCountryModelImpl(countryDAO));
         }
@@ -134,23 +178,31 @@ public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel
             CityDAO dao = item.getDataObject();
             if (dao.getRowState() == DataRowState.DELETED)
                 throw new IllegalArgumentException("City has been deleted");
-            String name = item.name.get();
-            if (name.trim().isEmpty())
-                throw new IllegalArgumentException("City name empty");
+            CityOptionModel cityOption = item.optionModel.get();
+             if (null == cityOption)
+                throw new IllegalArgumentException("City does not have an option model");
             CityCountryModel<? extends CountryElement> countryModel = item.country.get();
             if (null == countryModel)
                 throw new IllegalArgumentException("No associated country");
+            CountryOptionModel countryOption = countryModel.getOptionModel();
+            if (countryOption == null)
+                throw new IllegalArgumentException("Associated country does not have an option model");
+            if (!countryOption.equals(cityOption.getCountry()))
+                throw new IllegalArgumentException("City option model does not belong to the associated country option model");
             CountryElement countryDAO = countryModel.getDataObject();
+            
             switch (countryDAO.getRowState()) {
                 case DELETED:
                     throw new IllegalArgumentException("Associated country has been deleted");
                 case NEW:
                     throw new IllegalArgumentException("Associated country has never been saved");
                 default:
+                    if (!countryDAO.isExisting())
+                        throw new IllegalArgumentException("Associated country does not exist");
                     dao.setCountry(countryDAO);
                     break;
             }
-            dao.setName(name);
+            dao.setName(cityOption.getResourceKey());
             return dao;
         }
 

@@ -114,7 +114,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Label for displaying appointment start date validation message.
     private Label startValidationLabel;
 
-    // PENDING: Internationalize text in FXML
     @FXML // fx:id="showConflictsButton"
     private Button showConflictsButton; // Value injected by FXMLLoader
 
@@ -184,7 +183,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // AppointmentDAO description input control.
     private TextArea descriptionTextArea;
 
-    // PENDING: Internationalize heading label text in FXML
     @FXML // fx:id="conflictsBorderPane"
     private BorderPane conflictsBorderPane; // Value injected by FXMLLoader
 
@@ -234,19 +232,16 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
 
-    // PENDING: Internationalize button text in FXML
     @FXML
     void closeConflictsBorderPaneButtonClick(ActionEvent event) {
         conflictsBorderPane.setVisible(false);
     }
 
-    // PENDING: Internationalize button text in FXML
     @FXML
     void showConflictsButtonClick(ActionEvent event) {
         conflictsBorderPane.setVisible(true);
     }
 
-    // PENDING: Internationalize button text in FXML
     @FXML
     void customerDropDownOptionsButtonClick(ActionEvent event) {
         editingUserOptions = false;
@@ -259,7 +254,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         dropdownOptionsBorderPane.setVisible(true);
     }
 
-    // PENDING: Internationalize button text in FXML
     @FXML
     void userDropDownOptionsButtonClick(ActionEvent event) {
         editingUserOptions = true;
@@ -272,13 +266,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         dropdownOptionsBorderPane.setVisible(true);
     }
 
-    // PENDING: Internationalize button text in FXML
     @FXML
     void dropdownOptionsCancelButtonClick(ActionEvent event) {
         dropdownOptionsBorderPane.setVisible(false);
     }
 
-    // PENDING: Internationalize button text in FXML
     @FXML
     void dropdownOptionsOkButtonClick(ActionEvent event) {
         if (editingUserOptions) {
@@ -350,22 +342,16 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         
         // Set validation and label bindings
         titleValidationLabel.visibleProperty().bind(getTitleIsEmpty());
-        bindCssCollapse(titleValidationLabel, getTitleIsEmpty().not());
         customerAddress = new ReadOnlyStringWrapper("");
         customerSelectionModel = customerComboBox.getSelectionModel();
         customerValidationLabel.visibleProperty().bind(getCustomerNotSelected());
-        bindCssCollapse(customerValidationLabel, getCustomerNotSelected().not());
         userSelectionModel = userComboBox.getSelectionModel();
         userValidationLabel.visibleProperty().bind(getUserNotSelected());
-        bindCssCollapse(userValidationLabel, getUserNotSelected().not());
         contactValidationLabel.visibleProperty().bind(getPointOfContactNotValid());
-        bindCssCollapse(contactValidationLabel, getPointOfContactNotValid().not());
         startValidationLabel.textProperty().bind(getStartValidationMessage());
         startValidationLabel.visibleProperty().bind(getStartValidationMessage().isNotEmpty());
-        bindCssCollapse(startValidationLabel, getStartValidationMessage().isEmpty());
         durationValidationLabel.textProperty().bind(duration.getValidationMessage());
         durationValidationLabel.visibleProperty().bind(duration.getValidationMessage().isNotEmpty());
-        bindCssCollapse(durationValidationLabel, duration.getValidationMessage().isEmpty());
         currentTimeZoneLabel.visibleProperty().bind(getCurrentTimeZoneText().isNotEmpty());
         currentTimeZoneValue.textProperty().bind(getCurrentTimeZoneText());
         locationLabel.textProperty().bind(Bindings.createStringBinding(() -> {
@@ -397,7 +383,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         }, typeSelectionModel.selectedItemProperty()));
         urlValidationLabel.textProperty().bind(getUrlValidationMessage());
         urlValidationLabel.visibleProperty().bind(getUrlValidationMessage().isNotEmpty());
-        bindCssCollapse(urlValidationLabel, getUrlValidationMessage().isEmpty());
         startDateTime.addListener((observable) -> resetConflictingAppointments(((StartDateTimeProperty) observable).get(), duration.get()));
         duration.addListener((observable) -> resetConflictingAppointments(startDateTime.get(), ((DurationProperty) observable).get()));
         showConflictsButton.visibleProperty().bind(Bindings.createBooleanBinding(() -> !conflictingAppointments.isEmpty(), conflictingAppointments));
@@ -440,13 +425,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             }
             try {
                 URI uri = new URI(url);
-                // PENDING: Internationalize these
                 if (null == uri.getHost() || null == uri.getScheme()) {
-                    return "Invalid URL";
+                    return getResourceString(RESOURCEKEY_INVALIDURL);
                 }
             } catch (URISyntaxException ex) {
                 LOG.log(Level.FINER, "Caught URI syntax exception", ex);
-                return "Invalid URI syntax";
+                return getResourceString(RESOURCEKEY_INVALIDURL);
             }
             return "";
         }, typeSelectionModel.selectedItemProperty(), urlTextField.textProperty());
@@ -537,8 +521,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                             : String.format("%s%n%s", AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER), a);
                 case GERMANY_SITE_MEETING:
                     return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
-                case HONDURAS_SITE_MEETING:
-                    return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS);
+                case GUATEMALA_SITE_MEETING:
+                    return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA);
                 case INDIA_SITE_MEETING:
                     return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
                 case PHONE:
@@ -629,28 +613,35 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
+        AppointmentModel model = this.getModel();
+        typeSelectionModel.select(model.getType());
+        titleTextField.setText(model.getTitle());
+        contactTextField.setText(model.getContact());
+        ZoneId zoneId = AppointmentModel.getZoneId(model);
+        LocalDateTime start = model.getStart();
+        if (zoneId.equals(ZoneId.systemDefault()))
+            startDateTime.set(ZonedDateTime.of(start, zoneId));
+        else
+            startDateTime.set(ZonedDateTime.of(start, ZoneId.systemDefault()).withZoneSameInstant(zoneId));
+        duration.set(Duration.between(start, model.getEnd()));
+        
+        switch (typeSelectionModel.getSelectedItem()) {
+            case OTHER:
+                locationTextArea.setText(model.getLocation());
+                break;
+            case PHONE:
+                phoneTextField.setText(model.getLocation());
+                break;
+        }
+        urlTextField.setText(model.getUrl());
+        descriptionTextArea.setText(model.getDescription());
     }
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        BooleanBinding titleValid = getTitleIsEmpty().not();
-        BooleanBinding customerValid = getCustomerNotSelected().not();
-        BooleanBinding userValid = getUserNotSelected().not();
-        BooleanBinding pointOfContactValid = getPointOfContactNotValid().not();
-        BooleanBinding startDateTimeValid = startDateTime.getValidationMessage().isEmpty();
-        BooleanBinding durationValid = duration.getValidationMessage().isEmpty();
-        BooleanBinding locationValid = getLocationNotValid().not();
-        BooleanBinding urlValid = getUrlValidationMessage().isEmpty();
-        return Bindings.createBooleanBinding(() -> {
-            boolean t = titleValid.get();
-            boolean c = customerValid.get();
-            boolean u = userValid.get();
-            boolean p = pointOfContactValid.get();
-            boolean s = startDateTimeValid.get();
-            boolean d = durationValid.get();
-            boolean l = locationValid.get();
-            return t && c && u && p && s && d && l && urlValid.get();
-        }, titleValid, customerValid, userValid, pointOfContactValid, startDateTimeValid, durationValid, locationValid, urlValid);
+        return getTitleIsEmpty().or(getCustomerNotSelected()).or(getUserNotSelected()).or(getPointOfContactNotValid()).or(getLocationNotValid()).not()
+                .and(startDateTime.getValidationMessage().isEmpty()).and(duration.getValidationMessage().isEmpty())
+                .and(getUrlValidationMessage().isEmpty());
     }
 
     @Override
@@ -898,6 +889,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             userLoadOption = showActiveUsers;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         protected void processResult(List<AppointmentDAO> result, Stage owner) {
             if (null != customerDaoList && !customerDaoList.isEmpty()) {

@@ -466,6 +466,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
          *
          * @param listener
          */
+        @SuppressWarnings("unused")
         public void addPropertyChangeListener(PropertyChangeListener listener) {
             propertyChangeSupport.addPropertyChangeListener(listener);
         }
@@ -475,6 +476,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
          *
          * @param listener
          */
+        @SuppressWarnings("unused")
         public void removePropertyChangeListener(PropertyChangeListener listener) {
             propertyChangeSupport.removePropertyChangeListener(listener);
         }
@@ -486,6 +488,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
          *
          * @param listener
          */
+        @SuppressWarnings("unused")
         public void addVetoableChangeListener(VetoableChangeListener listener) {
             vetoableChangeSupport.addVetoableChangeListener(listener);
         }
@@ -495,6 +498,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
          *
          * @param listener
          */
+        @SuppressWarnings("unused")
         public void removeVetoableChangeListener(VetoableChangeListener listener) {
             vetoableChangeSupport.removeVetoableChangeListener(listener);
         }
@@ -547,6 +551,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
             return backingList.isEmpty();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public boolean contains(Object o) {
             return containsValue((V)o);
@@ -562,6 +567,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
             return backingList.stream().map((t) -> t.value).toArray();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public boolean containsAll(Collection<?> c) {
             return c.stream().allMatch((t) -> containsValue((V)t));

@@ -3,11 +3,8 @@ package scheduler.view.appointment;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import scheduler.dao.AppointmentDAO;
 import scheduler.view.ListingController;
@@ -73,8 +70,8 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     }
 
     @Override
-    protected void onDeleteItem(Event event, AppointmentModel item) {
-        getMainController().deleteAppointment((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), item);
+    protected void onDeleteItem(Stage stage, AppointmentModel item) {
+        getMainController().deleteAppointment(stage, item);
     }
 
     @Override
@@ -83,13 +80,13 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     }
 
     @Override
-    protected void onAddNewItem(Event event) throws IOException {
-        getMainController().addNewAppointment((Stage) ((Button) event.getSource()).getScene().getWindow());
+    protected void onAddNewItem(Stage stage) throws IOException {
+        getMainController().addNewAppointment(stage);
     }
 
     @Override
-    protected void onEditItem(Event event, AppointmentModel item) throws IOException {
-        getMainController().editAppointment((Stage) ((MenuItem) event.getSource()).getGraphic().getScene().getWindow(), item);
+    protected void onEditItem(Stage stage, AppointmentModel item) throws IOException {
+        getMainController().editAppointment(stage, item);
     }
 
     @Override

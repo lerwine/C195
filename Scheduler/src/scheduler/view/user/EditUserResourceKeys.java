@@ -13,6 +13,11 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_ACTIVESTATE = "activeState";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add"}.
+     */
+    public static final String RESOURCEKEY_ADD = "add";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add New User"}.
      */
     public static final String RESOURCEKEY_ADDNEWUSER = "addNewUser";
@@ -136,6 +141,11 @@ public interface EditUserResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Past Appointments"}.
      */
     public static final String RESOURCEKEY_PASTAPPOINTMENTS = "pastAppointments";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
+     */
+    public static final String RESOURCEKEY_REQUIRED = "required";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Start"}.

@@ -362,6 +362,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
+            
             int count = CustomerDAO.getFactory().countByAddress(connection, dao.getPrimaryKey());
             // PENDING: Internationalize these
             switch (count) {
@@ -377,7 +378,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
         @Override
         public String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
             assert dao.getRowState() != DataRowState.DELETED : "Data access object already deleted";
-
+            
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
                     .append(") FROM ").append(DbTable.ADDRESS.getDbName())
                     .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");

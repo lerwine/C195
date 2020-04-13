@@ -149,6 +149,7 @@ public final class BinaryOptional<T, U> {
      * @return The primary value;
      * @throws NoSuchElementException if this object does not contain the primary value option.
      */
+    @SuppressWarnings("unchecked")
     public T getPrimary() {
         if (isPrimary()) {
             return (T) value;
@@ -162,6 +163,7 @@ public final class BinaryOptional<T, U> {
      * @return The secondary value;
      * @throws NoSuchElementException if this object does not contain the secondary value option.
      */
+    @SuppressWarnings("unchecked")
     public U getSecondary() {
         if (isPrimary()) {
             throw new NoSuchElementException("No value present");
@@ -169,10 +171,12 @@ public final class BinaryOptional<T, U> {
         return (U) value;
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<T> toPrimaryOption() {
         return (isPrimary()) ? Optional.of((T) value) : Optional.empty();
     }
     
+    @SuppressWarnings("unchecked")
     public Optional<U> toSecondaryOption() {
         return (isSecondary()) ? Optional.of((U) value) : Optional.empty();
     }
@@ -183,6 +187,7 @@ public final class BinaryOptional<T, U> {
      *
      * @param consumer The {@link Consumer} to invoke if this contains the primary value option,.
      */
+    @SuppressWarnings("unchecked")
     public void ifPrimary(Consumer<? super T> consumer) {
         if (isPrimary()) {
             consumer.accept((T) value);
@@ -195,6 +200,7 @@ public final class BinaryOptional<T, U> {
      *
      * @param consumer The {@link Consumer} to invoke if this contains the secondary value option.
      */
+    @SuppressWarnings("unchecked")
     public void ifSecondary(Consumer<? super U> consumer) {
         if (isSecondary()) {
             consumer.accept((U) value);
@@ -207,6 +213,7 @@ public final class BinaryOptional<T, U> {
      * @param ifPrimary The {@link Consumer} to execute if this contains the primary option value.
      * @param ifSecondary The {@link Consumer} to execute if this contains the secondary option value.
      */
+    @SuppressWarnings("unchecked")
     public void acceptIfPresent(Consumer<? super T> ifPrimary, Consumer<? super U> ifSecondary) {
         if (primary.isPresent()) {
             if (primary.get()) {
@@ -225,6 +232,7 @@ public final class BinaryOptional<T, U> {
      * @param ifSecondary The {@link Function} to apply if this contains the secondary option value.
      * @return The result from the {@link Function} that was applied or {@link Optional#EMPTY} if no value was present.
      */
+    @SuppressWarnings("unchecked")
     public <S> Optional<S> map(Function<? super T, S> ifPrimary, Function<? super U, S> ifSecondary) {
         if (primary.isPresent()) {
             return Optional.ofNullable((primary.get()) ? ifPrimary.apply((T) value) : ifSecondary.apply((U) value));
@@ -242,6 +250,7 @@ public final class BinaryOptional<T, U> {
      * @param ifSecondary The {@link Function} to apply if this contains the secondary option value.
      * @return The result from the {@link Function} that was applied or {@link Optional#EMPTY} if no value was present.
      */
+    @SuppressWarnings("unchecked")
     public <S> Optional<S> flatMap(Function<? super T, S> ifPrimary, Function<? super U, S> ifSecondary) {
         if (primary.isPresent()) {
             return Optional.of((primary.get()) ? ifPrimary.apply((T) value) : ifSecondary.apply((U) value));
@@ -258,6 +267,7 @@ public final class BinaryOptional<T, U> {
      * @param ifNotPresent The {@link Supplier} for the result value if this does not contain any option value.
      * @return The result from the {@link Function} that was applied or from the {@link Supplier} if no value was present.
      */
+    @SuppressWarnings("unchecked")
     public <S> S map(Function<? super T, S> ifPrimary, Function<? super U, S> ifSecondary, Supplier<S> ifNotPresent) {
         if (primary.isPresent()) {
             return (primary.get()) ? ifPrimary.apply((T) value) : ifSecondary.apply((U) value);

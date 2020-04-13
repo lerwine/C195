@@ -15,6 +15,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.util.StringConverter;
+import scheduler.util.LogHelper;
+import static scheduler.util.LogHelper.toLogText;
+import scheduler.util.ResourceBundleHelper;
+import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 
 /**
  *
@@ -23,7 +27,7 @@ import javafx.util.StringConverter;
 public class DurationProperty extends ObjectBinding<Duration>
         implements ReadOnlyProperty<Duration>, WritableObjectValue<Duration> {
 
-    private static final Logger LOG = Logger.getLogger(DurationProperty.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DurationProperty.class.getName()), Level.FINE);
     
     private final String name;
     private final Object bean;
@@ -68,15 +72,21 @@ public class DurationProperty extends ObjectBinding<Duration>
 
             @Override
             public void decrement(int steps) {
+                LOG.fine(() -> String.format("Decrementing %s hour %d steps", name, steps));
                 if (steps > 0) {
-                    set(get().minusHours(steps));
+                    Duration d = get().minusHours(steps);
+                    LOG.fine(() -> String.format("Changing value from %s to %s", toLogText(get()), toLogText(d)));
+                    set(d);
                 }
             }
 
             @Override
             public void increment(int steps) {
+                LOG.fine(() -> String.format("Incrementing %s hour %d steps", name, steps));
                 if (steps > 0) {
-                    set(get().plusHours(steps));
+                    Duration d = get().plusHours(steps);
+                    LOG.fine(() -> String.format("Changing value from %s to %s", toLogText(get()), toLogText(d)));
+                    set(d);
                 }
             }
         };
@@ -104,15 +114,41 @@ public class DurationProperty extends ObjectBinding<Duration>
 
             @Override
             public void decrement(int steps) {
+                LOG.fine(() -> String.format("Decrementing %s minute %d steps", name, steps));
                 if (steps > 0) {
-                    set(get().minusMinutes(steps));
+                    Duration d = get();
+                    if (d.getNano() > 0) {
+                        d = d.withNanos(0);
+                    }
+                    long s = d.getSeconds() % 300L;
+                    Duration result;
+                    if (s > 0) {
+                        d = d.minusSeconds(s);
+                        result = (steps > 1) ? d.minusMinutes((steps - 1) * 5) : d;
+                    } else
+                        result = d.minusMinutes(steps * 5);
+                    LOG.fine(() -> String.format("Changing value from %s to %s", toLogText(get()), toLogText(result)));
+                    set(result);
                 }
             }
 
             @Override
             public void increment(int steps) {
+                LOG.fine(() -> String.format("Incrementing %s minute %d steps", name, steps));
                 if (steps > 0) {
-                    set(get().plusMinutes(steps));
+                    Duration d = get();
+                    if (d.getNano() > 0) {
+                        d = d.withNanos(0).plusSeconds(1);
+                    }
+                    long s = d.getSeconds() % 300L;
+                    Duration result;
+                    if (s > 0) {
+                        d = d.plusSeconds(300L - s);
+                        result = (steps > 1) ? d.plusMinutes((steps - 1) * 5) : d;
+                    } else
+                        result = d.plusMinutes(steps * 5);
+                    LOG.fine(() -> String.format("Changing value from %s to %s", toLogText(get()), toLogText(result)));
+                    set(result);
                 }
             }
         };
@@ -131,11 +167,10 @@ public class DurationProperty extends ObjectBinding<Duration>
             String mt = minuteTextProperty.get();
             Integer hv = hourValueFactory.getValue();
             Integer mv = minuteValueFactory.getValue();
-            // PENDING: Internationalize these
             if (ht.trim().isEmpty())
-                return "Duration hour not specified";
+                return ResourceBundleHelper.getResourceString(EditAppointment.class, RESOURCEKEY_DURATIONHOURNOTSPECIFIED);
             if (mt.trim().isEmpty())
-                return "Duration minute not specified";
+                return ResourceBundleHelper.getResourceString(EditAppointment.class, RESOURCEKEY_DURATIONMINUTENOTSPECIFIED);
             
             boolean success = null != hv;
             if (success) {
@@ -148,7 +183,7 @@ public class DurationProperty extends ObjectBinding<Duration>
                 }
             }
             if (!success)
-                return "Invalid duration hour";
+                return ResourceBundleHelper.getResourceString(EditAppointment.class, RESOURCEKEY_INVALIDDURATIONHOUR);
             success = null != mv;
             if (success) {
                 try {
@@ -160,7 +195,7 @@ public class DurationProperty extends ObjectBinding<Duration>
                 }
             }
             if (!success)
-                return "Invalid duration minute";
+                return ResourceBundleHelper.getResourceString(EditAppointment.class, RESOURCEKEY_INVALIDDURATIONMINUTE);
             return "";
         }, hourTextProperty, minuteTextProperty, hourValueFactory.valueProperty(), minuteValueFactory.valueProperty());
     }

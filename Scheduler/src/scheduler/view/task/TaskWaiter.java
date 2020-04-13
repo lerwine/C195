@@ -27,7 +27,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import scheduler.AppResources;
 import scheduler.util.DbConnector;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.ThrowableFunction;
 import scheduler.view.annotations.FXMLResource;
@@ -737,7 +737,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
         if (null != contentPane) {
             return;
         }
-        ResourceBundle rb = ResourceBundleLoader.getBundle(TaskWaiter.class);
+        ResourceBundle rb = ResourceBundleHelper.getBundle(TaskWaiter.class);
         FXMLLoader loader = new FXMLLoader(TaskWaiter.class.getResource(AppResources.getFXMLResourceName(TaskWaiter.class)), rb);
         loader.setController(this);
         final Parent newParent;

@@ -56,6 +56,7 @@ public interface TimestampColumnValueFilter<T extends DataAccessObject, U extend
                 return hashcode;
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof TimestampColumnValueFilter) {

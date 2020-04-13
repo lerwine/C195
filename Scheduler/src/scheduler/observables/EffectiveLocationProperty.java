@@ -39,12 +39,11 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
         String l = location.getValue();
         String u = url.getValue();
         CustomerModel<? extends CustomerElement> c = customer.getValue();
-        
         switch (type.getValue()) {
             case GERMANY_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
-            case HONDURAS_SITE_MEETING:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HONDURAS);
+            case GUATEMALA_SITE_MEETING:
+                return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA);
             case CORPORATE_HQ_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HQ);
             case INDIA_SITE_MEETING:
@@ -73,6 +72,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
         return name;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ObservableList<?> getDependencies() {
         return FXCollections.observableArrayList(type, location, url, customer);

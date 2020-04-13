@@ -94,6 +94,7 @@ public interface ReadOnlyCollection<E> extends Collection<E> {
         throw new UnsupportedOperationException("Target collection is read-only.");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public default <T> T[] toArray(T[] a) {
         Object[] elementData = toArray();

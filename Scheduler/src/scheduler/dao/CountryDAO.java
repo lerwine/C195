@@ -19,9 +19,10 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.util.InternalException;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
+import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECONFLICTMESSAGE;
 
 @DatabaseTable(DbTable.COUNTRY)
 public class CountryDAO extends DataAccessObject implements CountryElement {
@@ -150,7 +151,7 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
 
         CountryElement fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new CountryElement() {
-                private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.CITY_NAME.toString()));
+                private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.COUNTRY_NAME.toString()));
                 private final int primaryKey = rs.getInt(DbColumn.CITY_COUNTRY.toString());
 
                 @Override
@@ -205,9 +206,9 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
                 case 0:
                     return "";
                 case 1:
-                    return ResourceBundleLoader.getResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGSINGLECOUNTRY);
+                    return ResourceBundleHelper.getResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGSINGLECOUNTRY);
                 default:
-                    return ResourceBundleLoader.formatResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY,
+                    return ResourceBundleHelper.formatResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY,
                             count);
             }
         }
@@ -243,7 +244,7 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
             }
 
             if (count > 0) {
-                return ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_SAVECONFLICTMESSAGE);
+                return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE);
             }
 
             return "";

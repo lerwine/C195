@@ -58,6 +58,7 @@ public class CityZipCountryProperty extends StringBinding implements ReadOnlyPro
         return name;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ObservableList<?> getDependencies() {
         return FXCollections.observableArrayList(cityName, countryName, postalCode);

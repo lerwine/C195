@@ -20,9 +20,11 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
+import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE;
+import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE;
 
 @DatabaseTable(DbTable.CITY)
 public class CityDAO extends DataAccessObject implements CityElement {
@@ -254,9 +256,9 @@ public class CityDAO extends DataAccessObject implements CityElement {
                 case 0:
                     return "";
                 case 1:
-                    return ResourceBundleLoader.getResourceString(EditCountry.class, EditCountry.RESOURCEKEY_DELETEMSGSINGLE);
+                    return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_DELETEMSGSINGLE);
                 default:
-                    return ResourceBundleLoader.formatResourceString(EditCountry.class, EditCountry.RESOURCEKEY_DELETEMSGMULTIPLE, count);
+                    return ResourceBundleHelper.formatResourceString(EditCountry.class, RESOURCEKEY_DELETEMSGMULTIPLE, count);
             }
         }
 

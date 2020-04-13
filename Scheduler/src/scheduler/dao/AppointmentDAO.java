@@ -142,7 +142,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
             case CORPORATE_HQ_MEETING:
             case CUSTOMER_SITE:
             case GERMANY_SITE_MEETING:
-            case HONDURAS_SITE_MEETING:
+            case GUATEMALA_SITE_MEETING:
             case INDIA_SITE_MEETING:
                 break;
             case PHONE:

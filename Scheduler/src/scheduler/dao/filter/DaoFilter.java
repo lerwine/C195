@@ -84,6 +84,7 @@ public interface DaoFilter<T extends DataAccessObject> extends DaoFilterExpressi
                 return loadingMessage;
             }
 
+            @SuppressWarnings({"unchecked", "raw"})
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof DaoFilter) {

@@ -73,9 +73,9 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_APPOINTMENTTYPE_HQ = "appointmentType_HQ";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Honduras Office"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Guatemala Office"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_HONDURAS = "appointmentType_honduras";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA = "appointmentType_guatemala";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "India Office"}.

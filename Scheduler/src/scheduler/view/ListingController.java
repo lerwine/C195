@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -173,23 +172,25 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     void onNewButtonAction(ActionEvent event) {
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
         try {
-            onAddNewItem(event);
+            onAddNewItem(stage);
         } catch (IOException ex) {
             // PENDING: Internationalize message
-            AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
         }
     }
 
     void onEditMenuItemAction(ActionEvent event) {
         U item = listingTableView.getSelectionModel().getSelectedItem();
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
         if (item == null) {
             ResourceBundle rb = AppResources.getResources();
-            AlertHelper.showWarningAlert((Stage) listingTableView.getScene().getWindow(), LOG,
+            AlertHelper.showWarningAlert(stage, LOG,
                     rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
         } else {
             try {
-                onEditItem(event, item);
+                onEditItem(stage, item);
             } catch (IOException ex) {
                 // PENDING: Internationalize message
                 AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
@@ -199,12 +200,13 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
 
     void onDeleteMenuItemAction(ActionEvent event) {
         U item = listingTableView.getSelectionModel().getSelectedItem();
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
         if (item == null) {
             ResourceBundle rb = AppResources.getResources();
-            AlertHelper.showWarningAlert((Stage) listingTableView.getScene().getWindow(), LOG,
+            AlertHelper.showWarningAlert(stage, LOG,
                     rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
         } else {
-            onDeleteItem(event, item);
+            onDeleteItem(stage, item);
         }
     }
 
@@ -213,13 +215,14 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             return;
         }
 
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
         if (event.isMetaDown() || event.isControlDown()) {
             if (event.getCode() == KeyCode.N) {
                 try {
-                    onAddNewItem(event);
+                    onAddNewItem(stage);
                 } catch (IOException ex) {
                     // PENDING: Internationalize message
-                    AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+                    AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
                 }
             }
             return;
@@ -232,13 +235,13 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             return;
         }
         if (event.getCode() == KeyCode.DELETE) {
-            onDeleteItem(event, item);
+            onDeleteItem(stage, item);
         } else if (event.getCode() == KeyCode.ENTER) {
             try {
-                onEditItem(event, item);
+                onEditItem(stage, item);
             } catch (IOException ex) {
                 // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+                AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
             }
         }
     }
@@ -308,29 +311,29 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      * This gets called when the user clicks the {@link #newButton} control or types the {@link KeyCode#N} key while {@link KeyEvent#isMetaDown()} or
      * {@link KeyEvent#isControlDown()}.
      *
-     * @param event Contextual information about the event.
+     * @param stage The {@link Stage} of the view that initiated this operation.
      * @throws java.io.IOException
      */
-    protected abstract void onAddNewItem(Event event) throws IOException;
+    protected abstract void onAddNewItem(Stage stage) throws IOException;
 
     /**
      * This gets called when the user types the {@link KeyCode#ENTER} key or clicks the {@link #editMenuItem} in the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      *
-     * @param event Contextual information about the event.
+     * @param stage The {@link Stage} of the view that initiated this operation.
      * @param item The selected item to be edited.
      * @throws java.io.IOException
      */
-    protected abstract void onEditItem(Event event, U item) throws IOException;
+    protected abstract void onEditItem(Stage stage, U item) throws IOException;
 
     /**
      * This gets called when the user types the {@link KeyCode#DELETE} key or clicks the {@link #deleteMenuItem} in the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      *
-     * @param event Contextual information about the event.
+     * @param stage The {@link Stage} of the view that initiated this operation.
      * @param item The selected item to be deleted.
      */
-    protected abstract void onDeleteItem(Event event, U item);
+    protected abstract void onDeleteItem(Stage stage, U item);
 
     /**
      * Gets the index of the {@link ItemModel} in the current {@link #itemsList} where the {@link ItemModel#primaryKeyProperty()} matches the given

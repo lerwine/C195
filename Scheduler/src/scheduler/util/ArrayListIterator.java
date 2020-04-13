@@ -11,11 +11,13 @@ public class ArrayListIterator<T> implements ListIterator<T> {
     private final T[] backingArray;
     private int index;
     
+    @SuppressWarnings("unchecked")
     public ArrayListIterator(T[] source) {
         backingArray = (null == source) ? (T[])(new Object[0]) : source;
         index = 0;
     }
 
+    @SuppressWarnings("unchecked")
     public ArrayListIterator(int index, T[] source) {
         backingArray = (null == source) ? (T[])(new Object[0]) : source;
         if (index < 0 || index > backingArray.length)

@@ -74,6 +74,7 @@ public class EventHelper {
      * @param target The object to fire the event on.
      * @param event The {@link DataObjectEvent} to be fired.
      */
+    @SuppressWarnings("unchecked")
     public static <T extends DataAccessObject> void fireDataObjectEvent(Object target, DataObjectEvent<T> event) {
         LOG.log(Level.FINE, () -> String.format("Firing DataObjectEvent %s on %s", event.getChangeAction().name(), event.getDataObject().getClass().getName()));
         if (null == target) {
@@ -113,6 +114,7 @@ public class EventHelper {
      * @param target The object to fire the event on.
      * @param event The {@link FxmlViewEvent} to be fired.
      */
+    @SuppressWarnings("unchecked")
     public static <T extends Parent, U> void fireFxmlViewEvent(Object target, FxmlViewEvent<T> event) {
         if (event instanceof FxmlViewControllerEvent) {
             LOG.log(Level.FINE, () -> String.format("Firing FxmlViewControllerEvent %s for %s", event.getType().name(),
@@ -176,6 +178,7 @@ public class EventHelper {
      * @param target The object to fire the event on.
      * @param event The {@link DataObjectEvent} to be fired.
      */
+    @SuppressWarnings("unchecked")
     public static <T> void fireDataLoadedEvent(Object target, DataLoadedEvent<T> event) {
         LOG.log(Level.FINE, () -> (null == event.getSource()) ? "Firing DataLoadedEvent"
                 : String.format("Firing DataLoadedEvent for %s", event.getSource().getClass().getName()));

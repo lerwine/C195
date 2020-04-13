@@ -27,11 +27,17 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -45,6 +51,72 @@ import scheduler.util.PwHash;
  * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
  */
 public class FXMLDocumentController {
+
+    @FXML
+    private RadioButton dateTimeRadioButton;
+
+    @FXML
+    private ToggleGroup dateTimeBuildToggleGroup;
+
+    @FXML
+    private RadioButton dateOnlyRadioButton;
+
+    @FXML
+    private Spinner<?> yearSpinner;
+
+    @FXML
+    private Spinner<?> monthSpinner;
+
+    @FXML
+    private Spinner<?> daySpinner;
+
+    @FXML
+    private RadioButton minuteRadioButton;
+
+    @FXML
+    private ToggleGroup timeBuildToggleGroup;
+
+    @FXML
+    private RadioButton secondsRadioButton;
+
+    @FXML
+    private RadioButton milllisecondsRadioButton;
+
+    @FXML
+    private RadioButton timeOnlyRadioButton;
+
+    @FXML
+    private Spinner<?> hourSpinner;
+
+    @FXML
+    private Spinner<?> minuteSpinner;
+
+    @FXML
+    private Spinner<?> secondSpinner;
+
+    @FXML
+    private Spinner<?> millisecondSpinner;
+
+    @FXML
+    private CheckBox localeCheckBox;
+
+    @FXML
+    private ComboBox<?> localeComboBox;
+
+    @FXML
+    private ComboBox<?> formatterComboBox;
+
+    @FXML
+    private TextArea temporarStringTextArea;
+
+    @FXML
+    private Label dateFormatValidationMessage;
+
+    @FXML
+    private CheckBox formatStringCheckBox;
+
+    @FXML
+    private TextArea formatStringTextArea;
 
     @FXML // fx:id="languageTagInputTextBox"
     private TextField languageTagInputTextBox; // Value injected by FXMLLoader

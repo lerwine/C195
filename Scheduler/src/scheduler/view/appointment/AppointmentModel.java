@@ -3,7 +3,9 @@ package scheduler.view.appointment;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
@@ -23,7 +25,9 @@ import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.EffectiveLocationProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.util.DB;
+import scheduler.view.city.SupportedLocale;
 import scheduler.view.customer.CustomerModel;
+import scheduler.view.customer.CustomerModelImpl;
 import scheduler.view.customer.RelatedCustomerModel;
 import scheduler.view.model.ItemModel;
 import scheduler.view.user.RelatedUserModel;
@@ -40,6 +44,34 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
 
     public static final Factory getFactory() {
         return FACTORY;
+    }
+
+    static ZoneId getZoneId(AppointmentModel model) {
+        if (null != model) {
+            ZoneId result;
+            switch (model.getType()) {
+                case CORPORATE_HQ_MEETING:
+                    result = SupportedLocale.toZoneId(SupportedLocale.EN);
+                    break;
+                case GERMANY_SITE_MEETING:
+                    result = SupportedLocale.toZoneId(SupportedLocale.DE);
+                    break;
+                case GUATEMALA_SITE_MEETING:
+                    result = SupportedLocale.toZoneId(SupportedLocale.ES);
+                    break;
+                case INDIA_SITE_MEETING:
+                    result = SupportedLocale.toZoneId(SupportedLocale.HI);
+                    break;
+                case CUSTOMER_SITE:
+                    return CustomerModelImpl.getZoneId(model.getCustomer());
+                default:
+                    result = null;
+                    break;
+            }
+            if (null != result)
+                return result;
+        }
+        return ZoneId.systemDefault();
     }
 
     private final SimpleObjectProperty<CustomerModel<? extends CustomerElement>> customer;
@@ -451,7 +483,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
                 case CORPORATE_HQ_MEETING:
                 case GERMANY_SITE_MEETING:
                 case CUSTOMER_SITE:
-                case HONDURAS_SITE_MEETING:
+                case GUATEMALA_SITE_MEETING:
                 case INDIA_SITE_MEETING:
                     location = item.getEffectiveLocation();
                     break;

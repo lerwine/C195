@@ -32,7 +32,7 @@ import scheduler.dao.CustomerDAO;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
-import scheduler.util.ResourceBundleLoader;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.view.SchedulerController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -301,8 +301,8 @@ public class CustomerPicker extends SchedulerController {
         countryLabel.setText(customer.getCountryName());
         postalCodeLabel.setText(customer.getPostalCode());
         phoneLabel.setText(customer.getPhone());
-        createdLabel.setText(ResourceBundleLoader.formatCreatedByOn(customer.getCreatedBy(), customer.getCreateDate()));
-        modifiedLabel.setText(ResourceBundleLoader.formatModifiedByOn(customer.getLastModifiedBy(), customer.getLastModifiedDate()));
+        createdLabel.setText(ResourceBundleHelper.formatCreatedByOn(customer.getCreatedBy(), customer.getCreateDate()));
+        modifiedLabel.setText(ResourceBundleHelper.formatModifiedByOn(customer.getLastModifiedBy(), customer.getLastModifiedDate()));
         selectCustomerButton.setDisable(false);
     }
 
