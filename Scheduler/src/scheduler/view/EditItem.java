@@ -25,27 +25,38 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DataObjectEventListener;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.ViewControllerLoader;
+import scheduler.view.address.AddressModelImpl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesDataObjectEvent;
+import scheduler.view.appointment.AppointmentModel;
+import scheduler.view.city.CityModelImpl;
+import scheduler.view.country.CountryModel;
+import scheduler.view.customer.CustomerModelImpl;
 import scheduler.view.event.FxmlViewControllerEvent;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
+import scheduler.view.user.UserModelImpl;
 
 /**
  * Wrapper FXML Controller class for editing {@link ItemModel} items in a new modal window.
- * <p>This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, {@link #cancelButton} controls as well as labels for displaying the values for
- * the {@link ItemModel#createdBy}, {@link ItemModel#createDate}, {@link ItemModel#lastModifiedBy} and {@link ItemModel#lastModifiedDate} properties. Properties that are
- * specific to the {@link ItemModel} type are edited in a nested view and controller. Controllers for the nested editor views inherit from {@link EditItem.EditController}.</p>
- * <p>The nested editor view can load the {@code EditItem} view and controller, including the nested view and controller using
- * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
- * <p>The view for this controller is {@code /resources/scheduler/view/user/EditUser.fxml}.</p>
+ * <p>
+ * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, {@link #cancelButton} controls as well as labels for displaying the
+ * values for the {@link ItemModel#createdBy}, {@link ItemModel#createDate}, {@link ItemModel#lastModifiedBy} and {@link ItemModel#lastModifiedDate}
+ * properties. Properties that are specific to the {@link ItemModel} type are edited in a nested view and controller. Controllers for the nested
+ * editor views inherit from {@link EditItem.EditController}.</p>
+ * <p>
+ * The nested editor view can load the {@code EditItem} view and controller, including the nested view and controller using
+ * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or
+ * {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
+ * <p>
+ * The view for this controller is {@code /resources/scheduler/view/user/EditUser.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data access object that the model represents.
@@ -53,9 +64,11 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> extends SchedulerController {
+public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> extends SchedulerController implements DataObjectEventListener<T> {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+
+    private MainController mainController;
 
     private EditController<T, U> contentController;
 
@@ -95,47 +108,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     @FXML // fx:id="deleteButton"
     private Button deleteButton; // Value injected by FXMLLoader
 
-    private void onContentLoaded(ViewAndController<? extends Parent, ? extends EditController<T, U>> viewAndController) {
-        contentController = viewAndController.getController();
-        contentController.model = contentController.getFactory().createNew(
-                contentController.getFactory().getDaoFactory().createNew());
-    }
-
-    private void onContentLoaded(U model, ViewAndController<? extends Parent, ? extends EditController<T, U>> viewAndController) {
-        contentController = viewAndController.getController();
-        contentController.model = model;
-    }
-
-    private void onInitForNew(Parent view) {
-        collapseNode(deleteButton);
-        collapseNode(createdLabel);
-        collapseNode(createDateValue);
-        collapseNode(createdByLabel);
-        collapseNode(createdByValue);
-        collapseNode(lastUpdateByLabel);
-        collapseNode(lastUpdateByValue);
-        collapseNode(lastUpdateLabel);
-        collapseNode(lastUpdateValue);
-        contentPane.getChildren().add(view);
-        saveChangesButton.disableProperty().bind(contentController.getValidationExpression().not());
-    }
-
-    private void onInitForEdit(Parent view, EditController<T, U> controller) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-        Locale.getDefault(Locale.Category.DISPLAY);
-        createdByValue.setText(controller.model.getCreatedBy());
-        createDateValue.setText(dtf.format(controller.model.getCreateDate()));
-        lastUpdateByValue.setText(controller.model.getLastModifiedBy());
-        lastUpdateValue.setText(dtf.format(controller.model.getLastModifiedDate()));
-        contentPane.getChildren().add(view);
-        saveChangesButton.disableProperty().bind(contentController.getValidationExpression().not());
-    }
-
-    @HandlesDataObjectEvent
-    protected void onDataObjectEvent(DataObjectEvent<? extends DataAccessObject> event) {
-        EventHelper.fireDataObjectEvent(contentController, event);
-    }
-
     @SuppressWarnings("unused")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -152,11 +124,11 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         assert saveChangesButton != null : "fx:id=\"saveChangesButton\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert deleteButton != null : "fx:id=\"deleteButton\" was not injected: check your FXML file 'EditItem.fxml'.";
     }
-    
+
     @SuppressWarnings("unused")
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
-        Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         contentController.onSaving(stage, contentController.model);
         ItemModel.ModelFactory<T, U> factory = contentController.getFactory();
         T dao = factory.updateDAO(contentController.model);
@@ -166,7 +138,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     @SuppressWarnings("unused")
     @FXML
     private void onDeleteButtonAction(ActionEvent event) {
-        Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         if (contentController.onDeleting(stage, contentController.model)) {
             TaskWaiter.startNow(new DeleteTask(stage));
         }
@@ -175,51 +147,105 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     @SuppressWarnings("unused")
     @FXML
     private void onCancelButtonAction(ActionEvent event) {
-        contentController.cancelEdit((Stage)((Button)event.getSource()).getScene().getWindow());
+        contentController.cancelEdit((Stage) ((Button) event.getSource()).getScene().getWindow());
+    }
+
+    @Override
+    public void onDataObjectEvent(DataObjectEvent<T> event) {
+        EventHelper.fireDataObjectEvent(contentController, event);
+    }
+
+    private void onBeforeShow(boolean initForNew, Parent view, Stage stage) {
+        contentPane.getChildren().add(view);
+        saveChangesButton.disableProperty().bind(contentController.getValidationExpression().not());
+        if (initForNew) {
+            collapseNode(deleteButton);
+            collapseNode(createdLabel);
+            collapseNode(createDateValue);
+            collapseNode(createdByLabel);
+            collapseNode(createdByValue);
+            collapseNode(lastUpdateByLabel);
+            collapseNode(lastUpdateByValue);
+            collapseNode(lastUpdateLabel);
+            collapseNode(lastUpdateValue);
+        } else {
+            DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+            Locale.getDefault(Locale.Category.DISPLAY);
+            createdByValue.setText(contentController.model.getCreatedBy());
+            createDateValue.setText(dtf.format(contentController.model.getCreateDate()));
+            lastUpdateByValue.setText(contentController.model.getLastModifiedBy());
+            lastUpdateValue.setText(dtf.format(contentController.model.getLastModifiedDate()));
+        }
+    }
+
+    private ViewAndController<? extends Parent, ? extends EditController<T, U>> loadChildViewAndController(MainController mainController,
+            Class<? extends EditController<T, U>> controllerClass, U model, Stage stage) {
+        this.mainController = mainController;
+        mainController.addDaoEventListener(this);
+        ViewAndController<? extends Parent, ? extends EditController<T, U>> viewAndController = null;
+        try {
+            viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
+            contentController = viewAndController.getController();
+            contentController.initializeModel(this, model);
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading edit window content", ex);
+        }
+        return viewAndController;
+    }
+
+    private static class ViewControllerLoadListener<T extends DataAccessObject, U extends ItemModel<T>>
+            implements FxmlViewControllerEventListener<Parent, EditItem<T, U>> {
+
+        private final MainController mainController;
+        private ViewAndController<? extends Parent, ? extends EditController<T, U>> viewAndController;
+        private final Class<? extends EditController<T, U>> controllerClass;
+        private final U model;
+
+        private ViewControllerLoadListener(MainController mainController, U model, Class<? extends EditController<T, U>> controllerClass) {
+            this.mainController = mainController;
+            this.controllerClass = controllerClass;
+            this.model = model;
+        }
+
+        @Override
+        public void onFxmlViewControllerEvent(FxmlViewControllerEvent<Parent, EditItem<T, U>> event) {
+            EditItem<T, U> currentController = event.getController();
+            LOG.log(Level.INFO, String.format("Handling FxmlViewControllerEvent %s for %s", event.getType(),
+                    currentController.getClass().getName()));
+            FxmlViewEventType type = event.getType();
+            switch (type) {
+                case LOADED:
+                    viewAndController = currentController.loadChildViewAndController(mainController, controllerClass, model, event.getStage());
+                    break;
+                case BEFORE_SHOW:
+                    if (null != viewAndController) {
+                        currentController.onBeforeShow(true, viewAndController.getView(), event.getStage());
+                    }
+                    break;
+                case SHOWN:
+                    if (null == viewAndController) {
+                        event.getStage().close();
+                    }
+                    break;
+            }
+            if (null != viewAndController)
+            EventHelper.fireFxmlViewEvent(currentController.contentController, viewAndController.toEvent(currentController, type, event.getStage()));
+        }
+
     }
 
     /**
      * Base class for item edit content controllers that are nested within an {@code EditItem} view and controller.
-     * <p>The parent {@code EditItem} view and controller and the nested view and controller are loaded and instantiated using
-     * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
+     * <p>
+     * The parent {@code EditItem} view and controller and the nested view and controller are loaded and instantiated using
+     * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or
+     * {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
+     *
      * @param <T> The type of data access object that the model represents.
      * @param <U> The type of model being edited.
      */
-    public static abstract class EditController<T extends DataAccessObject, U extends ItemModel<T>> extends SchedulerController {
-
-        /**
-         * This gets called when an {@link ItemModel} is about to be saved to the database.
-         * 
-         * @param stage The {@link Stage} of the controller that initiated the save operation.
-         * @param model The {@link ItemModel} for the object to be saved.
-         */
-        protected void onSaving(Stage stage, U model) {
-            updateModel(model);
-        }
-
-        /**
-         * This gets called when an {@link ItemModel} is about to be deleted.
-         * 
-         * @param stage The {@link Stage} of the controller that initiated the delete operation.
-         * @param model The {@link ItemModel} for the object to be deleted.
-         * @return {@code true} if the item can be deleted; otherwise, {@code false} to cancel the delete operation.
-         */
-        protected boolean onDeleting(Stage stage, U model) {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            return response.isPresent() && response.get() == ButtonType.YES;
-        }
-
-        /**
-         * This gets called when changes to an {@link ItemModel} are discarded and the window is closed.
-         * 
-         * @param stage The {@link Stage} of the controller that initiated the cancel operation.
-         */
-        protected void cancelEdit(Stage stage) {
-            model = null;
-            stage.hide();
-        }
+    public static abstract class EditController<T extends DataAccessObject, U extends ItemModel<T>> extends SchedulerController implements IMainCRUD {
 
         /**
          * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add"}.
@@ -283,7 +309,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         /**
          * Load an {@code EditItem} view and controller and the nested view and controller for editing a new {@link ItemModel}.
-         * 
+         *
          * @param <T> The type of {@link DataAccessObject} supported by the {@link ItemModel}.
          * @param <U> The {@link ItemModel} type.
          * @param controllerClass The class of the controller for the nested edit controls.
@@ -295,45 +321,10 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new FxmlViewControllerEventListener<Parent, EditItem<T, U>>() {
-
-                private ViewAndController<? extends Parent, ? extends EditController<T, U>> viewAndController;
-
-                @Override
-                public void onFxmlViewControllerEvent(FxmlViewControllerEvent<Parent, EditItem<T, U>> event) {
-                    LOG.log(Level.INFO, String.format("Handling FxmlViewControllerEvent %s for %s", event.getType(),
-                            event.getController().getClass().getName()));
-                    switch (event.getType()) {
-                        case LOADED:
-                            try {
-                                viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
-                                event.getController().onContentLoaded(viewAndController);
-                                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                        viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
-                            } catch (IOException ex) {
-                                // PENDING: Internationalize message
-                                AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading edit window content", ex);
-                            }
-                            break;
-                        case BEFORE_SHOW:
-                            event.getController().onInitForNew(viewAndController.getView());
-                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                    viewAndController.toEvent(event.getController(), FxmlViewEventType.BEFORE_SHOW, event.getStage()));
-                            break;
-                        case SHOWN:
-                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                    viewAndController.toEvent(event.getController(), FxmlViewEventType.SHOWN, event.getStage()));
-                            break;
-                        case UNLOADED:
-                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                    viewAndController.toEvent(event.getController(), FxmlViewEventType.UNLOADED, event.getStage()));
-                            break;
-                    }
-                }
-
-            }, stage, EditItem.class);
-
-            U model = fc.contentController.model;
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, null, controllerClass),
+                    stage, EditItem.class);
+            mainController.removeDaoEventListener(fc);
+            U model = ((EditController<T, U>) fc.contentController).model;
             T dataAccessObject = (null == model) ? null : model.getDataObject();
             if (null != dataAccessObject) {
                 EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.CREATED,
@@ -344,7 +335,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         /**
          * Load an {@code EditItem} view and controller and the nested view and controller for editing an existing {@link ItemModel}.
-         * 
+         *
          * @param <T> The type of {@link DataAccessObject} supported by the {@link ItemModel}.
          * @param <U> The {@link ItemModel} type.
          * @param model The {@link ItemModel} to be edited.
@@ -357,56 +348,87 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U edit(U model, Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new FxmlViewControllerEventListener<Parent, EditItem<T, U>>() {
-
-                private ViewAndController<? extends Parent, ? extends EditController<T, U>> viewAndController;
-
-                @Override
-                public void onFxmlViewControllerEvent(FxmlViewControllerEvent<Parent, EditItem<T, U>> event) {
-                    switch (event.getType()) {
-                        case LOADED:
-                            try {
-                                viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
-                                event.getController().onContentLoaded(model, viewAndController);
-                                EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                        viewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
-                            } catch (IOException ex) {
-                                AlertHelper.showErrorAlert(event.getStage(), LOG, "Error loading edit window content", ex);
-                            }
-                            break;
-                        case BEFORE_SHOW:
-                            event.getController().onInitForEdit(viewAndController.getView(), viewAndController.getController());
-                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                    viewAndController.toEvent(event.getController(), FxmlViewEventType.BEFORE_SHOW, event.getStage()));
-                            break;
-                        case SHOWN:
-                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                    viewAndController.toEvent(event.getController(), FxmlViewEventType.SHOWN, event.getStage()));
-                            break;
-                        case UNLOADED:
-                            EventHelper.fireFxmlViewEvent(viewAndController.getController(),
-                                    viewAndController.toEvent(event.getController(), FxmlViewEventType.UNLOADED, event.getStage()));
-                            break;
-                    }
-                }
-
-            }, stage, EditItem.class);
-
-            U r = fc.contentController.model;
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, model, controllerClass),
+                    stage, EditItem.class);
+            mainController.removeDaoEventListener(fc);
+            U r = ((EditController<T, U>) fc.contentController).model;
             T dataAccessObject = (null == r) ? null : r.getDataObject();
             if (null != dataAccessObject) {
                 if (dataAccessObject.getRowState() == DataRowState.DELETED) {
-                    EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.DELETED,
-                            dataAccessObject));
+                    mainController.fireDaoEvent(fc, DaoChangeAction.DELETED, dataAccessObject);
                 } else {
-                    EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.UPDATED,
-                            dataAccessObject));
+                    mainController.fireDaoEvent(fc, DaoChangeAction.UPDATED, dataAccessObject);
                 }
             }
             return r;
         }
 
+        private EditItem<T, U> parentController;
+
         private U model;
+
+        private void initializeModel(EditItem<T, U> parentController, U model) {
+            this.parentController = parentController;
+            if (null == model) {
+                ItemModel.ModelFactory<T, U> factory = getFactory();
+                this.model = factory.createNew(factory.getDaoFactory().createNew());
+            } else {
+                this.model = model;
+            }
+        }
+
+        /**
+         * This gets called when an {@link ItemModel} is about to be saved to the database.
+         *
+         * @param stage The {@link Stage} of the controller that initiated the save operation.
+         * @param model The {@link ItemModel} for the object to be saved.
+         */
+        protected void onSaving(Stage stage, U model) {
+            updateModel(model);
+        }
+
+        /**
+         * This gets called when an {@link ItemModel} is about to be deleted.
+         *
+         * @param stage The {@link Stage} of the controller that initiated the delete operation.
+         * @param model The {@link ItemModel} for the object to be deleted.
+         * @return {@code true} if the item can be deleted; otherwise, {@code false} to cancel the delete operation.
+         */
+        protected boolean onDeleting(Stage stage, U model) {
+            Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            return response.isPresent() && response.get() == ButtonType.YES;
+        }
+
+        @Override
+        public void addDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
+            parentController.mainController.addDaoEventListener(listener);
+        }
+
+        @Override
+        public void removeDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
+            parentController.mainController.addDaoEventListener(listener);
+        }
+
+        @Override
+        public <S extends DataAccessObject> void fireDaoEvent(Object source, DaoChangeAction action, S dao) {
+            parentController.mainController.fireDaoEvent(source, action, dao);
+        }
+
+        /**
+         * This gets called when changes to an {@link ItemModel} are discarded and the window is closed.
+         *
+         * @param stage The {@link Stage} of the controller that initiated the cancel operation.
+         */
+        protected void cancelEdit(Stage stage) {
+            model = null;
+            stage.hide();
+        }
+
+        protected boolean isNotEditable() {
+            return false;
+        }
 
         /**
          * Gets the current {@link ItemModel} being edited.
@@ -428,18 +450,18 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         /**
          * Applies changes contained within the controller to the {@link ItemModel} being edited.
-         * 
+         *
          * @param model The {@link ItemModel} being edited.
          */
         protected abstract void updateModel(U model);
-        
+
         protected String getSaveDbConflictMessage(T dao, Connection connection) throws SQLException {
             return getFactory().getDaoFactory().getSaveDbConflictMessage(dao, connection);
         }
-        
+
         /**
          * This gets called to save changes to a data access object.
-         * 
+         *
          * @param dao The data access object to be saved.
          * @param connection The database connection to use.
          * @throws SQLException if unable to save changes.
@@ -450,13 +472,93 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         /**
          * This gets called to update the model after the data access object changes have been saved.
-         * 
+         *
          * @param model The model to be refreshed.
          * @param dao The data access object that was saved.
          * @param stage The stage of the controller that initiated the save operation.
          */
         protected void updateItem(U model, T dao, Stage stage) {
             getFactory().updateItem(model, dao);
+        }
+
+        @Override
+        public AddressModelImpl addNewAddress(Stage stage) {
+            return parentController.mainController.addNewAddress(stage);
+        }
+
+        @Override
+        public AppointmentModel addNewAppointment(Stage stage) {
+            return parentController.mainController.addNewAppointment(stage);
+        }
+
+        @Override
+        public CustomerModelImpl addNewCustomer(Stage stage) {
+            return parentController.mainController.addNewCustomer(stage);
+        }
+
+        @Override
+        public UserModelImpl addNewUser(Stage stage) {
+            return parentController.mainController.addNewUser(stage);
+        }
+
+        @Override
+        public void deleteAddress(Stage stage, AddressModelImpl item) {
+            parentController.mainController.deleteAddress(stage, item);
+        }
+
+        @Override
+        public void deleteAppointment(Stage stage, AppointmentModel item) {
+            parentController.mainController.deleteAppointment(stage, item);
+        }
+
+        @Override
+        public void deleteCity(Stage stage, CityModelImpl item) {
+            parentController.mainController.deleteCity(stage, item);
+        }
+
+        @Override
+        public void deleteCountry(Stage stage, CountryModel item) {
+            parentController.mainController.deleteCountry(stage, item);
+        }
+
+        @Override
+        public void deleteCustomer(Stage stage, CustomerModelImpl item) {
+            parentController.mainController.deleteCustomer(stage, item);
+        }
+
+        @Override
+        public void deleteUser(Stage stage, UserModelImpl item) {
+            parentController.mainController.deleteUser(stage, item);
+        }
+
+        @Override
+        public void editAddress(Stage stage, AddressModelImpl item) {
+            parentController.mainController.editAddress(stage, item);
+        }
+
+        @Override
+        public void editAppointment(Stage stage, AppointmentModel item) {
+            parentController.mainController.editAppointment(stage, item);
+        }
+
+        @Override
+        public void editCustomer(Stage stage, CustomerModelImpl item) {
+            parentController.mainController.editCustomer(stage, item);
+        }
+
+        @Override
+        public void editUser(Stage stage, UserModelImpl item) {
+            parentController.mainController.editUser(stage, item);
+        }
+
+        @Override
+        public void openCity(Stage stage, CityModelImpl item) {
+            parentController.mainController.openCity(stage, item);
+        }
+
+        @Override
+        public void openCountry(Stage stage, CountryModel item) {
+            parentController.mainController.openCountry(stage, item);
         }
 
     }
@@ -492,7 +594,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             if (null != message && !message.trim().isEmpty()) {
                 return message;
             }
-            
+
             contentController.save(dataAccessobject, connection);
 
             return "";

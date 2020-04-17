@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.address.EditAddress">
-    <children>
-        <Label styleClass="header-section" text="" />
-    </children>
-</VBox>
+<VBox prefHeight="517.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.address.EditAddress" />

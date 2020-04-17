@@ -9,10 +9,14 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.AppResourceBundleConstants;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
+import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.dao.filter.IntColumnValueFilter;
+import scheduler.dao.filter.value.IntValueFilter;
 import scheduler.dao.schema.DatabaseTable;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
@@ -21,6 +25,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import static scheduler.dao.DataElement.getPrimaryKeyOf;
 
 @DatabaseTable(DbTable.ADDRESS)
 public class AddressDAO extends DataAccessObject implements AddressElement {
@@ -239,6 +244,12 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
                     AppResources.getResourceString(RESOURCEKEY_LOADINGADDRESSES));
         }
 
+        public DaoFilter<AddressDAO> getByCityFilter(int pk) {
+            return DaoFilter.of(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES),
+                    IntColumnValueFilter.of(DbColumn.ADDRESS_CITY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
+                            (AddressDAO t) -> getPrimaryKeyOf(t.getCity())));
+        }
+        
         @Override
         public DmlSelectQueryBuilder createDmlSelectQueryBuilder() {
             DmlSelectQueryBuilder builder = new DmlSelectQueryBuilder(DbTable.ADDRESS, SchemaHelper.getTableColumns(DbTable.ADDRESS));

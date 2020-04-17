@@ -8,17 +8,15 @@ import javafx.scene.control.ListCell;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class TimeZoneListCell extends ListCell<TimeZone> {
-
     /*
-    
-                        <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
-                            <cellFactory>
-                                <TimeZoneListCellFactory />
-                            </cellFactory>
-                            <buttonCell>
-                                <TimeZoneListCell />
-                            </buttonCell>
-                        </ComboBox>
+    <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308">
+        <cellFactory>
+            <TimeZoneListCellFactory />
+        </cellFactory>
+        <buttonCell>
+            <TimeZoneListCell />
+        </buttonCell>
+    </ComboBox>
     */
 
     @Override

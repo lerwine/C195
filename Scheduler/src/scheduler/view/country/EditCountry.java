@@ -1,24 +1,35 @@
 package scheduler.view.country;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.StringBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
+import javafx.scene.Parent;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import scheduler.AppResources;
+import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
-import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreLabeled;
-import scheduler.observables.BindingHelper;
+import scheduler.util.AlertHelper;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.city.CityModelImpl;
 import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
+import scheduler.view.task.TaskWaiter;
 
 /**
  * FXML Controller class for editing a {@link CountryModel}.
@@ -31,93 +42,46 @@ import scheduler.view.model.ItemModel;
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
 public final class EditCountry extends EditItem.EditController<CountryDAO, CountryModel> {
 
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New CountryDAO"}.
-//     */
-//    public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cities"}.
-//     */
-//    public static final String RESOURCEKEY_CITIES = "cities";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-//     * {@code "There are %d addresses that reference this city."}.
-//     */
-//    public static final String RESOURCEKEY_DELETEMSGMULTIPLE = "deleteMsgMultiple";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-//     * {@code "This is one address that references this city."}.
-//     */
-//    public static final String RESOURCEKEY_DELETEMSGSINGLE = "deleteMsgSingle";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit CountryDAO"}.
-//     */
-//    public static final String RESOURCEKEY_EDITCOUNTRY = "editCountry";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading cities. Please wait...."}.
-//     */
-//    public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name:"}.
-//     */
-//    public static final String RESOURCEKEY_NAME = "name";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name cannot be empty."}.
-//     */
-//    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That country is referenced by one or more cities and cann
-//     * ot be deleted."}.
-//     */
-//    public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-//     * {@code "A city with that name has already been added."}.
-//     */
-//    public static final String RESOURCEKEY_SAVECONFLICTMESSAGE = "saveConflictMessage";
-
-    public static CountryModel editNew(MainController mainController, Stage stage) throws IOException {
-        return editNew(EditCountry.class, mainController, stage);
-    }
+    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
 
     public static CountryModel edit(CountryModel model, MainController mainController, Stage stage) throws IOException {
         return edit(model, EditCountry.class, mainController, stage);
     }
 
-    @FXML
-    private TextField nameTextField;
+    @FXML // fx:id="nameTextField"
+    private TextField nameTextField; // Value injected by FXMLLoader
+
+    @FXML // fx:id="citiesTableView"
+    private TableView<CityModelImpl> citiesTableView; // Value injected by FXMLLoader
 
     @FXML
-    private Label nameError;
+    void onCityDeleteMenuItemAction(ActionEvent event) {
 
-    private StringBinding normalizedName;
+    }
+
+    @FXML
+    void onCityEditMenuItemAction(ActionEvent event) {
+
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
-        Objects.requireNonNull(nameTextField, String.format("fx:id=\"nameTextField\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setText(getModel().getName());
-        normalizedName = BindingHelper.asNormalized(nameTextField.textProperty());
-        normalizedName.isNotEmpty().addListener((observable) -> {
-            if (normalizedName.isNotEmpty().get()) {
-                collapseNode(nameError);
-            } else {
-                restoreLabeled(nameError, getResources().getString(RESOURCEKEY_NAMECANNOTBEEMPTY));
-            }
-        });
+        assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert citiesTableView != null : "fx:id=\"citiesTableView\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        
+        itemList = FXCollections.observableArrayList();
+        citiesTableView.setItems(itemList);
     }
 
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
+    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
+        TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
+        event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCOUNTRY), getModel().getName()));
+    }
+    
     @Override
     protected BooleanExpression getValidationExpression() {
-        return normalizedName.isNotEmpty();
+        return Bindings.createBooleanBinding(() -> true);
     }
 
     @Override
@@ -131,6 +95,44 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
             throw new IllegalStateException();
         }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#updateModel
+    }
+
+    private ObservableList<CityModelImpl> itemList;
+    
+    private class ItemsLoadTask extends TaskWaiter<List<CityDAO>> {
+
+        private final int pk;
+        
+        private ItemsLoadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES));
+            pk = getModel().getPrimaryKey();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected void processResult(List<CityDAO> result, Stage owner) {
+            if (null != result && !result.isEmpty()) {
+                CityModelImpl.Factory factory = CityModelImpl.getFactory();
+                    result.forEach((t) -> {
+                        itemList.add(factory.createNew(t));
+                    });
+                }
+            }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+        @Override
+        protected List<CityDAO> getResult(Connection connection) throws SQLException {
+            CityDAO.FactoryImpl cf = CityDAO.getFactory();
+            return cf.load(connection, cf.getByCountryFilter(pk));
+        }
+
+
     }
 
 }

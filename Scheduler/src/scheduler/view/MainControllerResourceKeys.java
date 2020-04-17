@@ -4,7 +4,7 @@ package scheduler.view;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface MainControllerConstants {
+public interface MainControllerResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.

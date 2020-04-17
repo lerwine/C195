@@ -97,6 +97,7 @@ public class AlertHelper {
      */
     public static Optional<ButtonType> showErrorAlert(Window parent, Logger logger, String title, String headerText, String contentText,
             Throwable error, String logMessage, ButtonType... buttons) {
+        logger.log(Level.SEVERE, logMessage, error);
         if (null == buttons || buttons.length == 0) {
             buttons = new ButtonType[]{ButtonType.OK};
         }

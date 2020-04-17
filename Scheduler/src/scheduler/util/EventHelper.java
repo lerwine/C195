@@ -2,7 +2,9 @@ package scheduler.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.EventObject;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,11 +30,45 @@ import scheduler.view.event.DataLoadedEventListener;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T> Listener type.
+ * @param <E> Event object type.
  */
-public class EventHelper {
-
+public final class EventHelper<T, E extends EventObject> {
+    
     private static final Logger LOG = Logger.getLogger(EventHelper.class.getName());
 
+    private final HashSet<T> listeners;
+    private final String methodName;
+    public EventHelper(String methodName) {
+        this.listeners = new HashSet<>();
+        this.methodName = methodName;
+    }
+    
+    public synchronized void addListener(T listener) {
+        if (null != listener && !listeners.contains(listener))
+            listeners.add(listener);
+    }
+    
+    public synchronized void removeListener(T listener) {
+        if (null != listener && listeners.contains(listener))
+            listeners.remove(listener);
+    }
+    
+    public void raiseEvent(E event) {
+        Iterator<Object> iterator = Arrays.stream(listeners.toArray()).iterator();
+        Class<?> eventType = event.getClass();
+        while (iterator.hasNext()) {
+            Object target = iterator.next();
+            Method m = getListenerMethod(target.getClass(), methodName, eventType);
+            if (null != m)
+                try {
+                    m.invoke(target, event);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                    Logger.getLogger(EventHelper.class.getName()).log(Level.SEVERE, "Error invoking listener method", ex);
+                }
+        }
+    }
+    
     private static void invokeEventMethods(Object target, Iterator<Method> methodIterator, EventObject event) {
         if (!methodIterator.hasNext()) {
             return;
@@ -57,7 +93,19 @@ public class EventHelper {
         }
         invokeEventMethods(target, methodIterator, event);
     }
-
+    
+    private static Method getListenerMethod(Class<?> listenerType, String methodName, Class<?> eventType) {
+        for (Method m : listenerType.getDeclaredMethods()) {
+            if (m.getName().equals(methodName)) {
+                Class<?>[] p = m.getParameterTypes();
+                if (p.length == 1 && eventType.isAssignableFrom(p[0])) {
+                    return m;
+                }
+            }
+        }
+        return null;
+    }
+    
     /**
      * Fires a {@link DataObjectEvent} on a target object.
      * <p>
@@ -84,8 +132,12 @@ public class EventHelper {
         Class<? extends EventObject> eventClass = event.getClass();
         if (target instanceof DataObjectEventListener) {
             try {
-                ((DataObjectEventListener<T>)target).onDataObjectEvent(event);
-            } catch (Exception ex) {
+                Method m = getListenerMethod(DataObjectEventListener.class, "onDataObjectEvent", event.getClass());
+                if (null != m)
+                    m.invoke(target, event);
+                else
+                    ((DataObjectEventListener<T>)target).onDataObjectEvent(event);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
             }
         }
@@ -148,15 +200,23 @@ public class EventHelper {
         if (target instanceof FxmlViewControllerEventListener) {
             if (event instanceof FxmlViewControllerEvent) {
                 try {
-                    ((FxmlViewControllerEventListener<T, U>) target).onFxmlViewControllerEvent((FxmlViewControllerEvent<T, U>) event);
-                } catch (Exception ex) {
+                    Method m = getListenerMethod(FxmlViewControllerEventListener.class, "onFxmlViewControllerEvent", event.getClass());
+                    if (null != m)
+                        m.invoke(target, event);
+                    else
+                        ((FxmlViewControllerEventListener<T, U>) target).onFxmlViewControllerEvent((FxmlViewControllerEvent<T, U>) event);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                     LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
                 }
             }
         } else if (target instanceof FxmlViewEventListener) {
-            try {
-                ((FxmlViewEventListener<T>) target).onFxmlViewEvent(event);
-            } catch (Exception ex) {
+        try {
+                Method m = getListenerMethod(FxmlViewEventListener.class, "onFxmlViewEvent", event.getClass());
+                if (null != m)
+                    m.invoke(target, event);
+                else
+                    ((FxmlViewEventListener<T>) target).onFxmlViewEvent(event);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
             }
         }
@@ -191,8 +251,12 @@ public class EventHelper {
         invokeEventMethods(target, methods, event);
         if (target instanceof DataLoadedEventListener) {
             try {
-                ((DataLoadedEventListener<T>) target).onDataLoaded(event);
-            } catch (Exception ex) {
+                Method m = getListenerMethod(DataLoadedEventListener.class, "onDataLoaded", event.getClass());
+                if (null != m)
+                    m.invoke(target, event);
+                else
+                    ((DataLoadedEventListener<T>) target).onDataLoaded(event);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
             }
         }

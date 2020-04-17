@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
@@ -23,18 +24,36 @@ public class DB {
         return (rs.wasNull()) ? defaultValue : result;
     }
 
-    public static LocalDateTime fromUtcTimestamp(Timestamp timestamp) {
-        Objects.requireNonNull(timestamp, "Timestamp object cannot be null");
-        return timestamp.toLocalDateTime().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+    public static ZonedDateTime toUTCZonedDateTime(Timestamp timestamp) {
+        return timestamp.toLocalDateTime().atZone(ZoneId.of("UTC"));
     }
 
-    /**
-     *
-     * @param dateTime
-     * @return
-     */
-    public static Timestamp toUtcTimestamp(LocalDateTime dateTime) {
-        Objects.requireNonNull(dateTime, "Date/Time object cannot be null");
-        return Timestamp.valueOf(dateTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime());
+    public static ZonedDateTime toZonedDateTime(Timestamp timestamp, ZoneId zoneId) {
+        return toUTCZonedDateTime(timestamp).withZoneSameInstant((null == zoneId) ? ZoneId.systemDefault() : zoneId);
     }
+
+    public static ZonedDateTime toZonedDateTime(Timestamp timestamp) {
+        return toZonedDateTime(timestamp, null);
+    }
+
+    public static LocalDateTime toLocalDateTime(Timestamp timestamp, ZoneId zoneId) {
+        return toZonedDateTime(timestamp, zoneId).toLocalDateTime();
+    }
+    
+    public static LocalDateTime toLocalDateTime(Timestamp timestamp) {
+        return toLocalDateTime(timestamp, null);
+    }
+
+    public static Timestamp toUtcTimestamp(ZonedDateTime dateTime) {
+        return Timestamp.valueOf(dateTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime());
+    }
+
+    public static Timestamp toUtcTimestamp(LocalDateTime dateTime, ZoneId zoneId) {
+        return toUtcTimestamp(dateTime.atZone((null == zoneId) ? ZoneId.systemDefault() : zoneId));
+    }
+    
+    public static Timestamp toUtcTimestamp(LocalDateTime dateTime) {
+        return toUtcTimestamp(dateTime, null);
+    }
+    
 }

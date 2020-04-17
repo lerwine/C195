@@ -184,7 +184,8 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     private void onBeforeShow(FxmlViewEvent<SplitPane> event) {
         LocalDate today = LocalDate.now();
-        UserDAO dao = getModel().getDataObject();
+        UserModelImpl model = getModel();
+        UserDAO dao = model.getDataObject();
         if (dao.isExisting()) {
             filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_CURRENTANDFUTURE),
                     AppointmentModelFilter.of(today, null, dao)));
@@ -195,6 +196,7 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
             filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         }
         TaskWaiter.startNow(new InitialLoadTask(event.getStage()));
+        event.getStage().setTitle(getResourceString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 
     private StringBinding getUserNameValidationMessage() {

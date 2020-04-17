@@ -1,20 +1,38 @@
 package scheduler.view.address;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityElement;
+import scheduler.dao.CustomerDAO;
+import scheduler.dao.filter.CustomerFilter;
+import scheduler.dao.filter.DaoFilterExpression;
+import scheduler.util.AlertHelper;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
+import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.city.CityModel;
+import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
+import scheduler.view.task.TaskWaiter;
 
 /**
  * FXML Controller class for editing an {@link AddressModelImpl}.
@@ -26,56 +44,7 @@ import scheduler.view.model.ItemModel;
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public final class EditAddress extends EditItem.EditController<AddressDAO, AddressModelImpl> {
 
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New AddressDAO"}.
-//     */
-//    public static final String RESOURCEKEY_ADDNEWADDRESS = "addNewAddress";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO:"}.
-//     */
-//    public static final String RESOURCEKEY_ADDRESS = "address";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "AddressDAO cannot be empty."}.
-//     */
-//    public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityElement:"}.
-//     */
-//    public static final String RESOURCEKEY_CITY = "city";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
-//     */
-//    public static final String RESOURCEKEY_COUNTRY = "country";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit AddressDAO:"}.
-//     */
-//    public static final String RESOURCEKEY_EDITADDRESS = "editAddress";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number:"}.
-//     */
-//    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code:"}.
-//     */
-//    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code cannot be empty."}.
-//     */
-//    public static final String RESOURCEKEY_POSTALCODECANNOTBEEMPTY = "postalCodeCannotBeEmpty";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for
-//     * {@code "That address is referenced by one or more customers and cannot be deleted."}.
-//     */
-//    public static final String RESOURCEKEY_ADDRESSHASCUSTOMERS = "addressHasCustomers";
+    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
 
     public static AddressModelImpl editNew(MainController mainController, Stage stage) throws IOException {
         return editNew(EditAddress.class, mainController, stage);
@@ -109,8 +78,16 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
 
+        itemList = FXCollections.observableArrayList();
     }
 
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
+    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
+        TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
+        AddressModelImpl model = this.getModel();
+        event.getStage().setTitle(getResourceString(((model.isNewItem())) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
+    }
+    
     @Override
     protected ItemModel.ModelFactory<AddressDAO, AddressModelImpl> getFactory() {
         return AddressModelImpl.getFactory();
@@ -127,6 +104,44 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
             throw new IllegalStateException();
         }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#updateModel
+    }
+
+    private ObservableList<CustomerModelImpl> itemList;
+    
+    private class ItemsLoadTask extends TaskWaiter<List<CustomerDAO>>    {
+
+        private final AddressDAO dao;
+        
+        private ItemsLoadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
+            dao = getModel().getDataObject();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected void processResult(List<CustomerDAO> result, Stage owner) {
+            if (null != result && !result.isEmpty()) {
+                CustomerModelImpl.Factory factory = CustomerModelImpl.getFactory();
+                    result.forEach((t) -> {
+                        itemList.add(factory.createNew(t));
+                    });
+                }
+            }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+        @Override
+        protected List<CustomerDAO> getResult(Connection connection) throws SQLException {
+            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+            return cf.load(connection, cf.getByAddressFilter(dao));
+        }
+
+
     }
 
 }

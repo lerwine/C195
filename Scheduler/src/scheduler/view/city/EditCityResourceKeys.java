@@ -13,11 +13,6 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_ADD = "add";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add New City"}.
-     */
-    public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
-
-    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Address"}.
      */
     public static final String RESOURCEKEY_ADDRESS = "address";
@@ -38,24 +33,34 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Customer"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Created By"}.
      */
-    public static final String RESOURCEKEY_CUSTOMER = "customer";
+    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit City"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Created On"}.
+     */
+    public static final String RESOURCEKEY_CREATEDON = "createdOn";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Delete"}.
+     */
+    public static final String RESOURCEKEY_DELETE = "delete";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit"}.
+     */
+    public static final String RESOURCEKEY_EDIT = "edit";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "City \"%s\""}.
      */
     public static final String RESOURCEKEY_EDITCITY = "editCity";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "End"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Language:"}.
      */
-    public static final String RESOURCEKEY_END = "end";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Location"}.
-     */
-    public static final String RESOURCEKEY_LOCATION = "location";
+    public static final String RESOURCEKEY_LANGUAGE = "language";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Name:"}.
@@ -68,6 +73,16 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     */
+    public static final String RESOURCEKEY_OPEN = "open";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone"}.
+     */
+    public static final String RESOURCEKEY_PHONE = "phone";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number"}.
      */
     public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
@@ -78,27 +93,17 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Time Zone:"}.
      */
-    public static final String RESOURCEKEY_REQUIRED = "required";
+    public static final String RESOURCEKEY_TIMEZONE = "timeZone";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Start"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Updated By"}.
      */
-    public static final String RESOURCEKEY_START = "start";
+    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Title"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Updated On"}.
      */
-    public static final String RESOURCEKEY_TITLECOLHEADING = "titleColHeading";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Type"}.
-     */
-    public static final String RESOURCEKEY_TYPE = "type";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User"}.
-     */
-    public static final String RESOURCEKEY_USER = "user";
+    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
 }

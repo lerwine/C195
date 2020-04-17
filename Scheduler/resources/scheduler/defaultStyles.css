@@ -67,10 +67,17 @@ HBox.header-section {
     -fx-text-fill: red;
     -fx-wrap-text: true;
 }
+
 .warningMessage {
     -fx-font-style: italic;
     -fx-text-fill:darkgoldenrod;
 }
+
+.infoMessage {
+    -fx-font-style: italic;
+    -fx-text-fill: dimgray;
+}
+
 .error Label, Label.error {
     -fx-alignment: top-left;
     -fx-padding: 0px 0px 0px 0px;

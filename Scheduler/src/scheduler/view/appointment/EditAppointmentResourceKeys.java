@@ -28,7 +28,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_ALL = "all";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "%s/%s designator not specified."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "AM/PM designator not specified."}.
      */
     public static final String RESOURCEKEY_AMPMDESIGNATORNOTSPECIFIED = "amPmDesignatorNotSpecified";
 
@@ -56,6 +56,16 @@ public interface EditAppointmentResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Cancel"}.
      */
     public static final String RESOURCEKEY_CANCEL = "cancel";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Check"}.
+     */
+    public static final String RESOURCEKEY_CHECK = "check";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Customer or user option has changed. Click the \"Check\" button to reload scheduling conflict data."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTDATASTALE = "conflictDataStale";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Close"}.
@@ -103,12 +113,14 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_CONFLICTSFOUND = "conflictsFound";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This conflicts with 1 user appointment. Use \"Show\" button to view conflict."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "This conflicts with 1 user appointment. Use \"Show\" button to view conflict."}.
      */
     public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This conflicts with %d user appointments. Use \"Show\" button to view conflicts."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "This conflicts with %d user appointments. Use \"Show\" button to view conflicts."}.
      */
     public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
 
@@ -158,12 +170,12 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_DURATION = "duration";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Duration hour not specified."}.
      */
     public static final String RESOURCEKEY_DURATIONHOURNOTSPECIFIED = "durationHourNotSpecified";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Duration minute not specified."}.
      */
     public static final String RESOURCEKEY_DURATIONMINUTENOTSPECIFIED = "durationMinuteNotSpecified";
 
@@ -178,22 +190,32 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Hour"}.
+     */
+    public static final String RESOURCEKEY_HOUR = "hour";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Hours"}.
+     */
+    public static final String RESOURCEKEY_HOURS = "hours";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Inactive"}.
      */
     public static final String RESOURCEKEY_INACTIVE = "inactive";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Invalid %s/%s designator."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Invalid AM/PM designator."}.
      */
     public static final String RESOURCEKEY_INVALIDAMPMDESIGNATOR = "invalidAmPmDesignator";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Invalid duration hour."}.
      */
     public static final String RESOURCEKEY_INVALIDDURATIONHOUR = "invalidDurationHour";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Invalid duration minute."}.
      */
     public static final String RESOURCEKEY_INVALIDDURATIONMINUTE = "invalidDurationMinute";
 
@@ -256,6 +278,16 @@ public interface EditAppointmentResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Meeting URL:"}.
      */
     public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Minutes"}.
+     */
+    public static final String RESOURCEKEY_MINUTES = "minutes";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     */
+    public static final String RESOURCEKEY_NAMEALREADYUSED = "nameAlreadyUsed";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number:"}.

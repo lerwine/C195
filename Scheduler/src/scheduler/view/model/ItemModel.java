@@ -14,6 +14,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -116,9 +117,9 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
         }
         dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
         primaryKey = new ReadOnlyIntegerWrapper(this, "primaryKey", dao.getPrimaryKey());
-        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.fromUtcTimestamp(dao.getCreateDate()));
+        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.toLocalDateTime(dao.getCreateDate()));
         createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
-        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.fromUtcTimestamp(dao.getLastModifiedDate()));
+        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.toLocalDateTime(dao.getLastModifiedDate()));
         lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
         newItem = new ReadOnlyBooleanWrapper(this, "newItem", dao.getRowState() == DataRowState.NEW);
     }
@@ -163,12 +164,12 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
                 }
                 model.dataObject.set(dao);
             }
-            model.createDate.set(DB.fromUtcTimestamp(dao.getCreateDate()));
+            model.createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
             model.createdBy.set(dao.getCreatedBy());
-            model.lastModifiedDate.set(DB.fromUtcTimestamp(dao.getLastModifiedDate()));
+            model.lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
             model.lastModifiedBy.set(dao.getLastModifiedBy());
         }
-
+        
         public final void loadAsync(Stage stage, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess, Consumer<Throwable> onFail) {
             DataAccessObject.DaoFactory<T> factory = getDaoFactory();
             factory.loadAsync(stage, filter, (t) -> {
@@ -198,4 +199,8 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
         }
     }
 
+    @FunctionalInterface
+    public interface PropertyValueExporter<T extends ItemModel<? extends DataAccessObject>> {
+        Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
+    }
 }

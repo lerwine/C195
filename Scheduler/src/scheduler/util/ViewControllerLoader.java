@@ -89,16 +89,16 @@ public class ViewControllerLoader {
         childStage.initModality(Modality.NONE);
         childStage.initModality(Modality.APPLICATION_MODAL);
         childStage.setScene(scene);
-        event = viewAndController.toEvent(source, FxmlViewEventType.BEFORE_SHOW, parent);
+        event = viewAndController.toEvent(source, FxmlViewEventType.BEFORE_SHOW, childStage);
         EventHelper.fireFxmlViewEvent(source, event);
         EventHelper.fireFxmlViewEvent(viewAndController.getController(), event);
         childStage.setOnHidden((WindowEvent we) -> {
-            FxmlViewControllerEvent<T, S> e = viewAndController.toEvent(source, FxmlViewEventType.UNLOADED, parent);
+            FxmlViewControllerEvent<T, S> e = viewAndController.toEvent(source, FxmlViewEventType.UNLOADED, childStage);
             EventHelper.fireFxmlViewEvent(source, e);
             EventHelper.fireFxmlViewEvent(viewAndController.getController(), e);
         });
         childStage.setOnShown((WindowEvent we) -> {
-            FxmlViewControllerEvent<T, S> e = viewAndController.toEvent(source, FxmlViewEventType.SHOWN, parent);
+            FxmlViewControllerEvent<T, S> e = viewAndController.toEvent(source, FxmlViewEventType.SHOWN, childStage);
             EventHelper.fireFxmlViewEvent(source, e);
             EventHelper.fireFxmlViewEvent(viewAndController.getController(), e);
         });

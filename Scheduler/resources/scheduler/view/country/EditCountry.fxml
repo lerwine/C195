@@ -1,10 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="400.0" prefWidth="600.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.country.EditCountry">
+<VBox prefHeight="517.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.country.EditCountry">
     <children>
-        <Label styleClass="header-section" text="" />
+      <HBox>
+         <children>
+            <Label text="%nameFieldLabel" />
+            <VBox HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets left="8.0" />
+               </HBox.margin>
+               <children>
+                  <TextField fx:id="nameTextField" editable="false" maxWidth="1.7976931348623157E308" />
+               </children>
+            </VBox>
+         </children>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+      </HBox>
+      <Label maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%cities">
+         <VBox.margin>
+            <Insets top="16.0" />
+         </VBox.margin>
+      </Label>
+      <TableView fx:id="citiesTableView" minHeight="-Infinity" VBox.vgrow="ALWAYS">
+        <columns>
+          <TableColumn prefWidth="75.0" text="%nameColumnHeading" />
+          <TableColumn prefWidth="75.0" text="%createdBy" />
+            <TableColumn prefWidth="75.0" text="%createdOn" />
+            <TableColumn prefWidth="75.0" text="%updatedBy" />
+            <TableColumn prefWidth="75.0" text="%updatedOn" />
+        </columns>
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#onCityEditMenuItemAction" text="%open" />
+                  <MenuItem mnemonicParsing="false" onAction="#onCityDeleteMenuItemAction" text="%delete" />
+              </items>
+            </ContextMenu>
+         </contextMenu>
+      </TableView>
     </children>
 </VBox>

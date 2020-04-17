@@ -1,22 +1,35 @@
 package scheduler.view.city;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import scheduler.AppResources;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
+import scheduler.util.AlertHelper;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
 import scheduler.view.address.AddressModelImpl;
 import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.country.CountryModel;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
+import static scheduler.view.city.EditCityResourceKeys.*;
+import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
+import scheduler.view.task.TaskWaiter;
 
 /**
  * FXML Controller class for editing a {@link CityModelImpl}.
@@ -29,100 +42,67 @@ import scheduler.view.model.ItemModel;
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
 public final class EditCity extends EditItem.EditController<CityDAO, CityModelImpl> {
 
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add New CityDAO"}.
-//     */
-//    public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Country:"}.
-//     */
-//    public static final String RESOURCEKEY_COUNTRY = "country";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Edit CityDAO"}.
-//     */
-//    public static final String RESOURCEKEY_EDITCITY = "editCity";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name:"}.
-//     */
-//    public static final String RESOURCEKEY_NAME = "name";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name cannot be empty."}.
-//     */
-//    public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "That city is referenced by one or more addresses and cannot be deleted."}.
-//     */
-//    public static final String RESOURCEKEY_CITYHASADDRESSES = "cityHasAddresses";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Addresses"}.
-//     */
-//    public static final String RESOURCEKEY_ADDRESSES = "addresses";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
-//     */
-//    public static final String RESOURCEKEY_ADDRESS = "address";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone Number"}.
-//     */
-//    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
-//
-//    /**
-//     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code"}.
-//     */
-//    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-
-    public static CityModelImpl editNew(MainController mainController, Stage stage) throws IOException {
-        return editNew(EditCity.class, mainController, stage);
-    }
+    private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
     public static CityModelImpl edit(CityModelImpl model, MainController mainController, Stage stage) throws IOException {
         return edit(model, EditCity.class, mainController, stage);
     }
 
-    // PENDING: The value of the field EditCity.countryId is not used
-    private int countryId;
-
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="countryComboBox"
-    private ChoiceBox<CountryModel> countryComboBox; // Value injected by FXMLLoader
+    @FXML // fx:id="languageTextField"
+    private TextField languageTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="editCountryButton"
-    private Button editCountryButton; // Value injected by FXMLLoader
+    @FXML // fx:id="timeZoneTextField"
+    private TextField timeZoneTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="newCountryButton"
-    private Button newCountryButton; // Value injected by FXMLLoader
+    @FXML // fx:id="countryNameLabel"
+    private Label countryNameLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="addressesLabel"
-    private Label addressesLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="addressesTableView"
+    private TableView<AddressModelImpl> addressesTableView; // Value injected by FXMLLoader
 
-    @FXML // fx:id="addressTableView"
-    private TableView<AddressModelImpl> addressTableView; // Value injected by FXMLLoader
+    private ObservableList<AddressModelImpl> itemList;
+    
+    @FXML
+    void onAddCityButtonAction(ActionEvent event) {
 
-    @FXML // fx:id="addAddressButton"
-    private Button addAddressButton; // Value injected by FXMLLoader
+    }
+
+    @FXML
+    void onCityDeleteMenuItemAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void onCityEditMenuItemAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void onOpenCountryButtonAction(ActionEvent event) {
+
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert editCountryButton != null : "fx:id=\"editCountryButton\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert newCountryButton != null : "fx:id=\"newCountryButton\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert addressesLabel != null : "fx:id=\"addressesLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert addressTableView != null : "fx:id=\"addressTableView\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert addAddressButton != null : "fx:id=\"addAddressButton\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert languageTextField != null : "fx:id=\"languageTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert timeZoneTextField != null : "fx:id=\"timeZoneTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert countryNameLabel != null : "fx:id=\"countryNameLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert addressesTableView != null : "fx:id=\"addressesTableView\" was not injected: check your FXML file 'EditCity.fxml'.";
 
+        itemList = FXCollections.observableArrayList();
+        addressesTableView.setItems(itemList);
     }
 
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
+    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
+        TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
+        event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCITY), getModel().getName()));
+    }
+    
     @Override
     protected ItemModel.ModelFactory<CityDAO, CityModelImpl> getFactory() {
         return CityModelImpl.getFactory();
@@ -139,6 +119,42 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
             throw new IllegalStateException();
         }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#updateModel
+    }
+
+    private class ItemsLoadTask extends TaskWaiter<List<AddressDAO>>    {
+
+        private final int pk;
+        
+        private ItemsLoadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGADDRESSES));
+            pk = getModel().getPrimaryKey();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected void processResult(List<AddressDAO> result, Stage owner) {
+            if (null != result && !result.isEmpty()) {
+                AddressModelImpl.Factory factory = AddressModelImpl.getFactory();
+                    result.forEach((t) -> {
+                        itemList.add(factory.createNew(t));
+                    });
+                }
+            }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+        @Override
+        protected List<AddressDAO> getResult(Connection connection) throws SQLException {
+            AddressDAO.FactoryImpl cf = AddressDAO.getFactory();
+            return cf.load(connection, cf.getByCityFilter(pk));
+        }
+
+
     }
 
 }

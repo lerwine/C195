@@ -154,6 +154,10 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         return itemsList;
     }
 
+    public TableView<U> getListingTableView() {
+        return listingTableView;
+    }
+
     /**
      * Called by the {@link FXMLLoader} to complete controller initialization.
      */
@@ -307,6 +311,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         }
     }
 
+    protected boolean cannotAddNew() { return true; }
+    
     /**
      * This gets called when the user clicks the {@link #newButton} control or types the {@link KeyCode#N} key while {@link KeyEvent#isMetaDown()} or
      * {@link KeyEvent#isControlDown()}.

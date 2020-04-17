@@ -33,13 +33,18 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
     }
 
     @Override
+    protected boolean cannotAddNew() {
+        return true;
+    }
+
+    @Override
     protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController().addNewCountry(stage);
+        throw new UnsupportedOperationException();
     }
 
     @Override
     protected void onEditItem(Stage stage, CountryModel item) throws IOException {
-        getMainController().editCountry(stage, item);
+        getMainController().openCountry(stage, item);
     }
 
     @Override

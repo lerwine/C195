@@ -195,6 +195,10 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
             return CustomerFilter.of(CustomerFilter.expressionOf(active));
         }
 
+        public DaoFilter<CustomerDAO> getByAddressFilter(AddressElement address) {
+            return CustomerFilter.of(CustomerFilter.expressionOf(address));
+        }
+
         @Override
         public DmlSelectQueryBuilder createDmlSelectQueryBuilder() {
             DmlSelectQueryBuilder builder = new DmlSelectQueryBuilder(DbTable.CUSTOMER, SchemaHelper.getTableColumns(DbTable.CUSTOMER));

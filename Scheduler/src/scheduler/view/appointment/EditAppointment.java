@@ -1,29 +1,43 @@
 package scheduler.view.appointment;
 
+import com.sun.javafx.collections.ImmutableObservableList;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.time.DateTimeException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.IntegerBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,19 +50,22 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.SingleSelectionModel;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+import javafx.util.StringConverter;
+import javafx.util.converter.LocalDateStringConverter;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.CustomerElement;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserElement;
 import scheduler.dao.UserStatus;
@@ -56,7 +73,16 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
 import scheduler.util.AlertHelper;
-import static scheduler.util.NodeUtil.bindCssCollapse;
+import scheduler.util.BinarySelective;
+import scheduler.util.DB;
+import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreInfoLabel;
+import static scheduler.util.NodeUtil.restoreLabeled;
+import static scheduler.util.NodeUtil.restoreNode;
+import static scheduler.util.NodeUtil.restoreNodeAsNotVisible;
+import static scheduler.util.NodeUtil.restoreValidationErrorLabel;
+import scheduler.util.TernarySelective;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
@@ -83,7 +109,7 @@ import scheduler.view.user.UserModelImpl;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public final class EditAppointment extends EditItem.EditController<AppointmentDAO, AppointmentModel> {
 
-    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 
     public static AppointmentModel editNew(MainController mainController, Stage stage) throws IOException {
         return editNew(EditAppointment.class, mainController, stage);
@@ -93,11 +119,17 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         return edit(model, EditAppointment.class, mainController, stage);
     }
 
-    @FXML // Label for displaying customer selection validation message.
-    private Label customerValidationLabel;
+    @FXML // fx:id="titleValidationLabel"
+    private Label titleValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // Label for displaying user selection validation message.
-    private Label userValidationLabel;
+    @FXML // fx:id="titleTextField"
+    private TextField titleTextField; // Value injected by FXMLLoader
+
+    @FXML // fx:id="customerValidationLabel"
+    private Label customerValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="userValidationLabel"
+    private Label userValidationLabel; // Value injected by FXMLLoader
 
     @FXML // CustomerDAO selection control
     private ComboBox<CustomerModelImpl> customerComboBox;
@@ -105,83 +137,77 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // UserDAO selection control.
     private ComboBox<UserModelImpl> userComboBox;
 
-    @FXML // Label for displaying appointment title validation message.
-    private Label titleValidationLabel;
+    @FXML // fx:id="startValidationLabel"
+    private Label startValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // Control for the appointment title.
-    private TextField titleTextField;
-
-    @FXML // Label for displaying appointment start date validation message.
-    private Label startValidationLabel;
+    @FXML // fx:id="checkConflictsButton"
+    private Button checkConflictsButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="showConflictsButton"
     private Button showConflictsButton; // Value injected by FXMLLoader
 
-    @FXML // Control for selecting the appointment start date.
-    private DatePicker startDatePicker;
+    @FXML // fx:id="startDatePicker"
+    private DatePicker startDatePicker; // Value injected by FXMLLoader
 
-    @FXML // Control for selecting the appointment start hour.
-    private Spinner<Integer> startHourSpinner;
+    @FXML // fx:id="startHourTextField"
+    private TextField startHourTextField; // Value injected by FXMLLoader
 
-    @FXML // Control for selecting the appointment start minute.
-    private Spinner<Integer> startMinuteSpinner;
+    @FXML // fx:id="startMinuteTextField"
+    private TextField startMinuteTextField; // Value injected by FXMLLoader
 
-    @FXML // Control for selecting the appointment start minute.
-    private Spinner<Boolean> amPmSpinner;
+    @FXML // fx:id="amPmComboBox"
+    private ComboBox<Boolean> amPmComboBox; // Value injected by FXMLLoader
 
-    @FXML // Label for displaying appointment duration validation message.
-    private Label durationValidationLabel;
+    @FXML // fx:id="durationValidationLabel"
+    private Label durationValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // Control for selecting the appointment duration (end time).
-    private Spinner<Integer> durationHourSpinner;
+    @FXML // fx:id="durationHourTextField"
+    private TextField durationHourTextField; // Value injected by FXMLLoader
 
-    @FXML // Control for selecting the appointment duration (end time).
-    private Spinner<Integer> durationMinuteSpinner;
+    @FXML // fx:id="durationMinuteTextField"
+    private TextField durationMinuteTextField; // Value injected by FXMLLoader
 
     @FXML // Control for selecting the time zone for the appointment start and end.
     private ComboBox<TimeZone> timeZoneComboBox;
 
-    @FXML // Field label that gets hidden when the user selects the default time zone.
-    private Label currentTimeZoneLabel;
+    @FXML // fx:id="currentTimeZoneLabel"
+    private Label currentTimeZoneLabel; // Value injected by FXMLLoader
 
-    @FXML // Label for displaying the selected time, converted to the default time zone.
-    private Label currentTimeZoneValue;
+    @FXML // fx:id="currentTimeZoneValue"
+    private Label currentTimeZoneValue; // Value injected by FXMLLoader
 
-    @FXML // Field label for phone number control as well as explicit and implicit location.
-    private Label locationLabel;
+    @FXML // fx:id="locationLabel"
+    private Label locationLabel; // Value injected by FXMLLoader
 
-    @FXML // Label for displaying phone or explicit location validation message.
-    private Label locationValidationLabel;
+    @FXML // fx:id="locationValidationLabel"
+    private Label locationValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // Explicit location input control.
-    private TextArea locationTextArea;
+    @FXML // fx:id="locationTextArea"
+    private TextArea locationTextArea; // Value injected by FXMLLoader
 
-    @FXML // Phone number input control.
-    private TextField phoneTextField;
+    @FXML // fx:id="phoneTextField"
+    private TextField phoneTextField; // Value injected by FXMLLoader
 
-    @FXML // Label to contain the implicit location (CustomerDAO's address, etc).
-    private Label implicitLocationLabel;
+    @FXML // fx:id="implicitLocationLabel"
+    private Label implicitLocationLabel; // Value injected by FXMLLoader
 
     @FXML // AppointmentDAO type selection control.
     private ComboBox<AppointmentType> typeComboBox;
 
-    @FXML // Label for displaying point-of-contact validation message.
-    private Label contactValidationLabel;
+    @FXML // fx:id="contactValidationLabel"
+    private Label contactValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // Point-of-Contact input control.
-    private TextField contactTextField;
+    @FXML // fx:id="contactTextField"
+    private TextField contactTextField; // Value injected by FXMLLoader
 
-    @FXML // Field label for the Meeting URL control.
-    private Label urlLabel;
-
-    @FXML // Label for displaying URL validation message.
-    private Label urlValidationLabel;
+    @FXML // fx:id="urlValidationLabel"
+    private Label urlValidationLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="urlTextField"
     private TextField urlTextField; // Value injected by FXMLLoader
 
-    @FXML // AppointmentDAO description input control.
-    private TextArea descriptionTextArea;
+    @FXML // fx:id="descriptionTextArea"
+    private TextArea descriptionTextArea; // Value injected by FXMLLoader
 
     @FXML // fx:id="conflictsBorderPane"
     private BorderPane conflictsBorderPane; // Value injected by FXMLLoader
@@ -213,37 +239,34 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     // Items for the userComboBox control.
     private ObservableList<UserModelImpl> userModelList;
 
-    // Items for the typeComboBox control.
-    private ObservableList<AppointmentType> types;
-
-    private ObservableList<AppointmentModel> otherAppointments;
-
-    // Items for the conflictingAppointmentsTableView control.
-    private ObservableList<AppointmentModel> conflictingAppointments;
-
+    private ConflictDependencyValidator conflictDependencyValidator;
     private SingleSelectionModel<AppointmentType> typeSelectionModel;
     private SingleSelectionModel<CustomerModelImpl> customerSelectionModel;
     private SingleSelectionModel<UserModelImpl> userSelectionModel;
-    private StartDateTimeProperty startDateTime;
-    private DurationProperty duration;
-    private DateTimeFormatter formatter;
-    private ReadOnlyStringWrapper customerAddress;
+    private DateTimeFormatter dateTimeFormatter;
+    private NumberFormat numberFormatter;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
+    private SingleSelectionModel<TimeZone> timeZoneSelectionModel;
+    private SingleSelectionModel<Boolean> amPmSelectionModel;
+    private ObservableList<TimeZone> timeZones;
+    private StartDateValidationBinding startDateTime;
+    private ObjectBinding<BinarySelective<Duration, String>> duration;
+    private StringBinding localDateAndTimeBinding;
 
     @FXML
-    void closeConflictsBorderPaneButtonClick(ActionEvent event) {
+    private void closeConflictsBorderPaneButtonClick(ActionEvent event) {
         conflictsBorderPane.setVisible(false);
     }
 
     @FXML
-    void showConflictsButtonClick(ActionEvent event) {
+    private void showConflictsButtonClick(ActionEvent event) {
         conflictsBorderPane.setVisible(true);
     }
 
     @FXML
-    void customerDropDownOptionsButtonClick(ActionEvent event) {
+    private void customerDropDownOptionsButtonClick(ActionEvent event) {
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -255,7 +278,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     @FXML
-    void userDropDownOptionsButtonClick(ActionEvent event) {
+    private void userDropDownOptionsButtonClick(ActionEvent event) {
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
             dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -267,12 +290,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     @FXML
-    void dropdownOptionsCancelButtonClick(ActionEvent event) {
+    private void dropdownOptionsCancelButtonClick(ActionEvent event) {
         dropdownOptionsBorderPane.setVisible(false);
     }
 
     @FXML
-    void dropdownOptionsOkButtonClick(ActionEvent event) {
+    private void dropdownOptionsOkButtonClick(ActionEvent event) {
         if (editingUserOptions) {
             TaskWaiter.startNow(new UserReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
         } else {
@@ -281,38 +304,243 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         dropdownOptionsBorderPane.setVisible(false);
     }
 
+    @FXML
+    void onCheckConflictsButtonAction(ActionEvent event) {
+        conflictDependencyValidator.startCheckDependencies();
+    }
+
+    private void onContactTextFieldChange(String newValue) {
+        contactValidationLabel.setVisible(null == newValue || newValue.trim().isEmpty());
+    }
+
+    private void updateConflictMesssage() {
+        conflictDependencyValidator.refreshConflictingAppointments();
+
+        Pair<Boolean, String> typeAndMessage = startDateTime.getTypeAndMessage();
+        if (typeAndMessage.getKey()) {
+            restoreValidationErrorLabel(startValidationLabel, typeAndMessage.getValue());
+            showConflictsButton.setVisible(false);
+            collapseNode(checkConflictsButton);
+            restoreNodeAsNotVisible(showConflictsButton);
+        } else if (typeAndMessage.getValue().isEmpty()) {
+            startValidationLabel.setText("");
+            startValidationLabel.setVisible(false);
+            collapseNode(checkConflictsButton);
+            restoreNodeAsNotVisible(showConflictsButton);
+        } else {
+            restoreInfoLabel(startValidationLabel, typeAndMessage.getValue());
+            if (conflictDependencyValidator.get()) {
+                if (duration.get().isPrimary() && (null != customerSelectionModel.getSelectedItem() || null != userSelectionModel.getSelectedItem())) {
+                    collapseNode(showConflictsButton);
+                    restoreNode(checkConflictsButton);
+                } else {
+                    collapseNode(checkConflictsButton);
+                    restoreNodeAsNotVisible(showConflictsButton);
+                }
+            } else {
+                restoreNode(showConflictsButton);
+                collapseNode(checkConflictsButton);
+            }
+        }
+    }
+
+    private void updateDurationMessages() {
+        String str = localDateAndTimeBinding.get();
+        if (str.isEmpty()) {
+            collapseNode(currentTimeZoneLabel);
+            collapseNode(currentTimeZoneValue);
+        } else {
+            restoreNode(currentTimeZoneLabel);
+            restoreInfoLabel(currentTimeZoneValue, str);
+        }
+        BinarySelective<Duration, String> durationOrMessage = duration.get();
+        if (durationOrMessage.isPrimary()) {
+            durationValidationLabel.setText("");
+            durationValidationLabel.setVisible(false);
+        } else {
+            durationValidationLabel.setVisible(true);
+            durationValidationLabel.setText(durationOrMessage.getSecondary());
+        };
+    }
+
+    private void onLocationControlChange(String newValue) {
+        locationValidationLabel.setVisible(typeSelectionModel.getSelectedItem() == AppointmentType.OTHER
+                && (null == newValue || newValue.trim().isEmpty()));
+    }
+
+    private void onTitleTextFieldChange(String newValue) {
+        if (null == newValue || newValue.trim().isEmpty()) {
+            titleValidationLabel.setVisible(true);
+        } else {
+            titleValidationLabel.setVisible(false);
+        }
+
+    }
+
+    private void onUrlTextFieldChange(String newValue) {
+        urlValidationLabel.setVisible(typeSelectionModel.getSelectedItem() == AppointmentType.VIRTUAL
+                && (null == newValue || newValue.trim().isEmpty()));
+    }
+
+    private void onCustomerComboBoxChange(CustomerModelImpl newValue) {
+        if (null == newValue) {
+            customerValidationLabel.setVisible(true);
+            if (typeSelectionModel.getSelectedItem() == AppointmentType.CUSTOMER_SITE) {
+                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER));
+            } else {
+                collapseNode(implicitLocationLabel);
+            }
+        } else {
+            customerValidationLabel.setVisible(false);
+            if (typeSelectionModel.getSelectedItem() == AppointmentType.CUSTOMER_SITE) {
+                restoreLabeled(implicitLocationLabel, newValue.getMultiLineAddress().get());
+            } else {
+                collapseNode(implicitLocationLabel);
+            }
+        }
+        updateConflictMesssage();
+    }
+
+    private void onTypeComboBoxChange(AppointmentType oldValue, AppointmentType newValue) {
+        switch (newValue) {
+            case CORPORATE_HQ_MEETING:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                locationValidationLabel.setText("");
+                locationValidationLabel.setVisible(false);
+                collapseNode(implicitLocationLabel);
+                collapseNode(phoneTextField);
+                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HQ));
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                urlValidationLabel.setText("");
+                urlValidationLabel.setVisible(false);
+                break;
+            case CUSTOMER_SITE:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                locationValidationLabel.setText("");
+                locationValidationLabel.setVisible(false);
+                collapseNode(implicitLocationLabel);
+                collapseNode(phoneTextField);
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                if (oldValue == AppointmentType.VIRTUAL) {
+                    onUrlTextFieldChange(urlTextField.getText());
+                }
+                onCustomerComboBoxChange(customerSelectionModel.getSelectedItem());
+                return;
+            case GERMANY_SITE_MEETING:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                locationValidationLabel.setText("");
+                locationValidationLabel.setVisible(false);
+                collapseNode(implicitLocationLabel);
+                collapseNode(phoneTextField);
+                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY));
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                break;
+            case GUATEMALA_SITE_MEETING:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                locationValidationLabel.setText("");
+                locationValidationLabel.setVisible(false);
+                collapseNode(implicitLocationLabel);
+                collapseNode(phoneTextField);
+                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA));
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                break;
+            case INDIA_SITE_MEETING:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                locationValidationLabel.setText("");
+                locationValidationLabel.setVisible(false);
+                collapseNode(implicitLocationLabel);
+                collapseNode(phoneTextField);
+                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA));
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                break;
+            case PHONE:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_PHONENUMBER));
+                collapseNode(locationTextArea);
+                collapseNode(implicitLocationLabel);
+                restoreNode(phoneTextField);
+                onLocationControlChange(phoneTextField.getText());
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                break;
+            case VIRTUAL:
+                collapseNode(locationLabel);
+                locationValidationLabel.setVisible(false);
+                collapseNode(locationTextArea);
+                collapseNode(phoneTextField);
+                collapseNode(implicitLocationLabel);
+                contactValidationLabel.setText("");
+                contactValidationLabel.setVisible(false);
+                onUrlTextFieldChange(urlTextField.getText());
+                if (oldValue == AppointmentType.CUSTOMER_SITE) {
+                    onCustomerComboBoxChange(customerSelectionModel.getSelectedItem());
+                }
+                return;
+            default:
+                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                onLocationControlChange(locationTextArea.getText());
+                restoreNode(locationTextArea);
+                collapseNode(phoneTextField);
+                collapseNode(implicitLocationLabel);
+                onContactTextFieldChange(contactTextField.getText());
+                break;
+        }
+
+        urlValidationLabel.setText("");
+        urlValidationLabel.setVisible(false);
+        if (null != oldValue) {
+            switch (oldValue) {
+                case CUSTOMER_SITE:
+                    onCustomerComboBoxChange(customerSelectionModel.getSelectedItem());
+                    break;
+                case VIRTUAL:
+                    onUrlTextFieldChange(urlTextField.getText());
+                    break;
+            }
+        }
+    }
+
+    private void onUserComboBoxChange(UserModelImpl newValue) {
+        userValidationLabel.setVisible(null == newValue);
+        updateConflictMesssage();
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    protected void initialize() {
-        assert customerValidationLabel != null : "fx:id=\"customerValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert userValidationLabel != null : "fx:id=\"userValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+    void initialize() {
+        assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert userComboBox != null : "fx:id=\"userComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert startValidationLabel != null : "fx:id=\"startValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert startHourSpinner != null : "fx:id=\"startHourSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert startMinuteSpinner != null : "fx:id=\"startMinuteSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert amPmSpinner != null : "fx:id=\"amPmSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert durationValidationLabel != null : "fx:id=\"durationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert durationHourSpinner != null : "fx:id=\"durationHourSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert durationMinuteSpinner != null : "fx:id=\"durationMinuteSpinner\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert startValidationLabel != null : "fx:id=\"startValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert startHourTextField != null : "fx:id=\"startHourTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert startMinuteTextField != null : "fx:id=\"startMinuteTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert amPmComboBox != null : "fx:id=\"amPmComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert durationHourTextField != null : "fx:id=\"durationHourTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert durationMinuteTextField != null : "fx:id=\"durationMinuteTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert timeZoneComboBox != null : "fx:id=\"timeZoneComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert durationValidationLabel != null : "fx:id=\"durationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert currentTimeZoneLabel != null : "fx:id=\"currentTimeZoneLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert currentTimeZoneValue != null : "fx:id=\"currentTimeZoneValue\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationLabel != null : "fx:id=\"locationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert locationValidationLabel != null : "fx:id=\"locationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationTextArea != null : "fx:id=\"locationTextArea\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert phoneTextField != null : "fx:id=\"phoneTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert implicitLocationLabel != null : "fx:id=\"implicitLocationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert locationValidationLabel != null : "fx:id=\"locationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert typeComboBox != null : "fx:id=\"typeComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert contactValidationLabel != null : "fx:id=\"contactValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert contactTextField != null : "fx:id=\"contactTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert urlLabel != null : "fx:id=\"urlLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert urlValidationLabel != null : "fx:id=\"urlValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert urlTextField != null : "fx:id=\"urlTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert urlValidationLabel != null : "fx:id=\"urlValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert descriptionTextArea != null : "fx:id=\"descriptionTextArea\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert customerValidationLabel != null : "fx:id=\"customerValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert userValidationLabel != null : "fx:id=\"userValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert contactValidationLabel != null : "fx:id=\"contactValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert conflictsBorderPane != null : "fx:id=\"conflictsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsBorderPane != null : "fx:id=\"dropdownOptionsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -322,309 +550,198 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         assert dropdownOptionsActiveRadioButton != null : "fx:id=\"dropdownOptionsActiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
+        timeZoneSelectionModel = timeZoneComboBox.getSelectionModel();
+        amPmSelectionModel = amPmComboBox.getSelectionModel();
+        customerSelectionModel = customerComboBox.getSelectionModel();
+        userSelectionModel = userComboBox.getSelectionModel();
+        typeSelectionModel = typeComboBox.getSelectionModel();
+
         customerModelList = FXCollections.observableArrayList();
         userModelList = FXCollections.observableArrayList();
-        otherAppointments = FXCollections.observableArrayList();
-        conflictingAppointments = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
+        dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+        numberFormatter = NumberFormat.getIntegerInstance();
+        timeZones = FXCollections.observableArrayList();
+        Arrays.stream(TimeZone.getAvailableIDs()).map((t) -> TimeZone.getTimeZone(t)).sorted((o1, o2) -> {
+            return o1.getRawOffset() - o2.getRawOffset();
+        }).forEachOrdered((t) -> timeZones.add(t));
 
-        formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-        startDateTime = new StartDateTimeProperty(this, "startDateTime", startDatePicker, startHourSpinner, startMinuteSpinner, amPmSpinner,
-                timeZoneComboBox);
-        duration = new DurationProperty(this, "duration", startDateTime, durationHourSpinner, durationMinuteSpinner);
+        titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            onTitleTextFieldChange(newValue);
+        });
+
+        customerSelectionModel.selectedItemProperty().addListener((observable) -> {
+            onCustomerComboBoxChange(((ObservableObjectValue<CustomerModelImpl>) observable).get());
+        });
+
+        userSelectionModel.selectedItemProperty().addListener((observable) -> {
+            onUserComboBoxChange(((ObservableObjectValue<UserModelImpl>) observable).get());
+        });
+
+        typeSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            onTypeComboBoxChange(oldValue, newValue);
+        });
+
+        conflictDependencyValidator = null;
+        conflictDependencyValidator = new ConflictDependencyValidator();
+
+        urlTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            onUrlTextFieldChange(newValue);
+        });
+
+        contactTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            onContactTextFieldChange(newValue);
+        });
+
+        startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+        startHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+        startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+        timeZoneSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+        amPmSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+
+        durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+        durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            updateConflictMesssage();
+            updateDurationMessages();
+        });
+
+        locationTextArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            onLocationControlChange(newValue);
+        });
+
+        startDateTime = new StartDateValidationBinding(customerSelectionModel.selectedItemProperty(), userSelectionModel.selectedItemProperty(),
+                startDatePicker, startHourTextField.textProperty(), startMinuteTextField.textProperty(),
+                timeZoneSelectionModel.selectedItemProperty(), amPmSelectionModel.selectedItemProperty());
+        duration = Bindings.createObjectBinding(this::onDurationInvalid,
+                durationHourTextField.textProperty(), durationMinuteTextField.textProperty());
+
+        localDateAndTimeBinding = Bindings.createStringBinding(this::onLocalDateAndTimeBinding, startDateTime.zonedDateTimeBinding(), duration);
+
+        amPmComboBox.setItems(FXCollections.observableArrayList(false, true));
+
+        timeZoneComboBox.setItems(timeZones);
 
         // Get appointment type options.
-        types = FXCollections.observableArrayList(AppointmentType.values());
-        typeComboBox.setItems(types);
-        typeSelectionModel = typeComboBox.getSelectionModel();
+        typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
         typeSelectionModel.select(AppointmentType.OTHER);
-        
-        // Set validation and label bindings
-        titleValidationLabel.visibleProperty().bind(getTitleIsEmpty());
-        customerAddress = new ReadOnlyStringWrapper("");
-        customerSelectionModel = customerComboBox.getSelectionModel();
-        customerValidationLabel.visibleProperty().bind(getCustomerNotSelected());
-        userSelectionModel = userComboBox.getSelectionModel();
-        userValidationLabel.visibleProperty().bind(getUserNotSelected());
-        contactValidationLabel.visibleProperty().bind(getPointOfContactNotValid());
-        startValidationLabel.textProperty().bind(getStartValidationMessage());
-        startValidationLabel.visibleProperty().bind(getStartValidationMessage().isNotEmpty());
-        durationValidationLabel.textProperty().bind(duration.getValidationMessage());
-        durationValidationLabel.visibleProperty().bind(duration.getValidationMessage().isNotEmpty());
-        currentTimeZoneLabel.visibleProperty().bind(getCurrentTimeZoneText().isNotEmpty());
-        currentTimeZoneValue.textProperty().bind(getCurrentTimeZoneText());
-        locationLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            return (typeSelectionModel.getSelectedItem() == AppointmentType.PHONE) ? getResourceString(RESOURCEKEY_PHONENUMBER)
-                    : getResourceString(RESOURCEKEY_LOCATIONLABELTEXT);
-        }, typeSelectionModel.selectedItemProperty()));
-        locationLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() != AppointmentType.VIRTUAL,
-                typeSelectionModel.selectedItemProperty()));
-        bindCssCollapse(locationLabel, Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() == AppointmentType.VIRTUAL,
-                typeSelectionModel.selectedItemProperty()));
-        locationValidationLabel.visibleProperty().bind(getLocationNotValid());
-        locationTextArea.visibleProperty().bind(Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() == AppointmentType.OTHER,
-                typeSelectionModel.selectedItemProperty()));
-        bindCssCollapse(locationTextArea, Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() != AppointmentType.OTHER,
-                typeSelectionModel.selectedItemProperty()));
-        phoneTextField.visibleProperty().bind(Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() == AppointmentType.PHONE,
-                typeSelectionModel.selectedItemProperty()));
-        bindCssCollapse(phoneTextField, Bindings.createBooleanBinding(() -> typeSelectionModel.getSelectedItem() != AppointmentType.PHONE,
-                typeSelectionModel.selectedItemProperty()));
-        implicitLocationLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
-            switch (typeSelectionModel.getSelectedItem()) {
-                case OTHER:
-                case PHONE:
-                case VIRTUAL:
-                    return false;
-                default:
-                    return true;
-            }
-        }, typeSelectionModel.selectedItemProperty()));
-        urlValidationLabel.textProperty().bind(getUrlValidationMessage());
-        urlValidationLabel.visibleProperty().bind(getUrlValidationMessage().isNotEmpty());
-        startDateTime.addListener((observable) -> resetConflictingAppointments(((StartDateTimeProperty) observable).get(), duration.get()));
-        duration.addListener((observable) -> resetConflictingAppointments(startDateTime.get(), ((DurationProperty) observable).get()));
-        showConflictsButton.visibleProperty().bind(Bindings.createBooleanBinding(() -> !conflictingAppointments.isEmpty(), conflictingAppointments));
-    }
 
-    public IntegerBinding getCustomerConflictCount() {
-        return Bindings.createIntegerBinding(() -> {
-            CustomerModelImpl selectedItem = customerSelectionModel.getSelectedItem();
-            if (null != selectedItem) {
-                CustomerDAO dataObject = selectedItem.getDataObject();
-                if (dataObject.isExisting()) {
-                    int pk = dataObject.getPrimaryKey();
-                    return (int) conflictingAppointments.stream().filter((t) -> t.getCustomer().getPrimaryKey() == pk).count();
-                }
-            }
-            return 0;
-        }, conflictingAppointments);
-    }
-
-    public IntegerBinding getUserConflictCount() {
-        return Bindings.createIntegerBinding(() -> {
-            UserModelImpl selectedItem = userSelectionModel.getSelectedItem();
-            if (null != selectedItem) {
-                UserDAO dataObject = selectedItem.getDataObject();
-                if (dataObject.isExisting()) {
-                    int pk = dataObject.getPrimaryKey();
-                    return (int) conflictingAppointments.stream().filter((t) -> t.getCustomer().getPrimaryKey() == pk).count();
-                }
-            }
-            return 0;
-        }, conflictingAppointments);
-    }
-
-    public StringBinding getUrlValidationMessage() {
-        return Bindings.createStringBinding(() -> {
-            String url = urlTextField.getText().trim();
-            AppointmentType t = typeSelectionModel.getSelectedItem();
-            if (url.isEmpty()) {
-                return (t == AppointmentType.VIRTUAL) ? getResourceString(RESOURCEKEY_REQUIRED) : "";
-            }
-            try {
-                URI uri = new URI(url);
-                if (null == uri.getHost() || null == uri.getScheme()) {
-                    return getResourceString(RESOURCEKEY_INVALIDURL);
-                }
-            } catch (URISyntaxException ex) {
-                LOG.log(Level.FINER, "Caught URI syntax exception", ex);
-                return getResourceString(RESOURCEKEY_INVALIDURL);
-            }
-            return "";
-        }, typeSelectionModel.selectedItemProperty(), urlTextField.textProperty());
-    }
-
-    public BooleanBinding getLocationNotValid() {
-        return Bindings.createBooleanBinding(() -> {
-            String locationText = locationTextArea.getText();
-            String phoneText = phoneTextField.getText();
-            switch (typeSelectionModel.getSelectedItem()) {
-                case PHONE:
-                    return phoneText.trim().isEmpty();
-                case OTHER:
-                    return locationText.trim().isEmpty();
-                default:
-                    return false;
-            }
-        }, typeSelectionModel.selectedItemProperty(), locationTextArea.textProperty(), phoneTextField.textProperty());
-    }
-
-    public StringBinding getCurrentTimeZoneText() {
-        return Bindings.createStringBinding(() -> {
-            LocalDateTime s = startDateTime.get().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
-            Duration d = duration.get();
-            if (null != s && null != d) {
-                LocalDateTime e = s.plus(d);
-                return String.format(getResourceString(RESOURCEKEY_TIMERANGE), s.format(formatter), e.format(formatter));
-            }
-            return "";
-        }, startDateTime, duration);
     }
 
     /**
-     * Creates a binding that indicates whether the title text field is empty.
+     * This gets called when {@link #localDateAndTimeBinding} is invalidated.
      *
-     * @return A new {@link BooleanBinding} that returns {@code true} if the {@link #titleTextField} is empty.
+     * @return A {@link String} containing the date and time range in the local time zone.
      */
-    public BooleanBinding getTitleIsEmpty() {
-        return Bindings.createBooleanBinding(() -> titleTextField.getText().trim().isEmpty(), titleTextField.textProperty());
+    private String onLocalDateAndTimeBinding() {
+        ZonedDateTime zdt = startDateTime.zonedDateTimeBinding().get();
+        BinarySelective<Duration, String> durationOrMsg = duration.get();
+        if (null != zdt && durationOrMsg.isPrimary()) {
+            LocalDateTime start = zdt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+            return String.format(getResourceString(RESOURCEKEY_TIMERANGE), dateTimeFormatter.format(start),
+                    dateTimeFormatter.format(start.plus(durationOrMsg.getPrimary())));
+        }
+        return "";
     }
 
     /**
-     * Creates a binding that indicates whether the customer drop-down has no selection.
+     * This gets called when {@link #duration} is invalidated.
      *
-     * @return A new {@link BooleanBinding} that returns {@code true} if the {@link #customerComboBox} has no selection.
+     * @return A {@link BinarySelective} with a {@link Duration} value if duration is valid; otherwise a secondary {@link String} value with the error
+     * message.
      */
-    public BooleanBinding getCustomerNotSelected() {
-        return Bindings.createBooleanBinding(() -> null == customerSelectionModel.getSelectedItem(),
-                customerSelectionModel.selectedItemProperty());
-    }
-
-    /**
-     * Gets the multi-line customer address text.
-     *
-     * @return The value of the {@link CustomerModelImpl#multiLineAddress} binding or an empty string if no customer is selected.
-     */
-    public String getCustomerAddress() {
-        return customerAddress.get();
-    }
-
-    /**
-     * Gets the property that contains the multi-line customer address text. This will be bound to {@link CustomerModelImpl#multiLineAddress} if a customer is selected; otherwise,
-     * this will contain an empty string.
-     *
-     * @return The {@link ReadOnlyStringProperty} that contains the multi-line customer address text.
-     */
-    public ReadOnlyStringProperty customerAddressProperty() {
-        return customerAddress.getReadOnlyProperty();
-    }
-
-    /**
-     * Creates a binding that returns the effective location text.
-     *
-     * @return A new {@link StringBinding} that returns the effective location.
-     */
-    public StringBinding getEffectiveLocation() {
-        return Bindings.createStringBinding(() -> {
-            AppointmentType t = typeSelectionModel.getSelectedItem();
-            String l = locationTextArea.getText().trim();
-            String a = customerAddress.get();
-            String p = phoneTextField.getText().trim();
-            String u = urlTextField.getText().trim();
-            switch (t) {
-                case CORPORATE_HQ_MEETING:
-                    return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HQ);
-                case CUSTOMER_SITE:
-                    return (a.isEmpty()) ? AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER)
-                            : String.format("%s%n%s", AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER), a);
-                case GERMANY_SITE_MEETING:
-                    return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);
-                case GUATEMALA_SITE_MEETING:
-                    return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA);
-                case INDIA_SITE_MEETING:
-                    return AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA);
-                case PHONE:
-                    return (p.isEmpty()) ? AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
-                            : String.format("%s%n%s", AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_PHONE), p);
-                case VIRTUAL:
-                    return (u.isEmpty()) ? AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
-                            : String.format("%s%n%s", AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL), u);
-                default:
-                    return l;
-            }
-        }, typeSelectionModel.selectedItemProperty(), locationTextArea.textProperty(), customerAddress, phoneTextField.textProperty(),
-                urlTextField.textProperty());
-    }
-
-    /**
-     * Creates a binding that indicates whether the user drop-down has no selection.
-     *
-     * @return A new {@link BooleanBinding} that returns {@code true} if the {@link #userComboBox} has no selection.
-     */
-    public BooleanBinding getUserNotSelected() {
-        return Bindings.createBooleanBinding(() -> null == userSelectionModel.getSelectedItem(),
-                userSelectionModel.selectedItemProperty());
-    }
-
-    /**
-     * Creates a binding that indicates whether the point-of-contact is required and is empty.
-     *
-     * @return A new {@link BooleanBinding} that returns {@code true} if {@link AppointmentType#OTHER} is selected in the {@link #typeComboBox} and the {@link #contactTextField} is
-     * empty.
-     */
-    public BooleanBinding getPointOfContactNotValid() {
-        return Bindings.createBooleanBinding(() -> {
-            AppointmentType t = typeSelectionModel.getSelectedItem();
-            return contactTextField.getText().trim().isEmpty() && t == AppointmentType.OTHER;
-        }, contactTextField.textProperty(), typeSelectionModel.selectedItemProperty());
-    }
-
-    public StringBinding getStartValidationMessage() {
-        StringBinding conflictMessage = getConflictMessage();
-        StringBinding startValidationMessage = startDateTime.getValidationMessage();
-        StringBinding durationValidationMessage = duration.getValidationMessage();
-        return Bindings.createStringBinding(() -> {
-            String c = conflictMessage.get();
-            String s = startValidationMessage.get();
-            String d = durationValidationMessage.get();
-            if (s.isEmpty()) {
-                return (d.isEmpty()) ? c : "";
-            }
-            return s;
-        }, conflictMessage, startValidationMessage, durationValidationMessage);
-    }
-
-    public StringBinding getConflictMessage() {
-        IntegerBinding customerConflictCount = getCustomerConflictCount();
-        IntegerBinding userConflictCount = getUserConflictCount();
-        return Bindings.createStringBinding(() -> {
-            int c = customerConflictCount.get();
-            int u = userConflictCount.get();
-            if (c == 1) {
-                if (u == 1) {
-                    return getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1USER1);
-                }
-                if (u > 1) {
-                    return String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), u);
-                }
-                return getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1);
-            }
-            if (c > 1) {
-                if (u == 1) {
-                    return String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), c);
-                }
-                if (u > 1) {
-                    return String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), c, u);
-                }
-                return String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERN), c);
-            }
-            if (u == 1) {
-                return getResourceString(RESOURCEKEY_CONFLICTUSER1);
-            }
-            if (u > 1) {
-                return String.format(getResourceString(RESOURCEKEY_CONFLICTUSERN), u);
-            }
-            return "";
-        }, customerConflictCount, userConflictCount);
+    private BinarySelective<Duration, String> onDurationInvalid() {
+        String durationHour = durationHourTextField.textProperty().get();
+        String durationMinute = durationMinuteTextField.textProperty().get();
+        if (null == durationHour || durationHour.trim().isEmpty()) {
+            return BinarySelective.ofSecondary(getResourceString(RESOURCEKEY_DURATIONHOURNOTSPECIFIED));
+        }
+        Number n;
+        try {
+            n = numberFormatter.parse(durationHour);
+        } catch (ParseException ex) {
+            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+            n = null;
+        }
+        int h;
+        if (null == n || (h = n.intValue()) < 1 || h > 12) {
+            return BinarySelective.ofSecondary(getResourceString(RESOURCEKEY_INVALIDDURATIONHOUR));
+        }
+        if (null == durationMinute || durationMinute.trim().isEmpty()) {
+            return BinarySelective.ofSecondary(getResourceString(RESOURCEKEY_DURATIONMINUTENOTSPECIFIED));
+        }
+        try {
+            n = numberFormatter.parse(durationMinute);
+        } catch (ParseException ex) {
+            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+            n = null;
+        }
+        int m;
+        if (null == n || (m = n.intValue()) < 0 || m > 59) {
+            return BinarySelective.ofSecondary(getResourceString(RESOURCEKEY_INVALIDDURATIONMINUTE));
+        }
+        return BinarySelective.ofPrimary(Duration.ofMinutes((h * 60) + m));
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
         AppointmentModel model = this.getModel();
+        event.getStage().setTitle(getResourceString((model.isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
+
         typeSelectionModel.select(model.getType());
         titleTextField.setText(model.getTitle());
         contactTextField.setText(model.getContact());
-        ZoneId zoneId = AppointmentModel.getZoneId(model);
+        ZoneId z = AppointmentModel.getZoneId(model);
+        String id = z.getId();
+        Optional<TimeZone> timeZone = timeZones.stream().filter((t) -> t.toZoneId().getId().equals(id)).findFirst();
+        timeZoneSelectionModel.select(timeZone.get());
         LocalDateTime start = model.getStart();
-        if (zoneId.equals(ZoneId.systemDefault()))
-            startDateTime.set(ZonedDateTime.of(start, zoneId));
-        else
-            startDateTime.set(ZonedDateTime.of(start, ZoneId.systemDefault()).withZoneSameInstant(zoneId));
-        duration.set(Duration.between(start, model.getEnd()));
-        
+        ZonedDateTime zdt;
+        if (z.equals(ZoneId.systemDefault())) {
+            zdt = ZonedDateTime.of(start, z);
+        } else {
+            zdt = ZonedDateTime.of(start, ZoneId.systemDefault()).withZoneSameInstant(z);
+        }
+        startDatePicker.setValue(zdt.toLocalDate());
+        int h = zdt.getHour();
+        if (h < 12) {
+            amPmSelectionModel.select(false);
+            startHourTextField.setText(String.format("%d", (h > 0) ? h : 12));
+        } else {
+            amPmSelectionModel.select(true);
+            startHourTextField.setText(String.format("%d", (h > 12) ? h - 12 : 12));
+        }
+        startMinuteTextField.setText(String.format("%02d", zdt.getMinute()));
+        Duration dur = Duration.between(start, model.getEnd());
+        if (dur.isNegative()) {
+            durationHourTextField.setText("0");
+            durationMinuteTextField.setText("00");
+        } else {
+            long s = dur.getSeconds();
+            s = (s - (s % 60)) / 60;
+            long m = s % 60;
+            durationHourTextField.setText(String.format("%d", (s - m) / 60));
+            durationMinuteTextField.setText(String.format("%02d", m));
+        }
         switch (typeSelectionModel.getSelectedItem()) {
             case OTHER:
                 locationTextArea.setText(model.getLocation());
@@ -639,9 +756,15 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        return getTitleIsEmpty().or(getCustomerNotSelected()).or(getUserNotSelected()).or(getPointOfContactNotValid()).or(getLocationNotValid()).not()
-                .and(startDateTime.getValidationMessage().isEmpty()).and(duration.getValidationMessage().isEmpty())
-                .and(getUrlValidationMessage().isEmpty());
+        return startDateTime.dateTimeValidBinding().and(
+                contactValidationLabel.visibleProperty()
+                        .or(durationValidationLabel.visibleProperty())
+                        .or(locationValidationLabel.visibleProperty())
+                        .or(titleValidationLabel.visibleProperty())
+                        .or(customerValidationLabel.visibleProperty())
+                        .or(userValidationLabel.visibleProperty())
+                        .or(urlValidationLabel.visibleProperty()).not()
+        );
     }
 
     @Override
@@ -649,64 +772,37 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         return AppointmentModel.getFactory();
     }
 
-    private void onCustomerChanged(CustomerModelImpl customer) {
-        customerAddress.unbind();
-
-        if (null == customer) {
-            customerAddress.set("");
-        } else {
-            customerAddress.bind(customer.getMultiLineAddress());
-        }
-        TaskWaiter.startNow(new AppointmentReloadTask(customer, userSelectionModel.getSelectedItem()));
-    }
-
-    private void onUserChanged(UserModelImpl user) {
-        TaskWaiter.startNow(new AppointmentReloadTask(customerSelectionModel.getSelectedItem(), user));
-    }
-
-    private void resetConflictingAppointments(ZonedDateTime start, Duration duration) {
-        conflictingAppointments.clear();
-        CustomerModelImpl selectedCustomer = customerSelectionModel.getSelectedItem();
-        UserModelImpl selectedUser = userSelectionModel.getSelectedItem();
-        Stream<AppointmentModel> stream;
-        if (null != selectedCustomer) {
-            int cpk = selectedCustomer.getPrimaryKey();
-            if (null != selectedUser) {
-                int upk = selectedUser.getPrimaryKey();
-                stream = otherAppointments.stream().filter((t) -> t.getCustomer().getPrimaryKey() == cpk || t.getUser().getPrimaryKey() == upk);
-            } else {
-                stream = otherAppointments.stream().filter((t) -> t.getCustomer().getPrimaryKey() == cpk);
-            }
-        } else {
-            if (null == selectedUser) {
-                return;
-            }
-            int upk = selectedUser.getPrimaryKey();
-            stream = otherAppointments.stream().filter((t) -> t.getUser().getPrimaryKey() == upk);
-        }
-        LocalDateTime s = start.toLocalDateTime();
-        LocalDateTime e = s.plusHours(duration.toHours()).plusMinutes(duration.toMinutes());
-        stream.forEach((t) -> {
-            if (t.getStart().compareTo(e) > 0 && t.getEnd().compareTo(s) < 0) {
-                conflictingAppointments.add(t);
-            }
-        });
-    }
-
     @Override
     protected void updateModel(AppointmentModel model) {
         if (!getValidationExpression().get()) {
             throw new IllegalStateException();
         }
-        model.setTitle(titleTextField.getText().trim());
-        model.setCustomer(customerSelectionModel.getSelectedItem());
-        model.setUser(userSelectionModel.getSelectedItem());
-        model.setUrl(urlTextField.getText().trim());
+        CustomerModelImpl customer = customerSelectionModel.getSelectedItem();
+        assert null != customer : "No customer is selected";
+        assert customer.getDataObject().isExisting() : "Customer does not exist in database";
+        UserModelImpl user = userSelectionModel.getSelectedItem();
+        assert null != user : "No user is selected";
+        assert user.getDataObject().isExisting() : "User does not exist in database";
+        String title = titleTextField.getText().trim();
+        assert !title.isEmpty() : "Title is empty";
         AppointmentType type = typeSelectionModel.getSelectedItem();
+        assert null != type : "Type is not selected";
+        ZonedDateTime zdt = startDateTime.getZonedDateTime();
+        if (null == zdt) {
+            throw new IllegalStateException("Start date/time is not valid");
+        }
+        BinarySelective<Duration, String> d = duration.get();
+        if (!d.isPrimary()) {
+            throw new IllegalStateException("Duration is not valid");
+        }
+        model.setTitle(title);
+        model.setCustomer(customer);
+        model.setUser(user);
+        model.setUrl(urlTextField.getText().trim());
         model.setType(type);
-        LocalDateTime s = startDateTime.get().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime s = zdt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         model.setStart(s);
-        model.setEnd(s.plus(duration.get()));
+        model.setEnd(s.plus(d.getPrimary()));
         switch (type) {
             case PHONE:
                 model.setLocation(phoneTextField.getText().trim());
@@ -722,37 +818,132 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         model.setContact(contactTextField.getText().trim());
     }
 
-    private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {
+    /**
+     * Validates whether appointments need to be reloaded in order to check for conflicts. Returns {@code true} if appointment data needs to be
+     * reloaded.
+     * <p>
+     * This is instantiated as {@link #conflictDependencyValidator}</p><p>
+     * Data can only be reloaded if {@link StartDateValidationBinding#isDateTimeValid()} on {@link #startDateTime} returns true, the
+     * {@link BinarySelective} from {@link #duration} returns the primary ({@link Duration}) value, {@link #customerSelectionModel} has a
+     * {@link CustomerModelImpl} selected, and {@link #userSelectionModel} has a {@link UserModelImpl} selected.</p>
+     */
+    private class ConflictDependencyValidator extends BooleanBinding {
 
-        private final CustomerDAO customer;
-        private final UserDAO user;
-        private final AppointmentDAO toEdit;
+        private ObservableList<AppointmentModel> otherAppointments;
+        private final ReadOnlyObjectWrapper<CustomerElement> targetCustomer = new ReadOnlyObjectWrapper<>();
+        private final ReadOnlyObjectWrapper<UserElement> targetUser = new ReadOnlyObjectWrapper<>();
 
-        private AppointmentReloadTask(CustomerModelImpl selectedCustomer, UserModelImpl selectedUser) {
-            super((Stage) customerComboBox.getScene().getWindow());
-            customer = (null == selectedCustomer) ? null : selectedCustomer.getDataObject();
-            user = (null == selectedUser) ? null : selectedUser.getDataObject();
-            toEdit = getModel().getDataObject();
+        ConflictDependencyValidator() {
+            assert null == conflictDependencyValidator : "Class was already instantiated";
+                
+            super.bind(customerSelectionModel.selectedItemProperty(), userSelectionModel.selectedItemProperty(), targetCustomer, targetUser);
+        }
+
+        private synchronized void refreshConflictingAppointments() {
+            ZonedDateTime zdt = startDateTime.getZonedDateTime();
+            BinarySelective<Duration, String> d = duration.get();
+            if (get()) {
+                if (d.isPrimary() && null != zdt) {
+                    LocalDateTime cs = zdt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+                    LocalDateTime ce = cs.plus(d.getPrimary());
+                    Stream<AppointmentModel> stream = otherAppointments.stream().filter((AppointmentModel t) -> {
+                        LocalDateTime ts = t.getStart();
+                        LocalDateTime te = t.getEnd();
+                        return cs.compareTo(te) < 0 && ce.compareTo(ts) >= 0;
+                    });
+                    ArrayList<AppointmentModel> matching = new ArrayList<>();
+                    stream.forEach((t) -> matching.add(t));
+                    if (!matching.isEmpty()) {
+                        startDateTime.getConflictingAppointments().retainAll(matching);
+                        startDateTime.getConflictingAppointments().addAll(matching);
+                        return;
+                    }
+                }
+            }
+            startDateTime.getConflictingAppointments().clear();
+        }
+
+        private synchronized void startCheckDependencies() {
+            if (get()) {
+                return;
+            }
+            if (null != customerSelectionModel.getSelectedItem() || null != userSelectionModel.getSelectedItem()) {
+                TaskWaiter.startNow(new AppointmentReloadTask());
+            }
         }
 
         @Override
-        protected void processResult(List<AppointmentDAO> result, Stage stage) {
-            otherAppointments.clear();
-            if (null != result && !result.isEmpty()) {
-                if (toEdit.isExisting()) {
-                    int pk = toEdit.getPrimaryKey();
-                    result.forEach((t) -> {
+        protected synchronized boolean computeValue() {
+            CustomerModelImpl currentCustomer = customerSelectionModel.getSelectedItem();
+            UserModelImpl currentUser = userSelectionModel.getSelectedItem();
+            CustomerElement c = targetCustomer.get();
+            UserElement u = targetUser.get();
+            if (null != otherAppointments) {
+                if (null == currentUser) {
+                    if (null != currentCustomer && null != c && null == u && c.getPrimaryKey() == currentCustomer.getPrimaryKey()) {
+                        return true;
+                    }
+                } else if (u != null && u.getPrimaryKey() == currentUser.getPrimaryKey()
+                        && ((currentCustomer == null) ? c == null : c != null && c.getPrimaryKey() == currentCustomer.getPrimaryKey())) {
+                    return true;
+                }
+                otherAppointments = null;
+            }
+            return false;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public ObservableList<?> getDependencies() {
+            return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(customerSelectionModel.selectedItemProperty(),
+                    userSelectionModel.selectedItemProperty(), targetCustomer, targetUser));
+        }
+
+        @Override
+        public void dispose() {
+            super.unbind(customerSelectionModel.selectedItemProperty(), userSelectionModel.selectedItemProperty(), targetCustomer, targetUser);
+            super.dispose();
+        }
+
+        private synchronized void accept(List<AppointmentDAO> appointments, CustomerElement customer, UserElement user) {
+            targetCustomer.set(customer);
+            targetUser.set(user);
+            otherAppointments = FXCollections.observableArrayList();
+            if (null != appointments && !appointments.isEmpty()) {
+                if (getModel().getDataObject().isExisting()) {
+                    int pk = getModel().getPrimaryKey();
+                    appointments.forEach((t) -> {
                         if (t.getPrimaryKey() != pk) {
                             otherAppointments.add(new AppointmentModel(t));
                         }
                     });
                 } else {
-                    result.forEach((t) -> {
+                    appointments.forEach((t) -> {
                         otherAppointments.add(new AppointmentModel(t));
                     });
                 }
             }
-            resetConflictingAppointments(startDateTime.get(), duration.get());
+
+            updateConflictMesssage();
+        }
+    }
+
+    private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {
+
+        private final CustomerDAO customer;
+        private final UserDAO user;
+
+        private AppointmentReloadTask() {
+            super((Stage) customerComboBox.getScene().getWindow());
+            CustomerModelImpl selectedCustomer = customerSelectionModel.getSelectedItem();
+            UserModelImpl selectedUser = userSelectionModel.getSelectedItem();
+            customer = (null == selectedCustomer) ? null : selectedCustomer.getDataObject();
+            user = (null == selectedUser) ? null : selectedUser.getDataObject();
+        }
+
+        @Override
+        protected void processResult(List<AppointmentDAO> result, Stage stage) {
+            conflictDependencyValidator.accept(result, customer, user);
         }
 
         @Override
@@ -790,18 +981,21 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected void processResult(List<CustomerDAO> result, Stage stage) {
-            CustomerModelImpl selectedItem = customerSelectionModel.getSelectedItem();
-            customerModelList.clear();
-            if (null != result && !result.isEmpty()) {
-                result.forEach((t) -> customerModelList.add(new CustomerModelImpl(t)));
-            }
-            if (null != selectedItem) {
-                int pk = selectedItem.getPrimaryKey();
-                Optional<CustomerModelImpl> matching = customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
-                if (matching.isPresent()) {
-                    customerSelectionModel.select(matching.get());
-                } else {
-                    customerSelectionModel.clearSelection();
+            Optional<Boolean> currentOption = showActiveCustomers;
+            if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
+                CustomerModelImpl selectedItem = customerSelectionModel.getSelectedItem();
+                customerModelList.clear();
+                if (null != result && !result.isEmpty()) {
+                    result.forEach((t) -> customerModelList.add(new CustomerModelImpl(t)));
+                }
+                if (null != selectedItem) {
+                    int pk = selectedItem.getPrimaryKey();
+                    Optional<CustomerModelImpl> matching = customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
+                    if (matching.isPresent()) {
+                        customerSelectionModel.select(matching.get());
+                    } else {
+                        customerSelectionModel.clearSelection();
+                    }
                 }
             }
         }
@@ -835,18 +1029,21 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected void processResult(List<UserDAO> result, Stage stage) {
-            UserModelImpl selectedItem = userSelectionModel.getSelectedItem();
-            userModelList.clear();
-            if (null != result && !result.isEmpty()) {
-                result.forEach((t) -> userModelList.add(new UserModelImpl(t)));
-            }
-            if (null != selectedItem) {
-                int pk = selectedItem.getPrimaryKey();
-                Optional<UserModelImpl> matching = userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
-                if (matching.isPresent()) {
-                    userSelectionModel.select(matching.get());
-                } else {
-                    userSelectionModel.clearSelection();
+            Optional<Boolean> currentOption = showActiveUsers;
+            if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
+                UserModelImpl selectedItem = userSelectionModel.getSelectedItem();
+                userModelList.clear();
+                if (null != result && !result.isEmpty()) {
+                    result.forEach((t) -> userModelList.add(new UserModelImpl(t)));
+                }
+                if (null != selectedItem) {
+                    int pk = selectedItem.getPrimaryKey();
+                    Optional<UserModelImpl> matching = userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
+                    if (matching.isPresent()) {
+                        userSelectionModel.select(matching.get());
+                    } else {
+                        userSelectionModel.clearSelection();
+                    }
                 }
             }
         }
@@ -875,16 +1072,22 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         private List<CustomerDAO> customerDaoList;
         private List<UserDAO> userDaoList;
-        private final AppointmentDAO toEdit;
+        private List<AppointmentDAO> appointments;
         private final Optional<Boolean> customerLoadOption;
         private final Optional<Boolean> userLoadOption;
+        private final CustomerElement appointmentCustomer;
+        private final UserElement appointmentUser;
 
         private ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_INITIALIZING));
             customerDaoList = null;
             userDaoList = null;
-            toEdit = getModel().getDataObject();
+            AppointmentModel model = getModel();
+            CustomerModel<? extends CustomerElement> customer = model.getCustomer();
+            appointmentCustomer = (null == customer) ? null : customer.getDataObject();
+            UserModel<? extends UserElement> user = model.getUser();
+            appointmentUser = (null == user) ? null : user.getDataObject();
             customerLoadOption = showActiveCustomers;
             userLoadOption = showActiveUsers;
         }
@@ -899,20 +1102,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 userDaoList.forEach((t) -> userModelList.add(new UserModelImpl(t)));
             }
 
-            if (null != result && !result.isEmpty()) {
-                if (toEdit.isExisting()) {
-                    int pk = toEdit.getPrimaryKey();
-                    result.forEach((t) -> {
-                        if (t.getPrimaryKey() != pk) {
-                            otherAppointments.add(new AppointmentModel(t));
-                        }
-                    });
-                } else {
-                    result.forEach((t) -> {
-                        otherAppointments.add(new AppointmentModel(t));
-                    });
-                }
-            }
+            conflictDependencyValidator.accept(appointments, appointmentCustomer, appointmentUser);
             customerComboBox.setItems(customerModelList);
             userComboBox.setItems(userModelList);
             CustomerModel<? extends CustomerElement> customer = getModel().getCustomer();
@@ -925,13 +1115,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                     -> userSelectionModel.select(t));
-            customerSelectionModel.selectedItemProperty().addListener((observable) -> {
-                onCustomerChanged(((ObservableObjectValue<CustomerModelImpl>) observable).get());
-            });
-            userSelectionModel.selectedItemProperty().addListener((observable) -> {
-                onUserChanged(((ObservableObjectValue<UserModelImpl>) observable).get());
-            });
-            resetConflictingAppointments(startDateTime.get(), duration.get());
         }
 
         @Override
@@ -961,16 +1144,14 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             }
 
             if (null != customerDaoList && null != userDaoList && !(customerDaoList.isEmpty() || userDaoList.isEmpty())) {
-                CustomerElement customer = toEdit.getCustomer();
-                UserElement user = toEdit.getUser();
-                if (null != customer && customer.isExisting()) {
-                    if (null != user && user.isExisting()) {
-                        return af.load(connection, AppointmentFilter.of(customer, user, null, null));
+                if (null != appointmentCustomer && appointmentCustomer.isExisting()) {
+                    if (null != appointmentUser && appointmentUser.isExisting()) {
+                        return af.load(connection, AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
                     }
-                    return af.load(connection, AppointmentFilter.of(customer, null, null, null));
+                    return af.load(connection, AppointmentFilter.of(appointmentCustomer, null, null, null));
                 }
-                if (null != user && user.isExisting()) {
-                    return af.load(connection, AppointmentFilter.of(null, user, null, null));
+                if (null != appointmentUser && appointmentUser.isExisting()) {
+                    return af.load(connection, AppointmentFilter.of(null, appointmentUser, null, null));
                 }
             }
             return null;

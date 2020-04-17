@@ -12,7 +12,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResourceBundleConstants;
 import scheduler.AppResources;
+import static scheduler.dao.DataElement.getPrimaryKeyOf;
+import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.dao.filter.IntColumnValueFilter;
+import scheduler.dao.filter.value.IntValueFilter;
 import scheduler.dao.schema.DatabaseTable;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
@@ -169,6 +173,12 @@ public class CityDAO extends DataAccessObject implements CityElement {
         public DaoFilter<CityDAO> getAllItemsFilter() {
             return DaoFilter.all(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB),
                     AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES));
+        }
+
+        public DaoFilter<CityDAO> getByCountryFilter(int pk) {
+            return DaoFilter.of(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES),
+                    IntColumnValueFilter.of(DbColumn.CITY_COUNTRY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
+                            (CityDAO t) -> getPrimaryKeyOf(t.getCountry())));
         }
 
         @Override

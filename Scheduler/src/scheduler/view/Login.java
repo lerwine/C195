@@ -113,7 +113,7 @@ public final class Login extends SchedulerController {
     @FXML
     private Button exitButton;
 
-    private ResourceBundle currentResourceBundlex;
+    private ReadOnlyObjectWrapper<ResourceBundle> resourceBundle;
 
     private SingleSelectionModel<SupportedLocale> languageSelectionModel;
 
@@ -129,8 +129,6 @@ public final class Login extends SchedulerController {
         assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
         assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
     }
-
-    private ReadOnlyObjectWrapper<ResourceBundle> resourceBundle;
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     private void onBeforeShow(FxmlViewEvent<BorderPane> event) {
@@ -182,12 +180,13 @@ public final class Login extends SchedulerController {
     void loginButtonClick(ActionEvent event) {
         Stage stage = (Stage) userNameTextField.getScene().getWindow();
         Scheduler.tryLoginUser(stage, userNameTextField.getText(), passwordField.getText(), (ex) -> {
+            ResourceBundle rb = resourceBundle.get();
             if (ex == null) {
-                AlertHelper.showErrorAlert(stage, LOG, currentResourceBundlex.getString(RESOURCEKEY_LOGINERROR),
-                        currentResourceBundlex.getString(RESOURCEKEY_INVALIDCREDENTIALS), ex);
+                AlertHelper.showErrorAlert(stage, LOG, rb.getString(RESOURCEKEY_LOGINERROR),
+                        rb.getString(RESOURCEKEY_INVALIDCREDENTIALS), ex);
             } else {
-                AlertHelper.showErrorAlert(stage, LOG, currentResourceBundlex.getString(RESOURCEKEY_LOGINERROR),
-                        currentResourceBundlex.getString(RESOURCEKEY_VALIDATIONERROR), ex);
+                AlertHelper.showErrorAlert(stage, LOG, rb.getString(RESOURCEKEY_LOGINERROR),
+                        rb.getString(RESOURCEKEY_VALIDATIONERROR), ex);
             }
         });
     }

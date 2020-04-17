@@ -1,14 +1,47 @@
 ﻿Param(
-    [string]$SourcePath = 'view\appointment\ManageAppointments',
-    [string]$TargetPath = 'view\appointment\EditAppointment',
+    [string]$SourcePath = 'view\user\EditUser',
+    [string]$TargetPath = 'view\appointment\ManageAppointments',
     #[string[]]$Keys = @(''),
-    [string[]]$Keys = @('durationHourNotSpecified', 'durationMinuteNotSpecified', 'invalidDurationHour', 'invalidDurationMinute'),
+    [string[]]$Keys = @('status'),
     [boolean]$Move = $false
 )
 $Script:BaseResourcesPath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\resources\scheduler';
 $Script:BaseCodePath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\src\scheduler';
 
 <#
+
+java.sql.SQLException: No value specified for parameter 
+at scheduler.dao.DataAccessObject$DaoFactory.save(DataAccessObject.java:626)
+
+UPDATE appointment SET customerId=?, userId=?, title=?, description=?, location=?, contact=?, type=?, url=?, start=?, end=?, lastUpdate=?, lastUpdateBy=? WHERE appointmentId=?
+Apr 15, 2020 12:05:47 AM scheduler.util.AlertHelper showErrorAlert
+
+
+
+INFO: Appending column SQL for column customerId at index 1
+INFO: Appending column SQL for userId at index 2
+INFO: Appending column SQL for title at index 3
+INFO: Appending column SQL for description at index 4
+INFO: Appending column SQL for location at index 5
+INFO: Appending column SQL for contact at index 6
+INFO: Appending column SQL for type at index 7
+INFO: Appending column SQL for url at index 8
+INFO: Appending column SQL for start at index 9
+INFO: Appending column SQL for end at index 10
+INFO: Appending column SQL for lastUpdate at index 11
+INFO: Appending column SQL for lastUpdateBy at index 12
+INFO: Appending column SQL for appointmentId at index 13
+INFO: Setting value SQL for column appointmentId at index 1
+INFO: Setting value SQL for column appointmentId at index 2
+INFO: Setting value SQL for column appointmentId at index 3
+INFO: Setting value SQL for column appointmentId at index 4
+INFO: Setting value SQL for column appointmentId at index 5
+INFO: Setting value SQL for column appointmentId at index 6
+INFO: Setting value SQL for column appointmentId at index 7
+INFO: Setting value primary key at index 8
+
+
+
 @SuppressWarnings("incomplete-switch")
     @SuppressWarnings("unchecked")
     @SuppressWarnings("unused")
@@ -16,7 +49,24 @@ $Script:BaseCodePath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\
     @SuppressWarnings("varargsCast")
     @SuppressWarnings("ForLoopToFunctionalHint")
     org.netbeans.modules.java.hints.jdk.mapreduce.ForLoopToFunctionalHint
+    TernarySelective<ZonedDateTime, Pair<ZonedDateTime, String>, String>
+    ofPrimary(ZonedDateTime);
+    ofSecondary(Pair<ZonedDateTime, String>);
+    ofTertiary(String)
 
+    IntermediaryBinding: BinarySelective<Pair<ZonedDateTime, Pair<Integer, Integer>>, String>
+    ofPrimary(Pair<ZonedDateTime, Pair<Integer, Integer>>);
+    ofSecondary(String)
+
+     selection | option
+       true    |  true  =primary
+       true    |  false =secondary
+       false   |  true  =tertiary
+       false   |  false =none
+
+     * <tr><td>{@code true}</td><td>{@code false}</td><td>{@link #value} contains the secondary option value.</td></tr>
+     * <tr><td>{@code false}</td><td>{@code true}</td><td>{@link #value} contains the tertiary option value.</td></tr>
+     * <tr><td>{@code false}</td><td>{@code false}</td><td>Contains no value.</td></tr>
 
     अमान्य पूर्वाह्न / अपराह्न डिज़ाइनर।
     

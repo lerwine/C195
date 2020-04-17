@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
@@ -126,8 +125,8 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         type = new AppointmentTypeProperty(this, "type", dao.getType());
         typeDisplay = new AppointmentTypeDisplayProperty(this, "typeDisplay", type);
         url = new NonNullableStringProperty(this, "url", dao.getUrl());
-        start = new SimpleObjectProperty<>(this, "start", DB.fromUtcTimestamp(dao.getStart()));
-        end = new SimpleObjectProperty<>(this, "end", DB.fromUtcTimestamp(dao.getEnd()));
+        start = new SimpleObjectProperty<>(this, "start", DB.toLocalDateTime(dao.getStart()));
+        end = new SimpleObjectProperty<>(this, "end", DB.toLocalDateTime(dao.getEnd()));
         effectiveLocation = new EffectiveLocationProperty(this, "effectiveLocation", this);
     }
 
@@ -409,7 +408,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
     }
 
     public final static class Factory extends ItemModel.ModelFactory<AppointmentDAO, AppointmentModel> {
-
+        
         private Factory() {
         }
 
@@ -430,9 +429,9 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
             CustomerElement customer = dao.getCustomer();
             item.customer.set((null == customer) ? null : new RelatedCustomerModel(customer));
             item.description.set(dao.getDescription());
-            item.end.set(DB.fromUtcTimestamp(dao.getEnd()));
+            item.end.set(DB.toLocalDateTime(dao.getEnd()));
             item.location.set(dao.getLocation());
-            item.start.set(DB.fromUtcTimestamp(dao.getStart()));
+            item.start.set(DB.toLocalDateTime(dao.getStart()));
             item.title.set(dao.getTitle());
             UserElement user = dao.getUser();
             item.user.set((null == user) ? null : new RelatedUserModel(user));

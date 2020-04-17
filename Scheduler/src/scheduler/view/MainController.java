@@ -1,24 +1,26 @@
 package scheduler.view;
 
+import com.sun.javafx.binding.ExpressionHelper;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DataObjectEventListener;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import scheduler.util.ViewControllerLoader;
@@ -46,6 +48,8 @@ import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModelImpl;
+import static scheduler.view.MainControllerResourceKeys.*;
+import scheduler.view.event.FxmlViewEventListener;
 
 /**
  * FXML Controller class for main application content.
@@ -61,54 +65,14 @@ import scheduler.view.user.UserModelImpl;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
-public final class MainController extends SchedulerController implements MainControllerConstants {
+public final class MainController extends SchedulerController implements IMainCRUD {
 
     private static final Logger LOG = Logger.getLogger(MainController.class.getName());
+    
+    private EventHelper<DataObjectEventListener<? extends DataAccessObject>, DataObjectEvent<? extends DataAccessObject>> daoEventHelper;
 
-    @FXML
-    private Menu appointmentsMenu;
-
-    @FXML
-    private MenuItem newAppointmentMenuItem;
-
-    @FXML
-    private MenuItem allAppointmentsMenuItem;
-
-    @FXML
-    private Menu customersMenu;
-
-    @FXML
-    private MenuItem newCustomerMenuItem;
-
-    @FXML
-    private MenuItem allCustomersMenuItem;
-
-    @FXML
-    private Menu addressMenu;
-
-    @FXML
-    private MenuItem newCountryMenuItem;
-
-    @FXML
-    private MenuItem newCityMenuItem;
-
-    @FXML
-    private MenuItem newAddressMenuItem;
-
-    @FXML
-    private MenuItem allCountriesMenuItem;
-
-    @FXML
-    private Menu usersMenu;
-
-    @FXML
-    private MenuItem newUserMenuItem;
-
-    @FXML
-    private MenuItem allUsersMenuItem;
-
-    @FXML
-    private StackPane contentPane;
+    @FXML // fx:id="contentPane"
+    private StackPane contentPane; // Value injected by FXMLLoader
 
     private MainContentController contentController;
 
@@ -117,85 +81,145 @@ public final class MainController extends SchedulerController implements MainCon
     }
 
     @FXML
+    void onAllAppointmentsMenuItemAction(ActionEvent event) {
+        try {
+            ManageAppointments.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
+                    AppointmentModel.getFactory().getAllItemsFilter());
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                    "Error loading appointments listing", ex);
+        }
+    }
+
+    @FXML
+    void onAllCustomersMenuItemAction(ActionEvent event) {
+        try {
+            ManageCustomers.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
+                    CustomerModelImpl.getFactory().getAllItemsFilter());
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                    "Error loading customers listing", ex);
+        }
+    }
+
+    @FXML
+    void onAllUsersMenuItemAction(ActionEvent event) {
+        try {
+            ManageUsers.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
+                    UserModelImpl.getFactory().getAllItemsFilter());
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                    "Error loading users listing", ex);
+        }
+    }
+
+    @FXML
+    void onNewAddressMenuItem(ActionEvent event) {
+        addNewAddress((Stage) contentPane.getScene().getWindow());
+    }
+
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link AddressModelImpl}.
+     *
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link AddressModelImpl} or {@code null} if the operation was canceled.
+     */
+    @Override
+    public AddressModelImpl addNewAddress(Stage stage) {
+        try {
+            return EditAddress.editNew(this, stage);
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new address edit window", ex);
+        }
+        return null;
+    }
+
+    @FXML
+    void onNewAppointmentMenuItemAction(ActionEvent event) {
+        addNewAppointment((Stage) contentPane.getScene().getWindow());
+    }
+
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
+     *
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
+     */
+    @Override
+    public AppointmentModel addNewAppointment(Stage stage) {
+        try {
+            return EditAppointment.editNew(this, stage);
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new appointment edit window", ex);
+        }
+        return null;
+    }
+
+    @FXML
+    void onNewCustomerMenuItemAction(ActionEvent event) {
+        addNewCustomer((Stage) contentPane.getScene().getWindow());
+    }
+
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link CustomerModelImpl}.
+     *
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link CustomerModelImpl} or {@code null} if the operation was canceled.
+     */
+    @Override
+    public CustomerModelImpl addNewCustomer(Stage stage) {
+        try {
+            return EditCustomer.editNew(this, stage);
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new customer edit window", ex);
+        }
+        return null;
+    }
+
+    @FXML
+    void onNewUserMenuItemAction(ActionEvent event) {
+        addNewUser((Stage) contentPane.getScene().getWindow());
+    }
+
+    /**
+     * Opens an {@link EditItem} window to edit a new {@link UserModelImpl}.
+     *
+     * @param stage The current {@link Stage}.
+     * @return The newly added {@link UserModelImpl} or {@code null} if the operation was canceled.
+     */
+    @Override
+    public UserModelImpl addNewUser(Stage stage) {
+        try {
+            return EditUser.editNew(this, stage);
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert(stage, LOG, "Error loading new user edit window", ex);
+        }
+        return null;
+    }
+
+    @FXML
+    void onAllCountriesMenuItemAction(ActionEvent event) {
+        try {
+            ManageCountries.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
+                    CountryModel.getFactory().getAllItemsFilter());
+        } catch (IOException ex) {
+            // PENDING: Internationalize message
+            AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
+                    "Error loading countries listing", ex);
+        }
+    }
+
+    @FXML
     private void initialize() {
-        assert appointmentsMenu != null : String.format("fx:id=\"appointmentsMenu\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()));
-        Objects.requireNonNull(newAppointmentMenuItem, String.format("fx:id=\"newAppointmentMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewAppointment((Stage) contentPane.getScene().getWindow());
-        });
-        Objects.requireNonNull(allAppointmentsMenuItem, String.format("fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageAppointments.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
-                        AppointmentModel.getFactory().getAllItemsFilter());
-            } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                        "Error loading appointments listing", ex);
-            }
-        });
-        assert customersMenu != null : String.format("fx:id=\"customersMenu\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()));
-        Objects.requireNonNull(newCustomerMenuItem, String.format("fx:id=\"newCustomerMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewCustomer((Stage) contentPane.getScene().getWindow());
-        });
-        Objects.requireNonNull(allCustomersMenuItem, String.format("fx:id=\"allCustomersMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageCustomers.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
-                        CustomerModelImpl.getFactory().getAllItemsFilter());
-            } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                        "Error loading customers listing", ex);
-            }
-        });
-        assert addressMenu != null : String.format("fx:id=\"addressMenu\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()));
-        Objects.requireNonNull(newCountryMenuItem, String.format("fx:id=\"newCountryMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewCountry((Stage) contentPane.getScene().getWindow());
-        });
-        Objects.requireNonNull(newCityMenuItem, String.format("fx:id=\"newCityMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewCity((Stage) contentPane.getScene().getWindow());
-        });
-        Objects.requireNonNull(newAddressMenuItem, String.format("fx:id=\"newAddressMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewAddress((Stage) contentPane.getScene().getWindow());
-        });
-        Objects.requireNonNull(allCountriesMenuItem, String.format("fx:id=\"allCountriesMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageCountries.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
-                        CountryModel.getFactory().getAllItemsFilter());
-            } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                        "Error loading countries listing", ex);
-            }
-        });
-        assert usersMenu != null : String.format("fx:id=\"usersMenu\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()));
-        Objects.requireNonNull(newUserMenuItem, String.format("fx:id=\"newUserMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            addNewUser((Stage) contentPane.getScene().getWindow());
-        });
-        Objects.requireNonNull(allUsersMenuItem, String.format("fx:id=\"allUsersMenuItem\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()))).setOnAction((event) -> {
-            try {
-                ManageUsers.loadInto(MainController.this, (Stage) contentPane.getScene().getWindow(),
-                        UserModelImpl.getFactory().getAllItemsFilter());
-            } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                        "Error loading users listing", ex);
-            }
-        });
-        assert contentPane != null : String.format("fx:id=\"contentPane\" was not injected: check your FXML file '%s'.",
-                AppResources.getFXMLResourceName(getClass()));
+        assert contentPane != null : "fx:id=\"contentPane\" was not injected: check your FXML file 'MainView.fxml'.";
+        daoEventHelper = new EventHelper<>("onDataObjectEvent");
     }
 
     /**
@@ -208,7 +232,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @return The instantiated controller.
      * @throws IOException if not able to load the FXML resource.
      */
-@SuppressWarnings("incomplete-switch")
+    @SuppressWarnings("incomplete-switch")
     public <T extends MainContentController> T loadContent(Class<T> controllerClass, Object loadEventListener) throws IOException {
         return ViewControllerLoader.replacePaneContent(this, contentPane, controllerClass,
                 (FxmlViewControllerEventListener<Parent, T>) (event) -> {
@@ -237,28 +261,30 @@ public final class MainController extends SchedulerController implements MainCon
         return loadContent(controllerClass, null);
     }
 
-    /**
-     * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
-     *
-     * @param stage The current {@link Stage}.
-     * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
-     */
-    public AppointmentModel addNewAppointment(Stage stage) {
-        try {
-            return EditAppointment.editNew(this, stage);
-        } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading new appointment edit window", ex);
-        }
-        return null;
+    @Override
+    public void addDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
+        daoEventHelper.addListener(listener);
     }
-
+    
+    @Override
+    public void removeDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
+        daoEventHelper.removeListener(listener);
+    }
+    
+    @Override
+    public <T extends DataAccessObject> void fireDaoEvent(Object source, DaoChangeAction action, T dao) {
+        DataObjectEvent<T> event = new DataObjectEvent<>(source, action, dao);
+        EventHelper.fireDataObjectEvent(contentController, event);
+        daoEventHelper.raiseEvent(event);
+    }
+    
     /**
      * Opens an {@link EditItem} window to edit an {@link AppointmentModel}.
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be edited.
      */
+    @Override
     public void editAppointment(Stage stage, AppointmentModel item) {
         try {
             EditAppointment.edit(item, this, stage);
@@ -274,6 +300,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be deleted.
      */
+    @Override
     public void deleteAppointment(Stage stage, AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -286,27 +313,12 @@ public final class MainController extends SchedulerController implements MainCon
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link CustomerModelImpl}.
-     *
-     * @param stage The current {@link Stage}.
-     * @return The newly added {@link CustomerModelImpl} or {@code null} if the operation was canceled.
-     */
-    public CustomerModelImpl addNewCustomer(Stage stage) {
-        try {
-            return EditCustomer.editNew(this, stage);
-        } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading new customer edit window", ex);
-        }
-        return null;
-    }
-
-    /**
      * Opens an {@link EditItem} window to edit a {@link CustomerModelImpl}.
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModelImpl} to be edited.
      */
+    @Override
     public void editCustomer(Stage stage, CustomerModelImpl item) {
         try {
             EditCustomer.edit(item, this, stage);
@@ -322,6 +334,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModelImpl} to be deleted.
      */
+    @Override
     public void deleteCustomer(Stage stage, CustomerModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -334,28 +347,13 @@ public final class MainController extends SchedulerController implements MainCon
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link CountryModel}.
-     *
-     * @param stage The current {@link Stage}.
-     * @return The newly added {@link CountryModel} or {@code null} if the operation was canceled.
-     */
-    public CountryModel addNewCountry(Stage stage) {
-        try {
-            return EditCountry.editNew(this, stage);
-        } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading new country edit window", ex);
-        }
-        return null;
-    }
-
-    /**
      * Opens an {@link EditItem} window to edit a {@link CountryModel}.
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be edited.
      */
-    public void editCountry(Stage stage, CountryModel item) {
+    @Override
+    public void openCountry(Stage stage, CountryModel item) {
         try {
             EditCountry.edit(item, this, stage);
         } catch (IOException ex) {
@@ -370,6 +368,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be deleted.
      */
+    @Override
     public void deleteCountry(Stage stage, CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -382,28 +381,13 @@ public final class MainController extends SchedulerController implements MainCon
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link CityModelImpl}.
-     *
-     * @param stage The current {@link Stage}.
-     * @return The newly added {@link CityModelImpl} or {@code null} if the operation was canceled.
-     */
-    public CityModelImpl addNewCity(Stage stage) {
-        try {
-            return EditCity.editNew(this, stage);
-        } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading new city edit window", ex);
-        }
-        return null;
-    }
-
-    /**
      * Opens an {@link EditItem} window to edit a {@link CityModelImpl}.
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link CityModelImpl} to be edited.
      */
-    public void editCity(Stage stage, CityModelImpl item) {
+    @Override
+    public void openCity(Stage stage, CityModelImpl item) {
         try {
             EditCity.edit(item, this, stage);
         } catch (IOException ex) {
@@ -418,6 +402,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @param stage The current {@link Stage}.
      * @param item The {@link CityModelImpl} to be deleted.
      */
+    @Override
     public void deleteCity(Stage stage, CityModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -430,27 +415,12 @@ public final class MainController extends SchedulerController implements MainCon
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link AddressModelImpl}.
-     *
-     * @param stage The current {@link Stage}.
-     * @return The newly added {@link AddressModelImpl} or {@code null} if the operation was canceled.
-     */
-    public AddressModelImpl addNewAddress(Stage stage) {
-        try {
-            return EditAddress.editNew(this, stage);
-        } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading new address edit window", ex);
-        }
-        return null;
-    }
-
-    /**
      * Opens an {@link EditItem} window to edit an {@link AddressModelImpl}.
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link AddressModelImpl} to be edited.
      */
+    @Override
     public void editAddress(Stage stage, AddressModelImpl item) {
         try {
             EditAddress.edit(item, this, stage);
@@ -466,6 +436,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @param stage The current {@link Stage}.
      * @param item The {@link AddressModelImpl} to be deleted.
      */
+    @Override
     public void deleteAddress(Stage stage, AddressModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -478,27 +449,12 @@ public final class MainController extends SchedulerController implements MainCon
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link UserModelImpl}.
-     *
-     * @param stage The current {@link Stage}.
-     * @return The newly added {@link UserModelImpl} or {@code null} if the operation was canceled.
-     */
-    public UserModelImpl addNewUser(Stage stage) {
-        try {
-            return EditUser.editNew(this, stage);
-        } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading new user edit window", ex);
-        }
-        return null;
-    }
-
-    /**
      * Opens an {@link EditItem} window to edit a {@link UserModelImpl}.
      *
      * @param stage The current {@link Stage}.
      * @param item The {@link UserModelImpl} to be edited.
      */
+    @Override
     public void editUser(Stage stage, UserModelImpl item) {
         try {
             EditUser.edit(item, this, stage);
@@ -514,6 +470,7 @@ public final class MainController extends SchedulerController implements MainCon
      * @param stage The current {@link Stage}.
      * @param item The {@link UserModelImpl} to be deleted.
      */
+    @Override
     public void deleteUser(Stage stage, UserModelImpl item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),

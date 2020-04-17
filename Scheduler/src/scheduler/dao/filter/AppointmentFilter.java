@@ -8,6 +8,7 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGAPPOINTMEN
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerElement;
+import static scheduler.dao.DataElement.getPrimaryKeyOf;
 import scheduler.dao.UserElement;
 import scheduler.dao.schema.DbColumn;
 
@@ -77,7 +78,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
     public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer) {
         if (null != customer && customer.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                    (t) -> t.getCustomer().getPrimaryKey());
+                    (t) -> getPrimaryKeyOf(t.getCustomer()));
         }
         return DaoFilterExpression.empty();
     }
@@ -85,7 +86,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
     public static DaoFilterExpression<AppointmentDAO> expressionOf(UserElement user) {
         if (null != user && user.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                    (t) -> t.getUser().getPrimaryKey());
+                    (t) -> getPrimaryKeyOf(t.getUser()));
         }
         return DaoFilterExpression.empty();
     }

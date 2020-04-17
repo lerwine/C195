@@ -12,11 +12,11 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="parentVBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.EditItem">
+<VBox fx:id="parentVBox" prefHeight="600.0" prefWidth="900.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.EditItem">
     <stylesheets>
         <URL value="@../defaultStyles.css" />
     </stylesheets>
-   <StackPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
+   <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
     <GridPane>
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" />
@@ -48,7 +48,10 @@
                             <Insets left="8.0" />
                         </HBox.margin>
                     </Label>
-                    <Label fx:id="createdByValue" text="Label" />
+                    <Label fx:id="createdByValue">
+                  <HBox.margin>
+                     <Insets left="8.0" />
+                  </HBox.margin></Label>
                 </children>
             </HBox>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -62,7 +65,10 @@
                             <Insets left="8.0" />
                         </HBox.margin>
                     </Label>
-                    <Label fx:id="lastUpdateByValue" text="Label" />
+                    <Label fx:id="lastUpdateByValue">
+                  <HBox.margin>
+                     <Insets left="8.0" />
+                  </HBox.margin></Label>
                 </children>
                 <GridPane.margin>
                     <Insets left="8.0" />

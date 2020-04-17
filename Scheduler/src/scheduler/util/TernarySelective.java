@@ -81,7 +81,7 @@ public final class TernarySelective<T, U, S> {
      * @throws NullPointerException if {@code s} is null.
      */
     public static <T, U, S> TernarySelective<T, U, S> ofTertiary(S s) {
-        return new TernarySelective<>(Objects.requireNonNull(s), Optional.of(false));
+        return new TernarySelective<>(Objects.requireNonNull(s), Optional.empty());
     }
 
     /**
@@ -94,7 +94,7 @@ public final class TernarySelective<T, U, S> {
      * @return A {@code TernarySelective} object that contains a null tertiary value option.
      */
     public static <T, U, S> TernarySelective<T, U, S> ofTertiaryNullable(S s) {
-        return new TernarySelective<>(s, Optional.of(false));
+        return new TernarySelective<>(s, Optional.empty());
     }
 
     private final Object value;

@@ -576,8 +576,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
                                 try (ResultSet rs = ps.getGeneratedKeys()) {
-                                    if (!rs.next())
+                                    if (!rs.next()) {
                                         throw new SQLException("No primary key returned");
+                                    }
                                     dataObj.primaryKey = rs.getInt(1);
                                 }
                             }
@@ -592,17 +593,25 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                             sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
                             columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
                             iterator = Arrays.stream(columns).iterator();
-                            sb.append(iterator.next().getDbName()).append("=?");
+                            DbName dbName = iterator.next().getDbName();
+                            int colNum = 0;
+                            LOG.info(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
+                            sb.append(dbName).append("=?");
                             while (iterator.hasNext()) {
-                                sb.append(", ").append(iterator.next().getDbName()).append("=?");
+                                dbName = iterator.next().getDbName();
+                                LOG.info(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                                sb.append(", ").append(dbName).append("=?");
                             }
-                            sb.append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
+                            dbName = getPrimaryKeyColumn().getDbName();
+                            LOG.info(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                            sb.append(" WHERE ").append(dbName).append("=?");
                             sql = sb.toString();
                             try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
                                 iterator = Arrays.stream(columns).iterator();
                                 index = 1;
                                 do {
                                     DbColumn column = iterator.next();
+                                    LOG.info(String.format("Setting value SQL for column %s at index %d", column, index));
                                     if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                                         switch (column.getDbName()) {
                                             case LAST_UPDATE:
@@ -616,9 +625,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                                             default:
                                                 throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
                                         }
+                                    } else {
+                                        applyColumnValue(dao, column, ps, index++);
                                     }
-                                    applyColumnValue(dao, iterator.next(), ps, index++);
                                 } while (iterator.hasNext());
+                                LOG.info(String.format("Setting value primary key at index %d", index));
                                 ps.setInt(index, dataObj.primaryKey);
                                 LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
                                 if (ps.executeUpdate() < 1) {

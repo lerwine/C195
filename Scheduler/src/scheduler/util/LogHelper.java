@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.util.LogHelper}
  */
 public class LogHelper {
 
@@ -30,12 +29,6 @@ public class LogHelper {
                     h.setLevel(level);
             }
         } while (null != (logger = logger.getParent()));
-//        Logger parent = logger.getParent();
-//        while (null != parent) {
-//            if (parent.getLevel().intValue() > i)
-//                parent.setLevel(level);
-//            parent = parent.getParent();
-//        }
     }
     
     /**

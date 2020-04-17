@@ -18,7 +18,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Item
 
     @Override
     public default LocalDateTime get(T dao) {
-        return DB.fromUtcTimestamp(getTimestamp(dao));
+        return DB.toLocalDateTime(getTimestamp(dao));
     }
 
     /**
@@ -56,7 +56,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Item
      * @return The value associated with the target {@link DataAccessObject}.
      */
     default LocalDate getLocalDate(T dao) {
-        return DB.fromUtcTimestamp(getTimestamp(dao)).toLocalDate();
+        return DB.toLocalDateTime(getTimestamp(dao)).toLocalDate();
     }
 
     default boolean test(T dao, LocalDate value) {

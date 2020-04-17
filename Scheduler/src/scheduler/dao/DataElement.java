@@ -39,4 +39,16 @@ public interface DataElement {
     default boolean isExisting() {
         return DataRowState.existsInDb(getRowState());
     }
+    
+    public static int getPrimaryKeyOf(DataElement obj) {
+        if (null != obj && obj.isExisting()) {
+            return obj.getPrimaryKey();
+        }
+        return Integer.MIN_VALUE;
+    }
+    
+    public static boolean isExisting(DataElement obj) {
+        return null != obj && obj.isExisting();
+    }
+    
 }
