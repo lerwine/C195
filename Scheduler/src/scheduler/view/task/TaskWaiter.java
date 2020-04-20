@@ -14,31 +14,34 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import scheduler.AppResources;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.ThrowableFunction;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreLabeled;
 
 /**
  * Controller / Task for showing a busy indicator while background process is running. If the current {@link Stage} is closed while this is executing,
  * the task will be canceled.
- * <p>The associated view is <a href="file:../../resources/scheduler/view/TaskWaiter.fxml">/resources/scheduler/view/TaskWaiter.fxml</a>.</p>
+ * <p>
+ * The associated view is <a href="file:../../resources/scheduler/view/TaskWaiter.fxml">/resources/scheduler/view/TaskWaiter.fxml</a>.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of value produced by the task.
@@ -537,16 +540,21 @@ public abstract class TaskWaiter<T> extends Task<T> {
     private final EventHandler<WindowEvent> onHidden;
     private EventHandler<WindowEvent> oldOnHidden;
     private final Stage owner;
-    @FXML
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-    @FXML
-    private Pane contentPane;
-    @FXML
-    private Label headingLabel;
-    @FXML
-    private Label operationLabel;
-    @FXML
-    private Button cancelButton;
+
+    @FXML // fx:id="rootStackPane"
+    private StackPane rootStackPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="headingLabel"
+    private Label headingLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="cancelButton"
+    private Button cancelButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="operationLabel"
+    private Label operationLabel; // Value injected by FXMLLoader
 
     /**
      * Initializes a new TaskWaiter.
@@ -681,7 +689,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
 
     @FXML
     void initialize() {
-        assert contentPane != null : "fx:id=\"contentPane\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
+        assert rootStackPane != null : "fx:id=\"rootStackPane\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert operationLabel != null : "fx:id=\"operationLabel\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
@@ -734,7 +742,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
 
     private void showBusyView() throws RuntimeException {
         LOG.log(Level.FINE, "showBusyView called");
-        if (null != contentPane) {
+        if (null != rootStackPane) {
             return;
         }
         ResourceBundle rb = ResourceBundleHelper.getBundle(TaskWaiter.class);
@@ -749,7 +757,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
         }
         Parent oldParent = owner.getScene().getRoot();
         owner.getScene().setRoot(newParent);
-        contentPane.getChildren().add(oldParent);
+        rootStackPane.getChildren().add(0, oldParent);
         oldOnHidden = owner.getOnHidden();
         owner.setOnHidden(onHidden);
     }
@@ -759,12 +767,13 @@ public abstract class TaskWaiter<T> extends Task<T> {
         owner.setOnHidden(oldOnHidden);
         oldOnHidden = null;
         cancelButton.setOnAction(null);
-        if (contentPane.getChildren().isEmpty()) {
-            return;
+        Parent root = owner.getScene().getRoot();
+        if (root == rootStackPane) {
+            ObservableList<Node> children = rootStackPane.getChildren();
+            Parent oldParent = (Parent) children.get(0);
+            children.remove(oldParent);
+            owner.getScene().setRoot(oldParent);
         }
-        Parent oldParent = (Parent) contentPane.getChildren().get(0);
-        contentPane.getChildren().clear();
-        owner.getScene().setRoot(oldParent);
     }
 
 }

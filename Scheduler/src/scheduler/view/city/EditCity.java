@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
@@ -64,7 +65,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
     private TableView<AddressModelImpl> addressesTableView; // Value injected by FXMLLoader
 
     private ObservableList<AddressModelImpl> itemList;
-    
+
     @FXML
     void onAddCityButtonAction(ActionEvent event) {
 
@@ -102,7 +103,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
         event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCITY), getModel().getName()));
     }
-    
+
     @Override
     protected ItemModel.ModelFactory<CityDAO, CityModelImpl> getFactory() {
         return CityModelImpl.getFactory();
@@ -121,10 +122,10 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#updateModel
     }
 
-    private class ItemsLoadTask extends TaskWaiter<List<AddressDAO>>    {
+    private class ItemsLoadTask extends TaskWaiter<List<AddressDAO>> {
 
         private final int pk;
-        
+
         private ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGADDRESSES));
@@ -136,11 +137,11 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
         protected void processResult(List<AddressDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {
                 AddressModelImpl.Factory factory = AddressModelImpl.getFactory();
-                    result.forEach((t) -> {
-                        itemList.add(factory.createNew(t));
-                    });
-                }
+                result.forEach((t) -> {
+                    itemList.add(factory.createNew(t));
+                });
             }
+        }
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
@@ -150,10 +151,10 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
 
         @Override
         protected List<AddressDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             AddressDAO.FactoryImpl cf = AddressDAO.getFactory();
             return cf.load(connection, cf.getByCityFilter(pk));
         }
-
 
     }
 

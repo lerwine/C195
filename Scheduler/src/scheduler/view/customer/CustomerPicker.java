@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -25,6 +26,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -33,7 +35,6 @@ import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
-import scheduler.view.SchedulerController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
@@ -52,7 +53,7 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/appointment/CustomerPicker")
 @FXMLResource("/scheduler/view/appointment/CustomerPicker.fxml")
-public class CustomerPicker extends SchedulerController {
+public class CustomerPicker {
 
     private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
 
@@ -185,6 +186,11 @@ public class CustomerPicker extends SchedulerController {
     private ObservableList<CustomerModelImpl> filteredCustomers;
     private CustomerModelImpl selectedCustomer = null;
 
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
+
+//    @FXML // URL location of the FXML file that was given to the FXMLLoader
+//    private URL location;
     @FXML // fx:id="countryFilterCheckBox"
     private CheckBox countryFilterCheckBox; // Value injected by FXMLLoader
 
@@ -520,6 +526,7 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected ArrayList<CityDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             return CityDAO.getFactory().getByCountry(connection, country.getPrimaryKey());
         }
 
@@ -548,6 +555,7 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected ArrayList<CountryDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             return CountryDAO.getFactory().getAllCountries(connection);
         }
 
@@ -600,6 +608,7 @@ public class CustomerPicker extends SchedulerController {
 
         @Override
         protected ArrayList<CustomerDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
 //            switch (active) {
 //                case TRUE:
 //                    if (null == country) {

@@ -2,6 +2,7 @@ package scheduler.view.country;
 
 import java.io.IOException;
 import javafx.stage.Stage;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.view.ListingController;
@@ -44,12 +45,12 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
 
     @Override
     protected void onEditItem(Stage stage, CountryModel item) throws IOException {
-        getMainController().openCountry(stage, item);
+        getMainController(stage.getScene()).openCountry(stage, item);
     }
 
     @Override
     protected void onDeleteItem(Stage stage, CountryModel item) {
-        getMainController().deleteCountry(stage, item);
+        getMainController(stage.getScene()).deleteCountry(stage, item);
     }
 
     @Override

@@ -26,6 +26,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_INACTIVE;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGUSERS;
@@ -45,6 +46,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
+import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
@@ -335,9 +337,11 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
 
         @Override
         protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             UserDAO.FactoryImpl uf = UserDAO.getFactory();
             users = uf.load(connection, uf.getAllItemsFilter());
             if (!filterOptions.isEmpty()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
                 return af.load(connection, filterOptions.get(0).getModelFilter().getDaoFilter());
             }

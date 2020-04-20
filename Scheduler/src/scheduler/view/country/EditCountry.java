@@ -15,6 +15,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -68,7 +69,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
     protected void initialize() {
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesTableView != null : "fx:id=\"citiesTableView\" was not injected: check your FXML file 'EditCountry.fxml'.";
-        
+
         itemList = FXCollections.observableArrayList();
         citiesTableView.setItems(itemList);
     }
@@ -78,7 +79,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
         event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCOUNTRY), getModel().getName()));
     }
-    
+
     @Override
     protected BooleanExpression getValidationExpression() {
         return Bindings.createBooleanBinding(() -> true);
@@ -98,11 +99,11 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
     }
 
     private ObservableList<CityModelImpl> itemList;
-    
+
     private class ItemsLoadTask extends TaskWaiter<List<CityDAO>> {
 
         private final int pk;
-        
+
         private ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES));
@@ -114,11 +115,11 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
         protected void processResult(List<CityDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {
                 CityModelImpl.Factory factory = CityModelImpl.getFactory();
-                    result.forEach((t) -> {
-                        itemList.add(factory.createNew(t));
-                    });
-                }
+                result.forEach((t) -> {
+                    itemList.add(factory.createNew(t));
+                });
             }
+        }
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
@@ -128,10 +129,10 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
 
         @Override
         protected List<CityDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             CityDAO.FactoryImpl cf = CityDAO.getFactory();
             return cf.load(connection, cf.getByCountryFilter(pk));
         }
-
 
     }
 

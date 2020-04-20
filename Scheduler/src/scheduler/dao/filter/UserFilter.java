@@ -68,6 +68,11 @@ public interface UserFilter extends DaoFilter<UserDAO> {
                 return hash;
             }
 
+            @Override
+            public boolean isEmpty() {
+                return expr.isEmpty();
+            }
+
         };
     }
     

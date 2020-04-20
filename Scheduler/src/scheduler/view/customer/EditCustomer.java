@@ -6,8 +6,8 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
@@ -16,11 +16,14 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -30,12 +33,17 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.AddressElement;
 import scheduler.dao.AppointmentDAO;
@@ -44,26 +52,33 @@ import scheduler.dao.CityElement;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CountryElement;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.AlertHelper;
 import scheduler.util.MapHelper;
-import static scheduler.util.NodeUtil.bindCssCollapse;
+import static scheduler.util.NodeUtil.bindCollapsible;
+import static scheduler.util.NodeUtil.bindCollapsibleMessage;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
 import scheduler.view.ViewAndController;
-import scheduler.view.address.AddressModel;
 import scheduler.view.address.AddressModelImpl;
 import scheduler.view.address.AddressPicker;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesDataObjectEvent;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.city.CityModel;
 import scheduler.view.city.CityModelImpl;
 import scheduler.view.country.CityCountryModel;
+import scheduler.view.country.CityOptionModel;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.CountryOptionModel;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
@@ -91,6 +106,34 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     public static CustomerModelImpl edit(CustomerModelImpl model, MainController mainController, Stage stage) throws IOException {
         return edit(model, EditCustomer.class, mainController, stage);
     }
+
+    private ObservableList<String> unavailableNames;
+
+    private ObservableList<AppointmentModel> customerAppointments;
+
+    private ObservableList<CityModel<? extends CityElement>> allCities;
+
+    private ObservableList<CityModel<? extends CityElement>> cityOptions;
+
+    private ObservableList<CityCountryModel<? extends CountryElement>> allCountries;
+
+    private ObservableList<AppointmentFilterItem> filterOptions;
+
+    private SimpleObjectProperty<AddressModelImpl> selectedAddress;
+
+    private SingleSelectionModel<CityModel<? extends CityElement>> citySelectionModel;
+
+    private SingleSelectionModel<CityCountryModel<? extends CountryElement>> countrySelectionModel;
+
+    private AddressPicker addressPicker;
+
+    private StringBinding nameValidationMessage;
+
+    private BooleanBinding addressValid;
+
+    private BooleanBinding countryValid;
+
+    private StringBinding cityValidationMessage;
 
     @FXML // fx:id="rootStackPane"
     private StackPane rootStackPane; // Value injected by FXMLLoader
@@ -149,8 +192,8 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     @FXML // fx:id="phoneNumberTextField"
     private TextField phoneNumberTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="countryValueLabel"
-    private Label countryValueLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="countryLabel"
+    private Label countryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
     private ComboBox<CityCountryModel<? extends CountryElement>> countryComboBox; // Value injected by FXMLLoader
@@ -158,8 +201,11 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="createNewButton"
-    private Button createNewButton; // Value injected by FXMLLoader
+    @FXML // fx:id="existingAddressButton"
+    private Button existingAddressButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="newAddressButton"
+    private Button newAddressButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsVBox"
     private VBox appointmentsVBox; // Value injected by FXMLLoader
@@ -169,23 +215,69 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
+    private SingleSelectionModel<AppointmentFilterItem> appointmentFilterSelectionModel;
+    private TableView.TableViewSelectionModel<AppointmentModel> appointmentsSelectionModel;
 
-    private ObservableList<String> unavailableNames;
+    @FXML
+    void onAddButtonAction(ActionEvent event) {
+        Scene scene = ((ComboBox)event.getSource()).getScene();
+        MainController mainController = getMainController(scene);
+        Stage stage = (Stage)scene.getWindow();
+        mainController.addNewAppointment(stage, getModel().getDataObject(), null);
+    }
 
-    private ObservableList<AppointmentModel> customerAppointments;
+    @FXML
+    void onAppointmentFilterComboBoxAction(ActionEvent event) {
+        TaskWaiter.startNow(new AppointmentReloadTask((Stage)((ComboBox)event.getSource()).getScene().getWindow()));
+    }
 
-    private ObservableList<CityModel<? extends CityElement>> allCities;
+    @FXML
+    void onCountryComboBoxAction(ActionEvent event) {
+        citySelectionModel.clearSelection();
+        cityOptions.clear();
+        CityCountryModel<? extends CountryElement> selectedItem = countrySelectionModel.getSelectedItem();
+        if (null != selectedItem) {
+            String regionCode = selectedItem.getOptionModel().getRegionCode();
+            allCities.stream().filter((CityModel<? extends CityElement> t) -> {
+                CityCountryModel<? extends CountryElement> m = t.getCountry();
+                return null != m && m.getOptionModel().getRegionCode().equals(regionCode);
+            }).forEach((t) -> cityOptions.add(t));
+        }
+    }
 
-    private ObservableList<CityCountryModel<? extends CountryElement>> allCountries;
+    @FXML
+    void onDeleteAppointmentMenuItemAction(ActionEvent event) {
+        AppointmentModel item = appointmentsSelectionModel.getSelectedItem();
+        if (null != item) {
+            MainController mainController = getMainController(appointmentsTableView);
+            Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
+            mainController.deleteAppointment(stage, item);
+        }
+    }
 
-    private ObservableList<AppointmentFilterItem> filterOptions;
+    @FXML
+    void onEditAppointmentMenuItemAction(ActionEvent event) {
+        AppointmentModel item = appointmentsSelectionModel.getSelectedItem();
+        if (null != item) {
+            MainController mainController = getMainController(appointmentsTableView);
+            Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
+            mainController.editAppointment(stage, item);
+        }
+    }
 
-    private SimpleObjectProperty<AddressModelImpl> selectedAddress;
+    @FXML
+    void onExistingAddressButtonAction(ActionEvent event) {
+        addressPicker.PickAddress((Stage) ((Button) event.getSource()).getScene().getWindow(), (t, u) -> {
+            if (null != u) {
+                selectedAddress.set(u);
+            }
+        });
+    }
 
-    private SingleSelectionModel<CityModel<? extends CityElement>> citySelectionModel;
-
-    private SingleSelectionModel<CityCountryModel<? extends CountryElement>> countrySelectionModel;
-    private AddressPicker addressPicker;
+    @FXML
+    void onNewAddressButtonAction(ActionEvent event) {
+        selectedAddress.set(null);
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
@@ -208,10 +300,11 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         assert postalCodeTextField != null : "fx:id=\"postalCodeTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert phoneNumberValueLabel != null : "fx:id=\"phoneNumberValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert phoneNumberTextField != null : "fx:id=\"phoneNumberTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert countryValueLabel != null : "fx:id=\"countryValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert countryLabel != null : "fx:id=\"countryLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert countryValidationLabel != null : "fx:id=\"countryValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert createNewButton != null : "fx:id=\"createNewButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert existingAddressButton != null : "fx:id=\"existingAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert newAddressButton != null : "fx:id=\"newAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentsVBox != null : "fx:id=\"appointmentsVBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentFilterComboBox != null : "fx:id=\"appointmentFilterComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditCustomer.fxml'.";
@@ -219,115 +312,22 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         unavailableNames = FXCollections.observableArrayList();
         customerAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
+        allCities = FXCollections.observableArrayList();
+        cityOptions = FXCollections.observableArrayList();
+        allCountries = FXCollections.observableArrayList();
         selectedAddress = new SimpleObjectProperty<>(this, "selectedAddress", null);
+        selectedAddress.addListener(this::onSelectedAddressChanged);
+
+        countryComboBox.setItems(allCountries);
+        cityComboBox.setItems(cityOptions);
+        appointmentFilterComboBox.setItems(filterOptions);
+
         countrySelectionModel = countryComboBox.getSelectionModel();
         citySelectionModel = cityComboBox.getSelectionModel();
-        if (getModel().isNewItem()) {
-            collapseNode(appointmentsVBox);
-            editSplitPane.setDividerPosition(0, 1.0);
-        } else {
-            appointmentsTableView.setItems(customerAppointments);
-            appointmentFilterComboBox.setItems(filterOptions);
-            countryComboBox.setItems(allCountries);
-        }
-
-        nameValidationLabel.textProperty().bind(getNameValidationMessage());
-        nameValidationLabel.visibleProperty().bind(getNameValidationMessage().isNotEmpty());
-        bindCssCollapse(nameValidationLabel, getNameValidationMessage().isEmpty());
-
-        addressValueLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            AddressModel<? extends AddressElement> model = selectedAddress.get();
-            return (null == model) ? "" : model.getAddressLines();
-        }, selectedAddress));
-        addressValueLabel.visibleProperty().bind(selectedAddress.isNotNull());
-        bindCssCollapse(addressValueLabel, selectedAddress.isNull());
-
-        address1TextField.visibleProperty().bind(selectedAddress.isNull());
-        bindCssCollapse(address1TextField, selectedAddress.isNotNull());
-
-        address2TextField.visibleProperty().bind(selectedAddress.isNull());
-        bindCssCollapse(address2TextField, selectedAddress.isNotNull());
-
-        addressValidationLabel.visibleProperty().bind(isAddressLineValid().not());
-        bindCssCollapse(addressValidationLabel, isAddressLineValid());
-
-        cityLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            AddressModel<? extends AddressElement> model = selectedAddress.get();
-            return (null == model) ? getResourceString(RESOURCEKEY_CITY) : getResourceString(RESOURCEKEY_CITYZIPCOUNTRY);
-        }, selectedAddress));
-
-        cityZipCountryLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            AddressModel<? extends AddressElement> model = selectedAddress.get();
-            return (null == model) ? "" : model.getCityZipCountry();
-        }, selectedAddress));
-        cityZipCountryLabel.visibleProperty().bind(selectedAddress.isNotNull());
-        bindCssCollapse(cityZipCountryLabel, selectedAddress.isNull());
-
-        cityComboBox.itemsProperty().bind(Bindings.createObjectBinding(() -> {
-            CityCountryModel<? extends CountryElement> c = countrySelectionModel.getSelectedItem();
-            if (null != selectedAddress.get() || null == c) {
-                return FXCollections.emptyObservableList();
-            }
-            ObservableList<CityModel<? extends CityElement>> result = FXCollections.observableArrayList();
-            int pk = c.getPrimaryKey();
-            allCities.stream().filter((CityModel<? extends CityElement> t) -> {
-                CityCountryModel<? extends CountryElement> m = t.getCountry();
-                return null != m && m.getPrimaryKey() == pk;
-            }).forEach((t) -> result.add(t));
-            return FXCollections.unmodifiableObservableList(result);
-        }, countrySelectionModel.selectedItemProperty(), selectedAddress));
-        cityComboBox.visibleProperty().bind(selectedAddress.isNull().and(countrySelectionModel.selectedItemProperty().isNotNull()));
-        bindCssCollapse(cityComboBox, selectedAddress.isNotNull());
-
-        cityValidationLabel.visibleProperty().bind(isCitySelected().not());
-        bindCssCollapse(cityValidationLabel, isCitySelected());
-
-        postalCodeLabel.visibleProperty().bind(selectedAddress.isNull());
-        bindCssCollapse(postalCodeLabel, selectedAddress.isNotNull());
-
-        postalCodeTextField.visibleProperty().bind(selectedAddress.isNull());
-        bindCssCollapse(postalCodeTextField, selectedAddress.isNotNull());
-
-        phoneNumberValueLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            AddressModel<? extends AddressElement> model = selectedAddress.get();
-            return (null == model) ? "" : model.getPhone();
-        }, selectedAddress));
-
-        phoneNumberValueLabel.visibleProperty().bind(selectedAddress.isNotNull());
-        bindCssCollapse(phoneNumberValueLabel, selectedAddress.isNull());
-
-        countryValueLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            AddressModel<? extends AddressElement> model = selectedAddress.get();
-            return (null == model) ? "" : model.getCountryName();
-        }, selectedAddress));
-
-        countryValueLabel.visibleProperty().bind(selectedAddress.isNotNull());
-        bindCssCollapse(countryValueLabel, selectedAddress.isNull());
-
-        countryComboBox.visibleProperty().bind(selectedAddress.isNull());
-        bindCssCollapse(countryComboBox, selectedAddress.isNotNull());
-
-        countryValidationLabel.visibleProperty().bind(isCountrySelected().not());
-        bindCssCollapse(countryValidationLabel, isCountrySelected());
-
-        createNewButton.disableProperty().bind(selectedAddress.isNull());
-    }
-
-    @FXML
-    void createNewButtonAction(ActionEvent event) {
-        selectedAddress.set(null);
-    }
-
-    @FXML
-    void selectExistingButtonAction(ActionEvent event) {
-        addressPicker.PickAddress((Stage)((Button)event.getSource()).getScene().getWindow(), (t, u) -> {
-            if (null != u)
-                selectedAddress.set(u);
-        });
-    }
-
-    private StringBinding getNameValidationMessage() {
-        return Bindings.createStringBinding(() -> {
+        appointmentFilterSelectionModel = appointmentFilterComboBox.getSelectionModel();
+        appointmentsSelectionModel = appointmentsTableView.getSelectionModel();
+        
+        nameValidationMessage = bindCollapsibleMessage(nameValidationLabel, () -> {
             String n = nameTextField.getText().trim().toLowerCase();
             if (n.isEmpty()) {
                 return getResourceString(RESOURCEKEY_NAMECANNOTBEEMPTY);
@@ -336,23 +336,212 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
                 return getResourceString(RESOURCEKEY_NAMEINUSE);
             }
             return "";
-        }, nameTextField.textProperty(), unavailableNames);
+        }, nameTextField.textProperty());
+
+        addressValid = bindCollapsible(addressValidationLabel, () -> {
+            String a1 = address1TextField.getText().trim();
+            String a2 = address2TextField.getText().trim();
+            return null != selectedAddress.get() || !(a1.trim().isEmpty() && a2.trim().isEmpty());
+        }, address1TextField.textProperty(), address2TextField.textProperty(), selectedAddress);
+
+        countryValid = bindCollapsible(countryValidationLabel, () -> {
+            CityCountryModel<? extends CountryElement> selectedItem = countrySelectionModel.getSelectedItem();
+            LOG.info(String.format("Calculated countryValid=%s", null != selectedAddress.get() || null != selectedItem));
+            return null != selectedAddress.get() || null != selectedItem;
+        }, countrySelectionModel.selectedItemProperty(), selectedAddress);
+
+        cityValidationMessage = bindCollapsibleMessage(cityValidationLabel, () -> {
+            CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
+            CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
+            LOG.info(String.format("Calculated cityValid=%s", null != selectedAddress.get() || null != selectedCity));
+            if (null == selectedAddress.get() && null == selectedCity) {
+                if (null == selectedCountry) {
+                    LOG.info("Country not selected");
+                    return getResourceString(RESOURCEKEY_COUNTRYNOTSELECTED);
+                }
+                LOG.info("City not selected");
+                return getResourceString(RESOURCEKEY_CITYMUSTBESELECTED);
+            }
+            return "";
+        }, citySelectionModel.selectedItemProperty(), countrySelectionModel.selectedItemProperty(), selectedAddress);
     }
 
-    private BooleanBinding isAddressLineValid() {
-        return selectedAddress.isNotNull()
-                .or(address1TextField.textProperty().isNotEmpty())
-                .or(address2TextField.textProperty().isNotEmpty());
+    @HandlesDataObjectEvent
+    private void onDataObjectEvent(DataObjectEvent<? extends DataAccessObject> event) {
+        DataAccessObject dao = event.getDataObject();
+        switch (event.getChangeAction()) {
+            case CREATED:
+                if (dao instanceof CityDAO) {
+                    onCityAdded((CityDAO) dao);
+                } else if (dao instanceof CountryDAO) {
+                    onCountryAdded((CountryDAO) dao);
+                } else if (dao instanceof AppointmentDAO && !getModel().isNewItem()) {
+                    onAppointmentInserted((AppointmentDAO)dao);
+                }
+                break;
+            case DELETED:
+                if (dao instanceof AddressDAO) {
+                    AddressModelImpl address = selectedAddress.get();
+                    if (null != address && address.getPrimaryKey() == dao.getPrimaryKey()) {
+                        selectedAddress = null;
+                    }
+                } else if (dao instanceof CityDAO) {
+                    onCityDeleted((CityDAO) dao);
+                } else if (dao instanceof CountryDAO) {
+                    onCountryDeleted((CountryDAO) dao);
+                } else if (dao instanceof AppointmentDAO && !getModel().isNewItem()) {
+                    int pk = dao.getPrimaryKey();
+                    Optional<AppointmentModel> appt = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
+                    appt.ifPresent((t) -> customerAppointments.remove(t));
+                }
+                break;
+            default:
+                if (dao instanceof AppointmentDAO && !getModel().isNewItem()) {
+                    onAppointmentModified((AppointmentDAO)dao);
+                }
+                break;
+        }
     }
 
-    private BooleanBinding isCitySelected() {
-        return selectedAddress.isNotNull()
-                .or(citySelectionModel.selectedItemProperty().isNotNull());
+    private void onAppointmentInserted(AppointmentDAO dao) {
+        if (appointmentFilterSelectionModel.getSelectedItem().getModelFilter().getDaoFilter().test(dao)) {
+            customerAppointments.add(new AppointmentModel(dao));
+        }
+    }
+    
+    private void onAppointmentModified(AppointmentDAO dao) {
+        int pk = dao.getPrimaryKey();
+        Optional<AppointmentModel> appt = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst();
+        if (appointmentFilterSelectionModel.getSelectedItem().getModelFilter().getDaoFilter().test(dao)) {
+            if (appt.isPresent())
+                customerAppointments.set(customerAppointments.indexOf(appt.get()), new AppointmentModel(dao));
+            else
+                customerAppointments.add(new AppointmentModel(dao));
+        } else {
+            appt.ifPresent((t) -> customerAppointments.remove(t));
+        }
+    }
+    
+    private void onCountryAdded(CountryDAO dao) {
+        String regionCode = dao.getName();
+        allCountries.stream().filter((CityCountryModel<? extends CountryElement> t) -> {
+            CountryOptionModel m = t.getOptionModel();
+            return m.getRegionCode().equals(regionCode);
+        }).findFirst().ifPresent((t) -> {
+            CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
+            CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
+            int i = allCountries.indexOf(t);
+            CountryModel model = new CountryModel(dao);
+            allCountries.set(i, model);
+            if (null != selectedCountry && selectedCountry.getOptionModel().getRegionCode().equals(regionCode)) {
+                countrySelectionModel.select(model);
+                if (null != selectedCity) {
+                    citySelectionModel.select(selectedCity);
+                }
+            }
+        });
     }
 
-    private BooleanBinding isCountrySelected() {
-        return selectedAddress.isNotNull()
-                .or(countrySelectionModel.selectedItemProperty().isNotNull());
+    private void onCountryDeleted(CountryDAO dao) {
+        String regionCode = dao.getName();
+        allCountries.stream().filter((CityCountryModel<? extends CountryElement> t) -> {
+            CountryOptionModel m = t.getOptionModel();
+            return m.getRegionCode().equals(regionCode);
+        }).findFirst().ifPresent((t) -> {
+            CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
+            CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
+            int i = allCountries.indexOf(t);
+            CountryOptionModel optionModel = t.getOptionModel();
+            allCountries.set(i, optionModel);
+            if (null != selectedCountry && selectedCountry.getOptionModel().getRegionCode().equals(regionCode)) {
+                countrySelectionModel.select(optionModel);
+                if (null != selectedCity) {
+                    citySelectionModel.select(selectedCity);
+                }
+            }
+        });
+    }
+
+    private void onCityAdded(CityDAO dao) {
+        String resourceKey = dao.getName();
+        String regionCode = dao.getCountry().getName();
+        allCities.stream().filter((CityModel<? extends CityElement> t) -> {
+            CityOptionModel m = t.getOptionModel();
+            return m.getResourceKey().equals(resourceKey) && m.getCountry().getOptionModel().getRegionCode().equals(regionCode);
+        }).findFirst().ifPresent((t) -> {
+            int i = allCities.indexOf(t);
+            CityModelImpl model = new CityModelImpl(dao);
+            allCities.set(i, model);
+            i = cityOptions.indexOf(t);
+            if (i >= 0) {
+                CityModel<? extends CityElement> selectedItem = citySelectionModel.getSelectedItem();
+                if (null != selectedItem && selectedItem == t) {
+                    cityOptions.set(i, model);
+                    citySelectionModel.select(model);
+                } else {
+                    cityOptions.set(i, model);
+                }
+            }
+        });
+    }
+
+    private void onCityDeleted(CityDAO dao) {
+        String resourceKey = dao.getName();
+        String regionCode = dao.getCountry().getName();
+        allCities.stream().filter((CityModel<? extends CityElement> t) -> {
+            CityOptionModel m = t.getOptionModel();
+            return m.getResourceKey().equals(resourceKey) && m.getCountry().getOptionModel().getRegionCode().equals(regionCode);
+        }).findFirst().ifPresent((t) -> {
+            int i = allCities.indexOf(t);
+            CityOptionModel optionModel = t.getOptionModel();
+            allCities.set(i, optionModel);
+            i = cityOptions.indexOf(t);
+            if (i >= 0) {
+                CityModel<? extends CityElement> selectedItem = citySelectionModel.getSelectedItem();
+                if (null != selectedItem && selectedItem == t) {
+                    cityOptions.set(i, optionModel);
+                    citySelectionModel.select(optionModel);
+                } else {
+                    cityOptions.set(i, optionModel);
+                }
+            }
+        });
+    }
+
+    private void onSelectedAddressChanged(ObservableValue<? extends AddressModelImpl> observable, AddressModelImpl oldValue, AddressModelImpl newValue) {
+        if (null == newValue) {
+            restoreNode(address1TextField);
+            restoreNode(address2TextField);
+            collapseNode(addressValueLabel);
+            cityLabel.setText(getResourceString(RESOURCEKEY_CITY));
+            restoreNode(cityComboBox);
+            GridPane.setMargin(postalCodeLabel, new Insets(16, 0, 0, 0));
+            restoreNode(postalCodeLabel);
+            GridPane.setMargin(postalCodeTextField, new Insets(16, 0, 0, 0));
+            restoreNode(postalCodeTextField);
+            collapseNode(phoneNumberValueLabel);
+            restoreNode(phoneNumberTextField);
+            GridPane.setMargin(countryLabel, new Insets(16, 0, 0, 0));
+            restoreNode(countryLabel);
+            GridPane.setMargin(countryComboBox, new Insets(16, 0, 0, 0));
+            restoreNode(countryComboBox);
+        } else {
+            collapseNode(address1TextField);
+            collapseNode(address2TextField);
+            restoreLabeled(addressValueLabel, newValue.getAddressLines());
+            cityLabel.setText(getResourceString(RESOURCEKEY_CITYZIPCOUNTRY));
+            collapseNode(cityComboBox);
+            GridPane.setMargin(postalCodeLabel, Insets.EMPTY);
+            collapseNode(postalCodeLabel);
+            GridPane.setMargin(postalCodeTextField, Insets.EMPTY);
+            collapseNode(postalCodeTextField);
+            restoreLabeled(phoneNumberValueLabel, newValue.getPhone());
+            collapseNode(phoneNumberTextField);
+            GridPane.setMargin(countryLabel, Insets.EMPTY);
+            collapseNode(countryLabel);
+            GridPane.setMargin(countryComboBox, Insets.EMPTY);
+            collapseNode(countryComboBox);
+        }
     }
 
     @Override
@@ -362,7 +551,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     @Override
     protected BooleanExpression getValidationExpression() {
-        return isAddressLineValid().and(isCitySelected()).and(isCountrySelected()).and(getNameValidationMessage().isEmpty());
+        return addressValid.and(countryValid).and(cityValidationMessage.isEmpty()).and(nameValidationMessage.isEmpty());
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -382,6 +571,14 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
                 }
                 break;
             case BEFORE_SHOW:
+                if (getModel().isNewItem()) {
+                    collapseNode(appointmentsVBox);
+                    editSplitPane.setDividerPosition(0, 1.0);
+                } else {
+                    appointmentsTableView.setItems(customerAppointments);
+                    appointmentFilterComboBox.setItems(filterOptions);
+                    countryComboBox.setItems(allCountries);
+                }
                 LocalDate today = LocalDate.now();
                 CustomerDAO dao = getModel().getDataObject();
                 if (dao.isExisting()) {
@@ -392,6 +589,8 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
                     filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_PASTAPPOINTMENTS),
                             AppointmentModelFilter.of(null, today, dao)));
                     filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+                    appointmentFilterSelectionModel.selectFirst();
+                    appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
                 }
                 TaskWaiter.startNow(new InitialLoadTask(event.getStage()));
                 break;
@@ -403,15 +602,15 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     protected void save(CustomerDAO dao, Connection connection) throws SQLException {
         AddressElement address = dao.getAddress();
         if (address.getRowState() == DataRowState.NEW) {
-            AddressDAO a = (AddressDAO)address;
+            AddressDAO a = (AddressDAO) address;
             CityElement city = address.getCity();
             if (!city.isExisting()) {
                 CityDAO c = new CityDAO();
                 c.setName(city.getName());
                 CountryElement e = city.getCountry();
-                if (e.isExisting())
+                if (e.isExisting()) {
                     c.setCountry(e);
-                else {
+                } else {
                     CountryDAO n = new CountryDAO();
                     n.setName(e.getName());
                     CountryDAO.getFactory().save(n, connection);
@@ -492,23 +691,30 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         private List<CustomerDAO> customers;
         private HashMap<String, CityDAO> cities;
         private HashMap<String, CountryDAO> countries;
+        private final AppointmentFilter filter;
 
         private InitialLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
                     AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+            AppointmentFilterItem filterItem = (filterOptions.isEmpty()) ? null : appointmentFilterSelectionModel.getSelectedItem();
+            filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
         }
 
         @Override
         protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             CustomerDAO.FactoryImpl uf = CustomerDAO.getFactory();
             customers = uf.load(connection, uf.getAllItemsFilter());
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
             CityDAO.FactoryImpl tf = CityDAO.getFactory();
             cities = MapHelper.toMap(tf.load(connection, tf.getAllItemsFilter()), (t) -> t.getName());
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
             CountryDAO.FactoryImpl nf = CountryDAO.getFactory();
             countries = MapHelper.toMap(nf.load(connection, nf.getAllItemsFilter()), (t) -> t.getName());
-            if (!filterOptions.isEmpty()) {
+            if (null != filter) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
-                return af.load(connection, filterOptions.get(0).getModelFilter().getDaoFilter());
+                return af.load(connection, filter);
             }
             return null;
         }
@@ -555,6 +761,42 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
                 });
             } else {
                 CountryOptionModel.getCountryOptions().forEach((t) -> allCountries.add(t));
+            }
+        }
+
+        @Override
+        protected void processException(Throwable ex, Stage stage) {
+            AlertHelper.showErrorAlert(stage, LOG, ex);
+            stage.close();
+        }
+
+    }
+
+    private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {
+
+        private final AppointmentFilter filter;
+
+        private AppointmentReloadTask(Stage owner) {
+            super(owner, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+            AppointmentFilterItem filterItem = (filterOptions.isEmpty()) ? null : appointmentFilterSelectionModel.getSelectedItem();
+            filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
+        }
+
+        @Override
+        protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+            AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+            return af.load(connection, filter);
+        }
+
+        @Override
+        protected void processResult(List<AppointmentDAO> result, Stage stage) {
+            customerAppointments.clear();
+            if (null != result && !result.isEmpty()) {
+                result.forEach((t) -> {
+                    customerAppointments.add(new AppointmentModel(t));
+                });
             }
         }
 

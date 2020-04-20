@@ -72,6 +72,11 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
                 return hash;
             }
 
+            @Override
+            public boolean isEmpty() {
+                return expr.isEmpty();
+            }
+
         };
     }
 
@@ -103,6 +108,17 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
      * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
      */
     public static DaoFilterExpression<AppointmentDAO> expressionOf(Timestamp start, Timestamp end) {
+        
+        /*
+            appointments from 11:15 to 12:15
+            end = 12:15
+            start = 11:15
+            DbColumn.START = 10:00
+            DbColumn.END = 12:00
+        
+            DbColumn.START < end && DbColumn.END > start
+                    10:00  < 12:15 && 12:00 > 11:15
+        */
         if (null != start) {
             if (null != end) {
                 return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,

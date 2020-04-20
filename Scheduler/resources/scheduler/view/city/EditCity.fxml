@@ -14,70 +14,79 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.input.KeyCodeCombination?>
 
 <VBox prefHeight="517.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.city.EditCity">
-   <children>
-      <GridPane hgap="4.0" maxHeight="-Infinity" minHeight="-Infinity" vgap="8.0">
-        <columnConstraints>
-          <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
-          <ColumnConstraints hgrow="ALWAYS" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <TextField fx:id="nameTextField" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
-            <Label text="%name" />
-            <Label text="%language" GridPane.rowIndex="2" />
-            <TextField fx:id="languageTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label text="%timeZone" GridPane.rowIndex="3" />
-            <TextField fx:id="timeZoneTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Label text="%country" GridPane.rowIndex="1" />
-            <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-               <children>
-                  <Label fx:id="countryNameLabel" />
-                  <Button mnemonicParsing="false" onAction="#onOpenCountryButtonAction" text="%open">
-                     <HBox.margin>
-                        <Insets left="8.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-            </HBox>
-         </children>
-         <VBox.margin>
-            <Insets bottom="8.0" />
-         </VBox.margin>
-      </GridPane>
-      <Label maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%addresses" />
-      <TableView fx:id="addressesTableView" VBox.vgrow="ALWAYS">
-         <columns>
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%address" />
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%postalCode" />
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%phone" />
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%createdBy" />
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%createdOn" />
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%updatedBy" />
-            <TableColumn minWidth="64.0" prefWidth="100.0" text="%updatedOn" />
-         </columns>
-         <contextMenu>
-            <ContextMenu>
-               <items>
-                  <MenuItem mnemonicParsing="false" onAction="#onCityEditMenuItemAction" text="%edit" />
-                  <MenuItem mnemonicParsing="false" onAction="#onCityDeleteMenuItemAction" text="%delete" />
-               </items>
-            </ContextMenu>
-         </contextMenu>
-      </TableView>
-      <ButtonBar>
-        <buttons>
-          <Button mnemonicParsing="false" onAction="#onAddCityButtonAction" text="%add" />
-        </buttons>
-         <VBox.margin>
-            <Insets top="8.0" />
-         </VBox.margin>
-      </ButtonBar>
-   </children>
+    <children>
+        <GridPane hgap="4.0" maxHeight="-Infinity" minHeight="-Infinity" vgap="8.0">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <TextField fx:id="nameTextField" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
+                <Label text="%name" />
+                <Label text="%language" GridPane.rowIndex="2" />
+                <TextField fx:id="languageTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="%timeZone" GridPane.rowIndex="3" />
+                <TextField fx:id="timeZoneTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="%country" GridPane.rowIndex="1" />
+                <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                    <children>
+                        <Label fx:id="countryNameLabel" />
+                        <Button mnemonicParsing="false" onAction="#onOpenCountryButtonAction" text="%open">
+                            <HBox.margin>
+                                <Insets left="8.0" />
+                            </HBox.margin>
+                        </Button>
+                    </children>
+                </HBox>
+            </children>
+            <VBox.margin>
+                <Insets bottom="8.0" />
+            </VBox.margin>
+        </GridPane>
+        <Label maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%addresses" />
+        <TableView fx:id="addressesTableView" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%address" />
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%postalCode" />
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%phone" />
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%createdBy" />
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%createdOn" />
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%updatedBy" />
+                <TableColumn minWidth="64.0" prefWidth="100.0" text="%updatedOn" />
+            </columns>
+            <contextMenu>
+                <ContextMenu>
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#onCityEditMenuItemAction" text="%edit">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
+                        <MenuItem mnemonicParsing="false" onAction="#onCityDeleteMenuItemAction" text="%delete">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
+        </TableView>
+        <ButtonBar>
+            <buttons>
+                <Button mnemonicParsing="false" onAction="#onAddCityButtonAction" text="%add" />
+            </buttons>
+            <VBox.margin>
+                <Insets top="8.0" />
+            </VBox.margin>
+        </ButtonBar>
+    </children>
 </VBox>

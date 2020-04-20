@@ -2,6 +2,7 @@ package scheduler.view.user;
 
 import java.io.IOException;
 import javafx.stage.Stage;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.UserDAO;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
@@ -31,17 +32,17 @@ public final class ManageUsers extends ListingController<UserDAO, UserModelImpl>
 
     @Override
     protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController().addNewUser(stage);
+        getMainController(stage.getScene()).addNewUser(stage);
     }
 
     @Override
     protected void onEditItem(Stage stage, UserModelImpl item) throws IOException {
-        getMainController().editUser(stage, item);
+        getMainController(stage.getScene()).editUser(stage, item);
     }
 
     @Override
     protected void onDeleteItem(Stage stage, UserModelImpl item) {
-        getMainController().deleteUser(stage, item);
+        getMainController(stage.getScene()).deleteUser(stage, item);
     }
 
     @Override

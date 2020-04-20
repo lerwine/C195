@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -37,6 +38,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCUSTOMERS;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGUSERS;
+import scheduler.AppResources;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -50,11 +57,10 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabel;
 import static scheduler.util.NodeUtil.selectSelection;
 import scheduler.util.StringBindingProperty;
-import scheduler.view.SchedulerController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.task.TaskWaiter;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
+import scheduler.view.task.TaskWaiter;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
@@ -65,7 +71,7 @@ import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
-public final class EditAppointmentFilter extends SchedulerController {
+public final class EditAppointmentFilter {
 
     private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
@@ -106,6 +112,11 @@ public final class EditAppointmentFilter extends SchedulerController {
     private ObservableList<LocationTextSelectionItem> locationTextSearchOptionList;
     private StringBindingProperty dateRangeValidationBinding;
 
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
+
+//    @FXML // URL location of the FXML file that was given to the FXMLLoader
+//    private URL location;
     @FXML // fx:id="rootBorderPane"
     private BorderPane rootBorderPane; // Value injected by FXMLLoader
 
@@ -659,7 +670,7 @@ public final class EditAppointmentFilter extends SchedulerController {
 
         rootBorderPane.setVisible(false);
         collapseNode(rootBorderPane);
-        
+
         rangeTypeOptionList = FXCollections.observableArrayList(new RangeSelectionItem(RangeOptionValue.CURRENT_AND_FUTURE),
                 new RangeSelectionItem(RangeOptionValue.CURRENT), new RangeSelectionItem(RangeOptionValue.PAST),
                 new RangeSelectionItem(RangeOptionValue.CURRENT_AND_PAST), new RangeSelectionItem(RangeOptionValue.ALL));
@@ -732,11 +743,11 @@ public final class EditAppointmentFilter extends SchedulerController {
         // TODO: Start InitializeTask if it hasn't already been run.
         // TODO: Implement show();
     }
-    
+
     public void hide() {
         // TODO: Implement hide();
     }
-    
+
     private void importCustomers(List<CustomerDAO> result) {
         CustomerSelectionItem currentCustomer = customerComboBox.getValue();
         CustomerSelectionItem currentCustomCustomer = customCustomerComboBox.getValue();
@@ -817,6 +828,7 @@ public final class EditAppointmentFilter extends SchedulerController {
 
         @Override
         protected Pair<List<CustomerDAO>, List<UserDAO>> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
             UserDAO.FactoryImpl uf = UserDAO.getFactory();
             return new Pair<>(
@@ -929,9 +941,13 @@ public final class EditAppointmentFilter extends SchedulerController {
         @Override
         protected OptionItems getResult(Connection connection) throws SQLException {
             OptionItems result = new OptionItems();
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
             result.customers = CustomerDAO.getFactory().load(connection, CustomerDAO.getFactory().getActiveStatusFilter(true));
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
             result.users = UserDAO.getFactory().load(connection, UserDAO.getFactory().getActiveUsersFilter());
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
             result.cities = CityDAO.getFactory().load(connection, CityDAO.getFactory().getAllItemsFilter());
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
             result.countries = CountryDAO.getFactory().load(connection, CountryDAO.getFactory().getAllItemsFilter());
             return result;
         }

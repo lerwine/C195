@@ -52,7 +52,7 @@ import scheduler.view.model.ItemModel;
  * @param <T> The type of data access object that corresponds to the model object type.
  * @param <U> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<T extends DataAccessObject, U extends ItemModel<T>> extends MainController.MainContentController {
+public abstract class ListingController<T extends DataAccessObject, U extends ItemModel<T>> {
 
     private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
 
@@ -119,6 +119,12 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     private ModelFilter<T, U, ? extends DaoFilter<T>> filter;
     private final ObservableList<U> itemsList = FXCollections.observableArrayList();
 
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
+
+//    @FXML // URL location of the FXML file that was given to the FXMLLoader
+//    private URL location;
+
     /**
      * The {@link TableView} control injected by the {@link FXMLLoader}.
      */
@@ -173,6 +179,14 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         editMenuItem.setOnAction(this::onEditMenuItemAction);
         deleteMenuItem.setOnAction(this::onDeleteMenuItemAction);
         newButton.setOnAction(this::onNewButtonAction);
+    }
+    
+    protected String getResourceString(String key) {
+        return resources.getString(key);
+    }
+
+    protected ResourceBundle getResources() {
+        return resources;
     }
 
     void onNewButtonAction(ActionEvent event) {
@@ -282,7 +296,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 });
                 EventHelper.fireDataLoadedEvent(t, new DataLoadedEvent<>(this, itemsList));
             }, (Throwable t) -> {
-                AlertHelper.showErrorAlert(event.getStage(), LOG, AppResources.getProperty(RESOURCEKEY_DBREADERROR),
+                AlertHelper.showErrorAlert(event.getStage(), LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR),
                         "Unexpected error loading items from database", t);
             });
         }

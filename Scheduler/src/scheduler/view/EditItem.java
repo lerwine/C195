@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanExpression;
@@ -19,11 +20,11 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CHECKINGDEPENDENCIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_COMPLETINGOPERATION;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataAccessObject.DaoFactory;
-import scheduler.dao.DataRowState;
-import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
 import scheduler.util.AlertHelper;
@@ -33,21 +34,16 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.address.AddressModelImpl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.city.CityModelImpl;
-import scheduler.view.country.CountryModel;
-import scheduler.view.customer.CustomerModelImpl;
 import scheduler.view.event.FxmlViewControllerEvent;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
-import scheduler.view.user.UserModelImpl;
 
 /**
  * Wrapper FXML Controller class for editing {@link ItemModel} items in a new modal window.
  * <p>
- * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, {@link #cancelButton} controls as well as labels for displaying the
+ * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
  * values for the {@link ItemModel#createdBy}, {@link ItemModel#createDate}, {@link ItemModel#lastModifiedBy} and {@link ItemModel#lastModifiedDate}
  * properties. Properties that are specific to the {@link ItemModel} type are edited in a nested view and controller. Controllers for the nested
  * editor views inherit from {@link EditItem.EditController}.</p>
@@ -64,7 +60,7 @@ import scheduler.view.user.UserModelImpl;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> extends SchedulerController implements DataObjectEventListener<T> {
+public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> implements DataObjectEventListener<T> {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
@@ -72,6 +68,11 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
     private EditController<T, U> contentController;
 
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
+
+//    @FXML // URL location of the FXML file that was given to the FXMLLoader
+//    private URL location;
     @FXML // fx:id="parentVBox"
     private VBox parentVBox; // Value injected by FXMLLoader
 
@@ -229,8 +230,10 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                     }
                     break;
             }
-            if (null != viewAndController)
-            EventHelper.fireFxmlViewEvent(currentController.contentController, viewAndController.toEvent(currentController, type, event.getStage()));
+            if (null != viewAndController) {
+                EventHelper.fireFxmlViewEvent(currentController.contentController,
+                        viewAndController.toEvent(currentController, type, event.getStage()));
+            }
         }
 
     }
@@ -245,7 +248,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
      * @param <T> The type of data access object that the model represents.
      * @param <U> The type of model being edited.
      */
-    public static abstract class EditController<T extends DataAccessObject, U extends ItemModel<T>> extends SchedulerController implements IMainCRUD {
+    public static abstract class EditController<T extends DataAccessObject, U extends ItemModel<T>> {
 
         /**
          * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add"}.
@@ -324,13 +327,16 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, null, controllerClass),
                     stage, EditItem.class);
             mainController.removeDaoEventListener(fc);
-            U model = ((EditController<T, U>) fc.contentController).model;
-            T dataAccessObject = (null == model) ? null : model.getDataObject();
-            if (null != dataAccessObject) {
-                EventHelper.fireDataObjectEvent(mainController, new DataObjectEvent<>(fc.contentController, DaoChangeAction.CREATED,
-                        dataAccessObject));
-            }
-            return model;
+            return ((EditController<T, U>) fc.contentController).model;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
+                MainController mainController, Stage stage, Object loadEventListener) throws IOException {
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, null, controllerClass),
+                    stage, EditItem.class, loadEventListener);
+            mainController.removeDaoEventListener(fc);
+            return ((EditController<T, U>) fc.contentController).model;
         }
 
         /**
@@ -351,22 +357,18 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, model, controllerClass),
                     stage, EditItem.class);
             mainController.removeDaoEventListener(fc);
-            U r = ((EditController<T, U>) fc.contentController).model;
-            T dataAccessObject = (null == r) ? null : r.getDataObject();
-            if (null != dataAccessObject) {
-                if (dataAccessObject.getRowState() == DataRowState.DELETED) {
-                    mainController.fireDaoEvent(fc, DaoChangeAction.DELETED, dataAccessObject);
-                } else {
-                    mainController.fireDaoEvent(fc, DaoChangeAction.UPDATED, dataAccessObject);
-                }
-            }
-            return r;
+            return ((EditController<T, U>) fc.contentController).model;
         }
 
         private EditItem<T, U> parentController;
 
         private U model;
 
+        @FXML // ResourceBundle that was given to the FXMLLoader
+        private ResourceBundle resources;
+
+//        @FXML // URL location of the FXML file that was given to the FXMLLoader
+//        private URL location;
         private void initializeModel(EditItem<T, U> parentController, U model) {
             this.parentController = parentController;
             if (null == model) {
@@ -375,6 +377,14 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             } else {
                 this.model = model;
             }
+        }
+
+        protected String getResourceString(String key) {
+            return resources.getString(key);
+        }
+
+        protected ResourceBundle getResources() {
+            return resources;
         }
 
         /**
@@ -399,21 +409,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                     AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             return response.isPresent() && response.get() == ButtonType.YES;
-        }
-
-        @Override
-        public void addDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
-            parentController.mainController.addDaoEventListener(listener);
-        }
-
-        @Override
-        public void removeDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
-            parentController.mainController.addDaoEventListener(listener);
-        }
-
-        @Override
-        public <S extends DataAccessObject> void fireDaoEvent(Object source, DaoChangeAction action, S dao) {
-            parentController.mainController.fireDaoEvent(source, action, dao);
         }
 
         /**
@@ -481,84 +476,8 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             getFactory().updateItem(model, dao);
         }
 
-        @Override
-        public AddressModelImpl addNewAddress(Stage stage) {
-            return parentController.mainController.addNewAddress(stage);
-        }
-
-        @Override
-        public AppointmentModel addNewAppointment(Stage stage) {
-            return parentController.mainController.addNewAppointment(stage);
-        }
-
-        @Override
-        public CustomerModelImpl addNewCustomer(Stage stage) {
-            return parentController.mainController.addNewCustomer(stage);
-        }
-
-        @Override
-        public UserModelImpl addNewUser(Stage stage) {
-            return parentController.mainController.addNewUser(stage);
-        }
-
-        @Override
         public void deleteAddress(Stage stage, AddressModelImpl item) {
             parentController.mainController.deleteAddress(stage, item);
-        }
-
-        @Override
-        public void deleteAppointment(Stage stage, AppointmentModel item) {
-            parentController.mainController.deleteAppointment(stage, item);
-        }
-
-        @Override
-        public void deleteCity(Stage stage, CityModelImpl item) {
-            parentController.mainController.deleteCity(stage, item);
-        }
-
-        @Override
-        public void deleteCountry(Stage stage, CountryModel item) {
-            parentController.mainController.deleteCountry(stage, item);
-        }
-
-        @Override
-        public void deleteCustomer(Stage stage, CustomerModelImpl item) {
-            parentController.mainController.deleteCustomer(stage, item);
-        }
-
-        @Override
-        public void deleteUser(Stage stage, UserModelImpl item) {
-            parentController.mainController.deleteUser(stage, item);
-        }
-
-        @Override
-        public void editAddress(Stage stage, AddressModelImpl item) {
-            parentController.mainController.editAddress(stage, item);
-        }
-
-        @Override
-        public void editAppointment(Stage stage, AppointmentModel item) {
-            parentController.mainController.editAppointment(stage, item);
-        }
-
-        @Override
-        public void editCustomer(Stage stage, CustomerModelImpl item) {
-            parentController.mainController.editCustomer(stage, item);
-        }
-
-        @Override
-        public void editUser(Stage stage, UserModelImpl item) {
-            parentController.mainController.editUser(stage, item);
-        }
-
-        @Override
-        public void openCity(Stage stage, CityModelImpl item) {
-            parentController.mainController.openCity(stage, item);
-        }
-
-        @Override
-        public void openCountry(Stage stage, CountryModel item) {
-            parentController.mainController.openCountry(stage, item);
         }
 
     }
@@ -590,11 +509,13 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         @Override
         protected String getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CHECKINGDEPENDENCIES));
             String message = contentController.getSaveDbConflictMessage(dataAccessobject, connection);
             if (null != message && !message.trim().isEmpty()) {
                 return message;
             }
 
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_COMPLETINGOPERATION));
             contentController.save(dataAccessobject, connection);
 
             return "";
@@ -629,10 +550,12 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         @Override
         protected String getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CHECKINGDEPENDENCIES));
             String message = daoFactory.getDeleteDependencyMessage(dataAccessobject, connection);
             if (null != message && !message.trim().isEmpty()) {
                 return message;
             }
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_COMPLETINGOPERATION));
             daoFactory.delete(dataAccessobject, connection);
             return null;
         }

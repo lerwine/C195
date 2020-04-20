@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CustomerDAO;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
@@ -41,17 +42,17 @@ public final class ManageCustomers extends ListingController<CustomerDAO, Custom
 
     @Override
     protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController().addNewCustomer(stage);
+        getMainController(stage.getScene()).addNewCustomer(stage);
     }
 
     @Override
     protected void onEditItem(Stage stage, CustomerModelImpl item) throws IOException {
-        getMainController().editCustomer(stage, item);
+        getMainController(stage.getScene()).editCustomer(stage, item);
     }
 
     @Override
     protected void onDeleteItem(Stage stage, CustomerModelImpl item) {
-        getMainController().deleteCustomer(stage, item);
+        getMainController(stage.getScene()).deleteCustomer(stage, item);
     }
 
     @Override

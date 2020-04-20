@@ -1,6 +1,5 @@
 package scheduler.dao;
 
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -52,6 +51,41 @@ public enum AppointmentType {
         return Optional.empty();
     }
 
+    public static SupportedLocale getDefaultLocale(AppointmentModel model) {
+        if (null != model) {
+            AppointmentType t = model.getType();
+            if (t.defaultLocale.isPresent()) {
+                return t.defaultLocale.get();
+            }
+            if (model.getType() == CUSTOMER_SITE) {
+                return SupportedLocale.getDefaultLocale(model.getCustomer());
+            }
+        }
+        return SupportedLocale.fromLocale(Locale.getDefault());
+    }
+
+    public static SupportedLocale getDefaultLocale(AppointmentElement appointment) {
+        if (null != appointment) {
+            AppointmentType t = appointment.getType();
+            if (t.defaultLocale.isPresent()) {
+                return t.defaultLocale.get();
+            }
+            if (appointment.getType() == CUSTOMER_SITE) {
+                return SupportedLocale.getDefaultLocale(appointment.getCustomer());
+            }
+        }
+        return SupportedLocale.fromLocale(Locale.getDefault());
+    }
+
+    public static String toDisplayText(AppointmentType type) {
+        if (null == type) {
+            return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
+        }
+        ResourceBundle rb = AppResources.getResources();
+        String key = "appointmentType_" + type.dbValue;
+        return (rb.containsKey(key)) ? rb.getString(key) : key;
+    }
+
     private final String dbValue;
     private final AppointmentLocationSource locationSource;
     private final String appResourceKey;
@@ -67,7 +101,7 @@ public enum AppointmentType {
     private AppointmentType(String dbValue, AppointmentLocationSource locationSource, String appResourceKey) {
         this(dbValue, locationSource, appResourceKey, null);
     }
-    
+
     public String getAppResourceKey() {
         return appResourceKey;
     }
@@ -80,44 +114,9 @@ public enum AppointmentType {
         return defaultLocale;
     }
 
-    public static SupportedLocale getDefaultLocale(AppointmentModel model) {
-        if (null != model) {
-            AppointmentType t = model.getType();
-            if (t.defaultLocale.isPresent()) {
-                return t.defaultLocale.get();
-            }
-            if (model.getType() == CUSTOMER_SITE) {
-                return SupportedLocale.getDefaultLocale(model.getCustomer());
-            }
-        }
-        return SupportedLocale.fromLocale(Locale.getDefault());
-    }
-    
-    public static SupportedLocale getDefaultLocale(AppointmentElement appointment) {
-        if (null != appointment) {
-            AppointmentType t = appointment.getType();
-            if (t.defaultLocale.isPresent()) {
-                return t.defaultLocale.get();
-            }
-            if (appointment.getType() == CUSTOMER_SITE) {
-                return SupportedLocale.getDefaultLocale(appointment.getCustomer());
-            }
-        }
-        return SupportedLocale.fromLocale(Locale.getDefault());
-    }
-
     @Override
     public String toString() {
         return dbValue;
-    }
-
-    public static String toDisplayText(AppointmentType type) {
-        if (null == type) {
-            return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
-        }
-        ResourceBundle rb = AppResources.getResources();
-        String key = type.dbValue;
-        return (rb.containsKey(key)) ? rb.getString(key) : key;
     }
 
 }

@@ -15,13 +15,13 @@
 <?import javafx.scene.text.Font?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
 
-<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.ManageAppointments">
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.ManageAppointments">
     <children>
         <VBox styleClass="outerContainer">
             <children>
                 <HBox maxWidth="1.7976931348623157E308">
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="header-section" text="%currentAndFutureAppointments" wrapText="true" HBox.hgrow="ALWAYS">
+                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="section-heading" text="%currentAndFutureAppointments" wrapText="true" HBox.hgrow="ALWAYS">
                             <font>
                                 <Font name="System Bold" size="12.0" />
                             </font>
@@ -81,12 +81,12 @@
                         </TableColumn>
                         <TableColumn fx:id="contactTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="-1.0" text="%pointOfContact" visible="false">
                             <cellValueFactory>
-                                <PropertyValueFactory property="%contact" />
+                                <PropertyValueFactory property="contact" />
                             </cellValueFactory>
                         </TableColumn>
                         <TableColumn fx:id="descriptionTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="-1.0" text="%description" visible="false">
                             <cellValueFactory>
-                                <PropertyValueFactory property="%description" />
+                                <PropertyValueFactory property="description" />
                             </cellValueFactory>
                         </TableColumn>
                         <TableColumn fx:id="createDateTableColumn" editable="false" minWidth="75.0" prefWidth="-1.0" text="%createdOn" visible="false">

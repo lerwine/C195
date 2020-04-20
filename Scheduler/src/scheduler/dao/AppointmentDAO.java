@@ -512,6 +512,36 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
             return AppointmentDAO.class;
         }
 
+        public int countByRange(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName())
+                    .append(") FROM ").append(DbTable.APPOINTMENT.getDbName());
+            if (null != start) {
+                sb.append(" WHERE ").append(DbColumn.END.getDbName()).append(">?");
+                if (null != end) {
+                    sb.append(" AND ").append(DbColumn.START.getDbName()).append("<=?");
+                }
+            } else if (null != end) {
+                sb.append(" WHERE ").append(DbColumn.START.getDbName()).append("<=?");
+            }
+            String sql = sb.toString();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                int index = 0;
+                if (null != start) {
+                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                }
+                if (null != end) {
+                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                }
+                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }
+            throw new SQLException("Unexpected lack of results from database query");
+        }
+
         /**
          * Gets the number of appointments that reference the specified customer ID.
          *

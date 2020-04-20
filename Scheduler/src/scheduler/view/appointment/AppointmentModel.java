@@ -41,6 +41,36 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
 
     private static final Factory FACTORY = new Factory();
 
+    public static int compareByDates(AppointmentModel a, AppointmentModel b) {
+        if (null == a) {
+            return (null == b) ? 0 : 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+        LocalDateTime x = a.getStart();
+        LocalDateTime y = b.getStart();
+        if (null == x) {
+            return (null == x) ? 0 : 1;
+        }
+        if (null == y) {
+            return -1;
+        }
+        int c = x.compareTo(y);
+        if (c != 0) {
+            return c;
+        }
+        x = a.getEnd();
+        y = b.getEnd();
+        if (null == x) {
+            return (null == x) ? 0 : 1;
+        }
+        if (null == y) {
+            return -1;
+        }
+        return x.compareTo(y);
+    }
+    
     public static final Factory getFactory() {
         return FACTORY;
     }
@@ -117,7 +147,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         user = new SimpleObjectProperty<>(this, "user", (null == u) ? null : new RelatedUserModel(u));
         userName = new ChildPropertyWrapper<>(this, "userName", user, (t) -> t.userNameProperty());
         userStatus = new ChildPropertyWrapper<>(this, "userStatus", user, (t) -> t.statusProperty());
-        userStatusDisplay = new ChildPropertyWrapper<>(this, "phone", user, (t) -> t.statusDisplayProperty());
+        userStatusDisplay = new ChildPropertyWrapper<>(this, "userStatusDisplay", user, (t) -> t.statusDisplayProperty());
         title = new NonNullableStringProperty(this, "title", dao.getTitle());
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
         location = new NonNullableStringProperty(this, "location", dao.getLocation());

@@ -42,4 +42,5 @@ public interface ViewAndController<T extends Parent, U> {
         }
         return new FxmlViewControllerEvent<>(source, type, getView(), getController(), stage);
     }
+    
 }

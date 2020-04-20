@@ -14,12 +14,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.filter.CustomerFilter;
-import scheduler.dao.filter.DaoFilterExpression;
 import scheduler.util.AlertHelper;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
@@ -36,7 +35,8 @@ import scheduler.view.task.TaskWaiter;
 
 /**
  * FXML Controller class for editing an {@link AddressModelImpl}.
- * <p>The associated view is {@code /resources/scheduler/view/address/EditAddress.fxml}.</p>
+ * <p>
+ * The associated view is {@code /resources/scheduler/view/address/EditAddress.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -87,7 +87,7 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
         AddressModelImpl model = this.getModel();
         event.getStage().setTitle(getResourceString(((model.isNewItem())) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
     }
-    
+
     @Override
     protected ItemModel.ModelFactory<AddressDAO, AddressModelImpl> getFactory() {
         return AddressModelImpl.getFactory();
@@ -107,11 +107,11 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
     }
 
     private ObservableList<CustomerModelImpl> itemList;
-    
-    private class ItemsLoadTask extends TaskWaiter<List<CustomerDAO>>    {
+
+    private class ItemsLoadTask extends TaskWaiter<List<CustomerDAO>> {
 
         private final AddressDAO dao;
-        
+
         private ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
                     AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
@@ -123,11 +123,11 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
         protected void processResult(List<CustomerDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {
                 CustomerModelImpl.Factory factory = CustomerModelImpl.getFactory();
-                    result.forEach((t) -> {
-                        itemList.add(factory.createNew(t));
-                    });
-                }
+                result.forEach((t) -> {
+                    itemList.add(factory.createNew(t));
+                });
             }
+        }
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
@@ -137,10 +137,10 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
 
         @Override
         protected List<CustomerDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
             return cf.load(connection, cf.getByAddressFilter(dao));
         }
-
 
     }
 

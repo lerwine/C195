@@ -70,7 +70,16 @@ public final class ResourceBundleHelper {
     }
 
     public static final ResourceBundle getBundle(Class<?> resourceClass) {
-        ResourceBundle result = INSTANCE.getBundle(resourceClass, getGlobalizationResourceName(resourceClass));
+        ResourceBundle result = INSTANCE.getBundle(resourceClass, Locale.getDefault(), getGlobalizationResourceName(resourceClass));
+        if (null == result) {
+            return empty();
+        }
+        return result;
+    }
+
+    public static final ResourceBundle getBundle(Class<?> resourceClass, Locale locale) {
+        ResourceBundle result = INSTANCE.getBundle(resourceClass, (null == locale) ? Locale.getDefault() : locale,
+                getGlobalizationResourceName(resourceClass));
         if (null == result) {
             return empty();
         }
@@ -106,24 +115,33 @@ public final class ResourceBundleHelper {
         resourceBundleByClassName = new HashMap<>();
     }
 
-    private synchronized ResourceBundle getBundle(Class<?> resourceClass, String baseName) {
+    private synchronized ResourceBundle getBundle(Class<?> resourceClass, Locale locale, String baseName) {
         if (null == resourceClass || baseName.isEmpty()) {
             return null;
         }
 
         ResourceBundle result;
-        HashMap<String, ResourceBundle> map = resourceBundleByClassName;
-        if (map.containsKey(baseName)) {
-            return map.get(baseName);
+        if (locale.toLanguageTag().equals(Locale.getDefault().toLanguageTag())) {
+            HashMap<String, ResourceBundle> map = resourceBundleByClassName;
+            if (map.containsKey(baseName)) {
+                return map.get(baseName);
+            }
+            try {
+                result = ResourceBundle.getBundle(baseName, locale, resourceClass.getClassLoader());
+            } catch (MissingResourceException ex) {
+                LOG.log(Level.SEVERE, "Error loading resource bundle", ex);
+                map.put(baseName, null);
+                return null;
+            }
+            map.put(baseName, result);
+        } else {
+            try {
+                result = ResourceBundle.getBundle(baseName, locale, resourceClass.getClassLoader());
+            } catch (MissingResourceException ex) {
+                LOG.log(Level.SEVERE, "Error loading resource bundle", ex);
+                return null;
+            }
         }
-        try {
-            result = ResourceBundle.getBundle(baseName, Locale.getDefault(), resourceClass.getClassLoader());
-        } catch (MissingResourceException ex) {
-            LOG.log(Level.SEVERE, "Error loading resource bundle", ex);
-            map.put(baseName, null);
-            return null;
-        }
-        map.put(baseName, result);
         return result;
     }
 

@@ -22,6 +22,8 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
+import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.ColumnCategory;
@@ -317,6 +319,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
 
         @Override
         protected List<T> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             return factory.load(connection, filter);
         }
     }
@@ -355,7 +358,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
                 if (null != filter && !filter.isEmpty()) {
                     filter.applyWhereParameters(ps, 1);
                 }
-                LOG.log(Level.INFO, String.format("Executing DML query: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (null != rs) {
                         while (rs.next()) {

@@ -1,43 +1,30 @@
 package scheduler.view.appointment;
 
-import com.sun.javafx.collections.ImmutableObservableList;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.time.DateTimeException;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -55,17 +42,19 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Pair;
-import javafx.util.StringConverter;
-import javafx.util.converter.LocalDateStringConverter;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.CustomerElement;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserElement;
 import scheduler.dao.UserStatus;
@@ -74,7 +63,6 @@ import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
 import scheduler.util.AlertHelper;
 import scheduler.util.BinarySelective;
-import scheduler.util.DB;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreInfoLabel;
@@ -82,7 +70,6 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import static scheduler.util.NodeUtil.restoreNodeAsNotVisible;
 import static scheduler.util.NodeUtil.restoreValidationErrorLabel;
-import scheduler.util.TernarySelective;
 import scheduler.view.EditItem;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
@@ -92,7 +79,10 @@ import scheduler.view.annotations.HandlesFxmlViewEvent;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.event.FxmlViewControllerEvent;
+import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
+import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.UserModel;
@@ -111,8 +101,14 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 
-    public static AppointmentModel editNew(MainController mainController, Stage stage) throws IOException {
-        return editNew(EditAppointment.class, mainController, stage);
+    public static AppointmentModel editNew(MainController mainController, Stage stage, CustomerElement customer, UserElement user) throws IOException {
+        return editNew(EditAppointment.class, mainController, stage, (FxmlViewControllerEventListener<StackPane, EditAppointment>) (FxmlViewControllerEvent<StackPane, EditAppointment> event) -> {
+            if (event.getType() == FxmlViewEventType.LOADED) {
+                EditAppointment controller = event.getController();
+                controller.defaultCustomer = customer;
+                controller.defaultUser = user;
+            }
+        });
     }
 
     public static AppointmentModel edit(AppointmentModel model, MainController mainController, Stage stage) throws IOException {
@@ -170,11 +166,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML // Control for selecting the time zone for the appointment start and end.
     private ComboBox<TimeZone> timeZoneComboBox;
 
-    @FXML // fx:id="currentTimeZoneLabel"
-    private Label currentTimeZoneLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="localTimeLabel"
+    private Label localTimeLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="currentTimeZoneValue"
-    private Label currentTimeZoneValue; // Value injected by FXMLLoader
+    @FXML // fx:id="localTimeValue"
+    private Label localTimeValue; // Value injected by FXMLLoader
 
     @FXML // fx:id="locationLabel"
     private Label locationLabel; // Value injected by FXMLLoader
@@ -254,6 +250,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private StartDateValidationBinding startDateTime;
     private ObjectBinding<BinarySelective<Duration, String>> duration;
     private StringBinding localDateAndTimeBinding;
+    // TODO: Load default user and customer when load task is finished.
+    private CustomerElement defaultCustomer;
+    private UserElement defaultUser;
 
     @FXML
     private void closeConflictsBorderPaneButtonClick(ActionEvent event) {
@@ -273,7 +272,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } else {
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
-        dropdownOptionsLabel.setText("Customers to Show");
+        dropdownOptionsLabel.setText(getResourceString(RESOURCEKEY_CUSTOMERSTOSHOW));
         dropdownOptionsBorderPane.setVisible(true);
     }
 
@@ -285,7 +284,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } else {
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
-        dropdownOptionsLabel.setText("Users to Show");
+        dropdownOptionsLabel.setText(getResourceString(RESOURCEKEY_USERSTOSHOW));
         dropdownOptionsBorderPane.setVisible(true);
     }
 
@@ -297,8 +296,22 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @FXML
     private void dropdownOptionsOkButtonClick(ActionEvent event) {
         if (editingUserOptions) {
+            if (dropdownOptionsInactiveRadioButton.isSelected()) {
+                showActiveUsers = Optional.of(false);
+            } else if (dropdownOptionsAllRadioButton.isSelected()) {
+                showActiveUsers = Optional.empty();
+            } else {
+                showActiveUsers = Optional.of(true);
+            }
             TaskWaiter.startNow(new UserReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
         } else {
+            if (dropdownOptionsInactiveRadioButton.isSelected()) {
+                showActiveCustomers = Optional.of(false);
+            } else if (dropdownOptionsAllRadioButton.isSelected()) {
+                showActiveCustomers = Optional.empty();
+            } else {
+                showActiveCustomers = Optional.of(true);
+            }
             TaskWaiter.startNow(new CustomerReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
         }
         dropdownOptionsBorderPane.setVisible(false);
@@ -347,11 +360,11 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private void updateDurationMessages() {
         String str = localDateAndTimeBinding.get();
         if (str.isEmpty()) {
-            collapseNode(currentTimeZoneLabel);
-            collapseNode(currentTimeZoneValue);
+            collapseNode(localTimeLabel);
+            collapseNode(localTimeValue);
         } else {
-            restoreNode(currentTimeZoneLabel);
-            restoreInfoLabel(currentTimeZoneValue, str);
+            restoreNode(localTimeLabel);
+            restoreInfoLabel(localTimeValue, str);
         }
         BinarySelective<Duration, String> durationOrMessage = duration.get();
         if (durationOrMessage.isPrimary()) {
@@ -360,7 +373,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } else {
             durationValidationLabel.setVisible(true);
             durationValidationLabel.setText(durationOrMessage.getSecondary());
-        };
+        }
     }
 
     private void onLocationControlChange(String newValue) {
@@ -386,7 +399,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         if (null == newValue) {
             customerValidationLabel.setVisible(true);
             if (typeSelectionModel.getSelectedItem() == AppointmentType.CUSTOMER_SITE) {
-                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER));
+                restoreLabeled(implicitLocationLabel, AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER));
             } else {
                 collapseNode(implicitLocationLabel);
             }
@@ -409,7 +422,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 locationValidationLabel.setVisible(false);
                 collapseNode(implicitLocationLabel);
                 collapseNode(phoneTextField);
-                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HQ));
+                restoreLabeled(implicitLocationLabel, AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_HQ));
                 contactValidationLabel.setText("");
                 contactValidationLabel.setVisible(false);
                 urlValidationLabel.setText("");
@@ -434,7 +447,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 locationValidationLabel.setVisible(false);
                 collapseNode(implicitLocationLabel);
                 collapseNode(phoneTextField);
-                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY));
+                restoreLabeled(implicitLocationLabel, AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY));
                 contactValidationLabel.setText("");
                 contactValidationLabel.setVisible(false);
                 break;
@@ -444,7 +457,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 locationValidationLabel.setVisible(false);
                 collapseNode(implicitLocationLabel);
                 collapseNode(phoneTextField);
-                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA));
+                restoreLabeled(implicitLocationLabel, AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA));
                 contactValidationLabel.setText("");
                 contactValidationLabel.setVisible(false);
                 break;
@@ -454,7 +467,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 locationValidationLabel.setVisible(false);
                 collapseNode(implicitLocationLabel);
                 collapseNode(phoneTextField);
-                restoreLabeled(implicitLocationLabel, AppResources.getProperty(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA));
+                restoreLabeled(implicitLocationLabel, AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_INDIA));
                 contactValidationLabel.setText("");
                 contactValidationLabel.setVisible(false);
                 break;
@@ -509,6 +522,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         updateConflictMesssage();
     }
 
+    @SuppressWarnings("unchecked")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -526,8 +540,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         assert durationMinuteTextField != null : "fx:id=\"durationMinuteTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert timeZoneComboBox != null : "fx:id=\"timeZoneComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert durationValidationLabel != null : "fx:id=\"durationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert currentTimeZoneLabel != null : "fx:id=\"currentTimeZoneLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert currentTimeZoneValue != null : "fx:id=\"currentTimeZoneValue\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert localTimeLabel != null : "fx:id=\"currentTimeZoneLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert localTimeValue != null : "fx:id=\"currentTimeZoneValue\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationLabel != null : "fx:id=\"locationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationTextArea != null : "fx:id=\"locationTextArea\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert phoneTextField != null : "fx:id=\"phoneTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -835,7 +849,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         ConflictDependencyValidator() {
             assert null == conflictDependencyValidator : "Class was already instantiated";
-                
+
             super.bind(customerSelectionModel.selectedItemProperty(), userSelectionModel.selectedItemProperty(), targetCustomer, targetUser);
         }
 
@@ -934,7 +948,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         private final UserDAO user;
 
         private AppointmentReloadTask() {
-            super((Stage) customerComboBox.getScene().getWindow());
+            super((Stage) customerComboBox.getScene().getWindow(), AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
             CustomerModelImpl selectedCustomer = customerSelectionModel.getSelectedItem();
             UserModelImpl selectedUser = userSelectionModel.getSelectedItem();
             customer = (null == selectedCustomer) ? null : selectedCustomer.getDataObject();
@@ -953,6 +968,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
             if (null != customer && customer.isExisting()) {
                 if (null != user && user.isExisting()) {
@@ -1008,6 +1024,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected List<CustomerDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
             if (loadOption.isPresent()) {
                 return cf.load(connection, cf.getActiveStatusFilter(loadOption.get()));
@@ -1056,6 +1073,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected List<UserDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             UserDAO.FactoryImpl uf = UserDAO.getFactory();
             if (loadOption.isPresent()) {
                 if (loadOption.get()) {
@@ -1128,11 +1146,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
             UserDAO.FactoryImpl uf = UserDAO.getFactory();
             AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
             if (customerLoadOption.isPresent()) {
                 customerDaoList = cf.load(connection, cf.getActiveStatusFilter(customerLoadOption.get()));
             } else {
                 customerDaoList = cf.load(connection, cf.getAllItemsFilter());
             }
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
             if (userLoadOption.isPresent()) {
                 if (userLoadOption.get()) {
                     userDaoList = uf.load(connection, uf.getActiveUsersFilter());
@@ -1143,6 +1163,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 userDaoList = uf.load(connection, uf.getAllItemsFilter());
             }
 
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
             if (null != customerDaoList && null != userDaoList && !(customerDaoList.isEmpty() || userDaoList.isEmpty())) {
                 if (null != appointmentCustomer && appointmentCustomer.isExisting()) {
                     if (null != appointmentUser && appointmentUser.isExisting()) {

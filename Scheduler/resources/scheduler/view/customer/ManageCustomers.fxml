@@ -10,8 +10,9 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
+<?import javafx.scene.input.KeyCodeCombination?>
 
-<VBox prefHeight="600.0" prefWidth="800.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.ManageCustomers">
+<VBox prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.ManageCustomers">
     <children>
         <TableView fx:id="listingTableView" VBox.vgrow="ALWAYS">
             <columns>
@@ -80,8 +81,16 @@
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
+                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
                     </items>
                 </ContextMenu>
             </contextMenu>

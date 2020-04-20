@@ -2,10 +2,9 @@ package scheduler.view;
 
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,9 +23,9 @@ import javafx.stage.Window;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.util.AlertHelper;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ResourceBundleHelper;
-import scheduler.observables.BindingHelper;
-import static scheduler.util.NodeUtil.bindCssCollapse;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
@@ -43,7 +42,7 @@ import scheduler.view.event.FxmlViewEvent;
  */
 @GlobalizationResource("scheduler/view/Login")
 @FXMLResource("/scheduler/view/Login.fxml")
-public final class Login extends SchedulerController {
+public final class Login {
 
     private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
@@ -59,105 +58,63 @@ public final class Login extends SchedulerController {
     public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
 
-    /**
-     * The {@link ComboBox} that lets the user select their preferred language.
-     */
-    @FXML
-    private ComboBox<SupportedLocale> languageComboBox;
-
-    /**
-     * The {@link Label} for the User Name {@link TextField}.
-     */
-    @FXML
-    private Label userNameLabel;
-
-    /**
-     * The {@link TextField} where the user provides the User Name.
-     */
-    @FXML
-    private TextField userNameTextField;
-
-    /**
-     * The {@link Label} for the User Name validation message.
-     */
-    @FXML
-    private Label userNameValidationLabel;
-
-    /**
-     * The {@link Label} for the {@link PasswordField}.
-     */
-    @FXML
-    private Label passwordLabel;
-
-    /**
-     * The {@link PasswordField} where the user provides the password.
-     */
-    @FXML
-    private PasswordField passwordField;
-
-    /**
-     * The {@link Label} for the Password validation message.
-     */
-    @FXML
-    private Label passwordValidationLabel;
-
-    /**
-     * The {@link Button} which begins the login attempt.
-     */
-    @FXML
-    private Button loginButton;
-
-    /**
-     * The {@link Button} which cancels login and closes the application.
-     */
-    @FXML
-    private Button exitButton;
-
     private ReadOnlyObjectWrapper<ResourceBundle> resourceBundle;
 
     private SingleSelectionModel<SupportedLocale> languageSelectionModel;
+    private BooleanBinding loginFormInvalid;
 
-    @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
-        assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert userNameLabel != null : "fx:id=\"userNameLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert userNameValidationLabel != null : "fx:id=\"userNameValidationLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert passwordLabel != null : "fx:id=\"passwordLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert passwordField != null : "fx:id=\"passwordField\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert passwordValidationLabel != null : "fx:id=\"passwordValidationLabel\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
-        assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'LoginScene.fxml'.";
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
+
+//    @FXML // URL location of the FXML file that was given to the FXMLLoader
+//    private URL location;
+
+    @FXML // fx:id="loginRootBorderPane"
+    private BorderPane loginRootBorderPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="languageComboBox"
+    private ComboBox<SupportedLocale> languageComboBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="userNameLabel"
+    private Label userNameLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="userNameTextField"
+    private TextField userNameTextField; // Value injected by FXMLLoader
+
+    @FXML // fx:id="userNameValidationLabel"
+    private Label userNameValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="passwordLabel"
+    private Label passwordLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="passwordField"
+    private PasswordField passwordField; // Value injected by FXMLLoader
+
+    @FXML // fx:id="passwordValidationLabel"
+    private Label passwordValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="loginButton"
+    private Button loginButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="exitButton"
+    private Button exitButton; // Value injected by FXMLLoader
+
+    private StringBinding userNameTextBinding;
+    private StringBinding passwordTextBinding;
+    private StringBinding loginTextBinding;
+    private StringBinding exitTextBinding;
+    private StringBinding userNameValidationMessageBinding;
+    private StringBinding passwordValidationMessageBinding;
+
+    @FXML
+    void onExitButtonAction(ActionEvent event) {
+        ((Button) event.getSource()).getScene().getWindow().hide();
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<BorderPane> event) {
-        resourceBundle = new ReadOnlyObjectWrapper<>(getResources());
-        languageSelectionModel = languageComboBox.getSelectionModel();
-        languageSelectionModel.selectedItemProperty().addListener(this::onLanguageChanged);
-        
-        ObservableList<SupportedLocale> languages = FXCollections.observableArrayList(SupportedLocale.values());
-        languageComboBox.setItems(languages);
-        languageSelectionModel.select(AppResources.getCurrentLocale());
-
-        userNameLabel.textProperty().bind(Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_USERNAME), resourceBundle));
-        userNameValidationLabel.visibleProperty().bind(isUserNameValid().not());
-        bindCssCollapse(userNameValidationLabel, isUserNameValid());
-
-        passwordLabel.textProperty().bind(Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_PASSWORD), resourceBundle));
-        passwordValidationLabel.visibleProperty().bind(isPasswordValid().not());
-        bindCssCollapse(passwordValidationLabel, isPasswordValid());
-
-        loginButton.textProperty().bind(Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_LOGIN), resourceBundle));
-        exitButton.textProperty().bind(Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_EXIT), resourceBundle));
-        loginButton.disableProperty().bind(isUserNameValid().and(isPasswordValid()).not().or(languageSelectionModel.selectedItemProperty().isNull()));
-        resourceBundle.set(ResourceBundleHelper.getBundle(Login.class));
-    }
-    
-    private void onLanguageChanged(Observable observable) {
-        SupportedLocale supportedLocale = ((ReadOnlyObjectProperty<SupportedLocale>)observable).get();
-        languageComboBox.getButtonCell().setText(SupportedLocale.toDisplayLanguage(supportedLocale));
-        ResourceBundle rb = ResourceBundleHelper.getBundle(Login.class);
+    @FXML
+    void onLanguageComboBoxAction(ActionEvent event) {
+        SupportedLocale supportedLocale = languageComboBox.getValue();
+        ResourceBundle rb = ResourceBundleHelper.getBundle(Login.class, supportedLocale.toLocale());
         resourceBundle.set(rb);
         Scene scene = languageComboBox.getScene();
         if (null != scene) {
@@ -167,19 +124,11 @@ public final class Login extends SchedulerController {
             }
         }
     }
-    
-    private BooleanBinding isUserNameValid() {
-        return BindingHelper.notNullOrWhiteSpace(userNameTextField.textProperty());
-    }
-    
-    private BooleanBinding isPasswordValid() {
-        return BindingHelper.notNullOrWhiteSpace(passwordField.textProperty());
-    }
-    
+
     @FXML
-    void loginButtonClick(ActionEvent event) {
+    void onLoginButtonAction(ActionEvent event) {
         Stage stage = (Stage) userNameTextField.getScene().getWindow();
-        Scheduler.tryLoginUser(stage, userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        Scheduler.tryLoginUser(stage, loginRootBorderPane, userNameTextField.getText(), passwordField.getText(), (ex) -> {
             ResourceBundle rb = resourceBundle.get();
             if (ex == null) {
                 AlertHelper.showErrorAlert(stage, LOG, rb.getString(RESOURCEKEY_LOGINERROR),
@@ -191,9 +140,76 @@ public final class Login extends SchedulerController {
         });
     }
 
-    @FXML
-    void exitButtonClick(ActionEvent event) {
-        languageComboBox.getScene().getWindow().hide();
+    @FXML // This method is called by the FXMLLoader when initialization is complete
+    void initialize() {
+        assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'Login.fxml'.";
+        assert userNameLabel != null : "fx:id=\"userNameLabel\" was not injected: check your FXML file 'Login.fxml'.";
+        assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'Login.fxml'.";
+        assert userNameValidationLabel != null : "fx:id=\"userNameValidationLabel\" was not injected: check your FXML file 'Login.fxml'.";
+        assert passwordLabel != null : "fx:id=\"passwordLabel\" was not injected: check your FXML file 'Login.fxml'.";
+        assert passwordField != null : "fx:id=\"passwordField\" was not injected: check your FXML file 'Login.fxml'.";
+        assert passwordValidationLabel != null : "fx:id=\"passwordValidationLabel\" was not injected: check your FXML file 'Login.fxml'.";
+        assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'Login.fxml'.";
+        assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'Login.fxml'.";
+
+        languageSelectionModel = languageComboBox.getSelectionModel();
+        resourceBundle = new ReadOnlyObjectWrapper<>(resources);
+    }
+
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
+    private void onBeforeShow(FxmlViewEvent<BorderPane> event) {
+        ObservableList<SupportedLocale> languages = FXCollections.observableArrayList(SupportedLocale.values());
+        languageComboBox.setItems(languages);
+        languageSelectionModel.select(AppResources.getCurrentLocale());
+        userNameTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_USERNAME), resourceBundle);
+        userNameLabel.textProperty().bind(userNameTextBinding);
+
+        passwordTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_PASSWORD), resourceBundle);
+        passwordLabel.textProperty().bind(passwordTextBinding);
+
+        loginTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_LOGIN), resourceBundle);
+        loginButton.textProperty().bind(loginTextBinding);
+
+        exitTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_EXIT), resourceBundle);
+        exitButton.textProperty().bind(exitTextBinding);
+
+        userNameValidationMessageBinding = Bindings.createStringBinding(() -> {
+            ResourceBundle rb = resourceBundle.get();
+            String text = userNameTextField.getText();
+            if (null == text || text.trim().isEmpty()) {
+                return rb.getString(RESOURCEKEY_EMPTYUSERNAME);
+            }
+            return "";
+        }, resourceBundle, userNameTextField.textProperty());
+        userNameValidationLabel.textProperty().bind(userNameValidationMessageBinding);
+        userNameValidationMessageBinding.addListener((observable, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                collapseNode(userNameValidationLabel);
+            } else {
+                restoreNode(userNameValidationLabel);
+            }
+        });
+
+        passwordValidationMessageBinding = Bindings.createStringBinding(() -> {
+            ResourceBundle rb = resourceBundle.get();
+            String text = passwordField.getText();
+            if (null == text || text.trim().isEmpty()) {
+                return rb.getString(RESOURCEKEY_EMPTYPASSWORD);
+            }
+            return "";
+        }, resourceBundle, passwordField.textProperty());
+        passwordValidationLabel.textProperty().bind(passwordValidationMessageBinding);
+        passwordValidationMessageBinding.addListener((observable, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                collapseNode(passwordValidationLabel);
+            } else {
+                restoreNode(passwordValidationLabel);
+            }
+        });
+        loginFormInvalid = userNameValidationMessageBinding.isNotEmpty().or(passwordValidationMessageBinding.isNotEmpty())
+                .or(languageSelectionModel.selectedItemProperty().isNull());
+        loginButton.disableProperty().bind(loginFormInvalid);
+        resourceBundle.set(ResourceBundleHelper.getBundle(Login.class));
     }
 
 }

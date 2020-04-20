@@ -70,6 +70,11 @@ public interface CustomerFilter extends DaoFilter<CustomerDAO> {
                 return hash;
             }
 
+            @Override
+            public boolean isEmpty() {
+                return expr.isEmpty();
+            }
+
         };
     }
 

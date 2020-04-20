@@ -45,6 +45,36 @@ public interface AppointmentElement extends DataElement {
         }
     }
 
+    public static int compareByDates(AppointmentElement a, AppointmentElement b) {
+        if (null == a) {
+            return (null == b) ? 0 : 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+        Timestamp x = a.getStart();
+        Timestamp y = b.getStart();
+        if (null == x) {
+            return (null == x) ? 0 : 1;
+        }
+        if (null == y) {
+            return -1;
+        }
+        int c = x.compareTo(y);
+        if (c != 0) {
+            return c;
+        }
+        x = a.getEnd();
+        y = b.getEnd();
+        if (null == x) {
+            return (null == x) ? 0 : 1;
+        }
+        if (null == y) {
+            return -1;
+        }
+        return x.compareTo(y);
+    }
+    
     /**
      * Gets the {@link CustomerElement} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId"
      * database column.

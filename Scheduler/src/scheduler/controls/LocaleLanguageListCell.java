@@ -12,6 +12,6 @@ public class LocaleLanguageListCell extends ListCell<SupportedLocale> {
     @Override
     protected void updateItem(SupportedLocale item, boolean empty) {
         super.updateItem(item, empty);
-        setText(SupportedLocale.toDisplayLanguage(item));
+        setText(SupportedLocale.toNativeDisplayLanguage(item));
     }
 }

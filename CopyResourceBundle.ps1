@@ -1,8 +1,10 @@
 ﻿Param(
-    [string]$SourcePath = 'view\user\EditUser',
-    [string]$TargetPath = 'view\appointment\ManageAppointments',
+    [AllowEmptyString()]
+    [string]$SourcePath = 'view\customer\ManageCustomers',
+    #[string]$SourcePath = '',
+    [string]$TargetPath = 'view\customer\EditCustomer',
     #[string[]]$Keys = @(''),
-    [string[]]$Keys = @('status'),
+    [string[]]$Keys = @('edit', 'delete'),
     [boolean]$Move = $false
 )
 $Script:BaseResourcesPath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\resources\scheduler';
@@ -16,7 +18,9 @@ at scheduler.dao.DataAccessObject$DaoFactory.save(DataAccessObject.java:626)
 UPDATE appointment SET customerId=?, userId=?, title=?, description=?, location=?, contact=?, type=?, url=?, start=?, end=?, lastUpdate=?, lastUpdateBy=? WHERE appointmentId=?
 Apr 15, 2020 12:05:47 AM scheduler.util.AlertHelper showErrorAlert
 
-
+ग्राहक सूची खोलने के लिए, "ग्राहक" मेनू का उपयोग करें, ग्राहक खोलें और सबसे नीचे "अपॉइंटमेंट जोड़ें" बटन पर क्लिक करें।
+                                
+                                                
 
 INFO: Appending column SQL for column customerId at index 1
 INFO: Appending column SQL for userId at index 2
@@ -105,12 +109,14 @@ $TargetProperties = @{};
 
 foreach ($Locale in $AllLocales) {
     $h = @{};
-    $Path = $Script:BaseResourcesPath | Join-Path -ChildPath "$($SourcePath)_$Locale.properties";
-    if ($Path | Test-Path -PathType Leaf) {
-        [System.IO.File]::ReadAllLines($Path) | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 } | ForEach-Object {
-            $a = $_.Split('=', 2);
-            if ($a.Length -gt 1) {
-                $h[$a[0]] = $a[1];
+    if (-not [string]::IsNullOrWhiteSpace($SourcePath)) {
+        $Path = $Script:BaseResourcesPath | Join-Path -ChildPath "$($SourcePath)_$Locale.properties";
+        if ($Path | Test-Path -PathType Leaf) {
+            [System.IO.File]::ReadAllLines($Path) | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 } | ForEach-Object {
+                $a = $_.Split('=', 2);
+                if ($a.Length -gt 1) {
+                    $h[$a[0]] = $a[1];
+                }
             }
         }
     }
@@ -157,7 +163,7 @@ foreach ($Locale in $AllLocales) {
     }
     $Path = $Script:BaseResourcesPath | Join-Path -ChildPath "$($TargetPath)_$Locale.properties";
     [System.IO.File]::WriteAllLines($Path, ([string[]]@($t.Keys | Sort-Object | ForEach-Object { "$_=$($t[$_])" })), $Encoding);
-    if ($Move) {
+    if ($Move -and -not [string]::IsNullOrWhiteSpace($SourcePath)) {
         $Path = $Script:BaseResourcesPath | Join-Path -ChildPath "$($SourcePath)_$Locale.properties";
         [System.IO.File]::WriteAllLines($Path, ([string[]]@($s.Keys | Sort-Object | ForEach-Object { "$_=$($s[$_])" })), $Encoding);
     }
@@ -213,7 +219,7 @@ $Lines += @($h.Keys | Sort-Object | ForEach-Object {
 $Lines += "}";
 [System.IO.File]::WriteAllLines($Path, $Lines, $Encoding);
 
-if ($Move) {
+if ($Move -and -not [string]::IsNullOrWhiteSpace($SourcePath)) {
     $h = $SourceProperties[$AllLocales[0]];
     $Path = $Script:BaseCodePath | Join-Path -ChildPath "$($SourcePath)ResourceKeys.java";
     $Lines = @();

@@ -170,7 +170,8 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
             model.lastModifiedBy.set(dao.getLastModifiedBy());
         }
         
-        public final void loadAsync(Stage stage, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess, Consumer<Throwable> onFail) {
+        public final void loadAsync(Stage stage, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
+                Consumer<Throwable> onFail) {
             DataAccessObject.DaoFactory<T> factory = getDaoFactory();
             factory.loadAsync(stage, filter, (t) -> {
                 ArrayList<U> newItems = new ArrayList<>();

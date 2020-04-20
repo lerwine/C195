@@ -70,7 +70,7 @@ public interface AppResourceBundleConstants {
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Home Office"}.
      */
-    public static final String RESOURCEKEY_APPOINTMENTTYPE_HQ = "appointmentType_HQ";
+    public static final String RESOURCEKEY_APPOINTMENTTYPE_HQ = "appointmentType_hq";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Guatemala Office"}.
@@ -117,6 +117,16 @@ public interface AppResourceBundleConstants {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Caused By:"}.
      */
     public static final String RESOURCEKEY_CAUSEDBY = "causedBy";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Checking dependencies..."}.
+     */
+    public static final String RESOURCEKEY_CHECKINGDEPENDENCIES = "checkingDependencies";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Completing operation..."}.
+     */
+    public static final String RESOURCEKEY_COMPLETINGOPERATION = "completingOperation";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Confirm Delete"}.

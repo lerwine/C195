@@ -181,6 +181,14 @@ public enum SupportedLocale {
         return type.toLocale().getDisplayLanguage();
     }
 
+    public static String toNativeDisplayLanguage(SupportedLocale type) {
+        if (null == type) {
+            return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
+        }
+        Locale locale = type.toLocale();
+        return locale.getDisplayLanguage(locale);
+    }
+
     public static String toDisplayCity(SupportedLocale type) {
         if (null != type) {
             CityOptionModel cityOption = CityOptionModel.getCityOption(type.homeOfficeKey);

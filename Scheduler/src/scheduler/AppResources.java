@@ -2,11 +2,16 @@ package scheduler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.FormatStyle;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.util.AnnotationHelper;
@@ -16,7 +21,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.SupportedLocale;
 
 /**
- * Gets settings from the <a href="file:../../resources/scheduler/config.properties">/resources/scheduler/config.properties</a> file.
+ * Gets settings from the {@code /resources/scheduler/config.properties} file.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -26,11 +31,15 @@ public final class AppResources implements AppResourceBundleConstants {
     private static final Logger LOG = Logger.getLogger(AppResources.class.getName());
     private static final Properties APPCONFIG_PROPERTIES;
     private static final HashMap<String, String> CLASSNAME_TO_FXMLNAME;
+    public static final String PROPERTYKEY_BUSINESSHOURSSTART = "businessHoursStart";
+    public static final String PROPERTYKEY_BUSINESSHOURSDURATION = "businessHoursDuration";
     public static final String PROPERTYKEY_DBSERVERNAME = "dbServerName";
     public static final String PROPERTYKEY_DBNAME = "dbName";
     public static final String PROPERTYKEY_DBLOGIN = "dbLogin";
     public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
+    public static final String PROPERTYKEY_APPOINTMENTALERTLEADTIME = "appointmentAlertLeadTime";
     public static final String PROPERTIES_FILE_APPCONFIG = "scheduler/config.properties";
+    
     private static final Locale ORIGINAL_LOCALE;
     private static final Locale DEFAULT_LOCALE;
     private static SupportedLocale currentLocale;
@@ -110,16 +119,23 @@ public final class AppResources implements AppResourceBundleConstants {
         return ResourceBundleHelper.getResourceString(AppResources.class, key);
     }
 
-    public static Set<String> getPropertyNames() {
-        return APPCONFIG_PROPERTIES.stringPropertyNames();
+    public static final LocalTime getBusinessHoursStart() throws ParseException {
+        String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSSTART, "");
+        try {
+            return (LocalTime)DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).parse(s);
+        } catch (DateTimeParseException ex) {
+            throw new ParseException(ex.getMessage(), ex.getErrorIndex());
+        }
     }
 
-    public static String getProperty(String key, String defaultValue) {
-        return APPCONFIG_PROPERTIES.getProperty(key, defaultValue);
+    public static final int getBusinessHoursDuration() throws ParseException {
+        String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSDURATION, "");
+        return NumberFormat.getIntegerInstance().parse(s).intValue();
     }
 
-    public static String getProperty(String key) {
-        return APPCONFIG_PROPERTIES.getProperty(key);
+    public static final int getAppointmentAlertLeadTime() throws ParseException {
+        String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_APPOINTMENTALERTLEADTIME, "");
+        return NumberFormat.getIntegerInstance().parse(s).intValue();
     }
 
     public static final String getDbServerName() {

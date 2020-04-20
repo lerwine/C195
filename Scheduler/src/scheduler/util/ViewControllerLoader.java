@@ -21,10 +21,12 @@ import scheduler.view.event.FxmlViewEventType;
 
 /**
  * Utility class for loading an FXML resource and instantiating its controller.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class ViewControllerLoader {
+
+    private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
 
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {
@@ -43,10 +45,12 @@ public class ViewControllerLoader {
                 return controller;
             }
         };
-        if (null == result.getController())
+        if (null == result.getController()) {
             throw new InternalException("Controller not instantiated");
-        if (!controllerClass.isAssignableFrom(result.getController().getClass()))
+        }
+        if (!controllerClass.isAssignableFrom(result.getController().getClass())) {
             throw new InternalException("Controller type mismatch.");
+        }
         return result;
     }
 
@@ -73,8 +77,8 @@ public class ViewControllerLoader {
      * @param parent The parent {@link Stage}.
      * @param viewAndController The view and controller.
      * @param loadEventListener An object that can listen for load events. This object can implement
-     * {@link scheduler.view.event.FxmlViewControllerEventListener} or use the {@link scheduler.view.annotations.HandlesFxmlViewEvent} annotation
-     * to handle view/controller life-cycle events.
+     * {@link scheduler.view.event.FxmlViewControllerEventListener} or use the {@link scheduler.view.annotations.HandlesFxmlViewEvent} annotation to
+     * handle view/controller life-cycle events.
      * @return The controller object.
      * @throws IOException If unable to load the view.
      */
@@ -161,8 +165,6 @@ public class ViewControllerLoader {
         return showAndWait(source, parent, controllerClass, (Object) null);
     }
 
-    private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
-
     /**
      * This is intended to be invoked by a controller that uses
      * {@link #replacePaneContent(Object, StackPane, scheduler.view.ViewAndController, java.lang.Object)} to manage contents when its host window has
@@ -194,11 +196,26 @@ public class ViewControllerLoader {
         children.clear();
 
         if (null != oldController) {
-            EventHelper.fireFxmlViewEvent(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED,
-                    (Parent) oldView.get(), stage));
+            EventHelper.fireFxmlViewEvent(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED, (Parent) oldView.get(), stage));
         }
     }
 
+    /**
+     * Replaces the nested view and controller contained within a {@link StackPane}.
+     * <p>
+     * This fires {@link FxmlViewControllerEvent}s during each {@link FxmlViewEventType} on both the controller and the event listener (if not
+     * {@code null}).</p>
+     *
+     * @param <T> The type of {@link Parent} node that represents the view.
+     * @param <S> The controller type.
+     * @param source The object that initiated the current activity.
+     * @param pane The parent {@link StackPane}.
+     * @param viewAndController The loaded view and controller.
+     * @param loadEventListener An object that can listen for {@link FxmlViewEvent}s or {@link FxmlViewControllerEvent}s that are fired for the
+     * instantiated controller.
+     * @return The value value {@link ViewAndController#getController()}.
+     * @throws IOException If unable to load the view and controller.
+     */
     public static <T extends Parent, S> S replacePaneContent(Object source, StackPane pane, ViewAndController<T, S> viewAndController,
             Object loadEventListener) throws IOException {
         Stage stage = (Stage) pane.getScene().getWindow();
@@ -240,12 +257,49 @@ public class ViewControllerLoader {
         return viewAndController.getController();
     }
 
+    /**
+     * Replaces the nested view and controller contained within a {@link StackPane}.
+     * <p>
+     * The controller is instantiated by the {@link javafx.fxml.FXMLLoader}. The {@link scheduler.view.annotations.FXMLResource} annotation on the
+     * controller class determines what FXML view is loaded, and the {@link scheduler.view.annotations.GlobalizationResource} annotation determines
+     * what resource bundle is loaded for the view and controller.</p>
+     * <p>
+     * This fires {@link FxmlViewControllerEvent}s during each {@link FxmlViewEventType} on both the instantiated controller and the event listener
+     * (if not {@code null}).</p>
+     *
+     * @param <T> The type of {@link Parent} node that represents the view.
+     * @param <S> The controller type.
+     * @param source The object that initiated the current activity.
+     * @param pane The parent {@link StackPane}.
+     * @param controllerClass The type of controller to instantiate.
+     * @param loadEventListener An object that can listen for {@link FxmlViewEvent}s or {@link FxmlViewControllerEvent}s that are fired for the
+     * instantiated controller.
+     * @return The instantiated controller.
+     * @throws IOException If unable to load the view and controller.
+     */
     public static <T extends Parent, S> S replacePaneContent(Object source, StackPane pane, Class<S> controllerClass,
             Object loadEventListener) throws IOException {
         ViewAndController<T, S> viewAndController = loadViewAndController(controllerClass);
         return replacePaneContent(source, pane, viewAndController, loadEventListener);
     }
 
+    /**
+     * Replaces the nested view and controller contained within a {@link StackPane}.
+     * <p>
+     * The controller is instantiated by the {@link javafx.fxml.FXMLLoader}. The {@link scheduler.view.annotations.FXMLResource} annotation on the
+     * controller class determines what FXML view is loaded, and the {@link scheduler.view.annotations.GlobalizationResource} annotation determines
+     * what resource bundle is loaded for the view and controller.</p>
+     * <p>
+     * This fires {@link FxmlViewControllerEvent}s during each {@link FxmlViewEventType} on the instantiated controller.</p>
+     *
+     * @param <T> The type of {@link Parent} node that represents the view.
+     * @param <S> The controller type.
+     * @param source The object that initiated the current activity.
+     * @param pane The parent {@link StackPane}.
+     * @param controllerClass The type of controller to instantiate.
+     * @return The instantiated controller.
+     * @throws IOException If unable to load the view and controller.
+     */
     public static <T extends Parent, S> S replacePaneContent(Object source, StackPane pane, Class<S> controllerClass) throws IOException {
         ViewAndController<T, S> viewAndController = loadViewAndController(controllerClass);
         return replacePaneContent(source, pane, viewAndController, null);

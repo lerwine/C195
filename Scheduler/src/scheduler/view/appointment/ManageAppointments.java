@@ -10,13 +10,9 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,12 +20,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Pair;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressElement;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityElement;
@@ -38,7 +33,6 @@ import scheduler.dao.CustomerElement;
 import scheduler.dao.UserElement;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
-import scheduler.util.AlertHelper;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
@@ -134,6 +128,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     @FXML // fx:id="lastUpdateByTableColumn"
     private TableColumn<AppointmentModel, String> lastUpdateByTableColumn; // Value injected by FXMLLoader
 
+    @SuppressWarnings("unchecked")
     @FXML
     void onExportButtonAction(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
@@ -429,7 +424,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
 
     @Override
     protected void onDeleteItem(Stage stage, AppointmentModel item) {
-        getMainController().deleteAppointment(stage, item);
+        getMainController(stage.getScene()).deleteAppointment(stage, item);
     }
 
     @Override
@@ -439,12 +434,12 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
 
     @Override
     protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController().addNewAppointment(stage);
+        getMainController(stage.getScene()).addNewAppointment(stage, null, null);
     }
 
     @Override
     protected void onEditItem(Stage stage, AppointmentModel item) throws IOException {
-        getMainController().editAppointment(stage, item);
+        getMainController(stage.getScene()).editAppointment(stage, item);
     }
 
     @Override

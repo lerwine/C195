@@ -78,6 +78,11 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_COUNTRYMUSTBESELECTED = "countryMustBeSelected";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country must be selected, first."}.
+     */
+    public static final String RESOURCEKEY_COUNTRYNOTSELECTED = "countryNotSelected";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Created By"}.
      */
     public static final String RESOURCEKEY_CREATEDBY = "createdBy";
@@ -108,6 +113,16 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_CUSTOMERHASAPPOINTMENTS = "customerHasAppointments";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Delete"}.
+     */
+    public static final String RESOURCEKEY_DELETE = "delete";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit"}.
+     */
+    public static final String RESOURCEKEY_EDIT = "edit";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit Customer"}.
      */
     public static final String RESOURCEKEY_EDITCUSTOMER = "editCustomer";
@@ -126,6 +141,11 @@ public interface EditCustomerResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customers.\nSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Existing Address"}.
+     */
+    public static final String RESOURCEKEY_EXISTINGADDRESS = "existingAddress";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading Appointments"}.
@@ -151,6 +171,11 @@ public interface EditCustomerResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That name is already in use."}.
      */
     public static final String RESOURCEKEY_NAMEINUSE = "nameInUse";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "New Address"}.
+     */
+    public static final String RESOURCEKEY_NEWADDRESS = "newAddress";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No"}.

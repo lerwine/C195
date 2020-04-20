@@ -63,11 +63,6 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_CHECK = "check";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Customer or user option has changed. Click the \"Check\" button to reload scheduling conflict data."}.
-     */
-    public static final String RESOURCEKEY_CONFLICTDATASTALE = "conflictDataStale";
-
-    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Close"}.
      */
     public static final String RESOURCEKEY_CLOSE = "close";
@@ -103,6 +98,11 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_CONFLICTCUSTOMERNUSERN = "conflictCustomerNUserN";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Customer or user option has changed. Click the \"Check\" button to reload scheduling conflict data."}.
+     */
+    public static final String RESOURCEKEY_CONFLICTDATASTALE = "conflictDataStale";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Conflicting Appointments"}.
      */
     public static final String RESOURCEKEY_CONFLICTINGAPPOINTMENTS = "conflictingAppointments";
@@ -113,14 +113,12 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_CONFLICTSFOUND = "conflictsFound";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "This conflicts with 1 user appointment. Use \"Show\" button to view conflict."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This conflicts with 1 user appointment. Use \"Show\" button to view conflict."}.
      */
     public static final String RESOURCEKEY_CONFLICTUSER1 = "conflictUser1";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "This conflicts with %d user appointments. Use \"Show\" button to view conflicts."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This conflicts with %d user appointments. Use \"Show\" button to view conflicts."}.
      */
     public static final String RESOURCEKEY_CONFLICTUSERN = "conflictUserN";
 
@@ -188,6 +186,11 @@ public interface EditAppointmentResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "End"}.
      */
     public static final String RESOURCEKEY_END = "end";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That file extension is not supported."}.
+     */
+    public static final String RESOURCEKEY_EXTENSIONISNOTSUPPORTED = "extensionIsNotSupported";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Hour"}.
@@ -258,6 +261,11 @@ public interface EditAppointmentResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading users"}.
      */
     public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     */
+    public static final String RESOURCEKEY_LOCALTIME = "localTime";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Location"}.
@@ -368,6 +376,11 @@ public interface EditAppointmentResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Type:"}.
      */
     public static final String RESOURCEKEY_TYPELABELTEXT = "typeLabelText";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Unsupported File Extension"}.
+     */
+    public static final String RESOURCEKEY_UNSUPPORTEDEXTENSION = "unsupportedExtension";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Updated By"}.

@@ -157,9 +157,9 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
 
         public ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> getAllItemsFilter() {
             return new ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>>() {
-                private final String headingText = AppResources.getProperty(RESOURCEKEY_ALLCOUNTRIES);
-                private final DaoFilter<CountryDAO> daoFilter = DaoFilter.all(AppResources.getProperty(RESOURCEKEY_READINGFROMDB),
-                            AppResources.getProperty(RESOURCEKEY_LOADINGCOUNTRIES));
+                private final String headingText = AppResources.getResourceString(RESOURCEKEY_ALLCOUNTRIES);
+                private final DaoFilter<CountryDAO> daoFilter = DaoFilter.all(AppResources.getResourceString(RESOURCEKEY_READINGFROMDB),
+                            AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
                 @Override
                 public String getHeadingText() {
                     return headingText;

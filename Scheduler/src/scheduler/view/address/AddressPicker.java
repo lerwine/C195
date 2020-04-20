@@ -3,6 +3,7 @@ package scheduler.view.address;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -16,17 +17,17 @@ import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.CountryElement;
 import scheduler.util.AlertHelper;
-import static scheduler.util.NodeUtil.bindCssCollapse;
+import static scheduler.util.NodeUtil.bindCollapsible;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.view.SchedulerController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.RelatedCityModel;
@@ -40,10 +41,25 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/address/AddressPicker")
 @FXMLResource("/scheduler/view/address/AddressPicker.fxml")
-public class AddressPicker extends SchedulerController {
+public class AddressPicker {
 
     private static final Logger LOG = Logger.getLogger(AddressPicker.class.getName());
 
+    private ObservableList<RelatedCityModel> allCities;
+    private ObservableList<RelatedCityModel> cityOptions;
+    private ObservableList<CityCountryModelImpl> allCountries;
+    private ObservableList<AddressModelImpl> allAddresses;
+    private ObservableList<AddressModelImpl> addressOptions;
+    private SingleSelectionModel<CityCountryModelImpl> countrySelectionModel;
+    private SingleSelectionModel<RelatedCityModel> citySelectionModel;
+    private TableView.TableViewSelectionModel<AddressModelImpl> addressSelectionModel;
+    private BiConsumer<Stage, AddressModelImpl> onClosed;
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
+
+//    @FXML // URL location of the FXML file that was given to the FXMLLoader
+//    private URL location;
     @FXML // fx:id="rootBorderPane"
     private BorderPane rootBorderPane; // Value injected by FXMLLoader
 
@@ -65,18 +81,10 @@ public class AddressPicker extends SchedulerController {
     @FXML // fx:id="selectButton"
     private Button selectButton; // Value injected by FXMLLoader
 
-    private ObservableList<RelatedCityModel> allCities;
-    private ObservableList<RelatedCityModel> cityOptions;
-    private ObservableList<CityCountryModelImpl> allCountries;
-    private ObservableList<AddressModelImpl> allAddresses;
-    private ObservableList<AddressModelImpl> addressOptions;
-    private SingleSelectionModel<CityCountryModelImpl> countrySelectionModel;
-    private SingleSelectionModel<RelatedCityModel> citySelectionModel;
-    private TableView.TableViewSelectionModel<AddressModelImpl> addressSelectionModel;
-    private BiConsumer<Stage, AddressModelImpl> onClosed;
-    
     @FXML
     void onCountryComboBoxAction(ActionEvent event) {
+        addressSelectionModel.clearSelection();
+        citySelectionModel.clearSelection();
         cityOptions.clear();
         addressOptions.clear();
         CityCountryModelImpl selectedItem = countrySelectionModel.getSelectedItem();
@@ -88,6 +96,7 @@ public class AddressPicker extends SchedulerController {
 
     @FXML
     void onCityComboBoxAction(ActionEvent event) {
+        addressSelectionModel.clearSelection();
         addressOptions.clear();
         RelatedCityModel selectedItem = citySelectionModel.getSelectedItem();
         if (null != selectedItem) {
@@ -96,22 +105,14 @@ public class AddressPicker extends SchedulerController {
         }
     }
 
-    private synchronized BiConsumer<Stage, AddressModelImpl> close() {
-        BiConsumer<Stage, AddressModelImpl> c = onClosed;
-        onClosed = null;
-        rootBorderPane.setVisible(false);
-        collapseNode(rootBorderPane);
-        return c;
-    }
-    
     @FXML
     synchronized void onSelectButtonAction(ActionEvent event) {
-        close().accept((Stage)((Button)event.getSource()).getScene().getWindow(), addressSelectionModel.getSelectedItem());
+        close().accept((Stage) ((Button) event.getSource()).getScene().getWindow(), addressSelectionModel.getSelectedItem());
     }
 
     @FXML
     synchronized void onCancelButtonAction(ActionEvent event) {
-        close().accept((Stage)((Button)event.getSource()).getScene().getWindow(), null);
+        close().accept((Stage) ((Button) event.getSource()).getScene().getWindow(), null);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -127,31 +128,35 @@ public class AddressPicker extends SchedulerController {
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         addressOptions = FXCollections.observableArrayList();
-        
+
         rootBorderPane.setVisible(false);
         collapseNode(rootBorderPane);
-        
+
         countrySelectionModel = countryComboBox.getSelectionModel();
         countryComboBox.setItems(allCountries);
-        
-        countryWarningLabel.visibleProperty().bind(countrySelectionModel.selectedItemProperty().isNull());
-        bindCssCollapse(countryWarningLabel, countrySelectionModel.selectedItemProperty().isNotNull());
-        
+
         citySelectionModel = cityComboBox.getSelectionModel();
         cityComboBox.setItems(cityOptions);
         cityComboBox.disableProperty().bind(countrySelectionModel.selectedItemProperty().isNull());
-        
-        cityWarningLabel.visibleProperty().bind(citySelectionModel.selectedItemProperty().isNotNull()
-                .and(citySelectionModel.selectedItemProperty().isNull()));
-        bindCssCollapse(cityWarningLabel, countrySelectionModel.selectedItemProperty().isNull()
-                .or(citySelectionModel.selectedItemProperty().isNotNull()));
-        
+
+        bindCollapsible(countryWarningLabel, () -> null != countrySelectionModel.getSelectedItem(), countrySelectionModel.selectedItemProperty());
+
+        bindCollapsible(cityWarningLabel, () -> null != citySelectionModel.getSelectedItem(), citySelectionModel.selectedItemProperty());
+
         addressSelectionModel = addressesTableView.getSelectionModel();
         addressesTableView.disableProperty().bind(citySelectionModel.selectedItemProperty().isNull());
-        
+
         selectButton.disableProperty().bind(addressSelectionModel.selectedItemProperty().isNull());
     }
-    
+
+    private synchronized BiConsumer<Stage, AddressModelImpl> close() {
+        BiConsumer<Stage, AddressModelImpl> c = onClosed;
+        onClosed = null;
+        rootBorderPane.setVisible(false);
+        collapseNode(rootBorderPane);
+        return c;
+    }
+
     public synchronized void PickAddress(Stage stage, BiConsumer<Stage, AddressModelImpl> onClosed) {
         if (null != this.onClosed) {
             BiConsumer<Stage, AddressModelImpl> c = this.onClosed;
@@ -173,16 +178,17 @@ public class AddressPicker extends SchedulerController {
             rootBorderPane.setVisible(true);
         }
     }
-    
+
     private class InitialLoadTask extends TaskWaiter<List<AddressDAO>> {
 
         private InitialLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
+                    AppResources.getResourceString(RESOURCEKEY_LOADINGADDRESSES));
         }
 
         @Override
         protected List<AddressDAO> getResult(Connection connection) throws SQLException {
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
             AddressDAO.FactoryImpl factory = AddressDAO.getFactory();
             return factory.load(connection, factory.getAllItemsFilter());
         }

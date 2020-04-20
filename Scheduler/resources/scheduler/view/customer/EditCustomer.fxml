@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -12,6 +15,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -20,211 +24,243 @@
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
 
-<StackPane fx:id="rootStackPane" prefHeight="517.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.EditCustomer">
-   <children>
-      <SplitPane fx:id="editSplitPane" dividerPositions="0.36">
-          <items>
-              <GridPane hgap="4.0">
-                  <columnConstraints>
-                      <ColumnConstraints halignment="RIGHT" />
-                      <ColumnConstraints hgrow="ALWAYS" />
-                  </columnConstraints>
-                  <rowConstraints>
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="CENTER" />
-                      <RowConstraints valignment="TOP" vgrow="ALWAYS" />
-                  </rowConstraints>
-                  <children>
-                      <Label styleClass="leftControlLabel" text="%name" />
-                      <TextField fx:id="nameTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
-                      <Label fx:id="nameValidationLabel" styleClass="formControlValidationMessage" text="%nameCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                      <Label styleClass="leftControlLabel" text="%active" GridPane.rowIndex="2">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </Label>
-                      <HBox spacing="16.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                          <children>
-                              <RadioButton fx:id="activeTrueRadioButton" mnemonicParsing="false" selected="true" text="%yes">
-                                  <toggleGroup>
-                                      <ToggleGroup fx:id="activeToggleGroup" />
-                                  </toggleGroup>
-                              </RadioButton>
-                              <RadioButton fx:id="activeFalseRadioButton" mnemonicParsing="false" text="%no" toggleGroup="$activeToggleGroup" />
-                          </children>
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </HBox>
-                      <Label styleClass="leftControlLabel" text="%address" GridPane.rowIndex="3">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </Label>
-                      <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP">
-                          <children>
-                              <Label fx:id="addressValueLabel" styleClass="leftLabeledControl" wrapText="true" />
-                              <TextField fx:id="address1TextField" styleClass="leftLabeledControl" />
-                          </children>
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </StackPane>
-                      <TextField fx:id="address2TextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                      <Label fx:id="addressValidationLabel" styleClass="formControlValidationMessage" text="%addressCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                      <Label fx:id="cityLabel" styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </Label>
-                      <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP">
-                          <children>
-                              <Label fx:id="cityZipCountryLabel" styleClass="leftLabeledControl" wrapText="true" />
-                              <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
-                          </children>
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </StackPane>
-                      <Label fx:id="cityValidationLabel" styleClass="formControlValidationMessage" text="%cityMustBeSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-                      <Label fx:id="postalCodeLabel" styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="8">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </Label>
-                      <TextField fx:id="postalCodeTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="8">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </TextField>
-                      <Label styleClass="leftControlLabel" text="%phoneNumber" GridPane.rowIndex="9">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </Label>
-                      <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.valignment="TOP">
-                          <children>
-                              <Label fx:id="phoneNumberValueLabel" styleClass="leftLabeledControl" wrapText="true" />
-                              <TextField fx:id="phoneNumberTextField" styleClass="leftLabeledControl" />
-                          </children>
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </StackPane>
-                      <Label styleClass="leftControlLabel" text="%country" GridPane.rowIndex="10">
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </Label>
-                      <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="10">
-                          <children>
-                              <Label fx:id="countryValueLabel" styleClass="leftLabeledControl" wrapText="true" />
-                              <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
-                          </children>
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </StackPane>
-                      <Label fx:id="countryValidationLabel" styleClass="formControlValidationMessage" text="%countryMustBeSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="11" />
-                      <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="12" GridPane.valignment="TOP">
-                          <buttons>
-                              <Button mnemonicParsing="false" onAction="#selectExistingButtonAction" text="%selectExisting" />
-                              <Button fx:id="createNewButton" mnemonicParsing="false" onAction="#createNewButtonAction" text="%createNew" />
-                          </buttons>
-                          <GridPane.margin>
-                              <Insets top="16.0" />
-                          </GridPane.margin>
-                      </ButtonBar>
-                  </children>
-                  <padding>
-                      <Insets right="8.0" />
-                  </padding>
-              </GridPane>
-              <VBox fx:id="appointmentsVBox" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
-                  <children>
-                      <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" />
-                      <TableView fx:id="appointmentsTableView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
-                          <columns>
-                              <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="title" />
-                                  </cellValueFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="start" />
-                                  </cellValueFactory>
-                                  <cellFactory>
-                                      <DateTimeTableCellFactory />
-                                  </cellFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="end" />
-                                  </cellValueFactory>
-                                  <cellFactory>
-                                      <DateTimeTableCellFactory />
-                                  </cellFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="type" />
-                                  </cellValueFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%user">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="userName" />
-                                  </cellValueFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="effectiveLocation" />
-                                  </cellValueFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="createDate" />
-                                  </cellValueFactory>
-                                  <cellFactory>
-                                      <DateTimeTableCellFactory />
-                                  </cellFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="createdBy" />
-                                  </cellValueFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="lastUpdate" />
-                                  </cellValueFactory>
-                                  <cellFactory>
-                                      <DateTimeTableCellFactory />
-                                  </cellFactory>
-                              </TableColumn>
-                              <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
-                                  <cellValueFactory>
-                                      <PropertyValueFactory property="lastUpdateBy" />
-                                  </cellValueFactory>
-                              </TableColumn>
-                          </columns>
-                      </TableView>
-                  </children>
-                  <padding>
-                      <Insets left="7.0" />
-                  </padding>
-              </VBox>
-          </items>
-      </SplitPane>
-   </children>
+<StackPane fx:id="rootStackPane" prefHeight="517.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.EditCustomer">
+    <children>
+        <SplitPane fx:id="editSplitPane" dividerPositions="0.36">
+            <items>
+                <GridPane hgap="4.0">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="CENTER" />
+                        <RowConstraints valignment="TOP" vgrow="ALWAYS" />
+                    </rowConstraints>
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%name" />
+                        <TextField fx:id="nameTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
+                        <Label fx:id="nameValidationLabel" styleClass="formControlValidationMessage" text="%nameCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label styleClass="leftControlLabel" text="%active" GridPane.rowIndex="2">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </Label>
+                        <HBox spacing="16.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <children>
+                                <RadioButton fx:id="activeTrueRadioButton" mnemonicParsing="false" selected="true" text="%yes">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="activeToggleGroup" />
+                                    </toggleGroup>
+                                </RadioButton>
+                                <RadioButton fx:id="activeFalseRadioButton" mnemonicParsing="false" text="%no" toggleGroup="$activeToggleGroup" />
+                            </children>
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </HBox>
+                        <Label styleClass="leftControlLabel" text="%address" GridPane.rowIndex="3">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </Label>
+                        <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP">
+                            <children>
+                                <Label fx:id="addressValueLabel" wrapText="true">
+                                    <styleClass>
+                                        <String fx:value="leftLabeledControl" />
+                                        <String fx:value="collapsed" />
+                                    </styleClass>
+                                </Label>
+                                <TextField fx:id="address1TextField" styleClass="leftLabeledControl" />
+                            </children>
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </StackPane>
+                        <TextField fx:id="address2TextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <Label fx:id="addressValidationLabel" styleClass="formControlValidationMessage" text="%addressCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <Label fx:id="cityLabel" styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </Label>
+                        <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP">
+                            <children>
+                                <Label fx:id="cityZipCountryLabel" wrapText="true">
+                                    <styleClass>
+                                        <String fx:value="leftLabeledControl" />
+                                        <String fx:value="collapsed" />
+                                    </styleClass>
+                                </Label>
+                                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
+                            </children>
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </StackPane>
+                        <Label fx:id="cityValidationLabel" styleClass="formControlValidationMessage" text="%countryNotSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                        <Label fx:id="postalCodeLabel" styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="8">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </Label>
+                        <TextField fx:id="postalCodeTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </TextField>
+                        <Label styleClass="leftControlLabel" text="%phoneNumber" GridPane.rowIndex="9">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </Label>
+                        <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.valignment="TOP">
+                            <children>
+                                <Label fx:id="phoneNumberValueLabel" wrapText="true">
+                                    <styleClass>
+                                        <String fx:value="leftLabeledControl" />
+                                        <String fx:value="collapsed" />
+                                    </styleClass>
+                                </Label>
+                                <TextField fx:id="phoneNumberTextField" styleClass="leftLabeledControl" />
+                            </children>
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </StackPane>
+                        <Label fx:id="countryLabel" styleClass="leftControlLabel" text="%country" GridPane.rowIndex="10">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </Label>
+                        <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onCountryComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="10">
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </ComboBox>
+                        <Label fx:id="countryValidationLabel" styleClass="formControlValidationMessage" text="%countryMustBeSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+                        <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="12" GridPane.valignment="TOP">
+                            <buttons>
+                                <Button fx:id="existingAddressButton" mnemonicParsing="false" onAction="#onExistingAddressButtonAction" text="%existingAddress" />
+                                <Button fx:id="newAddressButton" mnemonicParsing="false" onAction="#onNewAddressButtonAction" text="%newAddress" />
+                            </buttons>
+                            <GridPane.margin>
+                                <Insets top="16.0" />
+                            </GridPane.margin>
+                        </ButtonBar>
+                    </children>
+                    <padding>
+                        <Insets right="8.0" />
+                    </padding>
+                </GridPane>
+                <VBox fx:id="appointmentsVBox" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
+                    <children>
+                        <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" />
+                        <TableView fx:id="appointmentsTableView" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="type" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%user">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                            </columns>
+                            <contextMenu>
+                                <ContextMenu>
+                                    <items>
+                                        <MenuItem mnemonicParsing="false" onAction="#onEditAppointmentMenuItemAction" text="%edit">
+                                            <accelerator>
+                                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                                            </accelerator>
+                                        </MenuItem>
+                                        <MenuItem mnemonicParsing="false" onAction="#onDeleteAppointmentMenuItemAction" text="%delete">
+                                            <accelerator>
+                                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                                            </accelerator>
+                                        </MenuItem>
+                                    </items>
+                                </ContextMenu>
+                            </contextMenu>
+                        </TableView>
+                        <ButtonBar>
+                            <buttons>
+                                <Button mnemonicParsing="false" onAction="#onAddButtonAction" text="%add" />
+                            </buttons>
+                        </ButtonBar>
+                    </children>
+                    <padding>
+                        <Insets left="7.0" />
+                    </padding>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
 </StackPane>
