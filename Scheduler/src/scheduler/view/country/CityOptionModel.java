@@ -1,8 +1,11 @@
 package scheduler.view.country;
 
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -11,21 +14,72 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import scheduler.dao.CityDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.CountryElement;
 import scheduler.dao.DataRowState;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.util.MapHelper;
 import scheduler.view.city.CityModel;
+import scheduler.view.city.CityModelImpl;
 
 /**
  * Models a supported city.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class CityOptionModel implements CityModel<CityElement> {
 
     private static ObservableMap<String, CityOptionModel> cityOptionMap = null;
+
+    public static CityOptionModel getCityOption(String resourceKey) {
+        return getCityOptionMap().get(resourceKey);
+    }
+
+    public static ObservableMap<String, CityOptionModel> getCityOptionMap() {
+        if (null != cityOptionMap) {
+            CountryOptionModel.checkOptionsLoaded();
+        } else {
+            cityOptionMap = FXCollections.observableMap(MapHelper.toMap(CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()),
+                    (CityOptionModel c) -> c.getResourceKey()));
+        }
+        return FXCollections.unmodifiableObservableMap(cityOptionMap);
+    }
+
+    public static boolean matchesCode(CityModel<? extends CityElement> model, String regionCode, String resourceKey) {
+        if (null != model && null != regionCode) {
+            CityOptionModel optionModel = model.getOptionModel();
+            if (null != optionModel) {
+                return resourceKey.equals(optionModel.getResourceKey())
+                        && regionCode.equals(((CountryOptionModel) optionModel.getCountry()).getRegionCode());
+            }
+        }
+        return false;
+    }
+
+    public static boolean matchesCode(CityDAO dao, String regionCode, String resourceKey) {
+        if (null != dao && null != dao) {
+            if (resourceKey.equals(dao.getName())) {
+                CountryElement country = dao.getCountry();
+                if (null != country)
+                    return regionCode.equals(country.getName());
+            }
+        }
+        return false;
+    }
+
+    public static Stream<CityModel<? extends CityElement>> getCityOptions(Collection<CityDAO> dataObjects) {
+        return CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()).map((t) -> {
+            String resourceKey = t.getResourceKey();
+            String regionCode = ((CountryOptionModel) t.getCountry()).getRegionCode();
+            Optional<CityDAO> matching = dataObjects.stream().filter((CityDAO u) -> matchesCode(u, regionCode, resourceKey)).findFirst();
+            if (matching.isPresent()) {
+                return (CityModel<? extends CityElement>) new CityModelImpl(matching.get());
+            }
+            return (CityModel<? extends CityElement>) t;
+        });
+    }
+    
     private final ReadOnlyStringWrapper resourceKey;
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper nativeName;
@@ -36,20 +90,6 @@ public class CityOptionModel implements CityModel<CityElement> {
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyObjectWrapper<Locale> locale;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
-
-    public static CityOptionModel getCityOption(String resourceKey) {
-        return getCityOptionMap().get(resourceKey);
-    }
-    
-    public static ObservableMap<String, CityOptionModel> getCityOptionMap() {
-        if (null != cityOptionMap) {
-            CountryOptionModel.checkOptionsLoaded();
-        } else {
-            cityOptionMap = FXCollections.observableMap(MapHelper.toMap(CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()),
-                    (CityOptionModel c) -> c.getResourceKey()));
-        }
-        return FXCollections.unmodifiableObservableMap(cityOptionMap);
-    }
 
     CityOptionModel(String resourceKey, String name, String nativeName, Locale locale, ZoneId zoneId,
             CountryOptionModel country) {
@@ -102,7 +142,7 @@ public class CityOptionModel implements CityModel<CityElement> {
             public String toString() {
                 return CityOptionModel.this.toString();
             }
-            
+
         });
     }
 
@@ -117,6 +157,10 @@ public class CityOptionModel implements CityModel<CityElement> {
     @Override
     public String getName() {
         return name.get();
+    }
+
+    public String getRegionCode() {
+        return ((CountryOptionModel)country.get()).getRegionCode();
     }
 
     @Override
@@ -200,7 +244,7 @@ public class CityOptionModel implements CityModel<CityElement> {
     public CityOptionModel getOptionModel() {
         return this;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof CityOptionModel && this == obj;

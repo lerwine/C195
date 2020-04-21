@@ -154,7 +154,7 @@
                         <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="12" GridPane.valignment="TOP">
                             <buttons>
                                 <Button fx:id="existingAddressButton" mnemonicParsing="false" onAction="#onExistingAddressButtonAction" text="%existingAddress" />
-                                <Button fx:id="newAddressButton" mnemonicParsing="false" onAction="#onNewAddressButtonAction" text="%newAddress" />
+                                <Button fx:id="newAddressButton" disable="true" mnemonicParsing="false" onAction="#onNewAddressButtonAction" text="%newAddress" />
                             </buttons>
                             <GridPane.margin>
                                 <Insets top="16.0" />

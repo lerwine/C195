@@ -57,6 +57,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.AlertHelper;
+import scheduler.util.LogHelper;
 import scheduler.util.MapHelper;
 import static scheduler.util.NodeUtil.bindCollapsible;
 import static scheduler.util.NodeUtil.bindCollapsibleMessage;
@@ -350,6 +351,8 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
             return null != selectedAddress.get() || null != selectedItem;
         }, countrySelectionModel.selectedItemProperty(), selectedAddress);
 
+        newAddressButton.disableProperty().bind(selectedAddress.isNull());
+        
         cityValidationMessage = bindCollapsibleMessage(cityValidationLabel, () -> {
             CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
             CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
@@ -707,10 +710,10 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
             customers = uf.load(connection, uf.getAllItemsFilter());
             updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
             CityDAO.FactoryImpl tf = CityDAO.getFactory();
-            cities = MapHelper.toMap(tf.load(connection, tf.getAllItemsFilter()), (t) -> t.getName());
+            cities = MapHelper.toMap(tf.load(connection, tf.getAllItemsFilter()), CityDAO::getName);
             updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
             CountryDAO.FactoryImpl nf = CountryDAO.getFactory();
-            countries = MapHelper.toMap(nf.load(connection, nf.getAllItemsFilter()), (t) -> t.getName());
+            countries = MapHelper.toMap(nf.load(connection, nf.getAllItemsFilter()), CountryDAO::getName);
             if (null != filter) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
@@ -723,44 +726,24 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         protected void processResult(List<AppointmentDAO> result, Stage stage) {
             if (null != customers && !customers.isEmpty()) {
                 if (getModel().isNewItem()) {
-                    customers.forEach((t) -> unavailableNames.add(t.getName().toLowerCase()));
+                    customers.stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
                 } else {
                     int pk = getModel().getPrimaryKey();
-                    customers.forEach((t) -> {
-                        if (t.getPrimaryKey() != pk) {
-                            unavailableNames.add(t.getName().toLowerCase());
-                        }
-                    });
+                    customers.stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
                 }
             }
             if (null != result && !result.isEmpty()) {
-                result.forEach((t) -> {
-                    customerAppointments.add(new AppointmentModel(t));
-                });
+                result.stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
             }
             if (null != cities && !cities.isEmpty()) {
-                CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()).forEach((t) -> {
-                    String k = t.getResourceKey();
-                    if (cities.containsKey(k)) {
-                        allCities.add(new CityModelImpl(cities.get(k)));
-                    } else {
-                        allCities.add(t);
-                    }
-                });
+                CityOptionModel.getCityOptions(cities.values()).forEach(allCities::add);
             } else {
-                CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()).forEach((t) -> allCities.add(t));
+                CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()).forEach(allCities::add);
             }
             if (null != countries && !countries.isEmpty()) {
-                CountryOptionModel.getCountryOptions().forEach((t) -> {
-                    String k = t.getRegionCode();
-                    if (countries.containsKey(k)) {
-                        allCountries.add(new CountryModel(countries.get(k)));
-                    } else {
-                        allCountries.add(t);
-                    }
-                });
+                CountryOptionModel.getCountryOptions(countries.values()).forEach(allCountries::add);
             } else {
-                CountryOptionModel.getCountryOptions().forEach((t) -> allCountries.add(t));
+                CountryOptionModel.getCountryOptions().forEach(allCountries::add);
             }
         }
 

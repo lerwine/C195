@@ -348,6 +348,15 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
         }
 
         @Override
+        public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
+            AddressElement address = dao.getAddress();
+            if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
+                AddressDAO.getFactory().save((AddressDAO) address, connection, force);
+            }
+            super.save(dao, connection, force);
+        }
+
+        @Override
         public String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Data access object already deleted");

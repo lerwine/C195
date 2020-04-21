@@ -87,7 +87,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
      * Initializes a {@link DataRowState#NEW} data access object.
      */
     protected DataAccessObject() {
-        primaryKey = 0;
+        primaryKey = Integer.MIN_VALUE;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
         rowState = DataRowState.NEW;
@@ -493,7 +493,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
         public abstract DmlSelectQueryBuilder createDmlSelectQueryBuilder();
 
         /**
-         * Saves a {@link DataAccessObject} to the database.
+         * Saves a {@link DataAccessObject} to the database if there are changes.
+         * <p>
+         * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
+         * database conflict errors ahead of time and to get a descriptive message.</p>
          *
          * @param dao The {@link DataAccessObject} to be inserted or updated.
          * @param connection The database connection to use.
@@ -505,6 +508,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
 
         /**
          * Saves a {@link DataAccessObject} to the database.
+         * <p>
+         * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
+         * database conflict errors ahead of time and to get a descriptive message.</p>
          *
          * @param dao The {@link DataAccessObject} to be inserted or updated.
          * @param connection The database connection to use.
@@ -707,6 +713,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
 
         /**
          * Deletes the corresponding {@link DataAccessObject} from the database.
+         * <p>
+         * {@link #getDeleteDependencyMessage(scheduler.dao.DataAccessObject, java.sql.Connection)} should be called before this method is invoked in
+         * order to check for dependency errors ahead of time and to get a descriptive error message.</p>
          *
          * @param dao The {@link DataAccessObject} to delete.
          * @param connection The database connection to use.

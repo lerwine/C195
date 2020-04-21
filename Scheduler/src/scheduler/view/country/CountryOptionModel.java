@@ -5,12 +5,15 @@ import java.io.InputStream;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -23,6 +26,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import scheduler.AppResources;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.CountryElement;
 import scheduler.dao.DataRowState;
 import scheduler.util.InternalException;
@@ -68,26 +72,21 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
         return FXCollections.unmodifiableObservableMap(countryOptionMap);
     }
 
-    static class SupportedCityItem {
-
-        private final String key;
-        private final Locale locale;
-        private final ZoneId zoneId;
-
-        SupportedCityItem(String key, String value) {
-            this.key = key;
-            int index = value.indexOf(",");
-            assert index > 0 && index < value.length() - 1 : "Invalid language/zone id pair";
-            locale = Locale.forLanguageTag(value.substring(0, index));
-            assert !locale.getCountry().isEmpty() : "Language tag does not indicate a country";
-            try {
-                zoneId = ZoneId.of(value.substring(index + 1));
-            } catch (DateTimeException ex) {
-                LOG.log(Level.SEVERE, String.format("Invalid zone id \"%s\"", value.substring(index + 1)), ex);
-                throw new InternalException("Invalid zone ID", ex);
+    public static boolean matchesRegionCode(CityCountryModel<? extends CountryElement> model, String regionCode) {
+        if (null != model && null != regionCode) {
+            CountryOptionModel optionModel = model.getOptionModel();
+            if (null != optionModel) {
+                return optionModel.getRegionCode().equals(regionCode);
             }
-
         }
+        return false;
+    }
+
+    public static boolean matchesRegionCode(CountryDAO dao, String regionCode) {
+        if (null != dao && null != regionCode) {
+            return regionCode.equals(dao.getName());
+        }
+        return false;
     }
 
     public static ObservableList<CountryOptionModel> getCountryOptions() {
@@ -161,19 +160,22 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
         return FXCollections.unmodifiableObservableList(countryOptions);
     }
 
+    public static Stream<CityCountryModel<? extends CountryElement>> getCountryOptions(Collection<CountryDAO> dataObjects) {
+        return getCountryOptions().stream().map((CountryOptionModel t) -> {
+            String regionCode = t.getRegionCode();
+            Optional<CountryDAO> matching = dataObjects.stream().filter((u) -> matchesRegionCode(u, regionCode)).findFirst();
+            if (matching.isPresent()) {
+                return (CityCountryModel<? extends CountryElement>) new CountryModel(matching.get());
+            }
+            return (CityCountryModel<? extends CountryElement>) t;
+        });
+    }
+
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper regionCode;
     private final ReadOnlyObjectWrapper<CountryElement> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyListWrapper<CityOptionModel> cities;
-
-    public ObservableList<CityOptionModel> getCities() {
-        return cities.get();
-    }
-
-    public ReadOnlyListProperty<CityOptionModel> citiesProperty() {
-        return cities.getReadOnlyProperty();
-    }
 
     private CountryOptionModel(String regionCode, String name, ObservableList<CityOptionModel> backingList) {
         this.regionCode = new ReadOnlyStringWrapper(regionCode);
@@ -216,6 +218,14 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
                 return CountryOptionModel.this.toString();
             }
         });
+    }
+
+    public ObservableList<CityOptionModel> getCities() {
+        return cities.get();
+    }
+
+    public ReadOnlyListProperty<CityOptionModel> citiesProperty() {
+        return cities.getReadOnlyProperty();
     }
 
     @Override
@@ -285,6 +295,28 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
             assert cityNamesBundle.containsKey(resourceKey) : "No city name mapping for resource key";
             t.refresh(cityNamesBundle);
         });
+    }
+
+    static class SupportedCityItem {
+
+        private final String key;
+        private final Locale locale;
+        private final ZoneId zoneId;
+
+        SupportedCityItem(String key, String value) {
+            this.key = key;
+            int index = value.indexOf(",");
+            assert index > 0 && index < value.length() - 1 : "Invalid language/zone id pair";
+            locale = Locale.forLanguageTag(value.substring(0, index));
+            assert !locale.getCountry().isEmpty() : "Language tag does not indicate a country";
+            try {
+                zoneId = ZoneId.of(value.substring(index + 1));
+            } catch (DateTimeException ex) {
+                LOG.log(Level.SEVERE, String.format("Invalid zone id \"%s\"", value.substring(index + 1)), ex);
+                throw new InternalException("Invalid zone ID", ex);
+            }
+
+        }
     }
 
 }

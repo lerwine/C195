@@ -420,7 +420,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
         public DmlSelectQueryBuilder createDmlSelectQueryBuilder() {
             DmlSelectQueryBuilder builder = new DmlSelectQueryBuilder(DbTable.APPOINTMENT, SchemaHelper.getTableColumns(DbTable.APPOINTMENT));
             builder.join(DbColumn.APPOINTMENT_CUSTOMER, TableJoinType.LEFT, DbColumn.CUSTOMER_ID,
-                        SchemaHelper.getTableColumns(DbTable.CUSTOMER, SchemaHelper::isForJoinedData))
+                    SchemaHelper.getTableColumns(DbTable.CUSTOMER, SchemaHelper::isForJoinedData))
                     .join(DbColumn.CUSTOMER_ADDRESS, TableJoinType.LEFT, DbColumn.ADDRESS_ID,
                             SchemaHelper.getTableColumns(DbTable.ADDRESS, SchemaHelper::isForJoinedData))
                     .join(DbColumn.ADDRESS_CITY, TableJoinType.LEFT, DbColumn.CITY_ID,
@@ -626,6 +626,19 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
         public String getDeleteDependencyMessage(AppointmentDAO dao, Connection connection) throws SQLException {
             // No database dependencies
             return "";
+        }
+
+        @Override
+        public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
+            CustomerElement customer = dao.getCustomer();
+            if (customer instanceof CustomerDAO && (force || customer.getRowState() != DataRowState.UNMODIFIED)) {
+                CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
+            }
+            UserElement user = dao.getUser();
+            if (user instanceof UserDAO && (force || user.getRowState() != DataRowState.UNMODIFIED)) {
+                UserDAO.getFactory().save((UserDAO) user, connection, force);
+            }
+            super.save(dao, connection, force);
         }
 
         @Override

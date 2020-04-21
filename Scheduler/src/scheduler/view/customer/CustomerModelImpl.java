@@ -307,15 +307,10 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
                 throw new IllegalArgumentException("No associated address");
             }
             AddressElement addressDAO = addressModel.getDataObject();
-            switch (addressDAO.getRowState()) {
-                case DELETED:
-                    throw new IllegalArgumentException("Associated address has been deleted");
-                case NEW:
-                    throw new IllegalArgumentException("Associated address has never been saved");
-                default:
-                    dao.setAddress(addressDAO);
-                    break;
+            if (addressDAO.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Associated address has been deleted");
             }
+            dao.setAddress(addressDAO);
             dao.setName(name);
             dao.setActive(item.isActive());
             return dao;

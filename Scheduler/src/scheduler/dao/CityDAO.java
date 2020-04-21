@@ -26,6 +26,8 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.country.CityOptionModel;
+import scheduler.view.country.CountryOptionModel;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE;
@@ -273,15 +275,56 @@ public class CityDAO extends DataAccessObject implements CityElement {
         }
 
         @Override
+        public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
+            CountryElement country = dao.getCountry();
+            super.save(dao, connection, force);
+        }
+
+        public CityDAO assertValidCity(CityDAO target) {
+            if (target.getRowState() == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Data access object already deleted");
+            }
+            
+            CityOptionModel cityOption = CityOptionModel.getCityOption(target.name);
+            if (null == cityOption)
+                throw new IllegalStateException("Unsupported city name");
+         
+            CountryElement country = target.getCountry();
+            if (null == country)
+                throw new IllegalStateException("Country not specified");
+            String countryName = country.getName();
+            
+            if (!cityOption.getRegionCode().equals(countryName)) {
+                if (null == CountryOptionModel.getCountryOption(countryName))
+                    throw new IllegalStateException("Unsupported country name");
+                throw new IllegalStateException("Invalid country association");
+            }
+            return target;
+        }
+        
+        @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Data access object already deleted");
             }
-
+            
+            CountryElement country = assertValidCity(dao).getCountry();
+            
+            if (country instanceof CountryDAO && country.getRowState() != DataRowState.UNMODIFIED) {
+                String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO)country, connection);
+                if (!msg.isEmpty())
+                    return msg;
+            }
+            
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
                     .append(") FROM ").append(DbTable.CITY.getDbName())
-                    .append(" WHERE ").append(DbColumn.CITY_COUNTRY.getDbName())
-                    .append("=? AND LOWER(").append(DbColumn.CITY_NAME.getDbName()).append(")=?");
+                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName()).append(" ON ")
+                    .append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_COUNTRY.getDbName())
+                    .append("=").append(DbTable.COUNTRY.getDbName()).append(".")
+                    .append(DbColumn.COUNTRY_ID.getDbName()).append(" WHERE ")
+                    .append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_NAME.getDbName())
+                    .append("=? AND ").append(DbTable.COUNTRY.getDbName()).append(".")
+                    .append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
             if (dao.getRowState() != DataRowState.NEW) {
                 sb.append(" AND ").append(DbColumn.CITY_ID.getDbName()).append("<>?");
             }
