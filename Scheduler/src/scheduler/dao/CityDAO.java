@@ -26,6 +26,8 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.city.EditCity;
+import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.CityOptionModel;
 import scheduler.view.country.CountryOptionModel;
 import scheduler.view.country.EditCountry;
@@ -305,7 +307,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
         @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Data access object already deleted");
+                return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYALREADYDELETED);
             }
             
             CountryElement country = assertValidCity(dao).getCountry();
@@ -346,9 +348,9 @@ public class CityDAO extends DataAccessObject implements CityElement {
                     }
                 }
             }
-            // PENDING: Internationalize this
+            
             if (count > 0) {
-                return "Another city has the same name";
+                return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE);
             }
             return "";
         }

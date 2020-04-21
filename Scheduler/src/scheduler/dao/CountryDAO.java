@@ -22,7 +22,7 @@ import scheduler.util.InternalException;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
-import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECONFLICTMESSAGE;
+import static scheduler.view.country.EditCountryResourceKeys.*;
 
 @DatabaseTable(DbTable.COUNTRY)
 public class CountryDAO extends DataAccessObject implements CountryElement {
@@ -216,7 +216,7 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
         @Override
         public String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Data access object already deleted");
+                return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_COUNTRYALREADYDELETED);
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())

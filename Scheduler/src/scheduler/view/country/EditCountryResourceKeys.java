@@ -18,6 +18,11 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_CITIES = "cities";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That country has already been deleted."}.
+     */
+    public static final String RESOURCEKEY_COUNTRYALREADYDELETED = "countryAlreadyDeleted";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That country is referenced by one or more cities and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
@@ -58,7 +63,7 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_EDITCOUNTRY = "editCountry";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Language"}.
      */
     public static final String RESOURCEKEY_LANGUAGE = "language";
 
@@ -83,12 +88,12 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_OPEN = "open";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "A city with that name has already been added."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "A country with that name has already been added."}.
      */
     public static final String RESOURCEKEY_SAVECONFLICTMESSAGE = "saveConflictMessage";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Time Zone"}.
      */
     public static final String RESOURCEKEY_TIMEZONE = "timeZone";
 

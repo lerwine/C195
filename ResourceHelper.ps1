@@ -351,9 +351,10 @@ Function New-PropertiesFile {
     )
 
     $FullPath = $Path | Convert-RelativePathToFullPath -Resource;
-
+    Write-Host -Object $FullPath;
     $Dictionary = [System.Collections.Generic.Dictionary[System.String, [System.Tuple[System.String,System.String[]]]]]::new([System.StringComparer]::InvariantCulture);
     if (Test-Path -Path $FullPath) {
+        Write-Host -Object 'Exists';
         $PreviousItem = $null;
         $PreviousBlankLine = $false;
         [string[]]$CommentBlocks = @();
@@ -446,7 +447,8 @@ Function New-ResourceBundle {
     $FullPath = $BasePath | Convert-RelativePathToFullPath -Resource;
     $Files = @{};
     $Script:AllLocales | ForEach-Object {
-        $Files[$_] = New-PropertiesFile -RelativePath "$RelativePath`_$_.properties"
+        Write-Host -Object "$BasePath`_$_.properties";
+        $Files[$_] = New-PropertiesFile -Path "$BasePath`_$_.properties"
     }
 
     $ResourceBundle = New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
@@ -520,17 +522,17 @@ Function New-ResourceBundle {
         foreach ($n in $this.GetPropertyNames()) {
             foreach ($k in $this.AllFiles.Keys) {
                 $d = $this.AllFiles[$k].Properties;
-                if (-not $d.ContainsKey($k)) {
-                    $d.Add($k, '');
+                if (-not $d.ContainsKey($n)) {
+                    $d.Add($n, '');
                 }
             }
         }
         foreach ($k in $this.AllFiles.Keys) {
-            Save-PropertiesFile -PropertiesFile $this.AllFiles[$k];
+            Save-PropertiesFile -PropertiesFile $this.AllFiles[$k] -ErrorAction Stop;
         }
-        $FullPath = ($this.BaseName + "ResourceKeys.java") | Convert-RelativePathToFullPath -Code;
+        $FullPath = ($this.BasePath + "ResourceKeys.java") | Convert-RelativePathToFullPath -Code;
         $d = $this.AllFiles['en'].Properties;
-        $p = $this.BaseName | Split-Path -Parent;
+        $p = $this.BasePath | Split-Path -Parent;
         $ns = @();
         while ($null -ne $p -and $p.Length -gt 0) {
             $ns = @($p | Split-Path -Leaf) + $ns;
@@ -541,7 +543,7 @@ Function New-ResourceBundle {
             "package $($ns -join '.');",
             "",
             "/**",
-            " * Resource bundle keys for {@code resources/scheduler/$($this.BaseName.Replace('\', '/'))}.",
+            " * Resource bundle keys for {@code resources/scheduler/$($this.BasePath.Replace('\', '/'))}.",
             " *",
             " * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;",
             " */"
@@ -551,26 +553,25 @@ Function New-ResourceBundle {
             @"
 
     /**
-        * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "$($d[$_].Replace('"', '\"'))"}.
-        */
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "$($d[$_].Item1.Replace('"', '\"'))"}.
+     */
     public static final String RESOURCEKEY_$($_.ToUpper()) = "$_";
 "@
         })
         $Lines += "}";
-        Set-Content -Path $FullPath -Encoding UTF8 -Value $Lines;
-    }
+        [System.IO.File]::WriteAllLines($FullPath, $Lines, [System.Text.UTF8Encoding]::new($false, $false));
+    } -PassThru;
 }
 
 Function Save-PropertiesFile {
-    [CmdletBinding(DefaultParameterSetName = 'Relative')]
+    [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ParameterSetName = 'Relative')]
-        [ValidateScript({ $_ | Test-PropertiesFile })]
+        [Parameter(Mandatory = $true)]
         [object]$PropertiesFile
     )
     
     $FullPath = $PropertiesFile.Path | Convert-RelativePathToFullPath -Resource;
-    Set-Content -Path $FullPath -Encoding UTF8 -Value ($PropertiesFile.Properties.Keys | ForEach-Object {
+    [System.IO.File]::WriteAllLines($FullPath, ($PropertiesFile.Properties.Keys | ForEach-Object {
         $Tuple = $PropertiesFile.Properties[$_];
         if ($Tuple.Item2.Length -gt 0) {
             $Script:LineBreakRegex.Split($Tuple.Item2[0]) | ForEach-Object { "# $_" }
@@ -580,8 +581,8 @@ Function Save-PropertiesFile {
             }
         }
         "$(ConvertTo-EscapedPropertiesText -Text $_ -Key)=$(ConvertTo-EscapedPropertiesText -Text $Tuple.Item1)";
-    } | Out-String);
+    }), [System.Text.UTF8Encoding]::new($false, $false));
 }
 
-$ResourceBundle = New-ResourceBundle -BasePath 'view\city\EditCity';
+$ResourceBundle = New-ResourceBundle -BasePath 'view\country\EditCountry' -ErrorAction Stop;
 $ResourceBundle.SaveChanges();
