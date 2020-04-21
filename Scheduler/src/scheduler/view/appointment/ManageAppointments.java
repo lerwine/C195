@@ -80,12 +80,6 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     // PENDING: The value of the field ManageAppointments.filterState is not used
     private FilterOptionState filterState = null;
 
-    @FXML // fx:id="headingLabel"
-    private Label headingLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="subHeadingLabel"
-    private Label subHeadingLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="titleTableColumn"
     private TableColumn<AppointmentModel, String> titleTableColumn; // Value injected by FXMLLoader
 
@@ -150,7 +144,6 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
         if (null != file) {
             FileChooser.ExtensionFilter ef = fc.getSelectedExtensionFilter();
             if (null != ef) {
-                AppointmentModel.Factory factory = AppointmentModel.getFactory();
                 List<DbColumn> columns;
                 if (ef == csvAll || ef == tsvAll || ef == htmAll) {
                     columns = Arrays.asList(new DbColumn[] {
@@ -371,16 +364,16 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                 try {
                     if (ef == csvAll || ef == csvDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
-                            (new CsvDataExporter(dataReader)).export(fileWriter, getItemsList());
+                            (new CsvDataExporter<>(dataReader)).export(fileWriter, getItemsList());
                         }
                     } else if (ef == tsvAll || ef == tsvDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
-                            (new TsvDataExporter(dataReader)).export(fileWriter, getItemsList());
+                            (new TsvDataExporter<>(dataReader)).export(fileWriter, getItemsList());
                         }
                     } else if (ef == htmAll || ef == htmDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
                             ModelFilter<AppointmentDAO, AppointmentModel, ? extends DaoFilter<AppointmentDAO>> filter = getFilter();
-                            (new HtmlDataExporter(filter.getHeadingText(), dataReader)).export(fileWriter, getItemsList());
+                            (new HtmlDataExporter<>(filter.getHeadingText(), dataReader)).export(fileWriter, getItemsList());
                         }
                     } else {
                         Alert alert = new Alert(Alert.AlertType.WARNING, getResourceString(RESOURCEKEY_FILETYPENOTSUPPORTED));
@@ -417,8 +410,6 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     @Override
     protected void initialize() {
         super.initialize();
-        assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
-        assert subHeadingLabel != null : "fx:id=\"subHeadingLabel\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
 
     }
 

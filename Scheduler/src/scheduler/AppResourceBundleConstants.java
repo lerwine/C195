@@ -38,6 +38,16 @@ public interface AppResourceBundleConstants {
     public static final String RESOURCEKEY_ALL = "all";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Addresses"}.
+     */
+    public static final String RESOURCEKEY_ALLADDRESSES = "allAddresses";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Cities"}.
+     */
+    public static final String RESOURCEKEY_ALLCITIES = "allCities";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All Countries"}.
      */
     public static final String RESOURCEKEY_ALLCOUNTRIES = "allCountries";

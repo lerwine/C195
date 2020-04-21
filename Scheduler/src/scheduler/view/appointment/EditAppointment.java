@@ -47,7 +47,6 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTINGTODB;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -414,6 +413,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         updateConflictMesssage();
     }
 
+    @SuppressWarnings("incomplete-switch")
     private void onTypeComboBoxChange(AppointmentType oldValue, AppointmentType newValue) {
         switch (newValue) {
             case CORPORATE_HQ_MEETING:
@@ -715,6 +715,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         return BinarySelective.ofPrimary(Duration.ofMinutes((h * 60) + m));
     }
 
+    @SuppressWarnings("incomplete-switch")
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
@@ -1110,7 +1111,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             userLoadOption = showActiveUsers;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected void processResult(List<AppointmentDAO> result, Stage owner) {
             if (null != customerDaoList && !customerDaoList.isEmpty()) {

@@ -132,7 +132,6 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
             pk = getModel().getPrimaryKey();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected void processResult(List<AddressDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {

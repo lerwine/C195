@@ -9,15 +9,21 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLADDRESSES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
+import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CityElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.filter.DaoFilter;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.util.Values;
+import scheduler.view.ModelFilter;
 import scheduler.view.city.CityModel;
 import scheduler.view.city.CityModelImpl;
 import scheduler.view.city.RelatedCityModel;
@@ -258,6 +264,35 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
             dao.setPostalCode(item.getPostalCode());
             dao.setPhone(item.getPhone());
             return dao;
+        }
+
+        @Override
+        public ModelFilter<AddressDAO, AddressModelImpl, ? extends DaoFilter<AddressDAO>> getAllItemsFilter() {
+            return new ModelFilter<AddressDAO, AddressModelImpl, DaoFilter<AddressDAO>>() {
+                private final String headingText = AppResources.getResourceString(RESOURCEKEY_ALLADDRESSES);
+                private final DaoFilter<AddressDAO> daoFilter = DaoFilter.all(AppResources.getResourceString(RESOURCEKEY_READINGFROMDB),
+                            AppResources.getResourceString(RESOURCEKEY_LOADINGADDRESSES));
+                @Override
+                public String getHeadingText() {
+                    return headingText;
+                }
+
+                @Override
+                public DaoFilter<AddressDAO> getDaoFilter() {
+                    return daoFilter;
+                }
+
+                @Override
+                public boolean test(AddressModelImpl t) {
+                    return null != t;
+                }
+                
+            };
+        }
+
+        @Override
+        public ModelFilter<AddressDAO, AddressModelImpl, ? extends DaoFilter<AddressDAO>> getDefaultFilter() {
+            return getAllItemsFilter();
         }
 
     }

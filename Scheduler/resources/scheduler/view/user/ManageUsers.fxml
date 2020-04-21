@@ -10,10 +10,23 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
-<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
 
-<VBox prefHeight="559.0" prefWidth="884.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.ManageUsers">
+<VBox prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.ManageUsers">
     <children>
+        <StackPane>
+            <children>
+                <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="Active Users" wrapText="true" />
+                <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
+                    <StackPane.margin>
+                        <Insets right="8.0" />
+                    </StackPane.margin>
+                </Button>
+            </children>
+        </StackPane>
+        <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
         <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%name">
@@ -56,16 +69,8 @@
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit">
-                            <accelerator>
-                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
-                            </accelerator>
-                        </MenuItem>
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete">
-                            <accelerator>
-                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
-                            </accelerator>
-                        </MenuItem>
+                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
                     </items>
                 </ContextMenu>
             </contextMenu>

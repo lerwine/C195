@@ -8,30 +8,39 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
 
 <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.ManageAppointments">
     <children>
-        <VBox styleClass="outerContainer">
+        <VBox styleClass="mainFxmlClass">
             <children>
-                <HBox maxWidth="1.7976931348623157E308">
+                <StackPane>
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="section-heading" text="%currentAndFutureAppointments" wrapText="true" HBox.hgrow="ALWAYS">
-                            <font>
-                                <Font name="System Bold" size="12.0" />
-                            </font>
-                        </Label>
-                        <Button mnemonicParsing="false" onAction="#filterButtonClick" text="%filter" visible="false" HBox.hgrow="NEVER" />
-                        <Button mnemonicParsing="false" onAction="#onExportButtonAction" text="Export" />
+                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="%currentAndFutureAppointments" wrapText="true" />
+                        <HBox alignment="CENTER_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" StackPane.alignment="CENTER_RIGHT">
+                            <children>
+                                <Button mnemonicParsing="false" onAction="#filterButtonClick" text="%filter" visible="false" HBox.hgrow="NEVER" />
+                                <Button mnemonicParsing="false" onAction="#onExportButtonAction" text="%export">
+                                    <tooltip>
+                                        <Tooltip text="%exportAppointmentListToFile" />
+                                    </tooltip>
+                                </Button>
+                                <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓">
+                                    <HBox.margin>
+                                        <Insets left="8.0" right="8.0" />
+                                    </HBox.margin>
+                                </Button>
+                            </children>
+                        </HBox>
                     </children>
-                </HBox>
+                </StackPane>
                 <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
-                <TableView fx:id="listingTableView" maxHeight="-Infinity" minHeight="-Infinity" tableMenuButtonVisible="true" VBox.vgrow="SOMETIMES">
+                <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="titleTableColumn" editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
                             <cellValueFactory>
@@ -125,13 +134,20 @@
                         </ContextMenu>
                     </contextMenu>
                 </TableView>
-                <ButtonBar>
+                <ButtonBar VBox.vgrow="SOMETIMES">
                     <buttons>
-                        <Button fx:id="newButton" mnemonicParsing="false" text="%new" />
+                        <Button fx:id="newButton" mnemonicParsing="false" text="%new">
+                            <tooltip>
+                                <Tooltip text="%addNewAppointment" />
+                            </tooltip>
+                        </Button>
                     </buttons>
                     <padding>
                         <Insets bottom="8.0" right="8.0" />
                     </padding>
+                    <VBox.margin>
+                        <Insets top="8.0" />
+                    </VBox.margin>
                 </ButtonBar>
             </children>
         </VBox>

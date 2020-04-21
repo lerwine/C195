@@ -1,8 +1,12 @@
 package scheduler.view.user;
 
 import java.util.function.Predicate;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ACTIVEUSERS;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLUSERS;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_INACTIVEUSERS;
 import scheduler.dao.UserDAO;
+import scheduler.dao.UserStatus;
+import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilterExpression;
 import scheduler.dao.filter.UserFilter;
 import scheduler.util.ResourceBundleHelper;
@@ -44,6 +48,20 @@ public interface UserModelFilter extends ModelFilter<UserDAO, UserModelImpl, Use
         return UserModelFilter.of(ResourceBundleHelper.getResourceString(ManageUsers.class, RESOURCEKEY_ALLUSERS),
                 UserFilter.of(DaoFilterExpression.empty()),
                 (t) -> true
+        );
+    }
+
+    public static UserModelFilter active() {
+        return UserModelFilter.of(ResourceBundleHelper.getResourceString(ManageUsers.class, RESOURCEKEY_ACTIVEUSERS),
+                UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.NOT_EQUALS)),
+                (t) -> null != t && t.getStatus() != UserStatus.INACTIVE
+        );
+    }
+
+    public static UserModelFilter inactive() {
+        return UserModelFilter.of(ResourceBundleHelper.getResourceString(ManageUsers.class, RESOURCEKEY_INACTIVEUSERS),
+                UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)),
+                (t) -> null != t && t.getStatus() == UserStatus.INACTIVE
         );
     }
 

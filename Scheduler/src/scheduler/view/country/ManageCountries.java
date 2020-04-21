@@ -12,6 +12,10 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.model.ItemModel;
 
+// CURRENT: No values for Name, Updated On or Updated By are being displayed in listing.
+// TODO: Need to add headings for main content screens and leave window title alone for non-popups.
+// Nothing happens when hitting enter
+
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
  * <p>
@@ -40,6 +44,7 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
 
     @Override
     protected void onAddNewItem(Stage stage) throws IOException {
+        // TODO: Implement ManageCountries.onAddNewItem
         throw new UnsupportedOperationException();
     }
 

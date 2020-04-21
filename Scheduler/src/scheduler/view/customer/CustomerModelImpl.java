@@ -15,10 +15,12 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.CustomerElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.filter.DaoFilter;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.NonNullableStringProperty;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
+import scheduler.view.ModelFilter;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.AddressModelImpl;
 import scheduler.view.address.EditAddress;
@@ -288,8 +290,14 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
             item.setAddress((null == addressDAO) ? null : new RelatedAddressModel(addressDAO));
         }
 
+        @Override
         public CustomerModelFilter getAllItemsFilter() {
             return CustomerModelFilter.all();
+        }
+
+        @Override
+        public CustomerModelFilter getDefaultFilter() {
+            return CustomerModelFilter.active();
         }
 
         @Override

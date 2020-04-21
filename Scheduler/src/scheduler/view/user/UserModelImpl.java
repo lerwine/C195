@@ -4,12 +4,19 @@ import java.util.Objects;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ACTIVEUSERS;
+import scheduler.AppResources;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserStatus;
+import scheduler.dao.filter.ComparisonOperator;
+import scheduler.dao.filter.DaoFilter;
+import scheduler.dao.filter.UserFilter;
 import scheduler.observables.UserStatusDisplayProperty;
 import scheduler.observables.UserStatusProperty;
+import scheduler.util.ResourceBundleHelper;
+import scheduler.view.ModelFilter;
 import scheduler.view.model.ItemModel;
 
 /**
@@ -136,8 +143,14 @@ public final class UserModelImpl extends ItemModel<UserDAO> implements UserModel
             item.setStatus(dao.getStatus());
         }
 
+        @Override
         public UserModelFilter getAllItemsFilter() {
             return UserModelFilter.all();
+        }
+
+        @Override
+        public UserModelFilter getDefaultFilter() {
+            return UserModelFilter.active();
         }
 
         @Override

@@ -470,10 +470,12 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
             item.url.set(dao.getUrl());
         }
 
+        @Override
         public AppointmentModelFilter getAllItemsFilter() {
             return AppointmentModelFilter.all();
         }
 
+        @Override
         public AppointmentModelFilter getDefaultFilter() {
             return AppointmentModelFilter.myCurrentAndFuture();
         }

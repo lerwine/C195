@@ -1,6 +1,6 @@
 .root {
     -fx-font-size: 12px;
-    -fx-font-family: sans-serif;
+    -fx-font-family: Arial, Helvetica, sans-serif;
 }
 
 .mainFxmlClass {
@@ -58,22 +58,43 @@ Labeled.leftLabeledControl {
     visibility: collapse;
 }
 
-.section-heading, .sub-section-heading, .busy-heading {
+.page-heading, .section-heading, .sub-section-heading, .busy-heading, .popup-heading {
     -fx-text-fill: darkslateblue;
     -fx-font-weight: bold;
 }
 
-.section-heading, .busy-heading {
+.page-heading, .section-heading, .popup-heading, .busy-heading {
     -fx-padding: 4;
-    -fx-font-size: 18px;
     -fx-max-width: 32768;
+}
+
+.page-heading, .popup-heading, .busy-heading {
+    -fx-font-size: 18px;
+}
+
+.popup-heading, .busy-heading {
     -fx-border-radius: 8 8 0 0;
     -fx-background-radius: 8 8 0 0;
 }
 
-.section-heading {
+.popup-heading, .page-heading {
     -fx-background-color: linear-gradient(#ccff99, #99ff66);
-    -fx-border-color: linear-gradient(#ccff99, #99ff66);
+    -fx-border-color: linear-gradient(#99ff66, #ccff99);
+}
+
+.section-heading {
+    -fx-font-size: 16px;
+    -fx-background-color: linear-gradient(from 25% 100% to 100% 0%, #ccff99, #99ff66);
+    -fx-border-color: linear-gradient(from 25% 100% to 100% 0%, #99ff66, #ccff99);
+}
+
+.busy-heading {
+    -fx-background-color: linear-gradient(#e2e5b2, #d3d88b);
+    -fx-border-color: linear-gradient(#d3d88b, #e2e5b2);
+}
+
+.sub-section-heading {
+    -fx-font-size:14px;
 }
 
 .section-container {
@@ -81,14 +102,6 @@ Labeled.leftLabeledControl {
     -fx-border-color: #99ff66;
     -fx-border-radius: 0 0 8 8;
     -fx-background-radius: 0 0 8 8;
-}
-
-.sub-section-heading {
-    -fx-font-size:14px;
-}
-
-.busy-heading {
-    -fx-background-color: linear-gradient(#e2e5b2, #d3d88b);
 }
 
 .error, .formControlValidationMessage {
@@ -141,15 +154,18 @@ Labeled.leftLabeledControl {
     -fx-background-radius: 4;
 }
 
-.button, .small-button {
+.button, .small-button, .symbol-button {
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-color: linear-gradient(#6176b1, #2a3258);
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6) , 5, 0.0, 0, 1);
 }
 
-.small-button {
+.small-button, .symbol-button {
     -fx-font-size: 10px;
     -fx-padding: 1px 4px 1px 4px;
-    -fx-font-family: sans-serif;
+}
+
+.symbol-button {
+    -fx-font-family: "Segoe UI Symbol", sans-serif;
 }

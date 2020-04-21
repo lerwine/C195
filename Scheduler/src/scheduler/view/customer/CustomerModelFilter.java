@@ -1,7 +1,9 @@
 package scheduler.view.customer;
 
 import java.util.function.Predicate;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ACTIVECUSTOMERS;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLCUSTOMERS;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_INACTIVECUSTOMERS;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -44,6 +46,20 @@ public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerMo
         return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_ALLCUSTOMERS),
                 CustomerFilter.of(DaoFilterExpression.empty()),
                 (t) -> true
+        );
+    }
+
+    public static CustomerModelFilter active() {
+        return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_ACTIVECUSTOMERS),
+                CustomerFilter.of(DaoFilterExpression.empty()),
+                (t) -> null != t && t.isActive()
+        );
+    }
+
+    public static CustomerModelFilter inactive() {
+        return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_INACTIVECUSTOMERS),
+                CustomerFilter.of(DaoFilterExpression.empty()),
+                (t) -> null != t && !t.isActive()
         );
     }
 

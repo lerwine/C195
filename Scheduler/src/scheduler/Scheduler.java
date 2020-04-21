@@ -150,7 +150,6 @@ public final class Scheduler extends Application {
         private final Pane mainPane;
         private final Parent loginView;
 
-        @SuppressWarnings("unchecked")
         LoginTask(Stage stage, Parent loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
             this.loginView = Objects.requireNonNull(loginView);

@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -12,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
@@ -24,6 +27,8 @@ import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.view.annotations.HandlesDataObjectEvent;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.event.DataLoadedEvent;
@@ -40,7 +45,7 @@ import scheduler.view.model.ItemModel;
  * {@link MainController} calls a method on the inherited class, so that method can pass the {@link MainController} to the aforementioned method.</p>
  *
  * <p>
- * The {@link #filter} field is set to the specified {@link ModelFilter} during the {@link FxmlViewEventType#LOADED} event.</p>
+ * The {@link #filterx} field is set to the specified {@link ModelFilter} during the {@link FxmlViewEventType#LOADED} event.</p>
  *
  * <p>
  * List items are retrieved from the database by a background that that is started by {@link #onFxmlViewEvent(FxmlViewEvent)} during the
@@ -66,7 +71,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      * This calls {@link MainController#loadContent(java.lang.Class, java.lang.Object)}, to load the view and controller.</p>
      *
      * <p>
-     * When the {@link FxmlViewEventType#LOADED} {@link scheduler.view.event.FxmlViewEvent} occurs, this sets the {@link #filter} property from the
+     * When the {@link FxmlViewEventType#LOADED} {@link scheduler.view.event.FxmlViewEvent} occurs, this sets the {@link #filterx} property from the
      * parameters of this method.</p>
      *
      * <p>
@@ -91,7 +96,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             Object loadEventListener) throws IOException {
         return mainController.loadContent(controllerClass, (FxmlViewControllerEventListener<Parent, S>) (event) -> {
             if (event.getType() == FxmlViewEventType.LOADED) {
-                ((ListingController<T, U>) event.getController()).filter = filter;
+                ((ListingController<T, U>) event.getController()).filter.set(filter);
             }
 
             EventHelper.fireFxmlViewEvent(loadEventListener, event);
@@ -116,14 +121,30 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             MainController mainController, Stage stage, ModelFilter<T, U, ? extends DaoFilter<T>> filter) throws IOException {
         return loadInto(controllerClass, mainController, stage, filter, null);
     }
-    private ModelFilter<T, U, ? extends DaoFilter<T>> filter;
+    
+    private ObjectProperty<ModelFilter<T, U, ? extends DaoFilter<T>>> filter;
     private final ObservableList<U> itemsList = FXCollections.observableArrayList();
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-//    @FXML // URL location of the FXML file that was given to the FXMLLoader
-//    private URL location;
+    /**
+     * The {@link Label} control for page heading text, injected by the {@link FXMLLoader}.
+     */
+    @FXML
+    private Label headingLabel;
+
+    /**
+     * The help {@link Button} control injected by the {@link FXMLLoader}.
+     */
+    @FXML
+    private Button helpButton;
+
+    /**
+     * The {@link Label} control for page sub-heading text, injected by the {@link FXMLLoader}.
+     */
+    @FXML
+    private Label subHeadingLabel;
 
     /**
      * The {@link TableView} control injected by the {@link FXMLLoader}.
@@ -174,8 +195,10 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         assert deleteMenuItem != null : "fx:id=\"deleteMenuItem\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert newButton != null : "fx:id=\"newButton\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
 
+        filter = new SimpleObjectProperty<>();
         listingTableView.setItems(itemsList);
-        listingTableView.setOnKeyTyped(this::onListingTableViewKeyTyped);
+        //listingTableView.setOnKeyTyped(this::onListingTableViewKeyTyped);
+        listingTableView.setOnKeyReleased(this::onListingTableKeyReleased);
         editMenuItem.setOnAction(this::onEditMenuItemAction);
         deleteMenuItem.setOnAction(this::onDeleteMenuItemAction);
         newButton.setOnAction(this::onNewButtonAction);
@@ -228,6 +251,42 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         }
     }
 
+    void onListingTableKeyReleased(KeyEvent event) {
+        if (event.isAltDown() || event.isShortcutDown()) {
+            return;
+        }
+
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
+        if (event.isMetaDown() || event.isControlDown()) {
+            if (event.getCode() == KeyCode.N) {
+                try {
+                    onAddNewItem(stage);
+                } catch (IOException ex) {
+                    // PENDING: Internationalize message
+                    AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+                }
+            }
+            return;
+        }
+        if (event.isShiftDown()) {
+            return;
+        }
+        U item = listingTableView.getSelectionModel().getSelectedItem();
+        if (item == null) {
+            return;
+        }
+        if (event.getCode() == KeyCode.DELETE) {
+            onDeleteItem(stage, item);
+        } else if (event.getCode() == KeyCode.ENTER) {
+            try {
+                onEditItem(stage, item);
+            } catch (IOException ex) {
+                // PENDING: Internationalize message
+                AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+            }
+        }
+    }
+
     void onListingTableViewKeyTyped(KeyEvent event) {
         if (event.isAltDown() || event.isShortcutDown()) {
             return;
@@ -269,7 +328,15 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      *
      * @return The {@link ModelFilter} being used for the items listing.
      */
-    public ModelFilter<T, U, ? extends DaoFilter<T>> getFilter() {
+    protected ModelFilter<T, U, ? extends DaoFilter<T>> getFilter() {
+        return filter.get();
+    }
+
+    protected void setFilter(ModelFilter<T, U, ? extends DaoFilter<T>> value) {
+        filter.set(value);
+    }
+
+    protected ObjectProperty<ModelFilter<T, U, ? extends DaoFilter<T>>> filterProperty() {
         return filter;
     }
 
@@ -288,18 +355,58 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     @HandlesFxmlViewEvent
     protected void onFxmlViewEvent(FxmlViewEvent<? extends Parent> event) {
         if (event.getType() == FxmlViewEventType.BEFORE_SHOW) {
-            getModelFactory().getDaoFactory().loadAsync(event.getStage(), filter.getDaoFilter(), (List<T> t) -> {
-                itemsList.clear();
-                ItemModel.ModelFactory<T, U> factory = getModelFactory();
-                t.forEach((u) -> {
-                    itemsList.add(factory.createNew(u));
-                });
-                EventHelper.fireDataLoadedEvent(t, new DataLoadedEvent<>(this, itemsList));
-            }, (Throwable t) -> {
-                AlertHelper.showErrorAlert(event.getStage(), LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR),
-                        "Unexpected error loading items from database", t);
+            ModelFilter<T, U, ? extends DaoFilter<T>> modelFilter = filter.get();
+            restoreLabeled(headingLabel, modelFilter.getHeadingText());
+            String subHeadingText = modelFilter.getSubHeadingText();
+            if (null == subHeadingText || subHeadingText.trim().isEmpty()) {
+                collapseNode(subHeadingLabel);
+            } else {
+                restoreLabeled(subHeadingLabel, subHeadingText);
+            }
+            getModelFactory().getDaoFactory().loadAsync(event.getStage(), modelFilter.getDaoFilter(), this::onItemsLoaded, (t) -> onItemLoadError(t, event.getStage()));
+            filter.addListener((observable) -> {
+                onFilterChanged(((ObjectProperty<ModelFilter<T, U, ? extends DaoFilter<T>>>)observable).get());
             });
         }
+    }
+
+    private void onFilterChanged(ModelFilter<T, U, ? extends DaoFilter<T>> filter) {
+        DaoFilter<T> daoFilter;
+        if (null == filter) {
+            ModelFilter<T, U, ? extends DaoFilter<T>> defaultFilter = getModelFactory().getDefaultFilter();
+            if (null != defaultFilter) {
+                this.filter.set(defaultFilter);
+                return;
+            }
+            daoFilter = getModelFactory().getDaoFactory().getAllItemsFilter();
+            collapseNode(headingLabel);
+            collapseNode(subHeadingLabel);
+        } else {
+            restoreLabeled(headingLabel, filter.getHeadingText());
+            String subHeadingText = filter.getSubHeadingText();
+            if (null == subHeadingText || subHeadingText.trim().isEmpty()) {
+                collapseNode(subHeadingLabel);
+            } else {
+                restoreLabeled(subHeadingLabel, subHeadingText);
+            }
+            daoFilter = filter.getDaoFilter();
+        }
+        Stage stage = (Stage)listingTableView.getScene().getWindow();
+        getModelFactory().getDaoFactory().loadAsync(stage, daoFilter, this::onItemsLoaded, (t) -> onItemLoadError(t, stage));
+    }
+    
+    protected void onItemLoadError(Throwable error, Stage stage) {
+        AlertHelper.showErrorAlert((Stage)listingTableView.getScene().getWindow(), LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR),
+                "Unexpected error loading items from database", error);
+    }
+    
+    protected void onItemsLoaded(List<T> items) {
+        itemsList.clear();
+        ItemModel.ModelFactory<T, U> factory = getModelFactory();
+        items.forEach((u) -> {
+            itemsList.add(factory.createNew(u));
+        });
+        EventHelper.fireDataLoadedEvent(items, new DataLoadedEvent<>(this, itemsList));
     }
 
     /**

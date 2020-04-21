@@ -1,7 +1,6 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
-import java.net.URL;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;

@@ -4,19 +4,35 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
-<?import javafx.scene.input.KeyCodeCombination?>
 
-<VBox prefHeight="559.0" prefWidth="884.0" styleClass="outerContainer" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.country.ManageCountries">
+<VBox prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.country.ManageCountries">
     <children>
+        <StackPane>
+            <children>
+                <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="All Countries" wrapText="true" />
+                <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
+                    <StackPane.margin>
+                        <Insets right="8.0" />
+                    </StackPane.margin>
+                </Button>
+            </children>
+        </StackPane>
+        <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
         <TableView fx:id="listingTableView" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="nameTableColumn" editable="false" prefWidth="62.0" text="%name" />
+                <TableColumn fx:id="nameTableColumn" editable="false" prefWidth="62.0" text="%name">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="name" />
+                    </cellValueFactory>
+                </TableColumn>
                 <TableColumn editable="false" prefWidth="75.0" text="%createdOn">
                     <cellValueFactory>
                         <PropertyValueFactory property="createDate" />
@@ -32,7 +48,7 @@
                 </TableColumn>
                 <TableColumn editable="false" prefWidth="75.0" text="%updatedOn">
                     <cellValueFactory>
-                        <PropertyValueFactory property="lastUpdate" />
+                        <PropertyValueFactory property="lastModifiedDate" />
                     </cellValueFactory>
                     <cellFactory>
                         <DateTimeTableCellFactory />
@@ -40,23 +56,15 @@
                 </TableColumn>
                 <TableColumn editable="false" prefWidth="75.0" text="%updatedBy">
                     <cellValueFactory>
-                        <PropertyValueFactory property="lastUpdateBy" />
+                        <PropertyValueFactory property="lastModifiedBy" />
                     </cellValueFactory>
                 </TableColumn>
             </columns>
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit">
-                            <accelerator>
-                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
-                            </accelerator>
-                        </MenuItem>
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete">
-                            <accelerator>
-                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
-                            </accelerator>
-                        </MenuItem>
+                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
                     </items>
                 </ContextMenu>
             </contextMenu>

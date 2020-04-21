@@ -7,6 +7,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLCITIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES;
+import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
+import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
@@ -16,6 +20,8 @@ import scheduler.view.country.CityCountryModelImpl;
 import scheduler.view.country.CityCountryModel;
 import scheduler.dao.CountryElement;
 import scheduler.dao.DataRowState;
+import scheduler.dao.filter.DaoFilter;
+import scheduler.view.ModelFilter;
 import scheduler.view.country.CityOptionModel;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.CountryOptionModel;
@@ -206,6 +212,35 @@ public final class CityModelImpl extends ItemModel<CityDAO> implements CityModel
             dao.setCountry(countryDAO);
             dao.setName(cityOption.getResourceKey());
             return dao;
+        }
+
+        @Override
+        public ModelFilter<CityDAO, CityModelImpl, ? extends DaoFilter<CityDAO>> getAllItemsFilter() {
+            return new ModelFilter<CityDAO, CityModelImpl, DaoFilter<CityDAO>>() {
+                private final String headingText = AppResources.getResourceString(RESOURCEKEY_ALLCITIES);
+                private final DaoFilter<CityDAO> daoFilter = DaoFilter.all(AppResources.getResourceString(RESOURCEKEY_READINGFROMDB),
+                            AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
+                @Override
+                public String getHeadingText() {
+                    return headingText;
+                }
+
+                @Override
+                public DaoFilter<CityDAO> getDaoFilter() {
+                    return daoFilter;
+                }
+
+                @Override
+                public boolean test(CityModelImpl t) {
+                    return null != t;
+                }
+                
+            };
+        }
+
+        @Override
+        public ModelFilter<CityDAO, CityModelImpl, ? extends DaoFilter<CityDAO>> getDefaultFilter() {
+            return getAllItemsFilter();
         }
 
     }

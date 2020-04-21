@@ -3,7 +3,6 @@ package scheduler.util;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;

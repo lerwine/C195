@@ -580,10 +580,9 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
             );
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public ObservableList<?> getDependencies() {
-            return new ImmutableObservableList(selectedDate, startDateText, converter, hourText, minuteText, timeZone, isPm, customerConflicts,
+            return new ImmutableObservableList<Observable>(selectedDate, startDateText, converter, hourText, minuteText, timeZone, isPm, customerConflicts,
                     userConflicts);
         }
 

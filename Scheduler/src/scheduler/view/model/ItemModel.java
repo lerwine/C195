@@ -19,6 +19,8 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.util.DB;
+import scheduler.view.ModelFilter;
+import scheduler.view.appointment.AppointmentModelFilter;
 
 /**
  * Java FX object model for a {@link DataAccessObject} object.
@@ -141,6 +143,10 @@ public abstract class ItemModel<T extends DataAccessObject> implements ElementMo
          * @return The {@link DataAccessObject} with changes applied.
          */
         public abstract T updateDAO(U item);
+
+        public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getAllItemsFilter();
+
+        public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getDefaultFilter();
 
         /**
          * Updates the {@link ItemModel} with changes from a {@link DataAccessObject}.

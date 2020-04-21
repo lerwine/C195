@@ -118,7 +118,6 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
             dao = getModel().getDataObject();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         protected void processResult(List<CustomerDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {

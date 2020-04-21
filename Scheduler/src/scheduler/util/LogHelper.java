@@ -48,7 +48,7 @@ public class LogHelper {
     
     private static final Pattern STRING_ENCODE = Pattern.compile("[\"\\u0000-\\u0019\\u007f-\\uffff\\\\]");
     
-    public static <T extends Enum> String toLogText(T value) {
+    public static <T extends Enum<T>> String toLogText(T value) {
         if (null == value)
             return "null";
         return String.format("%s.%s", value.getClass().getTypeName(), value.name());
@@ -61,7 +61,7 @@ public class LogHelper {
             return NumberFormat.getNumberInstance().format(obj);
         }
         if (obj instanceof Enum) {
-            return String.format("%s.%s", obj.getClass().getTypeName(), ((Enum)obj).name());
+            return String.format("%s.%s", obj.getClass().getTypeName(), ((Enum<?>)obj).name());
         }
         if (obj instanceof Boolean) {
             return ((Boolean)obj) ? "true" : "false";

@@ -109,7 +109,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     @FXML // fx:id="deleteButton"
     private Button deleteButton; // Value injected by FXMLLoader
 
-    @SuppressWarnings("unused")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert parentVBox != null : "fx:id=\"parentVBox\" was not injected: check your FXML file 'EditItem.fxml'.";
@@ -126,7 +125,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         assert deleteButton != null : "fx:id=\"deleteButton\" was not injected: check your FXML file 'EditItem.fxml'.";
     }
 
-    @SuppressWarnings("unused")
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
@@ -136,7 +134,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         TaskWaiter.startNow(new SaveTask(dao, stage));
     }
 
-    @SuppressWarnings("unused")
     @FXML
     private void onDeleteButtonAction(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
@@ -145,7 +142,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         }
     }
 
-    @SuppressWarnings("unused")
     @FXML
     private void onCancelButtonAction(ActionEvent event) {
         contentController.cancelEdit((Stage) ((Button) event.getSource()).getScene().getWindow());
@@ -209,6 +205,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             this.model = model;
         }
 
+        @SuppressWarnings("incomplete-switch")
         @Override
         public void onFxmlViewControllerEvent(FxmlViewControllerEvent<Parent, EditItem<T, U>> event) {
             EditItem<T, U> currentController = event.getController();
@@ -324,7 +321,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, null, controllerClass),
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<T, U>(mainController, null, controllerClass),
                     stage, EditItem.class);
             mainController.removeDaoEventListener(fc);
             return ((EditController<T, U>) fc.contentController).model;
@@ -333,7 +330,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage, Object loadEventListener) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, null, controllerClass),
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<T, U>(mainController, null, controllerClass),
                     stage, EditItem.class, loadEventListener);
             mainController.removeDaoEventListener(fc);
             return ((EditController<T, U>) fc.contentController).model;
@@ -354,7 +351,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U edit(U model, Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener(mainController, model, controllerClass),
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<T, U>(mainController, model, controllerClass),
                     stage, EditItem.class);
             mainController.removeDaoEventListener(fc);
             return ((EditController<T, U>) fc.contentController).model;

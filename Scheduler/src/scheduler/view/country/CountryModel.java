@@ -155,6 +155,7 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
             return dao;
         }
 
+        @Override
         public ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> getAllItemsFilter() {
             return new ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>>() {
                 private final String headingText = AppResources.getResourceString(RESOURCEKEY_ALLCOUNTRIES);
@@ -176,6 +177,11 @@ public final class CountryModel extends ItemModel<CountryDAO> implements CityCou
                 }
                 
             };
+        }
+
+        @Override
+        public ModelFilter<CountryDAO, CountryModel, ? extends DaoFilter<CountryDAO>> getDefaultFilter() {
+            return getAllItemsFilter();
         }
 
     }
