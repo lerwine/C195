@@ -132,11 +132,11 @@ public final class Login {
         Scheduler.tryLoginUser(stage, loginRootBorderPane, userNameTextField.getText(), passwordField.getText(), (ex) -> {
             ResourceBundle rb = resourceBundle.get();
             if (ex == null) {
-                AlertHelper.showErrorAlert(stage, LOG, rb.getString(RESOURCEKEY_LOGINERROR),
-                        rb.getString(RESOURCEKEY_INVALIDCREDENTIALS), ex);
+                ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, ex,
+                        rb.getString(RESOURCEKEY_INVALIDCREDENTIALS));
             } else {
-                AlertHelper.showErrorAlert(stage, LOG, rb.getString(RESOURCEKEY_LOGINERROR),
-                        rb.getString(RESOURCEKEY_VALIDATIONERROR), ex);
+                ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, ex,
+                        rb.getString(RESOURCEKEY_VALIDATIONERROR));
             }
         });
     }

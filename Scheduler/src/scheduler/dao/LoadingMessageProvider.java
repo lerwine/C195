@@ -1,6 +1,6 @@
 package scheduler.dao;
 
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 
 /**

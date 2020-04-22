@@ -218,6 +218,16 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Error loading edit window content"}.
+     */
+    public static final String RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT = "errorLoadingEditWindowContent";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Unexpected error loading items from database."}.
+     */
+    public static final String RESOURCEKEY_ERRORLOADINGITEMSFROMDB = "errorLoadingItemsFromDb";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "A database access error occurred while trying to save changes to the database.\u000aSee system logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORSAVINGCHANGES = "errorSavingChanges";
@@ -331,6 +341,11 @@ public interface AppResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Nothing selected"}.
      */
     public static final String RESOURCEKEY_NOTHINGSELECTED = "nothingSelected";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Original error message:"}.
+     */
+    public static final String RESOURCEKEY_ORIGINALERRORMESSAGE = "originalErrorMessage";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Please wait..."}.

@@ -21,8 +21,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CHECKINGDEPENDENCIES;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_COMPLETINGOPERATION;
+import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataAccessObject.DaoFactory;
@@ -204,8 +203,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             contentController = viewAndController.getController();
             contentController.initializeModel(this, model);
         } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading edit window content", ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
         }
         return viewAndController;
     }
@@ -522,8 +520,8 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            AlertHelper.showErrorAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_SAVEFAILURE),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORSAVINGCHANGES), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_SAVEFAILURE), owner, ex,
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORSAVINGCHANGES));
         }
 
         @Override
@@ -563,8 +561,8 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            AlertHelper.showErrorAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), owner, ex,
+                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override

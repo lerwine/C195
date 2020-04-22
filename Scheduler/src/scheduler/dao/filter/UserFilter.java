@@ -3,7 +3,7 @@ package scheduler.dao.filter;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGUSERS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserStatus;

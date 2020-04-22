@@ -21,7 +21,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_DBREADERROR;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.AlertHelper;

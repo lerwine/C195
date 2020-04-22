@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.AppResourceBundleConstants;
 import scheduler.AppResources;
 import static scheduler.dao.DataElement.getPrimaryKeyOf;
 import scheduler.dao.filter.ComparisonOperator;
@@ -33,6 +32,7 @@ import scheduler.view.country.CountryOptionModel;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE;
+import scheduler.AppResourceKeys;
 
 @DatabaseTable(DbTable.CITY)
 public class CityDAO extends DataAccessObject implements CityElement {
@@ -175,12 +175,12 @@ public class CityDAO extends DataAccessObject implements CityElement {
 
         @Override
         public DaoFilter<CityDAO> getAllItemsFilter() {
-            return DaoFilter.all(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB),
-                    AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES));
+            return DaoFilter.all(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_READINGFROMDB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
         }
 
         public DaoFilter<CityDAO> getByCountryFilter(int pk) {
-            return DaoFilter.of(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCITIES),
+            return DaoFilter.of(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES),
                     IntColumnValueFilter.of(DbColumn.CITY_COUNTRY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
                             (CityDAO t) -> getPrimaryKeyOf(t.getCountry())));
         }

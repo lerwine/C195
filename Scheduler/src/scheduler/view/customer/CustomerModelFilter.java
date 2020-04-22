@@ -1,9 +1,9 @@
 package scheduler.view.customer;
 
 import java.util.function.Predicate;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ACTIVECUSTOMERS;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ALLCUSTOMERS;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_INACTIVECUSTOMERS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVECUSTOMERS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCUSTOMERS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVECUSTOMERS;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;

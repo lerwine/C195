@@ -293,15 +293,8 @@ public class AppointmentAlert implements Initializable {
     private synchronized void onCheckAppointmentsTaskError(Throwable ex) {
         appointmentCheckTimer.cancel();
         try {
-            Alert alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
-            alert.initModality(Modality.APPLICATION_MODAL);
-            alert.setTitle(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR));
-            try {
-                alert.getDialogPane().setExpandableContent(ErrorDetailDialog.load(ex, "Error checking impending appointments"));
-            } catch (IOException err) {
-                LOG.log(Level.SEVERE, "Error loading exception detail", err);
-            }
-            alert.showAndWait();
+            ErrorDetailDialog.showAndWait(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), ex,
+                    resources.getString(RESOURCEKEY_ERRORCHECKINGIMPENDINGAPPOINTMENTS));
         } finally {
             appointmentCheckTimer = new Timer();
             appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, 120000);

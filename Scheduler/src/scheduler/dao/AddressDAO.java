@@ -9,9 +9,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.AppResourceBundleConstants;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
+import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
@@ -26,6 +25,7 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import static scheduler.dao.DataElement.getPrimaryKeyOf;
+import scheduler.AppResourceKeys;
 
 @DatabaseTable(DbTable.ADDRESS)
 public class AddressDAO extends DataAccessObject implements AddressElement {
@@ -245,7 +245,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
         }
 
         public DaoFilter<AddressDAO> getByCityFilter(int pk) {
-            return DaoFilter.of(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGADDRESSES),
+            return DaoFilter.of(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES),
                     IntColumnValueFilter.of(DbColumn.ADDRESS_CITY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
                             (AddressDAO t) -> getPrimaryKeyOf(t.getCity())));
         }

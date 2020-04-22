@@ -10,8 +10,8 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CREATEDBYON;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_MODIFIEDBYON;
+import static scheduler.AppResourceKeys.RESOURCEKEY_CREATEDBYON;
+import static scheduler.AppResourceKeys.RESOURCEKEY_MODIFIEDBYON;
 import scheduler.AppResources;
 
 /**

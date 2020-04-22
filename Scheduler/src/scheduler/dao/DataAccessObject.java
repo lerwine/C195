@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.Stage;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.filter.DaoFilter;

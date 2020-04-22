@@ -663,7 +663,7 @@ namespace ResourceHelper {
             elements.RemoveAt(0);
             if (elements.Count > 1)
                 elements.Reverse();
-            string packageRoot = Path.GetFileName(dirName);
+            string packageRoot = Path.GetFileName(rootDirectory);
             using (StreamWriter writer = new StreamWriter(Path.Combine(dirName, fileName + "ResourceKeys.java"), false, new UTF8Encoding(false, false))) {
                 writer.Write("package ");
                 writer.Write(packageRoot);
@@ -695,7 +695,7 @@ namespace ResourceHelper {
                 while (enumerator.MoveNext()) {
                     writer.WriteLine("");
                     writer.WriteLine("    /**");
-                    writer.Write("     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code \"");
+                    writer.Write("     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code \"");
                     writer.Write(PropertiesFile.Escape(_current[enumerator.Current], false).Replace("\"", "\\\""));
                     writer.WriteLine("\"}.");
                     writer.WriteLine("     */");
@@ -1064,13 +1064,19 @@ Function Add-ResourceBundleProperty {
         
         [Parameter(Mandatory = $true)]
         [String]$Message,
-
-        [switch]$NoSave
+        
+        [Parameter(ParameterSetName = 'Load')]
+        [switch]$NoSave,
+        
+        [Parameter(ParameterSetName = 'ResourceBundle')]
+        [switch]$PassThru
     )
 
-    $ResourceBundle = [ResourceHelper.ResourceBundle]::new();
-    $ResourceBundle.Load($Script:BaseResourcesPath, $BaseName);
-
+    $rb = $ResourceBundle;
+    if ($PSBoundParameters.ContainsKey('Load')) {
+        $rb = [ResourceHelper.ResourceBundle]::new();
+        $rb.Load($Script:BaseResourcesPath, $BaseName);
+    }
     $elements = ($Message -replace '[^a-zA-Z\d]+', ' ').Trim().Split(' ');
     if ($elements[0].Length -eq 1) {
         $elements[0] = $elements[0].ToLower();
@@ -1094,24 +1100,199 @@ Function Add-ResourceBundleProperty {
     if ([string]::IsNullOrWhiteSpace($es)) { $es = [System.Windows.Clipboard]::GetText() }
     $hi = Read-Host -Prompt 'Hindi (blank to copy from clipboard)';
     if ([string]::IsNullOrWhiteSpace($hi)) { $hi = [System.Windows.Clipboard]::GetText() }
-    $ResourceBundle.Set($key, $Message, [ResourceHelper.LanguageType]::EN);
-    $ResourceBundle.Set($key, $de, [ResourceHelper.LanguageType]::DE);
-    $ResourceBundle.Set($key, $es, [ResourceHelper.LanguageType]::ES);
-    $ResourceBundle.Set($key, $hi, [ResourceHelper.LanguageType]::HI);
-    if (-not $NoSave.IsPresent) {
-        $ResourceBundle.Save();
-        $ResourceBundle.SaveCode($Script:BaseCodePath);
+    $rb.Set($key, $Message, [ResourceHelper.LanguageType]::EN);
+    $rb.Set($key, $de, [ResourceHelper.LanguageType]::DE);
+    $rb.Set($key, $es, [ResourceHelper.LanguageType]::ES);
+    $rb.Set($key, $hi, [ResourceHelper.LanguageType]::HI);
+    if ($PSBoundParameters.ContainsKey('BaseName') -and -not $NoSave.IsPresent) {
+        $rb.Save();
+        $rb.SaveCode($Script:BaseCodePath);
     }
-    $ResourceBundle
+    if ($PassThru.IsPresent -or $PSBoundParameters.ContainsKey('BaseName')) {
+        $rb | Write-Output;
+    }
 }
 
+Function Copy-ResourceBundleProperty {
+    [CmdletBinding(DefaultParameterSetName = 'LoadCopy')]
+    Param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string[]]$Key,
+        
+        [Parameter(Mandatory = $true, ParameterSetName = 'LoadCopy')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'LoadMove')]
+        [string]$SourceBaseName,
+        
+        [Parameter(Mandatory = $true, ParameterSetName = 'LoadCopy')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'LoadMove')]
+        [string]$TargetBaseName,
+        
+        [Parameter(Mandatory = $true, ParameterSetName = 'RbCopy')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'RbMove')]
+        [ResourceHelper.ResourceBundle]$SourceBundle,
+        
+        [Parameter(Mandatory = $true, ParameterSetName = 'RbCopy')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'RbMove')]
+        [ResourceHelper.ResourceBundle]$TargetBundle,
+        
+        [Parameter(Mandatory = $true, ParameterSetName = 'LoadMove')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'RbMove')]
+        # Delete found keys from source
+        [switch]$Move,
+        
+        [Parameter(ParameterSetName = 'LoadCopy')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'RbCopy')]
+        # Do not delete found keys from source
+        [switch]$Copy,
+        
+        # Overwrite existing values on target if found on source.
+        [switch]$Overwrite,
+        
+        # Create empty item on target even if key not found on source.
+        [switch]$Force,
+        
+        [Parameter(ParameterSetName = 'LoadCopy')]
+        [switch]$NoSave,
+        
+        [Parameter(ParameterSetName = 'RbMove')]
+        [Parameter(ParameterSetName = 'RbCopy')]
+        [switch]$PassThru
+    )
+    
+    Begin {
+        $src = $SourceBundle;
+        $target = $TargetBundle;
+        if ($PSBoundParameters.ContainsKey('SourceBaseName')) {
+            $src = [ResourceHelper.ResourceBundle]::new();
+            $src.Load($Script:BaseResourcesPath, $SourceBaseName);
+            $target = [ResourceHelper.ResourceBundle]::new();
+            $target.Load($Script:BaseResourcesPath, $TargetBaseName);
+        }
+    }
+
+    Process {
+        if ($Move.IsPresent) {
+            if ($Overwrite.IsPresent) {
+                if ($Force) {
+                    foreach ($k in $Key) {
+                        if ($src.ContainsKey($k)) {
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                            $src.Remove($k);
+                        } else {
+                            if (-not $target.ContainsKey($k)) { $target.Set($k, '', [ResourceHelper.LanguageType]::EN) }
+                        }
+                    }
+                } else {
+                    foreach ($k in $Key) {
+                        if ($src.ContainsKey($k)) {
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                            $src.Remove($k);
+                        }
+                    }
+                }
+            } else {
+                if ($Force) {
+                    foreach ($k in $Key) {
+                        if (-not $target.ContainsKey($k)) {
+                            if ($src.ContainsKey($k)) {
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                                $src.Remove($k);
+                            } else {
+                                $target.Set($k, '', [ResourceHelper.LanguageType]::EN);
+                            }
+                        }
+                    }
+                } else {
+                    foreach ($k in $Key) {
+                        if ($src.ContainsKey($k)) {
+                            if (-not $target.ContainsKey($k)) {
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                            }
+                            $src.Remove($k);
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($Overwrite.IsPresent) {
+                if ($Force) {
+                    foreach ($k in $Key) {
+                        if ($src.ContainsKey($k)) {
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                        } else {
+                            if (-not $target.ContainsKey($k)) { $target.Set($k, '', [ResourceHelper.LanguageType]::EN) }
+                        }
+                    }
+                } else {
+                    foreach ($k in $Key) {
+                        if ($src.ContainsKey($k)) {
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                        }
+                    }
+                }
+            } else {
+                if ($Force) {
+                    foreach ($k in $Key) {
+                        if (-not $target.ContainsKey($k)) {
+                            if ($src.ContainsKey($k)) {
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                                $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                            } else {
+                                $target.Set($k, '', [ResourceHelper.LanguageType]::EN);
+                            }
+                        }
+                    }
+                } else {
+                    foreach ($k in $Key) {
+                        if ($src.ContainsKey($k) -and -not $target.ContainsKey($k)) {
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::EN), [ResourceHelper.LanguageType]::EN);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::DE), [ResourceHelper.LanguageType]::DE);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::ES), [ResourceHelper.LanguageType]::ES);
+                            $target.Set($k, $src.Get($k, [ResourceHelper.LanguageType]::HI), [ResourceHelper.LanguageType]::HI);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    End {
+        if ($PSBoundParameters.ContainsKey('TargetBaseName') -and -not $NoSave.IsPresent) {
+            $target.Save();
+            $target.SaveCode($Script:BaseCodePath);
+            if ($Move.IsPresent) {
+                $src.Save();
+                $src.SaveCode($Script:BaseCodePath);
+            }
+        }
+        if ($PassThru.IsPresent -or $PSBoundParameters.ContainsKey('TargetBaseName')) {
+            $target | Write-Output;
+        }
+    }
+}
+
+('countryLoadError', 'customerLoadError', 'userLoadError') | Copy-ResourceBundleProperty -SourceBaseName 'view/Main' -TargetBaseName 'view/Overview';
 <#
 $ResourceBundle = Add-ResourceBundleProperty -BaseName 'App';
 $ResourceBundle
-$ResourceBundle.GetPath([ResourceHelper.LanguageType]::EN);
-#ResourceHelper.ResourceBundle
 #>
-
-$ResourceBundle = [ResourceHelper.ResourceBundle]::new();
-$ResourceBundle.Load($Script:BaseResourcesPath, 'App');
-$ResourceBundle.SaveCode($Script:BaseCodePath);

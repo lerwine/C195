@@ -3,7 +3,7 @@ package scheduler.dao.filter;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCUSTOMERS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS;
 import scheduler.AppResources;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CityElement;

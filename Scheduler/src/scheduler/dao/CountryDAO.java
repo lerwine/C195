@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.AppResourceBundleConstants;
 import scheduler.AppResources;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DatabaseTable;
@@ -23,6 +22,7 @@ import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.AppResourceKeys;
 
 @DatabaseTable(DbTable.COUNTRY)
 public class CountryDAO extends DataAccessObject implements CountryElement {
@@ -129,8 +129,8 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
 
         @Override
         public DaoFilter<CountryDAO> getAllItemsFilter() {
-            return DaoFilter.all(AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_READINGFROMDB),
-                    AppResources.getResourceString(AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES));
+            return DaoFilter.all(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_READINGFROMDB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
         @Override

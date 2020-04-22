@@ -18,8 +18,11 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CHECKINGDEPENDENCIES;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_COMPLETINGOPERATION;
+import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
+import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DELETEFAILURE;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DELETINGRECORD;
+import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerElement;
@@ -125,7 +128,7 @@ public final class MainController {
         try {
             ManageAppointments.loadInto(MainController.this, stage, AppointmentModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), stage, ex);
         }
     }
 
@@ -135,7 +138,7 @@ public final class MainController {
         try {
             ManageCustomers.loadInto(MainController.this, stage, CustomerModelImpl.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
         }
     }
 
@@ -145,7 +148,7 @@ public final class MainController {
         try {
             ManageUsers.loadInto(MainController.this, stage, UserModelImpl.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_USERLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }
     }
 
@@ -175,7 +178,7 @@ public final class MainController {
         try {
             ManageCountries.loadInto(MainController.this, stage, CountryModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_COUNTRYLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_COUNTRYLOADERROR), stage, ex);
         }
     }
 
@@ -185,7 +188,7 @@ public final class MainController {
         try {
             ManageAppointments.loadInto(MainController.this, stage, AppointmentModelFilter.myCurrentAndFuture());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), stage, ex);
         }
     }
 
@@ -195,7 +198,7 @@ public final class MainController {
         try {
             Overview.loadInto(this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), stage, ex);
         }
     }
 
@@ -205,7 +208,7 @@ public final class MainController {
         try {
             ByWeek.loadInto(this, stage, LocalDate.now());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_CALENDARLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CALENDARLOADERROR), stage, ex);
         }
     }
 
@@ -215,7 +218,7 @@ public final class MainController {
         try {
             ByMonth.loadInto(this, stage, LocalDate.now());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_CALENDARLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CALENDARLOADERROR), stage, ex);
         }
     }
 
@@ -291,7 +294,7 @@ public final class MainController {
         try {
             Overview.loadInto(this, event.getStage());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(event.getStage(), LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), event.getStage(), ex);
         }
         // CURRENT: Load AppointmentAlert
     }
@@ -368,7 +371,7 @@ public final class MainController {
         try {
             result = EditAppointment.editNew(this, stage, customer, user);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -388,7 +391,7 @@ public final class MainController {
         try {
             result = EditAppointment.edit(item, this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -423,7 +426,7 @@ public final class MainController {
         try {
             result = EditCustomer.editNew(this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -443,7 +446,7 @@ public final class MainController {
         try {
             result = EditCustomer.edit(item, this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -478,7 +481,7 @@ public final class MainController {
         try {
             result = EditCountry.edit(item, this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -513,7 +516,7 @@ public final class MainController {
         try {
             result = EditCity.edit(item, this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -548,7 +551,7 @@ public final class MainController {
         try {
             result = EditAddress.editNew(this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -568,7 +571,7 @@ public final class MainController {
         try {
             result = EditAddress.edit(item, this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -603,7 +606,7 @@ public final class MainController {
         try {
             result = EditUser.editNew(this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -623,7 +626,7 @@ public final class MainController {
         try {
             result = EditUser.edit(item, this, stage);
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -683,7 +686,7 @@ public final class MainController {
         private final DataAccessObject.DaoFactory<D> factory;
 
         DeleteTask(M model, Stage stage, ItemModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
-            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETINGRECORD));
+            super(stage, AppResources.getResourceString(RESOURCEKEY_DELETINGRECORD));
             this.model = model;
             this.onDeleted = onDeleted;
             this.factory = factory.getDaoFactory();
@@ -692,7 +695,7 @@ public final class MainController {
         @Override
         protected void processResult(String message, Stage owner) {
             if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE), message);
+                AlertHelper.showWarningAlert(owner, LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), message);
             } else if (null != onDeleted) {
                 onDeleted.accept(model);
             }
@@ -700,9 +703,8 @@ public final class MainController {
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            LOG.log(Level.SEVERE, "Error deleting record", ex);
-            AlertHelper.showErrorAlert(owner, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DELETEFAILURE),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_ERRORDELETINGFROMDB), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), owner, ex,
+                    AppResources.getResourceString(RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override

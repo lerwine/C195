@@ -20,7 +20,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_DBREADERROR;
+import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DataObjectEvent;
@@ -218,8 +218,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         try {
             onAddNewItem(stage);
         } catch (IOException ex) {
-            // PENDING: Internationalize message
-            AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
         }
     }
 
@@ -238,8 +237,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             try {
                 onEditItem(stage, item);
             } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert((Stage) listingTableView.getScene().getWindow(), LOG, "Error loading view", ex);
+                ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
             }
         }
     }
@@ -267,8 +265,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 try {
                     onAddNewItem(stage);
                 } catch (IOException ex) {
-                    // PENDING: Internationalize message
-                    AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+                ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
                 }
             }
             return;
@@ -286,8 +283,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             try {
                 onEditItem(stage, item);
             } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+                ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
             }
         }
     }
@@ -303,8 +299,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 try {
                     onAddNewItem(stage);
                 } catch (IOException ex) {
-                    // PENDING: Internationalize message
-                    AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+                    ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
                 }
             }
             return;
@@ -322,8 +317,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             try {
                 onEditItem(stage, item);
             } catch (IOException ex) {
-                // PENDING: Internationalize message
-                AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
+                ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
             }
         }
     }
@@ -401,8 +395,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
     
     protected void onItemLoadError(Throwable error, Stage stage) {
-        AlertHelper.showErrorAlert((Stage)listingTableView.getScene().getWindow(), LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR),
-                "Unexpected error loading items from database", error);
+        ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, error,
+                AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGITEMSFROMDB));
     }
     
     protected void onItemsLoaded(List<T> items) {

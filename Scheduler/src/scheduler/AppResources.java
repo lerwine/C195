@@ -33,7 +33,7 @@ import scheduler.view.city.SupportedLocale;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/App")
-public final class AppResources implements AppResourceBundleConstants {
+public final class AppResources implements AppResourceKeys {
     public static final String FXMLPROPERTYNAME_CONTROLLER = "scheduler.Controller";
 
     private static final Logger LOG = Logger.getLogger(AppResources.class.getName());

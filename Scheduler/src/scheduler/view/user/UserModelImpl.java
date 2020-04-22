@@ -4,7 +4,7 @@ import java.util.Objects;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import static scheduler.AppResourceBundleConstants.RESOURCEKEY_ACTIVEUSERS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVEUSERS;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
