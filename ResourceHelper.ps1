@@ -359,6 +359,7 @@ namespace ResourceHelper {
             hasContinuation = c;
             return result;
         }
+        public void Save() { Save(null); }
         public void Save(string path) {
             if (null == path) {
                 if (_path.Length == 0)
@@ -385,6 +386,7 @@ namespace ResourceHelper {
             }
             _path = path;
         }
+        public void Load() { Load(null); }
         public void Load(string path) {
             if (null == path) {
                 if (_path.Length == 0)
@@ -500,7 +502,8 @@ namespace ResourceHelper {
         public string BaseName { get { return _baseName; } }
 
         public string BasePath { get { return _basePath; } }
-
+        
+        public void Load() { Load(null, null); }
         public void Load(string rootPath, string relativeName) {
             if (null == rootPath) {
                 rootPath = _basePath;
@@ -572,6 +575,7 @@ namespace ResourceHelper {
             finally { Monitor.Exit(_syncRoot); }
         }
         
+        public void Save() { Save(null, null); }
         public void Save(string rootPath, string relativeName) {
             if (null == rootPath) {
                 rootPath = _basePath;
@@ -1030,27 +1034,56 @@ Function Get-ResourceBundlePaths {
 }
 
 Function Add-ResourceBundleProperty {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSet = 'Load')]
     Param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSet = 'Load')]
         [string]$BaseName,
         
+        [Parameter(Mandatory = $true, ParameterSet = 'ResourceBundle')]
+        [ResourceHelper.ResourceBundle]$ResourceBundle,
+        
         [Parameter(Mandatory = $true)]
-        [String]$Message
+        [String]$Message,
+
+        [switch]$NoSave
     )
 
     $ResourceBundle = [ResourceHelper.ResourceBundle]::new();
     $ResourceBundle.Load($Script:BaseResourcesPath, $BaseName);
 
-    $ResourceBundle;
+    $elements = ($Message -replace '[^a-zA-Z\d]+', ' ').Split(' ');
+    if ($elements[0].Length -eq 1) {
+        $elements[0] = $elements[0].ToLower();
+    } else {
+        $elements[0] = $elements[0].Substring(0, 1).ToLower() + $elements[0].Substring(1);
+    }
+    for ($i = 1; $i -lt $elements.Length; $i++) {
+        if ($elements[$i].Length -eq 1) {
+            $elements[$i] = $elements[$i].ToLower();
+        } else {
+            $elements[$i] = $elements[$i].Substring(0, 1).ToLower() + $elements[$i].Substring(1);
+        }
+    }
+    $dflt = -join $elements;
+    $key = Read-Host -Prompt "Enter key (blank to accept `"$dflt`")";
+    if ([string]::IsNullOrWhiteSpace($key)) { $key = $dflt }
+    [System.Windows.Clipboard]::SetText($Message);
+    $en = Read-Host -Prompt 'English';
+    $de = Read-Host -Prompt 'German';
+    $es = Read-Host -Prompt 'Spanish';
+    $hi = Read-Host -Prompt 'Hindi';
+    $ResourceBundle.Set($key, $en, [ResourceHelper.LanguageType]::EN);
+    $ResourceBundle.Set($key, $de, [ResourceHelper.LanguageType]::DE);
+    $ResourceBundle.Set($key, $es, [ResourceHelper.LanguageType]::ES);
+    $ResourceBundle.Set($key, $hi, [ResourceHelper.LanguageType]::HI);
+    if (-not $NoSave.IsPresent) {
+        $ResourceBundle.Save();
+    }
+    $ResourceBundle
 }
 
 $ResourceBundle = Add-ResourceBundleProperty -BaseName 'App' -Message 'Unexpected error getting original exception details:';
 $ResourceBundle
 $ResourceBundle.GetPath([ResourceHelper.LanguageType]::EN);
-$PropertiesFile = [ResourceHelper.PropertiesFile]::new();
-$PropertiesFile.Load('C:\Users\lerwi\NetBeansProjects\C195\Scheduler\resources\scheduler\App_en.properties');
-$PropertiesFile.Count;
-$PropertiesFile
 #ResourceHelper.ResourceBundle
 #>
