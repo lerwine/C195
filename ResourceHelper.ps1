@@ -223,6 +223,7 @@ namespace ResourceHelper {
                 path = System.IO.Path.GetDirectoryName(path);
                 if (string.IsNullOrWhiteSpace(path))
                     return "";
+                n = System.IO.Path.GetFileName(path);
             }
             return path;
         }
@@ -511,14 +512,20 @@ namespace ResourceHelper {
                 if (rootPath.Length == 0 || s.Length == 0)
                     throw new ArgumentNullException("rootPath");
                 rootPath = PropertiesFile.ToNormalizedPath(rootPath.Substring(0, rootPath.Length - s.Length));
-            } else if ((rootPath = PropertiesFile.ToNormalizedPath(rootPath)).Length == 0)
-                throw new ArgumentException("Root path is empty", "rootPath");
-            if (null == relativeName) {
-                relativeName = _baseName;
-                if (relativeName.Length == 0)
-                    throw new ArgumentNullException("rootPath");
-            } else if (relativeName.Trim().Length == 0)
-                throw new ArgumentException("Relative name is empty", "relativeName");
+                if (null == relativeName)
+                    relativeName = s;
+                else if (relativeName.Trim().Length == 0)
+                    throw new ArgumentException("Relative name is empty", "relativeName");
+            } else {
+                if ((rootPath = PropertiesFile.ToNormalizedPath(rootPath)).Length == 0)
+                    throw new ArgumentException("Root path is empty", "rootPath");
+                if (null == relativeName) {
+                    relativeName = _baseName;
+                    if (relativeName.Length == 0)
+                        throw new ArgumentNullException("rootPath");
+                } else if (relativeName.Trim().Length == 0)
+                    throw new ArgumentException("Relative name is empty", "relativeName");
+            }
             string basePath = PropertiesFile.AssertValidFileDestination(Path.Combine(rootPath, relativeName), "relativeName");
             string baseName = PropertiesFile.ToRelativePath(basePath, rootPath);
             string fileName = Path.GetFileName(basePath);
@@ -583,14 +590,20 @@ namespace ResourceHelper {
                 if (rootPath.Length == 0 || s.Length == 0)
                     throw new ArgumentNullException("rootPath");
                 rootPath = PropertiesFile.ToNormalizedPath(rootPath.Substring(0, rootPath.Length - s.Length));
-            } else if ((rootPath = PropertiesFile.ToNormalizedPath(rootPath)).Length == 0)
-                throw new ArgumentException("Root path is empty", "rootPath");
-            if (null == relativeName) {
-                relativeName = _baseName;
-                if (relativeName.Length == 0)
-                    throw new ArgumentNullException("rootPath");
-            } else if (relativeName.Trim().Length == 0)
-                throw new ArgumentException("Relative name is empty", "relativeName");
+                if (null == relativeName)
+                    relativeName = s;
+                else if (relativeName.Trim().Length == 0)
+                    throw new ArgumentException("Relative name is empty", "relativeName");
+            } else {
+                if ((rootPath = PropertiesFile.ToNormalizedPath(rootPath)).Length == 0)
+                    throw new ArgumentException("Root path is empty", "rootPath");
+                if (null == relativeName) {
+                    relativeName = _baseName;
+                    if (relativeName.Length == 0)
+                        throw new ArgumentNullException("rootPath");
+                } else if (relativeName.Trim().Length == 0)
+                    throw new ArgumentException("Relative name is empty", "relativeName");
+            }
             string basePath = PropertiesFile.AssertValidFileDestination(Path.Combine(rootPath, relativeName), "relativeName");
             string baseName = PropertiesFile.ToRelativePath(basePath, rootPath);
             string fileName = Path.GetFileName(basePath);
@@ -620,6 +633,8 @@ namespace ResourceHelper {
             finally { Monitor.Exit(_syncRoot); }
         }
         
+        public void SaveCode(string rootDirectory) { SaveCode(rootDirectory, null); }
+        
         public void SaveCode(string rootDirectory, string relativeBasePath) {
             if (null == rootDirectory)
                     throw new ArgumentNullException("rootDirectory");
@@ -639,7 +654,6 @@ namespace ResourceHelper {
             string dirName = Path.GetDirectoryName(basePath);
 
             List<string> elements = new List<string>();
-            elements.Add("scheduler");
             string p = baseName;
             do {
                 elements.Add(Path.GetFileName(p));
@@ -649,9 +663,10 @@ namespace ResourceHelper {
             elements.RemoveAt(0);
             if (elements.Count > 1)
                 elements.Reverse();
-            
+            string packageRoot = Path.GetFileName(dirName);
             using (StreamWriter writer = new StreamWriter(Path.Combine(dirName, fileName + "ResourceKeys.java"), false, new UTF8Encoding(false, false))) {
-                writer.Write("package scheduler");
+                writer.Write("package ");
+                writer.Write(packageRoot);
                 IEnumerator<string> enumerator = elements.GetEnumerator();
                 while (enumerator.MoveNext()) {
                     writer.Write(".");
@@ -660,6 +675,11 @@ namespace ResourceHelper {
                 writer.WriteLine(";");
                 writer.WriteLine("");
                 writer.WriteLine("/**");
+                writer.Write(" * Defines resource bundle keys for the {@code ");
+                writer.Write(packageRoot);
+                writer.Write("/");
+                writer.Write(baseName.Replace("\\", "/"));
+                writer.WriteLine("} resource bundle.");
                 writer.WriteLine(" *");
                 writer.WriteLine(" * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;");
                 writer.WriteLine(" */");
@@ -677,7 +697,7 @@ namespace ResourceHelper {
                     writer.WriteLine("    /**");
                     writer.Write("     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code \"");
                     writer.Write(PropertiesFile.Escape(_current[enumerator.Current], false).Replace("\"", "\\\""));
-                    writer.Write("\"}.");
+                    writer.WriteLine("\"}.");
                     writer.WriteLine("     */");
                     writer.Write("    public static final String RESOURCEKEY_");
                     writer.Write(enumerator.Current.ToUpper());
@@ -1034,12 +1054,12 @@ Function Get-ResourceBundlePaths {
 }
 
 Function Add-ResourceBundleProperty {
-    [CmdletBinding(DefaultParameterSet = 'Load')]
+    [CmdletBinding(DefaultParameterSetName = 'Load')]
     Param(
-        [Parameter(Mandatory = $true, ParameterSet = 'Load')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Load')]
         [string]$BaseName,
         
-        [Parameter(Mandatory = $true, ParameterSet = 'ResourceBundle')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'ResourceBundle')]
         [ResourceHelper.ResourceBundle]$ResourceBundle,
         
         [Parameter(Mandatory = $true)]
@@ -1051,7 +1071,7 @@ Function Add-ResourceBundleProperty {
     $ResourceBundle = [ResourceHelper.ResourceBundle]::new();
     $ResourceBundle.Load($Script:BaseResourcesPath, $BaseName);
 
-    $elements = ($Message -replace '[^a-zA-Z\d]+', ' ').Split(' ');
+    $elements = ($Message -replace '[^a-zA-Z\d]+', ' ').Trim().Split(' ');
     if ($elements[0].Length -eq 1) {
         $elements[0] = $elements[0].ToLower();
     } else {
@@ -1059,31 +1079,39 @@ Function Add-ResourceBundleProperty {
     }
     for ($i = 1; $i -lt $elements.Length; $i++) {
         if ($elements[$i].Length -eq 1) {
-            $elements[$i] = $elements[$i].ToLower();
+            $elements[$i] = $elements[$i].ToUpper();
         } else {
-            $elements[$i] = $elements[$i].Substring(0, 1).ToLower() + $elements[$i].Substring(1);
+            $elements[$i] = $elements[$i].Substring(0, 1).ToUpper() + $elements[$i].Substring(1);
         }
     }
     $dflt = -join $elements;
     $key = Read-Host -Prompt "Enter key (blank to accept `"$dflt`")";
     if ([string]::IsNullOrWhiteSpace($key)) { $key = $dflt }
     [System.Windows.Clipboard]::SetText($Message);
-    $en = Read-Host -Prompt 'English';
-    $de = Read-Host -Prompt 'German';
-    $es = Read-Host -Prompt 'Spanish';
-    $hi = Read-Host -Prompt 'Hindi';
-    $ResourceBundle.Set($key, $en, [ResourceHelper.LanguageType]::EN);
+    $de = Read-Host -Prompt 'German (blank to copy from clipboard)';
+    if ([string]::IsNullOrWhiteSpace($de)) { $de = [System.Windows.Clipboard]::GetText() }
+    $es = Read-Host -Prompt 'Spanish (blank to copy from clipboard)';
+    if ([string]::IsNullOrWhiteSpace($es)) { $es = [System.Windows.Clipboard]::GetText() }
+    $hi = Read-Host -Prompt 'Hindi (blank to copy from clipboard)';
+    if ([string]::IsNullOrWhiteSpace($hi)) { $hi = [System.Windows.Clipboard]::GetText() }
+    $ResourceBundle.Set($key, $Message, [ResourceHelper.LanguageType]::EN);
     $ResourceBundle.Set($key, $de, [ResourceHelper.LanguageType]::DE);
     $ResourceBundle.Set($key, $es, [ResourceHelper.LanguageType]::ES);
     $ResourceBundle.Set($key, $hi, [ResourceHelper.LanguageType]::HI);
     if (-not $NoSave.IsPresent) {
         $ResourceBundle.Save();
+        $ResourceBundle.SaveCode($Script:BaseCodePath);
     }
     $ResourceBundle
 }
 
-$ResourceBundle = Add-ResourceBundleProperty -BaseName 'App' -Message 'Unexpected error getting original exception details:';
+<#
+$ResourceBundle = Add-ResourceBundleProperty -BaseName 'App';
 $ResourceBundle
 $ResourceBundle.GetPath([ResourceHelper.LanguageType]::EN);
 #ResourceHelper.ResourceBundle
 #>
+
+$ResourceBundle = [ResourceHelper.ResourceBundle]::new();
+$ResourceBundle.Load($Script:BaseResourcesPath, 'App');
+$ResourceBundle.SaveCode($Script:BaseCodePath);
