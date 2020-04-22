@@ -1,11 +1,10 @@
-﻿
-$Script:BaseResourcesPath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\resources\scheduler';
-$Script:BaseCodePath = 'C:\Users\lerwi\OneDrive\Documents\NetBeansProjects\C195\Scheduler\src\scheduler';
-$Script:AllLocales = @('en', 'es', 'de', 'hi');
+﻿$Script:BaseResourcesPath = $PSScriptRoot | Join-Path -ChildPath 'Scheduler\resources\scheduler';
+$Script:BaseCodePath = $PSScriptRoot | Join-Path -ChildPath 'Scheduler\src\scheduler';
 
+$Script:AllLocales = @('en', 'es', 'de', 'hi');
+Set-Location $PSScriptRoot;
 Function Convert-RelativePathToFullPath {
     [CmdletBinding(DefaultParameterSetName = 'Resource')]
-    [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string[]]$InputPath,
@@ -95,10 +94,6 @@ Function Test-PropertiesFilePath {
     End { ($Success -eq $true) | Write-Output }
 }
 
-$Script:LineBreakRegex = [System.Text.RegularExpressions.Regex]::new('\r\n?|\n');
-$Script:StripCommentRegex = [System.Text.RegularExpressions.Regex]::new('^\s*# ?');
-$Script:PropertyLineRegex = [System.Text.RegularExpressions.Regex]::new('(?=\s*#)(?<c>\s*#.*)|(?<k>(\\.|[^=\\]+)*(=(?==))?)=(?<v>(\\.|[^=\\]+)*)(?<p>\\)?');
-$Script:UnescapeRegex = [System.Text.RegularExpressions.Regex]::new('\G(\\((?<c>[bntrf])|u(?<u>[a-fA-F\d]{4})|(?<o>[0-3]([0-7][0-7]?)?|[0-7][0-7]?)|(?<l>.[^=\\]*))|(?<l>[^=\\]+|=$))');
 
 Function Test-PropertiesFile {
     [CmdletBinding(DefaultParameterSetName = 'Relative')]
@@ -135,454 +130,927 @@ Function Test-PropertiesFile {
     End { ($Success -eq $true) | Write-Output }
 }
 
-Function ConvertFrom-EscapedPropertiesText {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
-        [string]$Text
-    )
+Add-Type -TypeDefinition @'
+namespace ResourceHelper {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Text.RegularExpressions;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Threading;
 
-    if ($Text.Trim().Length -eq 0) {
-        New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-            Text = $Text;
-            IsContinued = $false;
-        }
-    } else {
-        if ($Text -eq '\') {
-            New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                Text = '';
-                IsContinued = $true;
-            }
-        } else {
-            $Unescaped = '';
-            $e = 1;
-            $mc = $Script:UnescapeRegex.Matches($Text);
-            if ($mc.Count -eq 0) {
-                if ($Text.Length -gt 1) {
-                    $Unescaped = $Text.Substring(0, 1);
-                } else {
-                    $Unescaped = $Text;
-                }
-            } else {
-                $Unescaped = -join ($mc | ForEach-Object {
-                    if ($_.Groups['c'].Success) {
-                        switch ($_.Groups['c'].Value) {
-                            'b' {
-                                "`b";
-                                break;
-                            }
-                            'n' {
-                                "`n";
-                                break;
-                            }
-                            't' {
-                                "`t";
-                                break;
-                            }
-                            'r' {
-                                "`r";
-                                break;
-                            }
-                            'f' {
-                                "`f";
-                                break;
+    public enum LanguageType {
+        EN,
+        DE,
+        ES,
+        HI
+    }
+    public class PropertiesFile {
+        public static readonly Regex EncodeKeyRegex = new Regex(@"(?<u>[\u0000-\u0019\u007f-\uffff])|(?<c>[\b\n\t\r\f])|(?<e>[\\ ]|=(?=.))");
+        public static readonly Regex EncodeValueRegex = new Regex(@"(?<u>[\u0000-\u0019\u007f-\uffff])|(?<c>[\b\n\t\r\f\\])");
+        public static readonly Regex LineBreakRegex = new Regex(@"\r\n?|\n");
+        public static readonly Regex StripCommentRegex = new Regex(@"^\s*# ?");
+        public static readonly Regex PropertyLineRegex = new Regex(@"(?=\s*#)\s*#|(?<k>(\\.|[^=\\]+)*(=(?==))?)=(?<v>.*)$");
+        public static readonly Regex UnescapeRegex = new Regex(@"\\((?<c>[bntrf])|u(?<u>[a-fA-F\d]{4})|(?<o>[0-3]([0-7][0-7]?)?|[0-7][0-7]?)|(?<l>.[^=\\]*)|$)");
+
+        private readonly object _syncRoot = new Object();
+        private string _path = "";
+        private readonly Dictionary<string, string> _dictionary = new Dictionary<string, string>(StringComparer.InvariantCulture);
+        
+        public string Path { get { return _path; } }
+
+        public void CopyFrom(PropertiesFile source, bool overwrite, bool remove) {
+            if (null == source)
+                throw new ArgumentNullException("source");
+            if (ReferenceEquals(source, this))
+                return;
+            Monitor.Enter(_syncRoot);
+            try {
+                Monitor.Enter(source._syncRoot);
+                try {
+                    _path = source._path;
+                    if (source._dictionary.Count == 0) {
+                        if (remove)
+                            _dictionary.Clear();
+                        return;
+                    }
+                    if (remove) {
+                        if (overwrite) {
+                            _dictionary.Clear();
+                            foreach (string k in source._dictionary.Keys.ToArray())
+                                _dictionary.Add(k, source._dictionary[k]);
+                            return;
+                        }
+                        if (_dictionary.Count > 0) {
+                            foreach (string k in _dictionary.Keys.ToArray()) {
+                                if (!source._dictionary.ContainsKey(k))
+                                    _dictionary.Remove(k);
                             }
                         }
+                    }
+                    if (_dictionary.Count == 0) {
+                        foreach (string k in source._dictionary.Keys.ToArray())
+                            _dictionary.Add(k, source._dictionary[k]);
+                        return;
+                    }
+                    if (overwrite) {
+                        foreach (string k in source._dictionary.Keys) {
+                            if (_dictionary.ContainsKey(k))
+                                _dictionary[k] = source._dictionary[k];
+                            else
+                                _dictionary.Add(k, source._dictionary[k]);
+                        }
                     } else {
-                        if ($_.Groups['u'].Success) {
-                            ([char]([int]::Parse($_.Groups['u'].Value, [System.Globalization.NumberStyles]::HexNumber)));
+                        foreach (string k in source._dictionary.Keys) {
+                            if (!_dictionary.ContainsKey(k))
+                                _dictionary.Add(k, source._dictionary[k]);
+                        }
+                    }
+                }
+                finally { Monitor.Exit(source._syncRoot); }
+            }
+            finally { Monitor.Exit(_syncRoot); }
+        }
+
+        public static string ToNormalizedPath(string path) {
+            if (string.IsNullOrWhiteSpace(path))
+                return "";
+            path = System.IO.Path.GetFullPath(path);
+            string n = System.IO.Path.GetFileName(path);
+            while (string.IsNullOrWhiteSpace(n)) {
+                path = System.IO.Path.GetDirectoryName(path);
+                if (string.IsNullOrWhiteSpace(path))
+                    return "";
+            }
+            return path;
+        }
+        public static string AssertValidFileDestination(string path, string argName) {
+            if (null == path)
+                throw new ArgumentNullException(argName);
+            if ((path = ToNormalizedPath(path)).Length == 0)
+                throw new ArgumentException("Path is empty", argName);
+            if (Directory.Exists(path) || path.Length == System.IO.Path.GetPathRoot(path).Length)
+                throw new ArgumentException("Path a directory", argName);
+            if (!Directory.Exists(System.IO.Path.GetDirectoryName(path)))
+                throw new ArgumentException("Parent directory not found", argName);
+            return path;
+        }
+        public static string AssertValidFileDestination(string path) {
+            return AssertValidFileDestination(path, "path");
+        }
+        public static string ToRelativePath(string sourcePath, string toPath)
+        {
+            if (null == sourcePath)
+                throw new ArgumentNullException("sourcePath");
+            if (null == toPath)
+                throw new ArgumentNullException("toPath");
+            if ((sourcePath = ToNormalizedPath(sourcePath)).Length == 0)
+                throw new ArgumentException("Path is empty", "sourcePath");
+            if ((toPath = ToNormalizedPath(toPath)).Length == 0)
+                throw new ArgumentException("Path is empty", "toPath");
+
+            if (toPath.Length >= sourcePath.Length)
+                throw new ArgumentException("Source path refers to a location outside the \"to\" path.", "sourcePath");
+            return sourcePath.Substring(toPath.Length + 1);
+        }
+        
+        public static string Escape(string value, bool asKey) {
+            if (string.IsNullOrEmpty(value))
+                return "";
+            if (asKey) {
+                switch (value) {
+                    case "=":
+                        return "==";
+                    case "#":
+                        return "\\#";
+                    case "#=":
+                        return "\\#=";
+                }
+                bool trailing = value.EndsWith("=");
+                if (trailing)
+                    value = value.Substring(0, value.Length - 1);
+                bool leading = value.StartsWith("#");
+                if (leading)
+                    value = value.Substring(1);
+                value = EncodeKeyRegex.Replace(value, new MatchEvaluator((Match m) => {
+                    if (m.Groups["c"].Success) {
+                        switch (m.Groups["c"].Value) {
+                            case "\b":
+                                return "\\b";
+                            case "\t":
+                                return "\\t";
+                            case "\r":
+                                return "\\r";
+                            case "\f":
+                                return "\\f";
+                        }
+                        return "\\n";
+                    }
+                    if (m.Groups['e'].Success)
+                        return "\\" + m.Groups["e"].Value;
+                    return "\\u" + ((int)m.Groups["u"].Value[0]).ToString("x4");
+                }));
+
+                if (leading)
+                    return "\\#" + ((trailing) ? value + "=" : value);
+                return (trailing) ? value + "=" : value;
+            }
+            
+            return EncodeValueRegex.Replace(value, new MatchEvaluator((Match m) => {
+                if (m.Groups["c"].Success) {
+                    switch (m.Groups["c"].Value) {
+                        case "\b":
+                            return "\\b";
+                        case "\t":
+                            return "\\t";
+                        case "\r":
+                            return "\\r";
+                        case "\f":
+                            return "\\f";
+                    }
+                    return "\\n";
+                }
+                if (m.Groups['e'].Success)
+                    return "\\" + m.Groups["e"].Value;
+                return "\\u" + ((int)m.Groups["u"].Value[0]).ToString("x4");
+            }));
+        }
+        public static string Unescape(string value, out bool hasContinuation) {
+            if (string.IsNullOrWhiteSpace(value)) {
+                hasContinuation = false;
+                return (null == value) ? "" : value;
+            }
+            if (value == "\\") {
+                hasContinuation = true;
+                return "";
+            }
+            bool c = false;
+            string result = UnescapeRegex.Replace(value, new MatchEvaluator((Match m) => {
+                if (m.Groups["c"].Success) {
+                    switch (m.Groups["c"].Value) {
+                        case "b":
+                            return "\b";
+                        case "t":
+                            return "\t";
+                        case "r":
+                            return "\r";
+                        case "f":
+                            return "\f";
+                    }
+                    return "\n";
+                }
+                if (m.Groups["u"].Success) {
+                    return new String(new char[] { (char)int.Parse(m.Groups["u"].Value, NumberStyles.HexNumber) });
+                }
+                if (m.Groups["o"].Success) {
+                    string s = m.Groups["o"].Value;
+                    if (s.Length == 1)
+                        return new String(new char[] { (char)int.Parse(s) });
+                    int i = int.Parse(s.Substring(0, 1)) * 7 + int.Parse(s.Substring(1, 1));
+                    if (s.Length > 2)
+                        return new String(new char[] { (char)(i * 8 + int.Parse(s.Substring(2))) });
+                    return new String(new char[] { (char)i });
+                }
+                c = true;
+                return "";
+            }));
+            hasContinuation = c;
+            return result;
+        }
+        public void Save(string path) {
+            if (null == path) {
+                if (_path.Length == 0)
+                    throw new ArgumentNullException("path");
+                path = _path;
+            }
+            path = AssertValidFileDestination(path, "path");
+            using (StreamWriter writer = new StreamWriter(path, false, new UTF8Encoding(false, false))) {
+                Monitor.Enter(_syncRoot);
+                try {
+                    List<string> keys = new List<string>();
+                    foreach (string k in _dictionary.Keys)
+                        keys.Add(k);
+                    keys.Sort();
+                    IEnumerator<string> enumerator = keys.GetEnumerator();
+                    while (enumerator.MoveNext()) {
+                        writer.Write(Escape(enumerator.Current, true));
+                        writer.Write("=");
+                        writer.WriteLine(Escape(_dictionary[enumerator.Current], false));
+                    }
+                }
+                finally { Monitor.Exit(_syncRoot); }
+                writer.Flush();
+            }
+            _path = path;
+        }
+        public void Load(string path) {
+            if (null == path) {
+                if (_path.Length == 0)
+                    throw new ArgumentNullException("path");
+                path = _path;
+            }
+            path = AssertValidFileDestination(path, "path");
+            Monitor.Enter(_syncRoot);
+            try {
+                Dictionary<string, string> result = new Dictionary<string, string>(StringComparer.InvariantCulture);
+                if (File.Exists(path)) {
+                    string currentKey = null;
+                    int lineNumber = 0;
+                    bool c;
+                    foreach (string line in File.ReadAllLines(path, new UTF8Encoding(false, false))) {
+                        if (null == currentKey) {
+                            Match m = PropertyLineRegex.Match(line);
+                            if (!m.Success) {
+                                if (line.Trim().Length > 0)
+                                    throw new Exception("Parse error at line " + lineNumber.ToString());
+                                continue;
+                            }
+                            if (m.Groups["k"].Success) {
+                                currentKey = Unescape(m.Groups["k"].Value, out c);
+                                result.Add(currentKey, Unescape(m.Groups["v"].Value, out c));
+                                if (!c)
+                                    currentKey = null;
+                            }
                         } else {
-                            if ($_.Groups['o'].Success) {
-                                $o = $_.Groups['o'].Value;
-                                if ($o.Length -eq 1) {
-                                    ([char]([int]::Parse($_.Groups['o'].Value)));
-                                } else {
-                                    $d = ([int]::Parse($_.Groups['o'].Value.Substring(0, 1)) * 8) + [int]::Parse($_.Groups['o'].Value.Substring(1, 1));
-                                    if ($o.Length -gt 2) {
-                                        ([char](($d * 8) + [int]::Parse($_.Groups['o'].Value.Substring(2))));
-                                    } else {
-                                        ([char]$d);
-                                    }
-                                }
-                            } else {
-                                $_.Groups['l'].Value;
-                            }
+                            result[currentKey] += Unescape(line, out c);
+                            if (!c)
+                                currentKey = null;
                         }
                     }
-                });
-                $e = $mc[$mc.Count - 1].Index + $mc[$mc.Count - 1].Length;
+                }
+                _dictionary.Clear();
+                foreach (string k in result.Keys)
+                    _dictionary.Add(k, result[k]);
             }
-            if ($e -lt $Text.Length) {
-                $s = $Text.Substring($e);
-                if ($s -eq '\') {
-                    New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                        Text = $Unescaped;
-                        IsContinued = $true;
+            finally { Monitor.Exit(_syncRoot); }
+            _path = path;
+        }
+        
+        public int Count { get { return _dictionary.Count; } }
+        
+        public ICollection<string> Keys { get { return _dictionary.Keys; } }
+        
+        public ICollection<string> Values { get { return _dictionary.Values; } }
+        
+        public string this[string key]
+        {
+            get
+            {
+                if (null != key) {
+                    Monitor.Enter(_syncRoot);
+                    try {
+                        if (_dictionary.ContainsKey(key))
+                            return _dictionary[key];
                     }
-                } else {
-                    if ($s.Length -eq 1) {
-                        New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                            Text = $Unescaped + $s;
-                            IsContinued = $true;
-                        }
-                    } else {
-                        $Unescaped += $s.Substring(0, 1);
-                        $UnescapedPropertiesText = ConvertFrom-EscapedPropertiesText -Text $s.Substring(1);
-                        New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                            Text = $Unescaped + $UnescapedPropertiesText.Text;
-                            IsContinued = $UnescapedPropertiesText.IsContinued;
-                        }
-                    }
+                    finally { Monitor.Exit(_syncRoot); }
                 }
-            } else {
-                New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                    Text = $Unescaped;
-                    IsContinued = $false;
+                return null;
+            }
+            set
+            {
+                Monitor.Enter(_syncRoot);
+                try {
+                    if (_dictionary.ContainsKey(key))
+                        _dictionary[key] = (null == value) ? "" : value;
+                    else
+                        _dictionary.Add(key, (null == value) ? "" : value);
                 }
+                finally { Monitor.Exit(_syncRoot); }
             }
         }
-    }
-}
 
-$Script:EncodeKeyRegex = [System.Text.RegularExpressions.Regex]::new('(?<u>[\u0000-\u0019\u007f-\uffff])|(?<c>[\b\n\t\r\f])|(?<e>[\\ ]|=(?=.))');
-$Script:EncodeValueRegex = [System.Text.RegularExpressions.Regex]::new('(?<u>[\u0000-\u0019\u007f-\uffff])|(?<c>[\b\n\t\r\f\\])');
-
-Function ConvertTo-EscapedPropertiesText {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
-        [string]$Text,
-
-        [switch]$Key
-    )
-    if ($Key.IsPresent) {
-        switch ($Text) {
-            "" {
-                "" | Write-Output;
-                break;
-            }
-            "=" {
-                "==" | Write-Output;
-                break;
-            }
-            "#" {
-                "\#" | Write-Output;
-                break;
-            }
-            "#=" {
-                "\#=" | Write-Output;
-                break;
-            }
-            default {
-                $Result = $Text;
-                if ($Result.EndsWith('=')) { $Result = $Result.Substring(0, $Result.Length - 1) }
-                if ($Result.StartsWith('#')) { $Result = $Result.Substring(1) }
-                $Result = $Script:EncodeKeyRegex.Replace($Result, {
-                    Param(
-                        [System.Text.RegularExpressions.Match]$m
-                    )
-                    if ($m.Groups['c'].Success) {
-                        switch ($m.Groups['c'].Value) {
-                            "`b" {
-                                return '\b';
-                            }
-                            "`t" {
-                                return '\t';
-                            }
-                            "`r" {
-                                return '\r';
-                            }
-                            "`f" {
-                                return '\f';
-                            }
-                        }
-                        return '\n';
-                    }
-                    if ($m.Groups['e'].Success) {
-                        return "\$($m.Groups['e'].Value)";
-                    }
-                    return "\u$(([int]([char]($m.Groups['u'].Value))).ToString('x4'))";
-                });
-
-                if ($Text.EndsWith('=')) { $Result += "=" }
-                if ($Text.StartsWith('#')) { "\#" + $Result } else { $Result }
-
-                break;
+        public void Add(string key, string value) {
+            Monitor.Enter(_syncRoot);
+            try {
+                _dictionary.Add(key, (null == value) ? "" : value);
+            } finally { Monitor.Exit(_syncRoot); }
+        }
+        
+        public void Remove(string key) {
+            if (null != key) {
+                Monitor.Enter(_syncRoot);
+                try {
+                    _dictionary.Remove(key);
+                } finally { Monitor.Exit(_syncRoot); }
             }
         }
-    } else {
-        $Script:EncodeValueRegex.Replace($Text, {
-            Param(
-                [System.Text.RegularExpressions.Match]$m
-            )
-            if ($m.Groups['c'].Success) {
-                switch ($m.Groups['c'].Value) {
-                    "`b" {
-                        return '\b';
-                    }
-                    "`t" {
-                        return '\t';
-                    }
-                    "`r" {
-                        return '\r';
-                    }
-                    "`f" {
-                        return '\f';
-                    }
-                }
-                return '\n';
-            }
-            if ($m.Groups['e'].Success) {
-                return "\$($m.Groups['e'].Value)";
-            }
-            return "\u$(([int]([char]($m.Groups['u'].Value))).ToString('x4'))";
-        });
+
+        public bool ContainsKey(string key) { return _dictionary.ContainsKey(key); }
+        
+        public Dictionary<string,string>.Enumerator GetEnumerator() {
+            return _dictionary.GetEnumerator();
+        }
+
     }
-}
+    public class ResourceBundle {
+        public static string GetFileName(string baseName, LanguageType language) {
+            switch (language) {
+                case LanguageType.DE:
+                    return baseName + "_de.properties";
+                case LanguageType.ES:
+                    return baseName + "_es.properties";
+                case LanguageType.HI:
+                    return baseName + "_hi.properties";
+            }
+            return baseName + "_en.properties";
+        }
 
-Function New-PropertiesFile {
-    [CmdletBinding(DefaultParameterSetName = 'Relative')]
-    Param(
-        [Parameter(Mandatory = $true, ParameterSetName = 'Relative')]
-        [ValidateScript({ $_ | Test-PropertiesFilePath -Resource })]
-        [string]$Path
-    )
+        public string BaseName { get { return _baseName; } }
 
-    $FullPath = $Path | Convert-RelativePathToFullPath -Resource;
-    Write-Host -Object $FullPath;
-    $Dictionary = [System.Collections.Generic.Dictionary[System.String, [System.Tuple[System.String,System.String[]]]]]::new([System.StringComparer]::InvariantCulture);
-    if (Test-Path -Path $FullPath) {
-        Write-Host -Object 'Exists';
-        $PreviousItem = $null;
-        $PreviousBlankLine = $false;
-        [string[]]$CommentBlocks = @();
-        $CommentLines = @();
-        $LineNumber = 0;
-        $Script:LineBreakRegex.Split(((Get-Content -Path $FullPath -Encoding UTF8) | Out-String)) | ForEach-Object {
-            $LineNumber++;
-            if ($null -ne $PreviousItem) {
-                $UnescapedPropertiesText = ConvertFrom-EscapedPropertiesText -Text $_;
-                $PreviousItem = New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                    Key = $PreviousItem.Key;
-                    Text = $PreviousItem.Text + $UnescapedPropertiesText.Text;
-                };
-                if (-not $UnescapedPropertiesText.IsContinued) {
-                    if ($CommentLines.Count -gt 0) {
-                        [string[]]$CommentBlocks + $CommentBlocks + @($CommentLines -join "`n");
-                        if ($PreviousBlankLine) {
-                            [string[]]$CommentBlocks + $CommentBlocks + @('');
-                        }
-                    }
-                    $CommentLines = @();
-                    $Dictionary.Add($PreviousItem.Key,[System.Tuple[System.String,System.String[]]]::new($PreviousItem.Text, $CommentBlocks));
-                    $PreviousItem = $null;
-                    $CommentBlocks = @();
+        public string BasePath { get { return _basePath; } }
+
+        public void Load(string rootPath, string relativeName) {
+            if (null == rootPath) {
+                rootPath = _basePath;
+                string s = _baseName;
+                if (rootPath.Length == 0 || s.Length == 0)
+                    throw new ArgumentNullException("rootPath");
+                rootPath = PropertiesFile.ToNormalizedPath(rootPath.Substring(0, rootPath.Length - s.Length));
+            } else if ((rootPath = PropertiesFile.ToNormalizedPath(rootPath)).Length == 0)
+                throw new ArgumentException("Root path is empty", "rootPath");
+            if (null == relativeName) {
+                relativeName = _baseName;
+                if (relativeName.Length == 0)
+                    throw new ArgumentNullException("rootPath");
+            } else if (relativeName.Trim().Length == 0)
+                throw new ArgumentException("Relative name is empty", "relativeName");
+            string basePath = PropertiesFile.AssertValidFileDestination(Path.Combine(rootPath, relativeName), "relativeName");
+            string baseName = PropertiesFile.ToRelativePath(basePath, rootPath);
+            string fileName = Path.GetFileName(basePath);
+            string dirName = Path.GetDirectoryName(basePath);
+            PropertiesFile en = new PropertiesFile();
+            en.Load(Path.Combine(dirName, GetFileName(fileName, LanguageType.EN)));
+            PropertiesFile de = new PropertiesFile();
+            de.Load(Path.Combine(dirName, GetFileName(fileName, LanguageType.DE)));
+            PropertiesFile es = new PropertiesFile();
+            es.Load(Path.Combine(dirName, GetFileName(fileName, LanguageType.ES)));
+            PropertiesFile hi = new PropertiesFile();
+            hi.Load(Path.Combine(dirName, GetFileName(fileName, LanguageType.HI)));
+            Monitor.Enter(_syncRoot);
+            try {
+                _baseName = baseName;
+                _basePath = basePath;
+                _en.CopyFrom(en, true, true);
+                _de.CopyFrom(de, true, true);
+                _es.CopyFrom(es, true, true);
+                _hi.CopyFrom(hi, true, true);
+                foreach (string k in _en.Keys) {
+                    if (!_de.ContainsKey(k))
+                        _de.Add(k, "");
+                    if (!_es.ContainsKey(k))
+                        _es.Add(k, "");
+                    if (!_hi.ContainsKey(k))
+                        _hi.Add(k, "");
                 }
-                $PreviousBlankLine = $false;
-            } else {
-                $m = $Script:PropertyLineRegex.Match($_);
-                if ($m.Success) {
-                    if ($m.Groups['c'].Success) {
-                        if ($CommentLines.Count -gt 0 -and $PreviousBlankLine) {
-                            [string[]]$CommentBlocks + $CommentBlocks + @($CommentLines -join "`n");
-                            $CommentLines = @($Script:StripCommentRegex.Replace($_ , ''));
+                foreach (string k in _de.Keys) {
+                    if (!_en.ContainsKey(k))
+                        _en.Add(k, "");
+                    if (!_es.ContainsKey(k))
+                        _es.Add(k, "");
+                    if (!_hi.ContainsKey(k))
+                        _hi.Add(k, "");
+                }
+                foreach (string k in _es.Keys) {
+                    if (!_en.ContainsKey(k))
+                        _en.Add(k, "");
+                    if (!_de.ContainsKey(k))
+                        _de.Add(k, "");
+                    if (!_hi.ContainsKey(k))
+                        _hi.Add(k, "");
+                }
+                foreach (string k in _hi.Keys) {
+                    if (!_en.ContainsKey(k))
+                        _en.Add(k, "");
+                    if (!_de.ContainsKey(k))
+                        _de.Add(k, "");
+                    if (!_es.ContainsKey(k))
+                        _es.Add(k, "");
+                }
+            }
+            finally { Monitor.Exit(_syncRoot); }
+        }
+        
+        public void Save(string rootPath, string relativeName) {
+            if (null == rootPath) {
+                rootPath = _basePath;
+                string s = _baseName;
+                if (rootPath.Length == 0 || s.Length == 0)
+                    throw new ArgumentNullException("rootPath");
+                rootPath = PropertiesFile.ToNormalizedPath(rootPath.Substring(0, rootPath.Length - s.Length));
+            } else if ((rootPath = PropertiesFile.ToNormalizedPath(rootPath)).Length == 0)
+                throw new ArgumentException("Root path is empty", "rootPath");
+            if (null == relativeName) {
+                relativeName = _baseName;
+                if (relativeName.Length == 0)
+                    throw new ArgumentNullException("rootPath");
+            } else if (relativeName.Trim().Length == 0)
+                throw new ArgumentException("Relative name is empty", "relativeName");
+            string basePath = PropertiesFile.AssertValidFileDestination(Path.Combine(rootPath, relativeName), "relativeName");
+            string baseName = PropertiesFile.ToRelativePath(basePath, rootPath);
+            string fileName = Path.GetFileName(basePath);
+            string dirName = Path.GetDirectoryName(basePath);
+            Monitor.Enter(_syncRoot);
+            try {
+                PropertiesFile en = new PropertiesFile();
+                en.CopyFrom(_en, true, true);
+                PropertiesFile de = new PropertiesFile();
+                de.CopyFrom(_de, true, true);
+                PropertiesFile es = new PropertiesFile();
+                es.CopyFrom(_es, true, true);
+                PropertiesFile hi = new PropertiesFile();
+                hi.CopyFrom(_hi, true, true);
+                
+                en.Save(Path.Combine(dirName, GetFileName(fileName, LanguageType.EN)));
+                de.Save(Path.Combine(dirName, GetFileName(fileName, LanguageType.DE)));
+                es.Save(Path.Combine(dirName, GetFileName(fileName, LanguageType.ES)));
+                hi.Save(Path.Combine(dirName, GetFileName(fileName, LanguageType.HI)));
+                _baseName = baseName;
+                _basePath = basePath;
+                _en.CopyFrom(en, false, false);
+                _de.CopyFrom(de, false, false);
+                _es.CopyFrom(es, false, false);
+                _hi.CopyFrom(hi, false, false);
+            }
+            finally { Monitor.Exit(_syncRoot); }
+        }
+        
+        public void SaveCode(string rootDirectory, string relativeBasePath) {
+            if (null == rootDirectory)
+                    throw new ArgumentNullException("rootDirectory");
+            rootDirectory = PropertiesFile.ToNormalizedPath(rootDirectory);
+            if (rootDirectory.Length == 0)
+                throw new ArgumentException("Root directory is empty", "rootDirectory");
+            if (null == relativeBasePath) {
+                relativeBasePath = _baseName;
+                if (relativeBasePath.Length == 0)
+                    throw new ArgumentNullException("relativeBasePath");
+            } else if (relativeBasePath.Trim().Length == 0)
+                throw new ArgumentException("Relative base path is empty", "relativeBasePath");
+
+            string basePath = PropertiesFile.AssertValidFileDestination(Path.Combine(rootDirectory, relativeBasePath), "relativeBasePath");
+            string baseName = PropertiesFile.ToRelativePath(basePath, rootDirectory);
+            string fileName = Path.GetFileName(basePath);
+            string dirName = Path.GetDirectoryName(basePath);
+
+            List<string> elements = new List<string>();
+            elements.Add("scheduler");
+            string p = baseName;
+            do {
+                elements.Add(Path.GetFileName(p));
+                p = Path.GetDirectoryName(p);
+            } while (null != p && p.Length > 0 && p != "." && p != "..");
+            string className = elements[0];
+            elements.RemoveAt(0);
+            if (elements.Count > 1)
+                elements.Reverse();
+            
+            using (StreamWriter writer = new StreamWriter(Path.Combine(dirName, fileName + "ResourceKeys.java"), false, new UTF8Encoding(false, false))) {
+                writer.Write("package scheduler");
+                IEnumerator<string> enumerator = elements.GetEnumerator();
+                while (enumerator.MoveNext()) {
+                    writer.Write(".");
+                    writer.Write(enumerator.Current);
+                }
+                writer.WriteLine(";");
+                writer.WriteLine("");
+                writer.WriteLine("/**");
+                writer.WriteLine(" *");
+                writer.WriteLine(" * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;");
+                writer.WriteLine(" */");
+                writer.Write("public interface ");
+                writer.Write(className);
+                writer.WriteLine("ResourceKeys {");
+
+                List<string> keys = new List<string>();
+                foreach (string k in _current.Keys)
+                    keys.Add(k);
+                keys.Sort();
+                enumerator = keys.GetEnumerator();
+                while (enumerator.MoveNext()) {
+                    writer.WriteLine("");
+                    writer.WriteLine("    /**");
+                    writer.Write("     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code \"");
+                    writer.Write(PropertiesFile.Escape(_current[enumerator.Current], false).Replace("\"", "\\\""));
+                    writer.Write("\"}.");
+                    writer.WriteLine("     */");
+                    writer.Write("    public static final String RESOURCEKEY_");
+                    writer.Write(enumerator.Current.ToUpper());
+                    writer.Write(" = \"");
+                    writer.Write(enumerator.Current);
+                    writer.WriteLine("\";");
+                }
+                writer.WriteLine("");
+                writer.WriteLine("}");
+                writer.Flush();
+            }
+        }
+
+        private readonly object _syncRoot = new Object();
+        private string _baseName = "";
+        private string _basePath = "";
+        private readonly PropertiesFile _en = new PropertiesFile();
+        private readonly PropertiesFile _de = new PropertiesFile();
+        private readonly PropertiesFile _es = new PropertiesFile();
+        private readonly PropertiesFile _hi = new PropertiesFile();
+        private PropertiesFile _current;
+        private LanguageType _language = LanguageType.EN;
+        
+        public ResourceBundle() {
+            _current = _en;
+        }
+
+        public int Count { get { return _current.Count; } }
+        
+        public ICollection<string> Keys { get { return _current.Keys; } }
+        
+        public ICollection<string> Values { get { return _current.Values; } }
+        
+        public void CopyTo(string key, ResourceBundle other, bool force) {
+            if (null == key)
+                throw new ArgumentNullException();
+            Monitor.Enter(_syncRoot);
+            try {
+                Monitor.Enter(other._syncRoot);
+                try {
+                    if (_current.ContainsKey(key)) {
+                        if (other._current.ContainsKey(key)) {
+                            other._en[key] = _en[key];
+                            other._de[key] = _de[key];
+                            other._es[key] = _es[key];
+                            other._hi[key] = _hi[key];
                         } else {
-                            $CommentLines += @($Script:StripCommentRegex.Replace($_ , ''));
+                            other._en.Add(key, _en[key]);
+                            other._de.Add(key, _de[key]);
+                            other._es.Add(key, _es[key]);
+                            other._hi.Add(key, _hi[key]);
                         }
-                    } else {
-                        $UnescapedPropertiesText = ConvertFrom-EscapedPropertiesText -Text $m.Groups['v'].Value;
-                        $PreviousItem = New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-                            Key = (ConvertFrom-EscapedPropertiesText -Text $m.Groups['k'].Value).Text;
-                            Text = $UnescapedPropertiesText.Text;
-                        };
-                        if (-not $UnescapedPropertiesText.IsContinued) {
-                            if ($CommentLines.Count -gt 0) {
-                                [string[]]$CommentBlocks + $CommentBlocks + @($CommentLines -join "`n");
-                                if ($PreviousBlankLine) {
-                                    [string[]]$CommentBlocks + $CommentBlocks + @('');
-                                }
-                            }
-                            $CommentLines = @();
-                            $Dictionary.Add($PreviousItem.Key, [System.Tuple[System.String,System.String[]]]::new($PreviousItem.Text, $CommentBlocks));
-                            $PreviousItem = $null;
-                            $CommentBlocks = @();
-                        }
-                    }
-                    $PreviousBlankLine = $false;
-                } else {
-                    if ([string]::IsNullOrWhiteSpace($_)) {
-                        $PreviousBlankLine = $true;
-                    } else {
-                        Write-Warning -Message "Parse error on line $LineNumber";
-                        if ($CommentLines.Count -gt 0 -and $PreviousBlankLine) {
-                            [string[]]$CommentBlocks + $CommentBlocks + @($CommentLines -join "`n");
-                            $CommentLines = @("Parse error: $_");
+                    } else if (force) {
+                        if (other._current.ContainsKey(key)) {
+                            other._en[key] = "";
+                            other._de[key] = "";
+                            other._es[key] = "";
+                            other._hi[key] = "";
                         } else {
-                            $CommentLines += @("Parse error: $_");
+                            other._en.Add(key, "");
+                            other._de.Add(key, "");
+                            other._es.Add(key, "");
+                            other._hi.Add(key, "");
                         }
-                        $PreviousBlankLine = $false;
                     }
                 }
+                finally { Monitor.Exit(other._syncRoot); }
             }
+            finally { Monitor.Exit(_syncRoot); }
         }
-    }
 
-    New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-        Properties = $Dictionary;
-        Path = $Path;
-        Footer = $CommentBlocks;
-    };
-}
-
-Function New-ResourceBundle {
-    [CmdletBinding(DefaultParameterSetName = 'Relative')]
-    Param(
-        [Parameter(Mandatory = $true, ParameterSetName = 'Relative')]
-        [ValidateScript({ $_ | Test-PropertiesFilePath -Resource })]
-        [string]$BasePath
-    )
-    
-    $FullPath = $BasePath | Convert-RelativePathToFullPath -Resource;
-    $Files = @{};
-    $Script:AllLocales | ForEach-Object {
-        Write-Host -Object "$BasePath`_$_.properties";
-        $Files[$_] = New-PropertiesFile -Path "$BasePath`_$_.properties"
-    }
-
-    $ResourceBundle = New-Object -TypeName 'System.Management.Automation.PSObject' -Property @{
-        BasePath = $BasePath;
-        AllFiles = $Files
-    }
-    $ResourceBundle | Add-Member -MemberType ScriptMethod -Name 'GetPropertyNames' -Value {
-        $this.AllFiles.Keys | ForEach-Object { $this.AllFiles[$_].Properties.Keys } | Select-Object -Unique;
-    }
-    $ResourceBundle | Add-Member -MemberType ScriptMethod -Name 'ContainsKey' -Value {
-        Param(
-            [string]$key
-        )
-        if ($null -ne $key -and $key -is [string]) {
-            foreach ($k in $this.AllFiles.Keys) {
-                if ($this.AllFiles[$k].Properties.ContainsKey($key)) { return $true }
-            }
-        }
-        return $false;
-    }
-    $ResourceBundle | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value {
-        Param(
-            [string]$key,
-            [string]$language
-        )
-        if ($null -ne $key -and $key -is [string]) {
-            if ($null -eq $language -or $language.Length -eq 0) { $language = 'en' }
-            if ($this.AllFiles.ContainsKey($language)) {
-                if ($this.AllFiles[$language].Properties.ContainsKey($key)) {
-                    return $this.AllFiles[$language].Properties[$key];
+        public void MoveTo(string key, ResourceBundle other, bool force) {
+            if (null == key)
+                throw new ArgumentNullException();
+            Monitor.Enter(_syncRoot);
+            try {
+                Monitor.Enter(other._syncRoot);
+                try {
+                    if (_current.ContainsKey(key)) {
+                        if (other._current.ContainsKey(key)) {
+                            other._en[key] = _en[key];
+                            other._de[key] = _de[key];
+                            other._es[key] = _es[key];
+                            other._hi[key] = _hi[key];
+                        } else {
+                            other._en.Add(key, _en[key]);
+                            other._de.Add(key, _de[key]);
+                            other._es.Add(key, _es[key]);
+                            other._hi.Add(key, _hi[key]);
+                        }
+                        _en.Remove(key);
+                        _de.Remove(key);
+                        _es.Remove(key);
+                        _hi.Remove(key);
+                    } else if (force) {
+                        if (other._current.ContainsKey(key)) {
+                            other._en[key] = "";
+                            other._de[key] = "";
+                            other._es[key] = "";
+                            other._hi[key] = "";
+                        } else {
+                            other._en.Add(key, "");
+                            other._de.Add(key, "");
+                            other._es.Add(key, "");
+                            other._hi.Add(key, "");
+                        }
+                    }
                 }
-                foreach ($k in $this.AllFiles.Keys) {
-                    if ($this.AllFiles[$k].Properties.ContainsKey($key)) { return "" }
+                finally { Monitor.Exit(other._syncRoot); }
+            }
+            finally { Monitor.Exit(_syncRoot); }
+        }
+
+        public LanguageType Language {
+            get {
+                return _language;
+            }
+            set {
+                Monitor.Enter(_syncRoot);
+                try {
+                    _language = value;
+                    switch (value) {
+                        case LanguageType.DE:
+                            _current = _de;
+                            break;
+                        case LanguageType.ES:
+                            _current = _es;
+                            break;
+                        case LanguageType.HI:
+                            _current = _hi;
+                            break;
+                        default:
+                            _current = _en;
+                            break;
+                    }
                 }
+                finally { Monitor.Exit(_syncRoot); }
             }
         }
-    }
-    $ResourceBundle | Add-Member -MemberType ScriptMethod -Name 'Remove' -Value {
-        Param(
-            [string]$key
-        )
-        if ($null -ne $key -and $key -is [string]) {
-            foreach ($k in $this.AllFiles.Keys) {
-                if ($this.AllFiles[$k].Properties.ContainsKey($key)) { $this.AllFiles[$k].Properties.Remove($key) | Out-Null }
+
+        public string this[string key]
+        {
+            get
+            {
+                Monitor.Enter(_syncRoot);
+                try { return (key != null && _current.ContainsKey(key)) ? _current[key] : null; }
+                finally { Monitor.Exit(_syncRoot); }
+            }
+            set
+            {
+                if (null == key)
+                    throw new ArgumentNullException();
+                Monitor.Enter(_syncRoot);
+                try {
+                    if (_current.ContainsKey(key)) {
+                        _current[key] = (null == value) ? "" : value;
+                    } else {
+                        _current.Add(key, (null == value) ? "" : value);
+                        switch (_language) {
+                            case LanguageType.DE:
+                                _en.Add(key, "");
+                                _es.Add(key, "");
+                                _hi.Add(key, "");
+                                break;
+                            case LanguageType.ES:
+                                _en.Add(key, "");
+                                _de.Add(key, "");
+                                _hi.Add(key, "");
+                                break;
+                            case LanguageType.HI:
+                                _en.Add(key, "");
+                                _de.Add(key, "");
+                                _es.Add(key, "");
+                                break;
+                            default:
+                                _hi.Add(key, "");
+                                _de.Add(key, "");
+                                _es.Add(key, "");
+                                break;
+                        }
+                    }
+                }
+                finally { Monitor.Exit(_syncRoot); }
             }
         }
-    }
-    $ResourceBundle | Add-Member -MemberType ScriptMethod -Name 'SetValue' -Value {
-        Param(
-            [string]$key,
-            [string]$value,
-            [string]$language
-        )
-        if ($null -eq $key -or $key -isnot [string]) { throw 'Invalid key' }
-        if ($null -eq $value -or $value -isnot [string]) { throw 'Invalid value' }
-        if ($null -eq $language -or $language.Length -eq 0) { $language = 'en' }
-        if (-not $this.AllFiles.ContainsKey($language)) { throw 'Invalid language' }
-        foreach ($k in $this.AllFiles.Keys) {
-            if ($k -eq $language) {
-                if ($this.AllFiles[$k].Properties.ContainsKey($key)) {
-                    $this.AllFiles[$k].Properties[$key] = $value;
+        public string Get(string key, LanguageType language) {
+            Monitor.Enter(_syncRoot);
+            try { 
+                if (key != null && _current.ContainsKey(key)) {
+                    switch (language) {
+                        case LanguageType.DE:
+                            return _de[key];
+                        case LanguageType.ES:
+                            return _es[key];
+                        case LanguageType.HI:
+                            return _hi[key];
+                        default:
+                            return _en[key];
+                    }
+                }
+            } finally { Monitor.Exit(_syncRoot); }
+            return null;
+        }
+        public ICollection<string> GetValues(LanguageType language) {
+            switch (language) {
+                case LanguageType.DE:
+                    return _de.Values;
+                case LanguageType.ES:
+                    return _es.Values;
+                case LanguageType.HI:
+                    return _hi.Values;
+                default:
+                    return _en.Values;
+            }
+        }
+        public string GetPath(LanguageType language) {
+            switch (language) {
+                case LanguageType.DE:
+                    return _de.Path;
+                case LanguageType.ES:
+                    return _es.Path;
+                case LanguageType.HI:
+                    return _hi.Path;
+                default:
+                    return _en.Path;
+            }
+        }
+        public void Set(string key, string value, LanguageType language) {
+            Monitor.Enter(_syncRoot);
+            try { 
+                if (key != null && _current.ContainsKey(key)) {
+                    switch (language) {
+                        case LanguageType.DE:
+                            _de[key] = (null == value) ? "" : value;
+                            break;
+                        case LanguageType.ES:
+                            _es[key] = (null == value) ? "" : value;
+                            break;
+                        case LanguageType.HI:
+                            _hi[key] = (null == value) ? "" : value;
+                            break;
+                        default:
+                            _en[key] = (null == value) ? "" : value;
+                            break;
+                    }
                 } else {
-                    $this.AllFiles[$k].Properties.Add($key, $value);
+                    switch (language) {
+                        case LanguageType.DE:
+                            _en.Add(key, "");
+                            _de.Add(key, (null == value) ? "" : value);
+                            _es.Add(key, "");
+                            _hi.Add(key, "");
+                            break;
+                        case LanguageType.ES:
+                            _en.Add(key, "");
+                            _de.Add(key, "");
+                            _es.Add(key, (null == value) ? "" : value);
+                            _hi.Add(key, "");
+                            break;
+                        case LanguageType.HI:
+                            _en.Add(key, "");
+                            _de.Add(key, "");
+                            _es.Add(key, "");
+                            _hi.Add(key, (null == value) ? "" : value);
+                            break;
+                        default:
+                            _en.Add(key, (null == value) ? "" : value);
+                            _de.Add(key, "");
+                            _es.Add(key, "");
+                            _hi.Add(key, "");
+                            break;
+                    }
                 }
-            } else {
-                if (-not $this.AllFiles[$k].Properties.ContainsKey($key)) { $this.AllFiles[$k].Properties.Add($key, "") }
+            } finally { Monitor.Exit(_syncRoot); }
+        }
+
+        public Dictionary<string,string>.Enumerator GetEnumerator() {
+            return _current.GetEnumerator();
+        }
+
+        public Dictionary<string,string>.Enumerator GetEnumerator(LanguageType language) {
+            switch (language) {
+                case LanguageType.DE:
+                    return _de.GetEnumerator();
+                case LanguageType.ES:
+                    return _es.GetEnumerator();
+                case LanguageType.HI:
+                    return _hi.GetEnumerator();
+                default:
+                    return _en.GetEnumerator();
             }
         }
+        
+        public bool ContainsKey(string key) {
+            return null != key && _current.ContainsKey(key);
+        }
+
+        public void Remove(string key) {
+            if (key != null) {
+                Monitor.Enter(_syncRoot);
+                try {
+                    if (_current.ContainsKey(key)) {
+                        _en.Remove(key);
+                        _de.Remove(key);
+                        _es.Remove(key);
+                        _hi.Remove(key);
+                    }
+                } finally { Monitor.Exit(_syncRoot); }
+            }
+        }
+
     }
-    $ResourceBundle | Add-Member -MemberType ScriptMethod -Name 'SaveChanges' -Value {
-        foreach ($n in $this.GetPropertyNames()) {
-            foreach ($k in $this.AllFiles.Keys) {
-                $d = $this.AllFiles[$k].Properties;
-                if (-not $d.ContainsKey($n)) {
-                    $d.Add($n, '');
-                }
-            }
-        }
-        foreach ($k in $this.AllFiles.Keys) {
-            Save-PropertiesFile -PropertiesFile $this.AllFiles[$k] -ErrorAction Stop;
-        }
-        $FullPath = ($this.BasePath + "ResourceKeys.java") | Convert-RelativePathToFullPath -Code;
-        $d = $this.AllFiles['en'].Properties;
-        $p = $this.BasePath | Split-Path -Parent;
-        $ns = @();
-        while ($null -ne $p -and $p.Length -gt 0) {
-            $ns = @($p | Split-Path -Leaf) + $ns;
-            $p = $p | Split-Path -Parent;
-        }
-        $ns = @('scheduler') + $ns;
-        $Lines = @(
-            "package $($ns -join '.');",
-            "",
-            "/**",
-            " * Resource bundle keys for {@code resources/scheduler/$($this.BasePath.Replace('\', '/'))}.",
-            " *",
-            " * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;",
-            " */"
-        );
-        $Lines += "public interface $([System.IO.Path]::GetFileNameWithoutExtension($FullPath)) {";
-        $Lines += @($d.Keys | Sort-Object | ForEach-Object {
-            @"
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "$($d[$_].Item1.Replace('"', '\"'))"}.
-     */
-    public static final String RESOURCEKEY_$($_.ToUpper()) = "$_";
-"@
-        })
-        $Lines += "}";
-        [System.IO.File]::WriteAllLines($FullPath, $Lines, [System.Text.UTF8Encoding]::new($false, $false));
-    } -PassThru;
 }
+'@ -ErrorAction Stop;
 
-Function Save-PropertiesFile {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $true)]
-        [object]$PropertiesFile
-    )
-    
-    $FullPath = $PropertiesFile.Path | Convert-RelativePathToFullPath -Resource;
-    [System.IO.File]::WriteAllLines($FullPath, ($PropertiesFile.Properties.Keys | ForEach-Object {
-        $Tuple = $PropertiesFile.Properties[$_];
-        if ($Tuple.Item2.Length -gt 0) {
-            $Script:LineBreakRegex.Split($Tuple.Item2[0]) | ForEach-Object { "# $_" }
-            ($Tuple.Item2 | Select-Object -Skip 1) | ForEach-Object {
-                '';
-                $Script:LineBreakRegex.Split($_) | ForEach-Object { "# $_" }
-            }
-        }
-        "$(ConvertTo-EscapedPropertiesText -Text $_ -Key)=$(ConvertTo-EscapedPropertiesText -Text $Tuple.Item1)";
-    }), [System.Text.UTF8Encoding]::new($false, $false));
-}
-
+<#
 $ResourceBundle = New-ResourceBundle -BasePath 'view\country\EditCountry' -ErrorAction Stop;
 $ResourceBundle.SaveChanges();
+#>
+
+Function Get-ResourceBundlePaths {
+    Param()
+    $Script:BundleNameRegex = [System.Text.RegularExpressions.Regex]::new('(?<b>.+)_(en|es|de|hi)$');
+
+    Push-Location;
+    Set-Location -Path $Script:BaseResourcesPath;
+    Set-Location -Path '..';
+    try {
+        (((Get-ChildItem -Path $Script:BaseResourcesPath -Filter "*.properties" -Recurse) | Select-Object -Property 'Name', 'DirectoryName', 'Length', @{ label = 'BaseName'; expression = {
+            $m = $Script:BundleNameRegex.Match($_.BaseName);
+            if ($m.Success) {
+                $_.DirectoryName | Join-Path -ChildPath $m.Groups['b'].Value;
+            }
+        } }) | Where-Object { $null -ne $_.BaseName } | Group-Object -Property 'BaseName') | Select-Object -Property 'Group', @{ label = 'BaseName'; expression = {
+            $p = ($_.Name | Split-Path -Parent) | Resolve-Path -Relative;
+            $n = $p | Split-Path -Leaf; 
+            $p = $p | Split-Path -Parent;
+            $r = $_.Name | Split-Path -Leaf;
+            if (-not ([string]::IsNullOrWhiteSpace($p) -or $p -eq '.')) {
+                $r = $n | Join-Path -ChildPath $r;
+                $n = $p | Split-Path -Leaf;
+                $p = $p | Split-Path -Parent;
+                while (-not ([string]::IsNullOrWhiteSpace($p) -or $p -eq '.')) {
+                    $r = $n | Join-Path -ChildPath $r;
+                    $n = $p | Split-Path -Leaf;
+                    $p = $p | Split-Path -Parent;
+                }
+            }
+            $r
+        } } | ForEach-Object { $_.BaseName }
+    } finally {
+        Pop-Location;
+    }
+}
+
+Function Add-ResourceBundleProperty {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string]$BaseName,
+        
+        [Parameter(Mandatory = $true)]
+        [String]$Message
+    )
+
+    $ResourceBundle = [ResourceHelper.ResourceBundle]::new();
+    $ResourceBundle.Load($Script:BaseResourcesPath, $BaseName);
+
+    $ResourceBundle;
+}
+
+$ResourceBundle = Add-ResourceBundleProperty -BaseName 'App' -Message 'Unexpected error getting original exception details:';
+$ResourceBundle
+$ResourceBundle.GetPath([ResourceHelper.LanguageType]::EN);
+$PropertiesFile = [ResourceHelper.PropertiesFile]::new();
+$PropertiesFile.Load('C:\Users\lerwi\NetBeansProjects\C195\Scheduler\resources\scheduler\App_en.properties');
+$PropertiesFile.Count;
+$PropertiesFile
+#ResourceHelper.ResourceBundle
+#>

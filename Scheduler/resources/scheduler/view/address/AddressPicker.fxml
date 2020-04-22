@@ -59,7 +59,7 @@
                 </SplitPane>
          </center>
          <top>
-                <Label alignment="CENTER" styleClass="section-heading" text="%selectAddress" BorderPane.alignment="CENTER" />
+                <Label alignment="CENTER" styleClass="popup-heading" text="%selectAddress" BorderPane.alignment="CENTER" />
          </top>
          <styleClass>
             <String fx:value="mainFxmlClass" />

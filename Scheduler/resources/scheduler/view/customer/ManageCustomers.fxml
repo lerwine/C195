@@ -94,16 +94,8 @@
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit">
-                            <accelerator>
-                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
-                            </accelerator>
-                        </MenuItem>
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete">
-                            <accelerator>
-                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
-                            </accelerator>
-                        </MenuItem>
+                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
                     </items>
                 </ContextMenu>
             </contextMenu>

@@ -17,6 +17,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -151,9 +152,27 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     public void onDataObjectEvent(DataObjectEvent<T> event) {
         EventHelper.fireDataObjectEvent(contentController, event);
     }
-
+    
+    private void onUnload(Parent view) {
+        contentPane.getChildren().remove(view);
+        if (view instanceof Region) {
+            Region r = (Region)view;
+            r.prefWidthProperty().unbind();
+            r.minWidthProperty().unbind();
+            r.prefHeightProperty().unbind();
+            r.minHeightProperty().unbind();
+        }
+    }
+    
     private void onBeforeShow(boolean initForNew, Parent view, Stage stage) {
         contentPane.getChildren().add(view);
+        if (view instanceof Region) {
+            Region r = (Region)view;
+            r.prefWidthProperty().bind(contentPane.widthProperty());
+            r.minWidthProperty().bind(contentPane.widthProperty());
+            r.prefHeightProperty().bind(contentPane.heightProperty());
+            r.minHeightProperty().bind(contentPane.heightProperty());
+        }
         saveChangesButton.disableProperty().bind(contentController.getValidationExpression().not());
         if (initForNew) {
             collapseNode(deleteButton);
@@ -205,7 +224,6 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             this.model = model;
         }
 
-        @SuppressWarnings("incomplete-switch")
         @Override
         public void onFxmlViewControllerEvent(FxmlViewControllerEvent<Parent, EditItem<T, U>> event) {
             EditItem<T, U> currentController = event.getController();
@@ -224,6 +242,10 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                 case SHOWN:
                     if (null == viewAndController) {
                         event.getStage().close();
+                    }
+                case UNLOADED:
+                    if (null != viewAndController) {
+                        currentController.onUnload(viewAndController.getView());
                     }
                     break;
             }
@@ -321,7 +343,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<T, U>(mainController, null, controllerClass),
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<>(mainController, null, controllerClass),
                     stage, EditItem.class);
             mainController.removeDaoEventListener(fc);
             return ((EditController<T, U>) fc.contentController).model;
@@ -330,7 +352,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage, Object loadEventListener) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<T, U>(mainController, null, controllerClass),
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<>(mainController, null, controllerClass),
                     stage, EditItem.class, loadEventListener);
             mainController.removeDaoEventListener(fc);
             return ((EditController<T, U>) fc.contentController).model;
@@ -351,7 +373,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         @SuppressWarnings("unchecked")
         protected static <T extends DataAccessObject, U extends ItemModel<T>> U edit(U model, Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
-            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<T, U>(mainController, model, controllerClass),
+            EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<>(mainController, model, controllerClass),
                     stage, EditItem.class);
             mainController.removeDaoEventListener(fc);
             return ((EditController<T, U>) fc.contentController).model;

@@ -3,69 +3,34 @@ package scheduler.view;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_CHECKINGDEPENDENCIES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_COMPLETINGOPERATION;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.AppointmentElement;
-import scheduler.dao.AppointmentType;
 import scheduler.dao.CustomerElement;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.UserDAO;
 import scheduler.dao.UserElement;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
-import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.util.AlertHelper;
-import scheduler.util.DB;
-import scheduler.util.DbConnector;
 import scheduler.util.EventHelper;
-import static scheduler.util.NodeUtil.setBorderedNode;
-import static scheduler.util.NodeUtil.setLeftControlLabel;
-import static scheduler.util.NodeUtil.setLeftLabeledControl;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.AddressModelImpl;
@@ -112,13 +77,6 @@ import scheduler.view.user.UserModelImpl;
 @FXMLResource("/scheduler/view/MainView.fxml")
 public final class MainController {
 
-    private static final String NODE_PROPERTYNAME_ALERT_MODEL = "scheduler.view.MainController.AppointmentAlerts.model";
-    private static final String NODE_PROPERTYNAME_ALERT_TITLE = "scheduler.view.MainController.AppointmentAlerts.title";
-    private static final String NODE_PROPERTYNAME_ALERT_START = "scheduler.view.MainController.AppointmentAlerts.start";
-    private static final String NODE_PROPERTYNAME_ALERT_END = "scheduler.view.MainController.AppointmentAlerts.end";
-    private static final String NODE_PROPERTYNAME_ALERT_TYPE = "scheduler.view.MainController.AppointmentAlerts.type";
-    private static final String NODE_PROPERTYNAME_ALERT_CUSTOMER = "scheduler.view.MainController.AppointmentAlerts.customer";
-    private static final String NODE_PROPERTYNAME_ALERT_LOCATION = "scheduler.view.MainController.AppointmentAlerts.location";
     private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
     private EventHelper<DataObjectEventListener<? extends DataAccessObject>, DataObjectEvent<? extends DataAccessObject>> daoEventHelper;
@@ -155,14 +113,7 @@ public final class MainController {
     @FXML // fx:id="contentPane"
     private StackPane contentPane; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentAlertBorderPane"
-    private BorderPane appointmentAlertBorderPane; // Value injected by FXMLLoader
-
-    @FXML // fx:id="appointmentAlertsVBox"
-    private VBox appointmentAlertsVBox; // Value injected by FXMLLoader
-
     private Object contentController;
-    private AppointmentAlertManager appointmentAlerts;
 
     public StackPane getContentPane() {
         return contentPane;
@@ -269,11 +220,6 @@ public final class MainController {
     }
 
     @FXML
-    void onDismissAllAppointmentAlerts(ActionEvent event) {
-        appointmentAlerts.dismissAll();
-    }
-
-    @FXML
     private void initialize() {
         assert contentPane != null : "fx:id=\"contentPane\" was not injected: check your FXML file 'MainView.fxml'.";
         daoEventHelper = new EventHelper<>("onDataObjectEvent");
@@ -289,18 +235,38 @@ public final class MainController {
      * @return The instantiated controller.
      * @throws IOException if not able to load the FXML resource.
      */
-    @SuppressWarnings("incomplete-switch")
     public <T> T loadContent(Class<T> controllerClass, Object loadEventListener) throws IOException {
         Object oldController = contentController;
         return ViewControllerLoader.replacePaneContent(this, contentPane, controllerClass,
                 (FxmlViewControllerEventListener<Parent, T>) (event) -> {
+                    Parent childView;
                     switch (event.getType()) {
                         case LOADED:
                             event.getStage().setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTSCHEDULER));
                             break;
+                        case BEFORE_SHOW:
+                            childView = event.getView();
+                            if (childView instanceof Region) {
+                                Region r = (Region)childView;
+                                r.prefWidthProperty().bind(contentPane.widthProperty());
+                                r.minWidthProperty().bind(contentPane.widthProperty());
+                                r.prefHeightProperty().bind(contentPane.heightProperty());
+                                r.minHeightProperty().bind(contentPane.heightProperty());
+                            }
+                            break;
                         case SHOWN:
                             contentController = event.getController();
                             onControllerReplaced(oldController, contentController);
+                            break;
+                        case UNLOADED:
+                            childView = event.getView();
+                            if (childView instanceof Region) {
+                                Region r = (Region)childView;
+                                r.prefWidthProperty().unbind();
+                                r.minWidthProperty().unbind();
+                                r.prefHeightProperty().unbind();
+                                r.minHeightProperty().unbind();
+                            }
                             break;
                     }
                     EventHelper.fireFxmlViewEvent(loadEventListener, event);
@@ -327,22 +293,13 @@ public final class MainController {
         } catch (IOException ex) {
             AlertHelper.showErrorAlert(event.getStage(), LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), ex);
         }
-        int leadTime;
-        try {
-            leadTime = AppResources.getAppointmentAlertLeadTime();
-        } catch (ParseException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error getting alert lead time from settings", ex);
-            leadTime = 5;
-        }
-        appointmentAlerts = new AppointmentAlertManager(leadTime);
+        // CURRENT: Load AppointmentAlert
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.UNLOADED)
     private void onUnloaded(FxmlViewEvent<? extends Parent> event) {
         ViewControllerLoader.clearPaneContent(this, contentPane);
-        if (null != appointmentAlerts) {
-            appointmentAlerts.shutdown();
-        }
+        // CURRENT: Unload AppointmentAlert
     }
 
     private MenuItem getAssociatedMenuItem(Object controller) {
@@ -705,346 +662,18 @@ public final class MainController {
     }
 
     private void onAppointmentCreated(AppointmentModel item) {
-        appointmentAlerts.onAppointmentUpdate(item);
+        // TODO: Notify AppointmentAlert
         fireDaoEvent(this, DaoChangeAction.CREATED, item.getDataObject());
     }
 
     private void onAppointmentUpdated(AppointmentModel item) {
-        appointmentAlerts.onAppointmentUpdate(item);
+        // TODO: Notify AppointmentAlert
         fireDaoEvent(this, DaoChangeAction.UPDATED, item.getDataObject());
     }
 
     private void onAppointmentDeleted(AppointmentModel item) {
-        appointmentAlerts.onAppointmentDeleted(item);
+        // TODO: Notify AppointmentAlert
         fireDaoEvent(this, DaoChangeAction.DELETED, item.getDataObject());
-    }
-
-    private class AppointmentAlertManager {
-
-        private Timer appointmentCheckTimer;
-        private final List<Integer> dismissed;
-        private final int alertLeadtime;
-        private final DateTimeFormatter formatter;
-
-        AppointmentAlertManager(int alertLeadtime) {
-            this.alertLeadtime = alertLeadtime;
-            dismissed = Collections.synchronizedList(new ArrayList<>());
-            appointmentCheckTimer = new Timer();
-            appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, 120000);
-            formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-        }
-
-        private FlowPane createNew(AppointmentModel model) {
-            FlowPane view = setBorderedNode(new FlowPane());
-            view.setPadding(new Insets(8));
-            ObservableList<Node> rootChildren = view.getChildren();
-            ObservableMap<Object, Object> properties = view.getProperties();
-            properties.put(NODE_PROPERTYNAME_ALERT_MODEL, model);
-            HBox hBox = new HBox();
-            rootChildren.add(hBox);
-            ObservableList<Node> children = hBox.getChildren();
-            children.add(setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_TITLE)));
-            Label label = setLeftLabeledControl(new Label(), true);
-            label.textProperty().bind(model.titleProperty());
-            children.add(label);
-            properties.put(NODE_PROPERTYNAME_ALERT_TITLE, label.textProperty());
-
-            hBox = new HBox();
-            rootChildren.add(hBox);
-            children = hBox.getChildren();
-            label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_START));
-            label.setPadding(new Insets(0, 0, 0, 8));
-            children.add(label);
-            label = setLeftLabeledControl(new Label(), true);
-            label.textProperty().bind(Bindings.createStringBinding(() -> {
-                LocalDateTime d = model.getStart();
-                return (null == d) ? "" : formatter.format(d);
-            }, model.startProperty()));
-            children.add(label);
-            properties.put(NODE_PROPERTYNAME_ALERT_START, label.textProperty());
-
-            hBox = new HBox();
-            rootChildren.add(hBox);
-            children = hBox.getChildren();
-            label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_END));
-            label.setPadding(new Insets(0, 0, 0, 8));
-            children.add(label);
-            label = setLeftLabeledControl(new Label(), true);
-            label.textProperty().bind(Bindings.createStringBinding(() -> {
-                LocalDateTime d = model.getEnd();
-                return (null == d) ? "" : formatter.format(d);
-            }, model.endProperty()));
-            children.add(label);
-            properties.put(NODE_PROPERTYNAME_ALERT_END, label.textProperty());
-
-            hBox = new HBox();
-            rootChildren.add(hBox);
-            children = hBox.getChildren();
-            label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_TYPE));
-            label.setPadding(new Insets(0, 0, 0, 8));
-            children.add(label);
-            label = setLeftLabeledControl(new Label(), true);
-            label.textProperty().bind(Bindings.createStringBinding(() -> AppointmentType.toDisplayText(model.getType()), model.typeProperty()));
-            children.add(label);
-            properties.put(NODE_PROPERTYNAME_ALERT_TYPE, label.textProperty());
-
-            hBox = new HBox();
-            rootChildren.add(hBox);
-            children = hBox.getChildren();
-            label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_CUSTOMER));
-            label.setPadding(new Insets(0, 0, 0, 8));
-            children.add(label);
-            label = setLeftLabeledControl(new Label(), true);
-            label.textProperty().bind(model.customerNameProperty());
-            children.add(label);
-            properties.put(NODE_PROPERTYNAME_ALERT_CUSTOMER, label.textProperty());
-
-            hBox = new HBox();
-            rootChildren.add(hBox);
-            children = hBox.getChildren();
-            label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_LOCATION));
-            label.setPadding(new Insets(0, 0, 0, 8));
-            children.add(label);
-            label = setLeftLabeledControl(new Label(), true);
-            label.textProperty().bind(model.effectiveLocationProperty());
-            children.add(label);
-            properties.put(NODE_PROPERTYNAME_ALERT_LOCATION, label.textProperty());
-
-            Button button = new Button();
-            button.setPadding(new Insets(0, 0, 0, 8));
-            rootChildren.add(button);
-            button.setText(AppResources.getResourceString(RESOURCEKEY_DISMISS));
-            button.setOnAction((event) -> dismiss((FlowPane) ((Button) event.getSource()).getParent()));
-            return view;
-        }
-
-        private void reBind(FlowPane view, AppointmentModel model) {
-            StringProperty stringProperty;
-            ObservableMap<Object, Object> properties = view.getProperties();
-            if (null == model) {
-                properties.remove(NODE_PROPERTYNAME_ALERT_MODEL);
-                ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TITLE)).unbind();
-                properties.remove(NODE_PROPERTYNAME_ALERT_TITLE);
-                ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_START)).unbind();
-                properties.remove(NODE_PROPERTYNAME_ALERT_START);
-                ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_END)).unbind();
-                properties.remove(NODE_PROPERTYNAME_ALERT_END);
-                ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TYPE)).unbind();
-                properties.remove(NODE_PROPERTYNAME_ALERT_TYPE);
-                ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_CUSTOMER)).unbind();
-                properties.remove(NODE_PROPERTYNAME_ALERT_CUSTOMER);
-                ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_LOCATION)).unbind();
-                properties.remove(NODE_PROPERTYNAME_ALERT_LOCATION);
-            } else {
-                properties.put(NODE_PROPERTYNAME_ALERT_MODEL, model);
-                stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TITLE);
-                stringProperty.unbind();
-                stringProperty.bind(model.titleProperty());
-
-                stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_START);
-                stringProperty.unbind();
-                stringProperty.bind(Bindings.createStringBinding(() -> {
-                    LocalDateTime d = model.getStart();
-                    return (null == d) ? "" : formatter.format(d);
-                }, model.startProperty()));
-
-                stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_END);
-                stringProperty.unbind();
-                stringProperty.bind(Bindings.createStringBinding(() -> {
-                    LocalDateTime d = model.getEnd();
-                    return (null == d) ? "" : formatter.format(d);
-                }, model.endProperty()));
-
-                stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TYPE);
-                stringProperty.unbind();
-                stringProperty.bind(Bindings.createStringBinding(() -> AppointmentType.toDisplayText(model.getType()), model.typeProperty()));
-
-                stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_CUSTOMER);
-                stringProperty.unbind();
-                stringProperty.bind(model.customerNameProperty());
-
-                stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_LOCATION);
-                stringProperty.unbind();
-                stringProperty.bind(model.effectiveLocationProperty());
-            }
-        }
-
-        private synchronized void dismissAll() {
-            ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-            if (!itemsViewList.isEmpty()) {
-                itemsViewList.forEach((t) -> {
-                    FlowPane f = (FlowPane) t;
-                    ObservableList<Node> children = f.getChildren();
-                    ObservableMap<Object, Object> properties = f.getProperties();
-                    dismissed.add(((AppointmentModel) properties.get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
-                    reBind(f, null);
-                    children.clear();
-                });
-                itemsViewList.clear();
-                appointmentAlertBorderPane.setVisible(false);
-            }
-        }
-
-        private synchronized void dismiss(FlowPane flowPane) {
-            ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-            dismissed.add(((AppointmentModel) flowPane.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
-            reBind(flowPane, null);
-            itemsViewList.remove(flowPane);
-            if (itemsViewList.isEmpty()) {
-                appointmentAlertBorderPane.setVisible(false);
-            }
-        }
-
-        private FlowPane getViewNode(int key) {
-            Optional<Node> result = appointmentAlertsVBox.getChildren().stream().filter((t)
-                    -> ((AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey() == key).findFirst();
-            return (FlowPane) result.orElse((Node) null);
-        }
-
-        private void shutdown() {
-            appointmentCheckTimer.cancel();
-        }
-
-        private synchronized void onCheckAppointmentsTaskError(Throwable ex) {
-            appointmentCheckTimer.cancel();
-            try {
-                Alert alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
-                alert.initModality(Modality.APPLICATION_MODAL);
-                alert.setTitle(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR));
-                try {
-                    alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(ex, "Error checking impending appointments"));
-                } catch (IOException err) {
-                    LOG.log(Level.SEVERE, "Error loading exception detail", err);
-                }
-                alert.showAndWait();
-            } finally {
-                appointmentCheckTimer = new Timer();
-                appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, 120000);
-            }
-        }
-
-        private synchronized void onPeriodicCheckFinished(List<AppointmentDAO> appointments) {
-            ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-            if (appointments.isEmpty()) {
-                itemsViewList.forEach((t) -> {
-                    reBind((FlowPane) t, null);
-                });
-                itemsViewList.clear();
-            } else {
-                ArrayList<Integer> d = new ArrayList<>();
-                dismissed.forEach((i) -> d.add(i));
-                dismissed.clear();
-                appointments.stream().sorted(AppointmentElement::compareByDates).forEach(new Consumer<AppointmentDAO>() {
-                    int index = -1;
-
-                    @Override
-                    public void accept(AppointmentDAO t) {
-                        int pk = t.getPrimaryKey();
-                        if (d.contains(pk)) {
-                            dismissed.add(pk);
-                        } else if (++index < itemsViewList.size()) {
-                            reBind((FlowPane) itemsViewList.get(index), new AppointmentModel(t));
-                        } else {
-                            itemsViewList.add(createNew(new AppointmentModel(t)));
-                        }
-                    }
-                });
-                int e = appointments.size() - dismissed.size();
-                while (itemsViewList.size() > e) {
-                    reBind((FlowPane) itemsViewList.get(e), null);
-                    itemsViewList.remove(e);
-                }
-            }
-            appointmentAlertBorderPane.setVisible(!itemsViewList.isEmpty());
-        }
-
-        private synchronized void onAppointmentUpdate(AppointmentModel item) {
-            int key = item.getPrimaryKey();
-            ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-            LocalDateTime start = LocalDateTime.now();
-            FlowPane view = getViewNode(key);
-            if (start.compareTo(item.getEnd()) < 0) {
-                LocalDateTime end = start.plusMinutes(alertLeadtime);
-                if (end.compareTo(item.getStart()) >= 0) {
-                    if (dismissed.contains(key)) {
-                        return;
-                    }
-                    Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                    if (null != view) {
-                        stream = stream.filter((t) -> t.getPrimaryKey() != key);
-                    }
-                    Stream.concat(stream, Stream.of(item)).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
-                        int index = -1;
-
-                        @Override
-                        public void accept(AppointmentModel t) {
-                            if (++index < itemsViewList.size()) {
-                                reBind((FlowPane) itemsViewList.get(index), t);
-                            } else {
-                                itemsViewList.add(createNew(t));
-                            }
-                        }
-                    });
-                    return;
-                }
-            }
-            if (dismissed.contains(key)) {
-                dismissed.remove(key);
-            } else if (null != view) {
-                reBind(view, null);
-                itemsViewList.remove(view);
-                if (itemsViewList.isEmpty()) {
-                    appointmentAlertBorderPane.setVisible(false);
-                }
-            }
-        }
-
-        private synchronized void onAppointmentDeleted(AppointmentModel item) {
-            int pk = item.getPrimaryKey();
-            if (dismissed.contains(pk)) {
-                dismissed.remove(pk);
-            } else {
-                FlowPane view = getViewNode(pk);
-                if (null != view) {
-                    ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-                    reBind(view, null);
-                    itemsViewList.remove(view);
-                    if (itemsViewList.isEmpty()) {
-                        appointmentAlertBorderPane.setVisible(false);
-                    }
-                }
-            }
-        }
-    }
-
-    private class CheckAppointmentsTask extends TimerTask {
-
-        private final UserDAO user;
-        private final AppointmentDAO.FactoryImpl factory;
-        private final int alertLeadTime;
-
-        private CheckAppointmentsTask(int alertLeadTime) {
-            this.alertLeadTime = alertLeadTime;
-            user = Objects.requireNonNull(getCurrentUser());
-            factory = AppointmentDAO.getFactory();
-        }
-
-        @Override
-        public void run() {
-            List<AppointmentDAO> appointments;
-            try {
-                appointments = DbConnector.apply((t) -> {
-                    LocalDateTime start = LocalDateTime.now();
-                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(start),
-                            DB.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
-                });
-            } catch (SQLException | ClassNotFoundException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error checking impending appointments", ex);
-                Platform.runLater(() -> appointmentAlerts.onCheckAppointmentsTaskError(ex));
-                return;
-            }
-            Platform.runLater(() -> appointmentAlerts.onPeriodicCheckFinished(appointments));
-        }
     }
 
     private class DeleteTask<D extends DataAccessObject, M extends ItemModel<D>> extends TaskWaiter<String> {

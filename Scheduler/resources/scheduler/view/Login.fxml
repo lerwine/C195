@@ -86,7 +86,7 @@
                 <String fx:value="bordered" />
             </styleClass>
          <top>
-            <Label alignment="CENTER" styleClass="section-heading" text="%appointmentSchedulerLogin" BorderPane.alignment="CENTER" />
+            <Label alignment="CENTER" styleClass="popup-heading" text="%appointmentSchedulerLogin" BorderPane.alignment="CENTER" />
          </top>
         </BorderPane>
     </center>

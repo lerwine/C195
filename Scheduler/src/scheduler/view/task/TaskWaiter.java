@@ -22,8 +22,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -693,6 +695,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert operationLabel != null : "fx:id=\"operationLabel\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'TaskWaiter.fxml'.";
+
         cancelButton.setOnAction((event) -> {
             cancelButton.setOnAction(null);
             if (!isCancelled()) {
@@ -748,15 +751,21 @@ public abstract class TaskWaiter<T> extends Task<T> {
         ResourceBundle rb = ResourceBundleHelper.getBundle(TaskWaiter.class);
         FXMLLoader loader = new FXMLLoader(TaskWaiter.class.getResource(AppResources.getFXMLResourceName(TaskWaiter.class)), rb);
         loader.setController(this);
-        final Parent newParent;
         try {
-            newParent = loader.load();
+            loader.load();
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading FXML", ex);
             throw new RuntimeException("Error loading FXML", ex);
         }
-        Parent oldParent = owner.getScene().getRoot();
-        owner.getScene().setRoot(newParent);
+        Scene scene = owner.getScene();
+        Parent oldParent = scene.getRoot();
+        
+        rootStackPane.minWidthProperty().bind(scene.widthProperty());
+        rootStackPane.prefWidthProperty().bind(scene.widthProperty());
+        rootStackPane.minHeightProperty().bind(scene.heightProperty());
+        rootStackPane.prefHeightProperty().bind(scene.heightProperty());
+        
+        owner.getScene().setRoot(rootStackPane);
         rootStackPane.getChildren().add(0, oldParent);
         oldOnHidden = owner.getOnHidden();
         owner.setOnHidden(onHidden);
@@ -764,6 +773,10 @@ public abstract class TaskWaiter<T> extends Task<T> {
 
     private void hideBusyView() {
         LOG.log(Level.FINE, "hideBusyView called");
+        rootStackPane.minWidthProperty().unbind();
+        rootStackPane.prefWidthProperty().unbind();
+        rootStackPane.minHeightProperty().unbind();
+        rootStackPane.prefHeightProperty().unbind();
         owner.setOnHidden(oldOnHidden);
         oldOnHidden = null;
         cancelButton.setOnAction(null);

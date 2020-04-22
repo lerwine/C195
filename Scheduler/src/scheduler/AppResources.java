@@ -20,6 +20,13 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.SupportedLocale;
 
+// CURRENT: Define business hours - Alert for scheduling an appointment outside business hours
+// TODO: Test alert for scheduling overlapping appointments
+// CURRENT: Report for number of appointment types by month
+// CURRENT: Report for the schedule for each consultant
+// CURRENT: Create additional report
+// CURRENT: recording timestamps for user log-ins in a .txt file
+
 /**
  * Gets settings from the {@code /resources/scheduler/config.properties} file.
  *
@@ -27,6 +34,7 @@ import scheduler.view.city.SupportedLocale;
  */
 @GlobalizationResource("scheduler/App")
 public final class AppResources implements AppResourceBundleConstants {
+    public static final String FXMLPROPERTYNAME_CONTROLLER = "scheduler.Controller";
 
     private static final Logger LOG = Logger.getLogger(AppResources.class.getName());
     private static final Properties APPCONFIG_PROPERTIES;

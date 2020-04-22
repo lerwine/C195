@@ -15,6 +15,7 @@ import scheduler.AppResources;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.city.SupportedLocale;
 
+// CURRENT: Main offices in Phoenix, Arizona; New York, New York; and London, England
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

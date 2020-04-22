@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane fx:id="appointmentAlertBorderPane" prefHeight="600.0" prefWidth="900.0" styleClass="translucentGrayBg" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.AppointmentAlert">
+    <stylesheets>
+        <URL value="@/scheduler/defaultStyles.css"/>
+    </stylesheets>
+    <center>
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+            <center>
+                <VBox fx:id="appointmentAlertsVBox" spacing="8.0">
+                    <BorderPane.margin>
+                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                    </BorderPane.margin>
+                </VBox>
+            </center>
+            <top>
+                <Label styleClass="popup-heading" text="%appointmentReminder" BorderPane.alignment="CENTER" />
+            </top>
+            <bottom>
+                <ButtonBar BorderPane.alignment="CENTER">
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#onDismissAllAppointmentAlerts" text="%dismissAll" />
+                    </buttons>
+                    <BorderPane.margin>
+                        <Insets bottom="8.0" left="8.0" right="8.0" />
+                    </BorderPane.margin>
+                </ButtonBar>
+            </bottom>
+            <styleClass>
+                <String fx:value="mainFxmlClass" />
+                <String fx:value="bordered" />
+            </styleClass>
+        </BorderPane>
+    </center>
+</BorderPane>

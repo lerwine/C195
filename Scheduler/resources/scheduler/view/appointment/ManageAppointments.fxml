@@ -142,9 +142,6 @@
                             </tooltip>
                         </Button>
                     </buttons>
-                    <padding>
-                        <Insets bottom="8.0" right="8.0" />
-                    </padding>
                     <VBox.margin>
                         <Insets top="8.0" />
                     </VBox.margin>

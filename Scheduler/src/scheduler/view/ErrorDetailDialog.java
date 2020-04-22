@@ -26,21 +26,21 @@ import scheduler.util.Values;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class ErrorDialogDetailController {
+public class ErrorDetailDialog {
 
     private static GridPane load(Throwable error, int maxDepth, boolean ignoreCause, String message) throws IOException {
-        FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
+        FXMLLoader loader = new FXMLLoader(ErrorDetailDialog.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
                 AppResources.getResources());
         GridPane view = loader.load();
-        ((ErrorDialogDetailController) loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
+        ((ErrorDetailDialog) loader.getController()).initialize(error, message, maxDepth, Optional.of(ignoreCause));
         return view;
     }
 
     public static GridPane load(Throwable error, String logMessage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(ErrorDialogDetailController.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
+        FXMLLoader loader = new FXMLLoader(ErrorDetailDialog.class.getResource("/scheduler/view/ErrorDialogDetail.fxml"),
                 AppResources.getResources());
         GridPane view = loader.load();
-        ((ErrorDialogDetailController) loader.getController()).initialize(error, logMessage, 32, Optional.empty());
+        ((ErrorDetailDialog) loader.getController()).initialize(error, logMessage, 32, Optional.empty());
         return view;
     }
 

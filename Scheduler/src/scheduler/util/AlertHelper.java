@@ -12,7 +12,7 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import scheduler.AppResources;
-import scheduler.view.ErrorDialogDetailController;
+import scheduler.view.ErrorDetailDialog;
 
 /**
  * Utility class for alerts and logging.
@@ -72,7 +72,7 @@ public class AlertHelper {
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR));
         try {
-            alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, logMessage));
+            alert.getDialogPane().setExpandableContent(ErrorDetailDialog.load(error, logMessage));
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading exception detail", ex);
         }
@@ -121,7 +121,7 @@ public class AlertHelper {
         alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORTITLE)));
         if (null != error) {
             try {
-                alert.getDialogPane().setExpandableContent(ErrorDialogDetailController.load(error, null));
+                alert.getDialogPane().setExpandableContent(ErrorDetailDialog.load(error, null));
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error loading exception detail", ex);
             }

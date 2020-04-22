@@ -12,81 +12,82 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.TextFlow?>
 
 <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.MainController">
-   <children>
-      <VBox id="AnchorPane" styleClass="mainFxmlClass">
-          <children>
-              <MenuBar>
-                  <menus>
-                  <Menu fx:id="overviewMenu" disable="true" mnemonicParsing="false" onAction="#onOverviewMenuItemAction" text="%overview" />
-                      <Menu mnemonicParsing="false" text="%appointments">
-                          <items>
-                        <MenuItem fx:id="weeklyCalendarMenuItem" mnemonicParsing="false" onAction="#onWeeklyCalendarMenuItemAction" text="%weeklyCalendar" />
-                        <MenuItem fx:id="monthlyCalendarMenuItem" mnemonicParsing="false" onAction="#onMonthlyCalendarMenuItemAction" text="%monthlyCalendar" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem fx:id="myCurrentAndFutureAppointmentsMenuItem" mnemonicParsing="false" onAction="#onMyCurrentAndFutureAppointmentsMenuItemAction" text="%myCurrentAndUpcoming" />
-                              <MenuItem fx:id="allAppointmentsMenuItem" mnemonicParsing="false" onAction="#onAllAppointmentsMenuItemAction" text="%allAppointments" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                              <MenuItem mnemonicParsing="false" onAction="#onNewAppointmentMenuItemAction" text="%new" />
-                          </items>
-                      </Menu>
-                      <Menu mnemonicParsing="false" text="%customers">
-                          <items>
-                              <MenuItem fx:id="manageCustomersMenuItem" mnemonicParsing="false" onAction="#onManageCustomersMenuItemAction" text="%manageCustomers" />
-                              <MenuItem mnemonicParsing="false" onAction="#onNewCustomerMenuItemAction" text="%new" />
-                          </items>
-                      </Menu>
-                      <Menu mnemonicParsing="false" text="%users">
-                          <items>
-                              <MenuItem mnemonicParsing="false" onAction="#onNewUserMenuItemAction" text="%new" />
-                              <MenuItem fx:id="manageUsersMenuItem" mnemonicParsing="false" onAction="#onManageUsersMenuItemAction" text="%manageUsers" />
-                          </items>
-                      </Menu>
-                      <Menu mnemonicParsing="false" text="%address">
-                          <items>
-                              <MenuItem mnemonicParsing="false" onAction="#onNewAddressMenuItem" text="%newAddress" />
-                              <MenuItem fx:id="manageAddressesMenuItem" mnemonicParsing="false" onAction="#onManageAddressesMenuItemAction" text="%manageAddresses" />
-                          </items>
-                      </Menu>
-                  </menus>
-              </MenuBar>
-            <StackPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-               <VBox.margin>
-                  <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-               </VBox.margin>
-            </StackPane>
-          </children>
-      </VBox>
-      <BorderPane fx:id="appointmentAlertBorderPane" styleClass="translucentGrayBg" visible="false">
-         <center>
-            <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
-               <center>
-                  <VBox fx:id="appointmentAlertsVBox" spacing="8.0">
-                     <BorderPane.margin>
+    <children>
+        <VBox id="AnchorPane" styleClass="mainFxmlClass">
+            <children>
+                <MenuBar>
+                    <menus>
+                        <Menu fx:id="overviewMenu" disable="true" mnemonicParsing="false" onAction="#onOverviewMenuItemAction" text="%overview" />
+                        <Menu mnemonicParsing="false" text="%appointments">
+                            <items>
+                                <MenuItem fx:id="weeklyCalendarMenuItem" mnemonicParsing="false" onAction="#onWeeklyCalendarMenuItemAction" text="%weeklyCalendar" />
+                                <MenuItem fx:id="monthlyCalendarMenuItem" mnemonicParsing="false" onAction="#onMonthlyCalendarMenuItemAction" text="%monthlyCalendar" />
+                                <SeparatorMenuItem mnemonicParsing="false" />
+                                <MenuItem fx:id="myCurrentAndFutureAppointmentsMenuItem" mnemonicParsing="false" onAction="#onMyCurrentAndFutureAppointmentsMenuItemAction" text="%myCurrentAndUpcoming" />
+                                <MenuItem fx:id="allAppointmentsMenuItem" mnemonicParsing="false" onAction="#onAllAppointmentsMenuItemAction" text="%allAppointments" />
+                                <SeparatorMenuItem mnemonicParsing="false" />
+                                <MenuItem mnemonicParsing="false" onAction="#onNewAppointmentMenuItemAction" text="%new" />
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="%customers">
+                            <items>
+                                <MenuItem fx:id="manageCustomersMenuItem" mnemonicParsing="false" onAction="#onManageCustomersMenuItemAction" text="%manageCustomers" />
+                                <MenuItem mnemonicParsing="false" onAction="#onNewCustomerMenuItemAction" text="%new" />
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="%users">
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#onNewUserMenuItemAction" text="%new" />
+                                <MenuItem fx:id="manageUsersMenuItem" mnemonicParsing="false" onAction="#onManageUsersMenuItemAction" text="%manageUsers" />
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="%address">
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#onNewAddressMenuItem" text="%newAddress" />
+                                <MenuItem fx:id="manageAddressesMenuItem" mnemonicParsing="false" onAction="#onManageAddressesMenuItemAction" text="%manageAddresses" />
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
+                <StackPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                    <VBox.margin>
                         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                     </BorderPane.margin>
-                  </VBox>
-               </center>
-               <top>
-                  <Label styleClass="section-heading" text="%appointmentReminder" BorderPane.alignment="CENTER" />
-               </top>
-               <bottom>
-                  <ButtonBar BorderPane.alignment="CENTER">
-                    <buttons>
-                      <Button mnemonicParsing="false" onAction="#onDismissAllAppointmentAlerts" text="%dismissAll" />
-                    </buttons>
-                     <BorderPane.margin>
-                        <Insets bottom="8.0" left="8.0" right="8.0" />
-                     </BorderPane.margin>
-                  </ButtonBar>
-               </bottom>
-               <styleClass>
-                  <String fx:value="mainFxmlClass" />
-                  <String fx:value="bordered" />
-               </styleClass>
-            </BorderPane>
-         </center>
-      </BorderPane>
-   </children>
+                    </VBox.margin>
+                </StackPane>
+            </children>
+        </VBox>
+        <BorderPane fx:id="appointmentAlertBorderPane" styleClass="translucentGrayBg" visible="false">
+            <center>
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+                    <center>
+                        <VBox fx:id="appointmentAlertsVBox" spacing="8.0">
+                            <BorderPane.margin>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                            </BorderPane.margin>
+                        </VBox>
+                    </center>
+                    <top>
+                        <Label styleClass="popup-heading" text="%appointmentReminder" BorderPane.alignment="CENTER" />
+                    </top>
+                    <bottom>
+                        <ButtonBar BorderPane.alignment="CENTER">
+                            <buttons>
+                                <Button mnemonicParsing="false" onAction="#onDismissAllAppointmentAlerts" text="%dismissAll" />
+                            </buttons>
+                            <BorderPane.margin>
+                                <Insets bottom="8.0" left="8.0" right="8.0" />
+                            </BorderPane.margin>
+                        </ButtonBar>
+                    </bottom>
+                    <styleClass>
+                        <String fx:value="mainFxmlClass" />
+                        <String fx:value="bordered" />
+                    </styleClass>
+                </BorderPane>
+            </center>
+        </BorderPane>
+    </children>
 </StackPane>

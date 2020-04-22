@@ -8,27 +8,39 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="rootStackPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+
+<StackPane fx:id="rootStackPane" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="busy-container">
-            <top>
-                  <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" styleClass="busy-heading" text="%pleaseWait" textAlignment="CENTER" />
-            </top>
-            <center>
-            <VBox BorderPane.alignment="CENTER">
-               <children>
-                        <Label fx:id="operationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%connectingToDb" textAlignment="CENTER" wrapText="true" />
-                      <ProgressIndicator minHeight="12.0" minWidth="12.0" />
-               </children>
-            </VBox>
-            </center>
-            <bottom>
-                <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" BorderPane.alignment="CENTER">
-                    <BorderPane.margin>
-                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                    </BorderPane.margin>
-                </Button>
-            </bottom>
-        </BorderPane>
+      <BorderPane styleClass="translucentGrayBg" StackPane.alignment="CENTER">
+         <center>
+              <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="busy-container" BorderPane.alignment="CENTER">
+                  <top>
+                        <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" styleClass="busy-heading" text="%pleaseWait" textAlignment="CENTER" />
+                  </top>
+                  <center>
+                  <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+                     <children>
+                              <Label fx:id="operationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%connectingToDb" textAlignment="CENTER" wrapText="true">
+                           <VBox.margin>
+                              <Insets bottom="8.0" />
+                           </VBox.margin>
+                        </Label>
+                            <ProgressIndicator minHeight="12.0" minWidth="12.0" />
+                     </children>
+                     <BorderPane.margin>
+                        <Insets left="8.0" right="8.0" top="8.0" />
+                     </BorderPane.margin>
+                  </VBox>
+                  </center>
+                  <bottom>
+                      <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" BorderPane.alignment="CENTER">
+                          <BorderPane.margin>
+                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                          </BorderPane.margin>
+                      </Button>
+                  </bottom>
+              </BorderPane>
+         </center>
+      </BorderPane>
    </children>
 </StackPane>

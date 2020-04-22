@@ -77,9 +77,6 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
         return loadInto(mainController, stage, filter, null);
     }
 
-    // PENDING: The value of the field ManageAppointments.filterState is not used
-    private FilterOptionState filterState = null;
-
     @FXML // fx:id="titleTableColumn"
     private TableColumn<AppointmentModel, String> titleTableColumn; // Value injected by FXMLLoader
 

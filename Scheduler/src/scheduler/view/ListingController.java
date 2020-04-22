@@ -202,6 +202,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         editMenuItem.setOnAction(this::onEditMenuItemAction);
         deleteMenuItem.setOnAction(this::onDeleteMenuItemAction);
         newButton.setOnAction(this::onNewButtonAction);
+        helpButton.setOnAction(this::onHelpButtonAction);
     }
     
     protected String getResourceString(String key) {
@@ -220,6 +221,10 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             // PENDING: Internationalize message
             AlertHelper.showErrorAlert(stage, LOG, "Error loading view", ex);
         }
+    }
+
+    void onHelpButtonAction(ActionEvent event) {
+        // CURRENT: Implement help popup
     }
 
     void onEditMenuItemAction(ActionEvent event) {

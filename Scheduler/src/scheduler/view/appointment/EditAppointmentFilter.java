@@ -20,6 +20,7 @@ import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -44,6 +45,7 @@ import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGCUSTOMERS;
 import static scheduler.AppResourceBundleConstants.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
+import static scheduler.AppResources.FXMLPROPERTYNAME_CONTROLLER;
 import scheduler.dao.AddressElement;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -628,6 +630,19 @@ public final class EditAppointmentFilter {
         selectItem(titleComboBox, inputState.getTitleOption());
 
     }
+    
+    public static EditAppointmentFilter getController(BorderPane view) {
+        if (null != view) {
+            ObservableMap<Object, Object> properties = view.getProperties();
+            if (properties.containsKey(FXMLPROPERTYNAME_CONTROLLER)) {
+                Object value = properties.get(FXMLPROPERTYNAME_CONTROLLER);
+                if (null != value && value instanceof EditAppointmentFilter)
+                    return (EditAppointmentFilter)value;
+            }
+        }
+        return null;
+    }
+    
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
@@ -668,6 +683,7 @@ public final class EditAppointmentFilter {
         assert lookupOptionCustomersCheckBox != null : "fx:id=\"lookupOptionCustomersCheckBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
         assert lookupOptionUsersCheckBox != null : "fx:id=\"lookupOptionUsersCheckBox\" was not injected: check your FXML file 'EditAppointmentFilter.fxml'.";
 
+        rootBorderPane.getProperties().put(FXMLPROPERTYNAME_CONTROLLER, this);
         rootBorderPane.setVisible(false);
         collapseNode(rootBorderPane);
 

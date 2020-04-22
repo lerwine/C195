@@ -14,6 +14,7 @@ import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -108,15 +109,15 @@ public final class Scheduler extends Application {
      * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was
      * not found or the password hash did not match.
      */
-    public static void tryLoginUser(Stage stage, Parent loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+    public static void tryLoginUser(Stage stage, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
         TaskWaiter.startNow(new LoginTask(stage, loginView, userName, password, onNotSucceeded));
     }
 
     @Override
     public void start(Stage stage) throws Exception {
-        ViewAndController<Pane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
-        ViewAndController<Pane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
-        Pane mainView = mainViewAndController.getView();
+        ViewAndController<BorderPane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
+        ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+        StackPane mainView = mainViewAndController.getView();
         MainController mainController = mainViewAndController.getController();
         loginViewAndController.getView().setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
         loginViewAndController.getView().setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
@@ -125,7 +126,12 @@ public final class Scheduler extends Application {
         stage.setScene(new Scene(mainView));
         mainView.getProperties().put(PROPERTY_MAINCONTROLLER, mainController);
         ObservableList<Node> children = mainView.getChildren();
+        BorderPane loginView = loginViewAndController.getView();
         children.add(loginViewAndController.getView());
+        loginView.minWidthProperty().bind(mainView.widthProperty());
+        loginView.prefWidthProperty().bind(mainView.widthProperty());
+        loginView.minHeightProperty().bind(mainView.heightProperty());
+        loginView.prefHeightProperty().bind(mainView.heightProperty());
         EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
                 loginViewAndController.toEvent(this, FxmlViewEventType.BEFORE_SHOW, stage));
         stage.setOnHidden((event) -> {
@@ -147,15 +153,15 @@ public final class Scheduler extends Application {
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
         private final MainController mainController;
-        private final Pane mainPane;
-        private final Parent loginView;
+        private final StackPane mainPane;
+        private final BorderPane loginView;
 
-        LoginTask(Stage stage, Parent loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        LoginTask(Stage stage, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
             this.loginView = Objects.requireNonNull(loginView);
             this.userName = Objects.requireNonNull(userName);
             this.password = Objects.requireNonNull(password);
-            mainPane = (Pane) stage.getScene().getRoot();
+            mainPane = (StackPane) stage.getScene().getRoot();
             mainController = (MainController) (mainPane.getProperties().get(PROPERTY_MAINCONTROLLER));
             this.onNotSucceeded = onNotSucceeded;
         }
@@ -169,6 +175,10 @@ public final class Scheduler extends Application {
             } else {
                 EventHelper.fireFxmlViewEvent(mainController,
                         new FxmlViewControllerEvent<>(this, FxmlViewEventType.LOADED, mainPane, mainController, owner));
+                loginView.minWidthProperty().unbind();
+                loginView.prefWidthProperty().unbind();
+                loginView.minHeightProperty().unbind();
+                loginView.prefHeightProperty().unbind();
                 mainPane.getChildren().remove(loginView);
                 EventHelper.fireFxmlViewEvent(mainController,
                         new FxmlViewControllerEvent<>(this, FxmlViewEventType.BEFORE_SHOW, mainPane, mainController, owner));
