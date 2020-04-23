@@ -3,6 +3,11 @@
     -fx-font-family: Arial, Helvetica, sans-serif;
 }
 
+@font-face {
+    font-family: 'Segoe UI Symbol';
+    src: url('/scheduler/view/seguisym.ttf');
+}
+
 .mainFxmlClass {
     -fx-background-color: #ffffff;
 }
@@ -158,6 +163,9 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-background-radius: 4;
 }
 
+.symbol, .symbol-button {
+    -fx-font-family: "Segoe UI Symbol", sans-serif;
+}
 .button, .small-button, .symbol-button {
     -fx-text-fill: white;
     -fx-font-weight: bold;
@@ -168,10 +176,6 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
 .small-button, .symbol-button {
     -fx-font-size: 10px;
     -fx-padding: 1px 4px 1px 4px;
-}
-
-.symbol-button {
-    -fx-font-family: "Segoe UI Symbol", sans-serif;
 }
 
 .scroll-pane {

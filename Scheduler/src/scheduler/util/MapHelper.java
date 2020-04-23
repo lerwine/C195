@@ -227,6 +227,96 @@ public class MapHelper {
         return groupMap(source.iterator(), getKey);
     }
 
+    public static <T, K, V> HashMap<K, ArrayList<V>> groupMapFlat(T[] source, Function<T, Iterator<K>> getKeys, Function<T, V> getValue) {
+        return toMap(source, (T t, Map<K, ArrayList<V>> m) -> {
+            Iterator<K> iterator = getKeys.apply(t);
+            while (iterator.hasNext()) {
+                K key = iterator.next();
+                if (m.containsKey(key)) {
+                    m.get(key).add(getValue.apply(t));
+                } else {
+                    ArrayList<V> list = new ArrayList<>();
+                    list.add(getValue.apply(t));
+                    m.put(key, list);
+                }
+            }
+        });
+    }
+
+    @SafeVarargs
+    public static <T, K, V> HashMap<K, ArrayList<V>> groupMapFlat(Function<T, Iterator<K>> getKeys, Function<T, V> getValue, T... source) {
+        return groupMapFlat(source, getKeys, getValue);
+    }
+
+    public static <T, K, V> HashMap<K, ArrayList<V>> groupMapFlat(Iterator<T> source, Function<T, Iterator<K>> getKeys, Function<T, V> getValue) {
+        return toMap(source, (T t, Map<K, ArrayList<V>> m) -> {
+            Iterator<K> iterator = getKeys.apply(t);
+            while (iterator.hasNext()) {
+                K key = iterator.next();
+                if (m.containsKey(key)) {
+                    m.get(key).add(getValue.apply(t));
+                } else {
+                    ArrayList<V> list = new ArrayList<>();
+                    list.add(getValue.apply(t));
+                    m.put(key, list);
+                }
+            }
+        });
+    }
+
+    public static <T, K, V> HashMap<K, ArrayList<V>> groupMapFlat(Iterable<T> source, Function<T, Iterator<K>> getKeys, Function<T, V> getValue) {
+        return groupMapFlat(source.iterator(), getKeys, getValue);
+    }
+
+    public static <T, K, V> HashMap<K, ArrayList<V>> groupMapFlat(Stream<T> source, Function<T, Iterator<K>> getKeys, Function<T, V> getValue) {
+        return groupMapFlat(source.iterator(), getKeys, getValue);
+    }
+
+    public static <K, V> HashMap<K, ArrayList<V>> groupMapFlat(V[] source, Function<V, Iterator<K>> getKeys) {
+        return toMap(source, (V t, Map<K, ArrayList<V>> m) -> {
+            Iterator<K> iterator = getKeys.apply(t);
+            while (iterator.hasNext()) {
+                K key = iterator.next();
+                if (m.containsKey(key)) {
+                    m.get(key).add(t);
+                } else {
+                    ArrayList<V> list = new ArrayList<>();
+                    list.add(t);
+                    m.put(key, list);
+                }
+            }
+        });
+    }
+
+    @SafeVarargs
+    public static <K, V> HashMap<K, ArrayList<V>> groupMapFlat(Function<V, Iterator<K>> getKeys, V... source) {
+        return groupMapFlat(source, getKeys);
+    }
+
+    public static <K, V> HashMap<K, ArrayList<V>> groupMapFlat(Iterator<V> source, Function<V, Iterator<K>> getKeys) {
+        return toMap(source, (V t, Map<K, ArrayList<V>> m) -> {
+            Iterator<K> iterator = getKeys.apply(t);
+            while (iterator.hasNext()) {
+                K key = iterator.next();
+                if (m.containsKey(key)) {
+                    m.get(key).add(t);
+                } else {
+                    ArrayList<V> list = new ArrayList<>();
+                    list.add(t);
+                    m.put(key, list);
+                }
+            }
+        });
+    }
+
+    public static <K, V> HashMap<K, ArrayList<V>> groupMapFlat(Iterable<V> source, Function<V, Iterator<K>> getKeys) {
+        return groupMapFlat(source.iterator(), getKeys);
+    }
+
+    public static <K, V> HashMap<K, ArrayList<V>> groupMapFlat(Stream<V> source, Function<V, Iterator<K>> getKeys) {
+        return groupMapFlat(source.iterator(), getKeys);
+    }
+
     public static <K, V, T> HashMap<V, T> flipMap(Map<K, V> source, BiFunction<K, V, T> createCollector, BiConsumer<K, T> appendKey) {
         return toMap(source.keySet(), (originalKey, collector) -> {
             V resultKey = source.get(originalKey);

@@ -27,6 +27,7 @@ import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
+import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.view.annotations.HandlesDataObjectEvent;
@@ -35,6 +36,7 @@ import scheduler.view.event.DataLoadedEvent;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.event.FxmlViewEventType;
+import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.model.ItemModel;
 
 /**
@@ -196,6 +198,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         assert newButton != null : "fx:id=\"newButton\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
 
         filter = new SimpleObjectProperty<>();
+        NodeUtil.appendEditColumn(listingTableView, this::onItemActionRequest);
         listingTableView.setItems(itemsList);
         //listingTableView.setOnKeyTyped(this::onListingTableViewKeyTyped);
         listingTableView.setOnKeyReleased(this::onListingTableKeyReleased);
@@ -226,6 +229,18 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         // CURRENT: Implement help popup
     }
 
+    protected void onItemActionRequest(ItemActionRequestEvent<U> event) {
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
+        try {
+            if (event.isDelete())
+                onDeleteItem(stage, event.getItem());
+            else
+                onEditItem(stage, event.getItem());
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
+        }
+    }
+    
     void onEditMenuItemAction(ActionEvent event) {
         U item = listingTableView.getSelectionModel().getSelectedItem();
         Stage stage = (Stage) listingTableView.getScene().getWindow();

@@ -24,15 +24,18 @@
                         <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="%currentAndFutureAppointments" wrapText="true" />
                         <HBox alignment="CENTER_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" StackPane.alignment="CENTER_RIGHT">
                             <children>
-                                <Button mnemonicParsing="false" onAction="#filterButtonClick" text="%filter" visible="false" HBox.hgrow="NEVER" />
-                                <Button mnemonicParsing="false" onAction="#onExportButtonAction" text="%export">
+                                <Button mnemonicParsing="false" onAction="#filterButtonClick" styleClass="symbol-button" text="" HBox.hgrow="NEVER" />
+                                <Button mnemonicParsing="false" onAction="#onExportButtonAction" styleClass="symbol-button" text="">
                                     <tooltip>
                                         <Tooltip text="%exportAppointmentListToFile" />
                                     </tooltip>
+                           <HBox.margin>
+                              <Insets left="8.0" right="8.0" />
+                           </HBox.margin>
                                 </Button>
                                 <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓">
                                     <HBox.margin>
-                                        <Insets left="8.0" right="8.0" />
+                                        <Insets right="8.0" />
                                     </HBox.margin>
                                 </Button>
                             </children>
