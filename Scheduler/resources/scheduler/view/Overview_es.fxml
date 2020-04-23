@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+    <children>
+        <Text styleClass="h2" text="Ver citas" />
+        <Text text="&#10;Desde el menú " />
+        <Text styleClass="refNameText" text="&quot;Citas&quot;" />
+        <Text text=", puede ver un calendario de citas " />
+        <Hyperlink id="byMonthHyperlink" text="por mes" />
+        <Text text=" o " />
+        <Hyperlink id="byWeekHyperlink" text="por semana" />
+        <Text text=", o puede ver una lista filtrable de citas." />
+        <Text styleClass="h2" text="&#10;&#10;Agregar citas" />
+        <Text text="&#10;Seleccione " />
+        <Hyperlink id="newAppointmentHyperlink" text="&quot;Nuevo&quot;" />
+        <Text text=" en el menú " />
+        <Text styleClass="refNameText" text="&quot;Citas&quot;" />
+        <Text styleClass="h3" text="&#10;&#9;o&#10;" />
+        <Text text="usar el menú " />
+        <Text styleClass="refNameText" text="&quot;Clientes&quot;" />
+        <Text text=" para abrir una " />
+        <Hyperlink id="customerListingHyperlink1" text="lista de clientes" />
+        <Text text=", abrir un registro de clientes y hacer clic en el botón " />
+        <Text styleClass="refNameText" text="&quot;Agregar cita&quot;" />
+        <Text text=" en la parte inferior." />
+        <Text styleClass="h2" text="&#10;&#10;Administrar clientes" />
+        <Text text="&#10;Usar la " />
+        <Text styleClass="refNameText" text="&quot;Clientes&quot;" />
+        <Text text=" menú para ver una " />
+        <Hyperlink id="customerListingHyperlink2" text="lista de clientes" />
+        <Text styleClass="h3" text="&#10;&#9;o&#10;" />
+        <Text text="usar la " />
+        <Text styleClass="refNameText" text="&quot;gestionar direcciones&quot;" />
+        <Text text=" de menú para ver una " />
+        <Hyperlink id="countryListingHyperlink" text="lista de países" />
+        <Text text="Luego puede seleccionar la ciudad y la dirección para ver a los clientes en esa dirección específica." />
+        <Text styleClass="h2" text="&#10;&#10;Administrar usuarios" />
+        <Text text="&#10;Usar el menú " />
+        <Text styleClass="refNameText" text="&quot;Usuarios&quot;" />
+        <Text text=" para ver una " />
+        <Hyperlink id="userListingHyperlink" text="lista de usuarios" />
+        <Text text="." />
+    </children>
+</TextFlow>

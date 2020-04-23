@@ -770,6 +770,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         descriptionTextArea.setText(model.getDescription());
     }
 
+    
+    @SuppressWarnings("incomplete-switch")
+    @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
+    protected void onShown(FxmlViewEvent<? extends Parent> event) {
+        LOG.info("shown");
+    }
+    
     @Override
     protected BooleanExpression getValidationExpression() {
         return startDateTime.dateTimeValidBinding().and(

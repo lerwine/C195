@@ -58,12 +58,16 @@ Labeled.leftLabeledControl {
     visibility: collapse;
 }
 
-.page-heading, .section-heading, .sub-section-heading, .busy-heading, .popup-heading {
+.h1, .h2, .h3, .page-heading, .section-heading, .sub-section-heading, .busy-heading, .popup-heading {
     -fx-text-fill: darkslateblue;
     -fx-font-weight: bold;
 }
 
-.page-heading, .section-heading, .popup-heading, .busy-heading {
+Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
+    -fx-fill: #2a3258;
+}
+
+.h1, .h2, .page-heading, .section-heading, .popup-heading, .busy-heading {
     -fx-padding: 4;
     -fx-max-width: 32768;
 }
@@ -93,7 +97,7 @@ Labeled.leftLabeledControl {
     -fx-border-color: linear-gradient(#d3d88b, #e2e5b2);
 }
 
-.sub-section-heading {
+.h2, .sub-section-heading {
     -fx-font-size:14px;
 }
 
@@ -176,4 +180,36 @@ Labeled.leftLabeledControl {
 
 .scroll-pane .viewport {
     -fx-background-color: transparent;
+}
+
+Text.refNameText, Label.refNameText {
+    -fx-font-style: italic;
+}
+
+Text.refNameText {
+    -fx-fill: #2a3258;
+    -fx-stroke: #2a3258;
+    -fx-stroke-width: 0.25;
+    
+}
+
+Label.refNameText {
+    -fx-text-fill: #2a3258;
+    -fx-border-color: #bfbff2;
+    -fx-font-weight: bold;
+    -fx-border-width: 1;
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+    -fx-font-size: 11px;
+    -fx-padding: 0px 2px 0px 2px;
+    -fx-background-color: #e9e9fa;
+}
+
+TextFlow > .label, TextFlow > .hyperlink {
+    -fx-wrap-text: true;
+}
+
+TextFlow > .hyperlink {
+    -fx-padding: 0px;
+    -fx-border-width: 0px;
 }

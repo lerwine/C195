@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.TextFlow?>
 
 <StackPane prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.Overview">
    <children>
-      <VBox prefHeight="200.0" prefWidth="100.0">
+      <VBox fx:id="contentVBox">
          <children>
             <Label styleClass="section-heading" text="%upcomingAppointments" />
             <FlowPane>
@@ -103,87 +101,6 @@
                   <Insets top="8.0" />
                </VBox.margin>
             </Label>
-            <Label layoutX="10.0" layoutY="83.0" styleClass="sub-section-heading" text="%viewingAppointmentsHeading" />
-            <Label text="%viewingAppointmentsDetails">
-               <VBox.margin>
-                  <Insets />
-               </VBox.margin>
-            </Label>
-            <Label styleClass="sub-section-heading" text="%addingAppointmentsHeading">
-               <VBox.margin>
-                  <Insets top="8.0" />
-               </VBox.margin>
-            </Label>
-            <TextFlow>
-               <VBox.margin>
-                  <Insets left="8.0" />
-               </VBox.margin>
-               <children>
-                  <Label text="%addingAppointments1a" />
-                  <Hyperlink onAction="#onNewAppointmentHyperlinkAction" text="%addingAppointments1Link" />
-                  <Label text="%addingAppointments1b" />
-               </children>
-            </TextFlow>
-            <Label styleClass="sub-section-heading" text="or">
-               <VBox.margin>
-                  <Insets left="24.0" />
-               </VBox.margin>
-            </Label>
-            <TextFlow>
-               <VBox.margin>
-                  <Insets left="8.0" />
-               </VBox.margin>
-               <children>
-                  <Label text="%addingAppointments2a" />
-                  <Hyperlink onAction="#onCustomerListingHyperlinkAction" text="%addingAppointments2Link" />
-                  <Label text="%addingAppointments2b" />
-               </children>
-            </TextFlow>
-            <Label styleClass="sub-section-heading" text="%manageCustomersHeading">
-               <VBox.margin>
-                  <Insets top="8.0" />
-               </VBox.margin>
-            </Label>
-            <TextFlow>
-               <VBox.margin>
-                  <Insets left="8.0" />
-               </VBox.margin>
-               <children>
-                  <Label text="%manageCustomers1a" />
-                  <Hyperlink onAction="#onCustomerListingHyperlinkAction" text="%manageCustomers1Link" />
-                  <Label text="%manageCustomers1b" />
-               </children>
-            </TextFlow>
-            <Label layoutX="26.0" layoutY="114.0" styleClass="sub-section-heading" text="or">
-               <VBox.margin>
-                  <Insets left="24.0" />
-               </VBox.margin>
-            </Label>
-            <TextFlow>
-               <VBox.margin>
-                  <Insets left="8.0" />
-               </VBox.margin>
-               <children>
-                  <Label text="%manageCustomers2a" />
-                  <Hyperlink onAction="#onCountryListingHyperlinkAction" text="%manageCustomers2Link" />
-                  <Label text="%manageCustomers2b" />
-               </children>
-            </TextFlow>
-            <Label layoutX="10.0" layoutY="153.0" styleClass="sub-section-heading" text="%manageUsersHeading">
-               <VBox.margin>
-                  <Insets top="8.0" />
-               </VBox.margin>
-            </Label>
-            <TextFlow>
-               <VBox.margin>
-                  <Insets left="8.0" />
-               </VBox.margin>
-               <children>
-                  <Label text="%manageUsersA" />
-                  <Hyperlink onAction="#onUserListingHyperlinkAction" text="%mangeUsersLink" />
-                  <Label text="%manageUsersB" />
-               </children>
-            </TextFlow>
          </children>
       </VBox>
    </children>

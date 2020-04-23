@@ -1,12 +1,15 @@
 package scheduler.view;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -107,6 +110,20 @@ public class HelpContent {
             titleLabel.setText((null == title || title.trim().isEmpty()) ? resources.getString(MainResourceKeys.RESOURCEKEY_SCHEDULERHELP) : title);
             contentScrollPane.setContent(source);
         }
+    }
+
+    public <T extends Node> T show(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
+        FXMLLoader loader;
+        if (null != bundleBaseName && !bundleBaseName.trim().isEmpty()) {
+            Class<? extends HelpContent> c = getClass();
+            loader = new FXMLLoader(c.getResource(fxmlResourceName), ResourceBundle.getBundle(bundleBaseName, Locale.getDefault(),
+                    c.getClassLoader()));
+        }
+        else
+            loader = new FXMLLoader(getClass().getResource(fxmlResourceName));
+        T result = loader.load();
+        show(title, result);
+        return result;
     }
 
     public void hide() {

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+    <children>
+        <Text styleClass="h2" text="नियुक्ति देखना" />
+        <Text text="&#10;से " />
+        <Text styleClass="refNameText" text="&quot;नियुक्ति&quot;" />
+        <Text text=" मेनू, आप नियुक्तियों का कैलेंडर देख सकते हैं " />
+        <Hyperlink id="byMonthHyperlink" text="महीने के द्वारा" />
+        <Text text=" या " />
+        <Hyperlink id="byWeekHyperlink" text="सप्ताह के द्वारा" />
+        <Text text=", या आप नियुक्तियों की एक फ़िल्टर सूची देख सकते हैं।" />
+        <Text styleClass="h2" text="&#10;&#10;अपॉइंटमेंट जोड़ना" />
+        <Text text="&#10;" />
+        <Text styleClass="refNameText" text="&quot;अपॉइंटमेंट्स&quot;" />
+        <Text text=" मेनू से " />
+        <Hyperlink id="newAppointmentHyperlink" text="&quot;नया&quot;" />
+        <Text text=" चुनें" />
+        <Text styleClass="h3" text="&#10;&#9;या&#10;" />
+        <Hyperlink id="customerListingHyperlink1" text="ग्राहक सूची" />
+        <Text text=" खोलने के लिए " />
+        <Text styleClass="refNameText" text="&quot;ग्राहक&quot;" />
+        <Text text=" मेनू का उपयोग करें, ग्राहक रिकॉर्ड खोलें और सबसे नीचे स्थित " />
+        <Text styleClass="refNameText" text="&quot;अपॉइंटमेंट&quot;" />
+        <Text text=" बटन पर क्लिक करें।" />
+        <Text styleClass="h2" text="&#10;&#10;ग्राहकों को प्रबंधित करें" />
+        <Text text="&#10;का प्रयोग करें " />
+        <Text styleClass="refNameText" text="&quot;ग्राहकों&quot;" />
+        <Text text=" एक देखने के लिए मेनू " />
+        <Hyperlink id="customerListingHyperlink2" text="ग्राहकों की सूची" />
+        <Text styleClass="h3" text="&#10;&#9;या&#10;" />
+        <Text text="आप " />
+        <Hyperlink id="countryListingHyperlink" text="देशों की सूची" />
+        <Text text=" देखने के लिए " />
+        <Text styleClass="refNameText" text="&quot;पते प्रबंधित करें&quot;" />
+        <Text text=" मेनू देख सकते हैं। आप उस विशिष्ट पते पर ग्राहकों को देखने के लिए शहर और पते का चयन कर सकते हैं।" />
+        <Text styleClass="h2" text="&#10;&#10;उपयोगकर्ता प्रबंधित करें" />
+        <Text text="&#10;" />
+        <Hyperlink id="userListingHyperlink" text="उपयोगकर्ताओं की सूची" />
+        <Text text=" देखने के लिए " />
+        <Text styleClass="refNameText" text="&quot;उपयोगकर्ता&quot;" />
+        <Text text=" मेनू का उपयोग करें।" />
+    </children>
+</TextFlow>

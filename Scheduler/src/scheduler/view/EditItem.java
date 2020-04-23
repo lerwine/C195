@@ -241,6 +241,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
                     if (null == viewAndController) {
                         event.getStage().close();
                     }
+                    break;
                 case UNLOADED:
                     if (null != viewAndController) {
                         currentController.onUnload(viewAndController.getView());

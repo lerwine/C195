@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+    <children>
+        <Text styleClass="h2" text="Termine anzeigen" />
+        <Text text="&#10;Über das Menü " />
+        <Text styleClass="refNameText" text="&quot;Termine&quot;" />
+        <Text text=" können Sie einen Kalender mit Terminen " />
+        <Hyperlink id="byMonthHyperlink" text="nach Monat" />
+        <Text text=" oder " />
+        <Hyperlink id="byWeekHyperlink" text="Woche" />
+        <Text text=" anzeigen oder eine filterbare Liste mit Terminen anzeigen." />
+        <Text styleClass="h2" text="&#10;&#10;Termine hinzufügen" />
+        <Text text="&#10;Wählen Sie " />
+        <Hyperlink id="newAppointmentHyperlink" text="&quot;Neu&quot;" />
+        <Text text=" aus dem " />
+        <Text styleClass="refNameText" text="&quot;Terminmenü&quot;" />
+        <Text styleClass="h3" text="&#10;&#9;oder&#10;" />
+        <Text text="benutzen Sie das " />
+        <Text styleClass="refNameText" text="&quot;Kunden&quot;" />
+        <Text text=" - Menü einen öffnen " />
+        <Hyperlink id="customerListingHyperlink1" text="Liste der Kunden" />
+        <Text text=", öffnen Sie einen Kundendatensatz, und klicken Sie auf die " />
+        <Text styleClass="refNameText" text="&quot;Neue Termin&quot;" />
+        <Text text=" Schaltfläche am unteren Rande." />
+        <Text styleClass="h2" text="&#10;&#10;Kunden verwalten" />
+        <Text text="&#10;Verwenden Sie das " />
+        <Text styleClass="refNameText" text="&quot;Kunden&quot;" />
+        <Text text=" - Menü eine anzuzeigen " />
+        <Hyperlink id="customerListingHyperlink2" text="Liste der Kunden" />
+        <Text styleClass="h3" text="&#10;&#9;oder&#10;" />
+        <Text text="verwenden sie das " />
+        <Text styleClass="refNameText" text="&quot;Adressen verwalten&quot;" />
+        <Text text=" - Menü eine anzuzeigen " />
+        <Hyperlink id="countryListingHyperlink" text="Liste der Länder" />
+        <Text text=". Sie können dann die Stadt und die Adresse auswählen, um Kunden an dieser bestimmten Adresse anzuzeigen." />
+        <Text styleClass="h2" text="&#10;&#10;Benutzer verwalten" />
+        <Text text="&#10;Verwenden Sie das Menü " />
+        <Text styleClass="refNameText" text="&quot;Benutzer&quot;" />
+        <Text text=", um eine " />
+        <Hyperlink id="userListingHyperlink" text="Liste der Benutzer" />
+        <Text text=" anzuzeigen." />
+    </children>
+</TextFlow>

@@ -5,15 +5,20 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -26,6 +31,8 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.appointment.ByMonth;
+import scheduler.view.appointment.ByWeek;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.CustomerModelImpl;
@@ -57,8 +64,9 @@ public class Overview {
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-//    @FXML // URL location of the FXML file that was given to the FXMLLoader
-//    private URL location;
+    @FXML // fx:id="contentVBox"
+    private VBox contentVBox; // Value injected by FXMLLoader
+
     @FXML // fx:id="appointmentsTodayLabel"
     private Label appointmentsTodayLabel; // Value injected by FXMLLoader
 
@@ -74,8 +82,26 @@ public class Overview {
     @FXML // fx:id="appointmentsThisMonthLabel"
     private Label appointmentsThisMonthLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentsnextMonthLabel"
+    @FXML // fx:id="appointmentsNextMonthLabel"
     private Label appointmentsNextMonthLabel; // Value injected by FXMLLoader
+
+    void onByMonthHyperlinkAction(ActionEvent event) {
+        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
+        try {
+            ByMonth.loadInto(getMainController((Hyperlink)event.getSource()), stage, LocalDate.now());
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
+        }
+    }
+
+    void onByWeekHyperlinkAction(ActionEvent event) {
+        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
+        try {
+            ByWeek.loadInto(getMainController((Hyperlink)event.getSource()), stage, LocalDate.now());
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
+        }
+    }
 
     @FXML
     void onCountryListingHyperlinkAction(ActionEvent event) {
@@ -115,12 +141,44 @@ public class Overview {
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
+        assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsTodayLabel != null : "fx:id=\"appointmentsTodayLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsTomorrowLabel != null : "fx:id=\"appointmentsTomorrowLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsThisWeekLabel != null : "fx:id=\"appointmentsThisWeekLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsNextWeekLabel != null : "fx:id=\"appointmentsNextWeekLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsThisMonthLabel != null : "fx:id=\"appointmentsThisMonthLabel\" was not injected: check your FXML file 'Overview.fxml'.";
-        assert appointmentsNextMonthLabel != null : "fx:id=\"appointmentsnextMonthLabel\" was not injected: check your FXML file 'Overview.fxml'.";
+        assert appointmentsNextMonthLabel != null : "fx:id=\"appointmentsNextMonthLabel\" was not injected: check your FXML file 'Overview.fxml'.";
+
+        String resourcePath;
+        switch (Locale.getDefault().getLanguage()) {
+            case "de":
+            case "hi":
+            case "es":
+                resourcePath = String.format("/scheduler/view/Overview_%s.fxml", Locale.getDefault().getLanguage());
+                break;
+            default:
+                resourcePath = "/scheduler/view/Overview_en.fxml";
+                break;
+        }
+        try {
+            contentVBox.getChildren().add(FXMLLoader.load(getClass().getResource(resourcePath)));
+            Hyperlink hyperlink = (Hyperlink)contentVBox.lookup("#byMonthHyperlink");
+            hyperlink.setOnAction(this::onByMonthHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#byWeekHyperlink");
+            hyperlink.setOnAction(this::onByWeekHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#newAppointmentHyperlink");
+            hyperlink.setOnAction(this::onNewAppointmentHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#customerListingHyperlink1");
+            hyperlink.setOnAction(this::onCustomerListingHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#customerListingHyperlink2");
+            hyperlink.setOnAction(this::onCustomerListingHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#countryListingHyperlink");
+            hyperlink.setOnAction(this::onCountryListingHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#userListingHyperlink");
+            hyperlink.setOnAction(this::onUserListingHyperlinkAction);
+        } catch (IOException ex) {
+            Logger.getLogger(Overview.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)

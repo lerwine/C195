@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+    <children>
+        <Text styleClass="h2" text="Viewing Appointments" />
+        <Text text="&#10;From the " />
+        <Text styleClass="refNameText" text="&quot;Appointments&quot;" />
+        <Text text=" menu, you can view a calendar of appointments " />
+        <Hyperlink fx:id="byMonthHyperlink" id="byMonthHyperlink" text="by month" />
+        <Text text=" or " />
+        <Hyperlink fx:id="byWeekHyperlink" id="byWeekHyperlink" text="by week" />
+        <Text text=", or you can view a filterable listing of appointments." />
+        <Text styleClass="h2" text="&#10;&#10;Adding Appointments" />
+        <Text text="&#10;Select " />
+        <Hyperlink fx:id="newAppointmentHyperlink" id="newAppointmentHyperlink" text="&quot;New&quot;" />
+        <Text text=" from the " />
+        <Text styleClass="refNameText" text="&quot;Appointments&quot;" />
+        <Text text=" menu" />
+        <Text styleClass="h3" text="&#10;&#9;or&#10;" />
+        <Text text="use the " />
+        <Text styleClass="refNameText" text="&quot;Customers&quot;" />
+        <Text text=" menu to open a " />
+        <Hyperlink fx:id="customerListingHyperlink1" id="customerListingHyperlink1" text="customer listing" />
+        <Text text=", open a customer record, and click the " />
+        <Text styleClass="refNameText" text="&quot;Add Appointment&quot;" />
+        <Text text=" button at the bottom." />
+        <Text styleClass="h2" text="&#10;&#10;Manage Customers" />
+        <Text text="&#10;Use the " />
+        <Text styleClass="refNameText" text="&quot;Customers&quot;" />
+        <Text text=" menu to view a " />
+        <Hyperlink fx:id="customerListingHyperlink2" id="customerListingHyperlink2" text="list of customers" />
+        <Text styleClass="h3" text="&#10;&#9;or&#10;" />
+        <Text text="use the " />
+        <Text styleClass="refNameText" text="&quot;Manage Addresses&quot;" />
+        <Text text=" menu to view a " />
+        <Hyperlink fx:id="countryListingHyperlink" id="countryListingHyperlink" text="list of countries" />
+        <Text text=". You can then select the city and address to view customers at that specific address." />
+        <Text styleClass="h2" text="&#10;&#10;Manage Users" />
+        <Text text="&#10;Use the " />
+        <Text styleClass="refNameText" text="&quot;Users&quot;" />
+        <Text text=" menu to view a " />
+        <Hyperlink fx:id="userListingHyperlink" id="userListingHyperlink" text="list of users" />
+        <Text text="." />
+    </children>
+</TextFlow>

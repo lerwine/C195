@@ -368,6 +368,18 @@ public final class MainController {
         }
     }
 
+    public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
+        return helpContent.show(title, fxmlResourceName, bundleBaseName);
+    }
+    
+    public <T extends Node> T showHelp(String title, String fxmlResourceName) throws IOException {
+        return helpContent.show(title, fxmlResourceName, null);
+    }
+    
+    public <T extends Node> T showHelp(String fxmlResourceName) throws IOException {
+        return helpContent.show(null, fxmlResourceName, null);
+    }
+    
     public <T extends Iterable<Text>> void showHelp(String title, T source) {
         helpContent.show(title, source);
     }
