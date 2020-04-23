@@ -28,17 +28,18 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBACCESSERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.UserStatus;
-import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -168,16 +169,16 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
 
         userNameErrorMessageLabel.visibleProperty().bind(getUserNameValidationMessage().isNotEmpty());
         bindCssCollapse(userNameErrorMessageLabel, getUserNameValidationMessage().isEmpty());
-        
+
         passwordField.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
         bindCssCollapse(passwordField, changePasswordCheckBox.selectedProperty().not());
-        
+
         confirmLabel.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
         bindCssCollapse(confirmLabel, changePasswordCheckBox.selectedProperty().not());
-        
+
         confirmPasswordField.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
         bindCssCollapse(confirmPasswordField, changePasswordCheckBox.selectedProperty().not());
-        
+
         passwordErrorMessageLabel.textProperty().bind(getPasswordValidationMessage());
         passwordErrorMessageLabel.visibleProperty().bind(getPasswordValidationMessage().isNotEmpty());
         bindCssCollapse(passwordErrorMessageLabel, getPasswordValidationMessage().isEmpty());
@@ -331,7 +332,7 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), stage, ex);
             stage.close();
         }
 

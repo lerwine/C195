@@ -39,6 +39,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBACCESSERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
@@ -56,8 +57,6 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.util.AlertHelper;
-import scheduler.util.LogHelper;
 import scheduler.util.MapHelper;
 import static scheduler.util.NodeUtil.bindCollapsible;
 import static scheduler.util.NodeUtil.bindCollapsibleMessage;
@@ -66,6 +65,7 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.EditItem;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.ViewAndController;
 import scheduler.view.address.AddressModelImpl;
@@ -570,7 +570,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
                     scheduler.util.EventHelper.fireFxmlViewEvent(addressPicker, event);
                     rootStackPane.getChildren().add(vc.getView());
                 } catch (IOException ex) {
-                    AlertHelper.showErrorAlert(event.getStage(), LOG, ex);
+                    ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), event.getStage(), ex);
                 }
                 break;
             case BEFORE_SHOW:
@@ -749,7 +749,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), stage, ex);
             stage.close();
         }
 
@@ -785,7 +785,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), stage, ex);
             stage.close();
         }
 

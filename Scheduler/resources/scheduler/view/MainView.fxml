@@ -12,7 +12,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.TextFlow?>
 
 <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.MainController">
     <children>
@@ -59,35 +58,5 @@
                 </StackPane>
             </children>
         </VBox>
-        <BorderPane fx:id="appointmentAlertBorderPane" styleClass="translucentGrayBg" visible="false">
-            <center>
-                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
-                    <center>
-                        <VBox fx:id="appointmentAlertsVBox" spacing="8.0">
-                            <BorderPane.margin>
-                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                            </BorderPane.margin>
-                        </VBox>
-                    </center>
-                    <top>
-                        <Label styleClass="popup-heading" text="%appointmentReminder" BorderPane.alignment="CENTER" />
-                    </top>
-                    <bottom>
-                        <ButtonBar BorderPane.alignment="CENTER">
-                            <buttons>
-                                <Button mnemonicParsing="false" onAction="#onDismissAllAppointmentAlerts" text="%dismissAll" />
-                            </buttons>
-                            <BorderPane.margin>
-                                <Insets bottom="8.0" left="8.0" right="8.0" />
-                            </BorderPane.margin>
-                        </ButtonBar>
-                    </bottom>
-                    <styleClass>
-                        <String fx:value="mainFxmlClass" />
-                        <String fx:value="bordered" />
-                    </styleClass>
-                </BorderPane>
-            </center>
-        </BorderPane>
     </children>
 </StackPane>

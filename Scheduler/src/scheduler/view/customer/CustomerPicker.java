@@ -27,14 +27,16 @@ import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS;
+import static scheduler.AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
@@ -519,9 +521,8 @@ public class CustomerPicker {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORHEADING), stage, ex,
+                    AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORDETAILS));
         }
 
         @Override
@@ -548,9 +549,8 @@ public class CustomerPicker {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORHEADING), stage, ex,
+                    AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORDETAILS));
         }
 
         @Override
@@ -601,9 +601,8 @@ public class CustomerPicker {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORHEADING),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORHEADING), stage, ex,
+                    AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORDETAILS));
         }
 
         @Override

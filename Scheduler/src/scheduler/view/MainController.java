@@ -7,16 +7,18 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
@@ -117,6 +119,8 @@ public final class MainController {
     private StackPane contentPane; // Value injected by FXMLLoader
 
     private Object contentController;
+    private AppointmentAlert appointmentAlert;
+    private HelpContent helpContent;
 
     public StackPane getContentPane() {
         return contentPane;
@@ -250,7 +254,7 @@ public final class MainController {
                         case BEFORE_SHOW:
                             childView = event.getView();
                             if (childView instanceof Region) {
-                                Region r = (Region)childView;
+                                Region r = (Region) childView;
                                 r.prefWidthProperty().bind(contentPane.widthProperty());
                                 r.minWidthProperty().bind(contentPane.widthProperty());
                                 r.prefHeightProperty().bind(contentPane.heightProperty());
@@ -264,7 +268,7 @@ public final class MainController {
                         case UNLOADED:
                             childView = event.getView();
                             if (childView instanceof Region) {
-                                Region r = (Region)childView;
+                                Region r = (Region) childView;
                                 r.prefWidthProperty().unbind();
                                 r.minWidthProperty().unbind();
                                 r.prefHeightProperty().unbind();
@@ -292,17 +296,23 @@ public final class MainController {
     private void onShown(FxmlViewEvent<? extends Parent> event) {
         event.getStage().setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTSCHEDULER));
         try {
+            appointmentAlert = ViewControllerLoader.loadViewAndController(AppointmentAlert.class).getController();
             Overview.loadInto(this, event.getStage());
+            helpContent = ViewControllerLoader.loadViewAndController(HelpContent.class).getController();
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), event.getStage(), ex);
         }
-        // CURRENT: Load AppointmentAlert
+        if (null != helpContent)
+            helpContent.initialize(contentPane);
+        if (null != appointmentAlert)
+            appointmentAlert.initialize(contentPane);
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.UNLOADED)
     private void onUnloaded(FxmlViewEvent<? extends Parent> event) {
         ViewControllerLoader.clearPaneContent(this, contentPane);
-        // CURRENT: Unload AppointmentAlert
+        if (null != appointmentAlert)
+            appointmentAlert.shutdown();
     }
 
     private MenuItem getAssociatedMenuItem(Object controller) {
@@ -358,6 +368,34 @@ public final class MainController {
         }
     }
 
+    public <T extends Iterable<Text>> void showHelp(String title, T source) {
+        helpContent.show(title, source);
+    }
+    
+    public void showHelp(String title, Stream<Text> source) {
+        helpContent.show(title, source);
+    }
+    
+    public void showHelp(String title, Node source) {
+        helpContent.show(title, source);
+    }
+    
+    public <T extends Iterable<Text>> void showHelp(T source) {
+        helpContent.show(null, source);
+    }
+    
+    public void showHelp(Stream<Text> source) {
+        helpContent.show(null, source);
+    }
+    
+    public void showHelp(Node source) {
+        helpContent.show(null, source);
+    }
+    
+    public void hideHelp() {
+        helpContent.hide();
+    }
+    
     /**
      * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
      *

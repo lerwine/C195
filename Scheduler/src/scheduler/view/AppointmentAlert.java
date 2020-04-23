@@ -1,7 +1,5 @@
 package scheduler.view;
 
-import java.io.IOException;
-import java.net.URL;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
@@ -26,18 +24,15 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
@@ -45,7 +40,6 @@ import scheduler.dao.AppointmentElement;
 import scheduler.dao.AppointmentType;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.setBorderedNode;
@@ -53,11 +47,8 @@ import static scheduler.util.NodeUtil.setLeftControlLabel;
 import static scheduler.util.NodeUtil.setLeftLabeledControl;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.event.FxmlViewEvent;
 
 /**
  * FXML Controller class
@@ -66,10 +57,10 @@ import scheduler.view.event.FxmlViewEvent;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/AppointmentAlert.fxml")
-public class AppointmentAlert implements Initializable {
+public class AppointmentAlert {
 
     private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
-    
+
     private static final String NODE_PROPERTYNAME_ALERT_MODEL = "scheduler.view.MainController.AppointmentAlerts.model";
     private static final String NODE_PROPERTYNAME_ALERT_TITLE = "scheduler.view.MainController.AppointmentAlerts.title";
     private static final String NODE_PROPERTYNAME_ALERT_START = "scheduler.view.MainController.AppointmentAlerts.start";
@@ -78,35 +69,40 @@ public class AppointmentAlert implements Initializable {
     private static final String NODE_PROPERTYNAME_ALERT_CUSTOMER = "scheduler.view.MainController.AppointmentAlerts.customer";
     private static final String NODE_PROPERTYNAME_ALERT_LOCATION = "scheduler.view.MainController.AppointmentAlerts.location";
 
-    @FXML // ResourceBundle that was given to the FXMLLoader
-    private ResourceBundle resources;
-
-    @FXML // fx:id="appointmentAlertBorderPane"
-    private BorderPane appointmentAlertBorderPane; // Value injected by FXMLLoader
-
-    @FXML // fx:id="appointmentAlertsVBox"
-    private VBox appointmentAlertsVBox; // Value injected by FXMLLoader
-
     private Timer appointmentCheckTimer;
     private List<Integer> dismissed;
     private int alertLeadtime;
     private DateTimeFormatter formatter;
+    private Pane parent;
+    
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
 
-    /**
-     * Initializes the controller class.
-     */
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }
+    @FXML // fx:id="rootBorderPane"
+    private BorderPane rootBorderPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="appointmentAlertsVBox"
+    private VBox appointmentAlertsVBox; // Value injected by FXMLLoader
 
     @FXML
-    void onDismissAllAppointmentAlerts(ActionEvent event) {
+    private void onDismissAllAppointmentAlerts(ActionEvent event) {
         dismissAll();
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
-    private void onShown(FxmlViewEvent<? extends Parent> event) {
+    @FXML // This method is called by the FXMLLoader when initialization is complete
+    private void initialize() {
+        assert rootBorderPane != null : "fx:id=\"rootBorderPane\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
+        assert appointmentAlertsVBox != null : "fx:id=\"appointmentAlertsVBox\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
+    }
+
+    void initialize(Pane parent) {
+        this.parent = parent;
+        rootBorderPane.setVisible(false);
+        parent.getChildren().add(parent);
+        rootBorderPane.prefWidthProperty().bind(parent.widthProperty());
+        rootBorderPane.minWidthProperty().bind(parent.widthProperty());
+        rootBorderPane.prefHeightProperty().bind(parent.heightProperty());
+        rootBorderPane.minHeightProperty().bind(parent.heightProperty());
         try {
             alertLeadtime = AppResources.getAppointmentAlertLeadTime();
         } catch (ParseException ex) {
@@ -117,6 +113,7 @@ public class AppointmentAlert implements Initializable {
         appointmentCheckTimer = new Timer();
         appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, 120000);
         formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+        
     }
 
     private FlowPane createNew(AppointmentModel model) {
@@ -266,7 +263,7 @@ public class AppointmentAlert implements Initializable {
                 children.clear();
             });
             itemsViewList.clear();
-            appointmentAlertBorderPane.setVisible(false);
+            rootBorderPane.setVisible(false);
         }
     }
 
@@ -276,7 +273,7 @@ public class AppointmentAlert implements Initializable {
         reBind(flowPane, null);
         itemsViewList.remove(flowPane);
         if (itemsViewList.isEmpty()) {
-            appointmentAlertBorderPane.setVisible(false);
+            rootBorderPane.setVisible(false);
         }
     }
 
@@ -286,7 +283,7 @@ public class AppointmentAlert implements Initializable {
         return (FlowPane) result.orElse((Node) null);
     }
 
-    private void shutdown() {
+    void shutdown() {
         appointmentCheckTimer.cancel();
     }
 
@@ -333,7 +330,16 @@ public class AppointmentAlert implements Initializable {
                 itemsViewList.remove(e);
             }
         }
-        appointmentAlertBorderPane.setVisible(!itemsViewList.isEmpty());
+        if (itemsViewList.isEmpty()) {
+            rootBorderPane.setVisible(false);
+            return;
+        }
+        ObservableList<Node> children = parent.getChildren();
+        if (children.indexOf(rootBorderPane) != children.size() - 1) {
+            children.remove(rootBorderPane);
+            children.add(rootBorderPane);
+        }
+        rootBorderPane.setVisible(true);
     }
 
     private synchronized void onAppointmentUpdate(AppointmentModel item) {
@@ -372,7 +378,7 @@ public class AppointmentAlert implements Initializable {
             reBind(view, null);
             itemsViewList.remove(view);
             if (itemsViewList.isEmpty()) {
-                appointmentAlertBorderPane.setVisible(false);
+                rootBorderPane.setVisible(false);
             }
         }
     }
@@ -388,7 +394,7 @@ public class AppointmentAlert implements Initializable {
                 reBind(view, null);
                 itemsViewList.remove(view);
                 if (itemsViewList.isEmpty()) {
-                    appointmentAlertBorderPane.setVisible(false);
+                    rootBorderPane.setVisible(false);
                 }
             }
         }

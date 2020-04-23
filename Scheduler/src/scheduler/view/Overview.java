@@ -17,11 +17,10 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
+import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
-import scheduler.util.AlertHelper;
-import static scheduler.view.MainResourceKeys.RESOURCEKEY_USERLOADERROR;
 import static scheduler.view.OverviewResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -84,7 +83,7 @@ public class Overview {
         try {
             ManageCountries.loadInto(getMainController(stage.getScene()), stage, CountryModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_USERLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_COUNTRYLOADERROR), stage, ex);
         }
     }
 
@@ -94,7 +93,7 @@ public class Overview {
         try {
             ManageCustomers.loadInto(getMainController(stage.getScene()), stage, CustomerModelImpl.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_USERLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
         }
     }
 
@@ -110,7 +109,7 @@ public class Overview {
         try {
             ManageUsers.loadInto(getMainController(stage.getScene()), stage, UserModelImpl.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
-            AlertHelper.showErrorAlert(stage, LOG, resources.getString(RESOURCEKEY_USERLOADERROR), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }
     }
 
@@ -156,8 +155,8 @@ public class Overview {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR),
-                    "Unexpected error getting appointment counts", ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex,
+                    AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
 
         @Override

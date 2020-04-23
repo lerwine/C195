@@ -24,9 +24,9 @@ import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.EventHelper;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -46,12 +46,12 @@ import scheduler.view.event.FxmlViewEventType;
 public class ByMonth {
 
     private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
-    
+
     private LocalDate monthStart;
     ObservableList<AppointmentModel> allAppointments;
     private ObservableList<ObservableList<AppointmentModel>> itemsLists;
     private ObservableList<ListView<AppointmentModel>> listViews;
-    
+
     public static ByMonth loadInto(MainController mainController, Stage stage, LocalDate month,
             Object loadEventListener) throws IOException {
         return mainController.loadContent(ByMonth.class, (FxmlViewControllerEventListener<Parent, ByMonth>) (event) -> {
@@ -66,13 +66,12 @@ public class ByMonth {
     public static ByMonth loadInto(MainController mainController, Stage stage, LocalDate month) throws IOException {
         return loadInto(mainController, stage, month, null);
     }
-    
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-    
+
 //    @FXML // URL location of the FXML file that was given to the FXMLLoader
 //    private URL location;
-
     @FXML // fx:id="monthNameLabel"
     private Label monthNameLabel; // Value injected by FXMLLoader
 
@@ -85,7 +84,7 @@ public class ByMonth {
         assert monthGridPane != null : "fx:id=\"monthGridPane\" was not injected: check your FXML file 'ByMonth.fxml'.";
 
     }
-    
+
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         int gridCol;
@@ -135,13 +134,13 @@ public class ByMonth {
             GridPane.setRowIndex(vBox, gridRow);
             GridPane.setVgrow(vBox, Priority.ALWAYS);
             gridPaneChildren.add(vBox);
-            
+
             Label label = new Label();
             label.setText(format.format(d.getDayOfMonth()));
             label.setMaxWidth(Double.MAX_VALUE);
             label.setAlignment(Pos.CENTER);
             VBox.setVgrow(label, Priority.SOMETIMES);
-            
+
             ObservableList<Node> vBoxChildren = vBox.getChildren();
             vBoxChildren.add(label);
             ObservableList<AppointmentModel> items = FXCollections.observableArrayList();
@@ -157,7 +156,7 @@ public class ByMonth {
                 gridRow++;
             }
         } while ((d = d.plusDays(1)).getMonth() == month);
-        
+
         AppointmentModel.getFactory().loadAsync(event.getStage(),
                 AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
                         DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
@@ -168,8 +167,7 @@ public class ByMonth {
                 itemsLists.get(u.getStart().getDayOfMonth() - 1).add(u);
             });
         }, (Throwable t) -> {
-            AlertHelper.showErrorAlert(event.getStage(), LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR),
-                    "Unexpected error loading items from database", t);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), event.getStage(), t);
         });
     }
 

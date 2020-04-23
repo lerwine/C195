@@ -47,6 +47,7 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -60,7 +61,6 @@ import scheduler.dao.UserStatus;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
-import scheduler.util.AlertHelper;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -70,6 +70,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import static scheduler.util.NodeUtil.restoreNodeAsNotVisible;
 import static scheduler.util.NodeUtil.restoreValidationErrorLabel;
 import scheduler.view.EditItem;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -964,7 +965,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
         }
 
         @Override
@@ -1019,7 +1020,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
             stage.close();
         }
 
@@ -1068,7 +1069,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
             stage.close();
         }
 
@@ -1137,7 +1138,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            AlertHelper.showErrorAlert(owner, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), owner, ex);
             owner.close();
         }
 

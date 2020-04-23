@@ -1,7 +1,7 @@
 package scheduler.view;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/Overview}.
+ * Defines resource bundle keys for the {@code scheduler/view/Overview} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -48,7 +48,17 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_COMMONTASKS = "commonTasks";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading country listing."}.
+     */
+    public static final String RESOURCEKEY_COUNTRYLOADERROR = "countryLoadError";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customer listing."}.
+     */
+    public static final String RESOURCEKEY_CUSTOMERLOADERROR = "customerLoadError";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Getting appointment counts..."}.
      */
     public static final String RESOURCEKEY_GETTINGAPPOINTMENTCOUNTS = "gettingAppointmentCounts";
 
@@ -143,6 +153,11 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_UPCOMINGAPPOINTMENTS = "upcomingAppointments";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading user listing."}.
+     */
+    public static final String RESOURCEKEY_USERLOADERROR = "userLoadError";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "From the \"Appointments\" menu, you can view a calendar of appointments by month or by week, or you can view a filterable listing of appointments."}.
      */
     public static final String RESOURCEKEY_VIEWINGAPPOINTMENTSDETAILS = "viewingAppointmentsDetails";
@@ -151,4 +166,5 @@ public interface OverviewResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Viewing Appointments"}.
      */
     public static final String RESOURCEKEY_VIEWINGAPPOINTMENTSHEADING = "viewingAppointmentsHeading";
+
 }

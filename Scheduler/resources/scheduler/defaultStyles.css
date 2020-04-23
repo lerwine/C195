@@ -27,7 +27,7 @@
     -fx-alignment: bottom-left;
 }
 
-    .topLabeledControl {
+.topLabeledControl {
     -fx-alignment: top-left;
 }
 
@@ -168,4 +168,12 @@ Labeled.leftLabeledControl {
 
 .symbol-button {
     -fx-font-family: "Segoe UI Symbol", sans-serif;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
 }

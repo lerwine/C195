@@ -14,7 +14,7 @@ import scheduler.view.ErrorDetailDialog;
 
 /**
  * Utility class for alerts and logging.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class AlertHelper {
@@ -65,8 +65,8 @@ public class AlertHelper {
     /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
-     * @param parent The parent {@link Window} for the displayed {@link Alert}.
-     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
+     * parent window to use.
      * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param headerText The header of the {@link Alert} dialog.
@@ -92,8 +92,8 @@ public class AlertHelper {
     /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
-     * @param parent The parent {@link Window} for the displayed {@link Alert}.
-     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
+     * parent window to use.
      * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param title The title of the {@link Alert} dialog.
      * @param contentText The message to show in the {@link Alert} dialog content area.
@@ -108,8 +108,8 @@ public class AlertHelper {
     /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
-     * @param parent The parent {@link Window} for the displayed {@link Alert}.
-     * This should only be {@code null} if you are not able to determine a parent window to use.
+     * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
+     * parent window to use.
      * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are

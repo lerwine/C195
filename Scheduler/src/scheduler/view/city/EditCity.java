@@ -16,11 +16,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
-import scheduler.util.AlertHelper;
 import scheduler.view.EditItem;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.address.AddressModelImpl;
 import scheduler.view.annotations.FXMLResource;
@@ -144,7 +145,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
             stage.close();
         }
 

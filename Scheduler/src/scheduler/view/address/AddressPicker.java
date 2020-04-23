@@ -19,15 +19,16 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.CountryElement;
-import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.bindCollapsible;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.RelatedCityModel;
@@ -214,7 +215,7 @@ public class AddressPicker {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
             stage.close();
         }
 

@@ -15,12 +15,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
+import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityElement;
 import scheduler.dao.CustomerDAO;
-import scheduler.util.AlertHelper;
 import scheduler.view.EditItem;
+import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
@@ -130,7 +131,7 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.showErrorAlert(stage, LOG, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
             stage.close();
         }
 
