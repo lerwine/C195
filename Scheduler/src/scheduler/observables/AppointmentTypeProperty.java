@@ -3,7 +3,7 @@ package scheduler.observables;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;
 import javafx.beans.property.SimpleObjectProperty;
-import scheduler.dao.AppointmentType;
+import scheduler.model.AppointmentType;
 
 /**
  *

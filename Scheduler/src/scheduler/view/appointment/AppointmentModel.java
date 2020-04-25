@@ -12,12 +12,10 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.AppointmentType;
-import scheduler.dao.CustomerElement;
+import scheduler.model.AppointmentType;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
-import scheduler.dao.UserElement;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 import scheduler.observables.AppointmentTypeDisplayProperty;
 import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.ChildPropertyWrapper;
@@ -25,12 +23,14 @@ import scheduler.observables.EffectiveLocationProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.util.DB;
 import scheduler.view.city.SupportedLocale;
-import scheduler.view.customer.CustomerModel;
-import scheduler.view.customer.CustomerModelImpl;
-import scheduler.view.customer.RelatedCustomerModel;
 import scheduler.view.model.ItemModel;
 import scheduler.view.user.RelatedUserModel;
-import scheduler.view.user.UserModel;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.UserItem;
+import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.customer.RelatedCustomerModel;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -104,21 +104,21 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return ZoneId.systemDefault();
     }
 
-    private final SimpleObjectProperty<CustomerModel<? extends CustomerElement>> customer;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerName;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerAddress1;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerAddress2;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerCityName;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerCountryName;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerPostalCode;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerPhone;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerAddressText;
-    private final ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerCityZipCountry;
-    private final ChildPropertyWrapper<Boolean, CustomerModel<? extends CustomerElement>> customerActive;
-    private final SimpleObjectProperty<UserModel<? extends UserElement>> user;
-    private final ChildPropertyWrapper<String, UserModel<? extends UserElement>> userName;
-    private final ChildPropertyWrapper<UserStatus, UserModel<? extends UserElement>> userStatus;
-    private final ChildPropertyWrapper<String, UserModel<? extends UserElement>> userStatusDisplay;
+    private final SimpleObjectProperty<CustomerItem<? extends CustomerRowData>> customer;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerName;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerAddress1;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerAddress2;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerCityName;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerCountryName;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerPostalCode;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerPhone;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerAddressText;
+    private final ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerCityZipCountry;
+    private final ChildPropertyWrapper<Boolean, CustomerItem<? extends CustomerRowData>> customerActive;
+    private final SimpleObjectProperty<UserItem<? extends UserRowData>> user;
+    private final ChildPropertyWrapper<String, UserItem<? extends UserRowData>> userName;
+    private final ChildPropertyWrapper<UserStatus, UserItem<? extends UserRowData>> userStatus;
+    private final ChildPropertyWrapper<String, UserItem<? extends UserRowData>> userStatusDisplay;
     private final NonNullableStringProperty title;
     private final NonNullableStringProperty description;
     private final NonNullableStringProperty location;
@@ -132,7 +132,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
 
     public AppointmentModel(AppointmentDAO dao) {
         super(dao);
-        CustomerElement c = dao.getCustomer();
+        CustomerRowData c = dao.getCustomer();
         customer = new SimpleObjectProperty<>(this, "customer", (null == c) ? null : new RelatedCustomerModel(c));
         customerName = new ChildPropertyWrapper<>(this, "customerName", customer, (t) -> t.nameProperty());
         customerAddress1 = new ChildPropertyWrapper<>(this, "customerAddress1", customer, (t) -> t.address1Property());
@@ -144,7 +144,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         customerCityZipCountry = new ChildPropertyWrapper<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
         customerAddressText = new ChildPropertyWrapper<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
         customerActive = new ChildPropertyWrapper<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        UserElement u = dao.getUser();
+        UserRowData u = dao.getUser();
         user = new SimpleObjectProperty<>(this, "user", (null == u) ? null : new RelatedUserModel(u));
         userName = new ChildPropertyWrapper<>(this, "userName", user, (t) -> t.userNameProperty());
         userStatus = new ChildPropertyWrapper<>(this, "userStatus", user, (t) -> t.statusProperty());
@@ -161,15 +161,15 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         effectiveLocation = new EffectiveLocationProperty(this, "effectiveLocation", this);
     }
 
-    public CustomerModel<? extends CustomerElement> getCustomer() {
+    public CustomerItem<? extends CustomerRowData> getCustomer() {
         return customer.get();
     }
 
-    public void setCustomer(CustomerModel<? extends CustomerElement> value) {
+    public void setCustomer(CustomerItem<? extends CustomerRowData> value) {
         customer.set(value);
     }
 
-    public ObjectProperty<CustomerModel<? extends CustomerElement>> customerProperty() {
+    public ObjectProperty<CustomerItem<? extends CustomerRowData>> customerProperty() {
         return customer;
     }
 
@@ -177,7 +177,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerName.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerNameProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerNameProperty() {
         return customerName;
     }
 
@@ -185,7 +185,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerAddress1.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerAddress1Property() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerAddress1Property() {
         return customerAddress1;
     }
 
@@ -193,7 +193,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerAddress2.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerAddress2Property() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerAddress2Property() {
         return customerAddress2;
     }
 
@@ -201,7 +201,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerCityName.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerCityNameProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerCityNameProperty() {
         return customerCityName;
     }
 
@@ -209,7 +209,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerCountryName.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerCountryNameProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerCountryNameProperty() {
         return customerCountryName;
     }
 
@@ -217,7 +217,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerPostalCode.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerPostalCodeProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerPostalCodeProperty() {
         return customerPostalCode;
     }
 
@@ -225,7 +225,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerPhone.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerPhoneProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerPhoneProperty() {
         return customerPhone;
     }
 
@@ -233,7 +233,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerCityZipCountry.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerCityZipCountryProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerCityZipCountryProperty() {
         return customerCityZipCountry;
     }
 
@@ -241,7 +241,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerAddressText.get();
     }
 
-    public ChildPropertyWrapper<String, CustomerModel<? extends CustomerElement>> customerAddressTextProperty() {
+    public ChildPropertyWrapper<String, CustomerItem<? extends CustomerRowData>> customerAddressTextProperty() {
         return customerAddressText;
     }
 
@@ -249,19 +249,19 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return customerActive.get();
     }
 
-    public ChildPropertyWrapper<Boolean, CustomerModel<? extends CustomerElement>> customerActiveProperty() {
+    public ChildPropertyWrapper<Boolean, CustomerItem<? extends CustomerRowData>> customerActiveProperty() {
         return customerActive;
     }
 
-    public UserModel<? extends UserElement> getUser() {
+    public UserItem<? extends UserRowData> getUser() {
         return user.get();
     }
 
-    public void setUser(UserModel<? extends UserElement> value) {
+    public void setUser(UserItem<? extends UserRowData> value) {
         user.set(value);
     }
 
-    public ObjectProperty<UserModel<? extends UserElement>> userProperty() {
+    public ObjectProperty<UserItem<? extends UserRowData>> userProperty() {
         return user;
     }
 
@@ -269,7 +269,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return userName.get();
     }
 
-    public ChildPropertyWrapper<String, UserModel<? extends UserElement>> userNameProperty() {
+    public ChildPropertyWrapper<String, UserItem<? extends UserRowData>> userNameProperty() {
         return userName;
     }
 
@@ -277,7 +277,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return (UserStatus) userStatus.get();
     }
 
-    public ChildPropertyWrapper<UserStatus, UserModel<? extends UserElement>> userStatusProperty() {
+    public ChildPropertyWrapper<UserStatus, UserItem<? extends UserRowData>> userStatusProperty() {
         return userStatus;
     }
 
@@ -285,7 +285,7 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         return userStatusDisplay.get();
     }
 
-    public ChildPropertyWrapper<String, UserModel<? extends UserElement>> userStatusDisplayProperty() {
+    public ChildPropertyWrapper<String, UserItem<? extends UserRowData>> userStatusDisplayProperty() {
         return userStatusDisplay;
     }
 
@@ -457,14 +457,14 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
         public void updateItem(AppointmentModel item, AppointmentDAO dao) {
             super.updateItem(item, dao);
             item.contact.set(dao.getContact());
-            CustomerElement customer = dao.getCustomer();
+            CustomerRowData customer = dao.getCustomer();
             item.customer.set((null == customer) ? null : new RelatedCustomerModel(customer));
             item.description.set(dao.getDescription());
             item.end.set(DB.toLocalDateTime(dao.getEnd()));
             item.location.set(dao.getLocation());
             item.start.set(DB.toLocalDateTime(dao.getStart()));
             item.title.set(dao.getTitle());
-            UserElement user = dao.getUser();
+            UserRowData user = dao.getUser();
             item.user.set((null == user) ? null : new RelatedUserModel(user));
             item.type.set(dao.getType());
             item.url.set(dao.getUrl());
@@ -543,19 +543,19 @@ public final class AppointmentModel extends ItemModel<AppointmentDAO> {
                     }
                     break;
             }
-            CustomerModel<? extends CustomerElement> customerModel = item.customer.get();
+            CustomerItem<? extends CustomerRowData> customerModel = item.customer.get();
             if (null == customerModel) {
                 throw new IllegalArgumentException("No associated customer");
             }
-            UserModel<? extends UserElement> userModel = item.user.get();
+            UserItem<? extends UserRowData> userModel = item.user.get();
             if (null == userModel) {
                 throw new IllegalArgumentException("No associated user");
             }
-            CustomerElement customerDAO = customerModel.getDataObject();
+            CustomerRowData customerDAO = customerModel.getDataObject();
             if (customerDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated customer has been deleted");
             }
-            UserElement userDAO = userModel.getDataObject();
+            UserRowData userDAO = userModel.getDataObject();
             if (userDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated user has been deleted");
             }

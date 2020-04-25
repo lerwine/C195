@@ -15,20 +15,22 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import scheduler.dao.CityDAO;
-import scheduler.dao.CityElement;
-import scheduler.dao.CountryElement;
 import scheduler.dao.DataRowState;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.util.MapHelper;
 import scheduler.view.city.CityModel;
 import scheduler.view.city.CityModelImpl;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
+import scheduler.model.ui.CityDbItem;
 
 /**
  * Models a supported city.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @deprecated 
  */
-public class CityOptionModel implements CityModel<CityElement> {
+public class CityOptionModel implements CityModel<CityRowData> {
 
     private static ObservableMap<String, CityOptionModel> cityOptionMap = null;
 
@@ -46,7 +48,7 @@ public class CityOptionModel implements CityModel<CityElement> {
         return FXCollections.unmodifiableObservableMap(cityOptionMap);
     }
 
-    public static boolean matchesCode(CityModel<? extends CityElement> model, String regionCode, String resourceKey) {
+    public static boolean matchesCode(CityModel<? extends CityRowData> model, String regionCode, String resourceKey) {
         if (null != model && null != regionCode) {
             CityOptionModel optionModel = model.getOptionModel();
             if (null != optionModel) {
@@ -60,7 +62,7 @@ public class CityOptionModel implements CityModel<CityElement> {
     public static boolean matchesCode(CityDAO dao, String regionCode, String resourceKey) {
         if (null != dao && null != dao) {
             if (resourceKey.equals(dao.getName())) {
-                CountryElement country = dao.getCountry();
+                CountryRowData country = dao.getCountry();
                 if (null != country)
                     return regionCode.equals(country.getName());
             }
@@ -68,25 +70,26 @@ public class CityOptionModel implements CityModel<CityElement> {
         return false;
     }
 
-    public static Stream<CityModel<? extends CityElement>> getCityOptions(Collection<CityDAO> dataObjects) {
-        return CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()).map((t) -> {
-            String resourceKey = t.getResourceKey();
-            String regionCode = ((CountryOptionModel) t.getCountry()).getRegionCode();
-            Optional<CityDAO> matching = dataObjects.stream().filter((CityDAO u) -> matchesCode(u, regionCode, resourceKey)).findFirst();
-            if (matching.isPresent()) {
-                return (CityModel<? extends CityElement>) new CityModelImpl(matching.get());
-            }
-            return (CityModel<? extends CityElement>) t;
-        });
+    public static Stream<CityDbItem<? extends CityRowData>> getCityOptions(Collection<CityDAO> dataObjects) {
+//        return CountryOptionModel.getCountryOptions().stream().flatMap((t) -> t.getCities().stream()).map((t) -> {
+//            String resourceKey = t.getResourceKey();
+//            String regionCode = ((CountryOptionModel) t.getCountry()).getRegionCode();
+//            Optional<CityDAO> matching = dataObjects.stream().filter((CityDAO u) -> matchesCode(u, regionCode, resourceKey)).findFirst();
+//            if (matching.isPresent()) {
+//                return (CityItem<? extends CityRowData>) new CityModelImpl(matching.get());
+//            }
+//            return (CityItem<? extends CityRowData>) t;
+//        });
+        throw new UnsupportedOperationException();
     }
     
     private final ReadOnlyStringWrapper resourceKey;
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper nativeName;
     private final ReadOnlyStringWrapper nativeCountryName;
-    private final ReadOnlyObjectWrapper<CityCountryModel<? extends CountryElement>> country;
-    private final ChildPropertyWrapper<String, CityCountryModel<? extends CountryElement>> countryName;
-    private final ReadOnlyObjectWrapper<CityElement> dataObject;
+    private final ReadOnlyObjectWrapper<CityCountryModel<? extends CountryRowData>> country;
+    private final ChildPropertyWrapper<String, CityCountryModel<? extends CountryRowData>> countryName;
+    private final ReadOnlyObjectWrapper<CityRowData> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyObjectWrapper<Locale> locale;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
@@ -102,14 +105,14 @@ public class CityOptionModel implements CityModel<CityElement> {
         countryName = new ChildPropertyWrapper<>(this, "countryName", this.country, (t) -> t.nameProperty());
         this.locale = new ReadOnlyObjectWrapper<>(this, "locale", locale);
         this.zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId", zoneId);
-        this.dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", new CityElement() {
+        this.dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", new CityRowData() {
             @Override
             public String getName() {
                 return CityOptionModel.this.getResourceKey();
             }
 
             @Override
-            public CountryElement getCountry() {
+            public CountryRowData getCountry() {
                 return CityOptionModel.this.getCountry().getDataObject();
             }
 
@@ -130,7 +133,7 @@ public class CityOptionModel implements CityModel<CityElement> {
 
             @Override
             public boolean equals(Object obj) {
-                return null != obj && obj instanceof CityElement && this == obj;
+                return null != obj && obj instanceof CityRowData && this == obj;
             }
 
             @Override
@@ -185,12 +188,12 @@ public class CityOptionModel implements CityModel<CityElement> {
     }
 
     @Override
-    public CityCountryModel<? extends CountryElement> getCountry() {
+    public CityCountryModel<? extends CountryRowData> getCountry() {
         return country.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityCountryModel<? extends CountryElement>> countryProperty() {
+    public ReadOnlyObjectProperty<CityCountryModel<? extends CountryRowData>> countryProperty() {
         return country.getReadOnlyProperty();
     }
 
@@ -200,17 +203,17 @@ public class CityOptionModel implements CityModel<CityElement> {
     }
 
     @Override
-    public ChildPropertyWrapper<String, CityCountryModel<? extends CountryElement>> countryNameProperty() {
+    public ChildPropertyWrapper<String, CityCountryModel<? extends CountryRowData>> countryNameProperty() {
         return countryName;
     }
 
     @Override
-    public CityElement getDataObject() {
+    public CityRowData getDataObject() {
         return dataObject.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityElement> dataObjectProperty() {
+    public ReadOnlyObjectProperty<CityRowData> dataObjectProperty() {
         return dataObject.getReadOnlyProperty();
     }
 

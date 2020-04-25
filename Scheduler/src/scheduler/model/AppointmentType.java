@@ -1,4 +1,4 @@
-package scheduler.dao;
+package scheduler.model;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -12,8 +12,10 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_OTHER;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL;
 import scheduler.AppResources;
+import scheduler.dao.AppointmentLocationSource;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.city.SupportedLocale;
+import scheduler.model.db.AppointmentRowData;
 
 // CURRENT: Main offices in Phoenix, Arizona; New York, New York; and London, England
 /**
@@ -65,7 +67,7 @@ public enum AppointmentType {
         return SupportedLocale.fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(AppointmentElement appointment) {
+    public static SupportedLocale getDefaultLocale(AppointmentRowData appointment) {
         if (null != appointment) {
             AppointmentType t = appointment.getType();
             if (t.defaultLocale.isPresent()) {

@@ -1,7 +1,7 @@
 package scheduler.controls;
 
 import javafx.scene.control.ListCell;
-import scheduler.dao.AppointmentType;
+import scheduler.model.AppointmentType;
 
 /**
  *

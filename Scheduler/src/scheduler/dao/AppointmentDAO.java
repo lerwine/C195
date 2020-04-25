@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.model.AppointmentType;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,9 +24,17 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.model.db.AppointmentRowData;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
 
+/**
+ * Data access object for the {@code appointment} database table.
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 @DatabaseTable(DbTable.APPOINTMENT)
-public class AppointmentDAO extends DataAccessObject implements AppointmentElement {
+public class AppointmentDAO extends DataAccessObject implements AppointmentRowData {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -83,8 +92,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
         return FACTORY;
     }
 
-    private CustomerElement customer;
-    private UserElement user;
+    private CustomerRowData customer;
+    private UserRowData user;
     private String title;
     private String description;
     private String location;
@@ -159,7 +168,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
     }
 
     @Override
-    public CustomerElement getCustomer() {
+    public CustomerRowData getCustomer() {
         return customer;
     }
 
@@ -168,14 +177,14 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
      *
      * @param customer new value of customer
      */
-    public void setCustomer(CustomerElement customer) {
-        CustomerElement oldValue = this.customer;
+    public void setCustomer(CustomerRowData customer) {
+        CustomerRowData oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
     }
 
     @Override
-    public UserElement getUser() {
+    public UserRowData getUser() {
         return user;
     }
 
@@ -184,8 +193,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
      *
      * @param user new value of user
      */
-    public void setUser(UserElement user) {
-        UserElement oldValue = this.user;
+    public void setUser(UserRowData user) {
+        UserRowData oldValue = this.user;
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
     }
@@ -342,8 +351,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof AppointmentElement) {
-            AppointmentElement other = (AppointmentElement) obj;
+        if (null != obj && obj instanceof AppointmentRowData) {
+            AppointmentRowData other = (AppointmentRowData) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && customer.equals(other.getCustomer()) && user.equals(other.getUser())
                         && title.equals(other.getTitle()) && description.equals(other.getDescription()) && location.equals(other.getLocation())
@@ -355,6 +364,13 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
         return false;
     }
 
+    /**
+     * Factory implementation for {@link scheduler.model.db.AppointmentRowData} objects.
+     * <dl>
+     * <dt>{@link scheduler.view.model.ItemModel}</dt>
+     * <dd>{@code DataModel} with all data from a database entity.</dd>
+     * </dl>
+     */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -435,8 +451,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
         @Override
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(AppointmentDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
-                private final CustomerElement oldCustomer = dao.customer;
-                private final UserElement oldUser = dao.user;
+                private final CustomerRowData oldCustomer = dao.customer;
+                private final UserRowData oldUser = dao.user;
                 private final String oldTitle = dao.title;
                 private final String oldDescription = dao.description;
                 private final String oldLocation = dao.location;
@@ -630,11 +646,11 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentEleme
 
         @Override
         public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
-            CustomerElement customer = dao.getCustomer();
+            CustomerRowData customer = dao.getCustomer();
             if (customer instanceof CustomerDAO && (force || customer.getRowState() != DataRowState.UNMODIFIED)) {
                 CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
             }
-            UserElement user = dao.getUser();
+            UserRowData user = dao.getUser();
             if (user instanceof UserDAO && (force || user.getRowState() != DataRowState.UNMODIFIED)) {
                 UserDAO.getFactory().save((UserDAO) user, connection, force);
             }

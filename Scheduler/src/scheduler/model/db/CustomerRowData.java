@@ -1,19 +1,25 @@
-package scheduler.dao;
+package scheduler.model.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.dao.DataRowState;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.Customer;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
  * Represents a data row from the "customer" database table.
+ * <dl>
+ * <dt>{@link scheduler.dao.CustomerDAO}</dt><dd>Data access object.</dd>
+ * <dt>{@link scheduler.model.ui.CustomerItem}</dt><dd>UI Model with JavaFX properties.</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface CustomerElement extends DataElement {
+public interface CustomerRowData extends Customer, RowData {
 
-    public static boolean areEqual(CustomerElement a, CustomerElement b) {
+    public static boolean areEqual(CustomerRowData a, CustomerRowData b) {
         if (null == a) {
             return null == b;
         }
@@ -35,7 +41,7 @@ public interface CustomerElement extends DataElement {
                 }
             case NEW:
                 return b.getRowState() == DataRowState.NEW && a.getName().equalsIgnoreCase(b.getName())
-                        && AddressElement.areEqual(a.getAddress(), b.getAddress()) && a.isActive() == b.isActive();
+                        && AddressRowData.areEqual(a.getAddress(), b.getAddress()) && a.isActive() == b.isActive();
             default:
                 return b.getRowState() == DataRowState.DELETED;
         }
@@ -50,9 +56,9 @@ public interface CustomerElement extends DataElement {
      * @param active {@code true} if the current customer is active; otherwise, {@code false}.
      * @return The read-only CustomerElement object.
      */
-    public static CustomerElement of(int pk, String nameValue, AddressElement address, boolean active) {
+    public static CustomerRowData of(int pk, String nameValue, AddressRowData address, boolean active) {
         Objects.requireNonNull(address, "Address cannot be null");
-        return new CustomerElement() {
+        return new CustomerRowData() {
             private final String name = asNonNullAndTrimmed(nameValue);
 
             @Override
@@ -61,7 +67,7 @@ public interface CustomerElement extends DataElement {
             }
 
             @Override
-            public AddressElement getAddress() {
+            public AddressRowData getAddress() {
                 return address;
             }
 
@@ -82,7 +88,7 @@ public interface CustomerElement extends DataElement {
 
             @Override
             public boolean equals(Object obj) {
-                return null != obj && obj instanceof CustomerElement && CustomerElement.areEqual(this, (CustomerElement) obj);
+                return null != obj && obj instanceof CustomerRowData && CustomerRowData.areEqual(this, (CustomerRowData) obj);
             }
 
             @Override
@@ -100,34 +106,23 @@ public interface CustomerElement extends DataElement {
      * @return The read-only CustomerElement object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static CustomerElement of(ResultSet resultSet) throws SQLException {
+    public static CustomerRowData of(ResultSet resultSet) throws SQLException {
         String name = resultSet.getString(DbColumn.CITY_NAME.toString());
         if (resultSet.wasNull()) {
             name = "";
         }
-        return of(resultSet.getInt(DbColumn.CUSTOMER_ID.toString()), name, AddressElement.of(resultSet), resultSet.getBoolean(DbColumn.ACTIVE.toString()));
+        return of(resultSet.getInt(DbColumn.CUSTOMER_ID.toString()), name, AddressRowData.of(resultSet), resultSet.getBoolean(DbColumn.ACTIVE.toString()));
     }
+//
+//    /**
+//     * Gets the {@link AddressElement} for the current customer. This corresponds to the "address" data row referenced by the "addressId" database
+//     * column.
+//     *
+//     * @return The {@link AddressElement} for the current customer.
+//     */
+//    AddressElement getAddress();
 
-    /**
-     * Gets the name of the current customer. This corresponds to the "customerName" database column.
-     *
-     * @return the name of the current customer.
-     */
-    String getName();
-
-    /**
-     * Gets the {@link AddressElement} for the current customer. This corresponds to the "address" data row referenced by the "addressId" database
-     * column.
-     *
-     * @return The {@link AddressElement} for the current customer.
-     */
-    AddressElement getAddress();
-
-    /**
-     * Gets a value that indicates whether the current customer is active. This corresponds to the "active" database column.
-     *
-     * @return {@code true} if the current customer is active; otherwise, {@code false}.
-     */
-    boolean isActive();
+    @Override
+    public AddressRowData getAddress();
 
 }

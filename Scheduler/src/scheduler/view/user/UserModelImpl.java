@@ -9,7 +9,7 @@ import scheduler.AppResources;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.UserFilter;

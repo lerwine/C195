@@ -10,9 +10,7 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import scheduler.dao.AddressElement;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.CustomerElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
@@ -27,16 +25,20 @@ import scheduler.view.address.EditAddress;
 import scheduler.view.address.RelatedAddressModel;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
 import scheduler.view.model.ItemModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.AddressDbItem;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements CustomerModel<CustomerDAO> {
+public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements CustomerItem<CustomerDAO> {
 
     private static final Factory FACTORY = new Factory();
 
-    public static ZoneId getZoneId(CustomerModel<? extends CustomerElement> customer) {
+    public static ZoneId getZoneId(CustomerItem<? extends CustomerRowData> customer) {
         if (null != customer) {
             return AddressModelImpl.getZoneId(customer.getAddress());
         }
@@ -48,14 +50,14 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
     }
 
     private final NonNullableStringProperty name;
-    private final SimpleObjectProperty<AddressModel<? extends AddressElement>> address;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address1;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address2;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityName;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> countryName;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> postalCode;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> phone;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityZipCountry;
+    private final SimpleObjectProperty<AddressDbItem<? extends AddressRowData>> address;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address1;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address2;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityName;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> countryName;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> postalCode;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> phone;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final SimpleBooleanProperty active;
     private final StringBinding multiLineAddress;
@@ -63,7 +65,7 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
     public CustomerModelImpl(CustomerDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
-        AddressElement a = dao.getAddress();
+        AddressRowData a = dao.getAddress();
         address = new SimpleObjectProperty<>(this, "address", (null == a) ? null : new RelatedAddressModel(a));
         address1 = new ChildPropertyWrapper<>(this, "address1", address, (c) -> c.address1Property());
         address2 = new ChildPropertyWrapper<>(this, "address2", address, (c) -> c.address2Property());
@@ -127,76 +129,64 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
     }
 
     @Override
-    public AddressModel<? extends AddressElement> getAddress() {
+    public AddressDbItem<? extends AddressRowData> getAddress() {
         return address.get();
     }
 
-    public void setAddress(AddressModel<? extends AddressElement> value) {
+    public void setAddress(AddressDbItem<? extends AddressRowData> value) {
         address.set(value);
     }
 
     @Override
-    public ObjectProperty<AddressModel<? extends AddressElement>> addressProperty() {
+    public ObjectProperty<AddressDbItem<? extends AddressRowData>> addressProperty() {
         return address;
     }
 
-    @Override
     public String getAddress1() {
         return address1.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address1Property() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address1Property() {
         return address1;
     }
 
-    @Override
     public String getAddress2() {
         return address2.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address2Property() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address2Property() {
         return address2;
     }
 
-    @Override
     public String getCityName() {
         return cityName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityNameProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityNameProperty() {
         return cityName;
     }
 
-    @Override
     public String getCountryName() {
         return countryName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> countryNameProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> countryNameProperty() {
         return countryName;
     }
 
-    @Override
     public String getPostalCode() {
         return postalCode.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> postalCodeProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> postalCodeProperty() {
         return postalCode;
     }
 
-    @Override
     public String getPhone() {
         return phone.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> phoneProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> phoneProperty() {
         return phone;
     }
 
@@ -214,22 +204,18 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
         return active;
     }
 
-    @Override
     public String getCityZipCountry() {
         return cityZipCountry.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityZipCountryProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityZipCountryProperty() {
         return cityZipCountry;
     }
 
-    @Override
     public String getAddressText() {
         return addressText.get();
     }
 
-    @Override
     public ReadOnlyProperty<String> addressTextProperty() {
         return addressText;
     }
@@ -286,7 +272,7 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
             super.updateItem(item, dao);
             item.setName(dao.getName());
             item.setActive(item.isActive());
-            AddressElement addressDAO = dao.getAddress();
+            AddressRowData addressDAO = dao.getAddress();
             item.setAddress((null == addressDAO) ? null : new RelatedAddressModel(addressDAO));
         }
 
@@ -310,11 +296,11 @@ public final class CustomerModelImpl extends ItemModel<CustomerDAO> implements C
             if (name.trim().isEmpty()) {
                 throw new IllegalArgumentException("Customer name empty");
             }
-            AddressModel<? extends AddressElement> addressModel = item.address.get();
+            AddressDbItem<? extends AddressRowData> addressModel = item.address.get();
             if (null == addressModel) {
                 throw new IllegalArgumentException("No associated address");
             }
-            AddressElement addressDAO = addressModel.getDataObject();
+            AddressRowData addressDAO = addressModel.getDataObject();
             if (addressDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated address has been deleted");
             }

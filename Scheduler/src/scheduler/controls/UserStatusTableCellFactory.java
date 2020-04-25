@@ -3,7 +3,7 @@ package scheduler.controls;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 
 /**
  *

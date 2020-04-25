@@ -32,11 +32,13 @@ import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
+import scheduler.model.DataRecord;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.task.TaskWaiter;
+import scheduler.model.db.RowData;
 
 /**
  * Data access object that represents all columns from a data row.
@@ -44,10 +46,22 @@ import scheduler.view.task.TaskWaiter;
  * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
  * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
  * {@code getFactory()} method.</p>
+ * <dl>
+ * <dt>{@link DataAccessObject.DaoFactory}</dt><dd>Base factory class for {@link RowData} objects.</dd>
+ * <dt>{@link scheduler.view.model.ItemModel}</dt><dd>Base class for corresponding Java FX object model objects.</dd>
+ * </dl>
+ * Entity-specific extensions:
+ * <ul>
+ * <li>{@link AppointmentDAO}</li>
+ * <li>{@link CustomerDAO}</li>
+ * <li>{@link AddressDAO}</li>
+ * <li>{@link CityDAO}</li>
+ * <li>{@link CountryDAO}</li>
+ * </ul>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements DataElement {
+public abstract class DataAccessObject extends PropertyBindable implements RowData, DataRecord<Timestamp> {
 
     /**
      * The name of the 'primaryKey' property.
@@ -98,54 +112,22 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
         return primaryKey;
     }
 
-    /**
-     * Gets the timestamp when the data row associated with the current data object was inserted into the database.
-     * <p>
-     * This property corresponds to {@link DbColumn#APPOINTMENT_CREATE_DATE}, {@link DbColumn#CUSTOMER_CREATE_DATE},
-     * {@link DbColumn#ADDRESS_CREATE_DATE}, {@link DbColumn#CITY_CREATE_DATE}, {@link DbColumn#COUNTRY_CREATE_DATE} or
-     * {@link DbColumn#USER_CREATE_DATE}.</p>
-     *
-     * @return The timestamp when the data row associated with the current data object was inserted into the database.
-     */
+    @Override
     public final Timestamp getCreateDate() {
         return createDate;
     }
 
-    /**
-     * Gets the user name of the person who inserted the data row associated with the current data object into the database.
-     * <p>
-     * This property corresponds to {@link DbColumn#APPOINTMENT_CREATED_BY}, {@link DbColumn#CUSTOMER_CREATED_BY},
-     * {@link DbColumn#ADDRESS_CREATED_BY}, {@link DbColumn#CITY_CREATED_BY}, {@link DbColumn#COUNTRY_CREATED_BY} or
-     * {@link DbColumn#USER_CREATED_BY}.</p>
-     *
-     * @return The user name of the person who inserted the data row associated with the current data object into the database.
-     */
+    @Override
     public final String getCreatedBy() {
         return createdBy;
     }
 
-    /**
-     * Gets the timestamp when the data row associated with the current data object was last modified.
-     * <p>
-     * This property corresponds to {@link DbColumn#APPOINTMENT_LAST_UPDATE}, {@link DbColumn#CUSTOMER_LAST_UPDATE},
-     * {@link DbColumn#ADDRESS_LAST_UPDATE}, {@link DbColumn#CITY_LAST_UPDATE}, {@link DbColumn#COUNTRY_LAST_UPDATE} or
-     * {@link DbColumn#USER_LAST_UPDATE}.</p>
-     *
-     * @return The timestamp when the data row associated with the current data object was last modified.
-     */
+    @Override
     public final Timestamp getLastModifiedDate() {
         return lastModifiedDate;
     }
 
-    /**
-     * Gets the user name of the person who last modified the data row associated with the current data object in the database.
-     * <p>
-     * This property corresponds to {@link DbColumn#APPOINTMENT_LAST_UPDATE_BY}, {@link DbColumn#CUSTOMER_LAST_UPDATE}_BY,
-     * {@link DbColumn#ADDRESS_LAST_UPDATE_BY}, {@link DbColumn#CITY_LAST_UPDATE_BY}, {@link DbColumn#COUNTRY_LAST_UPDATE_BY} or
-     * {@link DbColumn#USER_LAST_UPDATE_BY}.</p>
-     *
-     * @return The user name of the person who last modified the data row associated with the current data object in the database.
-     */
+    @Override
     public final String getLastModifiedBy() {
         return lastModifiedBy;
     }
@@ -325,7 +307,19 @@ public abstract class DataAccessObject extends PropertyBindable implements DataE
     }
 
     /**
-     * Base class for {@link DataAccessObject} factory objects.
+     * Base factory class for {@link RowData} objects.
+     * <dl>
+     * <dt>{@link scheduler.view.model.ItemModel.ModelFactory}</dt>
+     * <dd>Base factory class for corresponding Java FX object model objects.</dd>
+     * </dl>
+     * Entity-specific extensions:
+     * <ul>
+     * <li>{@link AppointmentDAO.FactoryImpl}</li>
+     * <li>{@link CustomerDAO.FactoryImpl}</li>
+     * <li>{@link AddressDAO.FactoryImpl}</li>
+     * <li>{@link CityDAO.FactoryImpl}</li>
+     * <li>{@link CountryDAO.FactoryImpl}</li>
+     * </ul>
      *
      * @param <T> The type of {@link DataAccessObject} object supported.
      */

@@ -1,4 +1,4 @@
-package scheduler.dao;
+package scheduler.model;
 
 import java.util.Optional;
 import scheduler.AppResources;

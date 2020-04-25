@@ -36,8 +36,7 @@ import javafx.scene.layout.VBox;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.AppointmentElement;
-import scheduler.dao.AppointmentType;
+import scheduler.model.AppointmentType;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.DB;
@@ -49,6 +48,7 @@ import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModel;
+import scheduler.model.db.AppointmentRowData;
 
 /**
  * FXML Controller class
@@ -309,7 +309,7 @@ public class AppointmentAlert {
             ArrayList<Integer> d = new ArrayList<>();
             dismissed.forEach((i) -> d.add(i));
             dismissed.clear();
-            appointments.stream().sorted(AppointmentElement::compareByDates).forEach(new Consumer<AppointmentDAO>() {
+            appointments.stream().sorted(AppointmentRowData::compareByDates).forEach(new Consumer<AppointmentDAO>() {
                 int index = -1;
 
                 @Override

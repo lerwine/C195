@@ -52,12 +52,10 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.AppointmentType;
+import scheduler.model.AppointmentType;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.CustomerElement;
 import scheduler.dao.UserDAO;
-import scheduler.dao.UserElement;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
@@ -87,6 +85,8 @@ import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.UserModel;
 import scheduler.view.user.UserModelImpl;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
@@ -101,7 +101,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 
-    public static AppointmentModel editNew(MainController mainController, Stage stage, CustomerElement customer, UserElement user) throws IOException {
+    public static AppointmentModel editNew(MainController mainController, Stage stage, CustomerRowData customer, UserRowData user) throws IOException {
         return editNew(EditAppointment.class, mainController, stage, (FxmlViewControllerEventListener<StackPane, EditAppointment>) (FxmlViewControllerEvent<StackPane, EditAppointment> event) -> {
             if (event.getType() == FxmlViewEventType.LOADED) {
                 EditAppointment controller = event.getController();
@@ -254,8 +254,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private ObjectBinding<BinarySelective<Duration, String>> duration;
     private StringBinding localDateAndTimeBinding;
     // TODO: Load default user and customer when load task is finished.
-    private CustomerElement defaultCustomer;
-    private UserElement defaultUser;
+    private CustomerRowData defaultCustomer;
+    private UserRowData defaultUser;
 
     @FXML
     private void closeConflictsBorderPaneButtonClick(ActionEvent event) {
@@ -872,8 +872,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private class ConflictDependencyValidator extends BooleanBinding {
 
         private ObservableList<AppointmentModel> otherAppointments;
-        private final ReadOnlyObjectWrapper<CustomerElement> targetCustomer = new ReadOnlyObjectWrapper<>();
-        private final ReadOnlyObjectWrapper<UserElement> targetUser = new ReadOnlyObjectWrapper<>();
+        private final ReadOnlyObjectWrapper<CustomerRowData> targetCustomer = new ReadOnlyObjectWrapper<>();
+        private final ReadOnlyObjectWrapper<UserRowData> targetUser = new ReadOnlyObjectWrapper<>();
 
         ConflictDependencyValidator() {
             assert null == conflictDependencyValidator : "Class was already instantiated";
@@ -918,8 +918,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         protected synchronized boolean computeValue() {
             CustomerModelImpl currentCustomer = customerSelectionModel.getSelectedItem();
             UserModelImpl currentUser = userSelectionModel.getSelectedItem();
-            CustomerElement c = targetCustomer.get();
-            UserElement u = targetUser.get();
+            CustomerRowData c = targetCustomer.get();
+            UserRowData u = targetUser.get();
             if (null != otherAppointments) {
                 if (null == currentUser) {
                     if (null != currentCustomer && null != c && null == u && c.getPrimaryKey() == currentCustomer.getPrimaryKey()) {
@@ -947,7 +947,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             super.dispose();
         }
 
-        private synchronized void accept(List<AppointmentDAO> appointments, CustomerElement customer, UserElement user) {
+        private synchronized void accept(List<AppointmentDAO> appointments, CustomerRowData customer, UserRowData user) {
             targetCustomer.set(customer);
             targetUser.set(user);
             otherAppointments = FXCollections.observableArrayList();
@@ -1121,8 +1121,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         private List<AppointmentDAO> appointments;
         private final Optional<Boolean> customerLoadOption;
         private final Optional<Boolean> userLoadOption;
-        private final CustomerElement appointmentCustomer;
-        private final UserElement appointmentUser;
+        private final CustomerRowData appointmentCustomer;
+        private final UserRowData appointmentUser;
 
         private ItemsLoadTask(Stage owner) {
             super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
@@ -1130,9 +1130,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             customerDaoList = null;
             userDaoList = null;
             AppointmentModel model = getModel();
-            CustomerModel<? extends CustomerElement> customer = model.getCustomer();
+            CustomerModel<? extends CustomerRowData> customer = model.getCustomer();
             appointmentCustomer = (null == customer) ? null : customer.getDataObject();
-            UserModel<? extends UserElement> user = model.getUser();
+            UserModel<? extends UserRowData> user = model.getUser();
             appointmentUser = (null == user) ? null : user.getDataObject();
             customerLoadOption = showActiveCustomers;
             userLoadOption = showActiveUsers;
@@ -1150,13 +1150,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             conflictDependencyValidator.accept(appointments, appointmentCustomer, appointmentUser);
             customerComboBox.setItems(customerModelList);
             userComboBox.setItems(userModelList);
-            CustomerModel<? extends CustomerElement> customer = getModel().getCustomer();
+            CustomerModel<? extends CustomerRowData> customer = getModel().getCustomer();
             if (null != customer) {
                 int cpk = customer.getPrimaryKey();
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
                         -> customerComboBox.getSelectionModel().select(t));
             }
-            UserModel<? extends UserElement> user = getModel().getUser();
+            UserModel<? extends UserRowData> user = getModel().getUser();
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                     -> userSelectionModel.select(t));

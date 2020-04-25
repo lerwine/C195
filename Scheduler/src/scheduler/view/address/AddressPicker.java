@@ -23,8 +23,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.CityElement;
-import scheduler.dao.CountryElement;
 import static scheduler.util.NodeUtil.bindCollapsible;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -34,6 +32,8 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.RelatedCityModel;
 import scheduler.view.country.CityCountryModelImpl;
 import scheduler.view.task.TaskWaiter;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
 
 /**
  * FXML Controller class
@@ -89,10 +89,11 @@ public class AddressPicker {
         cityOptions.clear();
         addressOptions.clear();
         CityCountryModelImpl selectedItem = countrySelectionModel.getSelectedItem();
-        if (null != selectedItem) {
-            int pk = selectedItem.getPrimaryKey();
-            allCities.stream().filter((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
-        }
+        // CURRENT: Find better way to get matching item
+//        if (null != selectedItem) {
+//            int pk = selectedItem.getPrimaryKey();
+//            allCities.stream().filter((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
+//        }
     }
 
     @FXML
@@ -198,11 +199,11 @@ public class AddressPicker {
         protected void processResult(List<AddressDAO> result, Stage stage) {
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    CityElement city = t.getCity();
+                    CityRowData city = t.getCity();
                     int cityPk = city.getPrimaryKey();
                     if (!allCities.stream().anyMatch((u) -> u.getPrimaryKey() == cityPk)) {
                         allCities.add(new RelatedCityModel(city));
-                        CountryElement country = city.getCountry();
+                        CountryRowData country = city.getCountry();
                         int countryPk = country.getPrimaryKey();
                         if (!allCountries.stream().anyMatch((u) -> u.getPrimaryKey() == countryPk)) {
                             allCountries.add(new CityCountryModelImpl(country));

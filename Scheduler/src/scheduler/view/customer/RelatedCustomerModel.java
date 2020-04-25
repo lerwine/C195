@@ -5,36 +5,38 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CustomerElement;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.address.AddressModel;
 import scheduler.view.address.RelatedAddressModel;
 import scheduler.view.model.RelatedItemModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.AddressDbItem;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCustomerModel extends RelatedItemModel<CustomerElement> implements CustomerModel<CustomerElement> {
+public class RelatedCustomerModel extends RelatedItemModel<CustomerRowData> implements CustomerItem<CustomerRowData> {
 
     private final ReadOnlyStringWrapper name;
-    private final ReadOnlyObjectWrapper<AddressModel<? extends AddressElement>> address;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address1;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address2;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityName;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> countryName;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> postalCode;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> phone;
-    private final ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityZipCountry;
+    private final ReadOnlyObjectWrapper<AddressDbItem<? extends AddressRowData>> address;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address1;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address2;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityName;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> countryName;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> postalCode;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> phone;
+    private final ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final ReadOnlyBooleanWrapper active;
 
-    public RelatedCustomerModel(CustomerElement dao) {
+    public RelatedCustomerModel(CustomerRowData dao) {
         super(dao);
         name = new ReadOnlyStringWrapper(this, "address1", dao.getName());
-        AddressElement a = dao.getAddress();
+        AddressRowData a = dao.getAddress();
         address = new ReadOnlyObjectWrapper<>(this, "address", (null == a) ? null : new RelatedAddressModel(a));
         address1 = new ChildPropertyWrapper<>(this, "address1", address, (t) -> t.address1Property());
         address2 = new ChildPropertyWrapper<>(this, "address2", address, (t) -> t.address2Property());
@@ -58,91 +60,75 @@ public class RelatedCustomerModel extends RelatedItemModel<CustomerElement> impl
     }
 
     @Override
-    public AddressModel<? extends AddressElement> getAddress() {
+    public AddressDbItem<? extends AddressRowData> getAddress() {
         return address.get();
     }
 
     @Override
-    public ReadOnlyProperty<AddressModel<? extends AddressElement>> addressProperty() {
+    public ReadOnlyProperty<AddressDbItem<? extends AddressRowData>> addressProperty() {
         return address.getReadOnlyProperty();
     }
 
-    @Override
     public String getAddress1() {
         return address1.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address1Property() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address1Property() {
         return address1;
     }
 
-    @Override
     public String getAddress2() {
         return address2.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address2Property() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> address2Property() {
         return address2;
     }
 
-    @Override
     public String getCityName() {
         return cityName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityNameProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityNameProperty() {
         return cityName;
     }
 
-    @Override
     public String getCountryName() {
         return countryName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> countryNameProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> countryNameProperty() {
         return countryName;
     }
 
-    @Override
     public String getPostalCode() {
         return postalCode.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> postalCodeProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> postalCodeProperty() {
         return postalCode;
     }
 
-    @Override
     public String getPhone() {
         return phone.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> phoneProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> phoneProperty() {
         return phone;
     }
 
-    @Override
     public String getCityZipCountry() {
         return cityZipCountry.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityZipCountryProperty() {
+    public ChildPropertyWrapper<String, AddressDbItem<? extends AddressRowData>> cityZipCountryProperty() {
         return cityZipCountry;
     }
 
-    @Override
     public String getAddressText() {
         return addressText.get();
     }
 
-    @Override
     public ReadOnlyProperty<String> addressTextProperty() {
         return addressText;
     }

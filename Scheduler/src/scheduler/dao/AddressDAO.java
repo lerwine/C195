@@ -24,11 +24,18 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import static scheduler.dao.DataElement.getPrimaryKeyOf;
+import static scheduler.model.db.RowData.getPrimaryKeyOf;
 import scheduler.AppResourceKeys;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
 
+/**
+ * Data access object for the {@code address} database table.
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 @DatabaseTable(DbTable.ADDRESS)
-public class AddressDAO extends DataAccessObject implements AddressElement {
+public class AddressDAO extends DataAccessObject implements AddressRowData {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
     /**
@@ -58,7 +65,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
 
     private String address1;
     private String address2;
-    private CityElement city;
+    private CityRowData city;
     private String postalCode;
     private String phone;
 
@@ -120,7 +127,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
     }
 
     @Override
-    public CityElement getCity() {
+    public CityRowData getCity() {
         return city;
     }
 
@@ -129,8 +136,8 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
      *
      * @param city new value of city
      */
-    public void setCity(CityElement city) {
-        CityElement oldValue = this.city;
+    public void setCity(CityRowData city) {
+        CityRowData oldValue = this.city;
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
     }
@@ -186,8 +193,8 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof AddressElement) {
-            AddressElement other = (AddressElement) obj;
+        if (null != obj && obj instanceof AddressRowData) {
+            AddressRowData other = (AddressRowData) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && address1.equals(other.getAddress1()) && address2.equals(other.getAddress2())
                         && city.equals(other.getCity()) && postalCode.equals(other.getPostalCode()) && phone.equals(other.getPhone());
@@ -197,6 +204,9 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
         return false;
     }
 
+    /**
+     * Factory implementation for {@link scheduler.model.db.AddressRowData} objects.
+     */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -265,7 +275,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldAddress1 = dao.address1;
                 private final String oldAddress2 = dao.address2;
-                private final CityElement oldCity = dao.city;
+                private final CityRowData oldCity = dao.city;
                 private final String oldPostalCode = dao.postalCode;
                 private final String oldPhone = dao.phone;
 
@@ -297,11 +307,11 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
             return propertyChanges;
         }
 
-        AddressElement fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new AddressElement() {
+        AddressRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new AddressRowData() {
                 private final String address1 = asNonNullAndTrimmed(rs.getString(DbColumn.ADDRESS1.toString()));
                 private final String address2 = asNonNullAndTrimmed(rs.getString(DbColumn.ADDRESS2.toString()));
-                private final CityElement city = CityDAO.getFactory().fromJoinedResultSet(rs);
+                private final CityRowData city = CityDAO.getFactory().fromJoinedResultSet(rs);
                 private final String postalCode = asNonNullAndTrimmed(rs.getString(DbColumn.POSTAL_CODE.toString()));
                 private final String phone = asNonNullAndTrimmed(rs.getString(DbColumn.PHONE.toString()));
                 private final int primaryKey = rs.getInt(DbColumn.CUSTOMER_ADDRESS.toString());
@@ -317,7 +327,7 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
                 }
 
                 @Override
-                public CityElement getCity() {
+                public CityRowData getCity() {
                     return city;
                 }
 
@@ -353,8 +363,8 @@ public class AddressDAO extends DataAccessObject implements AddressElement {
 
                 @Override
                 public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof AddressElement) {
-                        AddressElement other = (AddressElement) obj;
+                    if (null != obj && obj instanceof AddressRowData) {
+                        AddressRowData other = (AddressRowData) obj;
                         return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
                     }
                     return false;

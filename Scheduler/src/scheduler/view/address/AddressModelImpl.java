@@ -14,8 +14,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CityElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
@@ -28,12 +26,16 @@ import scheduler.view.city.CityModel;
 import scheduler.view.city.CityModelImpl;
 import scheduler.view.city.RelatedCityModel;
 import scheduler.view.model.ItemModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
+import scheduler.model.ui.CityDbItem;
+import scheduler.model.ui.AddressDbItem;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AddressModelImpl extends scheduler.view.model.ItemModel<AddressDAO> implements AddressModel<AddressDAO> {
+public final class AddressModelImpl extends ItemModel<AddressDAO> implements AddressDbItem<AddressDAO> {
 
     private static final Factory FACTORY = new Factory();
 
@@ -41,7 +43,7 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
         return FACTORY;
     }
 
-    public static ZoneId getZoneId(AddressModel<? extends AddressElement> address) {
+    public static ZoneId getZoneId(AddressDbItem<? extends AddressRowData> address) {
         if (null != address) {
             return CityModelImpl.getZoneId(address.getCity());
         }
@@ -51,9 +53,9 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
     private final AddressLinesProperty addressLines;
-    private final SimpleObjectProperty<CityModel<? extends CityElement>> city;
-    private final ChildPropertyWrapper<String, CityModel<? extends CityElement>> cityName;
-    private final ChildPropertyWrapper<String, CityModel<? extends CityElement>> countryName;
+    private final SimpleObjectProperty<CityDbItem<? extends CityRowData>> city;
+    private final ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> cityName;
+    private final ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> countryName;
     private final NonNullableStringProperty postalCode;
     private final NonNullableStringProperty phone;
     private final CityZipCountryProperty cityZipCountry;
@@ -63,7 +65,7 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
         address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
         address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
         addressLines = new AddressLinesProperty();
-        CityElement c = dao.getCity();
+        CityRowData c = dao.getCity();
         city = new SimpleObjectProperty<>(this, "city", (null == c) ? null : new RelatedCityModel(c));
         cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());
@@ -100,47 +102,40 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
         return address2;
     }
 
-    @Override
     public String getAddressLines() {
         return addressLines.get();
     }
 
-    @Override
     public ReadOnlyProperty<String> addressLinesProperty() {
         return addressLines;
     }
 
-    @Override
-    public CityModel<? extends CityElement> getCity() {
+    public CityDbItem<? extends CityRowData> getCity() {
         return city.get();
     }
 
-    public void setCity(CityModel<? extends CityElement> value) {
+    public void setCity(CityDbItem<? extends CityRowData> value) {
         city.set(value);
     }
 
     @Override
-    public ObjectProperty<CityModel<? extends CityElement>> cityProperty() {
+    public ObjectProperty<CityDbItem<? extends CityRowData>> cityProperty() {
         return city;
     }
 
-    @Override
     public String getCityName() {
         return cityName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, CityModel<? extends CityElement>> cityNameProperty() {
+    public ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> cityNameProperty() {
         return cityName;
     }
 
-    @Override
     public String getCountryName() {
         return countryName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, CityModel<? extends CityElement>> countryNameProperty() {
+    public ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> countryNameProperty() {
         return countryName;
     }
 
@@ -172,12 +167,10 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
         return phone;
     }
 
-    @Override
     public String getCityZipCountry() {
         return cityZipCountry.get();
     }
 
-    @Override
     public ReadOnlyProperty<String> cityZipCountryProperty() {
         return cityZipCountry;
     }
@@ -233,7 +226,7 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
 
             item.address1.set(dao.getAddress1());
             item.address2.set(dao.getAddress2());
-            CityElement c = dao.getCity();
+            CityRowData c = dao.getCity();
             item.city.set((null == c) ? null : new RelatedCityModel(c));
             item.postalCode.set(dao.getPostalCode());
             item.phone.set(dao.getPhone());
@@ -250,11 +243,11 @@ public final class AddressModelImpl extends scheduler.view.model.ItemModel<Addre
             if (address1.trim().isEmpty() && address2.trim().isEmpty()) {
                 throw new IllegalArgumentException("Address lines 1 and 2 are empty");
             }
-            CityModel<? extends CityElement> cityModel = item.city.get();
+            CityDbItem<? extends CityRowData> cityModel = item.city.get();
             if (null == cityModel) {
                 throw new IllegalArgumentException("No associated city");
             }
-            CityElement cityDAO = cityModel.getDataObject();
+            CityRowData cityDAO = cityModel.getDataObject();
             if (cityDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");
             }

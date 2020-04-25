@@ -1,22 +1,28 @@
-package scheduler.dao;
+package scheduler.model.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import scheduler.dao.DataRowState;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.City;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
  * Represents a data row from the "city" database table.
+ * <dl>
+ * <dt>{@link scheduler.dao.CityDAO}</dt><dd>Data access object.</dd>
+ * <dt>{@link scheduler.model.ui.CityItem}</dt><dd>UI Model with JavaFX properties.</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface CityElement extends DataElement {
+public interface CityRowData extends City, RowData {
 
-    public static String toString(CityElement city) throws SQLException, ClassNotFoundException {
+    public static String toString(CityRowData city) throws SQLException, ClassNotFoundException {
         if (null != city) {
             String n = city.getName();
-            String country = CountryElement.toString(city.getCountry()).trim();
+            String country = CountryRowData.toString(city.getCountry()).trim();
             if (null == n || (n = n.trim()).isEmpty()) {
                 return country;
             }
@@ -33,9 +39,9 @@ public interface CityElement extends DataElement {
      * @param country The country of the city.
      * @return The read-only CityElement object.
      */
-    public static CityElement of(int pk, String nameValue, CountryElement country) {
+    public static CityRowData of(int pk, String nameValue, CountryRowData country) {
         Objects.requireNonNull(country);
-        return new CityElement() {
+        return new CityRowData() {
             private final String name = asNonNullAndTrimmed(nameValue);
 
             @Override
@@ -49,7 +55,7 @@ public interface CityElement extends DataElement {
             }
 
             @Override
-            public CountryElement getCountry() {
+            public CountryRowData getCountry() {
                 return country;
             }
 
@@ -68,12 +74,12 @@ public interface CityElement extends DataElement {
      * @return The read-only CityElement object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static CityElement of(ResultSet resultSet) throws SQLException {
+    public static CityRowData of(ResultSet resultSet) throws SQLException {
         String name = asNonNullAndTrimmed(resultSet.getString(DbColumn.CITY_NAME.toString()));
-        return of(resultSet.getInt(DbColumn.CITY_ID.toString()), name, CountryElement.of(resultSet));
+        return of(resultSet.getInt(DbColumn.CITY_ID.toString()), name, CountryRowData.of(resultSet));
     }
 
-    public static boolean areEqual(CityElement a, CityElement b) {
+    public static boolean areEqual(CityRowData a, CityRowData b) {
         if (null == a) {
             return null == b;
         }
@@ -88,7 +94,7 @@ public interface CityElement extends DataElement {
                 return b.getRowState() == DataRowState.DELETED;
             case NEW:
                 return b.getRowState() == DataRowState.NEW && a.getName().equalsIgnoreCase(b.getName())
-                        && CountryElement.areEqual(a.getCountry(), b.getCountry());
+                        && CountryRowData.areEqual(a.getCountry(), b.getCountry());
             default:
                 switch (b.getRowState()) {
                     case MODIFIED:
@@ -100,17 +106,7 @@ public interface CityElement extends DataElement {
         }
     }
 
-    /**
-     * Gets the name of the current city. This corresponds to the "city" database column.
-     *
-     * @return The name of the current city.
-     */
-    String getName();
-
-    /**
-     * Gets the {@link CountryElement} for the current city. This corresponds to the "country" data row referenced by the "countryId" database column.
-     *
-     * @return The {@link CountryElement} for the current city.
-     */
-    CountryElement getCountry();
+    @Override
+    public CountryRowData getCountry();
+    
 }

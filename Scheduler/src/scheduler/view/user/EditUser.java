@@ -34,7 +34,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.PwHash;

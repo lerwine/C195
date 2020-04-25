@@ -1,7 +1,7 @@
 package scheduler.observables;
 
 import javafx.beans.property.SimpleObjectProperty;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 
 /**
  * An integer property that only stores specific integer values that represent active status for users.

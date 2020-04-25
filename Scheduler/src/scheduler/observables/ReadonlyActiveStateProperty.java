@@ -1,7 +1,7 @@
 package scheduler.observables;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 
 /**
  *

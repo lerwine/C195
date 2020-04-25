@@ -25,12 +25,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import static scheduler.Scheduler.getMainController;
-import scheduler.dao.AddressElement;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CityElement;
-import scheduler.dao.CountryElement;
-import scheduler.dao.CustomerElement;
-import scheduler.dao.UserElement;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.view.ListingController;
@@ -49,6 +44,11 @@ import scheduler.view.model.ItemModel;
 import scheduler.view.model.TabularDataReader;
 import scheduler.view.model.TsvDataExporter;
 import scheduler.view.user.UserModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
@@ -260,9 +260,9 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
 
                     @Override
                     public String getColumnText(AppointmentModel item, DbColumn column) {
-                        CustomerModel<? extends CustomerElement> customer;
-                        AddressModel<? extends AddressElement> address;
-                        CityModel<? extends CityElement> city;
+                        CustomerModel<? extends CustomerRowData> customer;
+                        AddressModel<? extends AddressRowData> address;
+                        CityModel<? extends CityRowData> city;
                         switch (column) {
                             case APPOINTMENT_CUSTOMER:
                                 customer = item.getCustomer();
@@ -301,7 +301,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                                     if (null != address) {
                                         city = address.getCity();
                                         if (null != city) {
-                                            CityCountryModel<? extends CountryElement> country = city.getCountry();
+                                            CityCountryModel<? extends CountryRowData> country = city.getCountry();
                                             if (null != country)
                                                 return numberFormat.format(country.getPrimaryKey());
                                         }
@@ -321,7 +321,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                                 }
                                 return "";
                             case APPOINTMENT_USER:
-                                UserModel<? extends UserElement> user = item.getUser();
+                                UserModel<? extends UserRowData> user = item.getUser();
                                 return (null == user) ? "" : numberFormat.format(user.getPrimaryKey());
                             case USER_NAME:
                                 return item.getUserName();

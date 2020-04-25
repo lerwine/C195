@@ -7,10 +7,10 @@ import java.util.Objects;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CustomerElement;
-import static scheduler.dao.DataElement.getPrimaryKeyOf;
-import scheduler.dao.UserElement;
+import static scheduler.model.db.RowData.getPrimaryKeyOf;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
 
 /**
  *
@@ -80,7 +80,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         };
     }
 
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer) {
         if (null != customer && customer.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
                     (t) -> getPrimaryKeyOf(t.getCustomer()));
@@ -88,7 +88,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(UserElement user) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(UserRowData user) {
         if (null != user && user.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
                     (t) -> getPrimaryKeyOf(t.getUser()));
@@ -96,7 +96,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer, UserElement user) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer, UserRowData user) {
         return expressionOf(customer).or(expressionOf(user));
     }
 
@@ -142,7 +142,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
      * @param end The exclusive end date/time.
      * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
      */
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerElement customer, Timestamp start, Timestamp end) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer, Timestamp start, Timestamp end) {
         if (null == customer || !customer.isExisting())
             return expressionOf(start, end);
         if (null != start) {
@@ -160,7 +160,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static AppointmentFilter of(CustomerElement customer, UserElement user, Timestamp start, Timestamp end) {
+    public static AppointmentFilter of(CustomerRowData customer, UserRowData user, Timestamp start, Timestamp end) {
         return AppointmentFilter.of(expressionOf(customer, user).and(expressionOf(start, end)));
     }
 

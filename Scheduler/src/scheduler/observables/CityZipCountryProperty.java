@@ -4,9 +4,10 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.AddressElement;
 import scheduler.util.Values;
 import scheduler.view.address.AddressModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.ui.AddressDbItem;
 
 /**
  *
@@ -20,7 +21,7 @@ public class CityZipCountryProperty extends StringBinding implements ReadOnlyPro
     private final ReadOnlyProperty<String> cityName;
     private final ReadOnlyProperty<String> countryName;
 
-    public CityZipCountryProperty(Object bean, String name, AddressModel<? extends AddressElement> address) {
+    public CityZipCountryProperty(Object bean, String name, AddressDbItem<? extends AddressRowData> address) {
         this.bean = bean;
         this.name = (null == name) ? "" : name;
         cityName = address.cityNameProperty();

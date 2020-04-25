@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResources;
-import static scheduler.dao.DataElement.getPrimaryKeyOf;
+import static scheduler.model.db.RowData.getPrimaryKeyOf;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.IntColumnValueFilter;
@@ -33,9 +33,16 @@ import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE;
 import scheduler.AppResourceKeys;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
 
+/**
+ * Data access object for the {@code city} database table.
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 @DatabaseTable(DbTable.CITY)
-public class CityDAO extends DataAccessObject implements CityElement {
+public class CityDAO extends DataAccessObject implements CityRowData {
 
     /**
      * The name of the 'name' property.
@@ -54,7 +61,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
     }
 
     private String name;
-    private CountryElement country;
+    private CountryRowData country;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -96,7 +103,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
     }
 
     @Override
-    public CountryElement getCountry() {
+    public CountryRowData getCountry() {
         return country;
     }
 
@@ -105,8 +112,8 @@ public class CityDAO extends DataAccessObject implements CityElement {
      *
      * @param country new value of country
      */
-    public void setCountry(CountryElement country) {
-        CountryElement oldValue = this.country;
+    public void setCountry(CountryRowData country) {
+        CountryRowData oldValue = this.country;
         this.country = Objects.requireNonNull(country);
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
     }
@@ -127,8 +134,8 @@ public class CityDAO extends DataAccessObject implements CityElement {
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof CityElement) {
-            CityElement other = (CityElement) obj;
+        if (null != obj && obj instanceof CityRowData) {
+            CityRowData other = (CityRowData) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && name.equals(other.getName()) && country.equals(other.getCountry());
             }
@@ -137,6 +144,9 @@ public class CityDAO extends DataAccessObject implements CityElement {
         return false;
     }
 
+    /**
+     * Factory implementation for {@link scheduler.model.db.CityRowData} objects.
+     */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -189,7 +199,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
-                private final CountryElement oldCountry = dao.country;
+                private final CountryRowData oldCountry = dao.country;
 
                 @Override
                 public void accept(PropertyChangeSupport t) {
@@ -207,10 +217,10 @@ public class CityDAO extends DataAccessObject implements CityElement {
             return propertyChanges;
         }
 
-        CityElement fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new CityElement() {
+        CityRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new CityRowData() {
                 private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.CITY_NAME.toString()));
-                private final CountryElement country = CountryDAO.getFactory().fromJoinedResultSet(rs);
+                private final CountryRowData country = CountryDAO.getFactory().fromJoinedResultSet(rs);
                 private final int primaryKey = rs.getInt(DbColumn.ADDRESS_CITY.toString());
 
                 @Override
@@ -219,7 +229,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
                 }
 
                 @Override
-                public CountryElement getCountry() {
+                public CountryRowData getCountry() {
                     return country;
                 }
 
@@ -245,8 +255,8 @@ public class CityDAO extends DataAccessObject implements CityElement {
 
                 @Override
                 public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof CityElement) {
-                        CityElement other = (CityElement) obj;
+                    if (null != obj && obj instanceof CityRowData) {
+                        CityRowData other = (CityRowData) obj;
                         return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
                     }
                     return false;
@@ -278,7 +288,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
 
         @Override
         public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
-            CountryElement country = dao.getCountry();
+            CountryRowData country = dao.getCountry();
             super.save(dao, connection, force);
         }
 
@@ -291,7 +301,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
             if (null == cityOption)
                 throw new IllegalStateException("Unsupported city name");
          
-            CountryElement country = target.getCountry();
+            CountryRowData country = target.getCountry();
             if (null == country)
                 throw new IllegalStateException("Country not specified");
             String countryName = country.getName();
@@ -310,7 +320,7 @@ public class CityDAO extends DataAccessObject implements CityElement {
                 return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYALREADYDELETED);
             }
             
-            CountryElement country = assertValidCity(dao).getCountry();
+            CountryRowData country = assertValidCity(dao).getCountry();
             
             if (country instanceof CountryDAO && country.getRowState() != DataRowState.UNMODIFIED) {
                 String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO)country, connection);

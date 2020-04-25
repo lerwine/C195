@@ -27,9 +27,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DELETINGRECORD;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CustomerElement;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.UserElement;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
@@ -65,6 +63,8 @@ import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModelImpl;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
 
 /**
  * FXML Controller class for main application content.
@@ -416,7 +416,7 @@ public final class MainController {
      * @param user The user to initially select or {@code null} for no initial selection.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
      */
-    public AppointmentModel addNewAppointment(Stage stage, CustomerElement customer, UserElement user) {
+    public AppointmentModel addNewAppointment(Stage stage, CustomerRowData customer, UserRowData user) {
         AppointmentModel result;
         try {
             result = EditAppointment.editNew(this, stage, customer, user);

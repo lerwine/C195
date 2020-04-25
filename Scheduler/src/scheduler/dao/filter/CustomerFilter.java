@@ -5,11 +5,11 @@ import java.sql.SQLException;
 import java.util.Objects;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS;
 import scheduler.AppResources;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CityElement;
-import scheduler.dao.CountryElement;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
 
 /**
  *
@@ -82,24 +82,24 @@ public interface CustomerFilter extends DaoFilter<CustomerDAO> {
         return BooleanColumnValueFilter.of(DbColumn.ACTIVE, isActive, (t) -> t.isActive());
     }
 
-    public static DaoFilterExpression<CustomerDAO> expressionOf(AddressElement address) {
+    public static DaoFilterExpression<CustomerDAO> expressionOf(AddressRowData address) {
         if (null != address && address.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.CUSTOMER_ADDRESS, ComparisonOperator.EQUALS, address.getPrimaryKey(),
                     (t) -> {
-                        AddressElement element = t.getAddress();
+                        AddressRowData element = t.getAddress();
                         return (null == element) ? Integer.MIN_VALUE : element.getPrimaryKey();
                     });
         }
         return DaoFilterExpression.empty();
     }
 
-    public static DaoFilterExpression<CustomerDAO> expressionOf(CityElement city) {
+    public static DaoFilterExpression<CustomerDAO> expressionOf(CityRowData city) {
         if (null != city && city.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.ADDRESS_CITY, ComparisonOperator.EQUALS, city.getPrimaryKey(),
                     (t) -> {
-                        AddressElement address = t.getAddress();
+                        AddressRowData address = t.getAddress();
                         if (null != address) {
-                            CityElement element = address.getCity();
+                            CityRowData element = address.getCity();
                             if (null != element) {
                                 return element.getPrimaryKey();
                             }
@@ -110,15 +110,15 @@ public interface CustomerFilter extends DaoFilter<CustomerDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static DaoFilterExpression<CustomerDAO> expressionOf(CountryElement country) {
+    public static DaoFilterExpression<CustomerDAO> expressionOf(CountryRowData country) {
         if (null != country && country.isExisting()) {
             return IntColumnValueFilter.of(DbColumn.CITY_COUNTRY, ComparisonOperator.EQUALS, country.getPrimaryKey(),
                     (t) -> {
-                        AddressElement address = t.getAddress();
+                        AddressRowData address = t.getAddress();
                         if (null != address) {
-                            CityElement city = address.getCity();
+                            CityRowData city = address.getCity();
                             if (null != city) {
-                                CountryElement element = city.getCountry();
+                                CountryRowData element = city.getCountry();
                                 if (null != element) {
                                     return element.getPrimaryKey();
                                 }

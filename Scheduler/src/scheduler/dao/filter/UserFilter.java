@@ -6,7 +6,7 @@ import java.util.Objects;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.UserDAO;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 import scheduler.dao.schema.DbColumn;
 
 /**

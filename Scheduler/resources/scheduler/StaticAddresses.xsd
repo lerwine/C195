@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
 <xs:schema version="1.0" targetNamespace="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd" xmlns:a="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd"
            xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" >
+    <xs:simpleType name="ZoneId">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="^[^/\s]+(/[^/\s]+)?$" />
+        </xs:restriction>
+    </xs:simpleType>
     <xs:complexType name="addressType">
         <xs:attribute name="address1" type="xs:string" use="required" />
         <xs:attribute name="address2" type="xs:string" use="required" />
         <xs:attribute name="postalCode" type="xs:string" use="required" />
         <xs:attribute name="phone" type="xs:string" use="required" />
-        <xs:attribute name="corporate" use="required" type="xs:boolean" use="required" />
+        <xs:attribute name="mainOffice" use="required" type="xs:boolean" use="required" />
     </xs:complexType>
     <xs:complexType name="cityType">
         <xs:attribute name="key" type="xs_string" use="required">
@@ -16,36 +21,20 @@
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="zoneId" use="required">
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:pattern value="^[^/\s]+(/[^/\s]+)?$" />
-                </xs:restriction>
-            </xs:simpleType>
-        </xs:attribute>
+        <xs:attribute name="zoneId" type="a:ZoneId" use="required" />
         <xs:sequence>
             <xs:element name="address" type="a:addressType" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="countryType">
-        <xs:attribute name="lang" use="required">
+        <xs:attribute name="languageTag" use="required">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
-                    <xs:enumeration>en</xs:enumeration>
-                    <xs:enumeration>de</xs:enumeration>
-                    <xs:enumeration>es</xs:enumeration>
-                    <xs:enumeration>hi</xs:enumeration>
+                    <xs:pattern value="^(e[ns]|de|hi)-[A-Z]{2}$" />
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="region" use="required">
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:length value="2" />
-                    <xs:pattern value="[A-Z][A-Z]" />
-                </xs:restriction>
-            </xs:simpleType>
-        </xs:attribute>
+        <xs:attribute name="defaultZoneId" type="a:ZoneId" use="required" />
         <xs:sequence>
             <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded" />
         </xs:sequence>

@@ -6,9 +6,7 @@ import java.util.function.Predicate;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CustomerElement;
 import scheduler.dao.UserDAO;
-import scheduler.dao.UserElement;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -23,6 +21,8 @@ import scheduler.view.ModelFilter;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.user.UserModel;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
 
 /**
  *
@@ -124,7 +124,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
      * @param customer The customer element.
      * @return  An appointment model filter for appointments that occur on or after the specified {@code start} and before the specified {@code end}.
      */
-    public static AppointmentModelFilter of(LocalDate start, LocalDate end, CustomerElement customer) {
+    public static AppointmentModelFilter of(LocalDate start, LocalDate end, CustomerRowData customer) {
         if (null == customer || !customer.isExisting())
             return of(start, end);
         final int pk = customer.getPrimaryKey();
@@ -139,7 +139,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                             AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(customer))),
                             (t) -> {
-                                CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                                CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                                 return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0;
                             }
                     );
@@ -151,7 +151,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     DB.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(customer))),
                             (t) -> {
-                                CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                                CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                                 return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0 &&
                                         t.getStart().compareTo(startDateTime) <= 0;
                             }
@@ -163,7 +163,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                         AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(customer))),
                         (t) -> {
-                                CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                                CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                                 return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0;
                         }
                 );
@@ -175,7 +175,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                             DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(customer))),
                     (t) -> {
-                        CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                        CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                         return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0 &&
                                 t.getStart().compareTo(endDateTime) < 0;
                     }
@@ -190,7 +190,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                     AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(customer))),
                     (t) -> {
-                        CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                        CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                         return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                     }
             );
@@ -201,7 +201,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                     AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(customer))),
                     (t) -> {
-                        CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                        CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                         return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                     }
             );
@@ -211,7 +211,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(customer))),
                 (t) -> {
-                    CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                    CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                     return null != c && c.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                 }
         );
@@ -237,7 +237,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                             AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
-                                UserModel<? extends UserElement> model = t.getUser();
+                                UserModel<? extends UserRowData> model = t.getUser();
                                 return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0;
                             }
                     );
@@ -248,7 +248,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     DB.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
-                                UserModel<? extends UserElement> model = t.getUser();
+                                UserModel<? extends UserRowData> model = t.getUser();
                                 return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0 &&
                                         t.getStart().compareTo(startDateTime) <= 0;
                             }
@@ -260,7 +260,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                         AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(user))),
                         (t) -> {
-                            UserModel<? extends UserElement> model = t.getUser();
+                            UserModel<? extends UserRowData> model = t.getUser();
                             return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0;
                         }
                 );
@@ -272,7 +272,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                             DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
-                        UserModel<? extends UserElement> model = t.getUser();
+                        UserModel<? extends UserRowData> model = t.getUser();
                         return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0 &&
                                 t.getStart().compareTo(endDateTime) < 0;
                     }
@@ -286,7 +286,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                     AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
-                        UserModel<? extends UserElement> model = t.getUser();
+                        UserModel<? extends UserRowData> model = t.getUser();
                         return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                     }
             );
@@ -296,7 +296,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                     AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
-                        UserModel<? extends UserElement> model = t.getUser();
+                        UserModel<? extends UserRowData> model = t.getUser();
                         return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                     }
             );
@@ -306,7 +306,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                 (t) -> {
-                    UserModel<? extends UserElement> model = t.getUser();
+                    UserModel<? extends UserRowData> model = t.getUser();
                     return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                 }
         );
@@ -320,7 +320,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
      * @param user The user element.
      * @return  An appointment model filter for appointments that occur on or after the specified {@code start} and before the specified {@code end}.
      */
-    public static AppointmentModelFilter of(LocalDate start, LocalDate end, UserElement user) {
+    public static AppointmentModelFilter of(LocalDate start, LocalDate end, UserRowData user) {
         if (null == user || !user.isExisting())
             return of(start, end);
         if (user.getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey())
@@ -337,7 +337,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                             AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
-                                UserModel<? extends UserElement> model = t.getUser();
+                                UserModel<? extends UserRowData> model = t.getUser();
                                 return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0;
                             }
                     );
@@ -349,7 +349,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     DB.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
-                                UserModel<? extends UserElement> model = t.getUser();
+                                UserModel<? extends UserRowData> model = t.getUser();
                                 return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0 &&
                                         t.getStart().compareTo(startDateTime) <= 0;
                             }
@@ -361,7 +361,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                         AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(user))),
                         (t) -> {
-                            UserModel<? extends UserElement> model = t.getUser();
+                            UserModel<? extends UserRowData> model = t.getUser();
                             return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0;
                         }
                 );
@@ -373,7 +373,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                             DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
-                        UserModel<? extends UserElement> model = t.getUser();
+                        UserModel<? extends UserRowData> model = t.getUser();
                         return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(startDateTime) > 0 &&
                                 t.getStart().compareTo(endDateTime) < 0;
                     }
@@ -388,7 +388,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                     AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
-                        UserModel<? extends UserElement> model = t.getUser();
+                        UserModel<? extends UserRowData> model = t.getUser();
                         return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                     }
             );
@@ -399,7 +399,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                     AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                                     .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
-                        UserModel<? extends UserElement> model = t.getUser();
+                        UserModel<? extends UserRowData> model = t.getUser();
                         return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                     }
             );
@@ -409,13 +409,13 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
                         .and(AppointmentFilter.expressionOf(user))),
                 (t) -> {
-                    UserModel<? extends UserElement> model = t.getUser();
+                    UserModel<? extends UserRowData> model = t.getUser();
                     return null != model && model.getPrimaryKey() == pk && t.getEnd().compareTo(endDateTime) <= 0;
                 }
         );
     }
 
-    public static AppointmentModelFilter of(CustomerElement customer) {
+    public static AppointmentModelFilter of(CustomerRowData customer) {
         if (null == customer || !customer.isExisting())
             return all();
         final int pk = customer.getPrimaryKey();
@@ -423,13 +423,13 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                         customer.getName()),
                 AppointmentFilter.of(AppointmentFilter.expressionOf(customer)),
                 (t) -> {
-                    CustomerModel<? extends CustomerElement> model = t.getCustomer();
+                    CustomerModel<? extends CustomerRowData> model = t.getCustomer();
                     return null != model && model.getPrimaryKey() == pk;
                 }
         );
     }
     
-    public static AppointmentModelFilter of(UserElement user) {
+    public static AppointmentModelFilter of(UserRowData user) {
         if (null == user || !user.isExisting())
             return all();
         final int pk = user.getPrimaryKey();
@@ -437,13 +437,13 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                         user.getUserName()),
                 AppointmentFilter.of(AppointmentFilter.expressionOf(user)),
                 (t) -> {
-                    UserModel<? extends UserElement> model = t.getUser();
+                    UserModel<? extends UserRowData> model = t.getUser();
                     return null != model && model.getPrimaryKey() == pk;
                 }
         );
     }
     
-    public static AppointmentModelFilter of(CustomerElement customer, UserElement user) {
+    public static AppointmentModelFilter of(CustomerRowData customer, UserRowData user) {
         if (null == customer || !customer.isExisting())
             return of(user);
         if (null == user || !user.isExisting())
@@ -455,11 +455,11 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 AppointmentFilter.of(LogicalFilter.of(LogicalOperator.OR, AppointmentFilter.expressionOf(customer),
                         AppointmentFilter.expressionOf(user))),
                 (t) -> {
-                    CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                    CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                     if (null != c && c.getPrimaryKey() == cPk) {
                         return true;
                     }
-                    UserModel<? extends UserElement> u = t.getUser();
+                    UserModel<? extends UserRowData> u = t.getUser();
                     return null != u && u.getPrimaryKey() == uPk;
                 }
         );
@@ -475,7 +475,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
      * @param user
      * @return  An appointment model filter for appointments that occur on or after the specified {@code start} and before the specified {@code end}.
      */
-    public static AppointmentModelFilter of(LocalDate start, LocalDate end, CustomerElement customer, UserElement user) {
+    public static AppointmentModelFilter of(LocalDate start, LocalDate end, CustomerRowData customer, UserRowData user) {
         if (null == customer || !customer.isExisting())
             return of(start, end, user);
         if (null == user || !user.isExisting())
@@ -494,10 +494,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                             (t) -> {
                                 if (t.getEnd().compareTo(startDateTime) > 0) {
-                                    CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                                    CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                                     if (null != c && c.getPrimaryKey() == cPk)
                                         return true;
-                                    UserModel<? extends UserElement> u = t.getUser();
+                                    UserModel<? extends UserRowData> u = t.getUser();
                                     return null != u && u.getPrimaryKey() == uPk;
                                 }
                                 return false;
@@ -512,10 +512,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                             (t) -> {
                                 if (t.getEnd().compareTo(startDateTime) > 0 && t.getStart().compareTo(startDateTime) <= 0) {
-                                    CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                                    CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                                     if (null != c && c.getPrimaryKey() == cPk)
                                         return true;
-                                    UserModel<? extends UserElement> u = t.getUser();
+                                    UserModel<? extends UserRowData> u = t.getUser();
                                     return null != u && u.getPrimaryKey() == uPk;
                                 }
                                 return false;
@@ -529,10 +529,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                         (t) -> {
                             if (t.getEnd().compareTo(startDateTime) > 0) {
-                                CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                                CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                                 if (null != c && c.getPrimaryKey() == cPk)
                                     return true;
-                                UserModel<? extends UserElement> u = t.getUser();
+                                UserModel<? extends UserRowData> u = t.getUser();
                                 return null != u && u.getPrimaryKey() == uPk;
                             }
                             return false;
@@ -547,10 +547,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                     (t) -> {
                         if (t.getEnd().compareTo(startDateTime) > 0 && t.getStart().compareTo(endDateTime) < 0) {
-                            CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                            CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                             if (null != c && c.getPrimaryKey() == cPk)
                                 return true;
-                            UserModel<? extends UserElement> u = t.getUser();
+                            UserModel<? extends UserRowData> u = t.getUser();
                             return null != u && u.getPrimaryKey() == uPk;
                         }
                         return false;
@@ -567,10 +567,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                     (t) -> {
                         if (t.getEnd().compareTo(endDateTime) <= 0) {
-                            CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                            CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                             if (null != c && c.getPrimaryKey() == cPk)
                                 return true;
-                            UserModel<? extends UserElement> u = t.getUser();
+                            UserModel<? extends UserRowData> u = t.getUser();
                             return null != u && u.getPrimaryKey() == uPk;
                         }
                         return false;
@@ -584,10 +584,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                     (t) -> {
                         if (t.getEnd().compareTo(endDateTime) <= 0) {
-                            CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                            CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                             if (null != c && c.getPrimaryKey() == cPk)
                                 return true;
-                            UserModel<? extends UserElement> u = t.getUser();
+                            UserModel<? extends UserRowData> u = t.getUser();
                             return null != u && u.getPrimaryKey() == uPk;
                         }
                         return false;
@@ -600,10 +600,10 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                 (t) -> {
                     if (t.getEnd().compareTo(endDateTime) <= 0) {
-                        CustomerModel<? extends CustomerElement> c = t.getCustomer();
+                        CustomerModel<? extends CustomerRowData> c = t.getCustomer();
                         if (null != c && c.getPrimaryKey() == cPk)
                             return true;
-                        UserModel<? extends UserElement> u = t.getUser();
+                        UserModel<? extends UserRowData> u = t.getUser();
                         return null != u && u.getPrimaryKey() == uPk;
                     }
                     return false;

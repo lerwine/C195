@@ -1,19 +1,20 @@
 package scheduler.view.address;
 
 import javafx.beans.property.ReadOnlyProperty;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CityElement;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.city.CityModel;
 import scheduler.view.model.ElementModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
 
 /**
- * An {@link ElementModel} for an {@link AddressElement} data access object.
+ * An {@link ElementModel} for an {@link AddressRowData} data access object.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link AddressElement} data access object this model represents.
+ * @param <T> The type of {@link AddressRowData} data access object this model represents.
+ * @deprecated Use {@link scheduler.model.ui.AddressItem}, instead.
  */
-public interface AddressModel<T extends AddressElement> extends ElementModel<T> {
+public interface AddressModel<T extends AddressRowData> extends ElementModel<T> {
 
     /**
      * Gets the first line of the address.
@@ -63,14 +64,14 @@ public interface AddressModel<T extends AddressElement> extends ElementModel<T> 
      * 
      * @return The city model for the address.
      */
-    CityModel<? extends CityElement> getCity();
+    CityModel<? extends CityRowData> getCity();
 
     /**
      * Gets the property that contains the city model for the address.
      * 
      * @return The property that contains the city model for the address.
      */
-    ReadOnlyProperty<CityModel<? extends CityElement>> cityProperty();
+    ReadOnlyProperty<CityModel<? extends CityRowData>> cityProperty();
 
     /**
      * Gets the the name of the city.
@@ -84,7 +85,7 @@ public interface AddressModel<T extends AddressElement> extends ElementModel<T> 
      * 
      * @return A {@link ChildPropertyWrapper} gets the value of the {@link CityModel#nameProperty()} from the {@link #cityProperty()}
      */
-    ChildPropertyWrapper<String, CityModel<? extends CityElement>> cityNameProperty();
+    ChildPropertyWrapper<String, CityModel<? extends CityRowData>> cityNameProperty();
 
     /**
      * Gets the name of the country.
@@ -98,7 +99,7 @@ public interface AddressModel<T extends AddressElement> extends ElementModel<T> 
      * 
      * @return A {@link ChildPropertyWrapper} gets the value of the {@link CityModel#countryNameProperty()} from the {@link #cityProperty()}
      */
-    ChildPropertyWrapper<String, CityModel<? extends CityElement>> countryNameProperty();
+    ChildPropertyWrapper<String, CityModel<? extends CityRowData>> countryNameProperty();
 
     /**
      * Gets the postal code for the address.

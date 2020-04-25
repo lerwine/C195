@@ -4,9 +4,8 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.CustomerElement;
 import scheduler.util.Values;
-import scheduler.view.customer.CustomerModel;
+import scheduler.view.customer.CustomerModelImpl;
 
 /**
  *
@@ -21,7 +20,7 @@ public class AddressTextProperty extends StringBinding implements ReadOnlyProper
     private final ReadOnlyProperty<String> cityZipCountry;
     private final ReadOnlyProperty<String> phone;
 
-    public AddressTextProperty(Object bean, String name, CustomerModel<? extends CustomerElement> customer) {
+    public AddressTextProperty(Object bean, String name, CustomerModelImpl customer) {
         this.bean = bean;
         this.name = (null == name) ? "" : name;
         address1 = customer.address1Property();

@@ -46,7 +46,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import static scheduler.AppResources.FXMLPROPERTYNAME_CONTROLLER;
-import scheduler.dao.AddressElement;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
@@ -63,6 +62,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.task.TaskWaiter;
+import scheduler.model.db.AddressRowData;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
@@ -1291,7 +1291,7 @@ public final class EditAppointmentFilter {
                 countryId = new ReadOnlyIntegerWrapper(-1);
             } else {
                 text = new ReadOnlyStringWrapper(customer.getName());
-                AddressElement addr = customer.getAddress();
+                AddressRowData addr = customer.getAddress();
                 cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
                 countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
             }

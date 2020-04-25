@@ -46,12 +46,9 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.AddressElement;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
-import scheduler.dao.CityElement;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.CountryElement;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -86,6 +83,9 @@ import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
 
 /**
  * FXML Controller class for editing a {@link CustomerModelImpl}.
@@ -112,19 +112,19 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     private ObservableList<AppointmentModel> customerAppointments;
 
-    private ObservableList<CityModel<? extends CityElement>> allCities;
+    private ObservableList<CityModel<? extends CityRowData>> allCities;
 
-    private ObservableList<CityModel<? extends CityElement>> cityOptions;
+    private ObservableList<CityModel<? extends CityRowData>> cityOptions;
 
-    private ObservableList<CityCountryModel<? extends CountryElement>> allCountries;
+    private ObservableList<CityCountryModel<? extends CountryRowData>> allCountries;
 
     private ObservableList<AppointmentFilterItem> filterOptions;
 
     private SimpleObjectProperty<AddressModelImpl> selectedAddress;
 
-    private SingleSelectionModel<CityModel<? extends CityElement>> citySelectionModel;
+    private SingleSelectionModel<CityModel<? extends CityRowData>> citySelectionModel;
 
-    private SingleSelectionModel<CityCountryModel<? extends CountryElement>> countrySelectionModel;
+    private SingleSelectionModel<CityCountryModel<? extends CountryRowData>> countrySelectionModel;
 
     private AddressPicker addressPicker;
 
@@ -176,7 +176,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     private Label cityZipCountryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityModel<? extends CityElement>> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityModel<? extends CityRowData>> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityValidationLabel"
     private Label cityValidationLabel; // Value injected by FXMLLoader
@@ -197,7 +197,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     private Label countryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CityCountryModel<? extends CountryElement>> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityCountryModel<? extends CountryRowData>> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
@@ -236,11 +236,11 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     void onCountryComboBoxAction(ActionEvent event) {
         citySelectionModel.clearSelection();
         cityOptions.clear();
-        CityCountryModel<? extends CountryElement> selectedItem = countrySelectionModel.getSelectedItem();
+        CityCountryModel<? extends CountryRowData> selectedItem = countrySelectionModel.getSelectedItem();
         if (null != selectedItem) {
             String regionCode = selectedItem.getOptionModel().getRegionCode();
-            allCities.stream().filter((CityModel<? extends CityElement> t) -> {
-                CityCountryModel<? extends CountryElement> m = t.getCountry();
+            allCities.stream().filter((CityModel<? extends CityRowData> t) -> {
+                CityCountryModel<? extends CountryRowData> m = t.getCountry();
                 return null != m && m.getOptionModel().getRegionCode().equals(regionCode);
             }).forEach((t) -> cityOptions.add(t));
         }
@@ -346,7 +346,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         }, address1TextField.textProperty(), address2TextField.textProperty(), selectedAddress);
 
         countryValid = bindCollapsible(countryValidationLabel, () -> {
-            CityCountryModel<? extends CountryElement> selectedItem = countrySelectionModel.getSelectedItem();
+            CityCountryModel<? extends CountryRowData> selectedItem = countrySelectionModel.getSelectedItem();
             LOG.info(String.format("Calculated countryValid=%s", null != selectedAddress.get() || null != selectedItem));
             return null != selectedAddress.get() || null != selectedItem;
         }, countrySelectionModel.selectedItemProperty(), selectedAddress);
@@ -354,8 +354,8 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
         newAddressButton.disableProperty().bind(selectedAddress.isNull());
         
         cityValidationMessage = bindCollapsibleMessage(cityValidationLabel, () -> {
-            CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
-            CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
+            CityCountryModel<? extends CountryRowData> selectedCountry = countrySelectionModel.getSelectedItem();
+            CityModel<? extends CityRowData> selectedCity = citySelectionModel.getSelectedItem();
             LOG.info(String.format("Calculated cityValid=%s", null != selectedAddress.get() || null != selectedCity));
             if (null == selectedAddress.get() && null == selectedCity) {
                 if (null == selectedCountry) {
@@ -427,12 +427,12 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     
     private void onCountryAdded(CountryDAO dao) {
         String regionCode = dao.getName();
-        allCountries.stream().filter((CityCountryModel<? extends CountryElement> t) -> {
+        allCountries.stream().filter((CityCountryModel<? extends CountryRowData> t) -> {
             CountryOptionModel m = t.getOptionModel();
             return m.getRegionCode().equals(regionCode);
         }).findFirst().ifPresent((t) -> {
-            CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
-            CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
+            CityCountryModel<? extends CountryRowData> selectedCountry = countrySelectionModel.getSelectedItem();
+            CityModel<? extends CityRowData> selectedCity = citySelectionModel.getSelectedItem();
             int i = allCountries.indexOf(t);
             CountryModel model = new CountryModel(dao);
             allCountries.set(i, model);
@@ -447,12 +447,12 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     private void onCountryDeleted(CountryDAO dao) {
         String regionCode = dao.getName();
-        allCountries.stream().filter((CityCountryModel<? extends CountryElement> t) -> {
+        allCountries.stream().filter((CityCountryModel<? extends CountryRowData> t) -> {
             CountryOptionModel m = t.getOptionModel();
             return m.getRegionCode().equals(regionCode);
         }).findFirst().ifPresent((t) -> {
-            CityCountryModel<? extends CountryElement> selectedCountry = countrySelectionModel.getSelectedItem();
-            CityModel<? extends CityElement> selectedCity = citySelectionModel.getSelectedItem();
+            CityCountryModel<? extends CountryRowData> selectedCountry = countrySelectionModel.getSelectedItem();
+            CityModel<? extends CityRowData> selectedCity = citySelectionModel.getSelectedItem();
             int i = allCountries.indexOf(t);
             CountryOptionModel optionModel = t.getOptionModel();
             allCountries.set(i, optionModel);
@@ -468,7 +468,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     private void onCityAdded(CityDAO dao) {
         String resourceKey = dao.getName();
         String regionCode = dao.getCountry().getName();
-        allCities.stream().filter((CityModel<? extends CityElement> t) -> {
+        allCities.stream().filter((CityModel<? extends CityRowData> t) -> {
             CityOptionModel m = t.getOptionModel();
             return m.getResourceKey().equals(resourceKey) && m.getCountry().getOptionModel().getRegionCode().equals(regionCode);
         }).findFirst().ifPresent((t) -> {
@@ -477,7 +477,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
             allCities.set(i, model);
             i = cityOptions.indexOf(t);
             if (i >= 0) {
-                CityModel<? extends CityElement> selectedItem = citySelectionModel.getSelectedItem();
+                CityModel<? extends CityRowData> selectedItem = citySelectionModel.getSelectedItem();
                 if (null != selectedItem && selectedItem == t) {
                     cityOptions.set(i, model);
                     citySelectionModel.select(model);
@@ -491,7 +491,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     private void onCityDeleted(CityDAO dao) {
         String resourceKey = dao.getName();
         String regionCode = dao.getCountry().getName();
-        allCities.stream().filter((CityModel<? extends CityElement> t) -> {
+        allCities.stream().filter((CityModel<? extends CityRowData> t) -> {
             CityOptionModel m = t.getOptionModel();
             return m.getResourceKey().equals(resourceKey) && m.getCountry().getOptionModel().getRegionCode().equals(regionCode);
         }).findFirst().ifPresent((t) -> {
@@ -500,7 +500,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
             allCities.set(i, optionModel);
             i = cityOptions.indexOf(t);
             if (i >= 0) {
-                CityModel<? extends CityElement> selectedItem = citySelectionModel.getSelectedItem();
+                CityModel<? extends CityRowData> selectedItem = citySelectionModel.getSelectedItem();
                 if (null != selectedItem && selectedItem == t) {
                     cityOptions.set(i, optionModel);
                     citySelectionModel.select(optionModel);
@@ -603,14 +603,14 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     @Override
     protected void save(CustomerDAO dao, Connection connection) throws SQLException {
-        AddressElement address = dao.getAddress();
+        AddressRowData address = dao.getAddress();
         if (address.getRowState() == DataRowState.NEW) {
             AddressDAO a = (AddressDAO) address;
-            CityElement city = address.getCity();
+            CityRowData city = address.getCity();
             if (!city.isExisting()) {
                 CityDAO c = new CityDAO();
                 c.setName(city.getName());
-                CountryElement e = city.getCountry();
+                CountryRowData e = city.getCountry();
                 if (e.isExisting()) {
                     c.setCountry(e);
                 } else {

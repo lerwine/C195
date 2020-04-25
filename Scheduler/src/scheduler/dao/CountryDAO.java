@@ -23,9 +23,15 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.AppResourceKeys;
+import scheduler.model.db.CountryRowData;
 
+/**
+ * Data access object for the {@code country} database table.
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 @DatabaseTable(DbTable.COUNTRY)
-public class CountryDAO extends DataAccessObject implements CountryElement {
+public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     /**
      * The name of the 'name' property.
@@ -83,8 +89,8 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof CountryElement) {
-            CountryElement other = (CountryElement) obj;
+        if (null != obj && obj instanceof CountryRowData) {
+            CountryRowData other = (CountryRowData) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && name.equals(other.getName());
             }
@@ -93,6 +99,9 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
         return false;
     }
 
+    /**
+     * Factory implementation for {@link scheduler.model.db.CountryRowData} objects.
+     */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -149,8 +158,8 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
             return propertyChanges;
         }
 
-        CountryElement fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new CountryElement() {
+        CountryRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new CountryRowData() {
                 private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.COUNTRY_NAME.toString()));
                 private final int primaryKey = rs.getInt(DbColumn.CITY_COUNTRY.toString());
 
@@ -181,8 +190,8 @@ public class CountryDAO extends DataAccessObject implements CountryElement {
 
                 @Override
                 public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof CountryElement) {
-                        CountryElement other = (CountryElement) obj;
+                    if (null != obj && obj instanceof CountryRowData) {
+                        CountryRowData other = (CountryRowData) obj;
                         return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
                     }
                     return false;

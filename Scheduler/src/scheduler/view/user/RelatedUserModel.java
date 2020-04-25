@@ -3,23 +3,24 @@ package scheduler.view.user;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 import scheduler.observables.UserStatusDisplayProperty;
 import scheduler.observables.UserStatusProperty;
 import scheduler.view.model.RelatedItemModel;
-import scheduler.dao.UserElement;
+import scheduler.model.db.UserRowData;
+import scheduler.model.ui.UserItem;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedUserModel extends RelatedItemModel<UserElement> implements UserModel<UserElement> {
+public class RelatedUserModel extends RelatedItemModel<UserRowData> implements UserItem<UserRowData> {
 
     private final ReadOnlyStringWrapper userName;
     private final UserStatusProperty status;
     private final UserStatusDisplayProperty statusDisplay;
 
-    public RelatedUserModel(UserElement dao) {
+    public RelatedUserModel(UserRowData dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
         status = new UserStatusProperty(this, "status", dao.getStatus());

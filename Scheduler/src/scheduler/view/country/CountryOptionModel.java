@@ -27,13 +27,13 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.CountryElement;
 import scheduler.dao.DataRowState;
 import scheduler.util.InternalException;
 import scheduler.util.MapHelper;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.SupportedLocale;
+import scheduler.model.db.CountryRowData;
 
 /**
  * Models a supported country.
@@ -41,7 +41,7 @@ import scheduler.view.city.SupportedLocale;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/cityNames")
-public class CountryOptionModel implements CityCountryModel<CountryElement> {
+public class CountryOptionModel implements CityCountryModel<CountryRowData> {
 
     public static final String PROPERTIES_FILE_CITIES = "scheduler/supportedCities.properties";
     private static final Logger LOG = Logger.getLogger(CountryOptionModel.class.getName());
@@ -72,7 +72,7 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
         return FXCollections.unmodifiableObservableMap(countryOptionMap);
     }
 
-    public static boolean matchesRegionCode(CityCountryModel<? extends CountryElement> model, String regionCode) {
+    public static boolean matchesRegionCode(CityCountryModel<? extends CountryRowData> model, String regionCode) {
         if (null != model && null != regionCode) {
             CountryOptionModel optionModel = model.getOptionModel();
             if (null != optionModel) {
@@ -160,20 +160,20 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
         return FXCollections.unmodifiableObservableList(countryOptions);
     }
 
-    public static Stream<CityCountryModel<? extends CountryElement>> getCountryOptions(Collection<CountryDAO> dataObjects) {
+    public static Stream<CityCountryModel<? extends CountryRowData>> getCountryOptions(Collection<CountryDAO> dataObjects) {
         return getCountryOptions().stream().map((CountryOptionModel t) -> {
             String regionCode = t.getRegionCode();
             Optional<CountryDAO> matching = dataObjects.stream().filter((u) -> matchesRegionCode(u, regionCode)).findFirst();
             if (matching.isPresent()) {
-                return (CityCountryModel<? extends CountryElement>) new CountryModel(matching.get());
+                return (CityCountryModel<? extends CountryRowData>) new CountryModel(matching.get());
             }
-            return (CityCountryModel<? extends CountryElement>) t;
+            return (CityCountryModel<? extends CountryRowData>) t;
         });
     }
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper regionCode;
-    private final ReadOnlyObjectWrapper<CountryElement> dataObject;
+    private final ReadOnlyObjectWrapper<CountryRowData> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyListWrapper<CityOptionModel> cities;
 
@@ -182,7 +182,7 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
         cities = new ReadOnlyListWrapper<>(FXCollections.unmodifiableObservableList(backingList));
         primaryKey = new ReadOnlyIntegerWrapper(Integer.MIN_VALUE);
         this.name = new ReadOnlyStringWrapper(name);
-        dataObject = new ReadOnlyObjectWrapper<>(new CountryElement() {
+        dataObject = new ReadOnlyObjectWrapper<>(new CountryRowData() {
             @Override
             public String getName() {
                 return CountryOptionModel.this.getRegionCode();
@@ -205,7 +205,7 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
 
             @Override
             public boolean equals(Object obj) {
-                return null != obj && obj instanceof CountryElement && this == obj;
+                return null != obj && obj instanceof CountryRowData && this == obj;
             }
 
             @Override
@@ -247,12 +247,12 @@ public class CountryOptionModel implements CityCountryModel<CountryElement> {
     }
 
     @Override
-    public CountryElement getDataObject() {
+    public CountryRowData getDataObject() {
         return dataObject.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CountryElement> dataObjectProperty() {
+    public ReadOnlyObjectProperty<CountryRowData> dataObjectProperty() {
         return dataObject.getReadOnlyProperty();
     }
 

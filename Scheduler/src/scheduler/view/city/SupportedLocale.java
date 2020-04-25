@@ -5,15 +5,19 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 import scheduler.AppResources;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CityElement;
-import scheduler.dao.CountryElement;
-import scheduler.dao.CustomerElement;
 import scheduler.view.address.AddressModel;
 import scheduler.view.country.CityCountryModel;
 import scheduler.view.country.CityOptionModel;
 import scheduler.view.country.CountryOptionModel;
 import scheduler.view.customer.CustomerModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.CountryDbItem;
+import scheduler.model.ui.CityDbItem;
+import scheduler.model.ui.AddressDbItem;
 
 /**
  * Represents a locale supported by the application. The string value is a IETF BCP 47 language tag which includes both the language and country.
@@ -38,7 +42,7 @@ public enum SupportedLocale {
      */
     HI("hi-IN", "kolkata");
 
-    private static SupportedLocale getDefaultLocale(CityCountryModel<? extends CountryElement> country) {
+    private static SupportedLocale getDefaultLocale(CountryDbItem<? extends CountryRowData> country) {
         if (null != country) {
             CountryOptionModel optionModel = country.getOptionModel();
             Optional<SupportedLocale> result = fromRegionCode((null != optionModel) ? optionModel.getRegionCode() : country.getDataObject().getName());
@@ -49,7 +53,7 @@ public enum SupportedLocale {
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(CountryElement country) {
+    public static SupportedLocale getDefaultLocale(CountryRowData country) {
         if (null != country) {
             Optional<SupportedLocale> result = fromRegionCode(country.getName());
             if (result.isPresent()) {
@@ -59,7 +63,7 @@ public enum SupportedLocale {
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(CityModel<? extends CityElement> city) {
+    public static SupportedLocale getDefaultLocale(CityDbItem<? extends CityRowData> city) {
         if (null != city) {
             CityOptionModel optionModel = city.getOptionModel();
             if (null != optionModel) {
@@ -70,7 +74,7 @@ public enum SupportedLocale {
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(CityElement city) {
+    public static SupportedLocale getDefaultLocale(CityRowData city) {
         if (null != city) {
             CityOptionModel cityOption = CityOptionModel.getCityOption(city.getName());
             if (null != cityOption) {
@@ -81,28 +85,28 @@ public enum SupportedLocale {
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(AddressModel<? extends AddressElement> address) {
+    public static SupportedLocale getDefaultLocale(AddressDbItem<? extends AddressRowData> address) {
         if (null != address) {
             return getDefaultLocale(address.getCity());
         }
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(AddressElement address) {
+    public static SupportedLocale getDefaultLocale(AddressRowData address) {
         if (null != address) {
             return getDefaultLocale(address.getCity());
         }
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(CustomerModel<? extends CustomerElement> customer) {
+    public static SupportedLocale getDefaultLocale(CustomerItem<? extends CustomerRowData> customer) {
         if (null != customer) {
             return getDefaultLocale(customer.getAddress());
         }
         return fromLocale(Locale.getDefault());
     }
 
-    public static SupportedLocale getDefaultLocale(CustomerElement customer) {
+    public static SupportedLocale getDefaultLocale(CustomerRowData customer) {
         if (null != customer) {
             return getDefaultLocale(customer.getAddress());
         }

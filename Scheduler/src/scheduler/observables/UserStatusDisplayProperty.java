@@ -6,7 +6,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.UserStatus;
+import scheduler.model.UserStatus;
 
 /**
  *

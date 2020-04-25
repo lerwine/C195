@@ -1,14 +1,14 @@
 package scheduler.observables;
 
 import java.util.Optional;
-import scheduler.dao.DataElement;
+import scheduler.model.db.RowData;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class OptionalDataObjectProperty<T extends DataElement> extends OptionalValueProperty<T> {
+public class OptionalDataObjectProperty<T extends RowData> extends OptionalValueProperty<T> {
 
     public OptionalDataObjectProperty() {
     }
@@ -30,7 +30,7 @@ public class OptionalDataObjectProperty<T extends DataElement> extends OptionalV
         super.set(requireExisting(newValue, "Object does not exist")); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static <V extends DataElement> Optional<V> requireExisting(Optional<V> value, String message) {
+    private static <V extends RowData> Optional<V> requireExisting(Optional<V> value, String message) {
         if (value != null) {
             value.ifPresent((t) -> {
                 if (!t.isExisting()) {

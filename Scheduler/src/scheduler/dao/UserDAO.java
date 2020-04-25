@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import scheduler.model.UserStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,9 +23,17 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.model.db.UserRowData;
 
+/**
+ * Data access object for the {@code user} database table.
+ * <p>
+ * This object contains the login credentials for users of the current application.</p>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 @DatabaseTable(DbTable.USER)
-public class UserDAO extends DataAccessObject implements UserElement {
+public class UserDAO extends DataAccessObject implements UserRowData {
 
     /**
      * The name of the 'userName' property.
@@ -150,6 +159,9 @@ public class UserDAO extends DataAccessObject implements UserElement {
         return false;
     }
 
+    /**
+     * Factory implementation for {@link scheduler.model.db.UserRowData} objects.
+     */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -226,8 +238,8 @@ public class UserDAO extends DataAccessObject implements UserElement {
             return propertyChanges;
         }
 
-        UserElement fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new UserElement() {
+        UserRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new UserRowData() {
                 private final String userName = asNonNullAndTrimmed(rs.getString(DbColumn.USER_NAME.toString()));
                 private final UserStatus status = UserStatus.of(rs.getInt(DbColumn.STATUS.toString()), UserStatus.INACTIVE);
                 private final int primaryKey = rs.getInt(DbColumn.APPOINTMENT_USER.toString());
@@ -264,8 +276,8 @@ public class UserDAO extends DataAccessObject implements UserElement {
 
                 @Override
                 public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof UserElement) {
-                        UserElement other = (UserElement) obj;
+                    if (null != obj && obj instanceof UserRowData) {
+                        UserRowData other = (UserRowData) obj;
                         return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
                     }
                     return false;

@@ -4,15 +4,15 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import scheduler.dao.DataElement;
+import scheduler.model.db.RowData;
 
 /**
  * A model that is the related child item of another.
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of related {@link DataElement}.
+ * @param <T> The type of related {@link RowData}.
  */
-public abstract class RelatedItemModel<T extends DataElement> implements ElementModel<T> {
+public abstract class RelatedItemModel<T extends RowData> implements ElementModel<T> {
     private final ReadOnlyObjectWrapper<T> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
 

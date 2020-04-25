@@ -6,37 +6,39 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CityElement;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.util.Values;
 import scheduler.view.city.CityModel;
 import scheduler.view.city.RelatedCityModel;
 import scheduler.view.model.RelatedItemModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CityRowData;
+import scheduler.model.ui.CityDbItem;
+import scheduler.model.ui.AddressDbItem;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedAddressModel extends RelatedItemModel<AddressElement> implements AddressModel<AddressElement> {
+public class RelatedAddressModel extends RelatedItemModel<AddressRowData> implements AddressDbItem<AddressRowData> {
 
     private final ReadOnlyStringWrapper address1;
     private final ReadOnlyStringWrapper address2;
     private final AddressLinesProperty addressLines;
-    private final ReadOnlyObjectWrapper<CityModel<? extends CityElement>> city;
-    private final ChildPropertyWrapper<String, CityModel<? extends CityElement>> cityName;
-    private final ChildPropertyWrapper<String, CityModel<? extends CityElement>> countryName;
+    private final ReadOnlyObjectWrapper<CityDbItem<? extends CityRowData>> city;
+    private final ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> cityName;
+    private final ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> countryName;
     private final ReadOnlyStringWrapper postalCode;
     private final ReadOnlyStringWrapper phone;
     private final CityZipCountryProperty cityZipCountry;
 
-    public RelatedAddressModel(AddressElement dao) {
+    public RelatedAddressModel(AddressRowData dao) {
         super(dao);
         address1 = new ReadOnlyStringWrapper(this, "address1", dao.getAddress1());
         address2 = new ReadOnlyStringWrapper(this, "address2", dao.getAddress2());
         addressLines = new AddressLinesProperty();
-        CityElement c = dao.getCity();
+        CityRowData c = dao.getCity();
         city = new ReadOnlyObjectWrapper<>(this, "city", (null == c) ? null : new RelatedCityModel(c));
         cityName = new ChildPropertyWrapper<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new ChildPropertyWrapper<>(this, "countryName", city, (t) -> t.countryNameProperty());
@@ -65,43 +67,37 @@ public class RelatedAddressModel extends RelatedItemModel<AddressElement> implem
         return address2.getReadOnlyProperty();
     }
 
-    @Override
     public String getAddressLines() {
         return addressLines.get();
     }
 
-    @Override
     public ReadOnlyProperty<String> addressLinesProperty() {
         return addressLines;
     }
 
     @Override
-    public CityModel<? extends CityElement> getCity() {
+    public CityDbItem<? extends CityRowData> getCity() {
         return city.get();
     }
 
     @Override
-    public ReadOnlyProperty<CityModel<? extends CityElement>> cityProperty() {
+    public ReadOnlyProperty<CityDbItem<? extends CityRowData>> cityProperty() {
         return city.getReadOnlyProperty();
     }
 
-    @Override
     public String getCityName() {
         return cityName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, CityModel<? extends CityElement>> cityNameProperty() {
+    public ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> cityNameProperty() {
         return cityName;
     }
 
-    @Override
     public String getCountryName() {
         return countryName.get();
     }
 
-    @Override
-    public ChildPropertyWrapper<String, CityModel<? extends CityElement>> countryNameProperty() {
+    public ChildPropertyWrapper<String, CityDbItem<? extends CityRowData>> countryNameProperty() {
         return countryName;
     }
 
@@ -125,12 +121,10 @@ public class RelatedAddressModel extends RelatedItemModel<AddressElement> implem
         return phone.getReadOnlyProperty();
     }
 
-    @Override
     public String getCityZipCountry() {
         return cityZipCountry.get();
     }
 
-    @Override
     public ReadOnlyProperty<String> cityZipCountryProperty() {
         return cityZipCountry;
     }

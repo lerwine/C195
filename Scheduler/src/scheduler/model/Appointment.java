@@ -1,94 +1,29 @@
-package scheduler.dao;
+package scheduler.model;
 
-import java.sql.Timestamp;
+import java.io.Serializable;
 
 /**
- * Represents a data row from the "appointment" database table.
+ * Interface for objects that contain either partial or complete information from the {@code appointment} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T> The type of object for date/time values
  */
-public interface AppointmentElement extends DataElement {
+public interface Appointment<T extends Serializable & Comparable<? super T>> extends DbDataModel {
 
-    public static boolean areEqual(AppointmentElement a, AppointmentElement b) {
-        if (null == a) {
-            return null == b;
-        }
-        if (null == b) {
-            return false;
-        }
-        if (a == b || a.getPrimaryKey() != b.getPrimaryKey()) {
-            return true;
-        }
-        switch (a.getRowState()) {
-            case MODIFIED:
-            case UNMODIFIED:
-                switch (b.getRowState()) {
-                    case MODIFIED:
-                    case UNMODIFIED:
-                        return true;
-                    default:
-                        return false;
-                }
-            case NEW:
-                return b.getRowState() == DataRowState.NEW && CustomerElement.areEqual(a.getCustomer(), b.getCustomer())
-                        && UserElement.areEqual(a.getUser(), b.getUser())
-                        && a.getContact().equalsIgnoreCase(b.getContact())
-                        && a.getDescription().equalsIgnoreCase(b.getDescription())
-                        && a.getLocation().equalsIgnoreCase(b.getLocation())
-                        && a.getType() == b.getType()
-                        && a.getTitle().equalsIgnoreCase(b.getTitle())
-                        && a.getUrl().equalsIgnoreCase(b.getUrl())
-                        && a.getStart().equals(b.getStart())
-                        && a.getEnd().equals(b.getEnd());
-            default:
-                return b.getRowState() == DataRowState.DELETED;
-        }
-    }
-
-    public static int compareByDates(AppointmentElement a, AppointmentElement b) {
-        if (null == a) {
-            return (null == b) ? 0 : 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-        Timestamp x = a.getStart();
-        Timestamp y = b.getStart();
-        if (null == x) {
-            return (null == x) ? 0 : 1;
-        }
-        if (null == y) {
-            return -1;
-        }
-        int c = x.compareTo(y);
-        if (c != 0) {
-            return c;
-        }
-        x = a.getEnd();
-        y = b.getEnd();
-        if (null == x) {
-            return (null == x) ? 0 : 1;
-        }
-        if (null == y) {
-            return -1;
-        }
-        return x.compareTo(y);
-    }
-    
     /**
      * Gets the {@link CustomerElement} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId"
      * database column.
      *
      * @return The {@link CustomerElement} for the current appointment.
      */
-    CustomerElement getCustomer();
+    Customer getCustomer();
 
     /**
      * Gets the {@link UserElement} for the current appointment. This corresponds to the "user" data row referenced by the "userId" database column.
      *
      * @return The {@link UserElement} for the current appointment.
      */
-    UserElement getUser();
+    User getUser();
 
     /**
      * Gets the title of the current appointment. This corresponds to the "title" database column. Column definition:
@@ -139,7 +74,7 @@ public interface AppointmentElement extends DataElement {
      *
      * @return The start date and time of the current appointment.
      */
-    Timestamp getStart();
+    T getStart();
 
     /**
      * Gets the end date and time of the current appointment. This corresponds to the "end" database column. Column definition:
@@ -147,6 +82,6 @@ public interface AppointmentElement extends DataElement {
      *
      * @return The end date and time of the current appointment.
      */
-    Timestamp getEnd();
+    T getEnd();
 
 }

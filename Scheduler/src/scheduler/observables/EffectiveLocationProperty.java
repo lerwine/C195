@@ -5,10 +5,10 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.AppResources;
-import scheduler.dao.AppointmentType;
-import scheduler.dao.CustomerElement;
+import scheduler.model.AppointmentType;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.customer.CustomerModel;
+import scheduler.model.db.CustomerRowData;
 
 /**
  * Binds to the properties of a {@link AppointmentModel} to create a string binding property representing the effective location.
@@ -19,7 +19,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
 
     private final Object bean;
     private final String name;
-    private final ReadOnlyProperty<CustomerModel<? extends CustomerElement>> customer;
+    private final ReadOnlyProperty<CustomerModel<? extends CustomerRowData>> customer;
     private final ReadOnlyProperty<AppointmentType> type;
     private final ReadOnlyProperty<String> location;
     private final ReadOnlyProperty<String> url;
@@ -38,7 +38,7 @@ public class EffectiveLocationProperty extends StringBinding implements ReadOnly
     protected String computeValue() {
         String l = location.getValue();
         String u = url.getValue();
-        CustomerModel<? extends CustomerElement> c = customer.getValue();
+        CustomerModel<? extends CustomerRowData> c = customer.getValue();
         switch (type.getValue()) {
             case GERMANY_SITE_MEETING:
                 return AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_GERMANY);

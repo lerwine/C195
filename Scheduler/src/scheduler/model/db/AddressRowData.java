@@ -1,4 +1,4 @@
-package scheduler.dao;
+package scheduler.model.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,37 +10,43 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
+import scheduler.dao.DataRowState;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.Address;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
  * Represents a data row from the "address" database table.
+ * <dl>
+ * <dt>{@link scheduler.dao.AddressDAO}</dt><dd>Data access object.</dd>
+ * <dt>{@link scheduler.model.ui.AddressItem}</dt><dd>UI Model with JavaFX properties.</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface AddressElement extends DataElement {
+public interface AddressRowData extends Address, RowData {
 
-    public static String toString(AddressElement address) throws SQLException, ClassNotFoundException {
+    public static String toString(AddressRowData address) throws SQLException, ClassNotFoundException {
         if (null == address) {
             return "";
         }
 
         String cityZipCountry = address.getPostalCode();
-        CityElement city;
+        CityRowData city;
         if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
             if (null == (city = address.getCity())) {
                 cityZipCountry = "";
-            } else if ((cityZipCountry = CityElement.toString(city).trim()).isEmpty()) {
-                cityZipCountry = CountryElement.toString(city.getCountry()).trim();
+            } else if ((cityZipCountry = CityRowData.toString(city).trim()).isEmpty()) {
+                cityZipCountry = CountryRowData.toString(city.getCountry()).trim();
             } else {
-                String country = CountryElement.toString(city.getCountry()).trim();
+                String country = CountryRowData.toString(city.getCountry()).trim();
                 if (!country.isEmpty()) {
                     cityZipCountry = String.format("%s, %s", cityZipCountry, country);
                 }
             }
         } else if (null != (city = address.getCity())) {
             String cityName = city.getName();
-            String country = CountryElement.toString(city.getCountry()).trim();
+            String country = CountryRowData.toString(city.getCountry()).trim();
             if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
                 if (!country.isEmpty()) {
                     cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);
@@ -92,19 +98,19 @@ public interface AddressElement extends DataElement {
      * @param pk The value of the primary key.
      * @param address1Value The first line of the current address.
      * @param address2Value The second line of the current address.
-     * @param cityValue The {@link CityElement} of the current address.
+     * @param cityValue The {@link CityRowData} of the current address.
      * @param postalCodeValue The postal code for the current address.
      * @param phoneValue The phone number associated with the current address.
      * @return The read-only AddressElement object.
      */
-    public static AddressElement of(int pk, String address1Value, String address2Value, CityElement cityValue,
+    public static AddressRowData of(int pk, String address1Value, String address2Value, CityRowData cityValue,
             String postalCodeValue, String phoneValue) {
-        return new AddressElement() {
+        return new AddressRowData() {
             private final ReadOnlyIntegerWrapper primaryKey = new ReadOnlyIntegerWrapper(pk);
             private final ReadOnlyObjectWrapper<DataRowState> rowState = new ReadOnlyObjectWrapper<>(DataRowState.UNMODIFIED);
             private final ReadOnlyStringWrapper address1 = new ReadOnlyStringWrapper(asNonNullAndTrimmed(address1Value));
             private final ReadOnlyStringWrapper address2 = new ReadOnlyStringWrapper(asNonNullAndTrimmed(address2Value));
-            private final ReadOnlyObjectWrapper<CityElement> city = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(cityValue));
+            private final ReadOnlyObjectWrapper<CityRowData> city = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(cityValue));
             private final ReadOnlyStringWrapper postalCode = new ReadOnlyStringWrapper(asNonNullAndTrimmed(postalCodeValue));
             private final ReadOnlyStringWrapper phone = new ReadOnlyStringWrapper(asNonNullAndTrimmed(phoneValue));
 
@@ -134,12 +140,12 @@ public interface AddressElement extends DataElement {
             }
 
             @Override
-            public CityElement getCity() {
+            public CityRowData getCity() {
                 return city.get();
             }
 
             @SuppressWarnings("unused")
-            public ReadOnlyObjectProperty<CityElement> cityProperty() {
+            public ReadOnlyObjectProperty<CityRowData> cityProperty() {
                 return city.getReadOnlyProperty();
             }
 
@@ -185,7 +191,7 @@ public interface AddressElement extends DataElement {
 
             @Override
             public boolean equals(Object obj) {
-                return null != obj && obj instanceof AddressElement && AddressElement.areEqual(this, (AddressElement) obj);
+                return null != obj && obj instanceof AddressRowData && AddressRowData.areEqual(this, (AddressRowData) obj);
             }
 
             @Override
@@ -202,7 +208,7 @@ public interface AddressElement extends DataElement {
      * @return The read-only AddressElement object.
      * @throws SQLException if not able to read data from the {@link ResultSet}.
      */
-    public static AddressElement of(ResultSet resultSet) throws SQLException {
+    public static AddressRowData of(ResultSet resultSet) throws SQLException {
         String address1 = resultSet.getString(DbColumn.ADDRESS1.toString());
         if (resultSet.wasNull()) {
             address1 = "";
@@ -219,10 +225,10 @@ public interface AddressElement extends DataElement {
         if (resultSet.wasNull()) {
             phone = "";
         }
-        return of(resultSet.getInt(DbColumn.ADDRESS_ID.toString()), address1, address2, CityElement.of(resultSet), postalCode, phone);
+        return of(resultSet.getInt(DbColumn.ADDRESS_ID.toString()), address1, address2, CityRowData.of(resultSet), postalCode, phone);
     }
 
-    public static boolean areEqual(AddressElement a, AddressElement b) {
+    public static boolean areEqual(AddressRowData a, AddressRowData b) {
         if (null == a) {
             return null == b;
         }
@@ -245,7 +251,7 @@ public interface AddressElement extends DataElement {
             case NEW:
                 return b.getRowState() == DataRowState.NEW && a.getAddress1().equalsIgnoreCase(b.getAddress1())
                         && a.getAddress2().equalsIgnoreCase(b.getAddress2())
-                        && CityElement.areEqual(a.getCity(), b.getCity())
+                        && CityRowData.areEqual(a.getCity(), b.getCity())
                         && a.getPostalCode().equalsIgnoreCase(b.getPostalCode())
                         && a.getPhone().equalsIgnoreCase(b.getPhone());
             default:
@@ -253,41 +259,7 @@ public interface AddressElement extends DataElement {
         }
     }
 
-    /**
-     * Gets the first line of the current address. Column definition: <code>`address` varchar(50) NOT NULL</code>
-     *
-     * @return the first line of the current address.
-     */
-    String getAddress1();
-
-    /**
-     * Gets the second line of the current address. Column definition: <code>`address2` varchar(50) NOT NULL</code>
-     *
-     * @return the second line of the current address.
-     */
-    String getAddress2();
-
-    /**
-     * Gets the {@link CityElement} for the current address. This corresponds to the "city" data row referenced by the "cityId" database column.
-     * Column definition: <code>`cityId` int(10) NOT NULL</code> Key constraint definition:
-     * <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
-     *
-     * @return The {@link CityElement} for the current address.
-     */
-    CityElement getCity();
-
-    /**
-     * Gets the postal code for the current address. Column definition: <code>`postalCode` varchar(10) NOT NULL</code>
-     *
-     * @return the postal code for the current address.
-     */
-    String getPostalCode();
-
-    /**
-     * Gets the phone number associated with the current address. Column definition: <code>`phone` varchar(20) NOT NULL</code>
-     *
-     * @return the phone number associated with the current address.
-     */
-    String getPhone();
+    @Override
+    public CityRowData getCity();
 
 }

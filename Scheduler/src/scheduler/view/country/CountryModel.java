@@ -13,13 +13,13 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.CountryElement;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.view.ModelFilter;
 import scheduler.view.city.SupportedLocale;
 import scheduler.view.model.ItemModel;
+import scheduler.model.db.CountryRowData;
 
 /**
  *
@@ -27,7 +27,7 @@ import scheduler.view.model.ItemModel;
  */
 public final class CountryModel extends ItemModel<CountryDAO> implements CityCountryModel<CountryDAO> {
 
-    public static ZoneId getZoneId(CityCountryModel<? extends CountryElement> country) {
+    public static ZoneId getZoneId(CityCountryModel<? extends CountryRowData> country) {
         if (null != country) {
             CountryOptionModel optionModel = country.getOptionModel();
             if (null != optionModel) {

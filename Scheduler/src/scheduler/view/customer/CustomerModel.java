@@ -2,19 +2,20 @@ package scheduler.view.customer;
 
 import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyProperty;
-import scheduler.dao.AddressElement;
-import scheduler.dao.CustomerElement;
 import scheduler.observables.ChildPropertyWrapper;
 import scheduler.view.address.AddressModel;
 import scheduler.view.model.ElementModel;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CustomerRowData;
 
 /**
  * Interface that represents a customer model object.
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of underlying {@link CustomerElement} for the model.
+ * @param <T> The type of underlying {@link CustomerRowData} for the model.
+ * @deprecated Use {@link scheduler.model.ui.CustomerItem}, instead.
  */
-public interface CustomerModel<T extends CustomerElement> extends ElementModel<T> {
+public interface CustomerModel<T extends CustomerRowData> extends ElementModel<T> {
 
     /**
      * Gets the name of the customer.
@@ -35,14 +36,14 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return The address model associated with the customer.
      */
-    AddressModel<? extends AddressElement> getAddress();
+    AddressModel<? extends AddressRowData> getAddress();
 
     /**
      * Gets the property that contains the address model associated with the customer.
      * 
      * @return The property that contains the address model associated with the customer.
      */
-    ReadOnlyProperty<AddressModel<? extends AddressElement>> addressProperty();
+    ReadOnlyProperty<AddressModel<? extends AddressRowData>> addressProperty();
 
     /**
      * Gets the first line of the address.
@@ -56,7 +57,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return The property that contains the first line of the address.
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address1Property();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> address1Property();
 
     /**
      * Gets the second line of the address.
@@ -70,7 +71,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return The property that contains the second line of the address.
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> address2Property();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> address2Property();
 
     /**
      * Gets the the name of the city.
@@ -84,7 +85,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return A {@link ChildPropertyWrapper} gets the value of the {@link AddressModel#cityNameProperty()} from the {@link #addressProperty()}
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityNameProperty();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> cityNameProperty();
 
     /**
      * Gets the name of the country.
@@ -98,7 +99,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return A {@link ChildPropertyWrapper} gets the value of the {@link AddressModel#countryNameProperty()} from the {@link #addressProperty()}
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> countryNameProperty();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> countryNameProperty();
 
     /**
      * Gets the postal code for the address.
@@ -112,7 +113,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return The property that contains the postal code for the address.
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> postalCodeProperty();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> postalCodeProperty();
 
     /**
      * Gets the phone number associated with the address.
@@ -126,7 +127,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return The property that contains the phone number associated with the address.
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> phoneProperty();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> phoneProperty();
 
     /**
      * Gets the combined city name, postal code and country.
@@ -140,7 +141,7 @@ public interface CustomerModel<T extends CustomerElement> extends ElementModel<T
      * 
      * @return The property that contains the combined city name, postal code and country.
      */
-    ChildPropertyWrapper<String, AddressModel<? extends AddressElement>> cityZipCountryProperty();
+    ChildPropertyWrapper<String, AddressModel<? extends AddressRowData>> cityZipCountryProperty();
 
     /**
      * Gets the customer address as a single line of text with components separated by commas.

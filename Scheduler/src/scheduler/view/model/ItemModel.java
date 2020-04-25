@@ -18,17 +18,31 @@ import javafx.util.Pair;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.model.DataRecord;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
 import scheduler.view.appointment.AppointmentModelFilter;
+import scheduler.model.ui.UIDbModel;
 
 /**
  * Java FX object model for a {@link DataAccessObject} object.
+ * <dl>
+ * <dt>{@link ItemModel.ModelFactory}</dt><dd>Base factory class for {@link UIDbModel} objects.</dd>
+ * <dt>{@link scheduler.dao.DataAccessObject}</dt><dd>Base class for corresponding data access objects.</dd>
+ * </dl>
+ * Entity-specific extensions:
+ * <ul>
+ * <li>{@link scheduler.view.appointment.AppointmentModel}</li>
+ * <li>{@link scheduler.view.customer.CustomerModelImpl}</li>
+ * <li>{@link scheduler.view.address.AddressModelImpl}</li>
+ * <li>{@link scheduler.view.city.CityModelImpl}</li>
+ * <li>{@link scheduler.view.country.CityCountryModelImpl}</li>
+ * </ul>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
-public abstract class ItemModel<T extends DataAccessObject> implements ElementModel<T> {
+public abstract class ItemModel<T extends DataAccessObject> implements ElementModel<T>, UIDbModel<T>, DataRecord<LocalDateTime> {
 
     private final ReadOnlyObjectWrapper<T> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;

@@ -22,9 +22,16 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.model.db.AddressRowData;
+import scheduler.model.db.CustomerRowData;
 
+/**
+ * Data access object for the {@code customer} database table.
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 @DatabaseTable(DbTable.CUSTOMER)
-public class CustomerDAO extends DataAccessObject implements CustomerElement {
+public class CustomerDAO extends DataAccessObject implements CustomerRowData {
 
     /**
      * The name of the 'name' property.
@@ -48,7 +55,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
     }
 
     private String name;
-    private AddressElement address;
+    private AddressRowData address;
     private boolean active;
 
     /**
@@ -92,7 +99,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
     }
 
     @Override
-    public AddressElement getAddress() {
+    public AddressRowData getAddress() {
         return address;
     }
 
@@ -101,8 +108,8 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
      *
      * @param address new value of address
      */
-    public void setAddress(AddressElement address) {
-        AddressElement oldValue = this.address;
+    public void setAddress(AddressRowData address) {
+        AddressRowData oldValue = this.address;
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
     }
@@ -140,8 +147,8 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof CustomerElement) {
-            CustomerElement other = (CustomerElement) obj;
+        if (null != obj && obj instanceof CustomerRowData) {
+            CustomerRowData other = (CustomerRowData) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && name.equals(other.getName()) && address.equals(other.getAddress())
                         && active == other.isActive();
@@ -151,6 +158,9 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
         return false;
     }
 
+    /**
+     * Factory implementation for {@link scheduler.model.db.CustomerRowData} objects.
+     */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -195,7 +205,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
             return CustomerFilter.of(CustomerFilter.expressionOf(active));
         }
 
-        public DaoFilter<CustomerDAO> getByAddressFilter(AddressElement address) {
+        public DaoFilter<CustomerDAO> getByAddressFilter(AddressRowData address) {
             return CustomerFilter.of(CustomerFilter.expressionOf(address));
         }
 
@@ -215,7 +225,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CustomerDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
-                private final AddressElement oldAddress = dao.address;
+                private final AddressRowData oldAddress = dao.address;
                 private final boolean oldActive = dao.active;
 
                 @Override
@@ -240,10 +250,10 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
             return propertyChanges;
         }
 
-        CustomerElement fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new CustomerElement() {
+        CustomerRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new CustomerRowData() {
                 private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString()));
-                private final AddressElement address = AddressDAO.getFactory().fromJoinedResultSet(rs);
+                private final AddressRowData address = AddressDAO.getFactory().fromJoinedResultSet(rs);
                 private final boolean active = rs.getBoolean(DbColumn.ACTIVE.toString());
                 private final int primaryKey = rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString());
 
@@ -253,7 +263,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
                 }
 
                 @Override
-                public AddressElement getAddress() {
+                public AddressRowData getAddress() {
                     return address;
                 }
 
@@ -284,8 +294,8 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
 
                 @Override
                 public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof CustomerElement) {
-                        CustomerElement other = (CustomerElement) obj;
+                    if (null != obj && obj instanceof CustomerRowData) {
+                        CustomerRowData other = (CustomerRowData) obj;
                         return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
                     }
                     return false;
@@ -349,7 +359,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerElement {
 
         @Override
         public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
-            AddressElement address = dao.getAddress();
+            AddressRowData address = dao.getAddress();
             if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
                 AddressDAO.getFactory().save((AddressDAO) address, connection, force);
             }

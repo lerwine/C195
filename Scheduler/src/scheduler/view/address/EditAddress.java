@@ -18,7 +18,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.CityElement;
 import scheduler.dao.CustomerDAO;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
@@ -33,6 +32,7 @@ import scheduler.view.customer.CustomerModelImpl;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.model.ItemModel;
 import scheduler.view.task.TaskWaiter;
+import scheduler.model.db.CityRowData;
 
 /**
  * FXML Controller class for editing an {@link AddressModelImpl}.
@@ -74,7 +74,7 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
     private TextField phoneTextField;
 
     @FXML
-    private ComboBox<CityModel<? extends CityElement>> cityComboBox;
+    private ComboBox<CityModel<? extends CityRowData>> cityComboBox;
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
