@@ -22,6 +22,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
+import scheduler.controls.ItemEditTableCellFactory;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
@@ -154,6 +155,9 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     @FXML
     protected TableView<U> listingTableView;
 
+    @FXML // fx:id="itemEditTableCellFactory"
+    private ItemEditTableCellFactory<U> itemEditTableCellFactory; // Value injected by FXMLLoader
+
     /**
      * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link ItemModel}. This is defined within the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
@@ -192,13 +196,18 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      */
     @FXML
     protected void initialize() {
+        assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert helpButton != null : "fx:id=\"helpButton\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert subHeadingLabel != null : "fx:id=\"subHeadingLabel\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert itemEditTableCellFactory != null : "fx:id=\"itemEditTableCellFactory\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert editMenuItem != null : "fx:id=\"editMenuItem\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert deleteMenuItem != null : "fx:id=\"deleteMenuItem\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert newButton != null : "fx:id=\"newButton\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
 
+
         filter = new SimpleObjectProperty<>();
-        NodeUtil.appendEditColumn(listingTableView, this::onItemActionRequest);
+//        NodeUtil.appendEditColumn(listingTableView, this::onItemActionRequest);
         listingTableView.setItems(itemsList);
         //listingTableView.setOnKeyTyped(this::onListingTableViewKeyTyped);
         listingTableView.setOnKeyReleased(this::onListingTableKeyReleased);
@@ -206,6 +215,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         deleteMenuItem.setOnAction(this::onDeleteMenuItemAction);
         newButton.setOnAction(this::onNewButtonAction);
         helpButton.setOnAction(this::onHelpButtonAction);
+        itemEditTableCellFactory.setOnItemActionRequest(this::onItemActionRequest);
     }
     
     protected String getResourceString(String key) {
@@ -229,6 +239,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         // CURRENT: Implement help popup
     }
 
+    @FXML
     protected void onItemActionRequest(ItemActionRequestEvent<U> event) {
         Stage stage = (Stage) listingTableView.getScene().getWindow();
         try {

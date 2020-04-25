@@ -13,7 +13,9 @@
         <Hyperlink id="byMonthHyperlink" text="por mes" />
         <Text text=" o " />
         <Hyperlink id="byWeekHyperlink" text="por semana" />
-        <Text text=", o puede ver una lista filtrable de citas." />
+        <Text text=", o puede ver una " />
+        <Hyperlink id="appointmentListHyperlink" text="lista filtrable de citas" />
+        <Text text="." />
         <Text styleClass="h2" text="&#10;&#10;Agregar citas" />
         <Text text="&#10;Seleccione " />
         <Hyperlink id="newAppointmentHyperlink" text="&quot;Nuevo&quot;" />

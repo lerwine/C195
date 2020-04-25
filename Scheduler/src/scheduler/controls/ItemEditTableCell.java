@@ -2,9 +2,8 @@ package scheduler.controls;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.scene.Node;
+import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
@@ -51,6 +50,9 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
     
     public ItemEditTableCell() {
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolButtonValue.EDIT, this::onEditButtonAction), createSymbolButton(SymbolButtonValue.DELETE, this::onDeleteButtonAction));
+        graphic.setSpacing(8);
+        graphic.setMaxHeight(USE_PREF_SIZE);
+        graphic.setPadding(new Insets(0, 0, 0, 4));
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
     

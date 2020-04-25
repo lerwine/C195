@@ -13,7 +13,9 @@
         <Hyperlink id="byMonthHyperlink" text="महीने के द्वारा" />
         <Text text=" या " />
         <Hyperlink id="byWeekHyperlink" text="सप्ताह के द्वारा" />
-        <Text text=", या आप नियुक्तियों की एक फ़िल्टर सूची देख सकते हैं।" />
+        <Text text=", या आप नियुक्तियों की एक " />
+        <Hyperlink id="appointmentListHyperlink" text="फ़िल्टर सूची देख" />
+        <Text text=" सकते हैं।" />
         <Text styleClass="h2" text="&#10;&#10;अपॉइंटमेंट जोड़ना" />
         <Text text="&#10;" />
         <Text styleClass="refNameText" text="&quot;अपॉइंटमेंट्स&quot;" />

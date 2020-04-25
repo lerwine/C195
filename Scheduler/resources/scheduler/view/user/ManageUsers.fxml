@@ -13,6 +13,8 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tooltip?>
+<?import scheduler.controls.ItemEditTableCellFactory?>
+<?import scheduler.controls.RelayCellValueFactory?>
 
 <VBox prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.ManageUsers">
     <children>
@@ -29,17 +31,17 @@
         <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
         <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%name">
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%name">
                     <cellValueFactory>
                         <PropertyValueFactory property="userName" />
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%status">
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%status">
                     <cellValueFactory>
                         <PropertyValueFactory property="statusDisplay" />
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%createdOn">
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%createdOn">
                     <cellValueFactory>
                         <PropertyValueFactory property="createDate" />
                     </cellValueFactory>
@@ -47,12 +49,12 @@
                         <DateTimeTableCellFactory />
                     </cellFactory>
                 </TableColumn>
-                <TableColumn editable="false" prefWidth="75.0" text="%createdBy">
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%createdBy">
                     <cellValueFactory>
                         <PropertyValueFactory property="createdBy" />
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn editable="false" prefWidth="75.0" text="%updatedOn">
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%updatedOn">
                     <cellValueFactory>
                         <PropertyValueFactory property="lastUpdate" />
                     </cellValueFactory>
@@ -60,10 +62,18 @@
                         <DateTimeTableCellFactory />
                     </cellFactory>
                 </TableColumn>
-                <TableColumn editable="false" prefWidth="75.0" text="%updatedBy">
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%updatedBy">
                     <cellValueFactory>
                         <PropertyValueFactory property="lastUpdateBy" />
                     </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false" text="%editDelete">
+                    <cellValueFactory>
+                        <RelayCellValueFactory />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <ItemEditTableCellFactory fx:id="itemEditTableCellFactory" />
+                    </cellFactory>
                 </TableColumn>
             </columns>
             <contextMenu>
@@ -74,6 +84,9 @@
                     </items>
                 </ContextMenu>
             </contextMenu>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
         </TableView>
         <ButtonBar>
             <buttons>

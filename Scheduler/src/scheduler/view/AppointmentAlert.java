@@ -98,7 +98,7 @@ public class AppointmentAlert {
     void initialize(Pane parent) {
         this.parent = parent;
         rootBorderPane.setVisible(false);
-        parent.getChildren().add(parent);
+        parent.getChildren().add(rootBorderPane);
         rootBorderPane.prefWidthProperty().bind(parent.widthProperty());
         rootBorderPane.minWidthProperty().bind(parent.widthProperty());
         rootBorderPane.prefHeightProperty().bind(parent.heightProperty());

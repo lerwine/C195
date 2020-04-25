@@ -1,5 +1,5 @@
-﻿$Script:BaseResourcesPath = $PSScriptRoot | Join-Path -ChildPath 'Scheduler\resources\scheduler';
-$Script:BaseCodePath = $PSScriptRoot | Join-Path -ChildPath 'Scheduler\src\scheduler';
+﻿$Script:BaseResourcesPath = $PSScriptRoot | Join-Path -ChildPath 'Scheduler\resources';
+$Script:BaseCodePath = $PSScriptRoot | Join-Path -ChildPath 'Scheduler\src';
 
 $Script:AllLocales = @('en', 'es', 'de', 'hi');
 Set-Location $PSScriptRoot;
@@ -130,6 +130,16 @@ Function Test-PropertiesFile {
     End { ($Success -eq $true) | Write-Output }
 }
 
+
+$a = [Uri]::new('C:\Users\lerwi\NetBeansProjects\C195\Scheduler\resources\scheduler\view\user\ManageUsers_hi.properties');
+$b = [Uri]::new($Script:BaseResourcesPath + "\");
+$b;
+[Uri]::new($b, 'asdf');
+$u = $b.MakeRelative($a)
+($u.Split('/') | ForEach-Object { [uri]::UnescapeDataString($_) }) -join '.'
+
+[System.IO.Directory]::GetFiles($Script:BaseResourcesPath, '*.properties', [System.IO.SearchOption]::AllDirectories) | ForEach-Object { [ResourceHelper.PropertiesFile]::ToRelativePath($_, $Script:BaseResourcesPath) };
+[ResourceHelper.LanguageType]::DE.ToString()
 Add-Type -TypeDefinition @'
 namespace ResourceHelper {
     using System;
@@ -138,15 +148,157 @@ namespace ResourceHelper {
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Globalization;
     using System.Threading;
 
-    public enum LanguageType {
-        EN,
-        DE,
-        ES,
-        HI
+    public enum LanguageCode {
+        en = 0,
+        de = 1,
+        es = 2,
+        hi = 3
     }
+
+    public class BundleInfo {
+        public static readonly Regex LanguageCodeRegex = new Regex(@"(?<b>.+?)_(?<c>en|de|es|hi)(.properties)?$");
+        private readonly string _packageUri;
+        private readonly string _name;
+        private readonly long[] _length = new long[] { -1L, -1L, -1L, -1L };
+        private readonly Sizes _sizes;
+        public string PackageUri { get { return _packageUri; } }
+        
+        public string Name { get { return _name; } }
+        
+        public string ToBaseName() { return (_packageUri.Length > 0) ? _packageUri + "/" + _name : _name; }
+        
+        public Uri ToFullPackageUri(string rootDirectory) {
+            if (null == rootDirectory)
+                throw new ArgumentNullException("rootDirectory");
+            if ((rootDirectory = ToNormalizedPath(rootDirectory)).Length == 0)
+                throw new ArgumentException("Root directory is empty", "rootDirectory");
+            if (_packageUri.Length > 0)
+                return new Uri(new Uri((rootDirectory.EndsWith("\\")) ? rootDirectory : rootDirectory + "\\"), _packageUri);
+            return new Uri(rootDirectory);
+        }
+
+        public string ToPackagePath(string rootDirectory) {
+            return ToFullPackageUri(rootDirectory).LocalPath;
+        }
+        
+        public string ToRelativeUri(LanguageCode lang) { return GetBaseName() + "_" + lang.ToString() + ".properties"; }
+
+        private Uri ToFullUri(string rootDirectory, LanguageCode lang) {
+            if (null == rootDirectory)
+                throw new ArgumentNullException("rootDirectory");
+            if ((rootDirectory = ToNormalizedPath(rootDirectory)).Length == 0)
+                throw new ArgumentException("Root directory is empty", "rootDirectory");
+            return new Uri(new Uri((rootDirectory.EndsWith("\\")) ? rootDirectory : rootDirectory + "\\"),
+            ((_packageUri.Length > 0) ? _packageUri + _name : _name) + "_" + lang.ToString() + ".properties";
+        }
+
+        public string GetFullUriEN(string rootDirectory) {
+            return GetFullUri(rootDirectory, 
+        }
+
+        public class Sizes {
+            private readonly BundleInfo _target;
+            Size(BundleInfo target) {
+                _target = target;
+            }
+
+            long this[LanguageCode key] { get { return _target._length[(int)key]; } 
+        }
+        public long LengthEN { get { return _lengthEN; } }
+
+        public long LengthDE { get { return _lengthDE; } }
+
+        public long LengthES { get { return _lengthES; } }
+
+        public long LengthHI { get { return _lengthHI; } }
+
+        public static Collection<BundleInfo> Create(String rootDirectory) {
+            if (null == rootDirectory)
+                throw new ArgumentNullException("rootDirectory");
+            if ((rootDirectory = ToNormalizedPath(rootDirectory)).Length == 0)
+                throw new ArgumentException("Root directory is empty", "rootDirectory");
+            if (!Directory.Exists(rootDirectory))
+                throw new DirectoryNotFoundException();
+            Uri rootUri = new Uri(rootDirectory + "\\");
+            Dictionary<string, BundleInfo> map = new Dictionary<string, BundleInfo>();
+            Collection<BundleInfo> result = new Collection<BundleInfo>();
+            foreach (FileInfo file in Directory.GetFiles(rootDirectory, "*.properties", SearchOption.AllDirectories)) {
+                string relPath = ToRelativePath(file.FullName, rootDirectory);
+                Match match = LanguageCodeRegex.Match(file.Name);
+                if (match.Success) {
+                    string key = match.Groups["b"].Value;
+                    BundleInfo item;
+                    if (map.ContainsKey(key))
+                        item = map[key];
+                    else {
+                        item = new BundleInfo(key);
+                        map.Add(key, item);
+                        result.Add(item);
+                    }
+                    switch (match.Groups["c"].Value) {
+                        case LANGUAGE_CODE_DE:
+                            item._lengthDE = file.Length;
+                            break;
+                        case LANGUAGE_CODE_ES:
+                            item._lengthES = file.Length;
+                            break;
+                        case LANGUAGE_CODE_HI:
+                            item._lengthHI = file.Length;
+                            break;
+                        default:
+                            item._lengthEN = file.Length;
+                            break;
+                    }
+                }
+            }
+            return result;
+        }
+        
+        private BundleInfo(string packageUri, string name) {
+            _packageUri = packageUri;
+            _name = name;
+            _sizes = new Sizes(this);
+        }
+
+        public static string ToNormalizedPath(string path) {
+            if (string.IsNullOrWhiteSpace(path))
+                return "";
+            path = System.IO.Path.GetFullPath(path);
+            string n = System.IO.Path.GetFileName(path);
+            while (string.IsNullOrWhiteSpace(n)) {
+                path = System.IO.Path.GetDirectoryName(path);
+                if (string.IsNullOrWhiteSpace(path))
+                    return "";
+                n = System.IO.Path.GetFileName(path);
+            }
+            return path;
+        }
+
+        public static string ToRelativePath(string sourcePath, string toPath)
+        {
+            if (null == sourcePath)
+                throw new ArgumentNullException("sourcePath");
+            if (null == toPath)
+                throw new ArgumentNullException("toPath");
+            if ((sourcePath = ToNormalizedPath(sourcePath)).Length == 0)
+                throw new ArgumentException("Path is empty", "sourcePath");
+            if ((toPath = ToNormalizedPath(toPath)).Length == 0)
+                throw new ArgumentException("Path is empty", "toPath");
+            int len = toPath.Length;
+            if (len == sourcePath.Length) {
+                if (string.Equals(sourcePath, toPath, StringComparison.InvariantCultureIgnoreCase))
+                    return "";
+            } else if (len < sourcePath.Length && string.Equals(sourcePath, toPath, StringComparison.InvariantCultureIgnoreCase) && toPath[len] == '\\')
+                return sourcePath.Substring(len + 1);
+                
+            throw new ArgumentException("Source path refers to a location outside the \"to\" path.", "sourcePath");
+        }
+    }
+
     public class PropertiesFile {
         public static readonly Regex EncodeKeyRegex = new Regex(@"(?<u>[\u0000-\u0019\u007f-\uffff])|(?<c>[\b\n\t\r\f])|(?<e>[\\ ]|=(?=.))");
         public static readonly Regex EncodeValueRegex = new Regex(@"(?<u>[\u0000-\u0019\u007f-\uffff])|(?<c>[\b\n\t\r\f\\])");
@@ -214,19 +366,6 @@ namespace ResourceHelper {
             finally { Monitor.Exit(_syncRoot); }
         }
 
-        public static string ToNormalizedPath(string path) {
-            if (string.IsNullOrWhiteSpace(path))
-                return "";
-            path = System.IO.Path.GetFullPath(path);
-            string n = System.IO.Path.GetFileName(path);
-            while (string.IsNullOrWhiteSpace(n)) {
-                path = System.IO.Path.GetDirectoryName(path);
-                if (string.IsNullOrWhiteSpace(path))
-                    return "";
-                n = System.IO.Path.GetFileName(path);
-            }
-            return path;
-        }
         public static string AssertValidFileDestination(string path, string argName) {
             if (null == path)
                 throw new ArgumentNullException(argName);
@@ -240,21 +379,6 @@ namespace ResourceHelper {
         }
         public static string AssertValidFileDestination(string path) {
             return AssertValidFileDestination(path, "path");
-        }
-        public static string ToRelativePath(string sourcePath, string toPath)
-        {
-            if (null == sourcePath)
-                throw new ArgumentNullException("sourcePath");
-            if (null == toPath)
-                throw new ArgumentNullException("toPath");
-            if ((sourcePath = ToNormalizedPath(sourcePath)).Length == 0)
-                throw new ArgumentException("Path is empty", "sourcePath");
-            if ((toPath = ToNormalizedPath(toPath)).Length == 0)
-                throw new ArgumentException("Path is empty", "toPath");
-
-            if (toPath.Length >= sourcePath.Length)
-                throw new ArgumentException("Source path refers to a location outside the \"to\" path.", "sourcePath");
-            return sourcePath.Substring(toPath.Length + 1);
         }
         
         public static string Escape(string value, bool asKey) {
@@ -1019,19 +1143,39 @@ $ResourceBundle.SaveChanges();
 #>
 
 Function Get-ResourceBundlePaths {
+    [CmdletBinding()]
     Param()
-    $Script:BundleNameRegex = [System.Text.RegularExpressions.Regex]::new('(?<b>.+)_(en|es|de|hi)$');
 
-    Push-Location;
-    Set-Location -Path $Script:BaseResourcesPath;
-    Set-Location -Path '..';
-    try {
-        (((Get-ChildItem -Path $Script:BaseResourcesPath -Filter "*.properties" -Recurse) | Select-Object -Property 'Name', 'DirectoryName', 'Length', @{ label = 'BaseName'; expression = {
+    $Script:BundleNameRegex = [System.Text.RegularExpressions.Regex]::new('(?<b>.+)_(en|es|de|hi)$');
+    (Get-ChildItem -Path $Script:BaseResourcesPath -Filter "*.properties" -Recurse) | Select-Object -Property 'Name', 'DirectoryName', 'Length', @{
+        label = 'Match';
+        Expression = $Script:BundleNameRegex.Match($_.BaseName);
+    }
+
+
+    (((Get-ChildItem -Path $Script:BaseResourcesPath -Filter "*.properties" -Recurse) | Select-Object -Property 'Name', 'DirectoryName', 'Length',
+    @{
+        label = 'BaseName';
+        expression = {
             $m = $Script:BundleNameRegex.Match($_.BaseName);
             if ($m.Success) {
-                $_.DirectoryName | Join-Path -ChildPath $m.Groups['b'].Value;
+                [ResourceHelper.PropertiesFile]::ToRelativePath(($_.DirectoryName | Join-Path -ChildPath $m.Groups['b'].Value));
             }
-        } }) | Where-Object { $null -ne $_.BaseName } | Group-Object -Property 'BaseName') | Select-Object -Property 'Group', @{ label = 'BaseName'; expression = {
+        }
+    }) | Where-Object { $null -ne $_.BaseName } | Group-Object -Property 'BaseName') | Select-Object -Property @{
+        label = 'Files';
+        expression = {
+            $b = $_.
+            $_.Group | Select-Object -Property @{
+                label = 'Language';
+                expression = {
+                }
+            }, 'Length'
+        }
+    }, @{
+        label = 'BaseName';
+        expression = {
+            [ResourceHelper.PropertiesFile]::ToRelativePath($_.Name, $Script:BaseResourcesPath);
             $p = ($_.Name | Split-Path -Parent) | Resolve-Path -Relative;
             $n = $p | Split-Path -Leaf; 
             $p = $p | Split-Path -Parent;
@@ -1047,10 +1191,8 @@ Function Get-ResourceBundlePaths {
                 }
             }
             $r
-        } } | ForEach-Object { $_.BaseName }
-    } finally {
-        Pop-Location;
-    }
+        }
+    } | ForEach-Object { $_.BaseName }
 }
 
 Function Add-ResourceBundleProperty {
@@ -1291,8 +1433,22 @@ Function Copy-ResourceBundleProperty {
     }
 }
 
-('countryLoadError', 'customerLoadError', 'userLoadError') | Copy-ResourceBundleProperty -SourceBaseName 'view/Main' -TargetBaseName 'view/Overview';
+Function Select-ResourceBundle {
+    [CmdletBinding()]
+    Param()
+
+    Get-ResourceBundlePaths | Out-GridView -Title 'Select Resource Bundle' -OutputMode Single;
+}
 <#
-$ResourceBundle = Add-ResourceBundleProperty -BaseName 'App';
-$ResourceBundle
+
+Copy properties
+
+('countryLoadError', 'customerLoadError', 'userLoadError') | Copy-ResourceBundleProperty -SourceBaseName 'view/Main' -TargetBaseName 'view/Overview';
+
+Add new property
+
+Add-ResourceBundleProperty -BaseName 'App' | Out-Null;
+
 #>
+
+Select-ResourceBundle

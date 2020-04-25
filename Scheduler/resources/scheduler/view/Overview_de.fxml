@@ -13,7 +13,9 @@
         <Hyperlink id="byMonthHyperlink" text="nach Monat" />
         <Text text=" oder " />
         <Hyperlink id="byWeekHyperlink" text="Woche" />
-        <Text text=" anzeigen oder eine filterbare Liste mit Terminen anzeigen." />
+        <Text text=" anzeigen oder eine filterbare" />
+        <Hyperlink id="appointmentListHyperlink" text="Liste mit Terminen anzeigen" />
+        <Text text="." />
         <Text styleClass="h2" text="&#10;&#10;Termine hinzufügen" />
         <Text text="&#10;Wählen Sie " />
         <Hyperlink id="newAppointmentHyperlink" text="&quot;Neu&quot;" />

@@ -13,7 +13,9 @@
         <Hyperlink fx:id="byMonthHyperlink" id="byMonthHyperlink" text="by month" />
         <Text text=" or " />
         <Hyperlink fx:id="byWeekHyperlink" id="byWeekHyperlink" text="by week" />
-        <Text text=", or you can view a filterable listing of appointments." />
+        <Text text=", or you can view a filterable " />
+        <Hyperlink id="appointmentListHyperlink" text="listing of appointments" />
+        <Text text="." />
         <Text styleClass="h2" text="&#10;&#10;Adding Appointments" />
         <Text text="&#10;Select " />
         <Hyperlink fx:id="newAppointmentHyperlink" id="newAppointmentHyperlink" text="&quot;New&quot;" />

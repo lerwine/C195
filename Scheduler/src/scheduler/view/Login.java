@@ -67,7 +67,6 @@ public final class Login {
 
 //    @FXML // URL location of the FXML file that was given to the FXMLLoader
 //    private URL location;
-
     @FXML // fx:id="loginRootBorderPane"
     private BorderPane loginRootBorderPane; // Value injected by FXMLLoader
 

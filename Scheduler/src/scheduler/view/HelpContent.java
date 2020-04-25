@@ -56,7 +56,7 @@ public class HelpContent {
 
     void initialize(Pane parent) {
         rootBorderPane.setVisible(false);
-        parent.getChildren().add(parent);
+        parent.getChildren().add(rootBorderPane);
         rootBorderPane.prefWidthProperty().bind(parent.widthProperty());
         rootBorderPane.minWidthProperty().bind(parent.widthProperty());
         rootBorderPane.prefHeightProperty().bind(parent.heightProperty());

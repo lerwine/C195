@@ -31,8 +31,10 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
+import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.CustomerModelImpl;
@@ -130,6 +132,16 @@ public class Overview {
     }
 
     @FXML
+    void onAppointmentListHyperlinkAction(ActionEvent event) {
+        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
+        try {
+            ManageAppointments.loadInto(getMainController(stage.getScene()), stage, AppointmentModelFilter.myCurrentAndFuture());
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS), stage, ex);
+        }
+    }
+
+    @FXML
     void onUserListingHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
@@ -168,6 +180,8 @@ public class Overview {
             hyperlink.setOnAction(this::onByWeekHyperlinkAction);
             hyperlink = (Hyperlink)contentVBox.lookup("#newAppointmentHyperlink");
             hyperlink.setOnAction(this::onNewAppointmentHyperlinkAction);
+            hyperlink = (Hyperlink)contentVBox.lookup("#appointmentListHyperlink");
+            hyperlink.setOnAction(this::onAppointmentListHyperlinkAction);
             hyperlink = (Hyperlink)contentVBox.lookup("#customerListingHyperlink1");
             hyperlink.setOnAction(this::onCustomerListingHyperlinkAction);
             hyperlink = (Hyperlink)contentVBox.lookup("#customerListingHyperlink2");

@@ -115,6 +115,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         return edit(model, EditAppointment.class, mainController, stage);
     }
 
+    @FXML
+    private StackPane rootStackPane;
+
     @FXML // fx:id="titleValidationLabel"
     private Label titleValidationLabel; // Value injected by FXMLLoader
 
@@ -274,6 +277,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         }
         dropdownOptionsLabel.setText(getResourceString(RESOURCEKEY_CUSTOMERSTOSHOW));
         dropdownOptionsBorderPane.setVisible(true);
+        dropdownOptionsBorderPane.minWidthProperty().bind(rootStackPane.widthProperty());
+        dropdownOptionsBorderPane.prefWidthProperty().bind(rootStackPane.widthProperty());
+        dropdownOptionsBorderPane.minHeightProperty().bind(rootStackPane.heightProperty());
+        dropdownOptionsBorderPane.prefHeightProperty().bind(rootStackPane.heightProperty());
     }
 
     @FXML
@@ -286,15 +293,27 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         }
         dropdownOptionsLabel.setText(getResourceString(RESOURCEKEY_USERSTOSHOW));
         dropdownOptionsBorderPane.setVisible(true);
+        dropdownOptionsBorderPane.minWidthProperty().bind(rootStackPane.widthProperty());
+        dropdownOptionsBorderPane.prefWidthProperty().bind(rootStackPane.widthProperty());
+        dropdownOptionsBorderPane.minHeightProperty().bind(rootStackPane.heightProperty());
+        dropdownOptionsBorderPane.prefHeightProperty().bind(rootStackPane.heightProperty());
     }
 
     @FXML
     private void dropdownOptionsCancelButtonClick(ActionEvent event) {
+        dropdownOptionsBorderPane.minWidthProperty().unbind();
+        dropdownOptionsBorderPane.prefWidthProperty().unbind();
+        dropdownOptionsBorderPane.minHeightProperty().unbind();
+        dropdownOptionsBorderPane.prefHeightProperty().unbind();
         dropdownOptionsBorderPane.setVisible(false);
     }
 
     @FXML
     private void dropdownOptionsOkButtonClick(ActionEvent event) {
+        dropdownOptionsBorderPane.minWidthProperty().unbind();
+        dropdownOptionsBorderPane.prefWidthProperty().unbind();
+        dropdownOptionsBorderPane.minHeightProperty().unbind();
+        dropdownOptionsBorderPane.prefHeightProperty().unbind();
         if (editingUserOptions) {
             if (dropdownOptionsInactiveRadioButton.isSelected()) {
                 showActiveUsers = Optional.of(false);

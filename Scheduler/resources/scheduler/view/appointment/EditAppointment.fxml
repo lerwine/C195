@@ -34,7 +34,7 @@
 <?import scheduler.controls.UserListCell?>
 <?import scheduler.controls.UserListCellFactory?>
 
-<StackPane stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
+<StackPane fx:id="rootStackPane" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
     <children>
         <GridPane hgap="16.0" StackPane.alignment="CENTER">
             <columnConstraints>
@@ -375,7 +375,7 @@
                 </BorderPane>
             </center>
         </BorderPane>
-        <BorderPane fx:id="dropdownOptionsBorderPane" layoutX="10.0" layoutY="10.0" styleClass="translucentGrayBg" visible="false">
+        <BorderPane fx:id="dropdownOptionsBorderPane" layoutX="10.0" layoutY="10.0" styleClass="translucentGrayBg">
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
                     <center>

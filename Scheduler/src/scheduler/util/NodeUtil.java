@@ -20,6 +20,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.css.Styleable;
 import javafx.event.ActionEvent;
@@ -95,7 +96,9 @@ public class NodeUtil {
             if (null == classNames || classNames.length == 0)
                 return new String[0];
             String[] result = new String[classNames.length];
-            Arrays.setAll(classNames, (t) -> classNames[t].value);
+            Arrays.setAll(result, (t) -> {
+                return classNames[t].value;
+            });
             return result;
         }
     
@@ -379,14 +382,17 @@ public class NodeUtil {
         return createSymbolButton(value, null);
     }
     
-    public static <T> TableColumn<T, T> appendEditColumn(TableView<T> tableView, ItemActionRequestEventListener<T> onItemActionRequest) {
-        TableColumn<T, T> column = new TableColumn<>(SymbolButtonValue.HYPHEN_POINT.value);
-        tableView.getColumns().add(column);
-        ItemEditTableCellFactory<T> factory = new ItemEditTableCellFactory<>();
-        column.setCellFactory(factory);
-        factory.setOnItemActionRequest(onItemActionRequest);
-        return column;
-    }
+//    public static <T> TableColumn<T, T> appendEditColumn(TableView<T> tableView, ItemActionRequestEventListener<T> onItemActionRequest) {
+//        TableColumn<T, T> column = new TableColumn<>(SymbolButtonValue.HYPHEN_POINT.value);
+//        column.setCellValueFactory((TableColumn.CellDataFeatures<T, T> param) -> {
+//            return new ReadOnlyObjectWrapper<>(param.getValue());
+//        });
+//        ItemEditTableCellFactory<T> factory = new ItemEditTableCellFactory<>();
+//        column.setCellFactory(factory);
+//        factory.setOnItemActionRequest(onItemActionRequest);
+//        tableView.getColumns().add(column);
+//        return column;
+//    }
     
     public static <T extends Node> T setBorderedNode(T node) {
         return setCssClass(node, CssClassName.BORDERED);
@@ -423,7 +429,7 @@ public class NodeUtil {
     private static <T extends Styleable> T setGroup(T node, CssClassName className, ExclusiveCssClassGroup group) {
         List<CssClassName> g = CssClassName.ofGroup(group);
         ObservableList<String> classes = node.getStyleClass();
-        classes.removeAll(g.stream().filter((t) -> t != className).toArray(String[]::new));
+        classes.removeAll(g.stream().filter((t) -> t != className).map((t) -> t.value).toArray(String[]::new));
         String s = className.value;
         if (!classes.contains(s))
             classes.add(s);
