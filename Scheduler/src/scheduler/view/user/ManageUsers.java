@@ -8,10 +8,10 @@ import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
- * FXML Controller class for viewing a list of {@link UserModelImpl} items.
+ * FXML Controller class for viewing a list of {@link UserModel} items.
  * <p>
  * The associated view is {@code /resources/scheduler/view/user/ManageUsers.fxml}.</p>
  *
@@ -19,7 +19,7 @@ import scheduler.view.model.ItemModel;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends ListingController<UserDAO, UserModelImpl> {
+public final class ManageUsers extends ListingController<UserDAO, UserModel> {
 
     public static ManageUsers loadInto(MainController mainController, Stage stage, UserModelFilter filter,
             Object loadEventListener) throws IOException {
@@ -36,23 +36,23 @@ public final class ManageUsers extends ListingController<UserDAO, UserModelImpl>
     }
 
     @Override
-    protected void onEditItem(Stage stage, UserModelImpl item) throws IOException {
+    protected void onEditItem(Stage stage, UserModel item) throws IOException {
         getMainController(stage.getScene()).editUser(stage, item);
     }
 
     @Override
-    protected void onDeleteItem(Stage stage, UserModelImpl item) {
+    protected void onDeleteItem(Stage stage, UserModel item) {
         getMainController(stage.getScene()).deleteUser(stage, item);
     }
 
     @Override
-    protected UserModelImpl toModel(UserDAO dao) {
-        return new UserModelImpl(dao);
+    protected UserModel toModel(UserDAO dao) {
+        return new UserModel(dao);
     }
 
     @Override
-    protected ItemModel.ModelFactory<UserDAO, UserModelImpl> getModelFactory() {
-        return UserModelImpl.getFactory();
+    protected FxRecordModel.ModelFactory<UserDAO, UserModel> getModelFactory() {
+        return UserModel.getFactory();
     }
 
 }

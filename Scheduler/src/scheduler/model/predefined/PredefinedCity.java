@@ -1,7 +1,6 @@
 package scheduler.model.predefined;
 
 import java.time.ZoneId;
-import java.util.ResourceBundle;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -9,22 +8,35 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
+import scheduler.model.db.CityRowData;
 import scheduler.model.ui.CityItem;
+import scheduler.observables.NestedStringBindingProperty;
 
 /**
  * Represents a pre-defined city that is loaded with the application.
- * <p>This also specifies the {@link ZoneId} to be used for customers associated with the specified city</p>
- * 
+ * <p>
+ * This also specifies the {@link ZoneId} to be used for customers associated with the specified city</p>
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.model.predefined.PredefinedCity}
  */
-public class PredefinedCity implements CityItem {
+public class PredefinedCity extends PredefinedItem implements CityItem, CityRowData {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper resourceKey;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
     private final ReadOnlyObjectWrapper<PredefinedCountry> country;
     private final ReadOnlyListWrapper<PredefinedAddress> addresses;
+    private final NestedStringBindingProperty<PredefinedCountry> countryName;
+
+    PredefinedCity(CityElement source, PredefinedCountry country, ObservableList<PredefinedAddress> addresses) {
+        String key = source.getKey();
+        name = new ReadOnlyStringWrapper(this, "name", PredefinedData.getCityDisplayName(key));
+        resourceKey = new ReadOnlyStringWrapper(this, "resourceKey", key);
+        zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId", ZoneId.of(source.getZoneId()));
+        this.country = new ReadOnlyObjectWrapper<>(this, "country", country);
+        this.addresses = new ReadOnlyListWrapper<>(this, "addresses", addresses);
+        countryName = new NestedStringBindingProperty<>(this, "countryName", this.country, (t) -> t.nameProperty());
+    }
 
     @Override
     public String getName() {
@@ -38,7 +50,7 @@ public class PredefinedCity implements CityItem {
 
     /**
      * Gets the resource bundle key to use for getting the name of the city in the current language.
-     * 
+     *
      * @return The resource bundle key to use for getting the name of the city in the current language.
      */
     public String getResourceKey() {
@@ -51,7 +63,7 @@ public class PredefinedCity implements CityItem {
 
     /**
      * Gets the time zone to use for customers associated with the current city.
-     * 
+     *
      * @return The {@link ZoneId} to use for customers associated with the current city.
      */
     public ZoneId getZoneId() {
@@ -74,7 +86,7 @@ public class PredefinedCity implements CityItem {
 
     /**
      * Gets a list of addresses associated with the current city.
-     * 
+     *
      * @return A list of addresses associated with the current city.
      */
     public ObservableList<PredefinedAddress> getAddresses() {
@@ -85,12 +97,14 @@ public class PredefinedCity implements CityItem {
         return addresses.getReadOnlyProperty();
     }
 
-    PredefinedCity(CityElement source, PredefinedCountry country, ObservableList<PredefinedAddress> addresses) {
-        String key = source.getKey();
-        name = new ReadOnlyStringWrapper(PredefinedData.getCityDisplayName(key));
-        resourceKey = new ReadOnlyStringWrapper(key);
-        zoneId = new ReadOnlyObjectWrapper<>(ZoneId.of(source.getZoneId()));
-        this.country = new ReadOnlyObjectWrapper<>(country);
-        this.addresses = new ReadOnlyListWrapper<>(addresses);
+    @Override
+    public NestedStringBindingProperty<PredefinedCountry> countryNameProperty() {
+        return countryName;
     }
+
+    @Override
+    public PredefinedCity asPredefinedData() {
+        return this;
+    }
+
 }

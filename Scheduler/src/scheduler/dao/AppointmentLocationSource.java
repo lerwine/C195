@@ -8,7 +8,7 @@ public enum AppointmentLocationSource {
     LOCATION_FIELD,
     URL_FIELD,
     CUSTOMER_ADDRESS,
-    CORPORATE_HQ,
+    CORPORATE_LOCATION,
     GERMANY_OFFICE,
     INDIA_OFFICE,
     GUATEMALA_OFFICE;

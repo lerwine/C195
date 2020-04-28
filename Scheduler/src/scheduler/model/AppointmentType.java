@@ -1,21 +1,14 @@
 package scheduler.model;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER;
-import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_GERMANY;
-import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA;
-import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_HQ;
-import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_INDIA;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_OTHER;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentLocationSource;
-import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.city.SupportedLocale;
-import scheduler.model.db.AppointmentRowData;
 
 // CURRENT: Main offices in Phoenix, Arizona; New York, New York; and London, England
 /**
@@ -23,13 +16,52 @@ import scheduler.model.db.AppointmentRowData;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public enum AppointmentType {
+    /**
+     * Phone call appointment.
+     * <ul>
+     * <li>The string {@code "phone"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>Phone number is stored in the {@link scheduler.dao.AppointmentDAO#location} field.</li>
+     * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
+     * </ul>
+     */
     PHONE("phone", AppointmentLocationSource.LOCATION_FIELD, RESOURCEKEY_APPOINTMENTTYPE_PHONE),
+    /**
+     * Virtual online appointment.
+     * <ul>
+     * <li>The string {@code "virtual"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>{@link scheduler.dao.AppointmentDAO#url} is required.</li>
+     * <li>{@link scheduler.dao.AppointmentDAO#location} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
+     * </ul>
+     */
     VIRTUAL("virtual", AppointmentLocationSource.URL_FIELD, RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL),
+    /**
+     * Appointment at address of customer.
+     * <ul>
+     * <li>The string {@code "customer"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>A copy of the customer's address is stored in the {@link scheduler.dao.AppointmentDAO#location} field.</li>
+     * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
+     * </ul>
+     */
     CUSTOMER_SITE("customer", AppointmentLocationSource.CUSTOMER_ADDRESS, RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER),
-    CORPORATE_HQ_MEETING("hq", AppointmentLocationSource.CORPORATE_HQ, RESOURCEKEY_APPOINTMENTTYPE_HQ, SupportedLocale.EN),
-    GERMANY_SITE_MEETING("germany", AppointmentLocationSource.GERMANY_OFFICE, RESOURCEKEY_APPOINTMENTTYPE_GERMANY, SupportedLocale.DE),
-    INDIA_SITE_MEETING("india", AppointmentLocationSource.INDIA_OFFICE, RESOURCEKEY_APPOINTMENTTYPE_INDIA, SupportedLocale.HI),
-    GUATEMALA_SITE_MEETING("guatemala", AppointmentLocationSource.GUATEMALA_OFFICE, RESOURCEKEY_APPOINTMENTTYPE_GUATEMALA, SupportedLocale.ES),
+    /**
+     * Appointment at a {@link scheduler.model.predefined.PredefinedAddress}.
+     * <ul>
+     * <li>The string {@code "corporate"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The value of {@link scheduler.model.predefined.PredefinedAddress#referenceKey} is stored in the
+     * {@link scheduler.dao.AppointmentDAO#location} field.</li>
+     * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
+     * </ul>
+     */
+    CORPORATE_LOCATION("corporate", AppointmentLocationSource.CORPORATE_LOCATION, RESOURCEKEY_APPOINTMENTTYPE_CORPORATE),
+    
+    /**
+     * Appointment at a physical location.
+     * <ul>
+     * <li>The string {@code "other"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The {@link scheduler.dao.AppointmentDAO#location} and {@link scheduler.dao.AppointmentDAO#contact} fields are required.</li>
+     * <li>{@link scheduler.dao.AppointmentDAO#url} isS optional.</li>
+     * </ul>
+     */
     OTHER("other", AppointmentLocationSource.LOCATION_FIELD, RESOURCEKEY_APPOINTMENTTYPE_OTHER);
 
     public static AppointmentType of(String dbValue, AppointmentType defaultValue) {
@@ -54,32 +86,6 @@ public enum AppointmentType {
         return Optional.empty();
     }
 
-    public static SupportedLocale getDefaultLocale(AppointmentModel model) {
-        if (null != model) {
-            AppointmentType t = model.getType();
-            if (t.defaultLocale.isPresent()) {
-                return t.defaultLocale.get();
-            }
-            if (model.getType() == CUSTOMER_SITE) {
-                return SupportedLocale.getDefaultLocale(model.getCustomer());
-            }
-        }
-        return SupportedLocale.fromLocale(Locale.getDefault());
-    }
-
-    public static SupportedLocale getDefaultLocale(AppointmentRowData appointment) {
-        if (null != appointment) {
-            AppointmentType t = appointment.getType();
-            if (t.defaultLocale.isPresent()) {
-                return t.defaultLocale.get();
-            }
-            if (appointment.getType() == CUSTOMER_SITE) {
-                return SupportedLocale.getDefaultLocale(appointment.getCustomer());
-            }
-        }
-        return SupportedLocale.fromLocale(Locale.getDefault());
-    }
-
     public static String toDisplayText(AppointmentType type) {
         if (null == type) {
             return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
@@ -92,17 +98,11 @@ public enum AppointmentType {
     private final String dbValue;
     private final AppointmentLocationSource locationSource;
     private final String appResourceKey;
-    private final Optional<SupportedLocale> defaultLocale;
 
-    private AppointmentType(String dbValue, AppointmentLocationSource locationSource, String appResourceKey, SupportedLocale defaultLocale) {
+    private AppointmentType(String dbValue, AppointmentLocationSource locationSource, String appResourceKey) {
         this.dbValue = dbValue;
         this.locationSource = locationSource;
         this.appResourceKey = appResourceKey;
-        this.defaultLocale = (null == defaultLocale) ? Optional.empty() : Optional.of(defaultLocale);
-    }
-
-    private AppointmentType(String dbValue, AppointmentLocationSource locationSource, String appResourceKey) {
-        this(dbValue, locationSource, appResourceKey, null);
     }
 
     public String getAppResourceKey() {
@@ -111,10 +111,6 @@ public enum AppointmentType {
 
     public AppointmentLocationSource getLocationSource() {
         return locationSource;
-    }
-
-    public Optional<SupportedLocale> getDefaultLocale() {
-        return defaultLocale;
     }
 
     @Override

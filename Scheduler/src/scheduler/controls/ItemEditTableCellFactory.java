@@ -29,17 +29,18 @@ public class ItemEditTableCellFactory<T> implements Callback<TableColumn<T, T>, 
     public ObjectProperty onItemActionRequestProperty() {
         return onItemActionRequest;
     }
-    
+
     final void fireItemActionRequest(T item, ActionEvent fxEvent, boolean isDelete) {
-        onItemActionRequest(new ItemActionRequestEvent(fxEvent, item, isDelete));
+        onItemActionRequest(new ItemActionRequestEvent<>(fxEvent, item, isDelete));
     }
-    
-    protected void onItemActionRequest(ItemActionRequestEvent event) {
+
+    protected void onItemActionRequest(ItemActionRequestEvent<T> event) {
         ItemActionRequestEventListener<T> listener = onItemActionRequest.get();
-        if (null != listener)
+        if (null != listener) {
             listener.acceptItemActionRequest(event);
+        }
     }
-    
+
     @Override
     public TableCell<T, T> call(TableColumn<T, T> param) {
         ItemEditTableCell<T> itemEditTableCell = new ItemEditTableCell<>();

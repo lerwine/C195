@@ -8,8 +8,11 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.FormatStyle;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -18,7 +21,6 @@ import scheduler.util.AnnotationHelper;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.SupportedLocale;
 
 // CURRENT: Define business hours - Alert for scheduling an appointment outside business hours
 // TODO: Test alert for scheduling overlapping appointments
@@ -26,7 +28,6 @@ import scheduler.view.city.SupportedLocale;
 // CURRENT: Report for the schedule for each consultant
 // CURRENT: Create additional report
 // CURRENT: recording timestamps for user log-ins in a .txt file
-
 /**
  * Gets settings from the {@code /resources/scheduler/config.properties} file.
  *
@@ -34,6 +35,7 @@ import scheduler.view.city.SupportedLocale;
  */
 @GlobalizationResource("scheduler/App")
 public final class AppResources implements AppResourceKeys {
+
     public static final String FXMLPROPERTYNAME_CONTROLLER = "scheduler.Controller";
 
     private static final Logger LOG = Logger.getLogger(AppResources.class.getName());
@@ -47,18 +49,21 @@ public final class AppResources implements AppResourceKeys {
     public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
     public static final String PROPERTYKEY_APPOINTMENTALERTLEADTIME = "appointmentAlertLeadTime";
     public static final String PROPERTIES_FILE_APPCONFIG = "scheduler/config.properties";
-    
+
     private static final Locale ORIGINAL_LOCALE;
-    private static final Locale DEFAULT_LOCALE;
     private static SupportedLocale currentLocale;
 
     static {
         ORIGINAL_LOCALE = Locale.getDefault();
-        SupportedLocale locale = SupportedLocale.fromLocale(ORIGINAL_LOCALE);
-        DEFAULT_LOCALE = (ORIGINAL_LOCALE.getLanguage().equals(locale.getLanguageCode())) ? ORIGINAL_LOCALE : locale.toLocale();
-        currentLocale = locale;
+        String s = ORIGINAL_LOCALE.toLanguageTag();
+        Optional<SupportedLocale> locale = Arrays.stream(SupportedLocale.values()).filter((l) -> l.toString().equals(s)).findFirst();
+        if (locale.isPresent()) {
+            currentLocale = locale.get();
+        } else {
+            Locale.setDefault((currentLocale = SupportedLocale.values()[0]).getLocale());
+        }
     }
-    
+
     /**
      * Get the value of currentLocale
      *
@@ -67,16 +72,14 @@ public final class AppResources implements AppResourceKeys {
     public static SupportedLocale getCurrentLocale() {
         return currentLocale;
     }
-    
-    public static void setCurrentLocale(SupportedLocale currentLocale) {
-        if (Scheduler.getCurrentUser() != null)
+
+    public static void setCurrentLocale(SupportedLocale newLocale) {
+        if (Scheduler.getCurrentUser() != null) {
             throw new IllegalStateException("Cannot change locale after user is loggged in");
-        if (AppResources.currentLocale != currentLocale) {
-            AppResources.currentLocale = currentLocale;
-            if (SupportedLocale.fromLocale(DEFAULT_LOCALE) == AppResources.currentLocale)
-                Locale.setDefault(DEFAULT_LOCALE);
-            else
-                Locale.setDefault(AppResources.currentLocale.toLocale());
+        }
+        if (currentLocale != Objects.requireNonNull(newLocale)) {
+            currentLocale = newLocale;
+            Locale.setDefault(currentLocale.getLocale());
         }
     }
 
@@ -130,7 +133,7 @@ public final class AppResources implements AppResourceKeys {
     public static final LocalTime getBusinessHoursStart() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSSTART, "");
         try {
-            return (LocalTime)DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).parse(s);
+            return (LocalTime) DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).parse(s);
         } catch (DateTimeParseException ex) {
             throw new ParseException(ex.getMessage(), ex.getErrorIndex());
         }

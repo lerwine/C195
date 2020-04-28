@@ -21,6 +21,7 @@ public class CountryElement {
     @XmlAttribute
     private String languageTag;
     
+    @XmlAttribute
     private String defaultZoneId;
     
     @XmlElement(name = CityElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)

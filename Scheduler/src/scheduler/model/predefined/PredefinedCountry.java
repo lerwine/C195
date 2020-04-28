@@ -2,6 +2,7 @@ package scheduler.model.predefined;
 
 import java.time.ZoneId;
 import java.util.Locale;
+import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -9,6 +10,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
+import scheduler.model.db.CountryRowData;
 import scheduler.model.ui.CountryItem;
 
 /**
@@ -18,12 +20,13 @@ import scheduler.model.ui.CountryItem;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedCountry implements CountryItem {
+public class PredefinedCountry extends PredefinedItem implements CountryItem, CountryRowData {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyObjectWrapper<Locale> locale;
     private final ReadOnlyObjectWrapper<ZoneId> defaultZoneId;
     private final ReadOnlyListWrapper<PredefinedCity> cities;
+    private final ReadOnlyStringWrapper regionCode;
 
     @Override
     public String getName() {
@@ -74,13 +77,30 @@ public class PredefinedCountry implements CountryItem {
     public ReadOnlyListProperty<PredefinedCity> citiesProperty() {
         return cities.getReadOnlyProperty();
     }
+    private static final Logger LOG = Logger.getLogger(PredefinedCountry.class.getName());
 
     PredefinedCountry(CountryElement source, ObservableList<PredefinedCity> cities) {
+        LOG.info(String.format("Parsing country %s", source.getLanguageTag()));
         Locale l = Locale.forLanguageTag(source.getLanguageTag());
-        name = new ReadOnlyStringWrapper(l.getDisplayName());
-        locale = new ReadOnlyObjectWrapper<>(l);
-        defaultZoneId = new ReadOnlyObjectWrapper<>(ZoneId.of(source.getDefaultZoneId()));
-        this.cities = new ReadOnlyListWrapper<>(cities);
+        name = new ReadOnlyStringWrapper(this, "name", l.getDisplayName());
+        locale = new ReadOnlyObjectWrapper<>(this, "locale", l);
+        defaultZoneId = new ReadOnlyObjectWrapper<>(this, "defaultZoneId", ZoneId.of(source.getDefaultZoneId()));
+        regionCode = new ReadOnlyStringWrapper(this, "regionCode", l.getCountry());
+        this.cities = new ReadOnlyListWrapper<>(this, "cities", cities);
 
     }
+
+    @Override
+    public PredefinedCountry asPredefinedData() {
+        return this;
+    }
+
+    public String getRegionCode() {
+        return regionCode.get();
+    }
+
+    public ReadOnlyStringProperty regionCodeProperty() {
+        return regionCode.getReadOnlyProperty();
+    }
+
 }

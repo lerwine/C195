@@ -33,12 +33,12 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.DataRecord;
+import scheduler.model.RelatedRecord;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.task.TaskWaiter;
-import scheduler.model.db.RowData;
 
 /**
  * Data access object that represents all columns from a data row.
@@ -61,7 +61,7 @@ import scheduler.model.db.RowData;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements RowData, DataRecord<Timestamp> {
+public abstract class DataAccessObject extends PropertyBindable implements RelatedRecord, DataRecord<Timestamp> {
 
     /**
      * The name of the 'primaryKey' property.

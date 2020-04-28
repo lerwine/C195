@@ -12,7 +12,7 @@ import scheduler.observables.UserStatusDisplayProperty;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface UserItem<T extends UserRowData> extends User, UIDbModel<T> {
+public interface UserItem<T extends UserRowData> extends User, FxDbModel<T> {
     
     ReadOnlyProperty<String> userNameProperty();
 

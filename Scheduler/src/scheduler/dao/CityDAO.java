@@ -10,8 +10,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import static scheduler.model.db.RowData.getPrimaryKeyOf;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.IntColumnValueFilter;
@@ -22,19 +22,21 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
+import scheduler.model.City;
+import scheduler.model.ModelHelper;
+import scheduler.model.RelatedRecord;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
+import scheduler.model.predefined.PredefinedCity;
+import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
-import scheduler.view.country.CityOptionModel;
-import scheduler.view.country.CountryOptionModel;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE;
-import scheduler.AppResourceKeys;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
 
 /**
  * Data access object for the {@code city} database table.
@@ -54,6 +56,8 @@ public class CityDAO extends DataAccessObject implements CityRowData {
      */
     public static final String PROP_COUNTRY = "country";
 
+    public static final String PROP_PREDEFINEDCITY = "predefinedCity";
+
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
@@ -62,6 +66,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
 
     private String name;
     private CountryRowData country;
+    private PredefinedCity predefinedCity;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -79,10 +84,10 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         }
         if (null == country) {
             addValidation.accept(ValidationResult.NO_COUNTRY);
-        } else if (country.validate() != ValidationResult.OK) {
+        } else if (RelatedRecord.validate(country) != ValidationResult.OK) {
             addValidation.accept(ValidationResult.INVALID_COUNTRY);
-        } else if (country.getRowState() == DataRowState.NEW) {
-            addValidation.accept(ValidationResult.COUNTRY_NOT_SAVED);
+        } else if (ModelHelper.getRowState(country) == DataRowState.DELETED) {
+            addValidation.accept(ValidationResult.COUNTRY_DELETED);
         }
     }
 
@@ -91,31 +96,52 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         return name;
     }
 
-    /**
-     * Set the value of name
-     *
-     * @param value new value of name
-     */
-    public void setName(String value) {
-        String oldValue = this.name;
-        this.name = asNonNullAndTrimmed(value);
-        firePropertyChange(PROP_NAME, oldValue, this.name);
-    }
-
     @Override
     public CountryRowData getCountry() {
         return country;
     }
 
     /**
-     * Set the value of country
+     * Get the value of predefinedCity
      *
-     * @param country new value of country
+     * @return the value of predefinedCity
      */
-    public void setCountry(CountryRowData country) {
-        CountryRowData oldValue = this.country;
-        this.country = Objects.requireNonNull(country);
-        firePropertyChange(PROP_COUNTRY, oldValue, this.country);
+    public PredefinedCity getPredefinedCity() {
+        return predefinedCity;
+    }
+
+    /**
+     * Set the value of predefinedCity
+     *
+     * @param city new value of predefinedCity
+     */
+    public void setPredefinedCity(PredefinedCity city) {
+        CountryRowData oldCountry = country;
+        String oldName = name;
+        PredefinedCity oldPredefinedCity = predefinedCity;
+        if (null == city) {
+            if (null == oldPredefinedCity) {
+                return;
+            }
+            name = "";
+        } else {
+            if (null != oldPredefinedCity && city == oldPredefinedCity) {
+                return;
+            }
+            name = city.getName();
+            country = city.getCountry();
+        }
+
+        name = city.getName();
+        predefinedCity = city;
+        firePropertyChange(PROP_NAME, oldName, name);
+        firePropertyChange(PROP_PREDEFINEDCITY, oldPredefinedCity, predefinedCity);
+        firePropertyChange(PROP_COUNTRY, oldCountry, country);
+    }
+
+    @Override
+    public PredefinedCity asPredefinedData() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO#asPredefinedData
     }
 
     @Override
@@ -131,17 +157,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof CityRowData) {
-            CityRowData other = (CityRowData) obj;
-            if (getRowState() == DataRowState.NEW) {
-                return other.getRowState() == DataRowState.NEW && name.equals(other.getName()) && country.equals(other.getCountry());
-            }
-            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
-        }
-        return false;
+        return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
     }
 
     /**
@@ -192,7 +208,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         public DaoFilter<CityDAO> getByCountryFilter(int pk) {
             return DaoFilter.of(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES),
                     IntColumnValueFilter.of(DbColumn.CITY_COUNTRY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
-                            (CityDAO t) -> getPrimaryKeyOf(t.getCountry())));
+                            (CityDAO t) -> ModelHelper.getPrimaryKey(t.getCountry())));
         }
 
         @Override
@@ -218,51 +234,8 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         }
 
         CityRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new CityRowData() {
-                private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.CITY_NAME.toString()));
-                private final CountryRowData country = CountryDAO.getFactory().fromJoinedResultSet(rs);
-                private final int primaryKey = rs.getInt(DbColumn.ADDRESS_CITY.toString());
-
-                @Override
-                public String getName() {
-                    return name;
-                }
-
-                @Override
-                public CountryRowData getCountry() {
-                    return country;
-                }
-
-                @Override
-                public int getPrimaryKey() {
-                    return primaryKey;
-                }
-
-                @Override
-                public DataRowState getRowState() {
-                    return DataRowState.UNMODIFIED;
-                }
-
-                @Override
-                public boolean isExisting() {
-                    return true;
-                }
-
-                @Override
-                public int hashCode() {
-                    return primaryKey;
-                }
-
-                @Override
-                public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof CityRowData) {
-                        CityRowData other = (CityRowData) obj;
-                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
-                    }
-                    return false;
-                }
-
-            };
+            return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), rs.getString(DbColumn.CITY_NAME.toString()),
+                    CountryDAO.getFactory().fromJoinedResultSet(rs));
         }
 
         @Override
@@ -288,7 +261,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
 
         @Override
         public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
-            CountryRowData country = dao.getCountry();
+            assertValidCity(dao);
             super.save(dao, connection, force);
         }
 
@@ -296,38 +269,30 @@ public class CityDAO extends DataAccessObject implements CityRowData {
             if (target.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Data access object already deleted");
             }
-            
-            CityOptionModel cityOption = CityOptionModel.getCityOption(target.name);
-            if (null == cityOption)
-                throw new IllegalStateException("Unsupported city name");
-         
             CountryRowData country = target.getCountry();
             if (null == country)
                 throw new IllegalStateException("Country not specified");
-            String countryName = country.getName();
             
-            if (!cityOption.getRegionCode().equals(countryName)) {
-                if (null == CountryOptionModel.getCountryOption(countryName))
-                    throw new IllegalStateException("Unsupported country name");
+            if (target.predefinedCity.getCountry() != country.asPredefinedData())
                 throw new IllegalStateException("Invalid country association");
-            }
             return target;
         }
-        
+
         @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYALREADYDELETED);
             }
-            
+
             CountryRowData country = assertValidCity(dao).getCountry();
-            
-            if (country instanceof CountryDAO && country.getRowState() != DataRowState.UNMODIFIED) {
-                String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO)country, connection);
-                if (!msg.isEmpty())
+
+            if (country instanceof CountryDAO && ModelHelper.getRowState(country) != DataRowState.UNMODIFIED) {
+                String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO) country, connection);
+                if (!msg.isEmpty()) {
                     return msg;
+                }
             }
-            
+
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
                     .append(") FROM ").append(DbTable.CITY.getDbName())
                     .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName()).append(" ON ")
@@ -358,7 +323,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
                     }
                 }
             }
-            
+
             if (count > 0) {
                 return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE);
             }
@@ -398,4 +363,49 @@ public class CityDAO extends DataAccessObject implements CityRowData {
 
     }
 
+    private static final class Related implements CityRowData {
+
+        private final int primaryKey;
+        private final String name;
+        private final CountryRowData country;
+        private final PredefinedCity predefinedCity;
+
+        Related(int primaryKey, String resourceKey, CountryRowData country) {
+            this.primaryKey = primaryKey;
+            predefinedCity = PredefinedData.getCityMap().get(resourceKey);
+            name = predefinedCity.getName();
+            this.country = country;
+        }
+
+        @Override
+        public int getPrimaryKey() {
+            return primaryKey;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public CountryRowData getCountry() {
+            return country;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return primaryKey;
+        }
+
+        @Override
+        public PredefinedCity asPredefinedData() {
+            return predefinedCity;
+        }
+
+    }
 }

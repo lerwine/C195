@@ -1,7 +1,8 @@
 package scheduler.controls;
 
+import java.util.Locale;
 import javafx.scene.control.ListCell;
-import scheduler.view.city.SupportedLocale;
+import scheduler.SupportedLocale;
 
 /**
  *
@@ -12,6 +13,11 @@ public class LocaleLanguageListCell extends ListCell<SupportedLocale> {
     @Override
     protected void updateItem(SupportedLocale item, boolean empty) {
         super.updateItem(item, empty);
-        setText(SupportedLocale.toNativeDisplayLanguage(item));
+        if (null == item)
+            setText("");
+        else {
+            Locale l = item.getLocale();
+            setText(l.getDisplayLanguage(l));
+        }
     }
 }

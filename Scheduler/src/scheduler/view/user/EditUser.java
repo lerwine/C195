@@ -49,12 +49,12 @@ import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
 import static scheduler.view.user.EditUserResourceKeys.*;
 
 /**
- * FXML Controller class for editing a {@link UserModelImpl}.
+ * FXML Controller class for editing a {@link UserModel}.
  * <p>
  * The associated view is {@code /resources/scheduler/view/user/EditUser.fxml}.</p>
  *
@@ -62,15 +62,15 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends EditItem.EditController<UserDAO, UserModelImpl> {
+public final class EditUser extends EditItem.EditController<UserDAO, UserModel> {
 
     private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
-    public static UserModelImpl editNew(MainController mainController, Stage stage) throws IOException {
+    public static UserModel editNew(MainController mainController, Stage stage) throws IOException {
         return editNew(EditUser.class, mainController, stage);
     }
 
-    public static UserModelImpl edit(UserModelImpl model, MainController mainController, Stage stage) throws IOException {
+    public static UserModel edit(UserModel model, MainController mainController, Stage stage) throws IOException {
         return edit(model, EditUser.class, mainController, stage);
     }
 
@@ -187,7 +187,7 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     private void onBeforeShow(FxmlViewEvent<SplitPane> event) {
         LocalDate today = LocalDate.now();
-        UserModelImpl model = getModel();
+        UserModel model = getModel();
         UserDAO dao = model.getDataObject();
         if (dao.isExisting()) {
             filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_CURRENTANDFUTURE),
@@ -237,12 +237,12 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModelIm
     }
 
     @Override
-    protected ItemModel.ModelFactory<UserDAO, UserModelImpl> getFactory() {
-        return UserModelImpl.getFactory();
+    protected FxRecordModel.ModelFactory<UserDAO, UserModel> getFactory() {
+        return UserModel.getFactory();
     }
 
     @Override
-    protected void updateModel(UserModelImpl model) {
+    protected void updateModel(UserModel model) {
         if (!getValidationExpression().get()) {
             throw new IllegalStateException();
         }

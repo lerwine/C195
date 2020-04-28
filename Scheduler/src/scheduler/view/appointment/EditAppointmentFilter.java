@@ -57,7 +57,7 @@ import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabel;
 import static scheduler.util.NodeUtil.selectSelection;
-import scheduler.util.StringBindingProperty;
+import scheduler.observables.StringBindingProperty;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;

@@ -1,33 +1,25 @@
 package scheduler.observables;
 
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import scheduler.model.ui.AddressItem;
 import scheduler.util.Values;
-import scheduler.view.address.AddressModel;
-import scheduler.model.db.AddressRowData;
-import scheduler.model.ui.AddressDbItem;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class CityZipCountryProperty extends StringBinding implements ReadOnlyProperty<String> {
+public class CityZipCountryProperty extends StringBindingProperty {
 
-    private final Object bean;
-    private final String name;
     private final ReadOnlyProperty<String> postalCode;
     private final ReadOnlyProperty<String> cityName;
     private final ReadOnlyProperty<String> countryName;
 
-    public CityZipCountryProperty(Object bean, String name, AddressDbItem<? extends AddressRowData> address) {
-        this.bean = bean;
-        this.name = (null == name) ? "" : name;
+    public CityZipCountryProperty(Object bean, String name, AddressItem address) {
+        super(bean, name);
         cityName = address.cityNameProperty();
         countryName = address.countryNameProperty();
         postalCode = address.postalCodeProperty();
-        super.bind(cityName, countryName, postalCode);
+        super.addDependency(cityName, countryName, postalCode);
     }
 
     @Override
@@ -47,28 +39,6 @@ public class CityZipCountryProperty extends StringBinding implements ReadOnlyPro
         }
 
         return (n.isEmpty()) ? String.format("%s, %s", p, c) : String.format("%s %s, %s", n, p, c);
-    }
-
-    @Override
-    public Object getBean() {
-        return bean;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public ObservableList<?> getDependencies() {
-        return FXCollections.observableArrayList(cityName, countryName, postalCode);
-    }
-
-    @Override
-    public void dispose() {
-        super.unbind(cityName, countryName, postalCode);
-        super.dispose();
     }
 
 }

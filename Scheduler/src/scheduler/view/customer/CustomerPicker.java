@@ -41,13 +41,13 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.city.CityModelImpl;
+import scheduler.view.city.CityModel;
 import scheduler.view.country.CountryModel;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.task.TaskWaiter;
 
 /**
- * FXML Controller class for picking a {@link CustomerModelImpl}.
+ * FXML Controller class for picking a {@link CustomerModel}.
  * <p>
  * The associated view is {@code /resources/scheduler/view/appointment/CustomerPicker.fxml}.</p>
  *
@@ -164,7 +164,7 @@ public class CustomerPicker {
      */
     public static final String RESOURCEKEY_CREATED = "created";
 
-    public static CustomerModelImpl pickCustomer(Stage parent) {
+    public static CustomerModel pickCustomer(Stage parent) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(parent);
@@ -182,11 +182,11 @@ public class CustomerPicker {
         // TODO: Implement scheduler.view.customer.CustomerPicker#pickCustomer(Stage parent)
     }
     private ObservableList<CountryModel> countries;
-    private ObservableList<CityModelImpl> cities;
+    private ObservableList<CityModel> cities;
     private ObservableList<StatusOption> statusOptions;
-    private ObservableList<CustomerModelImpl> allCustomers;
-    private ObservableList<CustomerModelImpl> filteredCustomers;
-    private CustomerModelImpl selectedCustomer = null;
+    private ObservableList<CustomerModel> allCustomers;
+    private ObservableList<CustomerModel> filteredCustomers;
+    private CustomerModel selectedCustomer = null;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -203,7 +203,7 @@ public class CustomerPicker {
     private CheckBox cityFilterCheckBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityModelImpl> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityModel> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameSearchTextField"
     private TextField nameSearchTextField; // Value injected by FXMLLoader
@@ -212,7 +212,7 @@ public class CustomerPicker {
     private ComboBox<StatusOption> statusComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="customersListView"
-    private ListView<CustomerModelImpl> customersListView; // Value injected by FXMLLoader
+    private ListView<CustomerModel> customersListView; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameLabel"
     private Label nameLabel; // Value injected by FXMLLoader
@@ -281,7 +281,7 @@ public class CustomerPicker {
         assert modifiedLabel != null : "fx:id=\"modifiedLabel\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
     }
 
-    void customerSelected(CustomerModelImpl customer) {
+    void customerSelected(CustomerModel customer) {
         selectedCustomer = customer;
         if (null == customer) {
             nameLabel.setText("");
@@ -332,20 +332,20 @@ public class CustomerPicker {
 
     synchronized void filterCustomers() {
         String s = nameSearchTextField.getText().trim().toLowerCase();
-        CustomerModelImpl c = selectedCustomer;
+        CustomerModel c = selectedCustomer;
         filteredCustomers.clear();
         if (s.isEmpty()) {
             allCustomers.forEach((item) -> {
                 filteredCustomers.add(item);
             });
         } else {
-            allCustomers.stream().filter((CustomerModelImpl item) -> item.getName().toLowerCase().contains(s)).forEach((item) -> {
+            allCustomers.stream().filter((CustomerModel item) -> item.getName().toLowerCase().contains(s)).forEach((item) -> {
                 filteredCustomers.add(item);
             });
         }
         if (null != c) {
             int pk = c.getPrimaryKey();
-            Optional<CustomerModelImpl> matching = filteredCustomers.stream().filter((CustomerModelImpl item) -> item.getPrimaryKey() == pk).findFirst();
+            Optional<CustomerModel> matching = filteredCustomers.stream().filter((CustomerModel item) -> item.getPrimaryKey() == pk).findFirst();
             if (matching.isPresent()) {
                 customersListView.getSelectionModel().select(matching.get());
             } else {
@@ -399,7 +399,7 @@ public class CustomerPicker {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
                 if (cityFilterCheckBox.isSelected()) {
-                    CityModelImpl city = cityComboBox.getSelectionModel().getSelectedItem();
+                    CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
                         TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
@@ -420,7 +420,7 @@ public class CustomerPicker {
         if (countryFilterCheckBox.isSelected() && cityFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                CityModelImpl city = cityComboBox.getSelectionModel().getSelectedItem();
+                CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                 if (null != city) {
                     TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                             city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
@@ -436,7 +436,7 @@ public class CustomerPicker {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
                 if (cityFilterCheckBox.isSelected()) {
-                    CityModelImpl city = cityComboBox.getSelectionModel().getSelectedItem();
+                    CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
                         TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
@@ -513,7 +513,7 @@ public class CustomerPicker {
         protected void processResult(ArrayList<CityDAO> result, Stage stage) {
             cities.clear();
             result.forEach((item) -> {
-                cities.add(new CityModelImpl(item));
+                cities.add(new CityModel(item));
             });
             TaskWaiter.startNow(new LoadCustomersTask(stage, country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     customer));
@@ -585,12 +585,12 @@ public class CustomerPicker {
 
             if (null == customer) {
                 result.stream().forEach((item) -> {
-                    allCustomers.add(new CustomerModelImpl(item));
+                    allCustomers.add(new CustomerModel(item));
                 });
                 selectedCustomer = null;
             } else {
                 int pk = customer.getPrimaryKey();
-                Optional<CustomerModelImpl> matching = result.stream().map((item) -> new CustomerModelImpl(item)).filter((CustomerModelImpl item) -> {
+                Optional<CustomerModel> matching = result.stream().map((item) -> new CustomerModel(item)).filter((CustomerModel item) -> {
                     allCustomers.add(item);
                     return item.getPrimaryKey() == pk;
                 }).findFirst();

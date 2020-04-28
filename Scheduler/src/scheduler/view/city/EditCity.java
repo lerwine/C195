@@ -23,18 +23,18 @@ import scheduler.dao.CityDAO;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
-import scheduler.view.address.AddressModelImpl;
+import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
 
 /**
- * FXML Controller class for editing a {@link CityModelImpl}.
+ * FXML Controller class for editing a {@link CityModel}.
  * <p>
  * The associated view is {@code /resources/scheduler/view/city/EditCity.fxml}.</p>
  *
@@ -42,11 +42,11 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends EditItem.EditController<CityDAO, CityModelImpl> {
+public final class EditCity extends EditItem.EditController<CityDAO, CityModel> {
 
     private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
-    public static CityModelImpl edit(CityModelImpl model, MainController mainController, Stage stage) throws IOException {
+    public static CityModel edit(CityModel model, MainController mainController, Stage stage) throws IOException {
         return edit(model, EditCity.class, mainController, stage);
     }
 
@@ -63,9 +63,9 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
     private Label countryNameLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesTableView"
-    private TableView<AddressModelImpl> addressesTableView; // Value injected by FXMLLoader
+    private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
 
-    private ObservableList<AddressModelImpl> itemList;
+    private ObservableList<AddressModel> itemList;
 
     @FXML
     void onAddCityButtonAction(ActionEvent event) {
@@ -106,8 +106,8 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
     }
 
     @Override
-    protected ItemModel.ModelFactory<CityDAO, CityModelImpl> getFactory() {
-        return CityModelImpl.getFactory();
+    protected FxRecordModel.ModelFactory<CityDAO, CityModel> getFactory() {
+        return CityModel.getFactory();
     }
 
     @Override
@@ -116,7 +116,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
     }
 
     @Override
-    protected void updateModel(CityModelImpl model) {
+    protected void updateModel(CityModel model) {
         if (!getValidationExpression().get()) {
             throw new IllegalStateException();
         }
@@ -136,7 +136,7 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModelIm
         @Override
         protected void processResult(List<AddressDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {
-                AddressModelImpl.Factory factory = AddressModelImpl.getFactory();
+                AddressModel.Factory factory = AddressModel.getFactory();
                 result.forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });

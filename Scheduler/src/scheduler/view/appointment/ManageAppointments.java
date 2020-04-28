@@ -18,7 +18,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -31,24 +30,20 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
-import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
-import scheduler.view.city.CityModel;
-import scheduler.view.country.CityCountryModel;
-import scheduler.view.customer.CustomerModel;
-import scheduler.view.model.CsvDataExporter;
-import scheduler.view.model.HtmlDataExporter;
-import scheduler.view.model.ItemModel;
-import scheduler.view.model.TabularDataReader;
-import scheduler.view.model.TsvDataExporter;
-import scheduler.view.user.UserModel;
-import scheduler.model.db.AddressRowData;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
+import scheduler.view.export.CsvDataExporter;
+import scheduler.view.export.HtmlDataExporter;
+import scheduler.model.ui.FxRecordModel;
+import scheduler.view.export.TabularDataReader;
+import scheduler.view.export.TsvDataExporter;
 import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.UserItem;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
@@ -143,7 +138,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
             if (null != ef) {
                 List<DbColumn> columns;
                 if (ef == csvAll || ef == tsvAll || ef == htmAll) {
-                    columns = Arrays.asList(new DbColumn[] {
+                    columns = Arrays.asList(new DbColumn[]{
                         DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS1, DbColumn.ADDRESS2,
                         DbColumn.ADDRESS_CITY, DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_NAME, DbColumn.POSTAL_CODE,
                         DbColumn.PHONE, DbColumn.ACTIVE, DbColumn.APPOINTMENT_USER, DbColumn.USER_NAME, DbColumn.STATUS, DbColumn.TITLE,
@@ -155,40 +150,42 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                     columns = new ArrayList<>();
                     getListingTableView().getColumns().forEach((c) -> {
                         if (c.isVisible()) {
-                            if (c == titleTableColumn)
+                            if (c == titleTableColumn) {
                                 columns.add(DbColumn.TITLE);
-                            else if (c == startTableColumn)
+                            } else if (c == startTableColumn) {
                                 columns.add(DbColumn.START);
-                            else if (c == endTableColumn)
+                            } else if (c == endTableColumn) {
                                 columns.add(DbColumn.END);
-                            else if (c == typeTableColumn)
+                            } else if (c == typeTableColumn) {
                                 columns.add(DbColumn.TYPE);
-                            else if (c == customerTableColumn)
+                            } else if (c == customerTableColumn) {
                                 columns.add(DbColumn.CUSTOMER_NAME);
-                            else if (c == userTableColumn)
+                            } else if (c == userTableColumn) {
                                 columns.add(DbColumn.USER_NAME);
-                            else if (c == locationTableColumn)
+                            } else if (c == locationTableColumn) {
                                 columns.add(DbColumn.LOCATION);
-                            else if (c == urlTableColumn)
+                            } else if (c == urlTableColumn) {
                                 columns.add(DbColumn.URL);
-                            else if (c == contactTableColumn)
+                            } else if (c == contactTableColumn) {
                                 columns.add(DbColumn.CONTACT);
-                            else if (c == descriptionTableColumn)
+                            } else if (c == descriptionTableColumn) {
                                 columns.add(DbColumn.DESCRIPTION);
-                            else if (c == createDateTableColumn)
+                            } else if (c == createDateTableColumn) {
                                 columns.add(DbColumn.APPOINTMENT_CREATE_DATE);
-                            else if (c == createdByTableColumn)
+                            } else if (c == createdByTableColumn) {
                                 columns.add(DbColumn.APPOINTMENT_CREATED_BY);
-                            else if (c == lastUpdateTableColumn)
+                            } else if (c == lastUpdateTableColumn) {
                                 columns.add(DbColumn.APPOINTMENT_LAST_UPDATE);
-                            else if (c == lastUpdateByTableColumn)
+                            } else if (c == lastUpdateByTableColumn) {
                                 columns.add(DbColumn.APPOINTMENT_LAST_UPDATE_BY);
+                            }
                         }
                     });
                 }
                 TabularDataReader<DbColumn, AppointmentModel> dataReader = new TabularDataReader<DbColumn, AppointmentModel>() {
                     private final NumberFormat numberFormat = NumberFormat.getIntegerInstance();
                     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+
                     @Override
                     public Collection<DbColumn> getColumns() {
                         return columns;
@@ -260,9 +257,9 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
 
                     @Override
                     public String getColumnText(AppointmentModel item, DbColumn column) {
-                        CustomerModel<? extends CustomerRowData> customer;
-                        AddressModel<? extends AddressRowData> address;
-                        CityModel<? extends CityRowData> city;
+                        CustomerItem<? extends CustomerRowData> customer;
+                        AddressItem address;
+                        CityItem city;
                         switch (column) {
                             case APPOINTMENT_CUSTOMER:
                                 customer = item.getCustomer();
@@ -273,8 +270,9 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                                 customer = item.getCustomer();
                                 if (null != customer) {
                                     address = customer.getAddress();
-                                    if (null != address)
+                                    if (null != address) {
                                         return numberFormat.format(address.getPrimaryKey());
+                                    }
                                 }
                                 return "";
                             case ADDRESS1:
@@ -287,8 +285,9 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                                     address = customer.getAddress();
                                     if (null != address) {
                                         city = address.getCity();
-                                        if (null != city)
+                                        if (null != city) {
                                             return numberFormat.format(city.getPrimaryKey());
+                                        }
                                     }
                                 }
                                 return "";
@@ -301,9 +300,10 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                                     if (null != address) {
                                         city = address.getCity();
                                         if (null != city) {
-                                            CityCountryModel<? extends CountryRowData> country = city.getCountry();
-                                            if (null != country)
+                                            CountryItem country = city.getCountry();
+                                            if (null != country) {
                                                 return numberFormat.format(country.getPrimaryKey());
+                                            }
                                         }
                                     }
                                 }
@@ -321,7 +321,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                                 }
                                 return "";
                             case APPOINTMENT_USER:
-                                UserModel<? extends UserRowData> user = item.getUser();
+                                UserItem user = item.getUser();
                                 return (null == user) ? "" : numberFormat.format(user.getPrimaryKey());
                             case USER_NAME:
                                 return item.getUserName();
@@ -381,9 +381,10 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                         alert.showAndWait();
                     }
                 } catch (IOException ex) {
+                    // TODO: Alert user
                     LOG.log(Level.SEVERE, "Error saving file", ex);
                 }
-            } 
+            }
         }
     }
 
@@ -431,7 +432,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     }
 
     @Override
-    protected ItemModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
+    protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
         return AppointmentModel.getFactory();
     }
 

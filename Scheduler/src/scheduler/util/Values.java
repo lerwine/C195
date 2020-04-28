@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+// TODO: Rename to ObjectHelper
 /**
  * Utility class for validating and normalizing values.
  *
@@ -101,6 +102,17 @@ public class Values {
      * least one non-whitespace character.
      */
     public static boolean isNullWhiteSpaceOrEmpty(String value) {
+        return (value == null || value.isEmpty() || value.codePoints().allMatch((c) -> Character.isWhitespace(c)));
+    }
+
+    /**
+     * Tests whether a string is not null and contains at least one white space character.
+     *
+     * @param value The {@link String} to test.
+     * @return {@code} true if the {@code value} is not null and contains at least one white space character; otherwise {@code false} is null, empty
+     * or contains only white space characters.
+     */
+    public static boolean isNotNullWhiteSpaceOrEmpty(String value) {
         return (value == null || value.isEmpty() || value.codePoints().allMatch((c) -> Character.isWhitespace(c)));
     }
 

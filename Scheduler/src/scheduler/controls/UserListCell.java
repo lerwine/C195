@@ -1,16 +1,16 @@
 package scheduler.controls;
 
 import javafx.scene.control.ListCell;
+import scheduler.view.user.UserModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The item type.
  */
-public class UserListCell<T extends scheduler.view.user.UserModel<?>> extends ListCell<T> {
+public class UserListCell extends ListCell<UserModel> {
 
     @Override
-    protected void updateItem(T item, boolean empty) {
+    protected void updateItem(UserModel item, boolean empty) {
         super.updateItem(item, empty);
         setText((item == null) ? "" : item.getUserName());
     }

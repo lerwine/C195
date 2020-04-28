@@ -1,16 +1,9 @@
 package devhelper;
 
-import java.util.Locale;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.observables.OptionalValueProperty;
 
 /**
  *
@@ -29,7 +22,7 @@ public class ProjectBundlePair {
     public ReadOnlyObjectProperty<BundleSet> leftBundleSetProperty() {
         return leftBundleSet.getReadOnlyProperty();
     }
-    
+
     public BundleSet getRightBundleSet() {
         return rightBundleSet.get();
     }
@@ -37,5 +30,5 @@ public class ProjectBundlePair {
     public ReadOnlyObjectProperty<BundleSet> rightBundleSetProperty() {
         return rightBundleSet.getReadOnlyProperty();
     }
-    
+
 }

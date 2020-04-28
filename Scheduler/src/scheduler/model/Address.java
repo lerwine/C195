@@ -1,12 +1,28 @@
 package scheduler.model;
 
+import scheduler.model.ui.AddressItem;
+import static scheduler.util.ResourceBundleHelper.getResourceString;
+import scheduler.view.address.EditAddress;
+import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
+
 /**
  * Interface for objects that contain either partial or complete information from the {@code address} database entity.
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.model.Address}
  */
 public interface Address extends DataModel {
+
+    public static boolean arePropertiesEqual(Address a, Address b) {
+        if (null == a) {
+            return null == b;
+        }
+        if (a == b) {
+            return true;
+        }
+        return null != b && a.getAddress1().equalsIgnoreCase(b.getAddress1()) && a.getAddress2().equalsIgnoreCase(b.getAddress2())
+                && ModelHelper.areSameRecord(a.getCity(), b.getCity()) && a.getPostalCode().equalsIgnoreCase(b.getPostalCode()) &&
+                a.getPhone().equalsIgnoreCase(b.getPhone());
+    }
 
     /**
      * Gets the first line of the current address. Column definition: <code>`address` varchar(50) NOT NULL</code>
@@ -23,11 +39,11 @@ public interface Address extends DataModel {
     String getAddress2();
 
     /**
-     * Gets the {@link CityElement} for the current address. This corresponds to the "city" data row referenced by the "cityId" database column.
+     * Gets the {@link City} for the current address. This corresponds to the "city" data row referenced by the "cityId" database column.
      * Column definition: <code>`cityId` int(10) NOT NULL</code> Key constraint definition:
      * <code>CONSTRAINT `address_ibfk_1` FOREIGN KEY (`cityId`) REFERENCES `city` (`cityId`)</code>
      *
-     * @return The {@link CityElement} for the current address.
+     * @return The {@link City} for the current address.
      */
     City getCity();
 

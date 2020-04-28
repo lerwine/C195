@@ -29,11 +29,12 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.RelatedCityModel;
-import scheduler.view.country.CityCountryModelImpl;
+import scheduler.view.city.RelatedCity;
+import scheduler.view.country.RelatedCountry;
 import scheduler.view.task.TaskWaiter;
 import scheduler.model.db.CityRowData;
 import scheduler.model.db.CountryRowData;
+import scheduler.model.ui.CountryItem;
 
 /**
  * FXML Controller class
@@ -46,15 +47,15 @@ public class AddressPicker {
 
     private static final Logger LOG = Logger.getLogger(AddressPicker.class.getName());
 
-    private ObservableList<RelatedCityModel> allCities;
-    private ObservableList<RelatedCityModel> cityOptions;
-    private ObservableList<CityCountryModelImpl> allCountries;
-    private ObservableList<AddressModelImpl> allAddresses;
-    private ObservableList<AddressModelImpl> addressOptions;
-    private SingleSelectionModel<CityCountryModelImpl> countrySelectionModel;
-    private SingleSelectionModel<RelatedCityModel> citySelectionModel;
-    private TableView.TableViewSelectionModel<AddressModelImpl> addressSelectionModel;
-    private BiConsumer<Stage, AddressModelImpl> onClosed;
+    private ObservableList<RelatedCity> allCities;
+    private ObservableList<RelatedCity> cityOptions;
+    private ObservableList<CountryItem> allCountries;
+    private ObservableList<AddressModel> allAddresses;
+    private ObservableList<AddressModel> addressOptions;
+    private SingleSelectionModel<CountryItem> countrySelectionModel;
+    private SingleSelectionModel<RelatedCity> citySelectionModel;
+    private TableView.TableViewSelectionModel<AddressModel> addressSelectionModel;
+    private BiConsumer<Stage, AddressModel> onClosed;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -65,19 +66,19 @@ public class AddressPicker {
     private BorderPane rootBorderPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CityCountryModelImpl> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryItem> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryWarningLabel"
     private Label countryWarningLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<RelatedCityModel> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<RelatedCity> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityWarningLabel"
     private Label cityWarningLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesTableView"
-    private TableView<AddressModelImpl> addressesTableView; // Value injected by FXMLLoader
+    private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
 
     @FXML // fx:id="selectButton"
     private Button selectButton; // Value injected by FXMLLoader
@@ -88,7 +89,7 @@ public class AddressPicker {
         citySelectionModel.clearSelection();
         cityOptions.clear();
         addressOptions.clear();
-        CityCountryModelImpl selectedItem = countrySelectionModel.getSelectedItem();
+        CountryItem selectedItem = countrySelectionModel.getSelectedItem();
         // CURRENT: Find better way to get matching item
 //        if (null != selectedItem) {
 //            int pk = selectedItem.getPrimaryKey();
@@ -100,7 +101,7 @@ public class AddressPicker {
     void onCityComboBoxAction(ActionEvent event) {
         addressSelectionModel.clearSelection();
         addressOptions.clear();
-        RelatedCityModel selectedItem = citySelectionModel.getSelectedItem();
+        RelatedCity selectedItem = citySelectionModel.getSelectedItem();
         if (null != selectedItem) {
             int pk = selectedItem.getPrimaryKey();
             allAddresses.stream().filter((t) -> t.getCity().getPrimaryKey() == pk).forEach((t) -> addressOptions.add(t));
@@ -151,17 +152,17 @@ public class AddressPicker {
         selectButton.disableProperty().bind(addressSelectionModel.selectedItemProperty().isNull());
     }
 
-    private synchronized BiConsumer<Stage, AddressModelImpl> close() {
-        BiConsumer<Stage, AddressModelImpl> c = onClosed;
+    private synchronized BiConsumer<Stage, AddressModel> close() {
+        BiConsumer<Stage, AddressModel> c = onClosed;
         onClosed = null;
         rootBorderPane.setVisible(false);
         collapseNode(rootBorderPane);
         return c;
     }
 
-    public synchronized void PickAddress(Stage stage, BiConsumer<Stage, AddressModelImpl> onClosed) {
+    public synchronized void PickAddress(Stage stage, BiConsumer<Stage, AddressModel> onClosed) {
         if (null != this.onClosed) {
-            BiConsumer<Stage, AddressModelImpl> c = this.onClosed;
+            BiConsumer<Stage, AddressModel> c = this.onClosed;
             this.onClosed = (t, u) -> {
                 c.accept(t, u);
                 onClosed.accept(t, u);
@@ -202,14 +203,14 @@ public class AddressPicker {
                     CityRowData city = t.getCity();
                     int cityPk = city.getPrimaryKey();
                     if (!allCities.stream().anyMatch((u) -> u.getPrimaryKey() == cityPk)) {
-                        allCities.add(new RelatedCityModel(city));
+                        allCities.add(new RelatedCity(city));
                         CountryRowData country = city.getCountry();
                         int countryPk = country.getPrimaryKey();
                         if (!allCountries.stream().anyMatch((u) -> u.getPrimaryKey() == countryPk)) {
-                            allCountries.add(new CityCountryModelImpl(country));
+                            allCountries.add(new RelatedCountry(country));
                         }
                     }
-                    allAddresses.add(new AddressModelImpl(t));
+                    allAddresses.add(new AddressModel(t));
                 });
             }
         }

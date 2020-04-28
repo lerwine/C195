@@ -17,9 +17,9 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface UserModelFilter extends ModelFilter<UserDAO, UserModelImpl, UserFilter> {
+public interface UserModelFilter extends ModelFilter<UserDAO, UserModel, UserFilter> {
 
-    static UserModelFilter of(String headingText, UserFilter daoFilter, Predicate<UserModel<UserDAO>> predicate) {
+    static UserModelFilter of(String headingText, UserFilter daoFilter, Predicate<UserModel> predicate) {
         return new UserModelFilter() {
             @Override
             public String getHeadingText() {
@@ -32,7 +32,7 @@ public interface UserModelFilter extends ModelFilter<UserDAO, UserModelImpl, Use
             }
 
             @Override
-            public boolean test(UserModelImpl t) {
+            public boolean test(UserModel t) {
                 return predicate.test(t);
             }
 

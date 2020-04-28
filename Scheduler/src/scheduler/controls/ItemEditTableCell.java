@@ -8,7 +8,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
 import scheduler.util.NodeUtil;
-import scheduler.util.NodeUtil.SymbolButtonValue;
+import scheduler.view.SymbolButtonValue;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.event.ItemActionRequestEventListener;
@@ -19,8 +19,17 @@ import scheduler.view.event.ItemActionRequestEventListener;
  * @param <T> The target item type.
  */
 public class ItemEditTableCell<T> extends TableCell<T, T> {
+
     private final HBox graphic;
     private final ObjectProperty<ItemActionRequestEventListener<T>> onItemEdit = new SimpleObjectProperty<>();
+
+    public ItemEditTableCell() {
+        graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolButtonValue.EDIT, this::onEditButtonAction), createSymbolButton(SymbolButtonValue.DELETE, this::onDeleteButtonAction));
+        graphic.setSpacing(8);
+        graphic.setMaxHeight(USE_PREF_SIZE);
+        graphic.setPadding(new Insets(0, 0, 0, 4));
+        super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    }
 
     public ItemActionRequestEventListener<T> getOnItemEdit() {
         return onItemEdit.get();
@@ -33,29 +42,22 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
     public ObjectProperty onItemEditProperty() {
         return onItemEdit;
     }
-    
+
     private void onEditButtonAction(ActionEvent event) {
-        onItemActionRequest(new ItemActionRequestEvent(event, getItem(), false));
+        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), false));
     }
-    
+
     private void onDeleteButtonAction(ActionEvent event) {
-        onItemActionRequest(new ItemActionRequestEvent(event, getItem(), true));
+        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), true));
     }
-    
-    protected void onItemActionRequest(ItemActionRequestEvent event) {
+
+    protected void onItemActionRequest(ItemActionRequestEvent<T> event) {
         ItemActionRequestEventListener<T> listener = onItemEdit.get();
-        if (null != listener)
+        if (null != listener) {
             listener.acceptItemActionRequest(event);
+        }
     }
-    
-    public ItemEditTableCell() {
-        graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolButtonValue.EDIT, this::onEditButtonAction), createSymbolButton(SymbolButtonValue.DELETE, this::onDeleteButtonAction));
-        graphic.setSpacing(8);
-        graphic.setMaxHeight(USE_PREF_SIZE);
-        graphic.setPadding(new Insets(0, 0, 0, 4));
-        super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    }
-    
+
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
@@ -64,8 +66,9 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
             setText("");
         } else {
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            if (graphic != getGraphic())
+            if (graphic != getGraphic()) {
                 setGraphic(graphic);
+            }
         }
     }
 

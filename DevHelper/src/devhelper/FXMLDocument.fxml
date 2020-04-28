@@ -3,113 +3,22 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
     <tabs>
-      <Tab text="Date Formatting">
-        <content>
-            <GridPane>
-              <columnConstraints>
-                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
-                  <ColumnConstraints hgrow="SOMETIMES" />
-                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
-                  <ColumnConstraints hgrow="SOMETIMES" />
-                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                  <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                  <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                  <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-                  <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-                  <RowConstraints valignment="TOP" vgrow="ALWAYS" />
-                  <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <RadioButton fx:id="dateTimeRadioButton" mnemonicParsing="false" selected="true" text="Date/Time">
-                     <toggleGroup>
-                        <ToggleGroup fx:id="dateTimeBuildToggleGroup" />
-                     </toggleGroup>
-                  </RadioButton>
-                  <RadioButton fx:id="dateOnlyRadioButton" mnemonicParsing="false" text="Date Only:" toggleGroup="$dateTimeBuildToggleGroup" GridPane.rowIndex="1" />
-                  <Spinner fx:id="yearSpinner" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <Label text="Year" GridPane.columnIndex="1" />
-                  <Label text="Month" GridPane.columnIndex="3" />
-                  <Label text="Day" GridPane.columnIndex="5" />
-                  <Label text="Label" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                  <Spinner fx:id="monthSpinner" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                  <Label text="Label" GridPane.columnIndex="4" GridPane.rowIndex="1" />
-                  <Spinner fx:id="daySpinner" GridPane.columnIndex="5" GridPane.rowIndex="1" />
-                  <Label text="Hours" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <RadioButton fx:id="minuteRadioButton" mnemonicParsing="false" selected="true" text="Minutes" GridPane.columnIndex="3" GridPane.rowIndex="2">
-                     <toggleGroup>
-                        <ToggleGroup fx:id="timeBuildToggleGroup" />
-                     </toggleGroup>
-                  </RadioButton>
-                  <RadioButton fx:id="secondsRadioButton" mnemonicParsing="false" text="Seconds" toggleGroup="$timeBuildToggleGroup" GridPane.columnIndex="5" GridPane.rowIndex="2" />
-                  <RadioButton fx:id="milllisecondsRadioButton" mnemonicParsing="false" text="Milliseconds" toggleGroup="$timeBuildToggleGroup" GridPane.columnIndex="7" GridPane.rowIndex="2" />
-                  <RadioButton fx:id="timeOnlyRadioButton" mnemonicParsing="false" text="Time Only:" toggleGroup="$dateTimeBuildToggleGroup" GridPane.rowIndex="3" />
-                  <Spinner fx:id="hourSpinner" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                  <Label text="Label" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                  <Spinner fx:id="minuteSpinner" GridPane.columnIndex="3" GridPane.rowIndex="3" />
-                  <Label text="Label" GridPane.columnIndex="4" GridPane.rowIndex="3" />
-                  <Spinner fx:id="secondSpinner" GridPane.columnIndex="5" GridPane.rowIndex="3" />
-                  <Label text="label" GridPane.columnIndex="6" GridPane.rowIndex="3" />
-                  <Spinner fx:id="millisecondSpinner" GridPane.columnIndex="7" GridPane.rowIndex="3" />
-                  <CheckBox fx:id="localeCheckBox" mnemonicParsing="false" text="Locale:" GridPane.rowIndex="4" />
-                  <HBox alignment="CENTER" maxHeight="-Infinity" minHeight="-Infinity" GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.rowIndex="4">
-                     <children>
-                        <ComboBox fx:id="localeComboBox" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                        <Label contentDisplay="CENTER" maxHeight="-Infinity" minHeight="-Infinity" text="Formatter:">
-                           <HBox.margin>
-                              <Insets left="8.0" />
-                           </HBox.margin>
-                        </Label>
-                        <ComboBox fx:id="formatterComboBox" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                        <Button mnemonicParsing="false" onAction="#onConstructButtonAction" text="Construct">
-                           <HBox.margin>
-                              <Insets left="8.0" />
-                           </HBox.margin>
-                        </Button>
-                     </children>
-                  </HBox>
-                  <Label text="Text:" GridPane.rowIndex="7" />
-                  <TextArea fx:id="temporarStringTextArea" GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.rowIndex="7" GridPane.vgrow="ALWAYS" />
-                  <ButtonBar GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.rowIndex="8">
-                    <buttons>
-                      <Button mnemonicParsing="false" onAction="#parseButtonAction" text="Parse" />
-                    </buttons>
-                  </ButtonBar>
-                  <Label fx:id="dateFormatValidationMessage" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                  <CheckBox fx:id="formatStringCheckBox" mnemonicParsing="false" text="Format String:" GridPane.rowIndex="6" />
-                  <TextArea fx:id="formatStringTextArea" GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.rowIndex="6" />
-               </children>
-            </GridPane>
-        </content>
-      </Tab>
+      <Tab fx:id="dateFormattingTab" text="Date Formatting" />
         <Tab text="Language Tag">
          <content>
             <VBox prefHeight="200.0" prefWidth="100.0">

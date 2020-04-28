@@ -3,7 +3,6 @@ package scheduler.observables;
 import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.binding.Binding;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;
@@ -17,8 +16,9 @@ import javafx.collections.ObservableList;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  * @param <S>
+ * @deprecated Delete this if the other property binding types work.
  */
-public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> implements Binding<T> {
+public class ChildPropertyWrapper<T, S> extends ReadOnlyObjectPropertyBase<T> implements BindingProperty<T> {
 
     private ReadOnlyObjectProperty<S> source;
     private final Function<S, ReadOnlyProperty<T>> getChildProperty;

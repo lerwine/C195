@@ -3,10 +3,12 @@ package scheduler.model.predefined;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -17,6 +19,10 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -55,7 +61,7 @@ public class PredefinedData {
                 result.countries.forEach((t) -> {
                     ObservableList<PredefinedCity> cl = FXCollections.observableArrayList();
                     PredefinedCountry n = new PredefinedCountry(t, FXCollections.unmodifiableObservableList(cl));
-                    countryMap.put(t.getLanguageTag(), n);
+                    countryMap.put(n.getRegionCode(), n);
                     t.getCities().forEach((u) -> {
                         ObservableList<PredefinedAddress> al = FXCollections.observableArrayList();
                         PredefinedCity c = new PredefinedCity(u, n, FXCollections.unmodifiableObservableList(al));
@@ -86,6 +92,14 @@ public class PredefinedData {
             return resources.getString(key);
         }
         return null;
+    }
+
+    public static Stream<CityItem> getCityOptions(Collection<CityDAO> values) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedData#getCityOptions
+    }
+
+    public static Stream<CountryItem> getCountryOptions(Collection<CountryDAO> values) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedData#getCountryOptions
     }
 
     @XmlElement(name = CountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)

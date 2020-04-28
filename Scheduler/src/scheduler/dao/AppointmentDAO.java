@@ -1,6 +1,5 @@
 package scheduler.dao;
 
-import scheduler.model.AppointmentType;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,12 +20,16 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.util.DB;
-import scheduler.util.InternalException;
-import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.model.Appointment;
+import scheduler.model.AppointmentType;
+import scheduler.model.ModelHelper;
+import scheduler.model.RelatedRecord;
 import scheduler.model.db.AppointmentRowData;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
+import scheduler.util.DB;
+import scheduler.util.InternalException;
+import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
  * Data access object for the {@code appointment} database table.
@@ -125,16 +128,16 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
     protected void reValidate(Consumer<ValidationResult> addValidation) {
         if (null == customer) {
             addValidation.accept(ValidationResult.NO_CUSTOMER);
-        } else if (customer.validate() != ValidationResult.OK) {
+        } else if (RelatedRecord.validate(customer) != ValidationResult.OK) {
             addValidation.accept(ValidationResult.CUSTOMER_INVALID);
-        } else if (customer.getRowState() == DataRowState.NEW) {
+        } else if (ModelHelper.getRowState(customer) == DataRowState.DELETED) {
             addValidation.accept(ValidationResult.CUSTOMER_NOT_SAVED);
         }
         if (null == user) {
             addValidation.accept(ValidationResult.NO_USER);
-        } else if (user.validate() != ValidationResult.OK) {
+        } else if (RelatedRecord.validate(user) != ValidationResult.OK) {
             addValidation.accept(ValidationResult.USER_INVALID);
-        } else if (user.getRowState() == DataRowState.NEW) {
+        } else if (ModelHelper.getRowState(user) == DataRowState.NEW) {
             addValidation.accept(ValidationResult.USER_NOT_SAVED);
         }
         if (title.trim().isEmpty()) {
@@ -148,11 +151,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
             addValidation.accept(ValidationResult.START_FOLLOWS_END);
         }
         switch (type) {
-            case CORPORATE_HQ_MEETING:
+            case CORPORATE_LOCATION:
             case CUSTOMER_SITE:
-            case GERMANY_SITE_MEETING:
-            case GUATEMALA_SITE_MEETING:
-            case INDIA_SITE_MEETING:
                 break;
             case PHONE:
             case VIRTUAL:
@@ -348,27 +348,14 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof AppointmentRowData) {
-            AppointmentRowData other = (AppointmentRowData) obj;
-            if (getRowState() == DataRowState.NEW) {
-                return other.getRowState() == DataRowState.NEW && customer.equals(other.getCustomer()) && user.equals(other.getUser())
-                        && title.equals(other.getTitle()) && description.equals(other.getDescription()) && location.equals(other.getLocation())
-                        && contact.equals(other.getContact()) && type.equals(other.getType()) && url.equals(other.getUrl())
-                        && start.equals(other.getStart()) && end.equals(other.getEnd());
-            }
-            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
-        }
-        return false;
+        return null != obj && obj instanceof Appointment && ModelHelper.areSameRecord(this, (Appointment) obj);
     }
 
     /**
      * Factory implementation for {@link scheduler.model.db.AppointmentRowData} objects.
      * <dl>
      * <dt>{@link scheduler.view.model.ItemModel}</dt>
-     * <dd>{@code DataModel} with all data from a database entity.</dd>
+     * <dd>{@code ModelHelper} with all data from a database entity.</dd>
      * </dl>
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
@@ -647,11 +634,11 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
         @Override
         public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
             CustomerRowData customer = dao.getCustomer();
-            if (customer instanceof CustomerDAO && (force || customer.getRowState() != DataRowState.UNMODIFIED)) {
+            if (customer instanceof CustomerDAO && (force || ModelHelper.getRowState(customer) != DataRowState.UNMODIFIED)) {
                 CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
             }
             UserRowData user = dao.getUser();
-            if (user instanceof UserDAO && (force || user.getRowState() != DataRowState.UNMODIFIED)) {
+            if (user instanceof UserDAO && (force || ModelHelper.getRowState(user) != DataRowState.UNMODIFIED)) {
                 UserDAO.getFactory().save((UserDAO) user, connection, force);
             }
             super.save(dao, connection, force);

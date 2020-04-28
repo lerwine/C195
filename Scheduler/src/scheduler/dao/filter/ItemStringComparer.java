@@ -3,39 +3,39 @@ package scheduler.dao.filter;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
-import scheduler.view.model.ItemModel;
-import scheduler.view.customer.CustomerModelImpl;
-import scheduler.view.user.UserModelImpl;
+import scheduler.model.ui.FxRecordModel;
+import scheduler.view.customer.CustomerModel;
+import scheduler.view.user.UserModel;
 
 /**
- * Compares {@link DataAccessObject} and {@link ItemModel} to string values.
+ * Compares {@link DataAccessObject} and {@link FxRecordModel} to string values.
  *
  * @param <T> The type of {@link DataAccessObject} object.
- * @param <U> The type of {@link ItemModel} object.
+ * @param <U> The type of {@link FxRecordModel} object.
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ItemStringComparer<T extends DataAccessObject, U extends ItemModel<T>> extends ItemValueComparer<T, U, String> {
+public interface ItemStringComparer<T extends DataAccessObject, U extends FxRecordModel<T>> extends ItemValueComparer<T, U, String> {
 
-    public static final ItemStringComparer<CustomerDAO, CustomerModelImpl> CUSTOMER_NAME = new ItemStringComparer<CustomerDAO, CustomerModelImpl>() {
+    public static final ItemStringComparer<CustomerDAO, CustomerModel> CUSTOMER_NAME = new ItemStringComparer<CustomerDAO, CustomerModel>() {
         @Override
         public String get(CustomerDAO dao) {
             return dao.getName();
         }
 
         @Override
-        public String get(CustomerModelImpl model) {
+        public String get(CustomerModel model) {
             return model.getName();
         }
     };
     
-    public static ItemStringComparer<UserDAO, UserModelImpl> USER_NAME = new ItemStringComparer<UserDAO, UserModelImpl>() {
+    public static ItemStringComparer<UserDAO, UserModel> USER_NAME = new ItemStringComparer<UserDAO, UserModel>() {
         @Override
         public String get(UserDAO dao) {
             return dao.getUserName();
         }
 
         @Override
-        public String get(UserModelImpl model) {
+        public String get(UserModel model) {
             return model.getUserName();
         }
     };
@@ -57,10 +57,10 @@ public interface ItemStringComparer<T extends DataAccessObject, U extends ItemMo
     /**
      * Compares the value associated with a {@link DataAccessObject} object with another value.
      *
-     * @param model The target {@link ItemModel}.
+     * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link ItemModel} object is equal to {@code value}. If the value associated with a {@link ItemModel} object is less than
-     * {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link ItemModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link FxRecordModel} object is equal to {@code value}. If the value associated with a {@link FxRecordModel} object is less than
+     * {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link FxRecordModel} object is greater than {@code value}.
      */
     default int compareTo(U model, String value) {
         String t = get(model);
@@ -82,7 +82,7 @@ public interface ItemStringComparer<T extends DataAccessObject, U extends ItemMo
     /**
      * Tests whether the value associated with a {@link DataAccessObject} object starts with another value.
      *
-     * @param model The target {@link ItemModel}.
+     * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
      * @return {@code true} if the value associated with a {@link DataAccessObject} object starts with {@code value}; otherwise, {@code false}.
      */
@@ -106,7 +106,7 @@ public interface ItemStringComparer<T extends DataAccessObject, U extends ItemMo
     /**
      * Tests whether the value associated with a {@link DataAccessObject} object ends with another value.
      *
-     * @param model The target {@link ItemModel}.
+     * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
      * @return {@code true} if the value associated with a {@link DataAccessObject} object ends with {@code value}; otherwise, {@code false}.
      */
@@ -130,7 +130,7 @@ public interface ItemStringComparer<T extends DataAccessObject, U extends ItemMo
     /**
      * Tests whether the value associated with a {@link DataAccessObject} object contains another value.
      *
-     * @param model The target {@link ItemModel}.
+     * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
      * @return {@code true} if the value associated with a {@link DataAccessObject} object contains {@code value}; otherwise, {@code false}.
      */

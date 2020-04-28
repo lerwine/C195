@@ -36,7 +36,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
-import scheduler.view.address.AddressModelImpl;
+import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -48,21 +48,21 @@ import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
-import scheduler.view.city.CityModelImpl;
+import scheduler.view.city.CityModel;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.ManageCountries;
-import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
-import scheduler.view.user.UserModelImpl;
+import scheduler.view.user.UserModel;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
 
@@ -140,7 +140,7 @@ public final class MainController {
     void onManageCustomersMenuItemAction(ActionEvent event) {
         Stage stage = (Stage) contentPane.getScene().getWindow();
         try {
-            ManageCustomers.loadInto(MainController.this, stage, CustomerModelImpl.getFactory().getAllItemsFilter());
+            ManageCustomers.loadInto(MainController.this, stage, CustomerModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
         }
@@ -150,7 +150,7 @@ public final class MainController {
     void onManageUsersMenuItemAction(ActionEvent event) {
         Stage stage = (Stage) contentPane.getScene().getWindow();
         try {
-            ManageUsers.loadInto(MainController.this, stage, UserModelImpl.getFactory().getAllItemsFilter());
+            ManageUsers.loadInto(MainController.this, stage, UserModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }
@@ -466,13 +466,13 @@ public final class MainController {
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link CustomerModelImpl}.
+     * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
      *
      * @param stage The current {@link Stage}.
-     * @return The newly added {@link CustomerModelImpl} or {@code null} if the operation was canceled.
+     * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
      */
-    public CustomerModelImpl addNewCustomer(Stage stage) {
-        CustomerModelImpl result;
+    public CustomerModel addNewCustomer(Stage stage) {
+        CustomerModel result;
         try {
             result = EditCustomer.editNew(this, stage);
         } catch (IOException ex) {
@@ -486,13 +486,13 @@ public final class MainController {
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a {@link CustomerModelImpl}.
+     * Opens an {@link EditItem} window to edit a {@link CustomerModel}.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link CustomerModelImpl} to be edited.
+     * @param item The {@link CustomerModel} to be edited.
      */
-    public void editCustomer(Stage stage, CustomerModelImpl item) {
-        CustomerModelImpl result;
+    public void editCustomer(Stage stage, CustomerModel item) {
+        CustomerModel result;
         try {
             result = EditCustomer.edit(item, this, stage);
         } catch (IOException ex) {
@@ -505,17 +505,17 @@ public final class MainController {
     }
 
     /**
-     * Deletes a {@link CustomerModelImpl} item after confirming with user.
+     * Deletes a {@link CustomerModel} item after confirming with user.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link CustomerModelImpl} to be deleted.
+     * @param item The {@link CustomerModel} to be deleted.
      */
-    public void deleteCustomer(Stage stage, CustomerModelImpl item) {
+    public void deleteCustomer(Stage stage, CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModelImpl.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModel.getFactory(),
                     (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
         }
     }
@@ -556,13 +556,13 @@ public final class MainController {
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a {@link CityModelImpl}.
+     * Opens an {@link EditItem} window to edit a {@link CityModel}.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link CityModelImpl} to be edited.
+     * @param item The {@link CityModel} to be edited.
      */
-    public void openCity(Stage stage, CityModelImpl item) {
-        CityModelImpl result;
+    public void openCity(Stage stage, CityModel item) {
+        CityModel result;
         try {
             result = EditCity.edit(item, this, stage);
         } catch (IOException ex) {
@@ -575,29 +575,29 @@ public final class MainController {
     }
 
     /**
-     * Deletes a {@link CityModelImpl} item after confirming with user.
+     * Deletes a {@link CityModel} item after confirming with user.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link CityModelImpl} to be deleted.
+     * @param item The {@link CityModel} to be deleted.
      */
-    public void deleteCity(Stage stage, CityModelImpl item) {
+    public void deleteCity(Stage stage, CityModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModelImpl.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModel.getFactory(),
                     (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
         }
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link AddressModelImpl}.
+     * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
      *
      * @param stage The current {@link Stage}.
-     * @return The newly added {@link AddressModelImpl} or {@code null} if the operation was canceled.
+     * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
-    public AddressModelImpl addNewAddress(Stage stage) {
-        AddressModelImpl result;
+    public AddressModel addNewAddress(Stage stage) {
+        AddressModel result;
         try {
             result = EditAddress.editNew(this, stage);
         } catch (IOException ex) {
@@ -611,13 +611,13 @@ public final class MainController {
     }
 
     /**
-     * Opens an {@link EditItem} window to edit an {@link AddressModelImpl}.
+     * Opens an {@link EditItem} window to edit an {@link AddressModel}.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link AddressModelImpl} to be edited.
+     * @param item The {@link AddressModel} to be edited.
      */
-    public void editAddress(Stage stage, AddressModelImpl item) {
-        AddressModelImpl result;
+    public void editAddress(Stage stage, AddressModel item) {
+        AddressModel result;
         try {
             result = EditAddress.edit(item, this, stage);
         } catch (IOException ex) {
@@ -630,29 +630,29 @@ public final class MainController {
     }
 
     /**
-     * Deletes an {@link AddressModelImpl} item after confirming with user.
+     * Deletes an {@link AddressModel} item after confirming with user.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link AddressModelImpl} to be deleted.
+     * @param item The {@link AddressModel} to be deleted.
      */
-    public void deleteAddress(Stage stage, AddressModelImpl item) {
+    public void deleteAddress(Stage stage, AddressModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModelImpl.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModel.getFactory(),
                     (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
         }
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a new {@link UserModelImpl}.
+     * Opens an {@link EditItem} window to edit a new {@link UserModel}.
      *
      * @param stage The current {@link Stage}.
-     * @return The newly added {@link UserModelImpl} or {@code null} if the operation was canceled.
+     * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
      */
-    public UserModelImpl addNewUser(Stage stage) {
-        UserModelImpl result;
+    public UserModel addNewUser(Stage stage) {
+        UserModel result;
         try {
             result = EditUser.editNew(this, stage);
         } catch (IOException ex) {
@@ -666,13 +666,13 @@ public final class MainController {
     }
 
     /**
-     * Opens an {@link EditItem} window to edit a {@link UserModelImpl}.
+     * Opens an {@link EditItem} window to edit a {@link UserModel}.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link UserModelImpl} to be edited.
+     * @param item The {@link UserModel} to be edited.
      */
-    public void editUser(Stage stage, UserModelImpl item) {
-        UserModelImpl result;
+    public void editUser(Stage stage, UserModel item) {
+        UserModel result;
         try {
             result = EditUser.edit(item, this, stage);
         } catch (IOException ex) {
@@ -685,17 +685,17 @@ public final class MainController {
     }
 
     /**
-     * Deletes a {@link UserModelImpl} item after confirming with user.
+     * Deletes a {@link UserModel} item after confirming with user.
      *
      * @param stage The current {@link Stage}.
-     * @param item The {@link UserModelImpl} to be deleted.
+     * @param item The {@link UserModel} to be deleted.
      */
-    public void deleteUser(Stage stage, UserModelImpl item) {
+    public void deleteUser(Stage stage, UserModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModelImpl.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModel.getFactory(),
                     (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
         }
     }
@@ -729,13 +729,13 @@ public final class MainController {
         fireDaoEvent(this, DaoChangeAction.DELETED, item.getDataObject());
     }
 
-    private class DeleteTask<D extends DataAccessObject, M extends ItemModel<D>> extends TaskWaiter<String> {
+    private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends TaskWaiter<String> {
 
         private final M model;
         private final Consumer<M> onDeleted;
         private final DataAccessObject.DaoFactory<D> factory;
 
-        DeleteTask(M model, Stage stage, ItemModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
+        DeleteTask(M model, Stage stage, FxRecordModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_DELETINGRECORD));
             this.model = model;
             this.onDeleted = onDeleted;

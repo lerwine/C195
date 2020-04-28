@@ -26,9 +26,9 @@ import scheduler.controls.ItemEditTableCellFactory;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
-import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.view.annotations.HandlesDataObjectEvent;
@@ -38,10 +38,9 @@ import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.event.ItemActionRequestEvent;
-import scheduler.view.model.ItemModel;
 
 /**
- * Base class for controllers that present a {@link TableView} containing {@link ItemModel} objects.
+ * Base class for controllers that present a {@link TableView} containing {@link FxRecordModel} objects.
  * <p>
  * Inherited classes invoke {@link #loadInto(Class, MainController, Stage, ModelFilter)} or
  * {@link #loadInto(Class, MainController, Stage, ModelFilter, Object)} to instantiate a new controller instance and its view. Typically, the
@@ -60,7 +59,7 @@ import scheduler.view.model.ItemModel;
  * @param <T> The type of data access object that corresponds to the model object type.
  * @param <U> The type of model objects presented by the ListingController.
  */
-public abstract class ListingController<T extends DataAccessObject, U extends ItemModel<T>> {
+public abstract class ListingController<T extends DataAccessObject, U extends FxRecordModel<T>> {
 
     private static final Logger LOG = Logger.getLogger(ListingController.class.getName());
 
@@ -74,7 +73,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      * This calls {@link MainController#loadContent(java.lang.Class, java.lang.Object)}, to load the view and controller.</p>
      *
      * <p>
-     * When the {@link FxmlViewEventType#LOADED} {@link scheduler.view.event.FxmlViewEvent} occurs, this sets the {@link #filterx} property from the
+     * When the {@link FxmlViewEventType#LOADED} {@link scheduler.view.event.FxmlViewEvent} occurs, this sets the {@link #filter} property from the
      * parameters of this method.</p>
      *
      * <p>
@@ -94,7 +93,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      * @return The instantiated controller.
      * @throws IOException if not able to load the FXML view.
      */
-    protected static <T extends DataAccessObject, U extends ItemModel<T>, S extends ListingController<T, U>> S loadInto(Class<S> controllerClass,
+    protected static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends ListingController<T, U>> S loadInto(Class<S> controllerClass,
             MainController mainController, Stage stage, ModelFilter<T, U, ? extends DaoFilter<T>> filter,
             Object loadEventListener) throws IOException {
         return mainController.loadContent(controllerClass, (FxmlViewControllerEventListener<Parent, S>) (event) -> {
@@ -120,11 +119,11 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
      * @return The instantiated controller.
      * @throws IOException if not able to load the FXML view.
      */
-    protected static <T extends DataAccessObject, U extends ItemModel<T>, S extends ListingController<T, U>> S loadInto(Class<S> controllerClass,
+    protected static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends ListingController<T, U>> S loadInto(Class<S> controllerClass,
             MainController mainController, Stage stage, ModelFilter<T, U, ? extends DaoFilter<T>> filter) throws IOException {
         return loadInto(controllerClass, mainController, stage, filter, null);
     }
-    
+
     private ObjectProperty<ModelFilter<T, U, ? extends DaoFilter<T>>> filter;
     private final ObservableList<U> itemsList = FXCollections.observableArrayList();
 
@@ -159,21 +158,21 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     private ItemEditTableCellFactory<U> itemEditTableCellFactory; // Value injected by FXMLLoader
 
     /**
-     * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link ItemModel}. This is defined within the
+     * The {@link MenuItem} injected by the {@link FXMLLoader} for editing an {@link FxRecordModel}. This is defined within the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      */
     @FXML
     protected MenuItem editMenuItem;
 
     /**
-     * The {@link MenuItem} injected by the {@link FXMLLoader} for deleting an {@link ItemModel}. This is defined within the
+     * The {@link MenuItem} injected by the {@link FXMLLoader} for deleting an {@link FxRecordModel}. This is defined within the
      * {@link javafx.scene.control.ContextMenu} for the {@link #listingTableView} control.
      */
     @FXML
     protected MenuItem deleteMenuItem;
 
     /**
-     * The {@link Button} control injected by the {@link FXMLLoader} for adding a new {@link ItemModel}.
+     * The {@link Button} control injected by the {@link FXMLLoader} for adding a new {@link FxRecordModel}.
      */
     @FXML
     protected Button newButton;
@@ -205,7 +204,6 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         assert deleteMenuItem != null : "fx:id=\"deleteMenuItem\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert newButton != null : "fx:id=\"newButton\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
 
-
         filter = new SimpleObjectProperty<>();
 //        NodeUtil.appendEditColumn(listingTableView, this::onItemActionRequest);
         listingTableView.setItems(itemsList);
@@ -217,7 +215,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         helpButton.setOnAction(this::onHelpButtonAction);
         itemEditTableCellFactory.setOnItemActionRequest(this::onItemActionRequest);
     }
-    
+
     protected String getResourceString(String key) {
         return resources.getString(key);
     }
@@ -243,15 +241,16 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     protected void onItemActionRequest(ItemActionRequestEvent<U> event) {
         Stage stage = (Stage) listingTableView.getScene().getWindow();
         try {
-            if (event.isDelete())
+            if (event.isDelete()) {
                 onDeleteItem(stage, event.getItem());
-            else
+            } else {
                 onEditItem(stage, event.getItem());
+            }
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
         }
     }
-    
+
     void onEditMenuItemAction(ActionEvent event) {
         U item = listingTableView.getSelectionModel().getSelectedItem();
         Stage stage = (Stage) listingTableView.getScene().getWindow();
@@ -291,7 +290,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
                 try {
                     onAddNewItem(stage);
                 } catch (IOException ex) {
-                ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
+                    ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), stage, ex);
                 }
             }
             return;
@@ -366,17 +365,18 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Gets the {@link ItemModel.ModelFactory} object responsible for CRUD operations on model items.
+     * Gets the {@link FxRecordModel.ModelFactory} object responsible for CRUD operations on model items.
      *
-     * @return The {@link ItemModel.ModelFactory} object responsible for CRUD operations on model items.
+     * @return The {@link FxRecordModel.ModelFactory} object responsible for CRUD operations on model items.
      */
-    protected abstract ItemModel.ModelFactory<T, U> getModelFactory();
+    protected abstract FxRecordModel.ModelFactory<T, U> getModelFactory();
 
     /**
      * This gets invoked when an {@link FxmlViewEvent} occurs.
      *
      * @param event The {@link FxmlViewEvent} object describing the event.
      */
+    @SuppressWarnings("unchecked")
     @HandlesFxmlViewEvent
     protected void onFxmlViewEvent(FxmlViewEvent<? extends Parent> event) {
         if (event.getType() == FxmlViewEventType.BEFORE_SHOW) {
@@ -390,7 +390,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             }
             getModelFactory().getDaoFactory().loadAsync(event.getStage(), modelFilter.getDaoFilter(), this::onItemsLoaded, (t) -> onItemLoadError(t, event.getStage()));
             filter.addListener((observable) -> {
-                onFilterChanged(((ObjectProperty<ModelFilter<T, U, ? extends DaoFilter<T>>>)observable).get());
+                onFilterChanged(((ObjectProperty<ModelFilter<T, U, ? extends DaoFilter<T>>>) observable).get());
             });
         }
     }
@@ -416,18 +416,18 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
             }
             daoFilter = filter.getDaoFilter();
         }
-        Stage stage = (Stage)listingTableView.getScene().getWindow();
+        Stage stage = (Stage) listingTableView.getScene().getWindow();
         getModelFactory().getDaoFactory().loadAsync(stage, daoFilter, this::onItemsLoaded, (t) -> onItemLoadError(t, stage));
     }
-    
+
     protected void onItemLoadError(Throwable error, Stage stage) {
         ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, error,
                 AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGITEMSFROMDB));
     }
-    
+
     protected void onItemsLoaded(List<T> items) {
         itemsList.clear();
-        ItemModel.ModelFactory<T, U> factory = getModelFactory();
+        FxRecordModel.ModelFactory<T, U> factory = getModelFactory();
         items.forEach((u) -> {
             itemsList.add(factory.createNew(u));
         });
@@ -457,8 +457,10 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
         }
     }
 
-    protected boolean cannotAddNew() { return true; }
-    
+    protected boolean cannotAddNew() {
+        return true;
+    }
+
     /**
      * This gets called when the user clicks the {@link #newButton} control or types the {@link KeyCode#N} key while {@link KeyEvent#isMetaDown()} or
      * {@link KeyEvent#isControlDown()}.
@@ -488,11 +490,11 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     protected abstract void onDeleteItem(Stage stage, U item);
 
     /**
-     * Gets the index of the {@link ItemModel} in the current {@link #itemsList} where the {@link ItemModel#primaryKeyProperty()} matches the given
+     * Gets the index of the {@link FxRecordModel} in the current {@link #itemsList} where the {@link FxRecordModel#primaryKeyProperty()} matches the given
      * value.
      *
      * @param pk The value of the primary key.
-     * @return The index of the list item whose {@link ItemModel#primaryKeyProperty()} matches {@code pk} or {@code -1} if no match was found.
+     * @return The index of the list item whose {@link FxRecordModel#primaryKeyProperty()} matches {@code pk} or {@code -1} if no match was found.
      */
     protected int indexOfListItemByPrimaryKey(int pk) {
         Iterator<U> iterator = getItemsList().iterator();
@@ -507,10 +509,10 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Gets the {@link ItemModel} in the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value.
+     * Gets the {@link FxRecordModel} in the current {@link #itemsList} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value.
      *
      * @param pk The value of the primary key.
-     * @return The {@link ItemModel} whose {@link ItemModel#primaryKeyProperty()} matches the given value or {@code null} if no match was found.
+     * @return The {@link FxRecordModel} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value or {@code null} if no match was found.
      */
     protected U getListItemByPrimaryKey(int pk) {
         Iterator<U> iterator = getItemsList().iterator();
@@ -524,7 +526,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Removes the {@link ItemModel} from the current {@link #itemsList} whose {@link ItemModel#primaryKeyProperty()} matches the given value. This
+     * Removes the {@link FxRecordModel} from the current {@link #itemsList} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value. This
      * does not delete the item from the database.
      *
      * @param pk The value of the primary key.
@@ -543,11 +545,11 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Replaces an {@link ItemModel} in the current {@link #itemsList} a matching {@link ItemModel#primaryKeyProperty()}. This does not update any
+     * Replaces an {@link FxRecordModel} in the current {@link #itemsList} a matching {@link FxRecordModel#primaryKeyProperty()}. This does not update any
      * item in the database.
      *
-     * @param item The {@link ItemModel} to replace into the list.
-     * @return {@code true} if an item with a matching {@link ItemModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if no
+     * @param item The {@link FxRecordModel} to replace into the list.
+     * @return {@code true} if an item with a matching {@link FxRecordModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if no
      * match was found.
      */
     protected boolean updateListItem(U item) {
@@ -566,12 +568,12 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Inserts an {@link ItemModel} into the current {@link #itemsList}, replacing any with a matching {@link ItemModel#primaryKeyProperty()}. This
+     * Inserts an {@link FxRecordModel} into the current {@link #itemsList}, replacing any with a matching {@link FxRecordModel#primaryKeyProperty()}. This
      * does not insert or update any item in the database.
      *
-     * @param item The {@link ItemModel} to insert into the list.
+     * @param item The {@link FxRecordModel} to insert into the list.
      * @return {@code true} if the {@code item} was appended to the list; otherwise, {@code false} if it replaced one with a matching
-     * {@link ItemModel#primaryKeyProperty()}.
+     * {@link FxRecordModel#primaryKeyProperty()}.
      */
     protected boolean upsertListItem(U item) {
         int pk = item.getPrimaryKey();
@@ -590,10 +592,10 @@ public abstract class ListingController<T extends DataAccessObject, U extends It
     }
 
     /**
-     * Creates an {@link ItemModel} from a {@link DataAccessObject}.
+     * Creates an {@link FxRecordModel} from a {@link DataAccessObject}.
      *
      * @param dao The data access object.
-     * @return The new {@link ItemModel}.
+     * @return The new {@link FxRecordModel}.
      */
     protected abstract U toModel(T dao);
 

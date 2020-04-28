@@ -31,21 +31,21 @@ import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.address.AddressModelImpl;
+import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.event.FxmlViewControllerEvent;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEventType;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
 
 /**
- * Wrapper FXML Controller class for editing {@link ItemModel} items in a new modal window.
+ * Wrapper FXML Controller class for editing {@link FxRecordModel} items in a new modal window.
  * <p>
  * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link ItemModel#createdBy}, {@link ItemModel#createDate}, {@link ItemModel#lastModifiedBy} and {@link ItemModel#lastModifiedDate}
- * properties. Properties that are specific to the {@link ItemModel} type are edited in a nested view and controller. Controllers for the nested
+ * values for the {@link FxRecordModel#createdBy}, {@link FxRecordModel#createDate}, {@link FxRecordModel#lastModifiedBy} and {@link FxRecordModel#lastModifiedDate}
+ * properties. Properties that are specific to the {@link FxRecordModel} type are edited in a nested view and controller. Controllers for the nested
  * editor views inherit from {@link EditItem.EditController}.</p>
  * <p>
  * The nested editor view can load the {@code EditItem} view and controller, including the nested view and controller using
@@ -60,7 +60,7 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> implements DataObjectEventListener<T> {
+public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>> implements DataObjectEventListener<T> {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
@@ -129,7 +129,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
     private void onSaveButtonAction(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         contentController.onSaving(stage, contentController.model);
-        ItemModel.ModelFactory<T, U> factory = contentController.getFactory();
+        FxRecordModel.ModelFactory<T, U> factory = contentController.getFactory();
         T dao = factory.updateDAO(contentController.model);
         TaskWaiter.startNow(new SaveTask(dao, stage));
     }
@@ -208,7 +208,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         return viewAndController;
     }
 
-    private static class ViewControllerLoadListener<T extends DataAccessObject, U extends ItemModel<T>>
+    private static class ViewControllerLoadListener<T extends DataAccessObject, U extends FxRecordModel<T>>
             implements FxmlViewControllerEventListener<Parent, EditItem<T, U>> {
 
         private final MainController mainController;
@@ -266,7 +266,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
      * @param <T> The type of data access object that the model represents.
      * @param <U> The type of model being edited.
      */
-    public static abstract class EditController<T extends DataAccessObject, U extends ItemModel<T>> {
+    public static abstract class EditController<T extends DataAccessObject, U extends FxRecordModel<T>> {
 
         /**
          * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Add"}.
@@ -329,18 +329,18 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         public static final String RESOURCEKEY_VALIDATIONERROR = "validationError";
 
         /**
-         * Load an {@code EditItem} view and controller and the nested view and controller for editing a new {@link ItemModel}.
+         * Load an {@code EditItem} view and controller and the nested view and controller for editing a new {@link FxRecordModel}.
          *
-         * @param <T> The type of {@link DataAccessObject} supported by the {@link ItemModel}.
-         * @param <U> The {@link ItemModel} type.
+         * @param <T> The type of {@link DataAccessObject} supported by the {@link FxRecordModel}.
+         * @param <U> The {@link FxRecordModel} type.
          * @param controllerClass The class of the controller for the nested edit controls.
          * @param mainController The {@link MainController} instance that will contain the {@code EditItem} view and controller.
          * @param stage The {@link Stage} of the initiating event for this action.
-         * @return The newly saved {@link ItemModel} or {@code null} if the edit was canceled.
+         * @return The newly saved {@link FxRecordModel} or {@code null} if the edit was canceled.
          * @throws IOException if unable to load any of the FXML resources.
          */
         @SuppressWarnings("unchecked")
-        protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
+        protected static <T extends DataAccessObject, U extends FxRecordModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<>(mainController, null, controllerClass),
                     stage, EditItem.class);
@@ -349,7 +349,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         }
 
         @SuppressWarnings("unchecked")
-        protected static <T extends DataAccessObject, U extends ItemModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
+        protected static <T extends DataAccessObject, U extends FxRecordModel<T>> U editNew(Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage, Object loadEventListener) throws IOException {
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<>(mainController, null, controllerClass),
                     stage, EditItem.class, loadEventListener);
@@ -358,19 +358,19 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         }
 
         /**
-         * Load an {@code EditItem} view and controller and the nested view and controller for editing an existing {@link ItemModel}.
+         * Load an {@code EditItem} view and controller and the nested view and controller for editing an existing {@link FxRecordModel}.
          *
-         * @param <T> The type of {@link DataAccessObject} supported by the {@link ItemModel}.
-         * @param <U> The {@link ItemModel} type.
-         * @param model The {@link ItemModel} to be edited.
+         * @param <T> The type of {@link DataAccessObject} supported by the {@link FxRecordModel}.
+         * @param <U> The {@link FxRecordModel} type.
+         * @param model The {@link FxRecordModel} to be edited.
          * @param controllerClass The class of the controller for the nested edit controls.
          * @param mainController The {@link MainController} instance that will contain the {@code EditItem} view and controller.
          * @param stage The {@link Stage} of the initiating event for this action.
-         * @return The edited or deleted {@link ItemModel} or {@code null} if the edit was canceled.
+         * @return The edited or deleted {@link FxRecordModel} or {@code null} if the edit was canceled.
          * @throws IOException if unable to load any of the FXML resources.
          */
         @SuppressWarnings("unchecked")
-        protected static <T extends DataAccessObject, U extends ItemModel<T>> U edit(U model, Class<? extends EditController<T, U>> controllerClass,
+        protected static <T extends DataAccessObject, U extends FxRecordModel<T>> U edit(U model, Class<? extends EditController<T, U>> controllerClass,
                 MainController mainController, Stage stage) throws IOException {
             EditItem<T, U> fc = ViewControllerLoader.showAndWait(new ViewControllerLoadListener<>(mainController, model, controllerClass),
                     stage, EditItem.class);
@@ -390,7 +390,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         private void initializeModel(EditItem<T, U> parentController, U model) {
             this.parentController = parentController;
             if (null == model) {
-                ItemModel.ModelFactory<T, U> factory = getFactory();
+                FxRecordModel.ModelFactory<T, U> factory = getFactory();
                 this.model = factory.createNew(factory.getDaoFactory().createNew());
             } else {
                 this.model = model;
@@ -406,20 +406,20 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         }
 
         /**
-         * This gets called when an {@link ItemModel} is about to be saved to the database.
+         * This gets called when an {@link FxRecordModel} is about to be saved to the database.
          *
          * @param stage The {@link Stage} of the controller that initiated the save operation.
-         * @param model The {@link ItemModel} for the object to be saved.
+         * @param model The {@link FxRecordModel} for the object to be saved.
          */
         protected void onSaving(Stage stage, U model) {
             updateModel(model);
         }
 
         /**
-         * This gets called when an {@link ItemModel} is about to be deleted.
+         * This gets called when an {@link FxRecordModel} is about to be deleted.
          *
          * @param stage The {@link Stage} of the controller that initiated the delete operation.
-         * @param model The {@link ItemModel} for the object to be deleted.
+         * @param model The {@link FxRecordModel} for the object to be deleted.
          * @return {@code true} if the item can be deleted; otherwise, {@code false} to cancel the delete operation.
          */
         protected boolean onDeleting(Stage stage, U model) {
@@ -430,7 +430,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         }
 
         /**
-         * This gets called when changes to an {@link ItemModel} are discarded and the window is closed.
+         * This gets called when changes to an {@link FxRecordModel} are discarded and the window is closed.
          *
          * @param stage The {@link Stage} of the controller that initiated the cancel operation.
          */
@@ -444,15 +444,15 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         }
 
         /**
-         * Gets the current {@link ItemModel} being edited.
+         * Gets the current {@link FxRecordModel} being edited.
          *
-         * @return the current {@link ItemModel} being edited.
+         * @return the current {@link FxRecordModel} being edited.
          */
         protected U getModel() {
             return model;
         }
 
-        protected abstract ItemModel.ModelFactory<T, U> getFactory();
+        protected abstract FxRecordModel.ModelFactory<T, U> getFactory();
 
         /**
          * Gets the {@link BooleanExpression} that indicates whether the property values for the current item are valid.
@@ -462,9 +462,9 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
         protected abstract BooleanExpression getValidationExpression();
 
         /**
-         * Applies changes contained within the controller to the {@link ItemModel} being edited.
+         * Applies changes contained within the controller to the {@link FxRecordModel} being edited.
          *
-         * @param model The {@link ItemModel} being edited.
+         * @param model The {@link FxRecordModel} being edited.
          */
         protected abstract void updateModel(U model);
 
@@ -494,7 +494,7 @@ public final class EditItem<T extends DataAccessObject, U extends ItemModel<T>> 
             getFactory().updateItem(model, dao);
         }
 
-        public void deleteAddress(Stage stage, AddressModelImpl item) {
+        public void deleteAddress(Stage stage, AddressModel item) {
             parentController.mainController.deleteAddress(stage, item);
         }
 

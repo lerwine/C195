@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
@@ -22,12 +23,14 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.util.InternalException;
-import static scheduler.util.Values.asNonNullAndTrimmed;
-import static scheduler.model.db.RowData.getPrimaryKeyOf;
-import scheduler.AppResourceKeys;
+import scheduler.model.Address;
+import scheduler.model.City;
+import scheduler.model.ModelHelper;
+import scheduler.model.RelatedRecord;
 import scheduler.model.db.AddressRowData;
 import scheduler.model.db.CityRowData;
+import scheduler.util.InternalException;
+import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
  * Data access object for the {@code address} database table.
@@ -69,20 +72,6 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
     private String postalCode;
     private String phone;
 
-    @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (address1.trim().isEmpty() && address2.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.ADDRESS_EMPTY);
-        }
-        if (null == city) {
-            addValidation.accept(ValidationResult.NO_CITY);
-        } else if (city.validate() != ValidationResult.OK) {
-            addValidation.accept(ValidationResult.INVALID_CITY);
-        } else if (city.getRowState() == DataRowState.NEW) {
-            addValidation.accept(ValidationResult.CITY_NOT_SAVED);
-        }
-    }
-
     /**
      * Initializes a {@link DataRowState#NEW} address object.
      */
@@ -92,6 +81,22 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
         city = null;
         postalCode = "";
         phone = "";
+    }
+
+    @Override
+    protected void reValidate(Consumer<ValidationResult> addValidation) {
+        if (address1.trim().isEmpty() && address2.trim().isEmpty()) {
+            addValidation.accept(ValidationResult.ADDRESS_EMPTY);
+        }
+        if (null == city) {
+            addValidation.accept(ValidationResult.NO_CITY);
+        } else {
+            if (RelatedRecord.validate(city) != ValidationResult.OK) {
+                addValidation.accept(ValidationResult.INVALID_CITY);
+            } else if (ModelHelper.getRowState(city) == DataRowState.DELETED) {
+                addValidation.accept(ValidationResult.CITY_DELETED);
+            }
+        }
     }
 
     @Override
@@ -190,18 +195,7 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof AddressRowData) {
-            AddressRowData other = (AddressRowData) obj;
-            if (getRowState() == DataRowState.NEW) {
-                return other.getRowState() == DataRowState.NEW && address1.equals(other.getAddress1()) && address2.equals(other.getAddress2())
-                        && city.equals(other.getCity()) && postalCode.equals(other.getPostalCode()) && phone.equals(other.getPhone());
-            }
-            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
-        }
-        return false;
+        return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
     }
 
     /**
@@ -257,9 +251,9 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
         public DaoFilter<AddressDAO> getByCityFilter(int pk) {
             return DaoFilter.of(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES),
                     IntColumnValueFilter.of(DbColumn.ADDRESS_CITY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
-                            (AddressDAO t) -> getPrimaryKeyOf(t.getCity())));
+                            (AddressDAO t) -> ModelHelper.getPrimaryKey(t.getCity())));
         }
-        
+
         @Override
         public DmlSelectQueryBuilder createDmlSelectQueryBuilder() {
             DmlSelectQueryBuilder builder = new DmlSelectQueryBuilder(DbTable.ADDRESS, SchemaHelper.getTableColumns(DbTable.ADDRESS));
@@ -275,7 +269,7 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldAddress1 = dao.address1;
                 private final String oldAddress2 = dao.address2;
-                private final CityRowData oldCity = dao.city;
+                private final City oldCity = dao.city;
                 private final String oldPostalCode = dao.postalCode;
                 private final String oldPhone = dao.phone;
 
@@ -307,70 +301,13 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
             return propertyChanges;
         }
 
-        AddressRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new AddressRowData() {
-                private final String address1 = asNonNullAndTrimmed(rs.getString(DbColumn.ADDRESS1.toString()));
-                private final String address2 = asNonNullAndTrimmed(rs.getString(DbColumn.ADDRESS2.toString()));
-                private final CityRowData city = CityDAO.getFactory().fromJoinedResultSet(rs);
-                private final String postalCode = asNonNullAndTrimmed(rs.getString(DbColumn.POSTAL_CODE.toString()));
-                private final String phone = asNonNullAndTrimmed(rs.getString(DbColumn.PHONE.toString()));
-                private final int primaryKey = rs.getInt(DbColumn.CUSTOMER_ADDRESS.toString());
-
-                @Override
-                public String getAddress1() {
-                    return address1;
-                }
-
-                @Override
-                public String getAddress2() {
-                    return address2;
-                }
-
-                @Override
-                public CityRowData getCity() {
-                    return city;
-                }
-
-                @Override
-                public String getPostalCode() {
-                    return postalCode;
-                }
-
-                @Override
-                public String getPhone() {
-                    return phone;
-                }
-
-                @Override
-                public int getPrimaryKey() {
-                    return primaryKey;
-                }
-
-                @Override
-                public DataRowState getRowState() {
-                    return DataRowState.UNMODIFIED;
-                }
-
-                @Override
-                public boolean isExisting() {
-                    return true;
-                }
-
-                @Override
-                public int hashCode() {
-                    return primaryKey;
-                }
-
-                @Override
-                public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof AddressRowData) {
-                        AddressRowData other = (AddressRowData) obj;
-                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
-                    }
-                    return false;
-                }
-
-            };
+        AddressRowData fromJoinedResultSet(ResultSet resultSet) throws SQLException {
+            return new Related(resultSet.getInt(DbColumn.CUSTOMER_ADDRESS.toString()),
+                    asNonNullAndTrimmed(resultSet.getString(DbColumn.ADDRESS1.toString())),
+                    asNonNullAndTrimmed(resultSet.getString(DbColumn.ADDRESS2.toString())),
+                    CityDAO.getFactory().fromJoinedResultSet(resultSet),
+                    asNonNullAndTrimmed(resultSet.getString(DbColumn.POSTAL_CODE.toString())),
+                    asNonNullAndTrimmed(resultSet.getString(DbColumn.PHONE.toString())));
         }
 
         @Override
@@ -383,7 +320,7 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
-            
+
             int count = CustomerDAO.getFactory().countByAddress(connection, dao.getPrimaryKey());
             // PENDING: Internationalize these
             switch (count) {
@@ -399,7 +336,7 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
         @Override
         public String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
             assert dao.getRowState() != DataRowState.DELETED : "Data access object already deleted";
-            
+
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
                     .append(") FROM ").append(DbTable.ADDRESS.getDbName())
                     .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
@@ -429,7 +366,7 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
             String sql = sb.toString();
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, dao.getCity().getPrimaryKey());
+                ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
                 int index = 2;
                 if (!dao.address1.isEmpty()) {
                     ps.setString(index++, dao.address1.toLowerCase());
@@ -477,6 +414,69 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
             throw new SQLException("Unexpected lack of results from database query");
         }
 
+        public AddressRowData ensureSaved(AddressRowData requireNonNull, Connection connection) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.FactoryImpl#ensureSaved
+        }
+
     }
 
+    public static class Related implements AddressRowData {
+
+        private final int primaryKey;
+        private final String address1;
+        private final String address2;
+        private final CityRowData city;
+        private final String postalCode;
+        private final String phone;
+
+        Related(int primaryKey, String address1, String address2, CityRowData city, String postalCode, String phone) {
+            this.primaryKey = primaryKey;
+            this.address1 = address1;
+            this.address2 = address2;
+            this.city = city;
+            this.postalCode = postalCode;
+            this.phone = phone;
+        }
+
+        @Override
+        public int getPrimaryKey() {
+            return primaryKey;
+        }
+
+        @Override
+        public CityRowData getCity() {
+            return city;
+        }
+
+        @Override
+        public String getAddress1() {
+            return address1;
+        }
+
+        @Override
+        public String getAddress2() {
+            return address2;
+        }
+
+        @Override
+        public String getPostalCode() {
+            return postalCode;
+        }
+
+        @Override
+        public String getPhone() {
+            return phone;
+        }
+
+        @Override
+        public int hashCode() {
+            return primaryKey;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
+        }
+
+    }
 }

@@ -11,7 +11,7 @@ import scheduler.dao.DataRowState;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <M>
  */
-public class ReadOnlyModelProperty<M extends scheduler.view.model.ItemModel<?>> extends ReadOnlyObjectWrapper<M> {
+public class ReadOnlyModelProperty<M extends scheduler.model.ui.FxRecordModel<?>> extends ReadOnlyObjectWrapper<M> {
 
     public ReadOnlyModelProperty() {
         super();

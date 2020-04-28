@@ -22,6 +22,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResources;
 import scheduler.Scheduler;
+import scheduler.SupportedLocale;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ResourceBundleHelper;
@@ -29,7 +30,6 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.city.SupportedLocale;
 import scheduler.view.event.FxmlViewEvent;
 
 /**
@@ -112,7 +112,7 @@ public final class Login {
     @FXML
     void onLanguageComboBoxAction(ActionEvent event) {
         SupportedLocale supportedLocale = languageComboBox.getValue();
-        ResourceBundle rb = ResourceBundleHelper.getBundle(Login.class, supportedLocale.toLocale());
+        ResourceBundle rb = ResourceBundleHelper.getBundle(Login.class, supportedLocale.getLocale());
         resourceBundle.set(rb);
         Scene scene = languageComboBox.getScene();
         if (null != scene) {

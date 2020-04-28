@@ -3,16 +3,16 @@ package scheduler.controls;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
+import scheduler.view.user.UserModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The item type.
  */
-public class UserListCellFactory<T extends scheduler.view.user.UserModel<?>> implements Callback<ListView<T>, ListCell<T>> {
+public class UserListCellFactory implements Callback<ListView<UserModel>, ListCell<UserModel>> {
 
     @Override
-    public ListCell<T> call(ListView<T> param) {
-        return new UserListCell<>();
+    public ListCell<UserModel> call(ListView<UserModel> param) {
+        return new UserListCell();
     }
 }

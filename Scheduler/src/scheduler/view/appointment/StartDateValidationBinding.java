@@ -45,10 +45,10 @@ import scheduler.util.TernarySelective;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
-import scheduler.view.customer.CustomerModelImpl;
-import scheduler.view.model.ItemModel;
+import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.user.UserModel;
-import scheduler.view.user.UserModelImpl;
+import scheduler.view.user.UserModel;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
 import scheduler.model.ui.CustomerItem;
@@ -78,8 +78,8 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
     private static final Logger LOG = Logger.getLogger(StartDateValidationBinding.class.getName());
     private final ResourceBundle rb;
-    private final ObjectExpression<CustomerModelImpl> customer;
-    private final ObjectExpression<UserModelImpl> user;
+    private final ObjectExpression<CustomerModel> customer;
+    private final ObjectExpression<UserModel> user;
     private final ReadOnlyListWrapper<AppointmentModel> conflictingAppointments;
     private final IntermediaryBinding intermediary;
     private final IntValueBinding customerConflictCount;
@@ -92,15 +92,15 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
     /**
      * Initializes a new {@code StartDateValidationBinding} object.
      *
-     * @param customer The {@link ObjectExpression} that gets the currently selected {@link UserModelImpl}.
-     * @param user The {@link ObjectExpression} that gets the currently selected {@link CustomerModelImpl}.
+     * @param customer The {@link ObjectExpression} that gets the currently selected {@link UserModel}.
+     * @param user The {@link ObjectExpression} that gets the currently selected {@link CustomerModel}.
      * @param datePicker The {@link DatePicker} control that is used for getting a {@link LocalDate} value.
      * @param hourText The {@link ObjectExpression} that gets the 12-hour portion of the time as string.
      * @param minuteText The {@link ObjectExpression} that gets the minute portion of the time as string.
      * @param timeZone The {@link ObjectExpression} that gets the currently selected {@link TimeZone}.
      * @param isPm The {@link ObjectExpression} that returns {@link Boolean#TRUE} if the time is PM or {@link Boolean#FALSE} if it is AM.
      */
-    public StartDateValidationBinding(ObjectExpression<CustomerModelImpl> customer, ObjectExpression<UserModelImpl> user,
+    public StartDateValidationBinding(ObjectExpression<CustomerModel> customer, ObjectExpression<UserModel> user,
             DatePicker datePicker, StringExpression hourText, StringExpression minuteText, ObjectExpression<TimeZone> timeZone,
             ObjectExpression<Boolean> isPm) {
         this.conflictingAppointments = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
@@ -138,7 +138,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
     /**
      * Gets the list that contains appointments with conflicting schedules.
      * <p>
-     * It is assumed that items added to this list will be associated with the {@link CustomerModelImpl}, the {@link UserModelImpl} or both.
+     * It is assumed that items added to this list will be associated with the {@link CustomerModel}, the {@link UserModel} or both.
      *
      * @return The {@link ObservableList} that contains {@link AppointmentModel} objects whose date ranges conflict with another date range.
      */
@@ -154,7 +154,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
      * Gets the number of customer appointments that conflict with the date range.
      *
      * @return The number of {@link AppointmentModel} items in the {@link #conflictingAppointments} {@link ObservableList} that fall within the target
-     * date range that are associated with the target {@link CustomerModelImpl}.
+     * date range that are associated with the target {@link CustomerModel}.
      */
     public int getCustomerConflictCount() {
         return customerConflictCount.get();
@@ -165,7 +165,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
      *
      * @return A {@link ReadOnlyProperty} that returns the number of {@link AppointmentModel} items in the
      * {@link #conflictingAppointments} {@link ObservableList} that fall within the target date range that are associated with the target
-     * {@link CustomerModelImpl}.
+     * {@link CustomerModel}.
      */
     public ReadOnlyProperty<Number> customerConflictCountProperty() {
         return customerConflictCount;
@@ -176,7 +176,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
      *
      * @return An {@link IntegerBinding} that returns the number of {@link AppointmentModel} items in the
      * {@link #conflictingAppointments} {@link ObservableList} that fall within the target date range that are associated with the target
-     * {@link CustomerModelImpl}.
+     * {@link CustomerModel}.
      */
     public IntegerBinding customerConflictCountBinding() {
         return customerConflictCount;
@@ -186,7 +186,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
      * Gets the number of user appointments that conflict with the date range.
      *
      * @return The number of {@link AppointmentModel} items in the {@link #conflictingAppointments} {@link ObservableList} that fall within the target
-     * date range that are associated with the target {@link UserModelImpl}.
+     * date range that are associated with the target {@link UserModel}.
      */
     public int getUserConflictCount() {
         return userConflictCount.get();
@@ -197,7 +197,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
      *
      * @return A {@link ReadOnlyProperty} that returns the number of {@link AppointmentModel} items in the
      * {@link #conflictingAppointments} {@link ObservableList} that fall within the target date range that are associated with the target
-     * {@link UserModelImpl}.
+     * {@link UserModel}.
      */
     public ReadOnlyProperty<Number> userConflictCountProperty() {
         return userConflictCount;
@@ -208,7 +208,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
      *
      * @return An {@link IntegerBinding} that returns the number of {@link AppointmentModel} items in the
      * {@link #conflictingAppointments} {@link ObservableList} that fall within the target date range that are associated with the target
-     * {@link UserModelImpl}.
+     * {@link UserModel}.
      */
     public IntegerBinding userConflictCountBinding() {
         return userConflictCount;
@@ -428,18 +428,18 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
         @SuppressWarnings("unchecked")
         private void invalidated(Observable observable) {
             ObservableList<AppointmentModel> list;
-            CustomerModelImpl sc;
-            UserModelImpl su;
+            CustomerModel sc;
+            UserModel su;
 
             if (observable instanceof ReadOnlyObjectProperty) {
                 list = conflictingAppointments;
-                ItemModel<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends ItemModel<? extends DataAccessObject>>) observable).get();
+                FxRecordModel<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends FxRecordModel<? extends DataAccessObject>>) observable).get();
                 if (null != obj) {
-                    if (obj instanceof CustomerModelImpl) {
-                        sc = (CustomerModelImpl) obj;
+                    if (obj instanceof CustomerModel) {
+                        sc = (CustomerModel) obj;
                         su = user.get();
                     } else {
-                        su = (UserModelImpl) obj;
+                        su = (UserModel) obj;
                         sc = customer.get();
                     }
                 } else {

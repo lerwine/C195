@@ -7,10 +7,11 @@ import java.util.Objects;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import static scheduler.model.db.RowData.getPrimaryKeyOf;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.ModelHelper;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
+import static scheduler.model.ModelHelper.getPrimaryKey;
 
 /**
  *
@@ -81,17 +82,17 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
     }
 
     public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer) {
-        if (null != customer && customer.isExisting()) {
+        if (ModelHelper.existsInDatabase(customer)) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
-                    (t) -> getPrimaryKeyOf(t.getCustomer()));
+                    (t) -> getPrimaryKey(t.getCustomer()));
         }
         return DaoFilterExpression.empty();
     }
 
     public static DaoFilterExpression<AppointmentDAO> expressionOf(UserRowData user) {
-        if (null != user && user.isExisting()) {
+        if (ModelHelper.existsInDatabase(user)) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
-                    (t) -> getPrimaryKeyOf(t.getUser()));
+                    (t) -> getPrimaryKey(t.getUser()));
         }
         return DaoFilterExpression.empty();
     }
@@ -143,7 +144,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
      * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
      */
     public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer, Timestamp start, Timestamp end) {
-        if (null == customer || !customer.isExisting())
+        if (ModelHelper.existsInDatabase(customer))
             return expressionOf(start, end);
         if (null != start) {
             if (null != end) {

@@ -15,9 +15,9 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerModelImpl, CustomerFilter> {
+public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerModel, CustomerFilter> {
 
-    static CustomerModelFilter of(String headingText, CustomerFilter daoFilter, Predicate<CustomerModel<CustomerDAO>> predicate) {
+    static CustomerModelFilter of(String headingText, CustomerFilter daoFilter, Predicate<CustomerModel> predicate) {
         return new CustomerModelFilter() {
             @Override
             public String getHeadingText() {
@@ -30,7 +30,7 @@ public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerMo
             }
 
             @Override
-            public boolean test(CustomerModelImpl t) {
+            public boolean test(CustomerModel t) {
                 return predicate.test(t);
             }
 

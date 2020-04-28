@@ -1,6 +1,5 @@
 package scheduler.dao;
 
-import scheduler.model.UserStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,9 +20,12 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
+import scheduler.model.ModelHelper;
+import scheduler.model.User;
+import scheduler.model.UserStatus;
+import scheduler.model.db.UserRowData;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.model.db.UserRowData;
 
 /**
  * Data access object for the {@code user} database table.
@@ -145,18 +147,7 @@ public class UserDAO extends DataAccessObject implements UserRowData {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof UserDAO) {
-            UserDAO other = (UserDAO) obj;
-            if (getRowState() == DataRowState.NEW) {
-                return other.getRowState() == DataRowState.NEW && userName.equals(other.userName) && password.equals(other.password)
-                        && status == other.status;
-            }
-            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
-        }
-        return false;
+        return null != obj && obj instanceof User && ModelHelper.areSameRecord(this, (User) obj);
     }
 
     /**
@@ -239,51 +230,8 @@ public class UserDAO extends DataAccessObject implements UserRowData {
         }
 
         UserRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new UserRowData() {
-                private final String userName = asNonNullAndTrimmed(rs.getString(DbColumn.USER_NAME.toString()));
-                private final UserStatus status = UserStatus.of(rs.getInt(DbColumn.STATUS.toString()), UserStatus.INACTIVE);
-                private final int primaryKey = rs.getInt(DbColumn.APPOINTMENT_USER.toString());
-
-                @Override
-                public String getUserName() {
-                    return userName;
-                }
-
-                @Override
-                public UserStatus getStatus() {
-                    return status;
-                }
-
-                @Override
-                public int getPrimaryKey() {
-                    return primaryKey;
-                }
-
-                @Override
-                public DataRowState getRowState() {
-                    return DataRowState.UNMODIFIED;
-                }
-
-                @Override
-                public boolean isExisting() {
-                    return true;
-                }
-
-                @Override
-                public int hashCode() {
-                    return primaryKey;
-                }
-
-                @Override
-                public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof UserRowData) {
-                        UserRowData other = (UserRowData) obj;
-                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
-                    }
-                    return false;
-                }
-
-            };
+            return new Related(rs.getInt(DbColumn.APPOINTMENT_USER.toString()), asNonNullAndTrimmed(rs.getString(DbColumn.USER_NAME.toString())),
+                    UserStatus.of(rs.getInt(DbColumn.STATUS.toString()), UserStatus.INACTIVE));
         }
 
         /**
@@ -377,4 +325,42 @@ public class UserDAO extends DataAccessObject implements UserRowData {
 
     }
 
+    private static final class Related implements UserRowData {
+
+        private final int primaryKey;
+        private final String userName;
+        private final UserStatus status;
+
+        Related(int primaryKey, String userName, UserStatus status) {
+            this.primaryKey = primaryKey;
+            this.userName = userName;
+            this.status = status;
+        }
+
+        @Override
+        public String getUserName() {
+            return userName;
+        }
+
+        @Override
+        public UserStatus getStatus() {
+            return status;
+        }
+
+        @Override
+        public int getPrimaryKey() {
+            return primaryKey;
+        }
+
+        @Override
+        public int hashCode() {
+            return primaryKey;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof User && ModelHelper.areSameRecord(this, (User) obj);
+        }
+
+    }
 }

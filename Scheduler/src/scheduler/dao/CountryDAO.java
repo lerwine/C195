@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DatabaseTable;
@@ -17,13 +18,16 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
+import scheduler.model.Country;
+import scheduler.model.ModelHelper;
+import scheduler.model.db.CountryRowData;
+import scheduler.model.predefined.PredefinedCountry;
+import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.AppResourceKeys;
-import scheduler.model.db.CountryRowData;
 
 /**
  * Data access object for the {@code country} database table.
@@ -38,10 +42,13 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
      */
     public static final String PROP_NAME = "name";
     private static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final String PROP_PREDEFINEDCOUNTRY = "predefinedCountry";
 
     public static FactoryImpl getFactory() {
         return FACTORY;
     }
+
+    private PredefinedCountry predefinedCountry;
 
     private String name;
 
@@ -54,26 +61,53 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
     }
 
     @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (name.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.NAME_EMPTY);
-        }
-    }
-
-    @Override
     public String getName() {
         return name;
     }
 
     /**
-     * Set the value of name.
+     * Get the value of predefinedCountry
      *
-     * @param value new value of name.
+     * @return the value of predefinedCountry
      */
-    public void setName(String value) {
-        String oldValue = this.name;
-        this.name = asNonNullAndTrimmed(value);
-        firePropertyChange(PROP_NAME, oldValue, this.name);
+    public PredefinedCountry getPredefinedCountry() {
+        return predefinedCountry;
+    }
+
+    @Override
+    public PredefinedCountry asPredefinedData() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CountryDAO#asPredefinedData
+    }
+
+    /**
+     * Set the value of predefinedCountry
+     *
+     * @param country new value of predefinedCountry
+     */
+    public void setPredefinedCountry(PredefinedCountry country) {
+        PredefinedCountry oldPredefinedCountry = predefinedCountry;
+        String oldName = name;
+        if (null == country) {
+            if (null == oldPredefinedCountry) {
+                return;
+            }
+            name = "";
+        } else {
+            if (null != oldPredefinedCountry && country == oldPredefinedCountry) {
+                return;
+            }
+            name = country.getName();
+        }
+        this.predefinedCountry = country;
+        firePropertyChange(PROP_PREDEFINEDCOUNTRY, oldPredefinedCountry, country);
+        firePropertyChange(PROP_NAME, oldName, name);
+    }
+
+    @Override
+    protected void reValidate(Consumer<ValidationResult> addValidation) {
+        if (name.trim().isEmpty()) {
+            addValidation.accept(ValidationResult.NAME_EMPTY);
+        }
     }
 
     @Override
@@ -86,17 +120,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof CountryRowData) {
-            CountryRowData other = (CountryRowData) obj;
-            if (getRowState() == DataRowState.NEW) {
-                return other.getRowState() == DataRowState.NEW && name.equals(other.getName());
-            }
-            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
-        }
-        return false;
+        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country)obj);
     }
 
     /**
@@ -159,45 +183,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
         }
 
         CountryRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new CountryRowData() {
-                private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.COUNTRY_NAME.toString()));
-                private final int primaryKey = rs.getInt(DbColumn.CITY_COUNTRY.toString());
-
-                @Override
-                public String getName() {
-                    return name;
-                }
-
-                @Override
-                public int getPrimaryKey() {
-                    return primaryKey;
-                }
-
-                @Override
-                public DataRowState getRowState() {
-                    return DataRowState.UNMODIFIED;
-                }
-
-                @Override
-                public boolean isExisting() {
-                    return true;
-                }
-
-                @Override
-                public int hashCode() {
-                    return primaryKey;
-                }
-
-                @Override
-                public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof CountryRowData) {
-                        CountryRowData other = (CountryRowData) obj;
-                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
-                    }
-                    return false;
-                }
-
-            };
+            return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), rs.getString(DbColumn.COUNTRY_NAME.toString()));
         }
 
         @Override
@@ -284,4 +270,42 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     }
 
+    private final static class Related implements CountryRowData {
+
+        private final int primaryKey;
+        private final String name;
+        private final PredefinedCountry predefinedCountry;
+
+        Related(int primaryKey, String countryCode) {
+            this.primaryKey = primaryKey;
+            predefinedCountry = PredefinedData.getCountryMap().get(countryCode);
+            name = predefinedCountry.getName();
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public int getPrimaryKey() {
+            return primaryKey;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return primaryKey;
+        }
+
+        @Override
+        public PredefinedCountry asPredefinedData() {
+            return predefinedCountry;
+        }
+
+    }
 }

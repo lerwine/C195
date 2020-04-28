@@ -28,11 +28,12 @@ import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.city.CityModel;
-import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.customer.CustomerModel;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
 import scheduler.model.db.CityRowData;
+import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for editing an {@link AddressModelImpl}.
@@ -43,15 +44,15 @@ import scheduler.model.db.CityRowData;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public final class EditAddress extends EditItem.EditController<AddressDAO, AddressModelImpl> {
+public final class EditAddress extends EditItem.EditController<AddressDAO, AddressModel> {
 
     private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
 
-    public static AddressModelImpl editNew(MainController mainController, Stage stage) throws IOException {
+    public static AddressModel editNew(MainController mainController, Stage stage) throws IOException {
         return editNew(EditAddress.class, mainController, stage);
     }
 
-    public static AddressModelImpl edit(AddressModelImpl model, MainController mainController, Stage stage) throws IOException {
+    public static AddressModel edit(AddressModel model, MainController mainController, Stage stage) throws IOException {
         return edit(model, EditAddress.class, mainController, stage);
     }
 
@@ -74,7 +75,7 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
     private TextField phoneTextField;
 
     @FXML
-    private ComboBox<CityModel<? extends CityRowData>> cityComboBox;
+    private ComboBox<CityItem> cityComboBox;
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
@@ -85,13 +86,13 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
-        AddressModelImpl model = this.getModel();
+        AddressModel model = this.getModel();
         event.getStage().setTitle(getResourceString(((model.isNewItem())) ? RESOURCEKEY_ADDNEWADDRESS : RESOURCEKEY_EDITADDRESS));
     }
 
     @Override
-    protected ItemModel.ModelFactory<AddressDAO, AddressModelImpl> getFactory() {
-        return AddressModelImpl.getFactory();
+    protected FxRecordModel.ModelFactory<AddressDAO, AddressModel> getFactory() {
+        return AddressModel.getFactory();
     }
 
     @Override
@@ -100,14 +101,14 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
     }
 
     @Override
-    protected void updateModel(AddressModelImpl model) {
+    protected void updateModel(AddressModel model) {
         if (!getValidationExpression().get()) {
             throw new IllegalStateException();
         }
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#updateModel
     }
 
-    private ObservableList<CustomerModelImpl> itemList;
+    private ObservableList<CustomerModel> itemList;
 
     private class ItemsLoadTask extends TaskWaiter<List<CustomerDAO>> {
 
@@ -122,7 +123,7 @@ public final class EditAddress extends EditItem.EditController<AddressDAO, Addre
         @Override
         protected void processResult(List<CustomerDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {
-                CustomerModelImpl.Factory factory = CustomerModelImpl.getFactory();
+                CustomerModel.Factory factory = CustomerModel.getFactory();
                 result.forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });

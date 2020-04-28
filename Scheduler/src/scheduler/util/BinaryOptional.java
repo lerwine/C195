@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -273,6 +274,22 @@ public final class BinaryOptional<T, U> {
             return (primary.get()) ? ifPrimary.apply((T) value) : ifSecondary.apply((U) value);
         }
         return ifNotPresent.get();
+    }
+
+    /**
+     * Applies a {@link Predicate} according to the option value being stored.
+     *
+     * @param ifPrimary The {@link Predicate} to apply if this contains the primary option value.
+     * @param ifSecondary The {@link Predicate} to apply if this contains the secondary option value.
+     * @param ifNotPresent The value to return if this does not contain any option value.
+     * @return The result from the {@link Predicate} that was applied or the {@code ifNotPresent} parameter if no value was present.
+     */
+    @SuppressWarnings("unchecked")
+    public boolean toBoolean(Predicate<? super T> ifPrimary, Predicate<? super U> ifSecondary, boolean ifNotPresent) {
+        if (primary.isPresent()) {
+            return (primary.get()) ? ifPrimary.test((T) value) : ifSecondary.test((U) value);
+        }
+        return ifNotPresent;
     }
 
     /**

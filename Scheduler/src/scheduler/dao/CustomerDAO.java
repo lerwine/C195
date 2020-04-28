@@ -20,10 +20,13 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.util.InternalException;
-import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.model.Customer;
+import scheduler.model.ModelHelper;
+import scheduler.model.RelatedRecord;
 import scheduler.model.db.AddressRowData;
 import scheduler.model.db.CustomerRowData;
+import scheduler.util.InternalException;
+import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -75,10 +78,10 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
         }
         if (null == address) {
             addValidation.accept(ValidationResult.NO_ADDRESS);
-        } else if (address.validate() != ValidationResult.OK) {
+        } else if (RelatedRecord.validate(address) != ValidationResult.OK) {
             addValidation.accept(ValidationResult.INVALID_ADDRESS);
-        } else if (address.getRowState() == DataRowState.NEW) {
-            addValidation.accept(ValidationResult.ADDRESS_NOT_SAVED);
+        } else if (ModelHelper.getRowState(address) == DataRowState.DELETED) {
+            addValidation.accept(ValidationResult.ADDRESS_DELETED);
         }
     }
 
@@ -144,18 +147,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof CustomerRowData) {
-            CustomerRowData other = (CustomerRowData) obj;
-            if (getRowState() == DataRowState.NEW) {
-                return other.getRowState() == DataRowState.NEW && name.equals(other.getName()) && address.equals(other.getAddress())
-                        && active == other.isActive();
-            }
-            return other.getRowState() != DataRowState.NEW && getPrimaryKey() == other.getPrimaryKey();
-        }
-        return false;
+        return null != obj && obj instanceof Customer && ModelHelper.areSameRecord(this, (Customer) obj);
     }
 
     /**
@@ -251,57 +243,9 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
         }
 
         CustomerRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new CustomerRowData() {
-                private final String name = asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString()));
-                private final AddressRowData address = AddressDAO.getFactory().fromJoinedResultSet(rs);
-                private final boolean active = rs.getBoolean(DbColumn.ACTIVE.toString());
-                private final int primaryKey = rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString());
-
-                @Override
-                public String getName() {
-                    return name;
-                }
-
-                @Override
-                public AddressRowData getAddress() {
-                    return address;
-                }
-
-                @Override
-                public boolean isActive() {
-                    return active;
-                }
-
-                @Override
-                public int getPrimaryKey() {
-                    return primaryKey;
-                }
-
-                @Override
-                public DataRowState getRowState() {
-                    return DataRowState.UNMODIFIED;
-                }
-
-                @Override
-                public boolean isExisting() {
-                    return true;
-                }
-
-                @Override
-                public int hashCode() {
-                    return primaryKey;
-                }
-
-                @Override
-                public boolean equals(Object obj) {
-                    if (null != obj && obj instanceof CustomerRowData) {
-                        CustomerRowData other = (CustomerRowData) obj;
-                        return other.getRowState() != DataRowState.NEW && other.getPrimaryKey() == getPrimaryKey();
-                    }
-                    return false;
-                }
-
-            };
+            return new Related(rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString()),
+                    asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString())),
+                    AddressDAO.getFactory().fromJoinedResultSet(rs), rs.getBoolean(DbColumn.ACTIVE.toString()));
         }
 
         public Optional<CustomerDAO> findByName(Connection connection, String value) throws SQLException {
@@ -360,7 +304,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
         @Override
         public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
             AddressRowData address = dao.getAddress();
-            if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
+            if (address instanceof AddressDAO && (force || ModelHelper.getRowState(address) != DataRowState.UNMODIFIED)) {
                 AddressDAO.getFactory().save((AddressDAO) address, connection, force);
             }
             super.save(dao, connection, force);
@@ -403,4 +347,49 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
 
     }
 
+    private static class Related implements CustomerRowData {
+
+        private final String name;
+        private final AddressRowData address;
+        private final boolean active;
+        private final int primaryKey;
+
+        Related(int primaryKey, String name, AddressRowData address, boolean active) {
+            this.primaryKey = primaryKey;
+            this.name = name;
+            this.address = address;
+            this.active = active;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public AddressRowData getAddress() {
+            return address;
+        }
+
+        @Override
+        public boolean isActive() {
+            return active;
+        }
+
+        @Override
+        public int getPrimaryKey() {
+            return primaryKey;
+        }
+
+        @Override
+        public int hashCode() {
+            return primaryKey;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return null != obj && obj instanceof Customer && ModelHelper.areSameRecord(this, (Customer) obj);
+        }
+
+    }
 }

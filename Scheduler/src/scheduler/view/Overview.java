@@ -37,12 +37,12 @@ import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.CountryModel;
 import scheduler.view.country.ManageCountries;
-import scheduler.view.customer.CustomerModelImpl;
+import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.ManageUsers;
-import scheduler.view.user.UserModelImpl;
+import scheduler.view.user.UserModel;
 
 /**
  * FXML Controller class
@@ -119,7 +119,7 @@ public class Overview {
     void onCustomerListingHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ManageCustomers.loadInto(getMainController(stage.getScene()), stage, CustomerModelImpl.getFactory().getAllItemsFilter());
+            ManageCustomers.loadInto(getMainController(stage.getScene()), stage, CustomerModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
         }
@@ -145,7 +145,7 @@ public class Overview {
     void onUserListingHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ManageUsers.loadInto(getMainController(stage.getScene()), stage, UserModelImpl.getFactory().getAllItemsFilter());
+            ManageUsers.loadInto(getMainController(stage.getScene()), stage, UserModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }

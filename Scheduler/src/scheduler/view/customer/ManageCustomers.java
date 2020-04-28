@@ -10,10 +10,10 @@ import scheduler.view.ListingController;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
- * FXML Controller class for viewing a list of {@link CustomerModelImpl} items.
+ * FXML Controller class for viewing a list of {@link CustomerModel} items.
  * <p>
  * The associated view is {@code /resources/scheduler/view/customer/ManageCustomers.fxml}.</p>
  *
@@ -21,7 +21,7 @@ import scheduler.view.model.ItemModel;
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends ListingController<CustomerDAO, CustomerModelImpl> {
+public final class ManageCustomers extends ListingController<CustomerDAO, CustomerModel> {
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
@@ -46,23 +46,23 @@ public final class ManageCustomers extends ListingController<CustomerDAO, Custom
     }
 
     @Override
-    protected void onEditItem(Stage stage, CustomerModelImpl item) throws IOException {
+    protected void onEditItem(Stage stage, CustomerModel item) throws IOException {
         getMainController(stage.getScene()).editCustomer(stage, item);
     }
 
     @Override
-    protected void onDeleteItem(Stage stage, CustomerModelImpl item) {
+    protected void onDeleteItem(Stage stage, CustomerModel item) {
         getMainController(stage.getScene()).deleteCustomer(stage, item);
     }
 
     @Override
-    protected CustomerModelImpl toModel(CustomerDAO dao) {
-        return new CustomerModelImpl(dao);
+    protected CustomerModel toModel(CustomerDAO dao) {
+        return new CustomerModel(dao);
     }
 
     @Override
-    protected ItemModel.ModelFactory<CustomerDAO, CustomerModelImpl> getModelFactory() {
-        return CustomerModelImpl.getFactory();
+    protected FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> getModelFactory() {
+        return CustomerModel.getFactory();
     }
 
 }

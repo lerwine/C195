@@ -1,6 +1,6 @@
 package scheduler.model.db;
 
-import scheduler.dao.DataRowState;
+import scheduler.model.RelatedRecord;
 import scheduler.model.User;
 
 /**
@@ -12,34 +12,6 @@ import scheduler.model.User;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface UserRowData extends User, RowData {
-
-    public static boolean areEqual(UserRowData a, UserRowData b) {
-        if (null == a) {
-            return null == b;
-        }
-        if (null == b) {
-            return false;
-        }
-        if (a == b || a.getPrimaryKey() != b.getPrimaryKey()) {
-            return true;
-        }
-        switch (a.getRowState()) {
-            case MODIFIED:
-            case UNMODIFIED:
-                switch (b.getRowState()) {
-                    case MODIFIED:
-                    case UNMODIFIED:
-                        return true;
-                    default:
-                        return false;
-                }
-            case NEW:
-                return b.getRowState() == DataRowState.NEW && a.getUserName().equalsIgnoreCase(b.getUserName())
-                        && a.getStatus() == b.getStatus();
-            default:
-                return b.getRowState() == DataRowState.DELETED;
-        }
-    }
+public interface UserRowData extends User, RelatedRecord {
 
 }

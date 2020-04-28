@@ -27,10 +27,10 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.city.CityModelImpl;
+import scheduler.view.city.CityModel;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
 
 /**
@@ -54,7 +54,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
     private TextField nameTextField; // Value injected by FXMLLoader
 
     @FXML // fx:id="citiesTableView"
-    private TableView<CityModelImpl> citiesTableView; // Value injected by FXMLLoader
+    private TableView<CityModel> citiesTableView; // Value injected by FXMLLoader
 
     @FXML
     void onCityDeleteMenuItemAction(ActionEvent event) {
@@ -87,7 +87,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
     }
 
     @Override
-    protected ItemModel.ModelFactory<CountryDAO, CountryModel> getFactory() {
+    protected FxRecordModel.ModelFactory<CountryDAO, CountryModel> getFactory() {
         return CountryModel.getFactory();
     }
 
@@ -99,7 +99,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#updateModel
     }
 
-    private ObservableList<CityModelImpl> itemList;
+    private ObservableList<CityModel> itemList;
 
     private class ItemsLoadTask extends TaskWaiter<List<CityDAO>> {
 
@@ -115,7 +115,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
         @Override
         protected void processResult(List<CityDAO> result, Stage owner) {
             if (null != result && !result.isEmpty()) {
-                CityModelImpl.Factory factory = CityModelImpl.getFactory();
+                CityModel.Factory factory = CityModel.getFactory();
                 result.forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });

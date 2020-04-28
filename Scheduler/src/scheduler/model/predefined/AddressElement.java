@@ -18,6 +18,8 @@ public class AddressElement {
     @XmlAttribute
     private boolean mainOffice;
     @XmlAttribute
+    private String key;
+    @XmlAttribute
     private String address1;
     @XmlAttribute
     private String address2;
@@ -25,6 +27,10 @@ public class AddressElement {
     private String postalCode;
     @XmlAttribute
     private String phone;
+
+    public String getKey() {
+        return key;
+    }
 
     boolean isMainOffice() {
         return mainOffice;

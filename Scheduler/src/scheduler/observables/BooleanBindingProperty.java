@@ -20,9 +20,13 @@ public abstract class BooleanBindingProperty extends BooleanBinding implements R
     protected BooleanBindingProperty(Object bean, String name, Observable... dependencies) {
         this.bean = bean;
         this.name = name;
-        this.dependencies = FXCollections.observableArrayList(dependencies);
+        if (null != dependencies && dependencies.length > 0) {
+            this.dependencies = FXCollections.observableArrayList(dependencies);
+            super.bind(dependencies);
+        } else {
+            this.dependencies = FXCollections.observableArrayList();
+        }
         readOnlyDependencies = FXCollections.unmodifiableObservableList(this.dependencies);
-        super.bind(dependencies);
     }
 
     @Override
@@ -35,8 +39,25 @@ public abstract class BooleanBindingProperty extends BooleanBinding implements R
         return name;
     }
 
+    protected boolean containsDependency(Observable observable) {
+        return dependencies.contains(observable);
+    }
+
+    protected void addDependency(Observable observable) {
+        if (!dependencies.contains(observable)) {
+            super.bind(observable);
+            dependencies.add(observable);
+        }
+    }
+
+    protected void removeDependency(Observable observable) {
+        if (dependencies.remove(observable)) {
+            super.unbind(observable);
+        }
+    }
+
     @Override
-    public ObservableList<?> getDependencies() {
+    public ObservableList<Observable> getDependencies() {
         return readOnlyDependencies;
     }
 

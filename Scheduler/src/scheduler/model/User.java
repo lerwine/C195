@@ -5,7 +5,17 @@ package scheduler.model;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface User extends DbDataModel {
+public interface User extends DataModel {
+
+    public static boolean arePropertiesEqual(User a, User b) {
+        if (null == a) {
+            return null == b;
+        }
+        if (a == b) {
+            return true;
+        }
+        return null != b && a.getUserName().equalsIgnoreCase(b.getUserName()) && a.getStatus().equals(b.getStatus());
+    }
 
     /**
      * Gets the current user's login name. This corresponds to the "userName" database column.

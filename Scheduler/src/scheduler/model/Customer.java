@@ -4,9 +4,19 @@ package scheduler.model;
  * Interface for objects that contain either partial or complete information from the {@code customer} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.model.Customer}
  */
-public interface Customer extends DbDataModel {
+public interface Customer extends DataModel {
+
+    public static boolean arePropertiesEqual(Customer a, Customer b) {
+        if (null == a) {
+            return null == b;
+        }
+        if (a == b) {
+            return true;
+        }
+        return null != b && a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
+                && ModelHelper.areSameRecord(a.getAddress(), b.getAddress());
+    }
 
     /**
      * Gets the name of the current customer. This corresponds to the "customerName" database column.
@@ -23,11 +33,9 @@ public interface Customer extends DbDataModel {
     boolean isActive();
 
     /**
-     * Gets the {@link AddressElement} for the current customer. This corresponds to the "address" data row referenced by the "addressId" database
-     * column.
+     * Gets the {@link Address} for the current customer. This corresponds to the "address" data row referenced by the "addressId" database column.
      *
-     * @return The {@link AddressElement} for the current customer.
+     * @return The {@link Address} for the current customer.
      */
     Address getAddress();
-
 }

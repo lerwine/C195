@@ -1,23 +1,16 @@
 package scheduler.model;
 
 /**
- * Base interface for objects that contain either partial or complete information from database entities.
+ * Base interface for all objects that represent a database entity.
  * <p>
- * Extending types:</p>
+ * Sub-interface overview</p>
  * <dl>
- * <dt>{@link DataRecord}</dt><dd>{@code DataModel} with all data from a database entity.</dd>
- * <dt>{@link DbDataModel}</dt><dd>{@code DataModel} with a primary key property.</dd>
- * <dt>{@link scheduler.model.db.RowData}</dt><dd>{@code DataModel} for data access objects.</dd>
- * <dt>{@link scheduler.model.ui.UIModel}</dt><dd>UI {@code DataModel} with JavaFX properties.</dd>
+ * <dt>{@link RelatedRecord}</dt><dd>{@code DataModel}s containing informational properties of database entities joined by a foreign key
+ * relationship.</dd>
+ * <dt>{@link scheduler.model.ui.UIModel}</dt><dd>UI {@code DataModel}s with bindable JavaFX properties and a backing {@link DataRecord} or
+ * {@link RelatedRecord} object.</dd>
+ * <dt>Entity-specific interfaces</dt><dd>{@link Appointment}, {@link Customer}, {@link Address}, {@link City}, and {@link Country}</dd>
  * </dl>
- * Entity-specific extensions:
- * <ul>
- * <li>{@link Appointment}</li>
- * <li>{@link Customer}</li>
- * <li>{@link Address}</li>
- * <li>{@link City}</li>
- * <li>{@link Country}</li>
- * </ul>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

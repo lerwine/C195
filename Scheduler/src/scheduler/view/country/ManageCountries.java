@@ -10,7 +10,7 @@ import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.model.ItemModel;
+import scheduler.model.ui.FxRecordModel;
 
 // CURRENT: No values for Name, Updated On or Updated By are being displayed in listing.
 // TODO: Need to add headings for main content screens and leave window title alone for non-popups.
@@ -64,7 +64,7 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
     }
 
     @Override
-    protected ItemModel.ModelFactory<CountryDAO, CountryModel> getModelFactory() {
+    protected FxRecordModel.ModelFactory<CountryDAO, CountryModel> getModelFactory() {
         return CountryModel.getFactory();
     }
 

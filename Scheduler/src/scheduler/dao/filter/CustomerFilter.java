@@ -7,6 +7,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS;
 import scheduler.AppResources;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.ModelHelper;
 import scheduler.model.db.AddressRowData;
 import scheduler.model.db.CityRowData;
 import scheduler.model.db.CountryRowData;
@@ -83,7 +84,7 @@ public interface CustomerFilter extends DaoFilter<CustomerDAO> {
     }
 
     public static DaoFilterExpression<CustomerDAO> expressionOf(AddressRowData address) {
-        if (null != address && address.isExisting()) {
+        if (null != address &&  ModelHelper.existsInDatabase(address)) {
             return IntColumnValueFilter.of(DbColumn.CUSTOMER_ADDRESS, ComparisonOperator.EQUALS, address.getPrimaryKey(),
                     (t) -> {
                         AddressRowData element = t.getAddress();
@@ -94,7 +95,7 @@ public interface CustomerFilter extends DaoFilter<CustomerDAO> {
     }
 
     public static DaoFilterExpression<CustomerDAO> expressionOf(CityRowData city) {
-        if (null != city && city.isExisting()) {
+        if (null != city && ModelHelper.existsInDatabase(city)) {
             return IntColumnValueFilter.of(DbColumn.ADDRESS_CITY, ComparisonOperator.EQUALS, city.getPrimaryKey(),
                     (t) -> {
                         AddressRowData address = t.getAddress();
@@ -111,7 +112,7 @@ public interface CustomerFilter extends DaoFilter<CustomerDAO> {
     }
 
     public static DaoFilterExpression<CustomerDAO> expressionOf(CountryRowData country) {
-        if (null != country && country.isExisting()) {
+        if (null != country &&  ModelHelper.existsInDatabase(country)) {
             return IntColumnValueFilter.of(DbColumn.CITY_COUNTRY, ComparisonOperator.EQUALS, country.getPrimaryKey(),
                     (t) -> {
                         AddressRowData address = t.getAddress();

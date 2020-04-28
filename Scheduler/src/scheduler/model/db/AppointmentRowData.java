@@ -1,8 +1,12 @@
 package scheduler.model.db;
 
 import java.sql.Timestamp;
-import scheduler.dao.DataRowState;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import scheduler.model.Appointment;
+import scheduler.model.RelatedRecord;
+import scheduler.util.DB;
 
 /**
  * Represents a data row from the "appointment" database table.
@@ -13,78 +17,116 @@ import scheduler.model.Appointment;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface AppointmentRowData extends Appointment<Timestamp>, RowData {
+public interface AppointmentRowData extends Appointment<Timestamp>, RelatedRecord {
 
-    public static boolean areEqual(AppointmentRowData a, AppointmentRowData b) {
-        if (null == a) {
-            return null == b;
-        }
-        if (null == b) {
-            return false;
-        }
-        if (a == b || a.getPrimaryKey() != b.getPrimaryKey()) {
-            return true;
-        }
-        switch (a.getRowState()) {
-            case MODIFIED:
-            case UNMODIFIED:
-                switch (b.getRowState()) {
-                    case MODIFIED:
-                    case UNMODIFIED:
-                        return true;
-                    default:
-                        return false;
-                }
-            case NEW:
-                return b.getRowState() == DataRowState.NEW && CustomerRowData.areEqual(a.getCustomer(), b.getCustomer())
-                        && UserRowData.areEqual(a.getUser(), b.getUser())
-                        && a.getContact().equalsIgnoreCase(b.getContact())
-                        && a.getDescription().equalsIgnoreCase(b.getDescription())
-                        && a.getLocation().equalsIgnoreCase(b.getLocation())
-                        && a.getType() == b.getType()
-                        && a.getTitle().equalsIgnoreCase(b.getTitle())
-                        && a.getUrl().equalsIgnoreCase(b.getUrl())
-                        && a.getStart().equals(b.getStart())
-                        && a.getEnd().equals(b.getEnd());
-            default:
-                return b.getRowState() == DataRowState.DELETED;
-        }
-    }
-
-    public static int compareByDates(AppointmentRowData a, AppointmentRowData b) {
-        if (null == a) {
-            return (null == b) ? 0 : 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-        Timestamp x = a.getStart();
-        Timestamp y = b.getStart();
-        if (null == x) {
-            return (null == x) ? 0 : 1;
-        }
-        if (null == y) {
-            return -1;
-        }
-        int c = x.compareTo(y);
-        if (c != 0) {
-            return c;
-        }
-        x = a.getEnd();
-        y = b.getEnd();
-        if (null == x) {
-            return (null == x) ? 0 : 1;
-        }
-        if (null == y) {
-            return -1;
-        }
-        return x.compareTo(y);
-    }
-    
     @Override
     public CustomerRowData getCustomer();
 
     @Override
     public UserRowData getUser();
+
+    @Override
+    public default boolean startEquals(Object value) {
+        Timestamp start = getStart();
+        if (null == start) {
+            return null == value;
+        }
+
+        if (null == value) {
+            return false;
+        }
+
+        if (value instanceof Date) {
+            return start.equals((Date) value);
+        }
+
+        Timestamp other;
+        if (value instanceof ZonedDateTime) {
+            other = DB.toUtcTimestamp((ZonedDateTime) value);
+        } else if (value instanceof LocalDateTime) {
+            other = DB.toUtcTimestamp((LocalDateTime) value);
+        } else {
+            return false;
+        }
+        return start.equals(other);
+    }
+
+    @Override
+    public default int compareStart(Object value) {
+        Timestamp start = getStart();
+        if (null == start) {
+            return (null == value) ? 0 : 1;
+        }
+
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof Date) {
+            return start.compareTo((Date) value);
+        }
+
+        Timestamp other;
+        if (value instanceof ZonedDateTime) {
+            other = DB.toUtcTimestamp((ZonedDateTime) value);
+        } else if (value instanceof LocalDateTime) {
+            other = DB.toUtcTimestamp((LocalDateTime) value);
+        } else {
+            return -1;
+        }
+        return start.compareTo(other);
+    }
+
+    @Override
+    public default boolean endEquals(Object value) {
+        Timestamp end = getEnd();
+        if (null == end) {
+            return null == value;
+        }
+
+        if (null == value) {
+            return false;
+        }
+
+        if (value instanceof Date) {
+            return end.equals((Date) value);
+        }
+
+        Timestamp other;
+        if (value instanceof ZonedDateTime) {
+            other = DB.toUtcTimestamp((ZonedDateTime) value);
+        } else if (value instanceof LocalDateTime) {
+            other = DB.toUtcTimestamp((LocalDateTime) value);
+        } else {
+            return false;
+        }
+        return end.equals(other);
+    }
+
+    @Override
+    public default int compareEnd(Object value) {
+        Timestamp end = getEnd();
+        if (null == end) {
+            return (null == value) ? 0 : 1;
+        }
+
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof Date) {
+            return end.compareTo((Date) value);
+        }
+
+        Timestamp other;
+        if (value instanceof ZonedDateTime) {
+            other = DB.toUtcTimestamp((ZonedDateTime) value);
+        } else if (value instanceof LocalDateTime) {
+            other = DB.toUtcTimestamp((LocalDateTime) value);
+        } else {
+            return -1;
+        }
+        return end.compareTo(other);
+    }
 
 }

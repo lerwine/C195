@@ -5,9 +5,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
- * An object that contains only one of 2 possible value options.
+ * An object that contains exactly one of 2 possible value options.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The primary value type.
@@ -113,12 +114,12 @@ public final class BinarySelective<T, U> {
     public Optional<T> toPrimaryOption() {
         return (primary) ? Optional.of((T) value) : Optional.empty();
     }
-    
+
     @SuppressWarnings("unchecked")
     public Optional<U> toSecondaryOption() {
         return (primary) ? Optional.empty() : Optional.of((U) value);
     }
-    
+
     /**
      * If this contains the primary value option, invoke the specified consumer with the value; otherwise, do nothing. This is similar to
      * {@link Optional#ifPresent(Consumer)}.
@@ -177,6 +178,21 @@ public final class BinarySelective<T, U> {
     }
 
     /**
+     * Applies a {@link Predicate} according to the option value being stored.
+     *
+     * @param primary The {@link Predicate} to test if this contains the primary option value.
+     * @param secondary The {@link Predicate} to test if this contains the secondary option value.
+     * @return The result from the {@link Predicate} that was applied.
+     */
+    @SuppressWarnings("unchecked")
+    public boolean toBoolean(Predicate<? super T> primary, Predicate<? super U> secondary) {
+        if (this.primary) {
+            return primary.test((T) value);
+        }
+        return secondary.test((U) value);
+    }
+
+    /**
      * Creates a {@code BinarySelective} value by swapping primary and secondary options.
      *
      * @return A new {@code BinarySelective} value with secondary and tertiary option values swapped.
@@ -198,12 +214,12 @@ public final class BinarySelective<T, U> {
     @Override
     public boolean equals(Object obj) {
         if (null != obj && obj instanceof BinarySelective) {
-            BinarySelective<?, ?> other = (BinarySelective<?, ?>)obj;
+            BinarySelective<?, ?> other = (BinarySelective<?, ?>) obj;
             return primary == other.primary && Objects.equals(value, other.value);
         }
         return false;
     }
-    
+
     @Override
     public String toString() {
         if (primary) {
