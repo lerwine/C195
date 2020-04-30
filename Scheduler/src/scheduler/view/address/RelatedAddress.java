@@ -52,7 +52,7 @@ public class RelatedAddress implements AddressDbItem<AddressRowData> {
         cityName = new NestedStringBindingProperty<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new NestedStringBindingProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
         postalCode = new ReadOnlyStringWrapper(this, "postalCode", rowData.getPostalCode());
-        phone = new ReadOnlyStringWrapper(this, "phone", rowData.getPostalCode());
+        phone = new ReadOnlyStringWrapper(this, "phone", rowData.getPhone());
         cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
         dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", rowData);
         rowState = new RowStateProperty(this, "rowState", ModelHelper.getRowState(rowData));

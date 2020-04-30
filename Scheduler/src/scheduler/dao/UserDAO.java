@@ -37,11 +37,15 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 @DatabaseTable(DbTable.USER)
 public class UserDAO extends DataAccessObject implements UserRowData {
 
+    public static final int MAX_LENGTH_USERNAME = 50;
+    
     /**
      * The name of the 'userName' property.
      */
     public static final String PROP_USERNAME = "userName";
 
+    public static final int MAX_LENGTH_PASSWORD = 50;
+    
     /**
      * The name of the 'password' property.
      */

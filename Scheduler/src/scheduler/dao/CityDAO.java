@@ -45,7 +45,9 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEM
  */
 @DatabaseTable(DbTable.CITY)
 public class CityDAO extends DataAccessObject implements CityRowData {
-
+    
+    public static final int MAX_LENGTH_NAME = 50;
+    
     /**
      * The name of the 'name' property.
      */

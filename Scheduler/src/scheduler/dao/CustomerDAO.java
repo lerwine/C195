@@ -36,6 +36,8 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 @DatabaseTable(DbTable.CUSTOMER)
 public class CustomerDAO extends DataAccessObject implements CustomerRowData {
 
+    public static final int MAX_LENGTH_NAME = 45;
+    
     /**
      * The name of the 'name' property.
      */

@@ -51,31 +51,43 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
      */
     public static final String PROP_USER = "user";
 
+    public static final int MAX_LENGTH_TITLE = 255;
+    
     /**
      * The name of the 'title' property.
      */
     public static final String PROP_TITLE = "title";
 
+    public static final int MAX_LENGTH_DESCRIPTION = 65535;
+    
     /**
      * The name of the 'description' property.
      */
     public static final String PROP_DESCRIPTION = "description";
 
+    public static final int MAX_LENGTH_LOCATION = 65535;
+    
     /**
      * The name of the 'location' property.
      */
     public static final String PROP_LOCATION = "location";
 
+    public static final int MAX_LENGTH_CONTACT = 65535;
+    
     /**
      * The name of the 'contact' property.
      */
     public static final String PROP_CONTACT = "contact";
 
+    public static final int MAX_LENGTH_TYPE = 65535;
+    
     /**
      * The name of the 'type' property.
      */
     public static final String PROP_TYPE = "type";
 
+    public static final int MAX_LENGTH_URL = 255;
+    
     /**
      * The name of the 'url' property.
      */

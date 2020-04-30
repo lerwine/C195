@@ -82,7 +82,7 @@ public class PredefinedCountry extends PredefinedItem implements CountryItem, Co
     PredefinedCountry(CountryElement source, ObservableList<PredefinedCity> cities) {
         LOG.info(String.format("Parsing country %s", source.getLanguageTag()));
         Locale l = Locale.forLanguageTag(source.getLanguageTag());
-        name = new ReadOnlyStringWrapper(this, "name", l.getDisplayName());
+        name = new ReadOnlyStringWrapper(this, "name", l.getDisplayCountry());
         locale = new ReadOnlyObjectWrapper<>(this, "locale", l);
         defaultZoneId = new ReadOnlyObjectWrapper<>(this, "defaultZoneId", ZoneId.of(source.getDefaultZoneId()));
         regionCode = new ReadOnlyStringWrapper(this, "regionCode", l.getCountry());

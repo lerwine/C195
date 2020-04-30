@@ -44,6 +44,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.observables.BindingHelper;
 import scheduler.observables.OptionalBinding;
+import scheduler.util.NodeUtil;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -63,15 +64,16 @@ public class AppointmentConflicts {
 
     private static final Logger LOG = Logger.getLogger(AppointmentConflicts.class.getName());
 
-    private SimpleStringProperty conflictMessage;
+    private EditAppointment parentController;
+    private DateRange dateRangeController;
     private ObservableList<AppointmentModel> allAppointments;
     private ObservableList<AppointmentModel> conflictingAppointments;
     private SimpleObjectProperty<Customer> currentCustomer;
     private SimpleObjectProperty<User> currentUser;
-    private DateRange dateRangeController;
-    private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
-    private ReadOnlyObjectProperty<UserModel> selectedUser;
-    private OptionalBinding<String> conflictMessageBinding;
+//    private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
+//    private ReadOnlyObjectProperty<UserModel> selectedUser;
+    private SimpleStringProperty conflictMessage;
+//    private OptionalBinding<String> conflictMessageBinding;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -81,7 +83,7 @@ public class AppointmentConflicts {
 
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
-    private ObjectBinding<Pair<LocalDateTime, Duration>> selectedDateRange;
+    //private ObjectBinding<Pair<LocalDateTime, Duration>> selectedDateRange;
 
     @FXML
     void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
@@ -99,6 +101,21 @@ public class AppointmentConflicts {
         conflictingAppointments = FXCollections.observableArrayList();
     }
 
+    EditAppointment getParentController() {
+        return parentController;
+    }
+
+    void onParentListsLoaded(EditAppointment parentController, List<AppointmentDAO> appointments) {
+        if (null != parentController)
+            throw new IllegalStateException();
+        this.parentController = parentController;
+//        this.selectedCustomer = parentController.getCustomerSelectionModel().selectedItemProperty();
+//        this.selectedUser = parentController.getUserSelectionModel().selectedItemProperty();
+        this.dateRangeController = parentController.getDateRangeController();
+        
+    }
+
+    
     @FXML
     private void onShowConflictsButtonAction(ActionEvent event) {
         rootBorderPane.setVisible(true);
@@ -108,50 +125,41 @@ public class AppointmentConflicts {
         TaskWaiter.startNow(new AppointmentReloadTask());
     }
 
-    void initializeConflicts(List<AppointmentDAO> appointments, SingleSelectionModel<CustomerModel> customerSelectionModel,
-            SingleSelectionModel<UserModel> userSelectionModel, DateRange dateRange) {
-        this.selectedCustomer = customerSelectionModel.selectedItemProperty();
-        this.selectedUser = userSelectionModel.selectedItemProperty();
-        this.dateRangeController = dateRange;
-        selectedDateRange = Bindings.createObjectBinding(() -> {
-            ZonedDateTime zdt = dateRange.getStartDateTime();
-            Duration d = dateRange.getDuration();
-            if (null == zdt) {
-                return new Pair<>((LocalDateTime) null, d);
-            }
-            return new Pair<>(zdt.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime(), d);
-        }, dateRange.getStartDateTimeBinding(), dateRange.getDurationBinding());
-        accept(appointments, customerSelectionModel.getSelectedItem(), userSelectionModel.getSelectedItem());
+    void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController, DateRange dateRangeController) {
+//        this.selectedCustomer = customerSelectionModel.selectedItemProperty();
+//        this.selectedUser = userSelectionModel.selectedItemProperty();
+        this.parentController = parentController;
+        this.dateRangeController = dateRangeController;
+        accept(appointments);
+//        ObjectBinding<Pair<CustomerModel, UserModel>> selectedCustomerAndUser = Bindings.createObjectBinding(() -> {
+//            return new Pair<>(selectedCustomer.get(), selectedUser.get());
+//        }, selectedCustomer, selectedUser);
+//        
+//        conflictMessageBinding = BindingHelper.createOptionalBinding(() -> {
+//            String m = conflictMessage.get();
+//            Customer cc = currentCustomer.get();
+//            Pair<CustomerModel, UserModel> s = selectedCustomerAndUser.get();
+//            User cu = currentUser.get();
+//            if (null == s.getKey()) {
+//                if (null == s.getValue()) {
+//                    return Optional.of("");
+//                }
+//                if (!ModelHelper.areSameRecord(s.getValue(), cu)) {
+//                    return Optional.empty();
+//                }
+//            } else if (!ModelHelper.areSameRecord(s.getKey(), cc) || null != s.getValue() && !ModelHelper.areSameRecord(s.getValue(), cu)) {
+//                return Optional.empty();
+//            }
+//            return Optional.of(m);
+//        }, conflictMessage, currentCustomer, currentUser, selectedCustomerAndUser);
 
-        ObjectBinding<Pair<CustomerModel, UserModel>> selectedCustomerAndUser = Bindings.createObjectBinding(() -> {
-            return new Pair<>(selectedCustomer.get(), selectedUser.get());
-        }, selectedCustomer, selectedUser);
-
-        conflictMessageBinding = BindingHelper.createOptionalBinding(() -> {
-            String m = conflictMessage.get();
-            Customer cc = currentCustomer.get();
-            Pair<CustomerModel, UserModel> s = selectedCustomerAndUser.get();
-            User cu = currentUser.get();
-            if (null == s.getKey()) {
-                if (null == s.getValue()) {
-                    return Optional.of("");
-                }
-                if (!ModelHelper.areSameRecord(s.getValue(), cu)) {
-                    return Optional.empty();
-                }
-            } else if (!ModelHelper.areSameRecord(s.getKey(), cc) || null != s.getValue() && !ModelHelper.areSameRecord(s.getValue(), cu)) {
-                return Optional.empty();
-            }
-            return Optional.of(m);
-        }, conflictMessage, currentCustomer, currentUser, selectedCustomerAndUser);
-
-        selectedDateRange.addListener((observable, oldValue, newValue) -> {
-            onDateRangeChanged(newValue.getKey(), newValue.getValue());
-        });
-        selectedCustomerAndUser.addListener((observable, oldValue, newValue) -> {
-            onCustomerOrUserChanged(newValue.getKey(), newValue.getValue());
-        });
-        dateRange.setConflictsBinding(conflictMessageBinding, this::onCheckConflictsButtonAction, this::onShowConflictsButtonAction);
+//        selectedDateRange.addListener((observable, oldValue, newValue) -> {
+//            onDateRangeChanged(newValue.getKey(), newValue.getValue());
+//        });
+//        selectedCustomerAndUser.addListener((observable, oldValue, newValue) -> {
+//            onCustomerOrUserChanged(newValue.getKey(), newValue.getValue());
+//        });
+//        dateRange.setConflictsBinding(conflictMessageBinding, this::onCheckConflictsButtonAction, this::onShowConflictsButtonAction);
 
     }
 
@@ -182,8 +190,8 @@ public class AppointmentConflicts {
             conflictingAppointments.clear();
             return;
         }
-        Pair<LocalDateTime, Duration> dr = selectedDateRange.get();
-        onDateRangeChanged(dr.getKey(), dr.getValue());
+//        Pair<LocalDateTime, Duration> dr = selectedDateRange.get();
+//        onDateRangeChanged(dr.getKey(), dr.getValue());
 
     }
 
@@ -260,9 +268,9 @@ public class AppointmentConflicts {
         }
     }
 
-    private void accept(List<AppointmentDAO> appointments, Customer customer, User user) {
-        currentCustomer.set(customer);
-        currentUser.set(user);
+    private void accept(List<AppointmentDAO> appointments) {
+        currentCustomer.set(parentController.getCustomer());
+        currentUser.set(parentController.getUser());
         allAppointments.clear();
         conflictingAppointments.clear();
         if (null == appointments || appointments.isEmpty()) {
@@ -271,8 +279,20 @@ public class AppointmentConflicts {
         }
         appointments.stream().map((t) -> new AppointmentModel(t)).sorted(AppointmentModel::compareByDates)
                 .forEachOrdered((t) -> allAppointments.add(t));
-        Pair<LocalDateTime, Duration> dr = selectedDateRange.get();
-        onDateRangeChanged(dr.getKey(), dr.getValue());
+//        Pair<LocalDateTime, Duration> dr = selectedDateRange.get();
+//        onDateRangeChanged(dr.getKey(), dr.getValue());
+    }
+
+    void onCustomerChanged(CustomerModel value) {
+//        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onCustomerChanged
+    }
+
+    void onUserChanged(UserModel value) {
+//        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onUserChanged
+    }
+
+    void onTimeSpanChanged(Optional<ZonedAppointmentTimeSpan> get) {
+//        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onTimeSpanChanged
     }
 
     private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {
@@ -283,15 +303,15 @@ public class AppointmentConflicts {
         private AppointmentReloadTask() {
             super((Stage) conflictingAppointmentsTableView.getScene().getWindow(), AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
                     AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-            CustomerModel sc = selectedCustomer.get();
-            UserModel su = selectedUser.get();
+            CustomerModel sc = parentController.getCustomer();
+            UserModel su = parentController.getUser();
             customer = (null == sc) ? null : sc.getDataObject();
             user = (null == su) ? null : su.getDataObject();
         }
 
         @Override
         protected void processResult(List<AppointmentDAO> result, Stage stage) {
-            accept(result, customer, user);
+            accept(result);
         }
 
         @Override

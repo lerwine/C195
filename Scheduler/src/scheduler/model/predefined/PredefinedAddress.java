@@ -34,6 +34,7 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
     private final ReadOnlyStringWrapper phone;
     private final CityZipCountryProperty cityZipCountry;
     private final ReadOnlyStringWrapper referenceKey;
+    private final StringBinding multiLineAddress;
 
     PredefinedAddress(AddressElement source, PredefinedCity city) {
         referenceKey = new ReadOnlyStringWrapper(this, "referenceKey", source.getKey());
@@ -44,9 +45,10 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
         this.city = new ReadOnlyObjectWrapper<>(this, "city", city);
         cityName = new NestedStringBindingProperty<>(this, "cityName", this.city, (t) -> t.nameProperty());
         countryName = new NestedStringBindingProperty<>(this, "countryName", this.city, (t) -> t.countryNameProperty());
-        postalCode = new ReadOnlyStringWrapper(this, "postalCode", source.getPhone());
-        phone = new ReadOnlyStringWrapper(this, "phone", source.getPostalCode());
+        postalCode = new ReadOnlyStringWrapper(this, "postalCode", source.getPostalCode());
+        phone = new ReadOnlyStringWrapper(this, "phone", source.getPhone());
         cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
+        multiLineAddress = AddressItem.createMultiLineAddressBinding(address1, address2, cityZipCountry, phone);
     }
 
     public String getReferenceKey() {
@@ -148,6 +150,10 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
     @Override
     public ReadOnlyProperty<String> cityZipCountryProperty() {
         return cityZipCountry;
+    }
+
+    public StringBinding getMultiLineAddress() {
+        return multiLineAddress;
     }
 
     class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {

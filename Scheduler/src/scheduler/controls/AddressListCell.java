@@ -69,11 +69,10 @@ public class AddressListCell<T extends AddressItem> extends ListCell<T> {
                     sb.append(cityZipCountry);
                 }
             }
-            s = item.getPhone();
-            if (sb.length() == 0) {
-                setText(s);
-            } else if (null != s && !(s = s.trim()).isEmpty()) {
-                setText(sb.append(", ").append(s).toString());
+            if (sb.length() > 0) {
+                setText(sb.toString());
+            } else {
+                setText(item.getPhone());
             }
         }
     }

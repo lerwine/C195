@@ -11,7 +11,6 @@ import javafx.beans.value.ObservableValue;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.observables.NestedBooleanBindingProperty}
  */
 public class NestedBooleanBindingProperty<T> extends BooleanBindingProperty {
 

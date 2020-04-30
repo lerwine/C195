@@ -13,13 +13,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -29,15 +34,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import scheduler.observables.BinaryOptionalBinding;
-import scheduler.observables.BinarySelectiveBinding;
 import scheduler.observables.BindingHelper;
-import scheduler.observables.CssClassSwitchBinding;
 import scheduler.observables.OptionalBinding;
 import scheduler.util.BinaryOptional;
-import scheduler.util.BinarySelective;
+import static scheduler.util.NodeUtil.addCssClass;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.removeCssClass;
+import static scheduler.util.NodeUtil.restoreLabeled;
+import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.CssClassName;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
@@ -53,7 +60,36 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 @FXMLResource("/scheduler/view/appointment/DateRange.fxml")
 public final class DateRange {
 
-    private ObservableList<TimeZone> timeZones;
+    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
+
+    private static int tryParseInteger(String s, int max) {
+        NumberFormat fmt = NumberFormat.getIntegerInstance();
+        String v;
+        if (null == s || (v = s.trim()).isEmpty()) {
+            return -1;
+        }
+
+        try {
+            Matcher m = INT_PATTERN.matcher(v);
+            if (!m.find()) {
+                throw new ParseException("Invalid number", s.length() - v.length());
+            } else if (m.end() < v.length()) {
+                throw new ParseException("Invalid number", m.end() + (s.length() - v.length()));
+            }
+            int i = fmt.parse(v).intValue();
+            return (i < 0 || (max > 0 && i > max)) ? -2 : i;
+        } catch (ParseException ex) {
+            return -2;
+        }
+    }
+
+    private static Optional<ZonedAppointmentTimeSpan> buildZonedAppointmentTimeSpan(BinaryOptional<ZonedDateAndTimeSelection, String> start,
+            BinaryOptional<AppointmentDuration, String> duration) {
+        if (start.isPrimary() && duration.isPrimary()) {
+            return Optional.of(ZonedAppointmentTimeSpan.of(start.getPrimary(), duration.getPrimary()));
+        }
+        return Optional.empty();
+    }
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -96,10 +132,16 @@ public final class DateRange {
 
     @FXML // fx:id="localTimeValue"
     private Label localTimeValue; // Value injected by FXMLLoader
-    private ObjectBinding<ZonedDateTime> startDateTimeBinding;
-    private ObjectBinding<ZonedDateTime> endDateTimeBinding;
-    private BooleanBinding valid;
-    private ObjectBinding<Duration> durationBinding;
+
+    private ObservableList<TimeZone> timeZones;
+    private BinaryOptionalBinding<ZonedDateAndTimeSelection, String> parseStartBinding;
+    private BinaryOptionalBinding<AppointmentDuration, String> parseDurationBinding;
+    private OptionalBinding<ZonedAppointmentTimeSpan> timeSpan;
+    private StringBinding startParseMessage;
+    private StringBinding durationParseMessage;
+    private StringBinding startMessage;
+    private SimpleStringProperty conflictMessage;
+    private AppointmentConflicts conflictsController;
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
@@ -117,147 +159,44 @@ public final class DateRange {
         assert localTimeLabel != null : "fx:id=\"localTimeLabel\" was not injected: check your FXML file 'temp.fxml'.";
         assert localTimeValue != null : "fx:id=\"localTimeValue\" was not injected: check your FXML file 'temp.fxml'.";
 
-        SingleSelectionModel<TimeZone> timeZoneSelectionModel = timeZoneComboBox.getSelectionModel();
-        SingleSelectionModel<Boolean> amPmSelectionModel = amPmComboBox.getSelectionModel();
         timeZones = FXCollections.observableArrayList();
         Arrays.stream(TimeZone.getAvailableIDs()).map((t) -> TimeZone.getTimeZone(t)).sorted((o1, o2) -> {
             return o1.getRawOffset() - o2.getRawOffset();
         }).forEachOrdered((t) -> timeZones.add(t));
 
-        BinaryOptionalBinding<LocalDate, DateTimeException> parseDate = BindingHelper.parseLocalDate(startDatePicker.getEditor().textProperty(),
-                startDatePicker.getConverter());
-        BinaryOptionalBinding<Integer, ParseException> parseStartHour = BindingHelper.parseInt(startHourTextField.textProperty());
-        BinaryOptionalBinding<Integer, ParseException> parseStartMinute = BindingHelper.parseInt(startMinuteTextField.textProperty());
-        BinarySelectiveBinding<ZonedDateTime, String> parseStartDateTime = BindingHelper.createBinarySelectiveBinding(() -> {
-            BinaryOptional<LocalDate, DateTimeException> p = parseDate.get();
-            LocalDate d = startDatePicker.getValue();
-            BinaryOptional<Integer, ParseException> hr = parseStartHour.get();
-            BinaryOptional<Integer, ParseException> mr = parseStartMinute.get();
-            Boolean a = amPmSelectionModel.getSelectedItem();
-            TimeZone tz = timeZoneSelectionModel.getSelectedItem();
-            if (p.isSecondary()) {
-                return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDSTARTDATE));
-            }
-            if (hr.isSecondary()) {
-                return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDHOUR));
-            }
-            if (mr.isSecondary()) {
-                return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDMINUTE));
-            }
-            if (p.isPresent() && hr.isPresent() && mr.isPresent() && null != d && null != a) {
-                int h = hr.getPrimary();
-                if (h < 1 || h > 12) {
-                    return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDHOUR));
-                }
-                int m = mr.getPrimary();
-                if (m < 0 || m > 59) {
-                    return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDMINUTE));
-                }
-                if (null == tz) {
-                    return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_TIMEZONENOTSPECIFIED));
-                }
-                return BinarySelective.ofPrimary(ZonedDateTime.of(
-                        LocalDateTime.of(
-                                d,
-                                LocalTime.of((a) ? ((h == 12) ? 12 : h + 12) : ((h == 12) ? 0 : h), m, 0, 0)
-                        ),
-                        tz.toZoneId()
-                ));
-            }
-            return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_REQUIRED));
-        }, parseDate, startDatePicker.valueProperty(), parseStartHour, parseStartMinute, amPmSelectionModel.selectedItemProperty(),
-                timeZoneSelectionModel.selectedItemProperty());
-
-        BinaryOptionalBinding<Integer, ParseException> parseDurationHour = BindingHelper.parseInt(durationHourTextField.textProperty());
-        BinaryOptionalBinding<Integer, ParseException> parseDurationMinute = BindingHelper.parseInt(durationMinuteTextField.textProperty());
-        BinarySelectiveBinding<Duration, String> parseDuration = BindingHelper.createBinarySelectiveBinding(() -> {
-            BinaryOptional<Integer, ParseException> hr = parseDurationHour.get();
-            BinaryOptional<Integer, ParseException> mr = parseDurationMinute.get();
-            if (hr.isSecondary()) {
-                return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDHOUR));
-            }
-            if (mr.isSecondary()) {
-                return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDMINUTE));
-            }
-            if (hr.isPresent()) {
-                int h = hr.getPrimary();
-                if (h < 0) {
-                    return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDHOUR));
-                }
-                if (mr.isPresent()) {
-                    int m = mr.getPrimary();
-                    if (m < 0 || m > 59) {
-                        return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDMINUTE));
-                    }
-                    return BinarySelective.ofPrimary(Duration.ofMinutes((h * 60) + m));
-                }
-                return BinarySelective.ofPrimary(Duration.ofHours(h));
-            }
-            if (mr.isPresent()) {
-                int m = mr.getPrimary();
-                if (m < 0 || m > 59) {
-                    return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_INVALIDMINUTE));
-                }
-                return BinarySelective.ofPrimary(Duration.ofMinutes(m));
-            }
-            return BinarySelective.ofSecondary(resources.getString(RESOURCEKEY_REQUIRED));
-        }, parseDurationHour, parseDurationMinute);
-
-        StringBinding dateParseErrorMessage = parseStartDateTime.mapToString("", (t) -> t);
-        StringBinding durationParseErrorMessage = parseDuration.mapToString("", (t) -> t);
-        startDateTimeBinding = parseStartDateTime.map((t) -> t, (ZonedDateTime) null);
-        durationBinding = parseDuration.map((t) -> t, (Duration) null);
-        endDateTimeBinding = Bindings.createObjectBinding(() -> {
-            BinarySelective<ZonedDateTime, String> s = parseStartDateTime.get();
-            BinarySelective<Duration, String> d = parseDuration.get();
-            if (s.isPrimary() && d.isPrimary()) {
-                return s.getPrimary().plus(d.getPrimary());
-            }
-            return null;
-        }, parseStartDateTime, parseDuration);
-        startValidationLabel.textProperty().bind(dateParseErrorMessage);
-        startValidationLabel.visibleProperty().bind(dateParseErrorMessage.isNotEmpty());
-        durationValidationLabel.textProperty().bind(durationParseErrorMessage);
-        durationValidationLabel.visibleProperty().bind(durationParseErrorMessage.isNotEmpty());
-        valid = endDateTimeBinding.isNotNull();
-        CssClassSwitchBinding.collapseIfTrue(localTimeLabel, parseStartDateTime.isPrimary().and(parseDuration.isPrimary()).not());
-        CssClassSwitchBinding.collapseIfTrue(localTimeValue, parseStartDateTime.isPrimary().and(parseDuration.isPrimary()).not());
-
         amPmComboBox.setItems(FXCollections.observableArrayList(false, true));
 
         timeZoneComboBox.setItems(timeZones);
-    }
 
-    boolean isValid() {
-        return valid.get();
-    }
+        conflictMessage = new SimpleStringProperty("");
 
-    BooleanBinding getValid() {
-        return valid;
-    }
+        startDatePicker.getEditor().textProperty().addListener((observable) -> onStartControlChanged());
+        startDatePicker.valueProperty().addListener((observable) -> onStartControlChanged());
+        startHourTextField.textProperty().addListener((observable) -> onStartControlChanged());
+        startMinuteTextField.textProperty().addListener((observable) -> onStartControlChanged());
+        amPmComboBox.valueProperty().addListener((observable) -> onStartControlChanged());
 
-    ZonedDateTime getStartDateTime() {
-        return startDateTimeBinding.get();
-    }
-
-    ObjectBinding<ZonedDateTime> getStartDateTimeBinding() {
-        return startDateTimeBinding;
-    }
-
-    Duration getDuration() {
-        return durationBinding.get();
-    }
-    
-    ObjectBinding<Duration> getDurationBinding() {
-        return durationBinding;
-    }
-
-    ZonedDateTime getEndDateTime() {
-        return endDateTimeBinding.get();
-    }
-
-    ObjectBinding<ZonedDateTime> getEndDateTimeBinding() {
-        return endDateTimeBinding;
+        durationHourTextField.textProperty().addListener((observable) -> onDurationControlChanged());
+        durationMinuteTextField.textProperty().addListener((observable) -> onDurationControlChanged());
+        timeZoneComboBox.valueProperty().addListener((observable) -> onDurationControlChanged());
+        parseStartBinding = BindingHelper.createBinaryOptionalBinding(()
+                -> parseDateAndTime(startDatePicker.getEditor().getText(), startDatePicker.getValue(), startHourTextField.getText(),
+                        startMinuteTextField.getText(), amPmComboBox.getValue(), timeZoneComboBox.getValue()),
+                startDatePicker.getEditor().textProperty(), startDatePicker.valueProperty(), startHourTextField.textProperty(),
+                startMinuteTextField.textProperty(), amPmComboBox.valueProperty(), timeZoneComboBox.valueProperty());
+        startParseMessage = parseStartBinding.mapToString((t) -> "", (s) -> s, resources.getString(RESOURCEKEY_REQUIRED));
+        startMessage = Bindings.createStringBinding(() -> {
+            String c = conflictMessage.get();
+            String s = startParseMessage.get();
+            return (s.isEmpty()) ? c : s;
+        }, conflictMessage, startParseMessage);
+        BooleanBinding timeZoneMissing = timeZoneComboBox.valueProperty().isNull();
+        parseDurationBinding = BindingHelper.createBinaryOptionalBinding(() -> parseDuration(durationHourTextField.getText(),
+                durationMinuteTextField.getText(), timeZoneMissing.get()), durationHourTextField.textProperty(),
+                durationMinuteTextField.textProperty(), timeZoneMissing);
+        durationParseMessage = parseDurationBinding.mapToString((t) -> "", (s) -> s, resources.getString(RESOURCEKEY_REQUIRED));
+        timeSpan = BindingHelper.createOptionalBinding(() -> buildZonedAppointmentTimeSpan(parseStartBinding.get(),
+                parseDurationBinding.get()), parseStartBinding, parseDurationBinding);
     }
 
     void setDateRange(LocalDateTime start, Duration duration, TimeZone timeZone) {
@@ -266,47 +205,157 @@ public final class DateRange {
             startHourTextField.setText("");
             startMinuteTextField.setText("");
         } else {
-            NumberFormat fmt = NumberFormat.getIntegerInstance();
             startDatePicker.setValue(start.toLocalDate());
             int h = start.getHour();
             if (h < 12) {
-                startHourTextField.setText(fmt.format((h == 0) ? 12 : h));
+                startHourTextField.setText(String.format("%d", (h == 0) ? 12 : h));
                 amPmComboBox.getSelectionModel().select(false);
             } else {
-                startHourTextField.setText(fmt.format((h > 12) ? h - 12 : 12));
+                startHourTextField.setText(String.format("%d", (h > 12) ? h - 12 : 12));
                 amPmComboBox.getSelectionModel().select(true);
             }
-            startMinuteTextField.setText(fmt.format(start.getMinute()));
+            startMinuteTextField.setText(String.format("%02d", start.getMinute()));
         }
         if (null == duration) {
             durationHourTextField.setText("");
             durationMinuteTextField.setText("");
         } else {
-            NumberFormat fmt = NumberFormat.getIntegerInstance();
             long minutes = duration.getSeconds() / 60;
             long hours = minutes / 60;
             minutes -= (hours * 60);
-            durationHourTextField.setText(fmt.format(hours));
-            startMinuteTextField.setText(fmt.format(minutes));
+            durationHourTextField.setText(String.format("%d", hours));
+            durationMinuteTextField.setText(String.format("%02d", minutes));
         }
         if (null == timeZone) {
             timeZoneComboBox.getSelectionModel().clearSelection();
         } else {
             timeZoneComboBox.getSelectionModel().select(timeZone);
         }
-        
+
     }
-    
-    void setConflictsBinding(OptionalBinding<String> conflictMessageBinding, EventHandler<ActionEvent> checkConflictsListener,
+
+    void setConflictsBinding(AppointmentConflicts conflictsController, EventHandler<ActionEvent> checkConflictsListener,
             EventHandler<ActionEvent> showConflictsListener) {
-        CssClassSwitchBinding.collapseIfTrue(checkConflictsButton, conflictMessageBinding.isPresent());
-        CssClassSwitchBinding.collapseIfTrue(showConflictsButton, conflictMessageBinding.mapToBoolean((s) -> s.isEmpty(), true));
+        this.conflictsController = conflictsController;
         checkConflictsButton.setOnAction(checkConflictsListener);
         showConflictsButton.setOnAction(showConflictsListener);
+        conflictsController.onTimeSpanChanged(timeSpan.get());
     }
-    
+
     void setOnShowConflictsButtonAction(EventHandler<ActionEvent> listener) {
         showConflictsButton.setOnAction(listener);
     }
-    
+
+    private void onTimeSpanComponentChanged() {
+        Optional<ZonedAppointmentTimeSpan> ts = timeSpan.get();
+        if (ts.isPresent()) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+            restoreNode(localTimeLabel);
+            restoreLabeled(localTimeValue, String.format(resources.getString(RESOURCEKEY_TIMERANGE),
+                    formatter.format(ts.get().toZonedStartDateTime()),
+                    formatter.format(ts.get().toZonedEndDateTime())));
+        } else {
+            collapseNode(localTimeLabel);
+            collapseNode(localTimeValue);
+        }
+        if (null != conflictsController) {
+            conflictsController.onTimeSpanChanged(ts);
+        }
+    }
+
+    private void onStartControlChanged() {
+        String s = startMessage.get();
+        if (s.isEmpty()) {
+            startValidationLabel.setVisible(false);
+        } else {
+            if (startParseMessage.get().isEmpty()) {
+                removeCssClass(startValidationLabel, CssClassName.ERROR);
+                addCssClass(startValidationLabel, CssClassName.WARNING);
+            } else {
+                removeCssClass(startValidationLabel, CssClassName.WARNING);
+                addCssClass(startValidationLabel, CssClassName.ERROR);
+            }
+            startValidationLabel.setVisible(true);
+            startValidationLabel.setText(s);
+        }
+        onTimeSpanComponentChanged();
+    }
+
+    private void onDurationControlChanged() {
+        String s = durationParseMessage.get();
+        durationValidationLabel.setVisible(!s.isEmpty());
+        durationValidationLabel.setText(s);
+        onTimeSpanComponentChanged();
+    }
+
+    private BinaryOptional<ZonedDateAndTimeSelection, String> parseDateAndTime(String startDateText, LocalDate startDateValue,
+            String startHourText, String startMinuteText, Boolean pm, TimeZone timeZone) {
+        int h, m;
+        if (startDateText.trim().isEmpty()) {
+            h = tryParseInteger(startHourText, 12);
+            if (h == -2 || h == 0) {
+                return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDSTARTHOUR));
+            }
+            m = tryParseInteger(startMinuteText, 59);
+            if (m == -2) {
+                return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDSTARTMINUTE));
+            }
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_REQUIRED));
+        }
+        LocalDate startDate;
+        try {
+            startDate = startDatePicker.getConverter().fromString(startDateText);
+        } catch (DateTimeException ex) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDSTARTDATE));
+        }
+        h = tryParseInteger(startHourText, 12);
+        if (h == -2 || h == 0) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDSTARTHOUR));
+        }
+        m = tryParseInteger(startMinuteText, 59);
+        if (m == -2) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDSTARTMINUTE));
+        }
+        if (null == pm || h < 0 || m < 0) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_REQUIRED));
+        }
+        if (null == timeZone) {
+            return BinaryOptional.ofSecondary("");
+        }
+        return BinaryOptional.ofPrimary(
+                ZonedDateAndTimeSelection.of(
+                        ZonedDateTime.of(
+                                LocalDateTime.of(
+                                        startDate,
+                                        LocalTime.of((pm) ? ((h == 12) ? 12 : h + 12) : ((h == 12) ? 0 : h), m)
+                                ),
+                                timeZone.toZoneId()
+                        )
+                )
+        );
+    }
+
+    private BinaryOptional<AppointmentDuration, String> parseDuration(String durationHourText, String durationMinuteText, boolean timeZoneMissing) {
+        int h = tryParseInteger(durationHourText, -1);
+        if (h == -2) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDDURATIONHOUR));
+        }
+        int m = tryParseInteger(durationMinuteText, 59);
+        if (m == -2) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_INVALIDDURATIONMINUTE));
+        }
+        if (h < 0 || m < 0) {
+            return BinaryOptional.empty();
+        }
+        if (timeZoneMissing) {
+            return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_TIMEZONENOTSPECIFIED));
+        }
+        return BinaryOptional.ofPrimary(AppointmentDuration.of(Duration.ofSeconds(((long) h * 60L + (long) m) * 60L)));
+    }
+
+    ZonedAppointmentTimeSpan getTimeSpan() {
+        Optional<ZonedAppointmentTimeSpan> opt = timeSpan.get();
+        return opt.isPresent() ? opt.get() : null;
+    }
+
 }

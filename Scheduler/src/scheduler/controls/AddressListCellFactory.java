@@ -8,13 +8,13 @@ import scheduler.model.ui.AddressItem;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.controls.AddressListCellFactory}
+ * @param <T>
  */
 public class AddressListCellFactory<T extends AddressItem> implements Callback<ListView<T>, ListCell<T>> {
 
     @Override
     public ListCell<T> call(ListView<T> param) {
-        return new AddressListCell<T>();
+        return new AddressListCell<>();
     }
 
 }

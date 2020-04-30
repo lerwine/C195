@@ -21,6 +21,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -129,16 +131,23 @@ public class BindingHelper {
         }, observable);
     }
 
+    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     public static BinaryOptionalBinding<Integer, ParseException> parseInt(final ObservableValue<String> observableString) {
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         return createBinaryOptionalBinding(() -> {
             String s = observableString.getValue();
-            if (null == s || (s = s.trim()).isEmpty()) {
+            String v;
+            if (null == s || (v = s.trim()).isEmpty()) {
                 return BinaryOptional.empty();
             }
 
             try {
-                Number parse = fmt.parse(s);
+                Matcher m = INT_PATTERN.matcher(v);
+                if (!m.find())
+                    throw new ParseException("Invalid number", s.length() - v.length());
+                else if (m.end() < v.length())
+                    throw new ParseException("Invalid number", m.end() + (s.length() - v.length()));
+                Number parse = fmt.parse(v);
                 return BinaryOptional.ofPrimary(parse.intValue());
             } catch (ParseException ex) {
                 return BinaryOptional.ofSecondary(ex);

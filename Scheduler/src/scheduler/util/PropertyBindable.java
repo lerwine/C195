@@ -4,7 +4,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.sql.Timestamp;
-import scheduler.model.DataModel;
 
 /**
  * Base class for objects that support property binding through {@link PropertyChangeSupport}.
@@ -68,7 +67,7 @@ public class PropertyBindable implements IPropertyBindable {
         }
     }
 
-    protected <T extends DataModel> void firePropertyChange(String propertyName, T oldValue, T newValue) {
+    protected <T> void firePropertyChange(String propertyName, T oldValue, T newValue) {
         if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }

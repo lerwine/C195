@@ -70,7 +70,7 @@ public interface AddressItem extends AddressRowData, FxModel {
             ReadOnlyProperty<String> cityZipCountry, ReadOnlyProperty<String> phone) {
         return Bindings.createStringBinding(() -> {
             String a1 = address1.getValue().trim();
-            String a2 = address1.getValue().trim();
+            String a2 = address2.getValue().trim();
             String c = cityZipCountry.getValue().trim();
             String p = phone.getValue().trim();
             if (a1.isEmpty()) {

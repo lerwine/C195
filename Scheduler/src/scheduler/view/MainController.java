@@ -89,8 +89,7 @@ public final class MainController {
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-//    @FXML // URL location of the FXML file that was given to the FXMLLoader
-//    private URL location;
+    // FIXME: Menu not working
     @FXML // fx:id="overviewMenu"
     private Menu overviewMenu; // Value injected by FXMLLoader
 

@@ -37,6 +37,8 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
 @DatabaseTable(DbTable.COUNTRY)
 public class CountryDAO extends DataAccessObject implements CountryRowData {
 
+    public static final int MAX_LENGTH_NAME = 50;
+    
     /**
      * The name of the 'name' property.
      */

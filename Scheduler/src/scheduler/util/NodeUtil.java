@@ -1,11 +1,14 @@
 package scheduler.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -19,7 +22,9 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.Styleable;
 import javafx.event.ActionEvent;
@@ -29,11 +34,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.SelectionModel;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
+import scheduler.observables.BindingHelper;
+import scheduler.observables.MutationBindableObservableList;
 import scheduler.view.CssClassName;
 import scheduler.view.ExclusiveCssClassGroup;
 import scheduler.view.SymbolButtonValue;
@@ -181,32 +189,112 @@ public class NodeUtil {
         return setGroup(node, CssClassName.COLLAPSED, ExclusiveCssClassGroup.VALIDATION);
     }
 
-    public static StringBinding bindCollapsibleMessage(Labeled label, Callable<String> func, Observable... dependencies) {
-        StringBinding result = Bindings.createStringBinding(func, dependencies);
-        label.textProperty().bind(result);
-        result.addListener((observable, oldValue, newValue) -> {
-            if (null == newValue || newValue.isEmpty()) {
-                LOG.info("Binding changed to empty - Collapsing node");
-                collapseNode(label);
-            } else {
-                LOG.info("Binding changed to not empty - Restoring node");
-                restoreNode(label);
-            }
-        });
+    /**
+     * @deprecated Doesn't work
+     */
+    public static void bindCssClassSwitch(Node node, BooleanBinding observable, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse) {
+        ArrayList<String> addIfTrue = new ArrayList<>();
+        ArrayList<String> removeIfTrue = new ArrayList<>();
+        ArrayList<String> addIfFalse = new ArrayList<>();
+        ArrayList<String> removeIfFalse = new ArrayList<>();
+        if (ifFalse.isEmpty()) {
+            ifTrue.stream().forEach((t) -> {
+                String n = t.toString();
+                if (!addIfTrue.contains(n)) {
+                    removeIfFalse.add(n);
+                    addIfTrue.add(n);
+                }
+            });
+        } else if (ifTrue.isEmpty()) {
+            ifFalse.stream().forEach((t) -> {
+                String n = t.toString();
+                if (!addIfFalse.contains(n)) {
+                    removeIfTrue.add(n);
+                    addIfFalse.add(n);
+                }
+            });
+        } else {
+            ifTrue.stream().forEach((t) -> {
+                String n = t.toString();
+                if (!addIfTrue.contains(n)) {
+                    if (!ifFalse.contains(t))
+                        removeIfFalse.add(n);
+                    addIfTrue.add(n);
+                }
+            });
+            ifFalse.stream().forEach((t) -> {
+                String n = t.toString();
+                if (!addIfFalse.contains(n)) {
+                    if (!ifTrue.contains(t))
+                        removeIfTrue.add(n);
+                    addIfFalse.add(n);
+                }
+            });
+        }
+        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList();
+        boundClassNames.addAll(node.getStyleClass());
+        Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
+        boundClassNames.mutationProperty().bind(
+                Bindings.when(observable)
+                .then(MutationBindableObservableList.createRemoveAddOperation(removeIfTrue, addIfTrue))
+                .otherwise(MutationBindableObservableList.createRemoveAddOperation(removeIfFalse, addIfFalse))
+        );
+    }
+    
+    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName[] ifTrue, CssClassName ...ifFalse) {
+        bindCssClassSwitch(node, observable, Arrays.asList(ifTrue), (null == ifFalse || ifFalse.length == 0) ? Collections.emptyList() : Arrays.asList(ifFalse));
+    }
+    
+    /**
+     * @deprecated Doesn't work
+     */
+    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName ...ifTrue) {
+        bindCssClassSwitch(node, observable, Arrays.asList(ifTrue), Collections.emptyList());
+    }
+    
+    /**
+     * @deprecated Doesn't work
+     */
+     public static BooleanBinding bindCssClassSwitch(Node node, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse, Callable<Boolean> func, Observable... dependencies) {
+        BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
+        bindCssClassSwitch(node, result, ifTrue, ifFalse);
+        return result;
+     }
+    
+    /**
+     * @deprecated Doesn't work
+     */
+     public static BooleanBinding bindCssClassSwitch(Node node, CssClassName[] ifTrue, CssClassName[] ifFalse, Callable<Boolean> func, Observable... dependencies) {
+        BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
+        bindCssClassSwitch(node, result, Arrays.asList(ifTrue), Arrays.asList(ifFalse));
+        return result;
+     }
+     
+    /**
+     * @deprecated Doesn't work
+     */
+    public static BooleanBinding bindCollapsibleMessage(Labeled label, ObservableValue<String> observable) {
+        label.textProperty().bind(observable);
+        BooleanBinding result = BindingHelper.isNullOrWhiteSpace(Objects.requireNonNull(observable));
+        bindCssCollapse(label, result);
         return result;
     }
 
+    /**
+     * @deprecated Doesn't work
+     */
+    public static StringBinding bindCollapsibleMessage(Labeled label, Callable<String> func, Observable... dependencies) {
+        StringBinding result = Bindings.createStringBinding(func, dependencies);
+        bindCollapsibleMessage(label, result);
+        return result;
+    }
+
+    /**
+     * @deprecated Doesn't work
+     */
     public static BooleanBinding bindCollapsible(Node node, Callable<Boolean> func, Observable... dependencies) {
         BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
-        result.addListener((observable, oldValue, newValue) -> {
-            if (null != newValue && newValue == true) {
-                LOG.info("Binding changed to true - Collapsing node");
-                collapseNode(node);
-            } else {
-                LOG.info("Binding changed to false - Restoring node");
-                restoreNode(node);
-            }
-        });
+        bindCssCollapse(node, result);
         return result;
     }
 
@@ -214,16 +302,14 @@ public class NodeUtil {
      *
      * @param node
      * @param isCollapsed
-     * @deprecated This doesn't work because of the "lazy" binding behavior.
+     * @deprecated Doesn't work
      */
     public static void bindCssCollapse(Node node, BooleanExpression isCollapsed) {
-        isCollapsed.addListener((observable) -> {
-            if (((BooleanExpression) observable).get()) {
-                collapseNode(node);
-            } else {
-                restoreNode(node);
-            }
-        });
+        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList();
+        boundClassNames.addAll(node.getStyleClass());
+        Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
+        boundClassNames.mutationProperty().bind(Bindings.when(isCollapsed).then(MutationBindableObservableList.createAddOperationBinding(CssClassName.COLLAPSED.toString()))
+                .otherwise(MutationBindableObservableList.createRemoveOperationBinding(CssClassName.COLLAPSED.toString())));
     }
 
     /**
@@ -379,6 +465,15 @@ public class NodeUtil {
 
     public static <T, U> boolean selectSelection(T value, ComboBox<U> source, BiPredicate<T, U> predicate) {
         return selectSelection(value, source.getSelectionModel(), source.getItems(), predicate);
+    }
+
+    public static void collapseWhenTrue(Node node, ObservableValue<Boolean> observable) {
+        observable.addListener((o) -> {
+            if (((ObservableValue<Boolean>)o).getValue())
+                collapseNode(node);
+            else
+                restoreNode(node);
+        });
     }
 
 }

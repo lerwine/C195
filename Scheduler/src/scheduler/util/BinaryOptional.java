@@ -331,5 +331,9 @@ public final class BinaryOptional<T, U> {
         }
         return "BinaryOption.EMPTY";
     }
+
+    public void get() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.util.BinaryOptional#get
+    }
     
 }

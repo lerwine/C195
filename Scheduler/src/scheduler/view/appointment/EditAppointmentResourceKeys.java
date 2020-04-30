@@ -368,6 +368,11 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_TITLELABELTEXT = "titleLabelText";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Too many characters"}.
+     */
+    public static final String RESOURCEKEY_TOOMANYCHARACTERS = "tooManyCharacters";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Type"}.
      */
     public static final String RESOURCEKEY_TYPECOLHEADING = "typeColHeading";
