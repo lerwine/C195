@@ -6,9 +6,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -542,6 +545,30 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         LOG.info("shown");
     }
 
+    @Override
+    protected boolean onSaving(Stage stage, AppointmentModel model) {
+        ZonedAppointmentTimeSpan ts = dateRangeController.getTimeSpan();
+        LocalTime s = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalTime();
+        LocalTime e = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalTime();
+        LocalTime b;
+        try {
+            b = AppResources.getBusinessHoursStart();
+        } catch (ParseException ex) {
+            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+//        if (e.compareTo(s) < 0 || s.compareTo(b) < 0 || e.compareTo(b.plusHours(AppResources.getBusinessHoursDuration())) > 0) {
+//            if (this.appointmentConflictsController.hasConflicts()) {
+//
+//            } else {
+//                
+//            }
+//        } else if (this.appointmentConflictsController.hasConflicts()) {
+//            
+//        }
+        return super.onSaving(stage, model); // TODO: Implement scheduler.view.appointment.EditAppointment#onSaving
+    }
+
+    
     public boolean isValid() {
         return valid.get();
     }

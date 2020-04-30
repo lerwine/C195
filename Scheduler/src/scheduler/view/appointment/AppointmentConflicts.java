@@ -5,6 +5,7 @@
  */
 package scheduler.view.appointment;
 
+import com.sun.glass.ui.Application;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -284,6 +285,7 @@ public class AppointmentConflicts {
     }
 
     void onCustomerChanged(CustomerModel value) {
+        
 //        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onCustomerChanged
     }
 
@@ -293,6 +295,10 @@ public class AppointmentConflicts {
 
     void onTimeSpanChanged(Optional<ZonedAppointmentTimeSpan> get) {
 //        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onTimeSpanChanged
+    }
+
+    boolean hasConflicts() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#hasConflicts
     }
 
     private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {

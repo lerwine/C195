@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -250,10 +251,11 @@ public final class DateRange {
         Optional<ZonedAppointmentTimeSpan> ts = timeSpan.get();
         if (ts.isPresent()) {
             DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+            ZonedDateTime s = ts.get().toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault());
+            ZonedDateTime e = ts.get().toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault());
             restoreNode(localTimeLabel);
             restoreLabeled(localTimeValue, String.format(resources.getString(RESOURCEKEY_TIMERANGE),
-                    formatter.format(ts.get().toZonedStartDateTime()),
-                    formatter.format(ts.get().toZonedEndDateTime())));
+                    formatter.format(s), formatter.format(e)));
         } else {
             collapseNode(localTimeLabel);
             collapseNode(localTimeValue);

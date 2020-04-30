@@ -1,13 +1,22 @@
 package scheduler;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -103,24 +112,34 @@ public final class Scheduler extends Application {
      * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
      *
      * @param stage The stage
+     * @param logPath The path for login logging.
      * @param loginView The view for the login.
      * @param userName The login name for the user to look up.
      * @param password The raw password provided by the user.
      * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was
      * not found or the password hash did not match.
      */
-    public static void tryLoginUser(Stage stage, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
-        TaskWaiter.startNow(new LoginTask(stage, loginView, userName, password, onNotSucceeded));
+    public static void tryLoginUser(Stage stage, String logPath, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        TaskWaiter.startNow(new LoginTask(stage, logPath, loginView, userName, password, onNotSucceeded));
     }
 
     @Override
     public void start(Stage stage) throws Exception {
+        // Load login view and controller.
         ViewAndController<BorderPane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
+        // Store log path
+        HostServices services = getHostServices();
+        loginViewAndController.getController().setLogPath(services.resolveURI(services.getDocumentBase(), "log.txt"));
+        
+        // Load main view and controller
         ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
         StackPane mainView = mainViewAndController.getView();
         MainController mainController = mainViewAndController.getController();
+        
+        // Bind extents of login view to main view extents.
         loginViewAndController.getView().setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
         loginViewAndController.getView().setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
+        
         EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
                 loginViewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
         stage.setScene(new Scene(mainView));
@@ -155,9 +174,11 @@ public final class Scheduler extends Application {
         private final MainController mainController;
         private final StackPane mainPane;
         private final BorderPane loginView;
+        private final String logPath;
 
-        LoginTask(Stage stage, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        LoginTask(Stage stage, String logPath, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
+            this.logPath = Objects.requireNonNull(logPath);
             this.loginView = Objects.requireNonNull(loginView);
             this.userName = Objects.requireNonNull(userName);
             this.password = Objects.requireNonNull(password);
@@ -173,6 +194,17 @@ public final class Scheduler extends Application {
                     onNotSucceeded.accept(null);
                 }
             } else {
+                
+                try (FileWriter writer = new FileWriter(new File(new URL(logPath).toURI()), true)) {
+                    try(PrintWriter pw = new PrintWriter(writer)) {
+                        pw.printf("[%s]: %s logged in.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), user.getUserName());
+                        pw.println();
+                        pw.flush();
+                        writer.flush();
+                    }
+                } catch (IOException | URISyntaxException ex) {
+                    Logger.getLogger(Scheduler.class.getName()).log(Level.SEVERE, "Error writing to log", ex);
+                }
                 EventHelper.fireFxmlViewEvent(mainController,
                         new FxmlViewControllerEvent<>(this, FxmlViewEventType.LOADED, mainPane, mainController, owner));
                 loginView.minWidthProperty().unbind();

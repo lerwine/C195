@@ -27,7 +27,6 @@ import scheduler.view.annotations.GlobalizationResource;
 // CURRENT: Report for number of appointment types by month
 // CURRENT: Report for the schedule for each consultant
 // CURRENT: Create additional report
-// CURRENT: recording timestamps for user log-ins in a .txt file
 /**
  * Gets settings from the {@code /resources/scheduler/config.properties} file.
  *

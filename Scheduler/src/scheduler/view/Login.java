@@ -103,6 +103,7 @@ public final class Login {
     private StringBinding exitTextBinding;
     private StringBinding userNameValidationMessageBinding;
     private StringBinding passwordValidationMessageBinding;
+    private String logPath;
 
     @FXML
     void onExitButtonAction(ActionEvent event) {
@@ -126,7 +127,7 @@ public final class Login {
     @FXML
     void onLoginButtonAction(ActionEvent event) {
         Stage stage = (Stage) userNameTextField.getScene().getWindow();
-        Scheduler.tryLoginUser(stage, loginRootBorderPane, userNameTextField.getText(), passwordField.getText(), (ex) -> {
+        Scheduler.tryLoginUser(stage, logPath, loginRootBorderPane, userNameTextField.getText(), passwordField.getText(), (ex) -> {
             ResourceBundle rb = resourceBundle.get();
             if (ex == null) {
                 ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, ex,
@@ -208,6 +209,10 @@ public final class Login {
                 .or(languageSelectionModel.selectedItemProperty().isNull());
         loginButton.disableProperty().bind(loginFormInvalid);
         resourceBundle.set(ResourceBundleHelper.getBundle(Login.class));
+    }
+
+    public void setLogPath(String path) {
+        logPath = path;
     }
 
 }

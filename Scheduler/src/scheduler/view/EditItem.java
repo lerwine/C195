@@ -410,9 +410,11 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
          *
          * @param stage The {@link Stage} of the controller that initiated the save operation.
          * @param model The {@link FxRecordModel} for the object to be saved.
+         * @return {@code true} to proceed with saving the item; otherwise {@code false} to cancel the save operation.
          */
-        protected void onSaving(Stage stage, U model) {
+        protected boolean onSaving(Stage stage, U model) {
             updateModel(model);
+            return true;
         }
 
         /**
