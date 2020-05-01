@@ -3,6 +3,7 @@ package scheduler.util;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXMLLoader;
@@ -26,11 +27,15 @@ import scheduler.view.event.FxmlViewEventType;
  */
 public class ViewControllerLoader {
 
+    private static final Logger LOG = Logger.getLogger(ViewControllerLoader.class.getName());
+
     private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
 
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {
-        FXMLLoader loader = new FXMLLoader(controllerClass.getResource(AppResources.getFXMLResourceName(controllerClass)), resourceBundle);
+        String path = AppResources.getFXMLResourceName(controllerClass);
+        LOG.info(String.format("Loading %s", path));
+        FXMLLoader loader = new FXMLLoader(controllerClass.getResource(path), resourceBundle);
         ViewAndController<T, S> result = new ViewAndController<T, S>() {
             private final T view = loader.load();
             private final S controller = loader.getController();
@@ -45,6 +50,7 @@ public class ViewControllerLoader {
                 return controller;
             }
         };
+        LOG.info(String.format("%s loaded", path));
         if (null == result.getController()) {
             throw new InternalException("Controller not instantiated");
         }
@@ -68,6 +74,87 @@ public class ViewControllerLoader {
         return loadViewAndController(controllerClass, ResourceBundleHelper.getBundle(controllerClass));
     }
 
+    public static <T extends Parent, S> ViewAndController<T, S> loadView(S controller, ResourceBundle resourceBundle) throws IOException {
+        Class<S> c = (Class<S>) controller.getClass();
+        String path = AppResources.getFXMLResourceName(c);
+        LOG.info(String.format("Loading %s", path));
+        FXMLLoader loader = new FXMLLoader(c.getResource(path), resourceBundle);
+        loader.setController(controller);
+        ViewAndController<T, S> result = new ViewAndController<T, S>() {
+            private final T view = loader.load();
+            private final S controller = loader.getController();
+
+            @Override
+            public T getView() {
+                return view;
+            }
+
+            @Override
+            public S getController() {
+                return controller;
+            }
+        };
+        LOG.info(String.format("%s loaded", path));
+        return result;
+    }
+
+    public static <T extends Parent, S> ViewAndController<T, S> loadView(S controller) throws IOException {
+        Class<S> c = (Class<S>) controller.getClass();
+        String path = AppResources.getFXMLResourceName(c);
+        LOG.info(String.format("Loading %s", path));
+        FXMLLoader loader = new FXMLLoader(c.getResource(path), ResourceBundleHelper.getBundle(c));
+        loader.setController(controller);
+        ViewAndController<T, S> result = new ViewAndController<T, S>() {
+            private final T view = loader.load();
+            private final S controller = loader.getController();
+
+            @Override
+            public T getView() {
+                return view;
+            }
+
+            @Override
+            public S getController() {
+                return controller;
+            }
+        };
+        LOG.info(String.format("%s loaded", path));
+        return result;
+    }
+
+    /**
+     * Loads the FXML for a custom control.
+     * 
+     * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} annotation. It must also have the
+     * {@link scheduler.view.annotations.GlobalizationResource} annotation if the {@link RsourceBundle} value is not provided.
+     * @param customControl The custom control to be initialized.
+     * @param resources The resources used to resolve resource key attribute values.
+     * @throws IOException If unable to load the FXML.
+     */
+    public static <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
+        Class<T> c = (Class<T>) customControl.getClass();
+        String path = AppResources.getFXMLResourceName(c);
+        LOG.info(String.format("Loading %s", path));
+        FXMLLoader loader = new FXMLLoader(c.getResource(path),
+                (null == resources) ? ResourceBundleHelper.getBundle(c) : resources);
+        loader.setRoot(customControl);
+        loader.setController(customControl);
+        loader.load();
+        LOG.info(String.format("%s loaded", path));
+    }
+    
+    /**
+     * Loads the FXML for a custom control.
+     * 
+     * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} and
+     * {@link scheduler.view.annotations.GlobalizationResource} annotations.
+     * @param customControl The custom control to be initialized.
+     * @throws IOException If unable to load the FXML.
+     */
+    public static <T extends Node> void initializeCustomControl(T customControl) throws IOException {
+        initializeCustomControl(customControl, null);
+    }
+    
     /**
      * Shows a view in a new application-modal window.
      *

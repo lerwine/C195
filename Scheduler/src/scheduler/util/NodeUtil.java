@@ -4,76 +4,117 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.Styleable;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionModel;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import scheduler.observables.BindingHelper;
 import scheduler.observables.MutationBindableObservableList;
 import scheduler.view.CssClassName;
 import scheduler.view.ExclusiveCssClassGroup;
-import scheduler.view.SymbolButtonValue;
+import scheduler.view.SymbolText;
 
 /**
+ * Utility class for working with FXML UI objects.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class NodeUtil {
 
     private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
-    
+
     private static void addCssClass(ObservableList<String> styleClass, String name) {
-        if (!styleClass.contains(name))
+        if (!styleClass.contains(name)) {
             styleClass.add(name);
+        }
     }
-    
-    public static <T extends Styleable> T addCssClass(T stylable, CssClassName ...classNames) {
+
+    /**
+     * Adds CSS class names.
+     *
+     * @param <T> The {@link Styleable} type.
+     * @param stylable The target {@link Styleable} node.
+     * @param classNames The {@link CssClassName} values representing CSS class names to be added.
+     * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
+     */
+    public static <T extends Styleable> T addCssClass(T stylable, CssClassName... classNames) {
         return CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
     }
 
+    /**
+     * Adds CSS class names.
+     *
+     * @param <T> The {@link Styleable} type.
+     * @param stylable The target {@link Styleable} node.
+     * @param classNames The {@link CssClassName} values representing CSS class names to be added.
+     * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
+     */
     public static <T extends Styleable> T addCssClass(T stylable, Collection<CssClassName> classNames) {
         return CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
     }
 
-    public static <T extends Styleable> T removeCssClass(T stylable, CssClassName ...classNames) {
-        if (null != classNames && classNames.length > 0)
+    /**
+     * Removes specific CSS class names.
+     *
+     * @param <T> The {@link Styleable} type.
+     * @param stylable The target {@link Styleable} node.
+     * @param classNames The {@link CssClassName} values representing CSS class names to be removed.
+     * @return The target {@link Styleable} with the specified CSS {@code classNames} removed.
+     */
+    public static <T extends Styleable> T removeCssClass(T stylable, CssClassName... classNames) {
+        if (null != classNames && classNames.length > 0) {
             stylable.getStyleClass().removeAll(CssClassName.toStringArray(classNames));
+        }
         return stylable;
     }
 
-    public static <T extends Styleable> T setCssClass(T stylable, CssClassName ...classNames) {
+    /**
+     * Removes existing CSS class names, replacing them with the specified {@link CssClassName}s.
+     *
+     * @param <T> The {@link Styleable} type.
+     * @param stylable The target {@link Styleable} node.
+     * @param classNames The {@link CssClassName} values representing the new CSS class names.
+     * @return The target {@link Styleable} with the new CSS {@code classNames} applied.
+     */
+    public static <T extends Styleable> T setCssClass(T stylable, CssClassName... classNames) {
         if (null != classNames && classNames.length > 0) {
             stylable.getStyleClass().setAll(CssClassName.toStringArray(classNames));
         }
@@ -81,55 +122,343 @@ public class NodeUtil {
         return stylable;
     }
 
-    public static <T extends Region> T setCompactXY(T node) {
-        node.setMinWidth(USE_PREF_SIZE);
-        node.setMinHeight(USE_PREF_SIZE);
-        node.setPrefWidth(USE_COMPUTED_SIZE);
-        node.setPrefHeight(USE_COMPUTED_SIZE);
-        node.setMaxWidth(USE_PREF_SIZE);
-        node.setMaxHeight(USE_PREF_SIZE);
-        return node;
+    /**
+     * Sets the computed height and width properties so the {@link Region} takes up only what space is needed. This sets the minimum and maximum
+     * computed width properties {@link Region#USE_PREF_SIZE}, and the preferred height and width properties to {@link Region#USE_COMPUTED_SIZE}.
+     *
+     * @param <T> The {@link Region} type.
+     * @param region The target {@link Region}.
+     * @return The {@link Region} with computed height and width properties applied.
+     */
+    public static <T extends Region> T setCompactXY(T region) {
+        region.setMinWidth(USE_PREF_SIZE);
+        region.setMinHeight(USE_PREF_SIZE);
+        region.setPrefWidth(USE_COMPUTED_SIZE);
+        region.setPrefHeight(USE_COMPUTED_SIZE);
+        region.setMaxWidth(USE_PREF_SIZE);
+        region.setMaxHeight(USE_PREF_SIZE);
+        return region;
     }
-    
-    public static <T extends Pane> T appendChildNodes(T parent, Node ...elements) {
-        if (null != elements && elements.length > 0)
+
+    public static <T extends Pane> T appendChildNodes(T parent, Node... elements) {
+        if (null != elements && elements.length > 0) {
             parent.getChildren().addAll(elements);
+        }
         return parent;
     }
-    
-    public static HBox createCompactHBox(double spacing, Node ...elements) {
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param columnspan The number of columns to span.
+     * @param rowspan The number of rows to span.
+     * @param halignment The horizontal alignment or {@code null} for no horizontal alignment constraint.
+     * @param valignment The vertical alignment or {@code null} for no vertical alignment constraint.
+     * @param hgrow The horizontal grow priority or {@code null} for no horizontal grow priority constraint.
+     * @param vgrow The vertical grow priority or {@code null} for no vertical grow priority constraint.
+     * @param margin The margin of space around the child node or {@code null} for no margin constraint.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, int columnspan, int rowspan,
+            HPos halignment, VPos valignment, Priority hgrow, Priority vgrow, Insets margin) {
+        if (rowIndex < 0) {
+            throw new IllegalArgumentException("Invalid row index");
+        }
+        if (columnIndex < 0) {
+            throw new IllegalArgumentException("Invalid column index");
+        }
+        if (columnspan < 1) {
+            throw new IllegalArgumentException("Invalid column span");
+        }
+        if (rowspan < 1) {
+            throw new IllegalArgumentException("Invalid row span");
+        }
+        ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+        int count = columnIndex + columnspan;
+        if (columnConstraints.size() < count) {
+            Priority p = hgrow;
+            HPos h = halignment;
+            if (!columnConstraints.isEmpty()) {
+                ColumnConstraints cc = columnConstraints.get(columnConstraints.size() - 1);
+                p = cc.getHgrow();
+                h = cc.getHalignment();
+            }
+            do {
+                columnConstraints.add(new ColumnConstraints(USE_PREF_SIZE, USE_PREF_SIZE, USE_PREF_SIZE, p, h, true));
+            } while (columnConstraints.size() < count);
+        }
+        count = rowIndex + rowspan;
+        ObservableList<RowConstraints> rowConstraints = gridPane.getRowConstraints();
+        if (rowConstraints.size() < count) {
+            Priority p = vgrow;
+            VPos v = valignment;
+            if (!rowConstraints.isEmpty()) {
+                RowConstraints rc = rowConstraints.get(rowConstraints.size() - 1);
+                p = rc.getVgrow();
+                v = rc.getValignment();
+            }
+            do {
+                rowConstraints.add(new RowConstraints(USE_PREF_SIZE, USE_PREF_SIZE, USE_PREF_SIZE, p, v, true));
+            } while (rowConstraints.size() < count);
+        }
+        ObservableList<Node> children = gridPane.getChildren();
+        if (!children.contains(child)) {
+            children.add(child);
+        }
+        GridPane.setConstraints(child, columnIndex, rowIndex, columnspan, rowspan, halignment, valignment, hgrow, vgrow, margin);
+        return child;
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param columnspan The number of columns to span.
+     * @param rowspan The number of rows to span.
+     * @param halignment The horizontal alignment or {@code null} for no horizontal alignment constraint.
+     * @param valignment The vertical alignment or {@code null} for no vertical alignment constraint.
+     * @param hgrow The horizontal grow priority or {@code null} for no horizontal grow priority constraint.
+     * @param vgrow The vertical grow priority or {@code null} for no vertical grow priority constraint.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, int columnspan, int rowspan,
+            HPos halignment, VPos valignment, Priority hgrow, Priority vgrow) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, columnspan, rowspan, halignment, valignment, hgrow, vgrow, null);
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param columnspan The number of columns to span.
+     * @param rowspan The number of rows to span.
+     * @param halignment The horizontal alignment or {@code null} for no horizontal alignment constraint.
+     * @param valignment The vertical alignment or {@code null} for no vertical alignment constraint.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, int columnspan, int rowspan,
+            HPos halignment, VPos valignment) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, columnspan, rowspan, halignment, valignment, null, null);
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param columnspan The number of columns to span.
+     * @param rowspan The number of rows to span.
+     * @param hgrow The horizontal grow priority or {@code null} for no horizontal grow priority constraint.
+     * @param vgrow The vertical grow priority or {@code null} for no vertical grow priority constraint.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, int columnspan, int rowspan,
+            Priority hgrow, Priority vgrow) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, columnspan, rowspan, null, null, hgrow, vgrow);
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param columnspan The number of columns to span.
+     * @param rowspan The number of rows to span.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, int columnspan, int rowspan) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, columnspan, rowspan, (HPos) null, (VPos) null);
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param halignment The horizontal alignment or {@code null} for no horizontal alignment constraint.
+     * @param valignment The vertical alignment or {@code null} for no vertical alignment constraint.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, HPos halignment, VPos valignment) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, 1, 1, halignment, valignment);
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @param hgrow The horizontal grow priority or {@code null} for no horizontal grow priority constraint.
+     * @param vgrow The vertical grow priority or {@code null} for no vertical grow priority constraint.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, Priority hgrow, Priority vgrow) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, 1, 1, hgrow, vgrow);
+    }
+
+    /**
+     * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
+     *
+     * @param <T> The child node type.
+     * @param child The child node.
+     * @param gridPane The target {@link GridPane}.
+     * @param columnIndex The zero-based column index.
+     * @param rowIndex The zero-based row index.
+     * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
+     */
+    public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex) {
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, 1, 1);
+    }
+
+    public static HBox createCompactHBox(double spacing, Node... elements) {
         HBox hBox = setCompactXY(new HBox());
         hBox.setSpacing(spacing);
         return appendChildNodes(hBox, elements);
     }
-    
-    public static HBox createCompactHBox(Node ...elements) {
+
+    public static HBox createCompactHBox(Node... elements) {
         return appendChildNodes(setCompactXY(new HBox()), elements);
     }
-    
-    public static Button createSymbolButton(SymbolButtonValue value, EventHandler<ActionEvent> onAction) {
+
+    public static VBox createCompactVBox(Node... elements) {
+        return appendChildNodes(setCompactXY(new VBox()), elements);
+    }
+
+    public static BorderPane createCompactBorderPane(Node top, Node center, Node bottom, CssClassName... className) {
+        BorderPane result = setCompactXY(new BorderPane());
+        if (null != top) {
+            result.setTop(top);
+        }
+        if (null != center) {
+            result.setCenter(center);
+        }
+        if (null != bottom) {
+            result.setBottom(bottom);
+        }
+        return result;
+    }
+
+    public static BorderPane createCompactBorderPane(Node top, Node center, CssClassName... className) {
+        return createCompactBorderPane(top, center, null, className);
+    }
+
+    public static BorderPane createCompactBorderPane(Node center, CssClassName... className) {
+        return createCompactBorderPane(null, center, null, className);
+    }
+
+    public static BorderPane createCompactBorderPane(CssClassName... className) {
+        return createCompactBorderPane(null, null, null, className);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Label createLabel(String text, CssClassName... className) {
+        Label result = new Label((null == text) ? "" : text);
+        if (null != className && className.length > 0) {
+            setCssClass(result, className);
+        }
+        return result;
+    }
+
+    public static Label createLabel(ObservableValue<String> bindingSource, CssClassName... className) {
+        Label result = createLabel((String) null, className);
+        if (null != bindingSource) {
+            result.textProperty().bind(bindingSource);
+        }
+        return result;
+    }
+
+    public static Label createLabel(CssClassName... className) {
+        return createLabel((String) null, className);
+    }
+
+    public static <E> ListView<E> createListView(ObservableList<E> items, Callback<ListView<E>, ListCell<E>> cellFactory, CssClassName... className) {
+        ListView<E> result = (null == items) ? new ListView<>() : new ListView<>(items);
+        if (null != className && className.length > 0) {
+            setCssClass(result, className);
+        }
+        if (null != cellFactory) {
+            result.setCellFactory(cellFactory);
+        }
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <S> TableView<S> createTableView(ObservableList<S> items, String placeHolderText, TableColumn<S, ?>... column) {
+        TableView<S> result = (null == items) ? new TableView<>() : new TableView<>(items);
+        result.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        result.setEditable(false);
+        if (null != placeHolderText) {
+            result.setPlaceholder(createLabel(placeHolderText, CssClassName.INFO));
+        }
+        if (null != column && column.length > 0) {
+            result.getColumns().addAll(column);
+        }
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <S> TableView<S> createTableView(String placeHolderText, TableColumn<S, ?>... column) {
+        return createTableView(null, placeHolderText, column);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <S> TableView<S> createTableView(TableColumn<S, ?>... column) {
+        return createTableView(null, null, column);
+    }
+
+    public static <S, T> TableColumn<S, T> createTableColumn(String propertyName, String heading, Callback<TableColumn<S, T>, TableCell<S, T>> cellFactory) {
+        TableColumn<S, T> result = new TableColumn<>(heading);
+        result.setEditable(false);
+        result.setMinWidth(USE_COMPUTED_SIZE);
+        result.setPrefWidth(USE_COMPUTED_SIZE);
+        result.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+        if (null != cellFactory) {
+            result.setCellFactory(cellFactory);
+        }
+        return result;
+    }
+
+    public static <S, T> TableColumn<S, T> createTableColumn(String propertyName, String heading) {
+        return createTableColumn(heading, propertyName, null);
+    }
+
+    public static Button createSymbolButton(SymbolText value, EventHandler<ActionEvent> onAction) {
         Button button = setCssClass(new Button(value.toString()), CssClassName.SYMBOL_BUTTON);
-        if (null != onAction)
+        if (null != onAction) {
             button.setOnAction(onAction);
+        }
         return button;
     }
-    
-    public static Button createSymbolButton(SymbolButtonValue value) {
+
+    public static Button createSymbolButton(SymbolText value) {
         return createSymbolButton(value, null);
     }
-    
-//    public static <T> TableColumn<T, T> appendEditColumn(TableView<T> tableView, ItemActionRequestEventListener<T> onItemActionRequest) {
-//        TableColumn<T, T> column = new TableColumn<>(SymbolButtonValue.HYPHEN_POINT.value);
-//        column.setCellValueFactory((TableColumn.CellDataFeatures<T, T> param) -> {
-//            return new ReadOnlyObjectWrapper<>(param.getValue());
-//        });
-//        ItemEditTableCellFactory<T> factory = new ItemEditTableCellFactory<>();
-//        column.setCellFactory(factory);
-//        factory.setOnItemActionRequest(onItemActionRequest);
-//        tableView.getColumns().add(column);
-//        return column;
-//    }
-    
+
     public static <T extends Node> T setBorderedNode(T node) {
         return setCssClass(node, CssClassName.BORDERED);
     }
@@ -167,16 +496,17 @@ public class NodeUtil {
         ObservableList<String> classes = node.getStyleClass();
         classes.removeAll(g.stream().filter((t) -> t != className).map((t) -> t.toString()).toArray(String[]::new));
         String s = className.toString();
-        if (!classes.contains(s))
+        if (!classes.contains(s)) {
             classes.add(s);
+        }
         return node;
     }
-    
+
     private static <T extends Styleable> T clearGroup(T node, CssClassName className, ExclusiveCssClassGroup group) {
         node.getStyleClass().removeAll(CssClassName.ofGroup(group));
         return node;
     }
-    
+
     /**
      * Collapses a JavaFX scene graph {@link javafx.scene.Node}. This adds the CSS class "collapsed" to the {@link javafx.scene.Node#styleClass} list,
      * which sets vertical and horizontal dimensions to zero and sets the {@link javafx.scene.Node#visible} property to {@code false}.
@@ -192,6 +522,7 @@ public class NodeUtil {
     /**
      * @deprecated Doesn't work
      */
+    @SuppressWarnings("unchecked")
     public static void bindCssClassSwitch(Node node, BooleanBinding observable, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse) {
         ArrayList<String> addIfTrue = new ArrayList<>();
         ArrayList<String> removeIfTrue = new ArrayList<>();
@@ -217,16 +548,18 @@ public class NodeUtil {
             ifTrue.stream().forEach((t) -> {
                 String n = t.toString();
                 if (!addIfTrue.contains(n)) {
-                    if (!ifFalse.contains(t))
+                    if (!ifFalse.contains(t)) {
                         removeIfFalse.add(n);
+                    }
                     addIfTrue.add(n);
                 }
             });
             ifFalse.stream().forEach((t) -> {
                 String n = t.toString();
                 if (!addIfFalse.contains(n)) {
-                    if (!ifTrue.contains(t))
+                    if (!ifTrue.contains(t)) {
                         removeIfTrue.add(n);
+                    }
                     addIfFalse.add(n);
                 }
             });
@@ -236,40 +569,40 @@ public class NodeUtil {
         Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
         boundClassNames.mutationProperty().bind(
                 Bindings.when(observable)
-                .then(MutationBindableObservableList.createRemoveAddOperation(removeIfTrue, addIfTrue))
-                .otherwise(MutationBindableObservableList.createRemoveAddOperation(removeIfFalse, addIfFalse))
+                        .then(MutationBindableObservableList.createRemoveAddOperation(removeIfTrue, addIfTrue))
+                        .otherwise(MutationBindableObservableList.createRemoveAddOperation(removeIfFalse, addIfFalse))
         );
     }
-    
-    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName[] ifTrue, CssClassName ...ifFalse) {
+
+    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName[] ifTrue, CssClassName... ifFalse) {
         bindCssClassSwitch(node, observable, Arrays.asList(ifTrue), (null == ifFalse || ifFalse.length == 0) ? Collections.emptyList() : Arrays.asList(ifFalse));
     }
-    
+
     /**
      * @deprecated Doesn't work
      */
-    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName ...ifTrue) {
+    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName... ifTrue) {
         bindCssClassSwitch(node, observable, Arrays.asList(ifTrue), Collections.emptyList());
     }
-    
+
     /**
      * @deprecated Doesn't work
      */
-     public static BooleanBinding bindCssClassSwitch(Node node, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse, Callable<Boolean> func, Observable... dependencies) {
+    public static BooleanBinding bindCssClassSwitch(Node node, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse, Callable<Boolean> func, Observable... dependencies) {
         BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
         bindCssClassSwitch(node, result, ifTrue, ifFalse);
         return result;
-     }
-    
+    }
+
     /**
      * @deprecated Doesn't work
      */
-     public static BooleanBinding bindCssClassSwitch(Node node, CssClassName[] ifTrue, CssClassName[] ifFalse, Callable<Boolean> func, Observable... dependencies) {
+    public static BooleanBinding bindCssClassSwitch(Node node, CssClassName[] ifTrue, CssClassName[] ifFalse, Callable<Boolean> func, Observable... dependencies) {
         BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
         bindCssClassSwitch(node, result, Arrays.asList(ifTrue), Arrays.asList(ifFalse));
         return result;
-     }
-     
+    }
+
     /**
      * @deprecated Doesn't work
      */
@@ -304,11 +637,13 @@ public class NodeUtil {
      * @param isCollapsed
      * @deprecated Doesn't work
      */
+    @SuppressWarnings("unchecked")
     public static void bindCssCollapse(Node node, BooleanExpression isCollapsed) {
         MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList();
         boundClassNames.addAll(node.getStyleClass());
         Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
-        boundClassNames.mutationProperty().bind(Bindings.when(isCollapsed).then(MutationBindableObservableList.createAddOperationBinding(CssClassName.COLLAPSED.toString()))
+        boundClassNames.mutationProperty().bind(Bindings.when(isCollapsed)
+                .then(MutationBindableObservableList.createAddOperationBinding(CssClassName.COLLAPSED.toString()))
                 .otherwise(MutationBindableObservableList.createRemoveOperationBinding(CssClassName.COLLAPSED.toString())));
     }
 
@@ -362,7 +697,7 @@ public class NodeUtil {
         control.setText(text);
         return control;
     }
-    
+
     /**
      * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_ERROR}. This removes the
      * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "error"} class and sets the
@@ -439,40 +774,28 @@ public class NodeUtil {
         return control;
     }
 
-    public static <T> boolean selectSelection(SelectionModel<T> selectionModel, ObservableList<T> source, Predicate<T> predicate) {
-        for (int i = 0; i < source.size(); i++) {
-            if (predicate.test(source.get(i))) {
-                selectionModel.clearAndSelect(i);
-                return true;
+    public static <T> boolean clearAndSelect(ComboBox<T> comboBox, Predicate<T> predicate) {
+        ObservableList<T> items = comboBox.getItems();
+        if (!(null == items || items.isEmpty())) {
+            SelectionModel<T> selectionModel = comboBox.getSelectionModel();
+            for (int i = 0; i < items.size(); i++) {
+                if (predicate.test(items.get(i))) {
+                    selectionModel.clearAndSelect(i);
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    public static <T> boolean selectSelection(ComboBox<T> source, Predicate<T> predicate) {
-        return selectSelection(source.getSelectionModel(), source.getItems(), predicate);
-    }
-
-    public static <T, U> boolean selectSelection(T value, SelectionModel<U> selectionModel, ObservableList<U> source, BiPredicate<T, U> predicate) {
-        for (int i = 0; i < source.size(); i++) {
-            if (predicate.test(value, source.get(i))) {
-                selectionModel.clearAndSelect(i);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static <T, U> boolean selectSelection(T value, ComboBox<U> source, BiPredicate<T, U> predicate) {
-        return selectSelection(value, source.getSelectionModel(), source.getItems(), predicate);
-    }
-
+    @SuppressWarnings("unchecked")
     public static void collapseWhenTrue(Node node, ObservableValue<Boolean> observable) {
         observable.addListener((o) -> {
-            if (((ObservableValue<Boolean>)o).getValue())
+            if (((ObservableValue<Boolean>) o).getValue()) {
                 collapseNode(node);
-            else
+            } else {
                 restoreNode(node);
+            }
         });
     }
 

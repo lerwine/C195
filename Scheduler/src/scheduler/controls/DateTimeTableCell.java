@@ -15,11 +15,11 @@ import javafx.scene.control.TableCell;
  */
 public class DateTimeTableCell<S, T extends TemporalAccessor> extends TableCell<S, T> {
 
-    private final DateTimeFormatter fmt;
+    private final DateTimeFormatter formatter;
 
-    DateTimeTableCell(DateTimeFormatter fmt) {
-        this.fmt = (null == fmt) ? DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                .withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault()) : fmt;
+    DateTimeTableCell(DateTimeFormatter formatter) {
+        this.formatter = (null == formatter) ? DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                .withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault()) : formatter;
     }
 
     public DateTimeTableCell() {
@@ -29,6 +29,6 @@ public class DateTimeTableCell<S, T extends TemporalAccessor> extends TableCell<
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
-        setText((item == null) ? "" : fmt.format(item));
+        setText((item == null) ? "" : formatter.format(item));
     }
 }

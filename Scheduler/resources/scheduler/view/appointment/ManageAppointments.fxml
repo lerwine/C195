@@ -155,6 +155,9 @@
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
+                    <placeholder>
+                        <Label text="%noAppointmentsToShow" />
+                    </placeholder>
                 </TableView>
                 <ButtonBar VBox.vgrow="SOMETIMES">
                     <buttons>

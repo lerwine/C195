@@ -22,6 +22,7 @@
         <a:city key="miami" zoneId="US/Eastern" />
         <a:city key="atlanta" zoneId="US/Eastern" />
         <a:city key="washington_dc" zoneId="US/Eastern" />
+        <a:city key="bathesda_md" zoneId="US/Eastern" />
         <a:city key="philadelphia" zoneId="US/Eastern" />
         <a:city key="new_york" zoneId="US/Eastern">
             <a:address key="newYorkMainOffice" address1="405 Lexington Ave" address2="MS 4428" postalCode="10174" phone="(212) 447-1836" mainOffice="true" />

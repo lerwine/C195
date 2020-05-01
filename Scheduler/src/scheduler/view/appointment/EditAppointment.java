@@ -9,9 +9,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.StringProperty;
@@ -31,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -68,6 +66,7 @@ import scheduler.model.predefined.PredefinedData;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
+import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -217,9 +216,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     // Items for the userComboBox control.
     private ObservableList<UserModel> userModelList;
 
-//    private SingleSelectionModel<AppointmentType> typeSelectionModel;
-//    private SingleSelectionModel<CustomerModel> customerSelectionModel;
-//    private SingleSelectionModel<UserModel> userSelectionModel;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
@@ -310,7 +306,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             if (remoteLocationList.contains(corporateLocationComboBox.getValue())) {
                 corporateLocationComboBox.getSelectionModel().clearSelection();
             }
-            remoteLocationList.forEach((t) -> remoteLocationList.remove(t));
+            remoteLocationList.forEach((t) -> corporateLocationList.remove(t));
         }
     }
 
@@ -448,6 +444,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             }
         });
 
+        invalidControlIds.add(titleTextField.getId());
+        invalidControlIds.add(customerComboBox.getId());
+        invalidControlIds.add(contactTextField.getId());
+        invalidControlIds.add(locationTextArea.getId());
+        invalidControlIds.add(userComboBox.getId());
+        invalidControlIds.add(userComboBox.getId());
+        
         corporateLocationComboBox.setItems(corporateLocationList);
 
         // Get appointment type options.
@@ -473,7 +476,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         urlTextField.textProperty().addListener((observable) -> {
             onUrlChanged(((StringProperty) observable).get());
         });
-
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -498,7 +500,6 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), event.getStage(), ex);
         }
-
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -531,44 +532,105 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 phoneTextField.setText(model.getLocation());
                 break;
             case CORPORATE_LOCATION:
-                // CURRENT: Set selection for corporate
-
+                PredefinedAddress a = PredefinedData.lookupAddress(model.getLocation());
+                if (null != a) {
+                    corporateLocationComboBox.getSelectionModel().select(a);
+                }
+                break;
+            default:
+                model.setLocation("");
                 break;
         }
         urlTextField.setText(model.getUrl());
         descriptionTextArea.setText(model.getDescription());
     }
 
-    @SuppressWarnings("incomplete-switch")
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
-    private void onShown(FxmlViewEvent<? extends Parent> event) {
-        LOG.info("shown");
-    }
-
     @Override
     protected boolean onSaving(Stage stage, AppointmentModel model) {
         ZonedAppointmentTimeSpan ts = dateRangeController.getTimeSpan();
-        LocalTime s = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalTime();
-        LocalTime e = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalTime();
-        LocalTime b;
+        LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime apptEnd = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime busStart;
+        LocalDateTime busEnd;
         try {
-            b = AppResources.getBusinessHoursStart();
+            busStart = apptStart.toLocalDate().atTime(AppResources.getBusinessHoursStart());
+            busEnd = busStart.plusHours(AppResources.getBusinessHoursDuration());
         } catch (ParseException ex) {
-            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, "Error getting application-configured business hours", ex);
+            return false;
         }
-//        if (e.compareTo(s) < 0 || s.compareTo(b) < 0 || e.compareTo(b.plusHours(AppResources.getBusinessHoursDuration())) > 0) {
-//            if (this.appointmentConflictsController.hasConflicts()) {
-//
-//            } else {
-//                
-//            }
-//        } else if (this.appointmentConflictsController.hasConflicts()) {
-//            
-//        }
-        return super.onSaving(stage, model); // TODO: Implement scheduler.view.appointment.EditAppointment#onSaving
+        Optional<ButtonType> response;
+        if (!appointmentConflictsController.isConflictCheckingCurrent()) {
+            if (apptStart.compareTo(busEnd) > 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        getResourceString(RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else if (apptEnd.compareTo(busStart) < 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        getResourceString(RESOURCEKEY_NOTCHECKEDOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else if (apptStart.compareTo(busStart) < 0) {
+                if (apptEnd.compareTo(busEnd) > 0) {
+                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
+                            getResourceString(RESOURCEKEY_NOTCHECKEDOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else {
+                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
+                            getResourceString(RESOURCEKEY_NOTCHECKEDSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                }
+            } else if (apptEnd.compareTo(busEnd) > 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        getResourceString(RESOURCEKEY_NOTCHECKEDENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        getResourceString(RESOURCEKEY_NOTCHECKEDMESSAGE), ButtonType.YES, ButtonType.NO);
+            }
+        } else if (this.appointmentConflictsController.hasConflicts()) {
+            if (apptStart.compareTo(busEnd) > 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else if (apptEnd.compareTo(busStart) < 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else if (apptStart.compareTo(busStart) < 0) {
+                if (apptEnd.compareTo(busEnd) > 0) {
+                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                            getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else {
+                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                            getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                }
+            } else if (apptEnd.compareTo(busEnd) > 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTMESSAGE), ButtonType.YES, ButtonType.NO);
+            }
+        } else if (apptStart.compareTo(busEnd) > 0) {
+            response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
+                    getResourceString(RESOURCEKEY_BUSHREXCOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+        } else if (apptEnd.compareTo(busStart) < 0) {
+            response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
+                    getResourceString(RESOURCEKEY_BUSHREXCOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+        } else if (apptStart.compareTo(busStart) < 0) {
+            if (apptEnd.compareTo(busEnd) > 0) {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
+                        getResourceString(RESOURCEKEY_BUSHREXCOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+            } else {
+                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
+                        getResourceString(RESOURCEKEY_BUSHREXCSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+            }
+        } else if (apptEnd.compareTo(busEnd) > 0) {
+            response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
+                    getResourceString(RESOURCEKEY_BUSHREXCENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+        } else {
+            response = Optional.of(ButtonType.YES);
+        }
+
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            return super.onSaving(stage, model);
+        }
+        return false;
     }
 
-    
     public boolean isValid() {
         return valid.get();
     }
@@ -622,9 +684,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         label.setVisible(!v);
         String id = node.getId();
         if (v) {
+            LOG.info(String.format("Setting %s as valid", id));
             invalidControlIds.remove(id);
+            LOG.info(String.format("Invalid control count: %d", invalidControlIds.size()));
             valid.set(invalidControlIds.isEmpty());
         } else {
+            LOG.info(String.format("Setting %s as invalid", id));
             if (!invalidControlIds.contains(id)) {
                 invalidControlIds.add(id);
             }
@@ -638,9 +703,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         label.setVisible(!isValid);
         String id = node.getId();
         if (isValid) {
+            LOG.info(String.format("Setting %s as valid", id));
             invalidControlIds.remove(id);
+            LOG.info(String.format("Invalid control count: %d", invalidControlIds.size()));
             valid.set(invalidControlIds.isEmpty());
         } else {
+            LOG.info(String.format("Setting %s as invalid", id));
             if (!invalidControlIds.contains(id)) {
                 invalidControlIds.add(id);
             }
@@ -672,7 +740,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     private void onContactChanged(String text) {
-        applyValidationResult(contactTextField, contactValidationLabel, !contactTextField.getText().trim().isEmpty());
+        LOG.info(String.format("Contact changed: %s", text));
+        applyValidationResult(contactTextField, contactValidationLabel, typeComboBox.getValue() != AppointmentType.OTHER || !contactTextField.getText().trim().isEmpty());
     }
 
     private void onCorporateLocationChanged(PredefinedAddress corporateAddress) {
@@ -710,6 +779,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     private void onUrlChanged(String text) {
+        LOG.info(String.format("URL changed: %s", text));
         if (text.trim().isEmpty()) {
             applyValidationResult(urlTextField, urlValidationLabel,
                     (typeComboBox.getValue() == AppointmentType.VIRTUAL) ? getResourceString(RESOURCEKEY_REQUIRED) : "");
@@ -759,6 +829,9 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 break;
             case OTHER:
                 model.setLocation(locationTextArea.getText().trim());
+                break;
+            case CORPORATE_LOCATION:
+                model.setLocation(corporateLocationComboBox.getValue().getReferenceKey());
                 break;
             default:
                 model.setLocation("");
@@ -915,7 +988,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                     -> userComboBox.getSelectionModel().select(t));
-            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this, dateRangeController);
+            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this);
         }
 
         @Override

@@ -238,6 +238,11 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CITYLABELTEXT = "cityLabelText";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Count"}.
+     */
+    public static final String RESOURCEKEY_COUNT = "count";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country:"}.
      */
     public static final String RESOURCEKEY_COUNTRY = "country";
@@ -483,6 +488,11 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_MINUTE = "minute";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Month:"}.
+     */
+    public static final String RESOURCEKEY_MONTH = "month";
+    
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "My Appointments before %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_MYAPPOINTMENTSBEFOREDATE = "myAppointmentsBeforeDate";
@@ -526,6 +536,11 @@ public interface ManageAppointmentsResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "New"}.
      */
     public static final String RESOURCEKEY_NEW = "new";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "(no appointments to show)"}.
+     */
+    public static final String RESOURCEKEY_NOAPPOINTMENTSTOSHOW = "noAppointmentsToShow";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "(none)"}.
@@ -628,6 +643,11 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_RANGELABELTEXT = "rangeLabelText";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Run"}.
+     */
+    public static final String RESOURCEKEY_RUN = "run";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Start"}.
      */
     public static final String RESOURCEKEY_START = "start";
@@ -646,6 +666,11 @@ public interface ManageAppointmentsResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
      */
     public static final String RESOURCEKEY_STATUS = "status";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "%s to %s with %s: %s"}.
+     */
+    public static final String RESOURCEKEY_TIMESPANWITHCUSTOMER = "timeSpanWithCustomer";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Title"}.
@@ -711,4 +736,10 @@ public interface ManageAppointmentsResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User:"}.
      */
     public static final String RESOURCEKEY_USERLABELTEXT = "userLabelText";
+    
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Year:"}.
+     */
+    public static final String RESOURCEKEY_YEAR = "year";
+    
 }

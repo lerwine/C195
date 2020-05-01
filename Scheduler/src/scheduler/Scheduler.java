@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,9 +58,9 @@ import scheduler.view.task.TaskWaiter;
 public final class Scheduler extends Application {
 
     private static final Logger LOG = Logger.getLogger(Scheduler.class.getName());
-
-    private static UserDAO currentUser = null;
     private static final String PROPERTY_MAINCONTROLLER = "scheduler.view.MainController";
+    private static Scheduler currentApp = null;
+    private static UserDAO currentUser = null;
 
     /**
      * Gets the currently logged in user.
@@ -70,15 +71,11 @@ public final class Scheduler extends Application {
         return currentUser;
     }
 
-    /**
-     * The application main entry point.
-     *
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
+    public static String resolveUri(String uri) {
+        HostServices services = currentApp.getHostServices();
+        return services.resolveURI(services.getDocumentBase(), uri);
     }
-
+    
     public static MainController getMainController(Scene scene) {
         Parent root = scene.getRoot();
         if (null != root && root instanceof Pane) {
@@ -109,37 +106,30 @@ public final class Scheduler extends Application {
     }
 
     /**
-     * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+     * The application main entry point.
      *
-     * @param stage The stage
-     * @param logPath The path for login logging.
-     * @param loginView The view for the login.
-     * @param userName The login name for the user to look up.
-     * @param password The raw password provided by the user.
-     * @param onNotSucceeded Handles login failures. The {@link Exception} argument will be null if there were no exceptions and either the login was
-     * not found or the password hash did not match.
+     * @param args the command line arguments
      */
-    public static void tryLoginUser(Stage stage, String logPath, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
-        TaskWaiter.startNow(new LoginTask(stage, logPath, loginView, userName, password, onNotSucceeded));
+    public static void main(String[] args) {
+        launch(args);
     }
 
     @Override
     public void start(Stage stage) throws Exception {
+        currentApp = this;
         // Load login view and controller.
         ViewAndController<BorderPane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
         // Store log path
-        HostServices services = getHostServices();
-        loginViewAndController.getController().setLogPath(services.resolveURI(services.getDocumentBase(), "log.txt"));
-        
+
         // Load main view and controller
         ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
         StackPane mainView = mainViewAndController.getView();
         MainController mainController = mainViewAndController.getController();
-        
+
         // Bind extents of login view to main view extents.
         loginViewAndController.getView().setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
         loginViewAndController.getView().setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
-        
+
         EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
                 loginViewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
         stage.setScene(new Scene(mainView));
@@ -163,47 +153,87 @@ public final class Scheduler extends Application {
 
     @Override
     public void stop() throws Exception {
+        if (null != currentUser) {
+            HostServices services = getHostServices();
+            String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
+            LOG.info(String.format("Loggin logout timestamp to %s", logUri));
+            try (FileWriter writer = new FileWriter(new File(new URL(logUri).toURI()), true)) {
+                try (PrintWriter pw = new PrintWriter(writer)) {
+                    pw.printf("[%s]: %s logged out.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), currentUser.getUserName());
+                    pw.println();
+                    pw.flush();
+                    writer.flush();
+                }
+            } catch (IOException | URISyntaxException ex) {
+                LOG.log(Level.SEVERE, "Error writing to log", ex);
+            }
+        }
         DbConnector.forceCloseAll();
         super.stop();
+    }
+    
+    public static abstract class LoginController {
+        protected LoginController() {
+            if (null != currentUser)
+                throw new IllegalStateException("Login controller cannot be instantiated after user is logged in");
+        }
+        
+        /**
+         * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+         *
+         * @param stage The stage
+         * @param loginView The view for the login.
+         * @param userName The login name for the user to look up.
+         * @param password The raw password provided by the user.
+         */
+        protected void tryLoginUser(Stage stage, BorderPane loginView, String userName, String password) {
+            TaskWaiter.startNow(new LoginTask(stage, loginView, userName, password, this::onLoginFailure));
+        }
+
+        /**
+         * This gets called when a login has failed.
+         * 
+         * @param stage The current application {@link Stage}.
+         * @param reason The reason for login failure. If this is {@code null}, then the login name was not found or the password hash did not match.
+         */
+        protected abstract void onLoginFailure(Stage stage, Throwable reason);
     }
 
     private static class LoginTask extends TaskWaiter<UserDAO> {
 
         private final String userName, password;
-        private final Consumer<Throwable> onNotSucceeded;
+        private final BiConsumer<Stage, Throwable> onNotSucceeded;
         private final MainController mainController;
         private final StackPane mainPane;
         private final BorderPane loginView;
-        private final String logPath;
 
-        LoginTask(Stage stage, String logPath, BorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        LoginTask(Stage stage, BorderPane loginView, String userName, String password, BiConsumer<Stage, Throwable> onNotSucceeded) {
             super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
-            this.logPath = Objects.requireNonNull(logPath);
             this.loginView = Objects.requireNonNull(loginView);
             this.userName = Objects.requireNonNull(userName);
             this.password = Objects.requireNonNull(password);
+            this.onNotSucceeded = Objects.requireNonNull(onNotSucceeded);
             mainPane = (StackPane) stage.getScene().getRoot();
             mainController = (MainController) (mainPane.getProperties().get(PROPERTY_MAINCONTROLLER));
-            this.onNotSucceeded = onNotSucceeded;
         }
 
         @Override
         protected void processResult(UserDAO user, Stage owner) {
             if (null == user) {
-                if (null != onNotSucceeded) {
-                    onNotSucceeded.accept(null);
-                }
+                onNotSucceeded.accept(owner, null);
             } else {
-                
-                try (FileWriter writer = new FileWriter(new File(new URL(logPath).toURI()), true)) {
-                    try(PrintWriter pw = new PrintWriter(writer)) {
+                HostServices services = currentApp.getHostServices();
+                String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
+                LOG.info(String.format("Loggin login timestamp to %s", logUri));
+                try (FileWriter writer = new FileWriter(new File(new URL(logUri).toURI()), true)) {
+                    try (PrintWriter pw = new PrintWriter(writer)) {
                         pw.printf("[%s]: %s logged in.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), user.getUserName());
                         pw.println();
                         pw.flush();
                         writer.flush();
                     }
                 } catch (IOException | URISyntaxException ex) {
-                    Logger.getLogger(Scheduler.class.getName()).log(Level.SEVERE, "Error writing to log", ex);
+                    LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
                 EventHelper.fireFxmlViewEvent(mainController,
                         new FxmlViewControllerEvent<>(this, FxmlViewEventType.LOADED, mainPane, mainController, owner));
@@ -221,9 +251,7 @@ public final class Scheduler extends Application {
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            if (null != onNotSucceeded) {
-                onNotSucceeded.accept(ex);
-            }
+            onNotSucceeded.accept(owner, ex);
         }
 
         @Override

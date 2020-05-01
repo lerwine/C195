@@ -47,10 +47,41 @@ public interface EditAppointmentResourceKeys {
      */
     public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
 
+    // TODO: Change "User" to "Consultant" in all string instances
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments for User \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Business Hour Exception"}.
+     */
+    public static final String RESOURCEKEY_BUSHREXCTITLE = "busHrExcTitle";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment occurs outside business hours ..."}.
+     */
+    public static final String RESOURCEKEY_BUSHREXCOUTSIDEBUSHRS = "busHrExcOutsideBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment occurs before business hours ..."}.
+     */
+    public static final String RESOURCEKEY_BUSHREXCOCCURSBEFOREBUSHRS = "busHrExcOccursBeforeBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment starts before business hours ..."}.
+     */
+    public static final String RESOURCEKEY_BUSHREXCSTARTSBEFOREBUSHRS = "busHrExcStartsBeforeBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment occurs after business hours ..."}.
+     */
+    public static final String RESOURCEKEY_BUSHREXCOCCURSAFTERBUSHRS = "busHrExcOccursAfterBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment ends after business hours ..."}.
+     */
+    public static final String RESOURCEKEY_BUSHREXCENDSAFTERBUSHRS = "busHrExcEndsAfterBusHrs";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Cancel"}.
@@ -311,6 +342,76 @@ public interface EditAppointmentResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
      */
     public static final String RESOURCEKEY_REQUIRED = "required";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Scheduling Conflict"}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTTITLE = "schedulingConflictTitle";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment conflicts with other ..."}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTMESSAGE = "schedulingConflictMessage";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment conflicts ... occurs outside business hours ..."}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTOUTSIDEBUSHRS = "schedulingConflictOutsideBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment conflicts ... occurs before business hours ..."}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTOCCURSBEFOREBUSHRS = "schedulingConflictOccursBeforeBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment conflicts ... starts before business hours ..."}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTSTARTSBEFOREBUSHRS = "schedulingConflictStartsBeforeBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment conflicts ... occurs after business hours ..."}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS = "schedulingConflictOccursAfterBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment conflicts ... ends after business hours ..."}.
+     */
+    public static final String RESOURCEKEY_SCHEDULINGCONFLICTENDSAFTERBUSHRS = "schedulingConflictEndsAfterBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Scheduling Conflict Unknown"}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDTITLE = "notCheckedTitle";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment has not yet been checked ..."}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDMESSAGE = "notCheckedMessage";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment has not yet been checked ... occurs outside business hours ..."}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDOUTSIDEBUSHRS = "notCheckedOutsideBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment has not yet been checked ... occurs before business hours ..."}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDOCCURSBEFOREBUSHRS = "notCheckedOccursBeforeBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment has not yet been checked ... starts before business hours ..."}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDSTARTSBEFOREBUSHRS = "notCheckedStartsBeforeBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment has not yet been checked ... occurs after business hours ..."}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS = "notCheckedOccursAfterBusHrs";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This appointment has not yet been checked ... ends after business hours ..."}.
+     */
+    public static final String RESOURCEKEY_NOTCHECKEDENDSAFTERBUSHRS = "notCheckedEndsAfterBusHrs";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Show"}.

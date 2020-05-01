@@ -175,7 +175,7 @@
                     <children>
                         <Label styleClass="topControlLabel" text="%meetingUrl" />
                         <TextField fx:id="urlTextField" styleClass="topLabeledControl" />
-                        <Label fx:id="urlValidationLabel" maxWidth="-Infinity" styleClass="formControlValidationMessage" text="%required" />
+                        <Label fx:id="urlValidationLabel" maxWidth="-Infinity" styleClass="formControlValidationMessage" text="%required" visible="false" />
                         <Label styleClass="topControlLabel" text="%description">
                             <VBox.margin>
                                 <Insets top="6.0" />

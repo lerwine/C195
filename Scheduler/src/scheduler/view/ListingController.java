@@ -234,7 +234,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
     }
 
     void onHelpButtonAction(ActionEvent event) {
-        // CURRENT: Implement help popup
+        // TODO: Implement help popup
     }
 
     @FXML

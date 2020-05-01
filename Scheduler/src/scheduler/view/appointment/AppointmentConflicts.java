@@ -1,36 +1,22 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.appointment;
 
-import com.sun.glass.ui.Application;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.util.Pair;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -43,9 +29,6 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
-import scheduler.observables.BindingHelper;
-import scheduler.observables.OptionalBinding;
-import scheduler.util.NodeUtil;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -69,12 +52,11 @@ public class AppointmentConflicts {
     private DateRange dateRangeController;
     private ObservableList<AppointmentModel> allAppointments;
     private ObservableList<AppointmentModel> conflictingAppointments;
-    private SimpleObjectProperty<Customer> currentCustomer;
-    private SimpleObjectProperty<User> currentUser;
-//    private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
-//    private ReadOnlyObjectProperty<UserModel> selectedUser;
+    private Customer currentCustomer;
+    private User currentUser;
+    private ZonedAppointmentTimeSpan currentRange;
     private SimpleStringProperty conflictMessage;
-//    private OptionalBinding<String> conflictMessageBinding;
+    private boolean conflictCheckingCurrent = false;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -84,10 +66,9 @@ public class AppointmentConflicts {
 
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
-    //private ObjectBinding<Pair<LocalDateTime, Duration>> selectedDateRange;
 
     @FXML
-    void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
+    private void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
         rootBorderPane.setVisible(false);
     }
 
@@ -95,28 +76,23 @@ public class AppointmentConflicts {
     void initialize() {
         assert rootBorderPane != null : "fx:id=\"rootBorderPane\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
-        currentCustomer = new SimpleObjectProperty<>(this, "currentCustomer", null);
-        currentUser = new SimpleObjectProperty<>(this, "currentUser", null);
-        conflictMessage = new SimpleStringProperty(this, "conflictMessage", "");
+        currentCustomer = null;
+        currentUser = null;
+        currentRange = null;
+        currentUser = null;
+        conflictMessage = new SimpleStringProperty();
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
+    }
+
+    public String getConflictMessage() {
+        return conflictMessage.get();
     }
 
     EditAppointment getParentController() {
         return parentController;
     }
 
-    void onParentListsLoaded(EditAppointment parentController, List<AppointmentDAO> appointments) {
-        if (null != parentController)
-            throw new IllegalStateException();
-        this.parentController = parentController;
-//        this.selectedCustomer = parentController.getCustomerSelectionModel().selectedItemProperty();
-//        this.selectedUser = parentController.getUserSelectionModel().selectedItemProperty();
-        this.dateRangeController = parentController.getDateRangeController();
-        
-    }
-
-    
     @FXML
     private void onShowConflictsButtonAction(ActionEvent event) {
         rootBorderPane.setVisible(true);
@@ -126,179 +102,188 @@ public class AppointmentConflicts {
         TaskWaiter.startNow(new AppointmentReloadTask());
     }
 
-    void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController, DateRange dateRangeController) {
-//        this.selectedCustomer = customerSelectionModel.selectedItemProperty();
-//        this.selectedUser = userSelectionModel.selectedItemProperty();
+    void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController) {
+        if (null != this.parentController) {
+            throw new IllegalStateException();
+        }
         this.parentController = parentController;
-        this.dateRangeController = dateRangeController;
+        dateRangeController = parentController.getDateRangeController();
+        currentCustomer = parentController.getCustomer();
+        currentUser = parentController.getUser();
+        currentRange = dateRangeController.getTimeSpan();
+        dateRangeController.setConflictsBinding(this, this::onCheckConflictsButtonAction, this::onShowConflictsButtonAction);
         accept(appointments);
-//        ObjectBinding<Pair<CustomerModel, UserModel>> selectedCustomerAndUser = Bindings.createObjectBinding(() -> {
-//            return new Pair<>(selectedCustomer.get(), selectedUser.get());
-//        }, selectedCustomer, selectedUser);
-//        
-//        conflictMessageBinding = BindingHelper.createOptionalBinding(() -> {
-//            String m = conflictMessage.get();
-//            Customer cc = currentCustomer.get();
-//            Pair<CustomerModel, UserModel> s = selectedCustomerAndUser.get();
-//            User cu = currentUser.get();
-//            if (null == s.getKey()) {
-//                if (null == s.getValue()) {
-//                    return Optional.of("");
-//                }
-//                if (!ModelHelper.areSameRecord(s.getValue(), cu)) {
-//                    return Optional.empty();
-//                }
-//            } else if (!ModelHelper.areSameRecord(s.getKey(), cc) || null != s.getValue() && !ModelHelper.areSameRecord(s.getValue(), cu)) {
-//                return Optional.empty();
-//            }
-//            return Optional.of(m);
-//        }, conflictMessage, currentCustomer, currentUser, selectedCustomerAndUser);
-
-//        selectedDateRange.addListener((observable, oldValue, newValue) -> {
-//            onDateRangeChanged(newValue.getKey(), newValue.getValue());
-//        });
-//        selectedCustomerAndUser.addListener((observable, oldValue, newValue) -> {
-//            onCustomerOrUserChanged(newValue.getKey(), newValue.getValue());
-//        });
-//        dateRange.setConflictsBinding(conflictMessageBinding, this::onCheckConflictsButtonAction, this::onShowConflictsButtonAction);
-
     }
 
-    private void onCustomerOrUserChanged(CustomerModel customer, UserModel user) {
-        if (ModelHelper.areSameRecord(customer, currentCustomer.get())) {
-            if (ModelHelper.areSameRecord(user, currentUser.get())) {
-                return;
-            }
-            if (null != user) {
-                conflictingAppointments.clear();
-                return;
-            }
-            currentUser.set(null);
-        } else if (null == customer) {
-            if (!ModelHelper.areSameRecord(user, this.currentUser.get())) {
-                currentCustomer.set(null);
-                conflictingAppointments.clear();
-                return;
-            }
-            if (null == user) {
-                return;
-            }
-            currentCustomer.set(null);
-        } else {
-            if (null == user) {
-                currentUser.set(null);
-            }
-            conflictingAppointments.clear();
-            return;
-        }
-//        Pair<LocalDateTime, Duration> dr = selectedDateRange.get();
-//        onDateRangeChanged(dr.getKey(), dr.getValue());
-
-    }
-
-    private void onDateRangeChanged(LocalDateTime start, Duration duration) {
+    private void refreshFromDateRange() {
         conflictingAppointments.clear();
-        if (null == start || null == duration) {
-            conflictMessage.set("");
+        if (null == currentRange || allAppointments.isEmpty()) {
             return;
         }
-        LocalDateTime end = start.plus(duration);
+        LocalDateTime start = currentRange.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime end = currentRange.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+
         Stream<AppointmentModel> filtered = allAppointments.stream().filter((a) -> a.getStart().compareTo(end) < 0 && a.getEnd().compareTo(start) > 0);
-        //.forEach((t) -> conflictingAppointments.add(t));
-        Customer customer = currentCustomer.get();
-        User user = currentUser.get();
-        if (null == customer) {
-            if (null == user) {
-                conflictMessage.set("");
+        conflictingAppointments.clear();
+        if (null == currentCustomer) {
+            if (null == currentUser) {
                 return;
             }
-            filtered = filtered.filter((t) -> ModelHelper.areSameRecord(user, t.getUser()));
-        } else if (null == user) {
-            filtered = filtered.filter((t) -> ModelHelper.areSameRecord(customer, t.getCustomer()));
+            filtered = filtered.filter((t) -> ModelHelper.areSameRecord(currentUser, t.getUser()));
+        } else if (null == currentUser) {
+            filtered = filtered.filter((t) -> ModelHelper.areSameRecord(currentCustomer, t.getCustomer()));
         }
         filtered.forEach((t) -> conflictingAppointments.add(t));
-        if (conflictingAppointments.isEmpty()) {
-            conflictMessage.set("");
-        } else {
-            int cc = (null == customer) ? 0 : (int) conflictingAppointments.stream().filter((t)
-                    -> ModelHelper.areSameRecord(customer, t.getCustomer())).count();
-            int uc = (null == customer) ? 0 : (int) conflictingAppointments.stream().filter((t)
-                    -> ModelHelper.areSameRecord(user, t.getUser())).count();
+    }
 
-            switch (cc) {
-                case 0:
-                    switch (uc) {
-                        case 0:
-                            conflictMessage.set("");
-                            break;
-                        case 1:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTUSER1));
-                            break;
-                        default:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTUSERN));
-                            break;
-                    }
-                    break;
-                case 1:
-                    switch (uc) {
-                        case 0:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1));
-                            break;
-                        case 1:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USER1));
-                            break;
-                        default:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN));
-                            break;
-                    }
-                    break;
-                default:
-                    switch (uc) {
-                        case 0:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERN));
-                            break;
-                        case 1:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1));
-                            break;
-                        default:
-                            conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN));
-                            break;
-                    }
-                    break;
+    private void updateConflictMessage() {
+        if (null == currentRange) {
+            conflictMessage.set("");
+            if (null != dateRangeController) {
+                dateRangeController.onConflictStateChanged();
             }
+            return;
+        }
+        if (conflictingAppointments.isEmpty()) {
+            if ((null != currentCustomer || null != currentUser) && !conflictCheckingCurrent) {
+                conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTDATASTALE));
+            } else {
+                conflictMessage.set("");
+            }
+            if (null != dateRangeController) {
+                dateRangeController.onConflictStateChanged();
+            }
+            return;
+        }
+
+        int cc = (null == currentCustomer) ? 0 : (int) conflictingAppointments.stream().filter((t)
+                -> ModelHelper.areSameRecord(currentCustomer, t.getCustomer())).count();
+        int uc = (null == currentCustomer) ? 0 : (int) conflictingAppointments.stream().filter((t)
+                -> ModelHelper.areSameRecord(currentUser, t.getUser())).count();
+
+        switch (cc) {
+            case 0:
+                switch (uc) {
+                    case 0:
+                        conflictMessage.set("");
+                        break;
+                    case 1:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTUSER1));
+                        break;
+                    default:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTUSERN));
+                        break;
+                }
+                break;
+            case 1:
+                switch (uc) {
+                    case 0:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1));
+                        break;
+                    case 1:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USER1));
+                        break;
+                    default:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN));
+                        break;
+                }
+                break;
+            default:
+                switch (uc) {
+                    case 0:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERN));
+                        break;
+                    case 1:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1));
+                        break;
+                    default:
+                        conflictMessage.set(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN));
+                        break;
+                }
+                break;
+        }
+        if (null != dateRangeController) {
+            dateRangeController.onConflictStateChanged();
         }
     }
 
     private void accept(List<AppointmentDAO> appointments) {
-        currentCustomer.set(parentController.getCustomer());
-        currentUser.set(parentController.getUser());
+        currentCustomer = parentController.getCustomer();
+        currentUser = parentController.getUser();
+        conflictCheckingCurrent = true;
         allAppointments.clear();
         conflictingAppointments.clear();
         if (null == appointments || appointments.isEmpty()) {
             conflictMessage.set("");
+            if (null != dateRangeController) {
+                dateRangeController.onConflictStateChanged();
+            }
             return;
         }
         appointments.stream().map((t) -> new AppointmentModel(t)).sorted(AppointmentModel::compareByDates)
                 .forEachOrdered((t) -> allAppointments.add(t));
-//        Pair<LocalDateTime, Duration> dr = selectedDateRange.get();
-//        onDateRangeChanged(dr.getKey(), dr.getValue());
+        refreshFromDateRange();
+        updateConflictMessage();
+        if (null != dateRangeController) {
+            dateRangeController.onConflictStateChanged();
+        }
     }
 
     void onCustomerChanged(CustomerModel value) {
-        
-//        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onCustomerChanged
+        if (!ModelHelper.areSameRecord(value, currentCustomer)) {
+            currentCustomer = value;
+            conflictCheckingCurrent = false;
+            conflictingAppointments.clear();
+            updateConflictMessage();
+            if (null != dateRangeController) {
+                dateRangeController.onConflictStateChanged();
+            }
+        }
     }
 
     void onUserChanged(UserModel value) {
-//        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onUserChanged
+        if (!ModelHelper.areSameRecord(value, this.currentUser)) {
+            currentUser = value;
+            conflictCheckingCurrent = false;
+            conflictingAppointments.clear();
+            updateConflictMessage();
+            if (null != dateRangeController) {
+                dateRangeController.onConflictStateChanged();
+            }
+        }
     }
 
-    void onTimeSpanChanged(Optional<ZonedAppointmentTimeSpan> get) {
-//        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#onTimeSpanChanged
+    void onTimeSpanChanged(Optional<ZonedAppointmentTimeSpan> value) {
+        if (null != value && value.isPresent()) {
+            ZonedAppointmentTimeSpan ts = value.get();
+            if (null != ts) {
+                if (!ts.equals(currentRange)) {
+                    currentRange = ts;
+                    refreshFromDateRange();
+                    updateConflictMessage();
+                    if (null != dateRangeController) {
+                        dateRangeController.onConflictStateChanged();
+                    }
+                    return;
+                }
+            }
+        }
+        if (null != currentRange) {
+            currentRange = null;
+            refreshFromDateRange();
+            updateConflictMessage();
+            if (null != dateRangeController) {
+                dateRangeController.onConflictStateChanged();
+            }
+        }
+    }
+
+    boolean isConflictCheckingCurrent() {
+        return conflictCheckingCurrent && (null != currentCustomer || null != currentUser);
     }
 
     boolean hasConflicts() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentConflicts#hasConflicts
+        return !conflictingAppointments.isEmpty();
     }
 
     private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {

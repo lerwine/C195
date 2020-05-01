@@ -66,6 +66,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createAddOperation(Collection<E> coll) {
         Objects.requireNonNull(coll);
         if (coll.size() == 1) {
@@ -90,6 +91,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createAddOperation(E... value) {
         return createAddOperation(Arrays.asList(Objects.requireNonNull(value)));
     }
@@ -99,6 +101,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return Bindings.createObjectBinding(() -> operation);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> ObjectBinding<MutationOperation<T>> createAddOperationBinding(T ...value) {
         MutationOperation<T> operation = createAddOperation(Objects.requireNonNull(value));
         return Bindings.createObjectBinding(() -> operation);
@@ -143,6 +146,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createRemoveOperation(Collection<E> coll) {
         Objects.requireNonNull(coll);
         if (coll.size() == 1) {
@@ -167,6 +171,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createRemoveOperation(E... value) {
         return createRemoveOperation(Arrays.asList(Objects.requireNonNull(value)));
     }
@@ -176,11 +181,13 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return Bindings.createObjectBinding(() -> operation);
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> ObjectBinding<MutationOperation<E>> createRemoveOperationBinding(E... value) {
         MutationOperation<E> operation = createRemoveOperation(Objects.requireNonNull(value));
         return Bindings.createObjectBinding(() -> operation);
     }
 
+    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createRemoveAddOperation(Collection<E> toRemove, Collection<E> toAdd) {
         ArrayList<E> rc = new ArrayList();
         rc.addAll(Objects.requireNonNull(toRemove));
@@ -288,6 +295,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> MutationOperation<T> createRemoveAddOperation(Collection<T> toRemove, T... toAdd) {
         return createRemoveAddOperation(toRemove, Arrays.asList(Objects.requireNonNull(toAdd)));
     }
@@ -296,6 +304,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return createRemoveAddOperation(Arrays.asList(Objects.requireNonNull(toRemove)), toAdd);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> MutationOperation<T> createRemoveAddOperation(T[] toRemove, T... toAdd) {
         return createRemoveAddOperation(Arrays.asList(Objects.requireNonNull(toRemove)), Arrays.asList(Objects.requireNonNull(toAdd)));
     }
@@ -305,6 +314,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return Bindings.createObjectBinding(() -> operation);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> ObjectBinding<MutationOperation<T>> createRemoveAddOperationBinding(Collection<T> toRemove, T... toAdd) {
         MutationOperation<T> operation = createRemoveAddOperation(toRemove, toAdd);
         return Bindings.createObjectBinding(() -> operation);
@@ -315,6 +325,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return Bindings.createObjectBinding(() -> operation);
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> ObjectBinding<MutationOperation<T>> createRemoveAddOperationBinding(T[] toRemove, T... toAdd) {
         MutationOperation<T> operation = createRemoveAddOperation(toRemove, toAdd);
         return Bindings.createObjectBinding(() -> operation);
@@ -461,6 +472,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @param <E> The element type.
      */
+    @SuppressWarnings("unchecked")
     private synchronized void mutate(Set<MutationOperation> mutation, Consumer<MutationOperation> onMutate) {
         if (null == mutation || mutation.isEmpty()) {
             return;

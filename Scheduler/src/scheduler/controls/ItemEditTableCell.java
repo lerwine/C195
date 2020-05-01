@@ -8,7 +8,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
 import scheduler.util.NodeUtil;
-import scheduler.view.SymbolButtonValue;
+import scheduler.view.SymbolText;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.event.ItemActionRequestEventListener;
@@ -24,7 +24,7 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
     private final ObjectProperty<ItemActionRequestEventListener<T>> onItemEdit = new SimpleObjectProperty<>();
 
     public ItemEditTableCell() {
-        graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolButtonValue.EDIT, this::onEditButtonAction), createSymbolButton(SymbolButtonValue.DELETE, this::onDeleteButtonAction));
+        graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
         graphic.setSpacing(8);
         graphic.setMaxHeight(USE_PREF_SIZE);
         graphic.setPadding(new Insets(0, 0, 0, 4));

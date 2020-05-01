@@ -19,6 +19,8 @@ import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
+import scheduler.model.predefined.PredefinedAddress;
+import scheduler.model.predefined.PredefinedData;
 import scheduler.model.ui.AppointmentItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
@@ -81,10 +83,14 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     static ZoneId getZoneId(AppointmentModel model) {
         if (null != model) {
             ZoneId result;
-            // TODO: Detect zone ID:
             switch (model.getType()) {
                 case CORPORATE_LOCATION:
-                    result = null;
+                    PredefinedAddress a = PredefinedData.lookupAddress(model.getLocation());
+                    if (null != a) {
+                        result = a.getCity().getZoneId();
+                    } else {
+                        result = null;
+                    }
                     break;
                 case CUSTOMER_SITE:
                     return CustomerModel.getZoneId(model.getCustomer());

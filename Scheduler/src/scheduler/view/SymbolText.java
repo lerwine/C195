@@ -1,10 +1,11 @@
 package scheduler.view;
 
 /**
- *
+ * Represents {@code Segoe UI Symbol} text for displaying UI symbols.
+ * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public enum SymbolButtonValue {
+public enum SymbolText {
     EDIT(""),
     DELETE(""),
     HYPHEN_POINT("‧"),
@@ -14,7 +15,7 @@ public enum SymbolButtonValue {
 
     private final String value;
 
-    private SymbolButtonValue(String value) {
+    private SymbolText(String value) {
         this.value = value;
     }
 

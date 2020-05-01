@@ -12,6 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scheduler.model.db.AddressRowData;
 import scheduler.model.ui.AddressItem;
+import scheduler.observables.AddressTextProperty;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NestedStringBindingProperty;
 import scheduler.util.Values;
@@ -154,6 +155,11 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
 
     public StringBinding getMultiLineAddress() {
         return multiLineAddress;
+    }
+
+    @Override
+    public String toString() {
+        return AddressTextProperty.convertToString(this);
     }
 
     class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import scheduler.controls.DailyAppointmentsListCellFactory?>
+<?import scheduler.controls.UserListCellFactory?>
+<?import scheduler.controls.UserListCell?>
+
+<VBox spacing="8.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.report.ConsultantSchedule">
+    <children>
+        <GridPane>
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                <ColumnConstraints hgrow="ALWAYS" />
+                <ColumnConstraints hgrow="SOMETIMES" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints minHeight="8.0" vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints minHeight="8.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Label styleClass="leftControlLabel" text="%start" />
+                <DatePicker fx:id="rangeStartDatePicker" onAction="#onParameterAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
+                <Label styleClass="innerLeftControlLabel" text="%end" GridPane.columnIndex="2" />
+                <DatePicker fx:id="rangeEndDatePicker" onAction="#onParameterAction" styleClass="leftLabeledControl" GridPane.columnIndex="3" />
+                <Label fx:id="rangeValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" />
+                <Label styleClass="leftControlLabel" text="%consultant" GridPane.rowIndex="2" />
+                <ComboBox fx:id="consultantsComboBox" maxWidth="1.7976931348623157E308" onAction="#onParameterAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
+                    <cellFactory>
+                        <UserListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <UserListCell />
+                    </buttonCell>
+                </ComboBox>
+                <Label fx:id="consultantValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            </children>
+        </GridPane>
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="runButton" mnemonicParsing="false" onAction="#onRunButtonAction" text="%run" />
+            </buttons>
+        </ButtonBar>
+        <ListView fx:id="appointmentScheduleListView" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+            <cellFactory>
+                <DailyAppointmentsListCellFactory />
+            </cellFactory>
+        </ListView>
+    </children>
+</VBox>

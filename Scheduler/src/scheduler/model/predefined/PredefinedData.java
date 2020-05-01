@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -25,6 +26,8 @@ import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CountryItem;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.city.CityModel;
+import scheduler.view.country.CountryModel;
 
 /**
  * Contains static methods for getting pre-defined location and time zone information.
@@ -40,6 +43,7 @@ public class PredefinedData {
     static final String XML_FILE = "scheduler/StaticAddresses.xml";
     private static ObservableMap<String, PredefinedCountry> COUNTRY_MAP;
     private static ObservableMap<String, PredefinedCity> CITY_MAP;
+    private static ObservableMap<String, PredefinedAddress> ADDRESS_MAP;
     private static ResourceBundle resources;
 
     private static void CheckLoad() {
@@ -48,8 +52,10 @@ public class PredefinedData {
         }
         ObservableMap<String, PredefinedCountry> countryMap = FXCollections.observableHashMap();
         ObservableMap<String, PredefinedCity> cityMap = FXCollections.observableHashMap();
+        ObservableMap<String, PredefinedAddress> addressMap = FXCollections.observableHashMap();
         COUNTRY_MAP = FXCollections.unmodifiableObservableMap(countryMap);
         CITY_MAP = FXCollections.unmodifiableObservableMap(cityMap);
+        ADDRESS_MAP = FXCollections.unmodifiableObservableMap(addressMap);
         resources = ResourceBundleHelper.getBundle(PredefinedData.class);
         try (InputStream stream = PredefinedData.class.getClassLoader().getResourceAsStream(XML_FILE)) {
             if (stream == null) {
@@ -67,7 +73,11 @@ public class PredefinedData {
                         PredefinedCity c = new PredefinedCity(u, n, FXCollections.unmodifiableObservableList(al));
                         cityMap.put(u.getKey(), c);
                         cl.add(c);
-                        u.getAddresses().forEach((s) -> al.add(new PredefinedAddress(s, c)));
+                        u.getAddresses().forEach((s) -> {
+                            PredefinedAddress a = new PredefinedAddress(s, c);
+                            addressMap.put(s.getKey(), a);
+                            al.add(a);
+                        });
                     });
                 });
             }
@@ -76,6 +86,21 @@ public class PredefinedData {
         }
     }
 
+    public static PredefinedCountry lookupCountry(String regionCode) {
+        CheckLoad();
+        return (null != regionCode && COUNTRY_MAP.containsKey(regionCode)) ? COUNTRY_MAP.get(regionCode) : null;
+    }
+    
+    public static PredefinedCity lookupCity(String key) {
+        CheckLoad();
+        return (null != key && CITY_MAP.containsKey(key)) ? CITY_MAP.get(key) : null;
+    }
+    
+    public static PredefinedAddress lookupAddress(String key) {
+        CheckLoad();
+        return (null != key && ADDRESS_MAP.containsKey(key)) ? ADDRESS_MAP.get(key) : null;
+    }
+    
     public static ObservableMap<String, PredefinedCountry> getCountryMap() {
         CheckLoad();
         return COUNTRY_MAP;
@@ -94,12 +119,26 @@ public class PredefinedData {
         return null;
     }
 
-    public static Stream<CityItem> getCityOptions(Collection<CityDAO> values) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedData#getCityOptions
+    public static Stream<? extends CityItem> getCityOptions(Collection<CityDAO> values) {
+        if (null == values || values.isEmpty()) {
+            return CITY_MAP.values().stream();
+        }
+        HashMap<String, CityDAO> map = new HashMap<>();
+        values.forEach((t) -> {
+            map.put(t.getName(), t);
+        });
+        return CITY_MAP.values().stream().map((t) -> (map.containsKey(t.getResourceKey())) ? new CityModel(map.get(t.getResourceKey())) : t);
     }
 
-    public static Stream<CountryItem> getCountryOptions(Collection<CountryDAO> values) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedData#getCountryOptions
+    public static Stream<? extends CountryItem> getCountryOptions(Collection<CountryDAO> values) {
+        if (null == values || values.isEmpty()) {
+            return COUNTRY_MAP.values().stream();
+        }
+        HashMap<String, CountryDAO> map = new HashMap<>();
+        values.forEach((t) -> {
+            map.put(t.getName(), t);
+        });
+        return COUNTRY_MAP.values().stream().map((t) -> (map.containsKey(t.getRegionCode())) ? new CountryModel(map.get(t.getRegionCode())) : t);
     }
 
     @XmlElement(name = CountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)

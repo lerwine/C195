@@ -13,9 +13,9 @@
    <children>
       <BorderPane styleClass="translucentGrayBg" StackPane.alignment="CENTER">
          <center>
-              <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="busy-container" BorderPane.alignment="CENTER">
+              <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="wait-border" BorderPane.alignment="CENTER">
                   <top>
-                        <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" styleClass="busy-heading" text="%pleaseWait" textAlignment="CENTER" />
+                        <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" styleClass="wait-heading" text="%pleaseWait" textAlignment="CENTER" />
                   </top>
                   <center>
                   <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">

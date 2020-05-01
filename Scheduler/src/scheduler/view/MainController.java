@@ -65,6 +65,9 @@ import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModel;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
+import scheduler.view.report.AppointmentTypesByMonth;
+import scheduler.view.report.AppointmentsByRegion;
+import scheduler.view.report.ConsultantSchedule;
 
 /**
  * FXML Controller class for main application content.
@@ -105,6 +108,15 @@ public final class MainController {
     @FXML // fx:id="allAppointmentsMenuItem"
     private MenuItem allAppointmentsMenuItem; // Value injected by FXMLLoader
 
+    @FXML // fx:id="typesByMonthMenuItem"
+    private MenuItem typesByMonthMenuItem; // Value injected by FXMLLoader
+
+    @FXML // fx:id="consultantScheduleMenuItem"
+    private MenuItem consultantScheduleMenuItem; // Value injected by FXMLLoader
+
+    @FXML // fx:id="byRegionMenuItem"
+    private MenuItem byRegionMenuItem; // Value injected by FXMLLoader
+
     @FXML // fx:id="manageCustomersMenuItem"
     private MenuItem manageCustomersMenuItem; // Value injected by FXMLLoader
 
@@ -132,6 +144,36 @@ public final class MainController {
             ManageAppointments.loadInto(MainController.this, stage, AppointmentModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), stage, ex);
+        }
+    }
+
+    @FXML
+    void onByRegionMenuItemAction(ActionEvent event) {
+        Stage stage = (Stage) contentPane.getScene().getWindow();
+        try {
+            AppointmentsByRegion.loadInto(MainController.this, stage);
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
+        }
+    }
+
+    @FXML
+    void onConsultantScheduleMenuItemAction(ActionEvent event) {
+        Stage stage = (Stage) contentPane.getScene().getWindow();
+        try {
+            ConsultantSchedule.loadInto(MainController.this, stage);
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
+        }
+    }
+
+    @FXML
+    void onTypesByMonthMenuItemAction(ActionEvent event) {
+        Stage stage = (Stage) contentPane.getScene().getWindow();
+        try {
+            AppointmentTypesByMonth.loadInto(MainController.this, stage);
+        } catch (IOException ex) {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
         }
     }
 
@@ -316,11 +358,23 @@ public final class MainController {
 
     private MenuItem getAssociatedMenuItem(Object controller) {
         if (null != controller) {
+            if (controller instanceof Overview) {
+                return overviewMenu;
+            }
             if (controller instanceof ByWeek) {
                 return weeklyCalendarMenuItem;
             }
             if (controller instanceof ByMonth) {
                 return monthlyCalendarMenuItem;
+            }
+            if (controller instanceof ConsultantSchedule) {
+                return consultantScheduleMenuItem;
+            }
+            if (controller instanceof AppointmentsByRegion) {
+                return byRegionMenuItem;
+            }
+            if (controller instanceof AppointmentTypesByMonth) {
+                return typesByMonthMenuItem;
             }
             if (controller instanceof ManageAppointments) {
                 ManageAppointments manageAppointments = (ManageAppointments) controller;

@@ -103,4 +103,9 @@ public class PredefinedCountry extends PredefinedItem implements CountryItem, Co
         return regionCode.getReadOnlyProperty();
     }
 
+    @Override
+    public String toString() {
+        return name.get();
+    }
+
 }

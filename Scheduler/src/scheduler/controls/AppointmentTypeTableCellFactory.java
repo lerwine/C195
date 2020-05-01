@@ -12,7 +12,7 @@ import scheduler.model.AppointmentType;
 public class AppointmentTypeTableCellFactory implements Callback<TableColumn<String, AppointmentType>, TableCell<String, AppointmentType>> {
 
     @Override
-    public TableCell<String, AppointmentType> call(TableColumn<String, AppointmentType> param) {
+    public AppointmentTypeTableCell call(TableColumn<String, AppointmentType> param) {
         return new AppointmentTypeTableCell();
     }
 }

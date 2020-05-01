@@ -1,11 +1,70 @@
 .root {
     -fx-font-size: 12px;
     -fx-font-family: Arial, Helvetica, sans-serif;
+    -fx-base: #f1dfcc;
 }
 
 @font-face {
     font-family: 'Segoe UI Symbol';
     src: url('/scheduler/view/seguisym.ttf');
+}
+
+.button, .menu-bar {
+    -fx-background-color: linear-gradient(saddlebrown, derive(saddlebrown, -60%));
+}
+
+.button, .menu-bar .menu:openvertically > .label {
+    -fx-text-fill: white;
+}
+
+.button {
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6) , 5, 0.0, 0, 1);
+}
+
+/*
+.button, .small-button, .symbol-button {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-color: linear-gradient(saddlebrown, derive(saddlebrown, -60%));
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6) , 5, 0.0, 0, 1);
+}
+*/
+
+.text-area, .text-field {
+    -fx-border-color: derive(saddlebrown, -60%);
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: linear-gradient(#d9ddec, #afbdd9);
+    -fx-border-color: derive(saddlebrown, -60%);
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+}
+
+.combo-box {
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.scroll-pane, .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+TextFlow > .label, TextFlow > .hyperlink {
+    -fx-wrap-text: true;
+}
+
+TextFlow > .hyperlink {
+    -fx-padding: 0px;
+    -fx-border-width: 0px;
+}
+
+.table-view:row-selection .placeholder .label {
+    -fx-font-style: italic;
+    -fx-text-fill: lightslategray;
 }
 
 .mainFxmlClass {
@@ -14,17 +73,6 @@
 
 .translucentGrayBg {
     -fx-background-color: #7f7f7f7f;
-}
-
-.bordered, .busy-container {
-    -fx-border-color: black;
-    -fx-border-width: 2;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-}
-
-.busy-container {
-    -fx-background-color: #ebe8cb;
 }
 
 .topControlLabel {
@@ -36,9 +84,13 @@
     -fx-alignment: top-left;
 }
 
-.leftControlLabel {
+.leftControlLabel, .innerLeftControlLabel {
     -fx-font-weight: bold;
     -fx-alignment: top-right;
+}
+
+.innerLeftControlLabel {
+    -fx-padding: 0px 0px 0px 16px;
 }
 
 .leftLabeledControl {
@@ -49,57 +101,55 @@ Labeled.leftLabeledControl {
     -fx-wrap-text: true;
 }
 
-.collapsed {
-    -fx-label-padding: 0;
-    -fx-min-height: 0;
-    -fx-min-width: 0;
-    -fx-pref-height: 0;
-    -fx-pref-width: 0;
-    -fx-max-height: 0;
-    -fx-max-width: 0;
-    -fx-padding: 0;
-    -fx-scale-x: 0;
-    -fx-scale-y: 0;
-    visibility: collapse;
+.bordered, .wait-border {
+    -fx-border-color: derive(forestgreen, -40%);
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
 }
 
-.h1, .h2, .h3, .page-heading, .section-heading, .sub-section-heading, .busy-heading, .popup-heading {
-    -fx-text-fill: darkslateblue;
+.h1, .h2, .h3, .sub-section-heading {
+    -fx-text-fill: derive(forestgreen, -40%);
+    -fx-font-weight: bold;
+}
+
+.page-heading, .section-heading, .wait-heading, .popup-heading {
+    -fx-background-color: linear-gradient(forestgreen, derive(forestgreen, -40%));
+    -fx-text-fill: derive(gold, 60%);
     -fx-font-weight: bold;
 }
 
 Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
-    -fx-fill: #2a3258;
+    -fx-fill: derive(forestgreen, -40%);
 }
 
-.h1, .h2, .page-heading, .section-heading, .popup-heading, .busy-heading {
+.h1, .h2, .page-heading, .section-heading, .popup-heading, .wait-heading {
     -fx-padding: 4;
-    -fx-max-width: 32768;
+    -fx-max-width: infinity;
 }
 
-.page-heading, .popup-heading, .busy-heading {
+.section-heading {
+    -fx-background-radius: 24 0 24 0;
+    -fx-padding: 4 16 4 16;
+}
+
+.page-heading, .popup-heading, .wait-heading {
     -fx-font-size: 18px;
 }
 
-.popup-heading, .busy-heading {
+.popup-heading, .wait-heading {
     -fx-border-radius: 8 8 0 0;
     -fx-background-radius: 8 8 0 0;
 }
 
 .popup-heading, .page-heading {
-    -fx-background-color: linear-gradient(#ccff99, #99ff66);
-    -fx-border-color: linear-gradient(#99ff66, #ccff99);
+    -fx-background-color: linear-gradient(forestgreen, derive(forestgreen, -40%));
+    -fx-border-color: linear-gradient(forestgreen, derive(forestgreen, -40%));
+    -fx-alignment: CENTER;
 }
 
 .section-heading {
     -fx-font-size: 16px;
-    -fx-background-color: linear-gradient(from 25% 100% to 100% 0%, #ccff99, #99ff66);
-    -fx-border-color: linear-gradient(from 25% 100% to 100% 0%, #99ff66, #ccff99);
-}
-
-.busy-heading {
-    -fx-background-color: linear-gradient(#e2e5b2, #d3d88b);
-    -fx-border-color: linear-gradient(#d3d88b, #e2e5b2);
 }
 
 .h2, .sub-section-heading {
@@ -111,6 +161,16 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-border-color: #99ff66;
     -fx-border-radius: 0 0 8 8;
     -fx-background-radius: 0 0 8 8;
+}
+
+.wait-border {
+    -fx-border-color: derive(gold, -40%);
+    -fx-background-color: derive(gold, 80%);
+}
+
+.wait-heading {
+    -fx-background-color: linear-gradient(derive(gold, -40%), derive(gold, -80%));
+    -fx-border-color: linear-gradient(#d3d88b, #e2e5b2);
 }
 
 .error, .formControlValidationMessage {
@@ -135,55 +195,13 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-text-fill: dimgray;
 }
 
-.text-area {
-    -fx-border-color: linear-gradient(#6192b1, #2a3d58);
-    -fx-border-radius: 2;
-    -fx-background-radius: 2;
-}
-
-.text-field {
-    -fx-border-color: linear-gradient(#6192b1, #2a3d58);
-    -fx-border-radius: 2;
-    -fx-background-radius: 2;
-}
-
-.date-picker .arrow-button {
-    -fx-background-color: linear-gradient(#d9ddec, #afbdd9);
-    -fx-border-color: linear-gradient(#6192b1, #2a3d58);
-    -fx-border-radius: 2;
-    -fx-background-radius: 2;
-}
-
-.combo-box {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-color: linear-gradient(#d9ddec, #afbdd9);
-    -fx-border-color: linear-gradient(#6192b1, #2a3d58);
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-}
-
 .symbol, .symbol-button {
     -fx-font-family: "Segoe UI Symbol", sans-serif;
-}
-.button, .small-button, .symbol-button {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-color: linear-gradient(#6176b1, #2a3258);
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6) , 5, 0.0, 0, 1);
 }
 
 .small-button, .symbol-button {
     -fx-font-size: 10px;
     -fx-padding: 1px 4px 1px 4px;
-}
-
-.scroll-pane {
-    -fx-background-color: transparent;
-}
-
-.scroll-pane .viewport {
-    -fx-background-color: transparent;
 }
 
 Text.refNameText, Label.refNameText {
@@ -195,6 +213,10 @@ Text.refNameText {
     -fx-stroke: #2a3258;
     -fx-stroke-width: 0.25;
     
+}
+
+.boldText {
+    -fx-font-weight: bold;
 }
 
 Label.refNameText {
@@ -209,11 +231,58 @@ Label.refNameText {
     -fx-background-color: #e9e9fa;
 }
 
-TextFlow > .label, TextFlow > .hyperlink {
-    -fx-wrap-text: true;
+/* Section with a border */
+.section-border {
+    -fx-background-color: white;
+    -fx-border-color: derive(forestgreen, -40%);
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-border-style: solid;
 }
 
-TextFlow > .hyperlink {
+/* Heading within bordered section */
+.bordered-section-heading {
+    -fx-background-color: linear-gradient(forestgreen, derive(forestgreen, -40%));
+    -fx-padding: 4px;
+    -fx-background-radius: 6px 6px 0px 0px;
+    -fx-text-fill: derive(gold, 60%);
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-max-width: infinity;
+    -fx-alignment: CENTER;
+}
+
+/* Heading within bordered section */
+.bordered-section-content {
+    -fx-padding: 4px;
+    -fx-background-radius: 0px 0px 8px 8px;
+}
+
+.calendar HBox {
+    -fx-border-color: derive(forestgreen, -40%);
+    -fx-border-width: 1px;
+    -fx-border-style: solid centered;
+    -fx-padding: 4px;
+}
+
+.calendar .list-view {
+    -fx-box-border: transparent;
+}
+
+.zero-padding {
     -fx-padding: 0px;
-    -fx-border-width: 0px;
+}
+
+.collapsed {
+    -fx-label-padding: 0;
+    -fx-min-height: 0;
+    -fx-min-width: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+    -fx-max-height: 0;
+    -fx-max-width: 0;
+    -fx-padding: 0;
+    -fx-scale-x: 0;
+    -fx-scale-y: 0;
+    visibility: collapse;
 }

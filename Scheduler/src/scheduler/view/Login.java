@@ -23,6 +23,7 @@ import javafx.stage.Window;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.SupportedLocale;
+import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ResourceBundleHelper;
@@ -41,7 +42,7 @@ import scheduler.view.event.FxmlViewEvent;
  */
 @GlobalizationResource("scheduler/view/Login")
 @FXMLResource("/scheduler/view/Login.fxml")
-public final class Login {
+public final class Login extends Scheduler.LoginController {
 
     private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
@@ -103,7 +104,6 @@ public final class Login {
     private StringBinding exitTextBinding;
     private StringBinding userNameValidationMessageBinding;
     private StringBinding passwordValidationMessageBinding;
-    private String logPath;
 
     @FXML
     void onExitButtonAction(ActionEvent event) {
@@ -127,16 +127,7 @@ public final class Login {
     @FXML
     void onLoginButtonAction(ActionEvent event) {
         Stage stage = (Stage) userNameTextField.getScene().getWindow();
-        Scheduler.tryLoginUser(stage, logPath, loginRootBorderPane, userNameTextField.getText(), passwordField.getText(), (ex) -> {
-            ResourceBundle rb = resourceBundle.get();
-            if (ex == null) {
-                ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, ex,
-                        rb.getString(RESOURCEKEY_INVALIDCREDENTIALS));
-            } else {
-                ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, ex,
-                        rb.getString(RESOURCEKEY_VALIDATIONERROR));
-            }
-        });
+        tryLoginUser(stage, loginRootBorderPane, userNameTextField.getText(), passwordField.getText());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -211,8 +202,15 @@ public final class Login {
         resourceBundle.set(ResourceBundleHelper.getBundle(Login.class));
     }
 
-    public void setLogPath(String path) {
-        logPath = path;
+    @Override
+    protected void onLoginFailure(Stage stage, Throwable reason) {
+        ResourceBundle rb = resourceBundle.get();
+        if (reason == null) {
+            AlertHelper.showErrorAlert(stage, RESOURCEKEY_EXIT, loginButton);
+        } else {
+            ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, reason,
+                    rb.getString(RESOURCEKEY_VALIDATIONERROR));
+        }
     }
 
 }

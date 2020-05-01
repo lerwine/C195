@@ -53,16 +53,16 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
+import scheduler.model.db.AddressRowData;
+import scheduler.observables.StringBindingProperty;
 import scheduler.util.AlertHelper;
+import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabel;
-import static scheduler.util.NodeUtil.selectSelection;
-import scheduler.observables.StringBindingProperty;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.task.TaskWaiter;
-import scheduler.model.db.AddressRowData;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
@@ -79,24 +79,37 @@ public final class EditAppointmentFilter {
 
     private static <T extends DataAccessObject, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
         if (null == obj) {
-            return selectSelection(source.getSelectionModel(), source.getItems(), (t) -> null == t.getValue());
+            return clearAndSelect(source, (t) -> null == t.getValue());
         }
         int id = obj.getPrimaryKey();
-        return selectSelection(source.getSelectionModel(), source.getItems(), (t) -> null != t.getValue() && t.getValue().getPrimaryKey() == id);
+        return clearAndSelect(source, (t) -> null != t.getValue() && t.getValue().getPrimaryKey() == id);
     }
 
     private static <T> boolean selectItem(ComboBox<DateTypeSelectionItem> source, DateFilterType type) {
         if (null == type) {
             return selectItem(source, DateFilterType.NONE);
         }
-        return selectSelection(source.getSelectionModel(), source.getItems(), (t) -> t.getValue().equals(type));
+        return clearAndSelect(source, (t) -> t.getValue().equals(type));
     }
 
     private static <T extends TextOption> boolean selectItem(ComboBox<T> source, TextFilterType type) {
         if (null == type) {
             return selectItem(source, TextFilterType.NONE);
         }
-        return selectSelection(source.getSelectionModel(), source.getItems(), (t) -> t.getValue().equals(type));
+        return clearAndSelect(source, (t) -> t.getValue().equals(type));
+    }
+
+    public static EditAppointmentFilter getController(BorderPane view) {
+        if (null != view) {
+            ObservableMap<Object, Object> properties = view.getProperties();
+            if (properties.containsKey(FXMLPROPERTYNAME_CONTROLLER)) {
+                Object value = properties.get(FXMLPROPERTYNAME_CONTROLLER);
+                if (null != value && value instanceof EditAppointmentFilter) {
+                    return (EditAppointmentFilter) value;
+                }
+            }
+        }
+        return null;
     }
     private boolean includeInactiveCustomers = false;
     private boolean includeInactiveUsers = false;
@@ -543,7 +556,7 @@ public final class EditAppointmentFilter {
 
     private void initializePredefined(FilterOptionState inputState, RangeOptionValue type) {
         searchTypesTabPane.getSelectionModel().select(preDefinedRangesTab);
-        selectSelection(rangeTypeComboBox, (t) -> t.getValue().equals(type));
+        clearAndSelect(rangeTypeComboBox, (t) -> t.getValue().equals(type));
         selectItem(customerComboBox, inputState.getCustomer());
         selectItem(userComboBox, inputState.getUser());
     }
@@ -630,19 +643,6 @@ public final class EditAppointmentFilter {
         selectItem(titleComboBox, inputState.getTitleOption());
 
     }
-    
-    public static EditAppointmentFilter getController(BorderPane view) {
-        if (null != view) {
-            ObservableMap<Object, Object> properties = view.getProperties();
-            if (properties.containsKey(FXMLPROPERTYNAME_CONTROLLER)) {
-                Object value = properties.get(FXMLPROPERTYNAME_CONTROLLER);
-                if (null != value && value instanceof EditAppointmentFilter)
-                    return (EditAppointmentFilter)value;
-            }
-        }
-        return null;
-    }
-    
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {

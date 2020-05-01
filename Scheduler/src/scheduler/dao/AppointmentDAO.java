@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -557,6 +559,78 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
             throw new SQLException("Unexpected lack of results from database query");
         }
 
+        public List<AppointmentCountByType> getCountsByType(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ")
+                    .append(DbColumn.START.getDbName()).append(", ").append(DbColumn.END.getDbName()).append(", ")
+                    .append(DbColumn.TYPE.getDbName())
+                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName())
+                    .append(" GROUP BY ").append(DbColumn.TYPE.getDbName());
+            if (null != start) {
+                sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
+                if (null != end)
+                    sb.append(" AND ").append(DbColumn.START.getDbName()).append(" < ?");
+            } else if (null != end)
+                sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" < ?");
+            String sql = sb.toString();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                int index = 0;
+                if (null != start) {
+                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                }
+                if (null != end) {
+                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                }
+                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    ArrayList<AppointmentCountByType> result = new ArrayList<>();
+                    while (rs.next()) {
+                        result.add(new AppointmentCountByType(AppointmentType.of(rs.getString(DbColumn.TYPE.toString()), AppointmentType.OTHER), rs.getInt("c")));
+                    }
+                    return result;
+                }
+            }
+        }
+        
+        public List<ItemCountResult<String>> getCountsByCustomerRegion(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append("), a.")
+                    .append(DbColumn.START.getDbName()).append(" AS ").append(DbColumn.START.getDbName()).append(", a.")
+                    .append(DbColumn.END.getDbName()).append(" AS ").append(DbColumn.END.getDbName()).append(", n.")
+                    .append(DbColumn.COUNTRY_NAME.getDbName()).append(" AS ").append(DbColumn.COUNTRY_NAME.getDbName())
+                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName())
+                    .append(" a LEFT JOIN ").append(DbTable.CUSTOMER.getDbName()).append(" c ON a.").append(DbColumn.CUSTOMER_ID.getDbName()).append("=c.")
+                    .append(DbColumn.CUSTOMER_ID.getDbName()).append(" LEFT JOIN ").append(DbTable.ADDRESS.getDbName())
+                    .append(" l ON c.").append(DbColumn.ADDRESS_ID.getDbName()).append("=l.").append(DbColumn.ADDRESS_ID.getDbName())
+                    .append(" LEFT JOIN ").append(DbTable.CITY.getDbName())
+                    .append(" t ON l.").append(DbColumn.CITY_ID.getDbName()).append("=t.").append(DbColumn.CITY_ID.getDbName())
+                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
+                    .append(" n on t.").append(DbColumn.COUNTRY_ID.getDbName()).append("=n.").append(DbColumn.COUNTRY_ID.getDbName())
+                    .append(" GROUP BY ").append(DbColumn.COUNTRY_NAME.getDbName());
+            if (null != start) {
+                sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
+                if (null != end)
+                    sb.append(" AND ").append(DbColumn.START.getDbName()).append(" <= ?");
+            } else if (null != end)
+                sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" <= ?");
+            String sql = sb.toString();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                int index = 0;
+                if (null != start) {
+                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                }
+                if (null != end) {
+                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                }
+                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    ArrayList<ItemCountResult<String>> result = new ArrayList<>();
+                    while (rs.next()) {
+                        result.add(new ItemCountResult<>(rs.getString(DbColumn.COUNTRY_NAME.toString()), rs.getInt("c")));
+                    }
+                    return result;
+                }
+            }
+        }
+        
         /**
          * Gets the number of appointments that reference the specified customer ID.
          *

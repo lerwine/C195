@@ -17,10 +17,18 @@ import javafx.util.Callback;
  */
 public class DateTimeTableCellFactory<S, T extends TemporalAccessor> implements Callback<TableColumn<S, T>, TableCell<S, T>> {
 
-    private final DateTimeFormatter fmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
+    private final DateTimeFormatter formatter;
 
+    public DateTimeTableCellFactory(DateTimeFormatter formatter) {
+        this.formatter = (null == formatter) ? DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+            .withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault()) : formatter;
+    }
+    public DateTimeTableCellFactory() {
+        this(null);
+    }
+    
     @Override
     public TableCell<S, T> call(TableColumn<S, T> param) {
-        return new DateTimeTableCell<>(fmt);
+        return new DateTimeTableCell<>(formatter);
     }
 }

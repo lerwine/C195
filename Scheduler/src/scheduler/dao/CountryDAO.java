@@ -78,7 +78,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     @Override
     public PredefinedCountry asPredefinedData() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CountryDAO#asPredefinedData
+        return predefinedCountry;
     }
 
     /**

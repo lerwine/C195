@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.appointment;
 
 import java.text.NumberFormat;
@@ -191,13 +186,15 @@ public final class DateRange {
             String s = startParseMessage.get();
             return (s.isEmpty()) ? c : s;
         }, conflictMessage, startParseMessage);
-        BooleanBinding timeZoneMissing = timeZoneComboBox.valueProperty().isNull();
+        BooleanBinding timeZoneMissing = timeZoneComboBox.getSelectionModel().selectedItemProperty().isNull();
         parseDurationBinding = BindingHelper.createBinaryOptionalBinding(() -> parseDuration(durationHourTextField.getText(),
                 durationMinuteTextField.getText(), timeZoneMissing.get()), durationHourTextField.textProperty(),
                 durationMinuteTextField.textProperty(), timeZoneMissing);
         durationParseMessage = parseDurationBinding.mapToString((t) -> "", (s) -> s, resources.getString(RESOURCEKEY_REQUIRED));
         timeSpan = BindingHelper.createOptionalBinding(() -> buildZonedAppointmentTimeSpan(parseStartBinding.get(),
                 parseDurationBinding.get()), parseStartBinding, parseDurationBinding);
+        onStartControlChanged();
+        onDurationControlChanged();
     }
 
     void setDateRange(LocalDateTime start, Duration duration, TimeZone timeZone) {
@@ -240,11 +237,6 @@ public final class DateRange {
         this.conflictsController = conflictsController;
         checkConflictsButton.setOnAction(checkConflictsListener);
         showConflictsButton.setOnAction(showConflictsListener);
-        conflictsController.onTimeSpanChanged(timeSpan.get());
-    }
-
-    void setOnShowConflictsButtonAction(EventHandler<ActionEvent> listener) {
-        showConflictsButton.setOnAction(listener);
     }
 
     private void onTimeSpanComponentChanged() {
@@ -263,9 +255,15 @@ public final class DateRange {
         if (null != conflictsController) {
             conflictsController.onTimeSpanChanged(ts);
         }
+        onConflictStateChanged();
     }
 
     private void onStartControlChanged() {
+        onTimeSpanComponentChanged();
+        refreshStartMessage();
+    }
+
+    public void refreshStartMessage() {
         String s = startMessage.get();
         if (s.isEmpty()) {
             startValidationLabel.setVisible(false);
@@ -280,7 +278,6 @@ public final class DateRange {
             startValidationLabel.setVisible(true);
             startValidationLabel.setText(s);
         }
-        onTimeSpanComponentChanged();
     }
 
     private void onDurationControlChanged() {
@@ -358,6 +355,23 @@ public final class DateRange {
     ZonedAppointmentTimeSpan getTimeSpan() {
         Optional<ZonedAppointmentTimeSpan> opt = timeSpan.get();
         return opt.isPresent() ? opt.get() : null;
+    }
+
+    void onConflictStateChanged() {
+        if (null != conflictsController) {
+            conflictMessage.set(conflictsController.getConflictMessage());
+            if (conflictsController.isConflictCheckingCurrent()) {
+                collapseNode(checkConflictsButton);
+                if (conflictsController.hasConflicts()) {
+                    restoreNode(showConflictsButton);
+                } else {
+                    collapseNode(showConflictsButton);
+                }
+            } else {
+                restoreNode(checkConflictsButton);
+            }
+        }
+        refreshStartMessage();
     }
 
 }

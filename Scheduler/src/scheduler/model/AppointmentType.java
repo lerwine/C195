@@ -10,7 +10,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentLocationSource;
 
-// CURRENT: Main offices in Phoenix, Arizona; New York, New York; and London, England
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

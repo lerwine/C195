@@ -41,7 +41,29 @@ public class AlertHelper {
         return alert.showAndWait();
     }
 
+    public static Optional<ButtonType> showErrorAlert(Window parent, String title, String content, ButtonType... buttons) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, content);
+        alert.initStyle(StageStyle.UTILITY);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.setTitle(title);
+        if (null != parent) {
+            alert.initOwner(parent);
+        }
+        if (null != buttons && buttons.length > 0) {
+            for (ButtonType btnType : buttons) {
+                alert.getButtonTypes().addAll(btnType);
+            }
+        } else {
+            alert.getButtonTypes().add(ButtonType.OK);
+        }
+        return alert.showAndWait();
+    }
+
     public static Optional<ButtonType> showErrorAlert(String title, Node content, ButtonType... buttons) {
+        return showErrorAlert((Window) null, title, content, buttons);
+    }
+
+    public static Optional<ButtonType> showErrorAlert(String title, String content, ButtonType... buttons) {
         return showErrorAlert((Window) null, title, content, buttons);
     }
 
@@ -110,6 +132,22 @@ public class AlertHelper {
      *
      * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
      * parent window to use.
+     * @param title The title of the {@link Alert} dialog.
+     * @param headerText The header of the {@link Alert} dialog.
+     * @param contentText The message to show in the {@link Alert} dialog content area.
+     * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
+     * specified.
+     * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
+     */
+    public static Optional<ButtonType> showWarningAlert(Window parent, String title, String headerText, String contentText, ButtonType... buttons) {
+        return showWarningAlert(parent, null, title, headerText, contentText, buttons);
+    }
+
+    /**
+     * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
+     * parent window to use.
      * @param logger The {@link Logger} to log the warning to. This can be {@code null} if you do not want to write to a log.
      * @param contentText The message to show in the {@link Alert} dialog content area.
      * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
@@ -118,6 +156,35 @@ public class AlertHelper {
      */
     public static Optional<ButtonType> showWarningAlert(Window parent, Logger logger, String contentText, ButtonType... buttons) {
         return showWarningAlert(parent, logger, null, contentText, buttons);
+    }
+
+    /**
+     * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
+     * parent window to use.
+     * @param title The title of the {@link Alert} dialog.
+     * @param contentText The message to show in the {@link Alert} dialog content area.
+     * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
+     * specified.
+     * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
+     */
+    public static Optional<ButtonType> showWarningAlert(Window parent, String title, String contentText, ButtonType... buttons) {
+        return showWarningAlert(parent, title, null, contentText, buttons);
+    }
+
+    /**
+     * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
+     *
+     * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a
+     * parent window to use.
+     * @param contentText The message to show in the {@link Alert} dialog content area.
+     * @param buttons The types of buttons to be displayed in the {@link Alert} dialog. Defaults to {@link ButtonType#OK} if no button types are
+     * specified.
+     * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
+     */
+    public static Optional<ButtonType> showWarningAlert(Window parent, String contentText, ButtonType... buttons) {
+        return showWarningAlert(parent, (String)null, contentText, buttons);
     }
 
 }

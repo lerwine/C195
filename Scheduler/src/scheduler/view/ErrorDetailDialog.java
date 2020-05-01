@@ -171,7 +171,7 @@ public class ErrorDetailDialog {
 
     public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, String userMessage, boolean ignoreCause, String logMessage, ButtonType... buttons) {
         if (null != log) {
-            log.log(Level.SEVERE, logMessage, error);
+            log.log(Level.SEVERE, (null == logMessage || logMessage.trim().isEmpty()) ? userMessage : logMessage, error);
         }
         return showAndWait(title, owner, error, maxDepth, userMessage, ignoreCause, buttons);
     }

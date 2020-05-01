@@ -107,4 +107,9 @@ public class PredefinedCity extends PredefinedItem implements CityItem, CityRowD
         return this;
     }
 
+    @Override
+    public String toString() {
+        return name.get();
+    }
+
 }

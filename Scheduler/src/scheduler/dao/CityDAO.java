@@ -143,7 +143,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
 
     @Override
     public PredefinedCity asPredefinedData() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO#asPredefinedData
+        return predefinedCity;
     }
 
     @Override

@@ -2,13 +2,17 @@ package scheduler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -22,11 +26,8 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
-// CURRENT: Define business hours - Alert for scheduling an appointment outside business hours
 // TODO: Test alert for scheduling overlapping appointments
-// CURRENT: Report for number of appointment types by month
-// CURRENT: Report for the schedule for each consultant
-// CURRENT: Create additional report
+
 /**
  * Gets settings from the {@code /resources/scheduler/config.properties} file.
  *
@@ -132,7 +133,7 @@ public final class AppResources implements AppResourceKeys {
     public static final LocalTime getBusinessHoursStart() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSSTART, "");
         try {
-            return (LocalTime) DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).parse(s);
+            return LocalTime.parse(s);
         } catch (DateTimeParseException ex) {
             throw new ParseException(ex.getMessage(), ex.getErrorIndex());
         }
