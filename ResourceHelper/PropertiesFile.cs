@@ -195,10 +195,9 @@
         public bool Equals(ResourceUrl other)
         {
             return null != other && (ReferenceEquals(this, other) ||
-                (string.Equals(_package, other._package, StringComparison.InvariantCultureIgnoreCase) &&
-                ((null == _name) ? (null == other._name) :
-                (null != other._name && string.Equals(_name, other._name, StringComparison.InvariantCultureIgnoreCase) &&
-                _code.Value == other._code.Value))));
+                (string.Equals(Package, other.Package, StringComparison.InvariantCultureIgnoreCase) &&
+                ((null == Name) ? (null == other.Name) :
+                (null != other.Name && string.Equals(Name, other.Name, StringComparison.InvariantCultureIgnoreCase)))));
         }
 
         public override bool Equals(object obj)

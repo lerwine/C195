@@ -10,7 +10,7 @@ import javafx.scene.layout.HBox;
 import scheduler.util.NodeUtil;
 import scheduler.view.SymbolText;
 import static scheduler.util.NodeUtil.createSymbolButton;
-import scheduler.view.event.ItemActionRequestEvent;
+import scheduler.view.event.ObjectActionRequestEvent;
 import scheduler.view.event.ItemActionRequestEventListener;
 
 /**
@@ -44,14 +44,14 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
     }
 
     private void onEditButtonAction(ActionEvent event) {
-        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), false));
+        onItemActionRequest(new ObjectActionRequestEvent<>(event, getItem(), false));
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
-        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), true));
+        onItemActionRequest(new ObjectActionRequestEvent<>(event, getItem(), true));
     }
 
-    protected void onItemActionRequest(ItemActionRequestEvent<T> event) {
+    protected void onItemActionRequest(ObjectActionRequestEvent<T> event) {
         ItemActionRequestEventListener<T> listener = onItemEdit.get();
         if (null != listener) {
             listener.acceptItemActionRequest(event);

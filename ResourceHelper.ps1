@@ -130,16 +130,6 @@ Function Test-PropertiesFile {
     End { ($Success -eq $true) | Write-Output }
 }
 
-
-$a = [Uri]::new('C:\Users\lerwi\NetBeansProjects\C195\Scheduler\resources\scheduler\view\user\ManageUsers_hi.properties');
-$b = [Uri]::new($Script:BaseResourcesPath + "\");
-$b;
-[Uri]::new($b, 'asdf');
-$u = $b.MakeRelative($a)
-($u.Split('/') | ForEach-Object { [uri]::UnescapeDataString($_) }) -join '.'
-
-[System.IO.Directory]::GetFiles($Script:BaseResourcesPath, '*.properties', [System.IO.SearchOption]::AllDirectories) | ForEach-Object { [ResourceHelper.PropertiesFile]::ToRelativePath($_, $Script:BaseResourcesPath) };
-[ResourceHelper.LanguageType]::DE.ToString()
 Add-Type -TypeDefinition @'
 namespace ResourceHelper {
     using System;
@@ -202,7 +192,7 @@ namespace ResourceHelper {
 
         public class Sizes {
             private readonly BundleInfo _target;
-            Size(BundleInfo target) {
+            Sizes(BundleInfo target) {
                 _target = target;
             }
 
@@ -1449,6 +1439,8 @@ Add new property
 
 Add-ResourceBundleProperty -BaseName 'App' | Out-Null;
 
-#>
 
 Select-ResourceBundle
+
+#>
+Add-ResourceBundleProperty -BaseName 'view/appointment/EditAppointment' | Out-Null;

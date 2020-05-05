@@ -60,9 +60,7 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
         }
         this.appointments = new ReadOnlyListWrapper<>(FXCollections.unmodifiableObservableList(items));
         try {
-            LOG.info("Calling initializeCustomControl");
             ViewControllerLoader.initializeCustomControl(this);
-            LOG.info("initializeCustomControl called");
         } catch (IOException ex) {
             Logger.getLogger(DailyAppointmentsBorderPane.class.getName()).log(Level.SEVERE, "Error loading view", ex);
         }

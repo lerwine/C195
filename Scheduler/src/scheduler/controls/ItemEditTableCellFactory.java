@@ -3,11 +3,11 @@ package scheduler.controls;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.view.event.ItemActionRequestEvent;
-import scheduler.view.event.ItemActionRequestEventListener;
 
 /**
  *
@@ -16,13 +16,13 @@ import scheduler.view.event.ItemActionRequestEventListener;
  */
 public class ItemEditTableCellFactory<T> implements Callback<TableColumn<T, T>, TableCell<T, T>> {
 
-    private final ObjectProperty<ItemActionRequestEventListener<T>> onItemActionRequest = new SimpleObjectProperty<>();
+    private final ObjectProperty<EventHandler<ItemActionRequestEvent<T>>> onItemActionRequest = new SimpleObjectProperty<>();
 
-    public ItemActionRequestEventListener<T> getOnItemActionRequest() {
+    public EventHandler<ItemActionRequestEvent<T>> getOnItemActionRequest() {
         return onItemActionRequest.get();
     }
 
-    public void setOnItemActionRequest(ItemActionRequestEventListener<T> value) {
+    public void setOnItemActionRequest(EventHandler<ItemActionRequestEvent<T>> value) {
         onItemActionRequest.set(value);
     }
 
@@ -35,9 +35,9 @@ public class ItemEditTableCellFactory<T> implements Callback<TableColumn<T, T>, 
     }
 
     protected void onItemActionRequest(ItemActionRequestEvent<T> event) {
-        ItemActionRequestEventListener<T> listener = onItemActionRequest.get();
+        EventHandler<ItemActionRequestEvent<T>> listener = onItemActionRequest.get();
         if (null != listener) {
-            listener.acceptItemActionRequest(event);
+            listener.handle(event);
         }
     }
 

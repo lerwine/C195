@@ -16,14 +16,14 @@
     -fx-background-color: #7f7f7f7f;
 }
 
-.bordered, .busy-container {
+.bordered, .wait-border {
     -fx-border-color: black;
     -fx-border-width: 2;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
 }
 
-.busy-container {
+.wait-border {
     -fx-background-color: #ebe8cb;
 }
 
@@ -63,7 +63,7 @@ Labeled.leftLabeledControl {
     visibility: collapse;
 }
 
-.h1, .h2, .h3, .page-heading, .section-heading, .sub-section-heading, .busy-heading, .popup-heading {
+.h1, .h2, .h3, .page-heading, .section-heading, .sub-section-heading, .wait-heading, .popup-heading {
     -fx-text-fill: darkslateblue;
     -fx-font-weight: bold;
 }
@@ -72,16 +72,16 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-fill: #2a3258;
 }
 
-.h1, .h2, .page-heading, .section-heading, .popup-heading, .busy-heading {
+.h1, .h2, .page-heading, .section-heading, .popup-heading, .wait-heading {
     -fx-padding: 4;
     -fx-max-width: 32768;
 }
 
-.page-heading, .popup-heading, .busy-heading {
+.page-heading, .popup-heading, .wait-heading {
     -fx-font-size: 18px;
 }
 
-.popup-heading, .busy-heading {
+.popup-heading, .wait-heading {
     -fx-border-radius: 8 8 0 0;
     -fx-background-radius: 8 8 0 0;
 }
@@ -97,7 +97,7 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-border-color: linear-gradient(from 25% 100% to 100% 0%, #99ff66, #ccff99);
 }
 
-.busy-heading {
+.wait-heading {
     -fx-background-color: linear-gradient(#e2e5b2, #d3d88b);
     -fx-border-color: linear-gradient(#d3d88b, #e2e5b2);
 }
