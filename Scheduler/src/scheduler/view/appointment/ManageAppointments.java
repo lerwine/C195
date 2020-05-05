@@ -413,7 +413,7 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
 
     @Override
     protected void onDeleteItem(Stage stage, AppointmentModel item) {
-        getMainController(stage.getScene()).deleteAppointment(stage, item);
+        getMainController().deleteAppointment(stage, item);
     }
 
     @Override
@@ -423,12 +423,12 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
 
     @Override
     protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController(stage.getScene()).addNewAppointment(stage, null, null);
+        getMainController().addNewAppointment(stage, null, null);
     }
 
     @Override
     protected void onEditItem(Stage stage, AppointmentModel item) throws IOException {
-        getMainController(stage.getScene()).editAppointment(stage, item);
+        getMainController().editAppointment(stage, item);
     }
 
     @Override

@@ -90,7 +90,7 @@ public class Overview {
     void onByMonthHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ByMonth.loadInto(getMainController((Hyperlink)event.getSource()), stage, LocalDate.now());
+            ByMonth.loadInto(getMainController(), stage, LocalDate.now());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }
@@ -99,7 +99,7 @@ public class Overview {
     void onByWeekHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ByWeek.loadInto(getMainController((Hyperlink)event.getSource()), stage, LocalDate.now());
+            ByWeek.loadInto(getMainController(), stage, LocalDate.now());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }
@@ -109,7 +109,7 @@ public class Overview {
     void onCountryListingHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ManageCountries.loadInto(getMainController(stage.getScene()), stage, CountryModel.getFactory().getAllItemsFilter());
+            ManageCountries.loadInto(getMainController(), stage, CountryModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_COUNTRYLOADERROR), stage, ex);
         }
@@ -119,7 +119,7 @@ public class Overview {
     void onCustomerListingHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ManageCustomers.loadInto(getMainController(stage.getScene()), stage, CustomerModel.getFactory().getAllItemsFilter());
+            ManageCustomers.loadInto(getMainController(), stage, CustomerModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
         }
@@ -128,14 +128,14 @@ public class Overview {
     @FXML
     void onNewAppointmentHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        getMainController(stage.getScene()).addNewAppointment(stage, null, null);
+        getMainController().addNewAppointment(stage, null, null);
     }
 
     @FXML
     void onAppointmentListHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ManageAppointments.loadInto(getMainController(stage.getScene()), stage, AppointmentModelFilter.myCurrentAndFuture());
+            ManageAppointments.loadInto(getMainController(), stage, AppointmentModelFilter.myCurrentAndFuture());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS), stage, ex);
         }
@@ -145,7 +145,7 @@ public class Overview {
     void onUserListingHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
         try {
-            ManageUsers.loadInto(getMainController(stage.getScene()), stage, UserModel.getFactory().getAllItemsFilter());
+            ManageUsers.loadInto(getMainController(), stage, UserModel.getFactory().getAllItemsFilter());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
         }

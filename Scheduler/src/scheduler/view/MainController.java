@@ -469,6 +469,7 @@ public final class MainController {
      * @param user The user to initially select or {@code null} for no initial selection.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
      */
+    // TODO: Remove stage parameter
     public AppointmentModel addNewAppointment(Stage stage, CustomerRowData customer, UserRowData user) {
         AppointmentModel result;
         try {
@@ -489,6 +490,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be edited.
      */
+    // TODO: Remove stage parameter
     public void editAppointment(Stage stage, AppointmentModel item) {
         AppointmentModel result;
         try {
@@ -508,6 +510,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be deleted.
      */
+    // TODO: Remove stage parameter
     public void deleteAppointment(Stage stage, AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -524,6 +527,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
      */
+    // TODO: Remove stage parameter
     public CustomerModel addNewCustomer(Stage stage) {
         CustomerModel result;
         try {
@@ -544,6 +548,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModel} to be edited.
      */
+    // TODO: Remove stage parameter
     public void editCustomer(Stage stage, CustomerModel item) {
         CustomerModel result;
         try {
@@ -563,6 +568,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModel} to be deleted.
      */
+    // TODO: Remove stage parameter
     public void deleteCustomer(Stage stage, CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -579,6 +585,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be edited.
      */
+    // TODO: Remove stage parameter
     public void openCountry(Stage stage, CountryModel item) {
         CountryModel result;
         try {
@@ -598,6 +605,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be deleted.
      */
+    // TODO: Remove stage parameter
     public void deleteCountry(Stage stage, CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -614,6 +622,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link CityModel} to be edited.
      */
+    // TODO: Remove stage parameter
     public void openCity(Stage stage, CityModel item) {
         CityModel result;
         try {
@@ -633,6 +642,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link CityModel} to be deleted.
      */
+    // TODO: Remove stage parameter
     public void deleteCity(Stage stage, CityModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -649,6 +659,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
+    // TODO: Remove stage parameter
     public AddressModel addNewAddress(Stage stage) {
         AddressModel result;
         try {
@@ -669,6 +680,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link AddressModel} to be edited.
      */
+    // TODO: Remove stage parameter
     public void editAddress(Stage stage, AddressModel item) {
         AddressModel result;
         try {
@@ -688,6 +700,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link AddressModel} to be deleted.
      */
+    // TODO: Remove stage parameter
     public void deleteAddress(Stage stage, AddressModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
@@ -704,6 +717,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
      */
+    // TODO: Remove stage parameter
     public UserModel addNewUser(Stage stage) {
         UserModel result;
         try {
@@ -724,6 +738,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link UserModel} to be edited.
      */
+    // TODO: Remove stage parameter
     public void editUser(Stage stage, UserModel item) {
         UserModel result;
         try {
@@ -743,6 +758,7 @@ public final class MainController {
      * @param stage The current {@link Stage}.
      * @param item The {@link UserModel} to be deleted.
      */
+    // TODO: Remove stage parameter
     public void deleteUser(Stage stage, UserModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),

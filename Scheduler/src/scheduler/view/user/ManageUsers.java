@@ -32,17 +32,17 @@ public final class ManageUsers extends ListingController<UserDAO, UserModel> {
 
     @Override
     protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController(stage.getScene()).addNewUser(stage);
+        getMainController().addNewUser(stage);
     }
 
     @Override
     protected void onEditItem(Stage stage, UserModel item) throws IOException {
-        getMainController(stage.getScene()).editUser(stage, item);
+        getMainController().editUser(stage, item);
     }
 
     @Override
     protected void onDeleteItem(Stage stage, UserModel item) {
-        getMainController(stage.getScene()).deleteUser(stage, item);
+        getMainController().deleteUser(stage, item);
     }
 
     @Override

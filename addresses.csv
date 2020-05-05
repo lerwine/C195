@@ -1,0 +1,8 @@
+"appointmentId";"customerId";"userId";"title";"description";"location";"contact";"type";"url";"start";"end";"createDate";"createdBy";"lastUpdate";"lastUpdateBy"
+"1";"1";"1";"First Event";"Event 1 DESC";"Undisclosed";"Agent Dan";"other";"";"2019-12-03 05:00:00";"2019-12-03 06:00:00";"2019-11-25 11:35:10";"test";"2020-04-09 23:18:25";"test"
+"2";"1";"1";"asdf";"";"Corporate Home Office";"";"hq";"";"2020-04-24 11:07:00";"2020-04-24 16:07:00";"2020-04-09 23:10:32";"test";"2020-04-15 04:39:00";"test"
+"5";"1";"1";"asdf";"";"405 Lexington Ave, MS 4428, New York 10174, United States, (212) 447-1836";"asdf";"corporate";"";"2020-05-01 06:00:00";"2020-05-01 07:00:00";"2020-05-01 05:23:48";"test";"2020-05-01 05:23:48";"test"
+"6";"2";"1";"asdfadsf";"";"asdfasdf";"adsfasdf";"other";"";"2020-05-01 06:00:00";"2020-05-01 07:00:00";"2020-05-01 05:29:56";"test";"2020-05-01 05:29:56";"test"
+"7";"3";"1";"Example phone meeting";"";"866-284-4107";"Hu Won Receiptionista";"phone";"";"2020-05-05 07:00:00";"2020-05-05 08:00:00";"2020-05-04 20:29:15";"test";"2020-05-04 20:29:15";"test"
+"8";"1";"1";"Example virtual meeting";"Test";"http://mysite.com";"Victor Tango Charlie";"virtual";"http://mysite.com";"2020-05-05 07:00:00";"2020-05-05 08:00:00";"2020-05-04 20:31:04";"test";"2020-05-04 20:31:04";"test"
+"9";"2";"1";"Another test virtual meeting";"";"https://yoursite.com";"";"virtual";"https://yoursite.com";"2020-05-04 13:00:00";"2020-05-04 14:00:00";"2020-05-04 21:21:11";"test";"2020-05-04 21:21:11";"test"

@@ -3,6 +3,7 @@ package scheduler.controls;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
@@ -10,8 +11,7 @@ import javafx.scene.layout.HBox;
 import scheduler.util.NodeUtil;
 import scheduler.view.SymbolText;
 import static scheduler.util.NodeUtil.createSymbolButton;
-import scheduler.view.event.ObjectActionRequestEvent;
-import scheduler.view.event.ItemActionRequestEventListener;
+import scheduler.view.event.ItemActionRequestEvent;
 
 /**
  *
@@ -21,7 +21,7 @@ import scheduler.view.event.ItemActionRequestEventListener;
 public class ItemEditTableCell<T> extends TableCell<T, T> {
 
     private final HBox graphic;
-    private final ObjectProperty<ItemActionRequestEventListener<T>> onItemEdit = new SimpleObjectProperty<>();
+    private final ObjectProperty<EventHandler<ItemActionRequestEvent<T>>> onItemEdit = new SimpleObjectProperty<>();
 
     public ItemEditTableCell() {
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
@@ -31,30 +31,30 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
-    public ItemActionRequestEventListener<T> getOnItemEdit() {
+    public EventHandler<ItemActionRequestEvent<T>> getOnItemEdit() {
         return onItemEdit.get();
     }
 
-    public void setOnItemEdit(ItemActionRequestEventListener<T> value) {
+    public void setOnItemEdit(EventHandler<ItemActionRequestEvent<T>> value) {
         onItemEdit.set(value);
     }
 
-    public ObjectProperty onItemEditProperty() {
+    public ObjectProperty<EventHandler<ItemActionRequestEvent<T>>> onItemEditProperty() {
         return onItemEdit;
     }
 
     private void onEditButtonAction(ActionEvent event) {
-        onItemActionRequest(new ObjectActionRequestEvent<>(event, getItem(), false));
+        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), false));
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
-        onItemActionRequest(new ObjectActionRequestEvent<>(event, getItem(), true));
+        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), true));
     }
 
-    protected void onItemActionRequest(ObjectActionRequestEvent<T> event) {
-        ItemActionRequestEventListener<T> listener = onItemEdit.get();
+    protected void onItemActionRequest(ItemActionRequestEvent<T> event) {
+        EventHandler<ItemActionRequestEvent<T>> listener = onItemEdit.get();
         if (null != listener) {
-            listener.acceptItemActionRequest(event);
+            listener.handle(event);
         }
     }
 

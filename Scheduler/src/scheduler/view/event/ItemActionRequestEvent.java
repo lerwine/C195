@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
  */
+// TODO: Replace with individual typed events
 public class ItemActionRequestEvent<T> extends ObjectActionRequestEvent {
     private final boolean delete;
 

@@ -50,12 +50,12 @@ public final class ManageCountries extends ListingController<CountryDAO, Country
 
     @Override
     protected void onEditItem(Stage stage, CountryModel item) throws IOException {
-        getMainController(stage.getScene()).openCountry(stage, item);
+        getMainController().openCountry(stage, item);
     }
 
     @Override
     protected void onDeleteItem(Stage stage, CountryModel item) {
-        getMainController(stage.getScene()).deleteCountry(stage, item);
+        getMainController().deleteCountry(stage, item);
     }
 
     @Override

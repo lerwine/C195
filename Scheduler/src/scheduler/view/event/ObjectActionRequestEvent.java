@@ -9,6 +9,7 @@ import javafx.event.EventType;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+// TODO: Replace with individual typed events
 public class ObjectActionRequestEvent extends Event {
 
     public static final EventType<ObjectActionRequestEvent> OBJECT_ACTION_REQUEST =

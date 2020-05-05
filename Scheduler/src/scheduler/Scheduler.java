@@ -10,8 +10,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -21,14 +23,20 @@ import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
+import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOGGINGIN;
@@ -61,6 +69,7 @@ public final class Scheduler extends Application {
     private static final String PROPERTY_MAINCONTROLLER = "scheduler.view.MainController";
     private static Scheduler currentApp = null;
     private static UserDAO currentUser = null;
+    private ViewAndController<StackPane, MainController> mainViewAndController;
 
     /**
      * Gets the currently logged in user.
@@ -76,35 +85,16 @@ public final class Scheduler extends Application {
         return services.resolveURI(services.getDocumentBase(), uri);
     }
     
-    public static MainController getMainController(Scene scene) {
-        Parent root = scene.getRoot();
-        if (null != root && root instanceof Pane) {
-            ObservableMap<Object, Object> properties = root.getProperties();
-            if (properties.containsKey(PROPERTY_MAINCONTROLLER)) {
-                Object controller = properties.get(PROPERTY_MAINCONTROLLER);
-                if (null != controller && controller instanceof MainController) {
-                    return (MainController) controller;
-                }
-            }
+    public static MainController getMainController() {
+        Scheduler app = currentApp;
+        if (null != app) {
+            ViewAndController<StackPane, MainController> viewAndController = app.mainViewAndController;
+            if (null != viewAndController)
+                return viewAndController.getController();
         }
-        Window window = scene.getWindow();
-        if (null != window) {
-            Window owner = ((Stage) window).getOwner();
-            if (null != owner && null != (scene = owner.getScene())) {
-                return getMainController(scene);
-            }
-        }
-        throw new IllegalStateException("Cannot find main controller");
+        throw new IllegalStateException();
     }
-
-    public static MainController getMainController(Node node) {
-        Scene scene = node.getScene();
-        if (null != scene) {
-            return getMainController(scene);
-        }
-        throw new IllegalStateException("Node is not part of a Scene");
-    }
-
+    
     /**
      * The application main entry point.
      *
@@ -114,15 +104,90 @@ public final class Scheduler extends Application {
         launch(args);
     }
 
+    private Stage primaryStage;
+    private final LinkedList<Stage> childStages = new LinkedList<>();
+    
+    private static Stage getCurrentStage() {
+        Scheduler app = currentApp;
+        if (null == app) {
+            throw new IllegalStateException();
+        }
+        synchronized(app.childStages) {
+            return (app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast();
+        }
+    }
+    
+    public static Stage getCurrentStage(Window window) {
+        if (null != window) {
+            if (window instanceof Stage)
+                return (Stage)window;
+            if (window instanceof PopupWindow)
+                return getCurrentStage(((PopupWindow)window).getOwnerWindow());
+        }
+        return getCurrentStage();
+    }
+    
+    public static Stage getCurrentStage(Scene scene) {
+        if (null != scene) {
+            return getCurrentStage(scene.getWindow());
+        }
+        return getCurrentStage();
+    }
+    
+    public static Stage getCurrentStage(Node referenceNode) {
+        if (null != referenceNode) {
+            return getCurrentStage(referenceNode.getScene());
+        }
+        return getCurrentStage();
+    }
+    
+    public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, StageStyle style, Consumer<ViewAndController<U, T>> onBeforeShow) throws IOException {
+        Scheduler app = currentApp;
+        if (null == app) {
+            throw new IllegalStateException();
+        }
+        ViewAndController<U, T> viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
+        
+        synchronized(app.childStages) {
+            Stage stage = new Stage();
+            stage.initOwner((app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast());
+            stage.initModality(Modality.NONE);
+            stage.initStyle(style);
+            stage.addEventHandler(WindowEvent.WINDOW_SHOWN, app::onChildStageShown);
+            stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, app::onChildStageHidden);
+            stage.setScene(new Scene(viewAndController.getView()));
+            if (null != onBeforeShow) {
+                onBeforeShow.accept(viewAndController);
+            }
+            stage.showAndWait();
+        }
+        
+        return viewAndController.getController();
+    }
+    
+    private void onChildStageShown(WindowEvent event) {
+        synchronized(childStages) {
+            childStages.addLast((Stage)event.getSource());
+        }
+    }
+    
+    private void onChildStageHidden(WindowEvent event) {
+        synchronized(childStages) {
+            childStages.remove((Stage)event.getSource());
+        }
+    }
+    
+    
     @Override
     public void start(Stage stage) throws Exception {
         currentApp = this;
+        primaryStage = stage;
         // Load login view and controller.
         ViewAndController<BorderPane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
         // Store log path
 
         // Load main view and controller
-        ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+        mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
         StackPane mainView = mainViewAndController.getView();
         MainController mainController = mainViewAndController.getController();
 

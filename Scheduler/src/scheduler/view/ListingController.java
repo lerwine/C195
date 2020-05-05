@@ -468,6 +468,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
      * @param stage The {@link Stage} of the view that initiated this operation.
      * @throws java.io.IOException
      */
+    // TODO: Remove Stage parameter
     protected abstract void onAddNewItem(Stage stage) throws IOException;
 
     /**
@@ -478,6 +479,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
      * @param item The selected item to be edited.
      * @throws java.io.IOException
      */
+    // TODO: Remove Stage parameter
     protected abstract void onEditItem(Stage stage, U item) throws IOException;
 
     /**
@@ -487,6 +489,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
      * @param stage The {@link Stage} of the view that initiated this operation.
      * @param item The selected item to be deleted.
      */
+    // TODO: Remove Stage parameter
     protected abstract void onDeleteItem(Stage stage, U item);
 
     /**

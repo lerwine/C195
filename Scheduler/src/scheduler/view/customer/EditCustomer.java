@@ -221,7 +221,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     @FXML
     void onAddButtonAction(ActionEvent event) {
         Scene scene = ((ComboBox) event.getSource()).getScene();
-        MainController mainController = getMainController(scene);
+        MainController mainController = getMainController();
         Stage stage = (Stage) scene.getWindow();
         mainController.addNewAppointment(stage, getModel().getDataObject(), null);
     }
@@ -249,7 +249,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsSelectionModel.getSelectedItem();
         if (null != item) {
-            MainController mainController = getMainController(appointmentsTableView);
+            MainController mainController = getMainController();
             Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
             mainController.deleteAppointment(stage, item);
         }
@@ -259,7 +259,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
     void onEditAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsSelectionModel.getSelectedItem();
         if (null != item) {
-            MainController mainController = getMainController(appointmentsTableView);
+            MainController mainController = getMainController();
             Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
             mainController.editAppointment(stage, item);
         }
