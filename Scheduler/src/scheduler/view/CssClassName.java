@@ -82,6 +82,16 @@ public enum CssClassName {
     SUBSECTION_HEADING("sub-section-heading"),
     
     /**
+     * The {@code "wait-titled-pane"} CSS clasS.
+     */
+    WAIT_TITLED_PANE("wait-titled-pane"),
+    
+    /**
+     * The {@code "error-titled-pane"} CSS clasS.
+     */
+    ERROR_TITLED_PANE("error-titled-pane"),
+    
+    /**
      * The {@code "boldText"} CSS class for bold text.
      */
     BOLD_TEXT("boldText");

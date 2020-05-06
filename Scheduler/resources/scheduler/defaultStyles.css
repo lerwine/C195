@@ -53,6 +53,18 @@
     -fx-background-color: transparent;
 }
 
+.progress-indicator:determinate .determinate-indicator .progress {
+    -fx-background-color: linear-gradient(forestgreen, derive(forestgreen, -40%));
+}
+
+.progress-indicator:indeterminate *.segment {
+    -fx-background-color: linear-gradient(forestgreen, derive(forestgreen, -40%));
+}
+
+.progress-indicator:determinate .determinate-indicator .percentage {
+    -fx-fill: dimgray;
+}
+
 TextFlow > .label, TextFlow > .hyperlink {
     -fx-wrap-text: true;
 }
@@ -161,6 +173,87 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-border-color: #99ff66;
     -fx-border-radius: 0 0 8 8;
     -fx-background-radius: 0 0 8 8;
+}
+
+.wait-accordion {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-background-color: derive(gold, -64%);
+}
+
+.wait-titled-pane {
+    -fx-background-color: transparent;
+}
+
+.wait-titled-pane .title {
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-background-color: linear-gradient(derive(gold, -40%), derive(gold, -60%));
+    -fx-border-color: linear-gradient(derive(gold, -40%), derive(gold, -80%));
+}
+
+.wait-titled-pane .title .text {
+    -fx-fill: gold;
+    -fx-font-weight: bold;
+}
+
+.wait-titled-pane:expanded .content {
+    -fx-padding: 4;
+    -fx-background-color: white;
+    -fx-border-radius: 0 0 8 8;
+    -fx-background-radius: 0 0 8 8;
+    -fx-border-color: derive(gold, -80%);
+}
+
+.wait-titled-pane:expanded .title {
+    -fx-border-radius: 8 8 0 0;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.wait-titled-pane:expanded .title .text {
+    -fx-fill: white;
+}
+
+.wait-accordion .titled-pane .title {
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-background-color: linear-gradient(derive(gold, -40%), derive(gold, -60%));
+    -fx-border-color: linear-gradient(derive(gold, -40%), derive(gold, -80%));
+}
+
+.wait-accordion .error-titled-pane .title {
+    -fx-background-color: linear-gradient(firebrick, derive(firebrick, -40%));
+    -fx-border-color: linear-gradient(firebrick, derive(firebrick, -40%));
+}
+
+.wait-accordion .titled-pane .title .text {
+    -fx-fill: gold;
+    -fx-font-weight: bold;
+}
+
+.wait-accordion .error-titled-pane .title .text {
+    -fx-fill: derive(gold, 40%);
+}
+
+.wait-accordion .titled-pane:expanded .title {
+    -fx-border-radius: 8 8 0 0;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.wait-accordion .titled-pane:expanded .title .text {
+    -fx-fill: white;
+}
+
+.wait-accordion .titled-pane:expanded .content {
+    -fx-padding: 4;
+    -fx-background-color: white;
+    -fx-border-radius: 0 0 8 8;
+    -fx-background-radius: 0 0 8 8;
+    -fx-border-color: derive(gold, -80%);
+}
+
+.wait-accordion .error-titled-pane:expanded .content {
+    -fx-border-color: derive(firebrick, -40%);
 }
 
 .wait-border {

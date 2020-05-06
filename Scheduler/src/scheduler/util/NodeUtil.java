@@ -460,7 +460,7 @@ public class NodeUtil {
     }
 
     public static <T extends Node> T setBorderedNode(T node) {
-        return setCssClass(node, CssClassName.BORDERED);
+        return addCssClass(node, CssClassName.BORDERED);
     }
 
     public static <T extends Labeled> T setLeftControlLabel(T node, String text) {
@@ -469,7 +469,7 @@ public class NodeUtil {
     }
 
     public static <T extends Labeled> T setLeftControlLabel(T node) {
-        return setCssClass(node, CssClassName.LEFTCONTROLLABEL);
+        return addCssClass(node, CssClassName.LEFTCONTROLLABEL);
     }
 
     public static <T extends Labeled> T setLeftLabeledControl(T node, String text) {
@@ -488,7 +488,7 @@ public class NodeUtil {
     }
 
     public static <T extends Node> T setLeftLabeledControl(T node) {
-        return setCssClass(node, CssClassName.LEFTLABELEDCONTROL);
+        return addCssClass(node, CssClassName.LEFTLABELEDCONTROL);
     }
 
     private static <T extends Styleable> T setGroup(T node, CssClassName className, ExclusiveCssClassGroup group) {

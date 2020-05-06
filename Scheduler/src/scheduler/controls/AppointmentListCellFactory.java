@@ -8,8 +8,6 @@ import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.appointment.ByMonth;
-import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 
 /**

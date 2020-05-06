@@ -109,17 +109,27 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_CANCEL = "cancel";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cancelling…"}.
+     */
+    public static final String RESOURCEKEY_CANCELLING = "cancelling";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Caused By:"}.
      */
     public static final String RESOURCEKEY_CAUSEDBY = "causedBy";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Checking dependencies..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Checking dependencies…"}.
      */
     public static final String RESOURCEKEY_CHECKINGDEPENDENCIES = "checkingDependencies";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Completing operation..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Close"}.
+     */
+    public static final String RESOURCEKEY_CLOSE = "close";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Completing operation…"}.
      */
     public static final String RESOURCEKEY_COMPLETINGOPERATION = "completingOperation";
 
@@ -259,7 +269,7 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_INACTIVEUSERS = "inactiveUsers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Initializing, Please wait..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Initializing"}.
      */
     public static final String RESOURCEKEY_INITIALIZING = "initializing";
 
@@ -285,27 +295,27 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading cities, please wait..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading cities, please wait…"}.
      */
     public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading countries, please wait..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading countries, please wait…"}.
      */
     public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading customers, please wait..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading customers, please wait…"}.
      */
     public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading users, please wait..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading users, please wait…"}.
      */
     public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Logging in..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Logging in…"}.
      */
     public static final String RESOURCEKEY_LOGGINGIN = "loggingIn";
 
@@ -330,6 +340,11 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_NOITEMWASSELECTED = "noItemWasSelected";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%d of %d"}.
+     */
+    public static final String RESOURCEKEY_NOFN = "nOfN";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "(none)"}.
      */
     public static final String RESOURCEKEY_NONE = "none";
@@ -340,12 +355,17 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_NOTHINGSELECTED = "nothingSelected";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "%d%% complete"}.
+     */
+    public static final String RESOURCEKEY_NPERCENTCOMPLETE = "nPercentComplete";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Original error message:"}.
      */
     public static final String RESOURCEKEY_ORIGINALERRORMESSAGE = "originalErrorMessage";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Please wait..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Please wait…"}.
      */
     public static final String RESOURCEKEY_PLEASEWAIT = "pleaseWait";
 
