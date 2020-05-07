@@ -181,6 +181,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
                 }
             };
             dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.COUNTRY_NAME.toString()));
+            dao.setPredefinedCountry(PredefinedData.lookupCountry(dao.name));
             return propertyChanges;
         }
 

@@ -1,8 +1,6 @@
 package scheduler.view.country;
 
 import java.util.Objects;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
@@ -36,8 +34,8 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        name = new ReadOnlyStringWrapper(this, "name", dao.getName());
         predefinedData = dao.asPredefinedData();
+        name = new ReadOnlyStringWrapper(this, "name", predefinedData.getName());
     }
 
     @Override

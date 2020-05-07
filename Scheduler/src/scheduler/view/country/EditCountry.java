@@ -3,6 +3,7 @@ package scheduler.view.country;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -12,6 +13,9 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -20,6 +24,8 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.model.predefined.PredefinedCountry;
+import scheduler.model.predefined.PredefinedData;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
@@ -31,6 +37,9 @@ import scheduler.view.city.CityModel;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.FxmlViewEvent;
 import scheduler.model.ui.FxRecordModel;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.task.TaskWaiter;
 
 /**
@@ -50,11 +59,28 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
         return edit(model, EditCountry.class, mainController, stage);
     }
 
-    @FXML // fx:id="nameTextField"
-    private TextField nameTextField; // Value injected by FXMLLoader
+    @FXML // fx:id="countryNameValueLabel"
+    private Label countryNameValueLabel; // Value injected by FXMLLoader
 
+    @FXML // fx:id="countryNameComboBox"
+    private ComboBox<PredefinedCountry> countryNameComboBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="nameValidationLabel"
+    private Label nameValidationLabel; // Value injected by FXMLLoader
+    
     @FXML // fx:id="citiesTableView"
     private TableView<CityModel> citiesTableView; // Value injected by FXMLLoader
+
+    @FXML // fx:id="saveButton"
+    private Button saveButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="cancelButton"
+    private Button cancelButton; // Value injected by FXMLLoader***
+
+    @FXML
+    void onCancelButtonAction(ActionEvent event) {
+
+    }
 
     @FXML
     void onCityDeleteMenuItemAction(ActionEvent event) {
@@ -66,19 +92,47 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
 
     }
 
+    @FXML
+    void onSaveButtonAction(ActionEvent event) {
+
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
-        assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert countryNameValueLabel != null : "fx:id=\"countryNameValueLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert countryNameComboBox != null : "fx:id=\"countryNameComboBox\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesTableView != null : "fx:id=\"citiesTableView\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert saveButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'EditCountry.fxml'.";
 
         itemList = FXCollections.observableArrayList();
+        countryList = FXCollections.observableArrayList();
         citiesTableView.setItems(itemList);
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
-        event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCOUNTRY), getModel().getName()));
+        CountryModel model = getModel();
+        if (model.isNewItem()) {
+            collapseNode(countryNameValueLabel);
+            collapseNode(citiesTableView);
+            restoreNode(countryNameComboBox);
+            restoreNode(saveButton);
+            cancelButton.setText("Cancel");
+            countryList.addAll(PredefinedData.getCountryMap().values());
+            restoreNode(nameValidationLabel);
+            countryNameComboBox.setItems(countryList);
+        } else {
+            restoreLabeled(countryNameValueLabel, model.getName());
+            restoreNode(citiesTableView);
+            collapseNode(countryNameComboBox);
+            collapseNode(saveButton);
+            collapseNode(nameValidationLabel);
+            cancelButton.setText("Close");
+            TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
+            event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
+        }
     }
 
     @Override
@@ -100,6 +154,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
     }
 
     private ObservableList<CityModel> itemList;
+    private ObservableList<PredefinedCountry> countryList;
 
     private class ItemsLoadTask extends TaskWaiter<List<CityDAO>> {
 

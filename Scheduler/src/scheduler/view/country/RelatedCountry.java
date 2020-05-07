@@ -30,7 +30,7 @@ public class RelatedCountry implements CountryDbItem<CountryRowData> {
         primaryKey = new ReadOnlyIntegerWrapper(this, "primaryKey", rowData.getPrimaryKey());
         dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", rowData);
         rowState = new RowStateProperty(this, "rowState", ModelHelper.getRowState(rowData));
-        name = new ReadOnlyStringWrapper(this, "name", rowData.getName());
+        name = new ReadOnlyStringWrapper(this, "name", rowData.asPredefinedData().getName());
         predefinedData = rowData.asPredefinedData();
     }
 
