@@ -32,6 +32,11 @@ interface MangageCountriesResourceKeys {
     public static final String RESOURCEKEY_CREATEDON = "createdOn";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Loading countries, please wait…"}.
+     */
+    public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Manage Countries"}.
      */
     public static final String RESOURCEKEY_MANAGECOUNTRIES = "manageCountries";

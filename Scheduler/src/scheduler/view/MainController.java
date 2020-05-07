@@ -1,15 +1,23 @@
 package scheduler.view;
 
+import com.sun.javafx.event.EventHandlerManager;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
+import javafx.event.EventTarget;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -26,12 +34,27 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DELETEFAILURE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DELETINGRECORD;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB;
 import scheduler.AppResources;
+import scheduler.Scheduler;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.UserDAO;
+import scheduler.dao.event.AddressDaoEvent;
+import scheduler.dao.event.AppointmentDaoEvent;
+import scheduler.dao.event.CityDaoEvent;
+import scheduler.dao.event.CountryDaoEvent;
+import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
+import scheduler.dao.event.UserDaoEvent;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.db.UserRowData;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import scheduler.util.ViewControllerLoader;
@@ -58,16 +81,15 @@ import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.view.task.TaskWaiter;
-import scheduler.view.user.EditUser;
-import scheduler.view.user.ManageUsers;
-import scheduler.view.user.UserModel;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
+import scheduler.view.event.SchedulerNodeEvent;
 import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
+import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
+import scheduler.view.user.EditUser;
+import scheduler.view.user.ManageUsers;
+import scheduler.view.user.UserModel;
 
 /**
  * FXML Controller class for main application content.
@@ -83,10 +105,21 @@ import scheduler.view.report.ConsultantSchedule;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
-public final class MainController {
+public final class MainController implements EventTarget {
 
     private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
+    public static void startBusyTaskNow(Task<?> task) {
+        Scheduler.getMainController().waitBorderPane.startNow(task);
+    }
+
+    public static void scheduleBusyTask(Task<?> task, long delay, TimeUnit unit) {
+        Scheduler.getMainController().waitBorderPane.schedule(task, delay, unit);
+    }
+
+    private Object contentController;
+    private AppointmentAlert appointmentAlert;
+    private HelpContent helpContent;
     private EventHelper<DataObjectEventListener<? extends DataAccessObject>, DataObjectEvent<? extends DataAccessObject>> daoEventHelper;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -129,9 +162,13 @@ public final class MainController {
     @FXML // fx:id="contentPane"
     private StackPane contentPane; // Value injected by FXMLLoader
 
-    private Object contentController;
-    private AppointmentAlert appointmentAlert;
-    private HelpContent helpContent;
+    @FXML // fx:id="waitBorderPane"
+    private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
+    private final EventHandlerManager eventHandlerManager;
+
+    public MainController() {
+        this.eventHandlerManager = new EventHandlerManager(this);
+    }
 
     public StackPane getContentPane() {
         return contentPane;
@@ -176,25 +213,22 @@ public final class MainController {
             ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
         }
     }
-
+    
+    public void replaceContent(Region newContent) {
+        Object oldController = contentController;
+        ViewControllerLoader.replaceContent(this, contentPane, 0, newContent);
+        contentController = newContent;
+        onControllerReplaced(oldController, contentController);
+    }
+    
     @FXML
     void onManageCustomersMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ManageCustomers.loadInto(MainController.this, stage, CustomerModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
-        }
+        ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
     }
 
     @FXML
     void onManageUsersMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ManageUsers.loadInto(MainController.this, stage, UserModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
-        }
+        ManageUsers.loadIntoMainContent(UserModel.getFactory().getDefaultFilter());
     }
 
     @FXML
@@ -219,12 +253,7 @@ public final class MainController {
 
     @FXML
     void onManageAddressesMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ManageCountries.loadInto(MainController.this, stage, CountryModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_COUNTRYLOADERROR), stage, ex);
-        }
+        ManageCountries.loadIntoMainContent();
     }
 
     @FXML
@@ -343,17 +372,20 @@ public final class MainController {
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), event.getStage(), ex);
         }
-        if (null != helpContent)
+        if (null != helpContent) {
             helpContent.initialize(contentPane);
-        if (null != appointmentAlert)
+        }
+        if (null != appointmentAlert) {
             appointmentAlert.initialize(contentPane);
+        }
     }
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.UNLOADED)
     private void onUnloaded(FxmlViewEvent<? extends Parent> event) {
         ViewControllerLoader.clearPaneContent(this, contentPane);
-        if (null != appointmentAlert)
+        if (null != appointmentAlert) {
             appointmentAlert.shutdown();
+        }
     }
 
     private MenuItem getAssociatedMenuItem(Object controller) {
@@ -424,43 +456,43 @@ public final class MainController {
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
         return helpContent.show(title, fxmlResourceName, bundleBaseName);
     }
-    
+
     public <T extends Node> T showHelp(String title, String fxmlResourceName) throws IOException {
         return helpContent.show(title, fxmlResourceName, null);
     }
-    
+
     public <T extends Node> T showHelp(String fxmlResourceName) throws IOException {
         return helpContent.show(null, fxmlResourceName, null);
     }
-    
+
     public <T extends Iterable<Text>> void showHelp(String title, T source) {
         helpContent.show(title, source);
     }
-    
+
     public void showHelp(String title, Stream<Text> source) {
         helpContent.show(title, source);
     }
-    
+
     public void showHelp(String title, Node source) {
         helpContent.show(title, source);
     }
-    
+
     public <T extends Iterable<Text>> void showHelp(T source) {
         helpContent.show(null, source);
     }
-    
+
     public void showHelp(Stream<Text> source) {
         helpContent.show(null, source);
     }
-    
+
     public void showHelp(Node source) {
         helpContent.show(null, source);
     }
-    
+
     public void hideHelp() {
         helpContent.hide();
     }
-    
+
     /**
      * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
      *
@@ -537,7 +569,8 @@ public final class MainController {
             return null;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.CREATED, result.getDataObject());
+            CustomerDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.CREATED, dataObject));
         }
         return result;
     }
@@ -558,7 +591,8 @@ public final class MainController {
             return;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.UPDATED, result.getDataObject());
+            CustomerDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
         }
     }
 
@@ -575,7 +609,10 @@ public final class MainController {
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModel.getFactory(),
-                    (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
+                    (t) -> {
+                        CustomerDAO dataObject = t.getDataObject();
+                        Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                    }));
         }
     }
 
@@ -595,7 +632,8 @@ public final class MainController {
             return;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.UPDATED, result.getDataObject());
+            CountryDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new CountryDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
         }
     }
 
@@ -612,7 +650,10 @@ public final class MainController {
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CountryModel.getFactory(),
-                    (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
+                    (t) -> {
+                        CountryDAO dataObject = t.getDataObject();
+                        Event.fireEvent(dataObject, new CountryDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                    }));
         }
     }
 
@@ -632,7 +673,8 @@ public final class MainController {
             return;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.UPDATED, result.getDataObject());
+            CityDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new CityDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
         }
     }
 
@@ -649,7 +691,10 @@ public final class MainController {
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModel.getFactory(),
-                    (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
+                    (t) -> {
+                        CityDAO dataObject = t.getDataObject();
+                        Event.fireEvent(dataObject, new CityDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                    }));
         }
     }
 
@@ -669,7 +714,8 @@ public final class MainController {
             return null;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.CREATED, result.getDataObject());
+            AddressDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.CREATED, dataObject));
         }
         return result;
     }
@@ -690,7 +736,8 @@ public final class MainController {
             return;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.UPDATED, result.getDataObject());
+            AddressDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
         }
     }
 
@@ -707,7 +754,10 @@ public final class MainController {
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModel.getFactory(),
-                    (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
+                    (t) -> {
+                        AddressDAO dataObject = t.getDataObject();
+                        Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                    }));
         }
     }
 
@@ -727,7 +777,8 @@ public final class MainController {
             return null;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.CREATED, result.getDataObject());
+            UserDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.CREATED, dataObject));
         }
         return result;
     }
@@ -748,7 +799,8 @@ public final class MainController {
             return;
         }
         if (null != result) {
-            fireDaoEvent(this, DaoChangeAction.UPDATED, result.getDataObject());
+            UserDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
         }
     }
 
@@ -765,7 +817,10 @@ public final class MainController {
                 AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModel.getFactory(),
-                    (t) -> fireDaoEvent(this, DaoChangeAction.DELETED, t.getDataObject())));
+                    (t) -> {
+                        UserDAO dataObject = t.getDataObject();
+                        Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                    }));
         }
     }
 
@@ -777,25 +832,43 @@ public final class MainController {
         daoEventHelper.removeListener(listener);
     }
 
-    public <T extends DataAccessObject> void fireDaoEvent(Object source, DaoChangeAction action, T dao) {
-        DataObjectEvent<T> event = new DataObjectEvent<>(source, action, dao);
-        EventHelper.fireDataObjectEvent(contentController, event);
-        daoEventHelper.raiseEvent(event);
-    }
-
     private void onAppointmentCreated(AppointmentModel item) {
-        // TODO: Notify AppointmentAlert
-        fireDaoEvent(this, DaoChangeAction.CREATED, item.getDataObject());
+        AppointmentDAO dataObject = item.getDataObject();
+        // TODO: Notify AppointmentAlert?
+        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DaoChangeAction.CREATED, dataObject));
     }
 
     private void onAppointmentUpdated(AppointmentModel item) {
-        // TODO: Notify AppointmentAlert
-        fireDaoEvent(this, DaoChangeAction.UPDATED, item.getDataObject());
+        AppointmentDAO dataObject = item.getDataObject();
+        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+        // TODO: Notify AppointmentAlert?
     }
 
     private void onAppointmentDeleted(AppointmentModel item) {
+        AppointmentDAO dataObject = item.getDataObject();
+        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DaoChangeAction.DELETED, dataObject));
         // TODO: Notify AppointmentAlert
-        fireDaoEvent(this, DaoChangeAction.DELETED, item.getDataObject());
+    }
+
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+        eventHandlerManager.addEventHandler(type, eventHandler);
+    }
+
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventFilter(EventType<T> type, EventHandler<? super T> eventHandler) {
+        eventHandlerManager.addEventFilter(type, eventHandler);
+    }
+
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+        eventHandlerManager.removeEventHandler(type, eventHandler);
+    }
+
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventFilter(EventType<T> type, EventHandler<? super T> eventHandler) {
+        eventHandlerManager.removeEventFilter(type, eventHandler);
+    }
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        return tail.append(eventHandlerManager);
     }
 
     private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends TaskWaiter<String> {

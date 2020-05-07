@@ -16,19 +16,20 @@ public class WaitTitledPaneEvent extends Event {
     public static final EventType<WaitTitledPaneEvent> RUNNING = new EventType<WaitTitledPaneEvent>(BASE, "WAIT_TITLED_PANE_EVENT_RUNNING");
 
     public static final EventType<WaitTitledPaneEvent> DONE = new EventType<WaitTitledPaneEvent>(BASE, "WAIT_TITLED_PANE_EVENT_DONE");
+    private final Task<?> task;
 
-    public WaitTitledPaneEvent(WaitTitledPane source, Task<?> target, EventType<? extends WaitTitledPaneEvent> eventType) {
+    public WaitTitledPaneEvent(Object source, WaitTitledPane target, Task<?> task, EventType<? extends WaitTitledPaneEvent> eventType) {
         super(source, target, eventType);
+        this.task = task;
     }
 
     @Override
-    public WaitTitledPane getSource() {
-        return (WaitTitledPane) super.getSource();
+    public WaitTitledPane getTarget() {
+        return (WaitTitledPane) super.getTarget();
     }
 
-    @Override
-    public Task<?> getTarget() {
-        return (Task<?>) super.getTarget();
+    public Task<?> getTask() {
+        return task;
     }
 
 }

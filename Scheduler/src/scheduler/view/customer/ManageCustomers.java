@@ -1,26 +1,20 @@
 package scheduler.view.customer;
 
-import java.io.IOException;
-import java.util.ResourceBundle;
-import java.util.logging.Logger;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableView;
-import javafx.scene.layout.Border;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import scheduler.controls.ItemEditTableCellFactory;
-import scheduler.view.MainController;
+import scheduler.Scheduler;
+import static scheduler.Scheduler.getMainController;
+import scheduler.controls.MainListingControl;
+import scheduler.dao.CustomerDAO;
+import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import static scheduler.view.customer.ManageCustomersResourceKeys.*;
 
 /**
  * FXML Controller class for viewing a list of {@link CustomerModel} items.
@@ -31,82 +25,120 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends BorderPane {
+public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel, CustomerDaoEvent> {
 
-    private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
-
-    public static ManageCustomers loadInto(MainController mainController, Stage stage, CustomerModelFilter filter,
-            Object loadEventListener) throws IOException {
-        throw new UnsupportedOperationException();
+    public static ManageCustomers loadIntoMainContent(CustomerModelFilter filter) {
+        ManageCustomers newContent = new ManageCustomers();
+        Scheduler.getMainController().replaceContent(newContent);
+        newContent.setFilter(filter);
+        return newContent;
     }
 
-    public static ManageCustomers loadInto(MainController mainController, Stage stage, CustomerModelFilter filter) throws IOException {
-        throw new UnsupportedOperationException();
+    @FXML // fx:id="customerFilterBorderPane"
+    private BorderPane customerFilterBorderPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="activeCustomersRadioButton"
+    private RadioButton activeCustomersRadioButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="customerFilterToggleGroup"
+    private ToggleGroup customerFilterToggleGroup; // Value injected by FXMLLoader
+
+    @FXML // fx:id="inactiveCustomersRadioButton"
+    private RadioButton inactiveCustomersRadioButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="allCustomersRadioButton"
+    private RadioButton allCustomersRadioButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="helpBorderPane"
+    private BorderPane helpBorderPane; // Value injected by FXMLLoader
+
+    @FXML
+    void filterButtonClick(ActionEvent event) {
+        customerFilterBorderPane.setVisible(true);
     }
 
-    private final ObjectProperty<CustomerModelFilter> filter;
-    
-    private final ObservableList<CustomerModel> items;
-
-    @FXML // ResourceBundle that was given to the FXMLLoader
-    private ResourceBundle resources;
-
-    @FXML // fx:id="rootStackPane"
-    private StackPane rootStackPane; // Value injected by FXMLLoader
-
-    @FXML // fx:id="headingLabel"
-    private Label headingLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="helpButton"
-    private Button helpButton; // Value injected by FXMLLoader
-
-    @FXML // fx:id="subHeadingLabel"
-    private Label subHeadingLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="listingTableView"
-    private TableView<CustomerModel> listingTableView; // Value injected by FXMLLoader
-
-    @FXML // fx:id="itemEditTableCellFactory"
-    private ItemEditTableCellFactory<CustomerModel> itemEditTableCellFactory; // Value injected by FXMLLoader
-
-    @FXML // fx:id="editMenuItem"
-    private MenuItem editMenuItem; // Value injected by FXMLLoader
-
-    @FXML // fx:id="deleteMenuItem"
-    private MenuItem deleteMenuItem; // Value injected by FXMLLoader
-
-    @FXML // fx:id="newButton"
-    private Button newButton; // Value injected by FXMLLoader
-
-    public ManageCustomers() {
-        filter = new SimpleObjectProperty<>();
-        items = FXCollections.observableArrayList();
+    @FXML
+    private void onHelpButtonAction(ActionEvent event) {
+        helpBorderPane.setVisible(true);
     }
 
-    @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
-        assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert helpButton != null : "fx:id=\"helpButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert subHeadingLabel != null : "fx:id=\"subHeadingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert itemEditTableCellFactory != null : "fx:id=\"itemEditTableCellFactory\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert editMenuItem != null : "fx:id=\"editMenuItem\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert deleteMenuItem != null : "fx:id=\"deleteMenuItem\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        assert newButton != null : "fx:id=\"newButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-
-        listingTableView.setItems(items);
-    }
-    
-    public CustomerModelFilter getFilter() {
-        return filter.get();
+    @FXML
+    void onHelpOKButtonAction(ActionEvent event) {
+        helpBorderPane.setVisible(false);
     }
 
-    public void setFilter(CustomerModelFilter value) {
-        filter.set(value);
+    @FXML
+    void onCustomerFilterCancelButtonAction(ActionEvent event) {
+        customerFilterBorderPane.setVisible(false);
     }
 
-    public ObjectProperty filterProperty() {
-        return filter;
+    @FXML
+    void onCustomerFilterOKButtonAction(ActionEvent event) {
+        if (inactiveCustomersRadioButton.isSelected()) {
+            setFilter(CustomerModelFilter.inactive());
+        } else if (allCustomersRadioButton.isSelected()) {
+            setFilter(CustomerModelFilter.all());
+        } else {
+            setFilter(CustomerModelFilter.active());
+        }
+        customerFilterBorderPane.setVisible(false);
+    }
+
+    @Override
+    protected void initialize() {
+        super.initialize();
+        assert customerFilterBorderPane != null : "fx:id=\"customerFilterBorderPane\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+        assert activeCustomersRadioButton != null : "fx:id=\"activeCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+        assert customerFilterToggleGroup != null : "fx:id=\"customerFilterToggleGroup\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+        assert inactiveCustomersRadioButton != null : "fx:id=\"inactiveCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+        assert allCustomersRadioButton != null : "fx:id=\"allCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+        assert helpBorderPane != null : "fx:id=\"helpBorderPane\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+
+    }
+
+    @Override
+    protected CustomerModel.Factory getModelFactory() {
+        return CustomerModel.getFactory();
+    }
+
+    @Override
+    protected String getLoadingTitle() {
+        return getResources().getString(RESOURCEKEY_LOADINGCUSTOMERS);
+    }
+
+    @Override
+    protected String getFailMessage() {
+        return getResources().getString(RESOURCEKEY_ERRORLOADINGCUSTOMERS);
+    }
+
+    @Override
+    protected void onNewItem() {
+        getMainController().addNewCustomer((Stage) getScene().getWindow());
+    }
+
+    @Override
+    protected void onEditItem(CustomerModel item) {
+        getMainController().editCustomer((Stage) getScene().getWindow(), item);
+    }
+
+    @Override
+    protected void onDeleteItem(CustomerModel item) {
+        getMainController().deleteCustomer((Stage) getScene().getWindow(), item);
+    }
+
+    @Override
+    protected EventType<CustomerDaoEvent> getInsertedEventType() {
+        return CustomerDaoEvent.CUSTOMER_DAO_INSERT;
+    }
+
+    @Override
+    protected EventType<CustomerDaoEvent> getUpdatedEventType() {
+        return CustomerDaoEvent.CUSTOMER_DAO_UPDATE;
+    }
+
+    @Override
+    protected EventType<CustomerDaoEvent> getDeletedEventType() {
+        return CustomerDaoEvent.CUSTOMER_DAO_DELETE;
     }
 
 }

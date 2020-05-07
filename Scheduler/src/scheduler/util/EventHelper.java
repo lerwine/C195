@@ -124,7 +124,7 @@ public final class EventHelper<T, E extends EventObject> {
      */
     @SuppressWarnings("unchecked")
     public static <T extends DataAccessObject> void fireDataObjectEvent(Object target, DataObjectEvent<T> event) {
-        LOG.log(Level.FINE, () -> String.format("Firing DataObjectEvent %s on %s", event.getChangeAction().name(), event.getDataObject().getClass().getName()));
+        LOG.log(Level.FINE, () -> String.format("Firing DataObjectEvent %s on %s", event.getChangeAction().name(), event.getTarget().getClass().getName()));
         if (null == target) {
             return;
         }

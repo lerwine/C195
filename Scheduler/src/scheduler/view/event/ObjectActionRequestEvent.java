@@ -1,5 +1,6 @@
 package scheduler.view.event;
 
+import java.util.Objects;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -12,11 +13,12 @@ import javafx.event.EventType;
 // TODO: Replace with individual typed events
 public class ObjectActionRequestEvent extends Event {
 
-    public static final EventType<ObjectActionRequestEvent> OBJECT_ACTION_REQUEST =
-            new EventType<ObjectActionRequestEvent>(Event.ANY, "OBJECT_ACTION_REQUEST");
+    public static final EventType<ObjectActionRequestEvent> OBJECT_ACTION_REQUEST = new EventType<ObjectActionRequestEvent>(ANY,
+            "OBJECT_ACTION_REQUEST");
 
-    private final ActionEvent fxEvent;
+    private final Event fxEvent;
     private final Object item;
+    private final boolean delete;
 
     /**
      * Creates a new {@code ItemActionRequestEvent} object.
@@ -25,13 +27,22 @@ public class ObjectActionRequestEvent extends Event {
      * @param item The target item.
      * @param isDelete {@code true} if this is a delete event; otherwise, {@code false} if it is an edit event.
      */
-    public ObjectActionRequestEvent(ActionEvent fxEvent, Object item, boolean isDelete) {
-        super(fxEvent.getSource(), fxEvent.getTarget(), OBJECT_ACTION_REQUEST);
-        this.fxEvent = fxEvent;
-        this.item = item;
+    public ObjectActionRequestEvent(Event fxEvent, Object item, boolean isDelete) {
+        this(fxEvent, item, isDelete, OBJECT_ACTION_REQUEST);
     }
 
-    public ActionEvent getFxEvent() {
+    protected ObjectActionRequestEvent(Event fxEvent, Object item, boolean isDelete, EventType<? extends ObjectActionRequestEvent> eventType) {
+        super(fxEvent.getSource(), fxEvent.getTarget(), Objects.requireNonNull(eventType));
+        this.fxEvent = Objects.requireNonNull(fxEvent);
+        this.item = Objects.requireNonNull(item);
+        delete = isDelete;
+    }
+
+    public boolean isDelete() {
+        return delete;
+    }
+
+    public Event getFxEvent() {
         return fxEvent;
     }
 

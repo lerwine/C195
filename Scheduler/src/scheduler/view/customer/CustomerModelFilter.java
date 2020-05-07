@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVECUSTOMERS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCUSTOMERS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVECUSTOMERS;
+import scheduler.AppResources;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -43,7 +44,7 @@ public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerMo
      * @return A model filter that matches any customer.
      */
     public static CustomerModelFilter all() {
-        return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_ALLCUSTOMERS),
+        return CustomerModelFilter.of(AppResources.getResourceString(RESOURCEKEY_ALLCUSTOMERS),
                 CustomerFilter.of(DaoFilterExpression.empty()),
                 (t) -> true
         );

@@ -370,7 +370,7 @@ public final class EditCustomer extends EditItem.EditController<CustomerDAO, Cus
 
     @HandlesDataObjectEvent
     private void onDataObjectEvent(DataObjectEvent<? extends DataAccessObject> event) {
-        DataAccessObject dao = event.getDataObject();
+        DataAccessObject dao = event.getTarget();
         switch (event.getChangeAction()) {
             case CREATED:
                 if (dao instanceof CityDAO) {

@@ -110,7 +110,7 @@ public class WaitTitledPane extends TitledPane {
             cancelButton.setText(resources.getString(RESOURCEKEY_CLOSE));
             task.cancel(true);
         } else {
-            fireEvent(new WaitTitledPaneEvent(this, task, WaitTitledPaneEvent.DONE));
+            fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.DONE));
         }
     }
 
@@ -155,7 +155,7 @@ public class WaitTitledPane extends TitledPane {
     }
 
     private void onRunning(WorkerStateEvent event) {
-        fireEvent(new WaitTitledPaneEvent(this, currentTask, WaitTitledPaneEvent.RUNNING));
+        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, currentTask, WaitTitledPaneEvent.RUNNING));
     }
 
     private void onFailed(WorkerStateEvent event) {
@@ -177,7 +177,7 @@ public class WaitTitledPane extends TitledPane {
     private void onFinished(WorkerStateEvent event) {
         Task<?> task = removeTaskEventHandlers();
         if (null != task) {
-            fireEvent(new WaitTitledPaneEvent(this, task, WaitTitledPaneEvent.DONE));
+            fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.DONE));
         }
     }
 

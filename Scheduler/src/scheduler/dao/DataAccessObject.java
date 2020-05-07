@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.EventDispatchChain;
+import javafx.event.EventTarget;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
@@ -61,7 +63,7 @@ import scheduler.view.task.TaskWaiter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements RelatedRecord, DataRecord<Timestamp> {
+public abstract class DataAccessObject extends PropertyBindable implements RelatedRecord, DataRecord<Timestamp>, EventTarget {
 
     /**
      * The name of the 'primaryKey' property.
@@ -271,6 +273,11 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
      * @param addValidation A {@link Consumer} function for adding validation results. If all properties are valid, then nothing should be added.
      */
     protected abstract void reValidate(Consumer<ValidationResult> addValidation);
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.DataAccessObject#buildEventDispatchChain
+    }
 
     private static class LoadTask<T extends DataAccessObject> extends TaskWaiter<List<T>> {
 

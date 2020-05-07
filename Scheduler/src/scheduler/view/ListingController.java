@@ -441,7 +441,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
      */
     @HandlesDataObjectEvent
     protected void onDataObjectEvent(DataObjectEvent<T> event) {
-        DataAccessObject dao = event.getDataObject();
+        DataAccessObject dao = event.getTarget();
         if (getModelFactory().getDaoFactory().isAssignableFrom(dao)) {
             switch (event.getChangeAction()) {
                 case DELETED:

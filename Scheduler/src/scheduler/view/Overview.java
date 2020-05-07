@@ -24,6 +24,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS;
 import scheduler.AppResources;
+import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
 import static scheduler.view.OverviewResourceKeys.*;
@@ -107,22 +108,12 @@ public class Overview {
 
     @FXML
     void onCountryListingHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        try {
-            ManageCountries.loadInto(getMainController(), stage, CountryModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_COUNTRYLOADERROR), stage, ex);
-        }
+        ManageCountries.loadIntoMainContent();
     }
 
     @FXML
     void onCustomerListingHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        try {
-            ManageCustomers.loadInto(getMainController(), stage, CustomerModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CUSTOMERLOADERROR), stage, ex);
-        }
+        ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
     }
 
     @FXML
@@ -143,12 +134,7 @@ public class Overview {
 
     @FXML
     void onUserListingHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        try {
-            ManageUsers.loadInto(getMainController(), stage, UserModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
-        }
+        ManageUsers.loadIntoMainContent(UserModel.getFactory().getDefaultFilter());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

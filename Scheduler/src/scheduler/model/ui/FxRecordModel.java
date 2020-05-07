@@ -2,8 +2,10 @@ package scheduler.model.ui;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -189,7 +191,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
             }
-            
+
             FxRecordModel<T> model = (FxRecordModel<T>) ModelHelper.requiredAssignable(dao, item);
             DataRowState rs = dao.getRowState();
             if (item.isNewItem()) {
@@ -238,6 +240,34 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
                 }
             }, onFail);
         }
+
+        public final Optional<U> find(Iterator<U> source, T dao) {
+            if (null != source) {
+                DataAccessObject.DaoFactory<T> daoFactory = getDaoFactory();
+                while (source.hasNext()) {
+                    U m = source.next();
+                    if (null != m && ModelHelper.areSameRecord(m.getDataObject(), dao)) {
+                        return Optional.of(m);
+                    }
+                }
+            }
+            return Optional.empty();
+        }
+
+        public final Optional<U> find(Iterable<U> source, T dao) {
+            if (null != source) {
+                return find(source.iterator(), dao);
+            }
+            return Optional.empty();
+        }
+
+        public final Optional<U> find(Stream<U> source, T dao) {
+            if (null != source) {
+                return find(source.iterator(), dao);
+            }
+            return Optional.empty();
+        }
+
     }
 
     @FunctionalInterface

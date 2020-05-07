@@ -13,7 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Stack;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -22,14 +21,11 @@ import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
+import javafx.event.EventDispatchChain;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
@@ -69,7 +65,6 @@ public final class Scheduler extends Application {
     private static final String PROPERTY_MAINCONTROLLER = "scheduler.view.MainController";
     private static Scheduler currentApp = null;
     private static UserDAO currentUser = null;
-    private ViewAndController<StackPane, MainController> mainViewAndController;
 
     /**
      * Gets the currently logged in user.
@@ -84,17 +79,29 @@ public final class Scheduler extends Application {
         HostServices services = currentApp.getHostServices();
         return services.resolveURI(services.getDocumentBase(), uri);
     }
-    
+
     public static MainController getMainController() {
         Scheduler app = currentApp;
         if (null != app) {
             ViewAndController<StackPane, MainController> viewAndController = app.mainViewAndController;
-            if (null != viewAndController)
+            if (null != viewAndController) {
                 return viewAndController.getController();
+            }
         }
         throw new IllegalStateException();
     }
-    
+
+    public static EventDispatchChain buildMainControllerEventDispatchChain(EventDispatchChain tail) {
+        Scheduler app = currentApp;
+        if (null != app) {
+            ViewAndController<StackPane, MainController> viewAndController = app.mainViewAndController;
+            if (null != viewAndController) {
+                return viewAndController.getController().buildEventDispatchChain(tail);
+            }
+        }
+        return tail;
+    }
+
     /**
      * The application main entry point.
      *
@@ -104,51 +111,50 @@ public final class Scheduler extends Application {
         launch(args);
     }
 
-    private Stage primaryStage;
-    private final LinkedList<Stage> childStages = new LinkedList<>();
-    
     private static Stage getCurrentStage() {
         Scheduler app = currentApp;
         if (null == app) {
             throw new IllegalStateException();
         }
-        synchronized(app.childStages) {
+        synchronized (app.childStages) {
             return (app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast();
         }
     }
-    
+
     public static Stage getCurrentStage(Window window) {
         if (null != window) {
-            if (window instanceof Stage)
-                return (Stage)window;
-            if (window instanceof PopupWindow)
-                return getCurrentStage(((PopupWindow)window).getOwnerWindow());
+            if (window instanceof Stage) {
+                return (Stage) window;
+            }
+            if (window instanceof PopupWindow) {
+                return getCurrentStage(((PopupWindow) window).getOwnerWindow());
+            }
         }
         return getCurrentStage();
     }
-    
+
     public static Stage getCurrentStage(Scene scene) {
         if (null != scene) {
             return getCurrentStage(scene.getWindow());
         }
         return getCurrentStage();
     }
-    
+
     public static Stage getCurrentStage(Node referenceNode) {
         if (null != referenceNode) {
             return getCurrentStage(referenceNode.getScene());
         }
         return getCurrentStage();
     }
-    
+
     public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, StageStyle style, Consumer<ViewAndController<U, T>> onBeforeShow) throws IOException {
         Scheduler app = currentApp;
         if (null == app) {
             throw new IllegalStateException();
         }
         ViewAndController<U, T> viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
-        
-        synchronized(app.childStages) {
+
+        synchronized (app.childStages) {
             Stage stage = new Stage();
             stage.initOwner((app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast());
             stage.initModality(Modality.NONE);
@@ -161,23 +167,25 @@ public final class Scheduler extends Application {
             }
             stage.showAndWait();
         }
-        
+
         return viewAndController.getController();
     }
-    
+    private ViewAndController<StackPane, MainController> mainViewAndController;
+    private Stage primaryStage;
+    private final LinkedList<Stage> childStages = new LinkedList<>();
+
     private void onChildStageShown(WindowEvent event) {
-        synchronized(childStages) {
-            childStages.addLast((Stage)event.getSource());
+        synchronized (childStages) {
+            childStages.addLast((Stage) event.getSource());
         }
     }
-    
+
     private void onChildStageHidden(WindowEvent event) {
-        synchronized(childStages) {
-            childStages.remove((Stage)event.getSource());
+        synchronized (childStages) {
+            childStages.remove((Stage) event.getSource());
         }
     }
-    
-    
+
     @Override
     public void start(Stage stage) throws Exception {
         currentApp = this;
@@ -236,13 +244,15 @@ public final class Scheduler extends Application {
         DbConnector.forceCloseAll();
         super.stop();
     }
-    
+
     public static abstract class LoginController {
+
         protected LoginController() {
-            if (null != currentUser)
+            if (null != currentUser) {
                 throw new IllegalStateException("Login controller cannot be instantiated after user is logged in");
+            }
         }
-        
+
         /**
          * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
          *
@@ -257,7 +267,7 @@ public final class Scheduler extends Application {
 
         /**
          * This gets called when a login has failed.
-         * 
+         *
          * @param stage The current application {@link Stage}.
          * @param reason The reason for login failure. If this is {@code null}, then the login name was not found or the password hash did not match.
          */

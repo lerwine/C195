@@ -128,9 +128,12 @@
                                 <ItemEditTableCellFactory fx:id="itemEditTableCellFactory" />
                             </cellFactory>
                             <graphic>
-                                <HBox alignment="CENTER" spacing="8.0">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
                                     <children>
-                                        <Button mnemonicParsing="false" onAction="#filterButtonClick" styleClass="symbol-button" text="" />
+                                        <Button mnemonicParsing="false" onAction="#filterButtonClick" styleClass="symbol-button" text="">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin></Button>
                                         <Button mnemonicParsing="false" onAction="#onExportButtonAction" styleClass="symbol-button" text="">
                                             <tooltip>
                                                 <Tooltip text="%exportAppointmentListToFile" />
@@ -138,7 +141,7 @@
                                         </Button>
                                     </children>
                                     <padding>
-                                        <Insets bottom="1.0" right="8.0" />
+                                        <Insets bottom="1.0" left="4.0" right="8.0" />
                                     </padding>
                                 </HBox>
                             </graphic>

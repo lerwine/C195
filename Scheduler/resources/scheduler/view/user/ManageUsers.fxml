@@ -1,100 +1,226 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.layout.VBox?>
-<?import scheduler.controls.DateTimeTableCellFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<?import scheduler.controls.DateTimeTableCellFactory?>
 <?import scheduler.controls.ItemEditTableCellFactory?>
 <?import scheduler.controls.RelayCellValueFactory?>
 
-<VBox prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.user.ManageUsers">
+<fx:root prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <StackPane>
+        <VBox styleClass="mainFxmlClass">
             <children>
-                <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="Active Users" wrapText="true" />
-                <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
-                    <StackPane.margin>
-                        <Insets right="8.0" />
-                    </StackPane.margin>
-                </Button>
+                <StackPane>
+                    <children>
+                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="Active Users" wrapText="true" />
+                        <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
+                            <StackPane.margin>
+                                <Insets right="8.0" />
+                            </StackPane.margin>
+                        </Button>
+                    </children>
+                </StackPane>
+                <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
+                <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%name">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="userName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%status">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="statusDisplay" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%createdOn">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createDate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%createdBy">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createdBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%updatedOn">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%updatedBy">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdateBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                            <cellValueFactory>
+                                <RelayCellValueFactory />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                            </cellFactory>
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <padding>
+                                        <Insets bottom="1.0" left="4.0" right="8.0" />
+                                    </padding>
+                                    <children>
+                                        <Button mnemonicParsing="false" onAction="#filterButtonClick" styleClass="symbol-button" text="" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </TableColumn>
+                    </columns>
+                    <contextMenu>
+                        <ContextMenu>
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#onEditMenuItemAction" text="%edit" />
+                                <MenuItem mnemonicParsing="false" onAction="#onDeleteMenuItemAction" text="%delete" />
+                            </items>
+                        </ContextMenu>
+                    </contextMenu>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                    <placeholder>
+                        <Label text="%noUsersToShow" />
+                    </placeholder>
+                </TableView>
+                <ButtonBar>
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#onNewButtonAction" text="New" />
+                    </buttons>
+                    <padding>
+                        <Insets bottom="8.0" right="8.0" />
+                    </padding>
+                </ButtonBar>
             </children>
-        </StackPane>
-        <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
-        <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%name">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="userName" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%status">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="statusDisplay" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%createdOn">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="createDate" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%createdBy">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="createdBy" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%updatedOn">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="lastUpdate" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0"  text="%updatedBy">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="lastUpdateBy" />
-                    </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false" text="%editDelete">
-                    <cellValueFactory>
-                        <RelayCellValueFactory />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <ItemEditTableCellFactory fx:id="itemEditTableCellFactory" />
-                    </cellFactory>
-                </TableColumn>
-            </columns>
-            <contextMenu>
-                <ContextMenu>
-                    <items>
-                        <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
-                    </items>
-                </ContextMenu>
-            </contextMenu>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-        </TableView>
-        <ButtonBar>
-            <buttons>
-                <Button fx:id="newButton" mnemonicParsing="false" text="New" />
-            </buttons>
-            <padding>
-                <Insets bottom="8.0" right="8.0" />
-            </padding>
-        </ButtonBar>
+        </VBox>
+        <BorderPane fx:id="userFilterBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" visible="false">
+            <center>
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+                    <top>
+                        <Label styleClass="popup-heading" text="User Display Options" BorderPane.alignment="CENTER" />
+                    </top>
+                    <styleClass>
+                        <String fx:value="mainFxmlClass" />
+                        <String fx:value="bordered" />
+                    </styleClass>
+                    <center>
+                        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+                            <children>
+                                <RadioButton fx:id="activeUsersRadioButton" mnemonicParsing="false" selected="true" text="Active Users">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="userFilterToggleGroup" />
+                                    </toggleGroup>
+                                </RadioButton>
+                                <RadioButton fx:id="inactiveUsersRadioButton" mnemonicParsing="false" text="Inactive Users" toggleGroup="$userFilterToggleGroup" />
+                                <RadioButton fx:id="allUsersRadioButton" mnemonicParsing="false" text="All Users" toggleGroup="$userFilterToggleGroup" />
+                                <ButtonBar>
+                                    <buttons>
+                                        <Button mnemonicParsing="false" onAction="#onUserFilterOKButtonAction" text="OK" />
+                                        <Button mnemonicParsing="false" onAction="#onUserFilterCancelButtonAction" text="Cancel" />
+                                    </buttons>
+                                </ButtonBar>
+                            </children>
+                            <padding>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                            </padding>
+                        </VBox>
+                    </center>
+                </BorderPane>
+            </center>
+        </BorderPane>
+        <BorderPane fx:id="helpBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" visible="false">
+            <center>
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+                    <top>
+                        <Label styleClass="popup-heading" text="User Listing Help" BorderPane.alignment="CENTER" />
+                    </top>
+                    <styleClass>
+                        <String fx:value="mainFxmlClass" />
+                        <String fx:value="bordered" />
+                    </styleClass>
+                    <center>
+                        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+                            <children>
+                                <TextFlow>
+                                    <children>
+                                        <Text styleClass="h2" text="Edit Users" />
+                                        <Text text="&#10;Select a user and hit " />
+                                        <Text styleClass="refNameText" text="ENTER" />
+                                        <Text text=" or right-click and select " />
+                                        <Text styleClass="refNameText" text="&quot;Edit&quot;" />
+                                        <Text text="." />
+                                        <Text styleClass="h2" text="&#10;Add Users" />
+                                        <Text text="&#10;Use the " />
+                                        <Text text="&quot;New&quot;" />
+                                        <Text text="button at the bottom." />
+                                        <Text styleClass="h2" text="&#10;Delete Users" />
+                                        <Text text="&#10;Select a user and hit " />
+                                        <Text styleClass="refNameText" text="DELETE" />
+                                        <Text text=" or right-click and select " />
+                                        <Text styleClass="refNameText" text="&quot;Delete&quot;" />
+                                        <Text text="." />
+                                        <Text styleClass="h2" text="&#10;Listing Display Options" />
+                                        <Text styleClass="symbol" text="&#10;•" />
+                                        <Text text=" Click column headings to sort." />
+                                        <Text styleClass="symbol" text="&#10;•" />
+                                        <Text text=" Click the " />
+                                        <Text text="&quot;&quot;">
+                                            <styleClass>
+                                                <String fx:value="refNameText" />
+                                                <String fx:value="symbol" />
+                                            </styleClass>
+                                        </Text>
+                                        <Text text=" button toward the upper-left to select which users are displayed." />
+                                        <Text styleClass="symbol" text="&#10;•" />
+                                        <Text text=" Click the " />
+                                        <Text text="&quot;✚&quot;">
+                                            <styleClass>
+                                                <String fx:value="refNameText" />
+                                                <String fx:value="symbol" />
+                                            </styleClass>
+                                        </Text>
+                                        <Text text=" symbol at the upper left to select what colums are displayed." />
+                                    </children>
+                                </TextFlow>
+                                <ButtonBar>
+                                    <buttons>
+                                        <Button mnemonicParsing="false" onAction="#onHelpOKButtonAction" text="OK" />
+                                    </buttons>
+                                </ButtonBar>
+                            </children>
+                            <padding>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                            </padding>
+                        </VBox>
+                    </center>
+                </BorderPane>
+            </center>
+        </BorderPane>
     </children>
-</VBox>
+</fx:root>

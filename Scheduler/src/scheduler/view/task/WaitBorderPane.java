@@ -1,7 +1,6 @@
 package scheduler.view.task;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -30,8 +29,6 @@ public class WaitBorderPane extends BorderPane {
     @FXML
     private Accordion waitAccordion;
 
-    private final LinkedList<WaitTitledPane> tasks = new LinkedList<>();
-
     @SuppressWarnings("LeakingThisInConstructor")
     public WaitBorderPane() {
         try {
@@ -48,7 +45,7 @@ public class WaitBorderPane extends BorderPane {
     }
 
     private void onRunning(WaitTitledPaneEvent event) {
-        WaitTitledPane pane = event.getSource();
+        WaitTitledPane pane = event.getTarget();
         waitAccordion.getPanes().add(pane);
         if (!isVisible()) {
             setVisible(true);
@@ -58,9 +55,10 @@ public class WaitBorderPane extends BorderPane {
 
     private void onFinished(WaitTitledPaneEvent event) {
         ObservableList<TitledPane> panes = waitAccordion.getPanes();
-        panes.remove(event.getSource());
+        panes.remove(event.getTarget());
         if (panes.isEmpty()) {
             setVisible(false);
+            return;
         }
         Optional<TitledPane> f = panes.stream().filter((t) -> ((WaitTitledPane) t).isExpanded()).findFirst();
         if (!f.isPresent()) {

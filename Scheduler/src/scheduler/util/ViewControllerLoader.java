@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -124,7 +125,7 @@ public class ViewControllerLoader {
 
     /**
      * Loads the FXML for a custom control.
-     * 
+     *
      * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} annotation. It must also have the
      * {@link scheduler.view.annotations.GlobalizationResource} annotation if the {@link RsourceBundle} value is not provided.
      * @param customControl The custom control to be initialized.
@@ -142,10 +143,10 @@ public class ViewControllerLoader {
         loader.load();
         LOG.info(String.format("%s loaded", path));
     }
-    
+
     /**
      * Loads the FXML for a custom control.
-     * 
+     *
      * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} and
      * {@link scheduler.view.annotations.GlobalizationResource} annotations.
      * @param customControl The custom control to be initialized.
@@ -154,7 +155,7 @@ public class ViewControllerLoader {
     public static <T extends Node> void initializeCustomControl(T customControl) throws IOException {
         initializeCustomControl(customControl, null);
     }
-    
+
     /**
      * Shows a view in a new application-modal window.
      *
@@ -285,6 +286,76 @@ public class ViewControllerLoader {
         if (null != oldController) {
             EventHelper.fireFxmlViewEvent(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED, (Parent) oldView.get(), stage));
         }
+    }
+
+    /**
+     * Replaces stack pane content, binding its dimensions to the dimensions of the parent {@link StackPane}.
+     *
+     * @param <T> The node type.
+     * @param source The object that initiated the current activity.
+     * @param pane The parent {@link StackPane}.
+     * @param index The index of the node to replace or {@code -1} to replace the first {@link Parent} node.
+     * @param newChild The new child node.
+     * @param loadEventListener An object that can listen for {@link FxmlViewEvent}s or {@link FxmlViewControllerEvent}s that are fired for the
+     * instantiated controller.
+     */
+    public static <T extends Region> void replaceContent(Object source, StackPane pane, int index, T newChild, Object loadEventListener) {
+        Stage stage = (Stage) pane.getScene().getWindow();
+        ObservableMap<Object, Object> properties = pane.getProperties();
+        Object oldController;
+        Optional<Node> oldView;
+        ObservableList<Node> children = pane.getChildren();
+        if (children.isEmpty() || !properties.containsKey(PANE_CONTROLLER_PROPERTY_KEY)) {
+            oldController = null;
+            oldView = Optional.empty();
+        } else if (null == (oldController = properties.get(PANE_CONTROLLER_PROPERTY_KEY))) {
+            oldView = Optional.empty();
+        } else if (index < 0) {
+            oldView = children.stream().filter((t) -> t instanceof Parent).findFirst();
+            if (!oldView.isPresent()) {
+                oldController = null;
+            }
+        } else if (index < children.size()) {
+            oldView = Optional.of(children.get(index));
+        } else {
+            oldView = Optional.empty();
+            oldController = null;
+        }
+
+        FxmlViewControllerEvent<T, T> event = new FxmlViewControllerEvent<>(source, FxmlViewEventType.LOADED, newChild, newChild, stage);
+        EventHelper.fireFxmlViewEvent(loadEventListener, event);
+        EventHelper.fireFxmlViewEvent(newChild, event);
+
+        children.clear();
+        children.add(newChild);
+        newChild.prefWidthProperty().bind(pane.widthProperty());
+        newChild.minWidthProperty().bind(pane.widthProperty());
+        newChild.prefHeightProperty().bind(pane.heightProperty());
+        newChild.minHeightProperty().bind(pane.heightProperty());
+        properties.put(PANE_CONTROLLER_PROPERTY_KEY, newChild);
+        event = new FxmlViewControllerEvent<>(source, FxmlViewEventType.BEFORE_SHOW, newChild, newChild, stage);
+        EventHelper.fireFxmlViewEvent(loadEventListener, event);
+        EventHelper.fireFxmlViewEvent(newChild, event);
+        event = new FxmlViewControllerEvent<>(source, FxmlViewEventType.SHOWN, newChild, newChild, stage);
+        EventHelper.fireFxmlViewEvent(loadEventListener, event);
+        EventHelper.fireFxmlViewEvent(newChild, event);
+
+        if (null != oldController) {
+            Node p = oldView.get();
+            if (p instanceof Region) {
+                Region r = (Region) p;
+                r.prefWidthProperty().unbind();
+                r.minWidthProperty().unbind();
+                r.prefHeightProperty().unbind();
+                r.minHeightProperty().unbind();
+            }
+            EventHelper.fireFxmlViewEvent(oldController, new FxmlViewEvent<>(source, FxmlViewEventType.UNLOADED,
+                    (Parent) oldView.get(), stage));
+        }
+    }
+
+    public static <T extends Region> void replaceContent(Object source, StackPane pane, int index, T newChild) {
+        replaceContent(source, pane, index, newChild, null);
     }
 
     /**

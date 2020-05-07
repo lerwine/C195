@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
-import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventType;
 
 /**
  *
@@ -9,20 +10,23 @@ import javafx.event.ActionEvent;
  */
 // TODO: Replace with individual typed events
 public class ItemActionRequestEvent<T> extends ObjectActionRequestEvent {
-    private final boolean delete;
 
-    public ItemActionRequestEvent(ActionEvent fxEvent, T item, boolean isDelete) {
-        super(fxEvent, item, isDelete);
-        delete = isDelete;
+    public static final EventType<ObjectActionRequestEvent> ITEM_ACTION_REQUEST = new EventType<ObjectActionRequestEvent>(OBJECT_ACTION_REQUEST,
+            "ITEM_ACTION_REQUEST");
+
+    public static final EventType<ObjectActionRequestEvent> ITEM_EDIT_REQUEST = new EventType<ObjectActionRequestEvent>(ITEM_ACTION_REQUEST,
+            "ITEM_EDIT_REQUEST");
+
+    public static final EventType<ObjectActionRequestEvent> ITEM_DELETE_REQUEST = new EventType<ObjectActionRequestEvent>(ITEM_ACTION_REQUEST,
+            "ITEM_DELETE_REQUEST");
+
+    public ItemActionRequestEvent(Event fxEvent, T item, boolean isDelete) {
+        super(fxEvent, item, isDelete, (isDelete) ? ITEM_DELETE_REQUEST : ITEM_EDIT_REQUEST);
     }
 
     @Override
     public T getItem() {
-        return (T)super.getItem();
-    }
-
-    public boolean isDelete() {
-        return delete;
+        return (T) super.getItem();
     }
 
 }

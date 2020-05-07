@@ -301,7 +301,7 @@ Text.refNameText, Label.refNameText {
     -fx-font-style: italic;
 }
 
-Text.refNameText {
+Text.refNameText, Text.symbolText {
     -fx-fill: #2a3258;
     -fx-stroke: #2a3258;
     -fx-stroke-width: 0.25;
