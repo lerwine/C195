@@ -28,6 +28,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DELETEFAILURE;
@@ -81,7 +82,6 @@ import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.SchedulerNodeEvent;
 import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
@@ -213,14 +213,14 @@ public final class MainController implements EventTarget {
             ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
         }
     }
-    
+
     public void replaceContent(Region newContent) {
         Object oldController = contentController;
         ViewControllerLoader.replaceContent(this, contentPane, 0, newContent);
         contentController = newContent;
         onControllerReplaced(oldController, contentController);
     }
-    
+
     @FXML
     void onManageCustomersMenuItemAction(ActionEvent event) {
         ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
@@ -319,7 +319,7 @@ public final class MainController implements EventTarget {
                     Parent childView;
                     switch (event.getType()) {
                         case LOADED:
-                            event.getStage().setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTSCHEDULER));
+                            event.getStage().setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
                             break;
                         case BEFORE_SHOW:
                             childView = event.getView();
@@ -364,9 +364,9 @@ public final class MainController implements EventTarget {
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
     private void onShown(FxmlViewEvent<? extends Parent> event) {
-        event.getStage().setTitle(AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTSCHEDULER));
+        event.getStage().setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
         try {
-            appointmentAlert = ViewControllerLoader.loadViewAndController(AppointmentAlert.class).getController();
+            appointmentAlert = new AppointmentAlert();
             Overview.loadInto(this, event.getStage());
             helpContent = ViewControllerLoader.loadViewAndController(HelpContent.class).getController();
         } catch (IOException ex) {
@@ -376,7 +376,11 @@ public final class MainController implements EventTarget {
             helpContent.initialize(contentPane);
         }
         if (null != appointmentAlert) {
-            appointmentAlert.initialize(contentPane);
+            contentPane.getChildren().add(appointmentAlert);
+            appointmentAlert.prefWidthProperty().bind(contentPane.widthProperty());
+            appointmentAlert.minWidthProperty().bind(contentPane.widthProperty());
+            appointmentAlert.prefHeightProperty().bind(contentPane.heightProperty());
+            appointmentAlert.minHeightProperty().bind(contentPane.heightProperty());
         }
     }
 
@@ -505,7 +509,7 @@ public final class MainController implements EventTarget {
     public AppointmentModel addNewAppointment(Stage stage, CustomerRowData customer, UserRowData user) {
         AppointmentModel result;
         try {
-            result = EditAppointment.editNew(this, stage, customer, user);
+            result = EditAppointment.editNew(customer, user);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), stage, ex);
             return null;
@@ -526,7 +530,7 @@ public final class MainController implements EventTarget {
     public void editAppointment(Stage stage, AppointmentModel item) {
         AppointmentModel result;
         try {
-            result = EditAppointment.edit(item, this, stage);
+            result = EditAppointment.edit(item);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), stage, ex);
             return;
@@ -545,8 +549,8 @@ public final class MainController implements EventTarget {
     // TODO: Remove stage parameter
     public void deleteAppointment(Stage stage, AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AppointmentModel.getFactory(),
                     this::onAppointmentDeleted));
@@ -563,7 +567,7 @@ public final class MainController implements EventTarget {
     public CustomerModel addNewCustomer(Stage stage) {
         CustomerModel result;
         try {
-            result = EditCustomer.editNew(this, stage);
+            result = EditCustomer.editNew();
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), stage, ex);
             return null;
@@ -585,7 +589,7 @@ public final class MainController implements EventTarget {
     public void editCustomer(Stage stage, CustomerModel item) {
         CustomerModel result;
         try {
-            result = EditCustomer.edit(item, this, stage);
+            result = EditCustomer.edit(item);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), stage, ex);
             return;
@@ -605,8 +609,8 @@ public final class MainController implements EventTarget {
     // TODO: Remove stage parameter
     public void deleteCustomer(Stage stage, CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModel.getFactory(),
                     (t) -> {
@@ -626,7 +630,7 @@ public final class MainController implements EventTarget {
     public void openCountry(Stage stage, CountryModel item) {
         CountryModel result;
         try {
-            result = EditCountry.edit(item, this, stage);
+            result = EditCountry.edit(item);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), stage, ex);
             return;
@@ -646,8 +650,8 @@ public final class MainController implements EventTarget {
     // TODO: Remove stage parameter
     public void deleteCountry(Stage stage, CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CountryModel.getFactory(),
                     (t) -> {
@@ -667,7 +671,7 @@ public final class MainController implements EventTarget {
     public void openCity(Stage stage, CityModel item) {
         CityModel result;
         try {
-            result = EditCity.edit(item, this, stage);
+            result = EditCity.edit(item);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), stage, ex);
             return;
@@ -687,8 +691,8 @@ public final class MainController implements EventTarget {
     // TODO: Remove stage parameter
     public void deleteCity(Stage stage, CityModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModel.getFactory(),
                     (t) -> {
@@ -708,7 +712,7 @@ public final class MainController implements EventTarget {
     public AddressModel addNewAddress(Stage stage) {
         AddressModel result;
         try {
-            result = EditAddress.editNew(this, stage);
+            result = EditAddress.editNew();
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), stage, ex);
             return null;
@@ -730,7 +734,7 @@ public final class MainController implements EventTarget {
     public void editAddress(Stage stage, AddressModel item) {
         AddressModel result;
         try {
-            result = EditAddress.edit(item, this, stage);
+            result = EditAddress.edit(item);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), stage, ex);
             return;
@@ -750,8 +754,8 @@ public final class MainController implements EventTarget {
     // TODO: Remove stage parameter
     public void deleteAddress(Stage stage, AddressModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModel.getFactory(),
                     (t) -> {
@@ -771,7 +775,7 @@ public final class MainController implements EventTarget {
     public UserModel addNewUser(Stage stage) {
         UserModel result;
         try {
-            result = EditUser.editNew(this, stage);
+            result = EditUser.editNew();
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), stage, ex);
             return null;
@@ -793,7 +797,7 @@ public final class MainController implements EventTarget {
     public void editUser(Stage stage, UserModel item) {
         UserModel result;
         try {
-            result = EditUser.edit(item, this, stage);
+            result = EditUser.edit(item);
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), stage, ex);
             return;
@@ -813,8 +817,8 @@ public final class MainController implements EventTarget {
     // TODO: Remove stage parameter
     public void deleteUser(Stage stage, UserModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResources.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResources.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModel.getFactory(),
                     (t) -> {

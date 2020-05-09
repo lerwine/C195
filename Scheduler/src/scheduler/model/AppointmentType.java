@@ -2,6 +2,7 @@ package scheduler.model;
 
 import java.util.Optional;
 import java.util.ResourceBundle;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER;
 import static scheduler.AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_OTHER;
@@ -52,7 +53,6 @@ public enum AppointmentType {
      * </ul>
      */
     CORPORATE_LOCATION("corporate", AppointmentLocationSource.CORPORATE_LOCATION, RESOURCEKEY_APPOINTMENTTYPE_CORPORATE),
-    
     /**
      * Appointment at a physical location.
      * <ul>
@@ -87,7 +87,7 @@ public enum AppointmentType {
 
     public static String toDisplayText(AppointmentType type) {
         if (null == type) {
-            return AppResources.getResourceString(AppResources.RESOURCEKEY_NONE);
+            return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_NONE);
         }
         ResourceBundle rb = AppResources.getResources();
         String key = "appointmentType_" + type.dbValue;

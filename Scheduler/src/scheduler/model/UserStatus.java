@@ -1,6 +1,7 @@
 package scheduler.model;
 
 import java.util.Optional;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 
 /**
@@ -15,24 +16,14 @@ public enum UserStatus {
     public static String toDisplayValue(UserStatus value) {
         switch (value) {
             case INACTIVE:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_INACTIVE);
+                return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_INACTIVE);
             case ADMIN:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_ADMINISTRATOR);
+                return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ADMINISTRATOR);
             default:
-                return AppResources.getResourceString(AppResources.RESOURCEKEY_ACTIVE);
+                return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ACTIVE);
         }
     }
-    
-    private final int value;
 
-    public int getValue() {
-        return value;
-    }
-    
-    private UserStatus(int value) {
-        this.value = value;
-    }
-    
     public static UserStatus of(int dbValue, UserStatus defaultValue) {
         for (UserStatus t : UserStatus.values()) {
             if (t.getValue() == dbValue) {
@@ -50,5 +41,15 @@ public enum UserStatus {
         }
         return Optional.empty();
     }
-    
+
+    private final int value;
+
+    private UserStatus(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
 }

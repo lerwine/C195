@@ -28,7 +28,7 @@
 <?import scheduler.controls.UserListCell?>
 <?import scheduler.controls.UserListCellFactory?>
 
-<StackPane fx:id="rootStackPane" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.EditAppointment">
+<fx:root stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane hgap="16.0" StackPane.alignment="CENTER">
             <columnConstraints>
@@ -245,4 +245,4 @@
             </center>
         </BorderPane>
     </children>
-</StackPane>
+</fx:root>

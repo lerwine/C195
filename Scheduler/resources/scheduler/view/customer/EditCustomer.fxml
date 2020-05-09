@@ -23,8 +23,13 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.controls.DateTimeTableCellFactory?>
+<?import scheduler.view.address.AddressPicker?>
+<?import scheduler.controls.CityListCellFactory?>
+<?import scheduler.controls.CityListCell?>
+<?import scheduler.controls.CountryListCellFactory?>
+<?import scheduler.controls.CountryListCell?>
 
-<StackPane fx:id="rootStackPane" prefHeight="517.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.customer.EditCustomer">
+<fx:root prefHeight="517.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <SplitPane fx:id="editSplitPane" dividerPositions="0.36">
             <items>
@@ -104,7 +109,14 @@
                                         <String fx:value="collapsed" />
                                     </styleClass>
                                 </Label>
-                                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
+                                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#onCityComboBoxAction" styleClass="leftLabeledControl">
+                                    <cellFactory>
+                                        <CityListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <CityListCell />
+                                    </buttonCell>
+                                </ComboBox>
                             </children>
                             <GridPane.margin>
                                 <Insets top="16.0" />
@@ -149,6 +161,12 @@
                             <GridPane.margin>
                                 <Insets top="16.0" />
                             </GridPane.margin>
+                            <cellFactory>
+                                <CountryListCellFactory />
+                            </cellFactory>
+                            <buttonCell>
+                                <CountryListCell />
+                            </buttonCell>
                         </ComboBox>
                         <Label fx:id="countryValidationLabel" styleClass="formControlValidationMessage" text="%countryMustBeSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="11" />
                         <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="12" GridPane.valignment="TOP">
@@ -262,5 +280,6 @@
                 </VBox>
             </items>
         </SplitPane>
+        <AddressPicker fx:id="addressPicker" />
     </children>
-</StackPane>
+</fx:root>

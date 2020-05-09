@@ -27,8 +27,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
+import scheduler.Scheduler;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.Values;
 import scheduler.util.ViewControllerLoader;
@@ -89,15 +91,17 @@ public class ErrorDetailDialog {
         }
         Alert alert;
         if (null == message || message.trim().isEmpty()) {
-            message = AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS);
+            message = AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS);
         }
         if (null == buttons || buttons.length == 0) {
             alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
         } else {
-            alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResources.RESOURCEKEY_UNEXPECTEDERRORDETAILS), buttons);
+            alert = new Alert(Alert.AlertType.ERROR, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS), buttons);
         }
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(title);
+        if (null == owner)
+            owner = Scheduler.getCurrentStage((Window)null);
         if (null != owner) {
             alert.initOwner(owner);
         }

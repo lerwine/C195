@@ -1,6 +1,5 @@
 package scheduler.view.country;
 
-import java.io.IOException;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -12,18 +11,14 @@ import scheduler.controls.MainListingControl;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.view.ListingController;
-import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.model.ui.FxRecordModel;
 import static scheduler.view.country.MangageCountriesResourceKeys.*;
 
 // CURRENT: No values for Name, Updated On or Updated By are being displayed in listing.
 // TODO: Need to add headings for main content screens and leave window title alone for non-popups.
 // Nothing happens when hitting enter
-
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
  * <p>
@@ -41,6 +36,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         newContent.setFilter(filter);
         return newContent;
     }
+
     public static ManageCountries loadIntoMainContent() {
         return loadIntoMainContent(CountryModel.getFactory().getAllItemsFilter());
     }

@@ -276,7 +276,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.DataAccessObject#buildEventDispatchChain
+        return Scheduler.buildMainControllerEventDispatchChain(tail);
     }
 
     private static class LoadTask<T extends DataAccessObject> extends TaskWaiter<List<T>> {

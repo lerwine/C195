@@ -11,12 +11,16 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
+<?import scheduler.controls.CityListCellFactory?>
+<?import scheduler.controls.CityListCell?>
+<?import scheduler.controls.CountryListCellFactory?>
+<?import scheduler.controls.CountryListCell?>
 
-<BorderPane fx:id="rootBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.address.AddressPicker">
+<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
-      <BorderPane BorderPane.alignment="CENTER">
+      <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
          <BorderPane.margin>
-            <Insets />
+            <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
          </BorderPane.margin>
          <center>
                 <SplitPane dividerPositions="0.5" maxHeight="-Infinity">
@@ -24,14 +28,28 @@
                         <VBox>
                             <children>
                                 <Label styleClass="topControlLabel" text="%country" />
-                                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onCountryComboBoxAction" styleClass="topLabeledControl" />
+                                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onCountryComboBoxAction" styleClass="topLabeledControl">
+                                    <cellFactory>
+                                        <CountryListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <CountryListCell />
+                                    </buttonCell>
+                                </ComboBox>
                                 <Label fx:id="countryWarningLabel" styleClass="warningMessage" text="%countryNotSelected" />
                                 <Label styleClass="topControlLabel" text="%city">
                                     <VBox.margin>
                                         <Insets top="16.0" />
                                     </VBox.margin>
                                 </Label>
-                                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#onCityComboBoxAction" styleClass="topLabeledControl" />
+                                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#onCityComboBoxAction" styleClass="topLabeledControl">
+                                    <cellFactory>
+                                        <CityListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <CityListCell />
+                                    </buttonCell>
+                                </ComboBox>
                                 <Label fx:id="cityWarningLabel" styleClass="warningMessage" text="%cityNotSelected" />
                             </children>
                             <padding>
@@ -78,4 +96,4 @@
          </bottom>
       </BorderPane>
     </center>
-</BorderPane>
+</fx:root>

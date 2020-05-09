@@ -1,6 +1,7 @@
 package scheduler.util;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.EventObject;
 import java.util.function.Predicate;
@@ -9,13 +10,14 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import scheduler.dao.schema.DatabaseTable;
 import scheduler.dao.schema.DbTable;
-import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.ModelEditor;
+import scheduler.view.event.FxmlViewEvent;
 
 /**
  * Utility class for getting annotated information.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class AnnotationHelper {
@@ -24,11 +26,12 @@ public class AnnotationHelper {
 
     /**
      * Gets the base name of the {@link java.util.ResourceBundle} to be loaded along with the FXML resource for the specified {@link java.lang.Class}.
-     * <p>This value is specified using the {@link GlobalizationResource} annotation.</p>
+     * <p>
+     * This value is specified using the {@link GlobalizationResource} annotation.</p>
      *
      * @param target The {@link java.lang.Class} for the target controller.
-     * @return The base name of the {@link java.util.ResourceBundle} associated with the {@code target} controller or an empty string if the {@link java.util.ResourceBundle}
-     * is not specified in a {@link GlobalizationResource} annotation.
+     * @return The base name of the {@link java.util.ResourceBundle} associated with the {@code target} controller or an empty string if the
+     * {@link java.util.ResourceBundle} is not specified in a {@link GlobalizationResource} annotation.
      */
     public static final String getGlobalizationResourceName(Class<?> target) {
         Class<GlobalizationResource> ac = GlobalizationResource.class;
@@ -48,10 +51,12 @@ public class AnnotationHelper {
 
     /**
      * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}.
-     * <p>This value is specified using the {@link FXMLResource} annotation.</p>
+     * <p>
+     * This value is specified using the {@link FXMLResource} annotation.</p>
      *
      * @param target The {@link java.lang.Class} for the target controller.
-     * @return The name of the FXML resource associated with the target controller or an empty string if the FXML resource is not specified in an {@link FXMLResource} annotation.
+     * @return The name of the FXML resource associated with the target controller or an empty string if the FXML resource is not specified in an
+     * {@link FXMLResource} annotation.
      */
     public static final String getFXMLResourceName(Class<?> target) {
         Class<FXMLResource> ac = FXMLResource.class;
@@ -69,13 +74,13 @@ public class AnnotationHelper {
 
     /**
      * Gets methods that have a specific annotation.
-     * 
+     *
      * @param <T> The type of {@link Annotation}.
      * @param targetClass The class to search for annotated methods.
      * @param annotationClass The type of {@link Annotation} to look for.
      * @param eventClass The type of {@link EventObject} to look for in the single parameter.
-     * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters;
-     * otherwise {@code false} to require exactly 1 parameter.
+     * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters; otherwise {@code false} to require exactly 1
+     * parameter.
      * @param filter A {@link Predicate} that is used to filter the results or {@code null} to return all results.
      * @return A {@link Stream} of {@link Method} objects.
      */
@@ -113,7 +118,7 @@ public class AnnotationHelper {
 
     /**
      * Gets methods that have a specific annotation.
-     * 
+     *
      * @param <T> The type of {@link Annotation}.
      * @param targetClass The class to search for annotated methods.
      * @param annotationClass The type of {@link Annotation} to look for.
@@ -121,30 +126,30 @@ public class AnnotationHelper {
      * @param filter A {@link Predicate} that is used to filter the results or {@code null} to return all results.
      * @return A {@link Stream} of {@link Method} objects.
      */
-     public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
+    public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
             Class<? extends EventObject> eventClass, Predicate<T> filter) {
-         return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, false, filter);
-     }
-     
+        return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, false, filter);
+    }
+
     /**
      * Gets methods that have a specific annotation.
-     * 
+     *
      * @param <T> The type of {@link Annotation}.
      * @param targetClass The class to search for annotated methods.
      * @param annotationClass The type of {@link Annotation} to look for.
      * @param eventClass The type of {@link EventObject} to look for in the single parameter.
-     * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters;
-     * otherwise {@code false} to require exactly 1 parameter.
+     * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters; otherwise {@code false} to require exactly 1
+     * parameter.
      * @return A {@link Stream} of {@link Method} objects.
      */
     public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
             Class<? extends EventObject> eventClass, boolean allowZeroLengthParameters) {
-         return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, allowZeroLengthParameters, null);
+        return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, allowZeroLengthParameters, null);
     }
-     
+
     /**
      * Gets methods that have a specific annotation.
-     * 
+     *
      * @param <T> The type of {@link Annotation}.
      * @param targetClass The class to search for annotated methods.
      * @param annotationClass The type of {@link Annotation} to look for.
@@ -155,11 +160,11 @@ public class AnnotationHelper {
             Class<? extends EventObject> eventClass) {
         return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, null);
     }
-    
+
     /**
-     * Gets the {@code DbTable} from the {@link DatabaseTable} annotation of a given {@link Class}.
-     * This is used by classes that inherit from {@link scheduler.dao.DataAccessObject} to specify the data table which the data access object represents.
-     * 
+     * Gets the {@code DbTable} from the {@link DatabaseTable} annotation of a given {@link Class}. This is used by classes that inherit from
+     * {@link scheduler.dao.DataAccessObject} to specify the data table which the data access object represents.
+     *
      * @param target The target {@link Class}.
      * @return The {@code DbTable} value from the {@link Class}'s {@link DatabaseTable} or {@code null} if the annotation is not present.
      */
@@ -171,4 +176,24 @@ public class AnnotationHelper {
         return null;
     }
 
+    public static void injectModelEditorField(Object value, String name, Object target) throws IllegalAccessException {
+        Class<?> fieldType = value.getClass();
+        Class<ModelEditor> a = ModelEditor.class;
+        for (Field f : target.getClass().getDeclaredFields()) {
+            if (f.getName().equals(name) && f.isAnnotationPresent(a) && f.getType().isAssignableFrom(fieldType)) {
+                boolean accessible = f.isAccessible();
+                try {
+                    if (!accessible) {
+                        f.setAccessible(true);
+                    }
+                    f.set(target, value);
+                } finally {
+                    if (!accessible) {
+                        f.setAccessible(false);
+                    }
+                }
+                break;
+            }
+        }
+    }
 }

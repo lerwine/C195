@@ -26,6 +26,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
@@ -40,6 +41,7 @@ import scheduler.dao.UserDAO;
 import scheduler.util.DbConnector;
 import scheduler.util.EventHelper;
 import scheduler.util.PwHash;
+import scheduler.util.ThrowableConsumer;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.Login;
 import scheduler.view.MainController;
@@ -147,6 +149,55 @@ public final class Scheduler extends Application {
         return getCurrentStage();
     }
 
+    public static void showAndWait(Region content, Stage owner, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        Scheduler app = currentApp;
+        if (null == app) {
+            throw new IllegalStateException();
+        }
+
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initStyle(style);
+        stage.setScene(new Scene(content));
+        synchronized (app.childStages) {
+            stage.initOwner((null != owner) ? owner : (app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast());
+        }
+        if (null != beforeShow) {
+            beforeShow.accept(stage);
+        }
+        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, app::onChildStageShown);
+        stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, app::onChildStageHidden);
+        stage.showAndWait();
+    }
+
+    public static void showAndWait(Region content, Stage owner, StageStyle style) throws IOException {
+        showAndWait(content, owner, style, null);
+    }
+
+    public static void showAndWait(Region content, Stage owner, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        showAndWait(content, owner, StageStyle.UTILITY, beforeShow);
+    }
+
+    public static void showAndWait(Region content, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        showAndWait(content, null, style, beforeShow);
+    }
+
+    public static void showAndWait(Region content, Stage owner) throws IOException {
+        showAndWait(content, owner, (ThrowableConsumer<Stage, IOException>) null);
+    }
+
+    public static void showAndWait(Region content, StageStyle style) throws IOException {
+        showAndWait(content, style, null);
+    }
+
+    public static void showAndWait(Region content, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        showAndWait(content, (Stage) null, beforeShow);
+    }
+
+    public static void showAndWait(Region content) throws IOException {
+        showAndWait(content, (Stage) null);
+    }
+
     public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, StageStyle style, Consumer<ViewAndController<U, T>> onBeforeShow) throws IOException {
         Scheduler app = currentApp;
         if (null == app) {
@@ -154,22 +205,24 @@ public final class Scheduler extends Application {
         }
         ViewAndController<U, T> viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
 
+        Stage stage = new Stage();
+        stage.initModality(Modality.NONE);
+        stage.initStyle(style);
+        stage.setScene(new Scene(viewAndController.getView()));
         synchronized (app.childStages) {
-            Stage stage = new Stage();
             stage.initOwner((app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast());
-            stage.initModality(Modality.NONE);
-            stage.initStyle(style);
-            stage.addEventHandler(WindowEvent.WINDOW_SHOWN, app::onChildStageShown);
-            stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, app::onChildStageHidden);
-            stage.setScene(new Scene(viewAndController.getView()));
-            if (null != onBeforeShow) {
-                onBeforeShow.accept(viewAndController);
-            }
-            stage.showAndWait();
         }
+
+        if (null != onBeforeShow) {
+            onBeforeShow.accept(viewAndController);
+        }
+        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, app::onChildStageShown);
+        stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, app::onChildStageHidden);
+        stage.showAndWait();
 
         return viewAndController.getController();
     }
+
     private ViewAndController<StackPane, MainController> mainViewAndController;
     private Stage primaryStage;
     private final LinkedList<Stage> childStages = new LinkedList<>();

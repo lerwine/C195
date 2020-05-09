@@ -7,3 +7,12 @@ C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.Pro
 C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.csproj.GenerateResource.cache
 C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.exe
 C:\Users\webmaster\source\repos\C195\ResourceHelper\obj\Debug\ResourceHelper.pdb
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\bin\Debug\ResourceHelper.dll.config
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\bin\Debug\ResourceHelper.dll
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\bin\Debug\ResourceHelper.pdb
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Debug\ResourceHelper.csprojAssemblyReference.cache
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Debug\ResourceHelper.Properties.Resources.resources
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Debug\ResourceHelper.csproj.GenerateResource.cache
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Debug\ResourceHelper.csproj.CoreCompileInputs.cache
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Debug\ResourceHelper.dll
+C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Debug\ResourceHelper.pdb

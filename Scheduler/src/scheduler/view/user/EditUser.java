@@ -5,10 +5,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -35,22 +37,23 @@ import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
+import scheduler.model.ui.FxRecordModel;
 import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
-import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
 
 /**
@@ -62,17 +65,31 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends EditItem.EditController<UserDAO, UserModel> {
+public final class EditUser extends SplitPane implements EditItem.ModelEditor<UserDAO, UserModel> {
 
     private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
-    public static UserModel editNew(MainController mainController, Stage stage) throws IOException {
-        return editNew(EditUser.class, mainController, stage);
+    public static UserModel editNew() throws IOException {
+        UserModel.Factory factory = UserModel.getFactory();
+        return EditItem.showAndWait(EditUser.class, factory.createNew(factory.getDaoFactory().createNew()));
     }
 
-    public static UserModel edit(UserModel model, MainController mainController, Stage stage) throws IOException {
-        return edit(model, EditUser.class, mainController, stage);
+    public static UserModel edit(UserModel model) throws IOException {
+        return EditItem.showAndWait(EditUser.class, model);
     }
+
+    private final ReadOnlyBooleanWrapper valid;
+
+    private final ReadOnlyStringWrapper windowTitle;
+
+    @ModelEditor
+    private UserModel model;
+
+    @ModelEditor
+    private WaitBorderPane waitBorderPane;
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
 
     @FXML // fx:id="userEditSplitPane"
     private SplitPane userEditSplitPane; // Value injected by FXMLLoader
@@ -118,6 +135,11 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModel> 
 
     private ObservableList<AppointmentFilterItem> filterOptions;
 
+    public EditUser() {
+        this.valid = new ReadOnlyBooleanWrapper(false);
+        this.windowTitle = new ReadOnlyStringWrapper();
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert userEditSplitPane != null : "fx:id=\"userEditSplitPane\" was not injected: check your FXML file 'EditUser.fxml'.";
@@ -144,20 +166,20 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModel> 
 
                 switch (a) {
                     case NORMAL:
-                        setText(getResourceString(RESOURCEKEY_NORMALUSER));
+                        setText(resources.getString(RESOURCEKEY_NORMALUSER));
                         break;
                     case ADMIN:
-                        setText(getResourceString(RESOURCEKEY_ADMINISTRATIVEUSER));
+                        setText(resources.getString(RESOURCEKEY_ADMINISTRATIVEUSER));
                         break;
                     default:
-                        setText(getResourceString(RESOURCEKEY_INACTIVE));
+                        setText(resources.getString(RESOURCEKEY_INACTIVE));
                         break;
                 }
             }
         });
 
         activeComboBox.setItems(userActiveStateOptions);
-        if (getModel().isNewItem()) {
+        if (model.isNewItem()) {
             changePasswordCheckBox.setSelected(true);
             changePasswordCheckBox.setDisable(true);
             appointmentListingVBox.setVisible(false);
@@ -187,29 +209,28 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModel> 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     private void onBeforeShow(FxmlViewEvent<SplitPane> event) {
         LocalDate today = LocalDate.now();
-        UserModel model = getModel();
         UserDAO dao = model.getDataObject();
         if (dao.isExisting()) {
-            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_CURRENTANDFUTURE),
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
                     AppointmentModelFilter.of(today, null, dao)));
-            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_CURRENTAPPOINTMENTS),
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
                     AppointmentModelFilter.of(today, today.plusDays(1), dao)));
-            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_PASTAPPOINTMENTS),
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                     AppointmentModelFilter.of(null, today, dao)));
-            filterOptions.add(new AppointmentFilterItem(getResourceString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         }
         TaskWaiter.startNow(new InitialLoadTask(event.getStage()));
-        event.getStage().setTitle(getResourceString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+        event.getStage().setTitle(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 
     private StringBinding getUserNameValidationMessage() {
         return Bindings.createStringBinding(() -> {
             String n = userNameTextField.getText().trim().toLowerCase();
             if (n.isEmpty()) {
-                return getResourceString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
+                return resources.getString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
             }
             if (unavailableUserNames.contains(n)) {
-                return getResourceString(RESOURCEKEY_USERNAMEINUSE);
+                return resources.getString(RESOURCEKEY_USERNAMEINUSE);
             }
             return "";
         }, userNameTextField.textProperty(), unavailableUserNames);
@@ -221,10 +242,10 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModel> 
             String c = confirmPasswordField.getText();
             if (changePasswordCheckBox.isSelected()) {
                 if (p.trim().isEmpty()) {
-                    return getResourceString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
+                    return resources.getString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
                 }
                 if (!p.equals(c)) {
-                    return getResourceString(RESOURCEKEY_PASSWORDMISMATCH);
+                    return resources.getString(RESOURCEKEY_PASSWORDMISMATCH);
                 }
             }
             return "";
@@ -232,26 +253,39 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModel> 
     }
 
     @Override
-    protected BooleanExpression getValidationExpression() {
-        return getUserNameValidationMessage().isEmpty().and(getPasswordValidationMessage().isEmpty());
+    public boolean isValid() {
+        return valid.get();
     }
 
     @Override
-    protected FxRecordModel.ModelFactory<UserDAO, UserModel> getFactory() {
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getWindowTitle() {
+        return windowTitle.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty windowTitleProperty() {
+        return windowTitle.getReadOnlyProperty();
+    }
+
+    @Override
+    public FxRecordModel.ModelFactory<UserDAO, UserModel> modelFactory() {
         return UserModel.getFactory();
     }
 
     @Override
-    protected void updateModel(UserModel model) {
-        if (!getValidationExpression().get()) {
-            throw new IllegalStateException();
-        }
+    public boolean applyChangesToModel() {
         model.setUserName(userNameTextField.getText());
         model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
         if (changePasswordCheckBox.isSelected()) {
             PwHash pw = new PwHash(passwordField.getText(), true);
             model.setPassword(pw.getEncodedHash());
         }
+        return true;
     }
 
     private class AppointmentFilterItem {
@@ -312,10 +346,10 @@ public final class EditUser extends EditItem.EditController<UserDAO, UserModel> 
         @Override
         protected void processResult(List<AppointmentDAO> result, Stage stage) {
             if (null != users && !users.isEmpty()) {
-                if (getModel().isNewItem()) {
+                if (model.isNewItem()) {
                     users.forEach((t) -> unavailableUserNames.add(t.getUserName().toLowerCase()));
                 } else {
-                    int pk = getModel().getPrimaryKey();
+                    int pk = model.getPrimaryKey();
                     users.forEach((t) -> {
                         if (t.getPrimaryKey() != pk) {
                             unavailableUserNames.add(t.getUserName().toLowerCase());

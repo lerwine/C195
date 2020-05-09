@@ -56,7 +56,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
     public CityModel(CityDAO dao) {
         super(dao);
         predefinedData = dao.asPredefinedData();
-        name = new ReadOnlyStringWrapper(this, "name", dao.getName());
+        name = new ReadOnlyStringWrapper(this, "name", predefinedData.getName());
         CountryRowData c = dao.getCountry();
         country = new SimpleObjectProperty<>(this, "country", (null == c) ? null : new RelatedCountry(c));
         countryName = new NestedStringBindingProperty<>(this, "countryName", country, (t) -> t.nameProperty());

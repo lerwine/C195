@@ -1,5 +1,6 @@
 package scheduler.view;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
@@ -31,20 +32,20 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
-import scheduler.model.AppointmentType;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.Appointment;
+import scheduler.model.AppointmentType;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.setBorderedNode;
 import static scheduler.util.NodeUtil.setLeftControlLabel;
 import static scheduler.util.NodeUtil.setLeftLabeledControl;
+import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -57,7 +58,7 @@ import scheduler.view.appointment.AppointmentModel;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/AppointmentAlert.fxml")
-public class AppointmentAlert {
+public class AppointmentAlert extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
 
@@ -73,16 +74,22 @@ public class AppointmentAlert {
     private List<Integer> dismissed;
     private int alertLeadtime;
     private DateTimeFormatter formatter;
-    private Pane parent;
-    
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="rootBorderPane"
-    private BorderPane rootBorderPane; // Value injected by FXMLLoader
-
     @FXML // fx:id="appointmentAlertsVBox"
     private VBox appointmentAlertsVBox; // Value injected by FXMLLoader
+
+    @SuppressWarnings("LeakingThisInConstructor")
+    public AppointmentAlert() {
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+    }
 
     @FXML
     private void onDismissAllAppointmentAlerts(ActionEvent event) {
@@ -91,29 +98,18 @@ public class AppointmentAlert {
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        assert rootBorderPane != null : "fx:id=\"rootBorderPane\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
         assert appointmentAlertsVBox != null : "fx:id=\"appointmentAlertsVBox\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
-    }
-
-    void initialize(Pane parent) {
-        this.parent = parent;
-        rootBorderPane.setVisible(false);
-        parent.getChildren().add(rootBorderPane);
-        rootBorderPane.prefWidthProperty().bind(parent.widthProperty());
-        rootBorderPane.minWidthProperty().bind(parent.widthProperty());
-        rootBorderPane.prefHeightProperty().bind(parent.heightProperty());
-        rootBorderPane.minHeightProperty().bind(parent.heightProperty());
         try {
             alertLeadtime = AppResources.getAppointmentAlertLeadTime();
         } catch (ParseException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error getting alert lead time from settings", ex);
             alertLeadtime = 15;
         }
+        setVisible(false);
         dismissed = Collections.synchronizedList(new ArrayList<>());
         appointmentCheckTimer = new Timer();
         appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, 120000);
         formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-        
     }
 
     private FlowPane createNew(AppointmentModel model) {
@@ -263,7 +259,7 @@ public class AppointmentAlert {
                 children.clear();
             });
             itemsViewList.clear();
-            rootBorderPane.setVisible(false);
+            setVisible(false);
         }
     }
 
@@ -273,7 +269,7 @@ public class AppointmentAlert {
         reBind(flowPane, null);
         itemsViewList.remove(flowPane);
         if (itemsViewList.isEmpty()) {
-            rootBorderPane.setVisible(false);
+            setVisible(false);
         }
     }
 
@@ -309,7 +305,7 @@ public class AppointmentAlert {
             ArrayList<Integer> d = new ArrayList<>();
             dismissed.forEach((i) -> d.add(i));
             dismissed.clear();
-            
+
             appointments.stream().sorted(Appointment::compareByDates).forEach(new Consumer<AppointmentDAO>() {
                 int index = -1;
 
@@ -332,15 +328,10 @@ public class AppointmentAlert {
             }
         }
         if (itemsViewList.isEmpty()) {
-            rootBorderPane.setVisible(false);
+            setVisible(false);
             return;
         }
-        ObservableList<Node> children = parent.getChildren();
-        if (children.indexOf(rootBorderPane) != children.size() - 1) {
-            children.remove(rootBorderPane);
-            children.add(rootBorderPane);
-        }
-        rootBorderPane.setVisible(true);
+        setVisible(true);
     }
 
     private synchronized void onAppointmentUpdate(AppointmentModel item) {
@@ -379,7 +370,7 @@ public class AppointmentAlert {
             reBind(view, null);
             itemsViewList.remove(view);
             if (itemsViewList.isEmpty()) {
-                rootBorderPane.setVisible(false);
+                setVisible(false);
             }
         }
     }
@@ -395,7 +386,7 @@ public class AppointmentAlert {
                 reBind(view, null);
                 itemsViewList.remove(view);
                 if (itemsViewList.isEmpty()) {
-                    rootBorderPane.setVisible(false);
+                    setVisible(false);
                 }
             }
         }

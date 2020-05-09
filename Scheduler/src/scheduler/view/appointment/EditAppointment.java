@@ -13,13 +13,14 @@ import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -43,6 +44,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT;
@@ -77,20 +79,18 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.CssClassName;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
-import scheduler.view.MainController;
 import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.RelatedCustomer;
-import scheduler.view.event.FxmlViewControllerEvent;
-import scheduler.view.event.FxmlViewControllerEventListener;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventType;
 import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 import scheduler.view.user.RelatedUser;
 import scheduler.view.user.UserModel;
 
@@ -103,30 +103,38 @@ import scheduler.view.user.UserModel;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public final class EditAppointment extends EditItem.EditController<AppointmentDAO, AppointmentModel> {
+public final class EditAppointment extends StackPane implements EditItem.ModelEditor<AppointmentDAO, AppointmentModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 
-    public static AppointmentModel editNew(MainController mainController, Stage stage, CustomerRowData customer, UserRowData user) throws IOException {
-        return editNew(EditAppointment.class, mainController, stage, (FxmlViewControllerEventListener<StackPane, EditAppointment>) (FxmlViewControllerEvent<StackPane, EditAppointment> event) -> {
-            if (event.getType() == FxmlViewEventType.LOADED) {
-                EditAppointment controller = event.getController();
-                if (null != user) {
-                    controller.getModel().setUser(new RelatedUser(user));
-                }
-                if (null != customer) {
-                    controller.getModel().setCustomer(new RelatedCustomer(customer));
-                }
-            }
-        });
+    public static AppointmentModel editNew(CustomerRowData customer, UserRowData user) throws IOException {
+        AppointmentModel.Factory factory = AppointmentModel.getFactory();
+        AppointmentModel model = factory.createNew(factory.getDaoFactory().createNew());
+        if (null != customer) {
+            model.setCustomer(new RelatedCustomer(customer));
+        }
+        if (null != user) {
+            model.setUser(new RelatedUser(user));
+        }
+        return EditItem.showAndWait(EditAppointment.class, model);
     }
 
-    public static AppointmentModel edit(AppointmentModel model, MainController mainController, Stage stage) throws IOException {
-        return edit(model, EditAppointment.class, mainController, stage);
+    public static AppointmentModel edit(AppointmentModel model) throws IOException {
+        return EditItem.showAndWait(EditAppointment.class, model);
     }
 
-    @FXML
-    private StackPane rootStackPane;
+    private final ReadOnlyBooleanWrapper valid;
+
+    private final ReadOnlyStringWrapper windowTitle;
+
+    @ModelEditor
+    private AppointmentModel model;
+
+    @ModelEditor
+    private WaitBorderPane waitBorderPane;
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
 
     @FXML // fx:id="titleValidationLabel"
     private Label titleValidationLabel; // Value injected by FXMLLoader
@@ -221,9 +229,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private boolean editingUserOptions;
     private DateRange dateRangeController;
     private AppointmentConflicts appointmentConflictsController;
-    private final BooleanProperty valid = new ReadOnlyBooleanWrapper();
     private AppointmentType currentType;
     private HashSet<String> invalidControlIds;
+
+    public EditAppointment() {
+        valid = new ReadOnlyBooleanWrapper(false);
+        windowTitle = new ReadOnlyStringWrapper();
+    }
 
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
@@ -233,12 +245,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } else {
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
-        dropdownOptionsLabel.setText(getResourceString(RESOURCEKEY_CUSTOMERSTOSHOW));
+        dropdownOptionsLabel.setText(resources.getString(RESOURCEKEY_CUSTOMERSTOSHOW));
         dropdownOptionsBorderPane.setVisible(true);
-        dropdownOptionsBorderPane.minWidthProperty().bind(rootStackPane.widthProperty());
-        dropdownOptionsBorderPane.prefWidthProperty().bind(rootStackPane.widthProperty());
-        dropdownOptionsBorderPane.minHeightProperty().bind(rootStackPane.heightProperty());
-        dropdownOptionsBorderPane.prefHeightProperty().bind(rootStackPane.heightProperty());
+        dropdownOptionsBorderPane.minWidthProperty().bind(widthProperty());
+        dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
+        dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
+        dropdownOptionsBorderPane.prefHeightProperty().bind(heightProperty());
     }
 
     @FXML
@@ -249,12 +261,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         } else {
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
-        dropdownOptionsLabel.setText(getResourceString(RESOURCEKEY_USERSTOSHOW));
+        dropdownOptionsLabel.setText(resources.getString(RESOURCEKEY_USERSTOSHOW));
         dropdownOptionsBorderPane.setVisible(true);
-        dropdownOptionsBorderPane.minWidthProperty().bind(rootStackPane.widthProperty());
-        dropdownOptionsBorderPane.prefWidthProperty().bind(rootStackPane.widthProperty());
-        dropdownOptionsBorderPane.minHeightProperty().bind(rootStackPane.heightProperty());
-        dropdownOptionsBorderPane.prefHeightProperty().bind(rootStackPane.heightProperty());
+        dropdownOptionsBorderPane.minWidthProperty().bind(widthProperty());
+        dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
+        dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
+        dropdownOptionsBorderPane.prefHeightProperty().bind(heightProperty());
     }
 
     @FXML
@@ -353,18 +365,18 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
         switch (currentType) {
             case CORPORATE_LOCATION:
-                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                restoreLabeled(locationLabel, resources.getString(RESOURCEKEY_LOCATIONLABELTEXT));
                 restoreNode(corporateLocationComboBox);
                 restoreNode(includeRemoteCheckBox);
                 restoreNode(implicitLocationLabel);
                 onCorporateLocationChanged(corporateLocationComboBox.getValue());
                 break;
             case CUSTOMER_SITE:
-                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                restoreLabeled(locationLabel, resources.getString(RESOURCEKEY_LOCATIONLABELTEXT));
                 onCustomerChanged(customerComboBox.getValue());
                 break;
             case PHONE:
-                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_PHONENUMBER));
+                restoreLabeled(locationLabel, resources.getString(RESOURCEKEY_PHONENUMBER));
                 restoreNode(phoneTextField);
                 onPhoneChanged(phoneTextField.getText());
                 break;
@@ -373,7 +385,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
                 onUrlChanged(urlTextField.getText());
                 break;
             default:
-                restoreLabeled(locationLabel, getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
+                restoreLabeled(locationLabel, resources.getString(RESOURCEKEY_LOCATIONLABELTEXT));
                 restoreNode(locationTextArea);
                 onLocationChanged(locationTextArea.getText());
                 onContactChanged(contactTextField.getText());
@@ -450,7 +462,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         invalidControlIds.add(locationTextArea.getId());
         invalidControlIds.add(userComboBox.getId());
         invalidControlIds.add(userComboBox.getId());
-        
+
         corporateLocationComboBox.setItems(corporateLocationList);
 
         // Get appointment type options.
@@ -491,12 +503,12 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             gp.minWidthProperty().bind(lowerLeftVBox.widthProperty());
             appointmentConflictsController = acVc.getController();
             BorderPane bp = acVc.getView();
-            rootStackPane.getChildren().add(bp);
+            getChildren().add(bp);
             bp.setVisible(false);
-            bp.prefHeightProperty().bind(rootStackPane.heightProperty());
-            bp.minHeightProperty().bind(rootStackPane.heightProperty());
-            bp.prefWidthProperty().bind(rootStackPane.widthProperty());
-            bp.minWidthProperty().bind(rootStackPane.widthProperty());
+            bp.prefHeightProperty().bind(heightProperty());
+            bp.minHeightProperty().bind(heightProperty());
+            bp.prefWidthProperty().bind(widthProperty());
+            bp.minWidthProperty().bind(widthProperty());
         } catch (IOException ex) {
             ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), event.getStage(), ex);
         }
@@ -505,8 +517,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     @SuppressWarnings("incomplete-switch")
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        AppointmentModel model = this.getModel();
-        event.getStage().setTitle(getResourceString((model.isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
+        event.getStage().setTitle(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
         SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
         typeSelectionModel.select(model.getType());
         titleTextField.setText(model.getTitle());
@@ -546,7 +557,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     @Override
-    protected boolean onSaving(Stage stage, AppointmentModel model) {
+    public boolean applyChangesToModel() {
         ZonedAppointmentTimeSpan ts = dateRangeController.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime apptEnd = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
@@ -562,90 +573,90 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         Optional<ButtonType> response;
         if (!appointmentConflictsController.isConflictCheckingCurrent()) {
             if (apptStart.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        getResourceString(RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
             } else if (apptEnd.compareTo(busStart) < 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        getResourceString(RESOURCEKEY_NOTCHECKEDOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
             } else if (apptStart.compareTo(busStart) < 0) {
                 if (apptEnd.compareTo(busEnd) > 0) {
-                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
-                            getResourceString(RESOURCEKEY_NOTCHECKEDOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                            resources.getString(RESOURCEKEY_NOTCHECKEDOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
                 } else {
-                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
-                            getResourceString(RESOURCEKEY_NOTCHECKEDSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                            resources.getString(RESOURCEKEY_NOTCHECKEDSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
                 }
             } else if (apptEnd.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        getResourceString(RESOURCEKEY_NOTCHECKEDENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        resources.getString(RESOURCEKEY_NOTCHECKEDENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
             } else {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        getResourceString(RESOURCEKEY_NOTCHECKEDMESSAGE), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                        resources.getString(RESOURCEKEY_NOTCHECKEDMESSAGE), ButtonType.YES, ButtonType.NO);
             }
         } else if (this.appointmentConflictsController.hasConflicts()) {
             if (apptStart.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
             } else if (apptEnd.compareTo(busStart) < 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
             } else if (apptStart.compareTo(busStart) < 0) {
                 if (apptEnd.compareTo(busEnd) > 0) {
-                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                            getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
                 } else {
-                    response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                            getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
                 }
             } else if (apptEnd.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
             } else {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        getResourceString(RESOURCEKEY_SCHEDULINGCONFLICTMESSAGE), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTMESSAGE), ButtonType.YES, ButtonType.NO);
             }
         } else if (apptStart.compareTo(busEnd) > 0) {
-            response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
-                    getResourceString(RESOURCEKEY_BUSHREXCOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+            response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                    resources.getString(RESOURCEKEY_BUSHREXCOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
         } else if (apptEnd.compareTo(busStart) < 0) {
-            response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
-                    getResourceString(RESOURCEKEY_BUSHREXCOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+            response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                    resources.getString(RESOURCEKEY_BUSHREXCOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
         } else if (apptStart.compareTo(busStart) < 0) {
             if (apptEnd.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
-                        getResourceString(RESOURCEKEY_BUSHREXCOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                        resources.getString(RESOURCEKEY_BUSHREXCOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
             } else {
-                response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
-                        getResourceString(RESOURCEKEY_BUSHREXCSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                        resources.getString(RESOURCEKEY_BUSHREXCSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
             }
         } else if (apptEnd.compareTo(busEnd) > 0) {
-            response = AlertHelper.showWarningAlert(stage, getResourceString(RESOURCEKEY_BUSHREXCTITLE),
-                    getResourceString(RESOURCEKEY_BUSHREXCENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+            response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                    resources.getString(RESOURCEKEY_BUSHREXCENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
         } else {
             response = Optional.of(ButtonType.YES);
         }
 
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            return super.onSaving(stage, model);
-        }
-        return false;
+        return response.isPresent() && response.get() == ButtonType.YES;
     }
 
+    @Override
     public boolean isValid() {
         return valid.get();
     }
 
-    public void setValid(boolean value) {
-        valid.set(value);
-    }
-
-    public BooleanProperty validProperty() {
-        return valid;
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyProperty();
     }
 
     @Override
-    protected BooleanExpression getValidationExpression() {
-        return Bindings.createBooleanBinding(() -> valid.get(), valid);
+    public String getWindowTitle() {
+        return windowTitle.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty windowTitleProperty() {
+        return windowTitle.getReadOnlyProperty();
     }
 
     CustomerModel getCustomer() {
@@ -661,7 +672,7 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     }
 
     @Override
-    protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getFactory() {
+    public FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> modelFactory() {
         return AppointmentModel.getFactory();
     }
 
@@ -718,10 +729,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
 
     private void onTitleChanged(String title) {
         if (title.trim().isEmpty()) {
-            applyValidationResult(titleTextField, titleValidationLabel, getResourceString(RESOURCEKEY_REQUIRED));
+            applyValidationResult(titleTextField, titleValidationLabel, resources.getString(RESOURCEKEY_REQUIRED));
         } else {
             applyValidationResult(titleTextField, titleValidationLabel,
-                    (title.length() > MAX_LENGTH_TITLE) ? getResourceString(RESOURCEKEY_TOOMANYCHARACTERS) : "");
+                    (title.length() > MAX_LENGTH_TITLE) ? resources.getString(RESOURCEKEY_TOOMANYCHARACTERS) : "");
         }
     }
 
@@ -759,10 +770,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private void onPhoneChanged(String phone) {
         if (typeComboBox.getValue() == AppointmentType.PHONE) {
             if (phone.trim().isEmpty()) {
-                applyValidationResult(phoneTextField, locationValidationLabel, getResourceString(RESOURCEKEY_REQUIRED));
+                applyValidationResult(phoneTextField, locationValidationLabel, resources.getString(RESOURCEKEY_REQUIRED));
             } else {
                 applyValidationResult(phoneTextField, locationValidationLabel,
-                        (phone.length() > MAX_LENGTH_LOCATION) ? getResourceString(RESOURCEKEY_TOOMANYCHARACTERS) : "");
+                        (phone.length() > MAX_LENGTH_LOCATION) ? resources.getString(RESOURCEKEY_TOOMANYCHARACTERS) : "");
             }
         }
     }
@@ -770,10 +781,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
     private void onLocationChanged(String location) {
         if (typeComboBox.getValue() == AppointmentType.OTHER) {
             if (location.trim().isEmpty()) {
-                applyValidationResult(locationTextArea, locationValidationLabel, getResourceString(RESOURCEKEY_REQUIRED));
+                applyValidationResult(locationTextArea, locationValidationLabel, resources.getString(RESOURCEKEY_REQUIRED));
             } else {
                 applyValidationResult(locationTextArea, locationValidationLabel,
-                        (location.length() > MAX_LENGTH_LOCATION) ? getResourceString(RESOURCEKEY_TOOMANYCHARACTERS) : "");
+                        (location.length() > MAX_LENGTH_LOCATION) ? resources.getString(RESOURCEKEY_TOOMANYCHARACTERS) : "");
             }
         }
     }
@@ -782,63 +793,17 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         LOG.info(String.format("URL changed: %s", text));
         if (text.trim().isEmpty()) {
             applyValidationResult(urlTextField, urlValidationLabel,
-                    (typeComboBox.getValue() == AppointmentType.VIRTUAL) ? getResourceString(RESOURCEKEY_REQUIRED) : "");
+                    (typeComboBox.getValue() == AppointmentType.VIRTUAL) ? resources.getString(RESOURCEKEY_REQUIRED) : "");
         } else {
             try {
                 (new URI(text)).toURL();
                 applyValidationResult(urlTextField, urlValidationLabel, "");
             } catch (URISyntaxException | MalformedURLException | IllegalArgumentException ex) {
                 applyValidationResult(urlTextField, urlValidationLabel,
-                        (typeComboBox.getValue() == AppointmentType.VIRTUAL) ? getResourceString(RESOURCEKEY_INVALIDURL) : "");
+                        (typeComboBox.getValue() == AppointmentType.VIRTUAL) ? resources.getString(RESOURCEKEY_INVALIDURL) : "");
                 Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    @Override
-    protected void updateModel(AppointmentModel model) {
-        if (!getValidationExpression().get()) {
-            throw new IllegalStateException();
-        }
-        CustomerModel customer = customerComboBox.getSelectionModel().getSelectedItem();
-        assert null != customer : "No customer is selected";
-        assert customer.getDataObject().isExisting() : "Customer does not exist in database";
-        UserModel user = userComboBox.getSelectionModel().getSelectedItem();
-        assert null != user : "No user is selected";
-        assert user.getDataObject().isExisting() : "User does not exist in database";
-        String title = titleTextField.getText().trim();
-        assert !title.isEmpty() : "Title is empty";
-        AppointmentType type = typeComboBox.getSelectionModel().getSelectedItem();
-        assert null != type : "Type is not selected";
-        ZonedAppointmentTimeSpan zdtStart = dateRangeController.getTimeSpan();
-        if (null == zdtStart) {
-            throw new IllegalStateException("Start date/time is not valid");
-        }
-        model.setTitle(title);
-        model.setCustomer(customer);
-        model.setUser(user);
-        model.setUrl(urlTextField.getText().trim());
-        model.setType(type);
-        LocalDateTime start = zdtStart.withZoneSameInstant(ZoneId.systemDefault()).toZonedStartDateTime().toLocalDateTime();
-        model.setStart(start);
-        LocalDateTime end = zdtStart.withZoneSameInstant(ZoneId.systemDefault()).toZonedEndDateTime().toLocalDateTime();
-        model.setEnd(end);
-        switch (type) {
-            case PHONE:
-                model.setLocation(phoneTextField.getText().trim());
-                break;
-            case OTHER:
-                model.setLocation(locationTextArea.getText().trim());
-                break;
-            case CORPORATE_LOCATION:
-                model.setLocation(corporateLocationComboBox.getValue().getReferenceKey());
-                break;
-            default:
-                model.setLocation("");
-                break;
-        }
-        model.setDescription(descriptionTextArea.getText().trim());
-        model.setContact(contactTextField.getText().trim());
     }
 
     private class CustomerReloadTask extends TaskWaiter<List<CustomerDAO>> {
@@ -846,8 +811,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         private final Optional<Boolean> loadOption;
 
         private CustomerReloadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             loadOption = showActiveCustomers;
         }
 
@@ -896,8 +861,8 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         private final Optional<Boolean> loadOption;
 
         private UserReloadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGUSERS));
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             loadOption = showActiveUsers;
         }
 
@@ -955,11 +920,10 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
         private final UserRowData appointmentUser;
 
         private ItemsLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_INITIALIZING));
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_INITIALIZING));
             customerDaoList = null;
             userDaoList = null;
-            AppointmentModel model = getModel();
             CustomerItem<? extends CustomerRowData> customer = model.getCustomer();
             appointmentCustomer = (null == customer) ? null : customer.getDataObject();
             UserItem<? extends UserRowData> user = model.getUser();
@@ -978,13 +942,13 @@ public final class EditAppointment extends EditItem.EditController<AppointmentDA
             }
             customerComboBox.setItems(customerModelList);
             userComboBox.setItems(userModelList);
-            CustomerItem<? extends CustomerRowData> customer = getModel().getCustomer();
+            CustomerItem<? extends CustomerRowData> customer = model.getCustomer();
             if (null != customer) {
                 int cpk = customer.getPrimaryKey();
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
                         -> customerComboBox.getSelectionModel().select(t));
             }
-            UserItem<? extends UserRowData> user = getModel().getUser();
+            UserItem<? extends UserRowData> user = model.getUser();
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                     -> userComboBox.getSelectionModel().select(t));

@@ -9,8 +9,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 
-
-<fx:root contentDisplay="CENTER" styleClass="wait-titled-pane" stylesheets="@../../defaultStyles.css" text="%initializing" type="TitledPane" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+<fx:root contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" styleClass="wait-titled-pane" stylesheets="@../../defaultStyles.css" text="%initializing" type="TitledPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <content>
       <GridPane vgap="8.0">
         <columnConstraints>

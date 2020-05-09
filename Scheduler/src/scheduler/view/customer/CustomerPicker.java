@@ -1,12 +1,14 @@
 package scheduler.view.customer;
 
 import com.sun.javafx.scene.control.behavior.OptionalBoolean;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -24,8 +26,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING;
@@ -36,6 +40,7 @@ import scheduler.dao.CustomerDAO;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
@@ -55,7 +60,7 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/appointment/CustomerPicker")
 @FXMLResource("/scheduler/view/appointment/CustomerPicker.fxml")
-public class CustomerPicker {
+public class CustomerPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
 
@@ -246,6 +251,16 @@ public class CustomerPicker {
 
     @FXML // fx:id="modifiedLabel"
     private Label modifiedLabel; // Value injected by FXMLLoader
+
+    @SuppressWarnings("LeakingThisInConstructor")
+    public CustomerPicker() {
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -504,7 +519,7 @@ public class CustomerPicker {
         private final CustomerDAO customer;
 
         public LoadCitiesTask(ActionEvent event, CountryDAO country, CustomerDAO customer) {
-            super((Stage) ((Node) event.getSource()).getScene().getWindow(), AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES));
+            super((Stage) ((Node) event.getSource()).getScene().getWindow(), AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
             this.country = Objects.requireNonNull(country);
             this.customer = customer;
         }
@@ -536,7 +551,7 @@ public class CustomerPicker {
     class LoadCountriesTask extends TaskWaiter<ArrayList<CountryDAO>> {
 
         public LoadCountriesTask(Stage stage) {
-            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCOUNTRIES));
+            super(stage, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
         @Override
@@ -572,7 +587,7 @@ public class CustomerPicker {
         private final CustomerDAO customer;
 
         public LoadCustomersTask(Stage stage, CountryDAO country, CityDAO city, OptionalBoolean active, CustomerDAO customer) {
-            super(stage, AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCUSTOMERS));
+            super(stage, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             this.country = country;
             this.city = city;
             this.active = active;

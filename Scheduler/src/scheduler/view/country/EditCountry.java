@@ -3,11 +3,13 @@ package scheduler.view.country;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -17,8 +19,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
@@ -26,21 +29,22 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.predefined.PredefinedData;
-import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailDialog;
-import scheduler.view.MainController;
-import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
-import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.city.CityModel;
-import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.view.event.FxmlViewEvent;
 import scheduler.model.ui.FxRecordModel;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.EditItem;
+import scheduler.view.ErrorDetailDialog;
+import scheduler.view.annotations.FXMLResource;
+import scheduler.view.annotations.FxmlViewEventHandling;
+import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.annotations.ModelEditor;
+import scheduler.view.city.CityModel;
+import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * FXML Controller class for editing a {@link CountryModel}.
@@ -51,13 +55,26 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public final class EditCountry extends EditItem.EditController<CountryDAO, CountryModel> {
+public final class EditCountry extends VBox implements EditItem.ModelEditor<CountryDAO, CountryModel> {
 
     private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
 
-    public static CountryModel edit(CountryModel model, MainController mainController, Stage stage) throws IOException {
-        return edit(model, EditCountry.class, mainController, stage);
+    public static CountryModel edit(CountryModel model) throws IOException {
+        return EditItem.showAndWait(EditCountry.class, model);
     }
+
+    private final ReadOnlyBooleanWrapper valid;
+
+    private final ReadOnlyStringWrapper windowTitle;
+
+    @ModelEditor
+    private CountryModel model;
+
+    @ModelEditor
+    private WaitBorderPane waitBorderPane;
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
 
     @FXML // fx:id="countryNameValueLabel"
     private Label countryNameValueLabel; // Value injected by FXMLLoader
@@ -67,7 +84,7 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
 
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="citiesTableView"
     private TableView<CityModel> citiesTableView; // Value injected by FXMLLoader
 
@@ -76,6 +93,13 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
 
     @FXML // fx:id="cancelButton"
     private Button cancelButton; // Value injected by FXMLLoader***
+    private ObservableList<CityModel> itemList;
+    private ObservableList<PredefinedCountry> countryList;
+
+    public EditCountry() {
+        this.valid = new ReadOnlyBooleanWrapper(false);
+        this.windowTitle = new ReadOnlyStringWrapper();
+    }
 
     @FXML
     void onCancelButtonAction(ActionEvent event) {
@@ -113,7 +137,6 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        CountryModel model = getModel();
         if (model.isNewItem()) {
             collapseNode(countryNameValueLabel);
             collapseNode(citiesTableView);
@@ -131,39 +154,48 @@ public final class EditCountry extends EditItem.EditController<CountryDAO, Count
             collapseNode(nameValidationLabel);
             cancelButton.setText("Close");
             TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
-            event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
+            event.getStage().setTitle(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
         }
     }
 
     @Override
-    protected BooleanExpression getValidationExpression() {
-        return Bindings.createBooleanBinding(() -> true);
+    public boolean isValid() {
+        return valid.get();
     }
 
     @Override
-    protected FxRecordModel.ModelFactory<CountryDAO, CountryModel> getFactory() {
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getWindowTitle() {
+        return windowTitle.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty windowTitleProperty() {
+        return windowTitle.getReadOnlyProperty();
+    }
+
+    @Override
+    public FxRecordModel.ModelFactory<CountryDAO, CountryModel> modelFactory() {
         return CountryModel.getFactory();
     }
 
     @Override
-    protected void updateModel(CountryModel model) {
-        if (!getValidationExpression().get()) {
-            throw new IllegalStateException();
-        }
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#updateModel
+    public boolean applyChangesToModel() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#applyChangesToModel
     }
-
-    private ObservableList<CityModel> itemList;
-    private ObservableList<PredefinedCountry> countryList;
 
     private class ItemsLoadTask extends TaskWaiter<List<CityDAO>> {
 
         private final int pk;
 
         private ItemsLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGCITIES));
-            pk = getModel().getPrimaryKey();
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
+            pk = model.getPrimaryKey();
         }
 
         @SuppressWarnings("unchecked")

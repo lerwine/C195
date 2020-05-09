@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
@@ -10,14 +9,11 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="rootBorderPane" prefHeight="600.0" prefWidth="900.0" styleClass="translucentGrayBg" stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171" fx:controller="scheduler.view.AppointmentAlert">
+<fx:root prefHeight="600.0" prefWidth="900.0" styleClass="translucentGrayBg" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
-        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="popup-container" BorderPane.alignment="CENTER">
             <center>
-            <ScrollPane pannable="true">
-               <BorderPane.margin>
-                  <Insets bottom="8.0" left="8.0" top="8.0" />
-               </BorderPane.margin>
+            <ScrollPane pannable="true" styleClass="popup-content-center">
                <content>
                       <VBox fx:id="appointmentAlertsVBox" spacing="8.0" />
                </content>
@@ -30,19 +26,12 @@
                 <Label styleClass="popup-heading" text="%appointmentReminder" BorderPane.alignment="CENTER" />
             </top>
             <bottom>
-                <ButtonBar BorderPane.alignment="CENTER">
+                <ButtonBar styleClass="popup-content-footer" BorderPane.alignment="CENTER">
                     <buttons>
                         <Button mnemonicParsing="false" onAction="#onDismissAllAppointmentAlerts" text="%dismissAll" />
                     </buttons>
-                    <BorderPane.margin>
-                        <Insets bottom="8.0" left="8.0" right="8.0" />
-                    </BorderPane.margin>
                 </ButtonBar>
             </bottom>
-            <styleClass>
-                <String fx:value="mainFxmlClass" />
-                <String fx:value="bordered" />
-            </styleClass>
          <effect>
             <DropShadow offsetX="10.0" offsetY="10.0" />
          </effect>
@@ -51,4 +40,4 @@
          </BorderPane.margin>
         </BorderPane>
     </center>
-</BorderPane>
+</fx:root>

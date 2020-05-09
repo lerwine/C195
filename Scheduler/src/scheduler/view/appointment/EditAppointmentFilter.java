@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -59,6 +61,7 @@ import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabel;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
@@ -73,7 +76,7 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
-public final class EditAppointmentFilter {
+public final class EditAppointmentFilter extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
@@ -552,6 +555,16 @@ public final class EditAppointmentFilter {
     private void titleComboBoxChanged(ActionEvent event) {
         LocationTextSelectionItem opt = locationComboBox.getSelectionModel().getSelectedItem();
         locationTextField.setDisable(null == opt || opt.getValue().equals(TextFilterType.NONE));
+    }
+    
+    @SuppressWarnings("LeakingThisInConstructor")
+    public EditAppointmentFilter() {
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
     }
 
     private void initializePredefined(FilterOptionState inputState, RangeOptionValue type) {

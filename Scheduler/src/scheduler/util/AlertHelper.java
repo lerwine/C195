@@ -9,6 +9,7 @@ import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.view.ErrorDetailDialog;
 
@@ -81,7 +82,7 @@ public class AlertHelper {
     public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, String userMessage, String logMessage, Throwable error,
             ButtonType... buttons) {
         logger.log(Level.SEVERE, logMessage, error);
-        return ErrorDetailDialog.showAndWait(AppResources.getResourceString(AppResources.RESOURCEKEY_DBACCESSERROR), error, userMessage, buttons);
+        return ErrorDetailDialog.showAndWait(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), error, userMessage, buttons);
     }
 
     /**
@@ -104,7 +105,7 @@ public class AlertHelper {
             alert.initOwner(parent);
         }
         alert.initModality(Modality.APPLICATION_MODAL);
-        alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResources.RESOURCEKEY_WARNING)));
+        alert.setTitle(Values.nonWhitespaceOrDefault(title, () -> AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_WARNING)));
         if (Values.isNullWhiteSpaceOrEmpty(headerText)) {
             alert.setHeaderText(headerText);
         }
@@ -184,7 +185,7 @@ public class AlertHelper {
      * @return An {@link Optional} that contains the value of {@link Alert#resultProperty()}.
      */
     public static Optional<ButtonType> showWarningAlert(Window parent, String contentText, ButtonType... buttons) {
-        return showWarningAlert(parent, (String)null, contentText, buttons);
+        return showWarningAlert(parent, (String) null, contentText, buttons);
     }
 
 }

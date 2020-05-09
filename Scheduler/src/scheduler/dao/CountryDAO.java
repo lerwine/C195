@@ -38,7 +38,7 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
 public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     public static final int MAX_LENGTH_NAME = 50;
-    
+
     /**
      * The name of the 'name' property.
      */
@@ -122,7 +122,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country)obj);
+        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
     }
 
     /**
@@ -204,9 +204,9 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
                 case 0:
                     return "";
                 case 1:
-                    return ResourceBundleHelper.getResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGSINGLECOUNTRY);
+                    return ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY);
                 default:
-                    return ResourceBundleHelper.formatResourceString(AppResources.class, AppResources.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY,
+                    return ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY,
                             count);
             }
         }

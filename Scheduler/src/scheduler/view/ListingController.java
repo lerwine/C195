@@ -20,6 +20,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
 import scheduler.controls.ItemEditTableCellFactory;
@@ -257,7 +258,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
         if (item == null) {
             ResourceBundle rb = AppResources.getResources();
             AlertHelper.showWarningAlert(stage, LOG,
-                    rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+                    rb.getString(AppResourceKeys.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResourceKeys.RESOURCEKEY_NOITEMWASSELECTED));
         } else {
             try {
                 onEditItem(stage, item);
@@ -273,7 +274,7 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
         if (item == null) {
             ResourceBundle rb = AppResources.getResources();
             AlertHelper.showWarningAlert(stage, LOG,
-                    rb.getString(AppResources.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResources.RESOURCEKEY_NOITEMWASSELECTED));
+                    rb.getString(AppResourceKeys.RESOURCEKEY_NOTHINGSELECTED), rb.getString(AppResourceKeys.RESOURCEKEY_NOITEMWASSELECTED));
         } else {
             onDeleteItem(stage, item);
         }
@@ -493,8 +494,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
     protected abstract void onDeleteItem(Stage stage, U item);
 
     /**
-     * Gets the index of the {@link FxRecordModel} in the current {@link #itemsList} where the {@link FxRecordModel#primaryKeyProperty()} matches the given
-     * value.
+     * Gets the index of the {@link FxRecordModel} in the current {@link #itemsList} where the {@link FxRecordModel#primaryKeyProperty()} matches the
+     * given value.
      *
      * @param pk The value of the primary key.
      * @return The index of the list item whose {@link FxRecordModel#primaryKeyProperty()} matches {@code pk} or {@code -1} if no match was found.
@@ -515,7 +516,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
      * Gets the {@link FxRecordModel} in the current {@link #itemsList} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value.
      *
      * @param pk The value of the primary key.
-     * @return The {@link FxRecordModel} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value or {@code null} if no match was found.
+     * @return The {@link FxRecordModel} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value or {@code null} if no match was
+     * found.
      */
     protected U getListItemByPrimaryKey(int pk) {
         Iterator<U> iterator = getItemsList().iterator();
@@ -529,8 +531,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
     }
 
     /**
-     * Removes the {@link FxRecordModel} from the current {@link #itemsList} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value. This
-     * does not delete the item from the database.
+     * Removes the {@link FxRecordModel} from the current {@link #itemsList} whose {@link FxRecordModel#primaryKeyProperty()} matches the given value.
+     * This does not delete the item from the database.
      *
      * @param pk The value of the primary key.
      * @return {@code true} if the item was removed or {@code false} if no match was found.
@@ -548,12 +550,12 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
     }
 
     /**
-     * Replaces an {@link FxRecordModel} in the current {@link #itemsList} a matching {@link FxRecordModel#primaryKeyProperty()}. This does not update any
-     * item in the database.
+     * Replaces an {@link FxRecordModel} in the current {@link #itemsList} a matching {@link FxRecordModel#primaryKeyProperty()}. This does not update
+     * any item in the database.
      *
      * @param item The {@link FxRecordModel} to replace into the list.
-     * @return {@code true} if an item with a matching {@link FxRecordModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if no
-     * match was found.
+     * @return {@code true} if an item with a matching {@link FxRecordModel#primaryKeyProperty()} was found and replaced; otherwise, {@code false} if
+     * no match was found.
      */
     protected boolean updateListItem(U item) {
         int pk = item.getPrimaryKey();
@@ -571,8 +573,8 @@ public abstract class ListingController<T extends DataAccessObject, U extends Fx
     }
 
     /**
-     * Inserts an {@link FxRecordModel} into the current {@link #itemsList}, replacing any with a matching {@link FxRecordModel#primaryKeyProperty()}. This
-     * does not insert or update any item in the database.
+     * Inserts an {@link FxRecordModel} into the current {@link #itemsList}, replacing any with a matching {@link FxRecordModel#primaryKeyProperty()}.
+     * This does not insert or update any item in the database.
      *
      * @param item The {@link FxRecordModel} to insert into the list.
      * @return {@code true} if the {@code item} was appended to the list; otherwise, {@code false} if it replaced one with a matching

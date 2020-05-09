@@ -160,6 +160,37 @@ Text.h1, Text.h2, Text.h3, Text.section-heading, Text.sub-section-heading {
     -fx-alignment: CENTER;
 }
 
+.popup-container {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 15.0, 0.5, 7.0, 7.0);
+    -fx-background-color: white;
+    -fx-background-radius: 9;
+}
+
+.popup-content {
+    -fx-border-color: derive(forestgreen, -40%);
+    -fx-border-width: 2;
+    -fx-border-radius: 0 0 8 8;
+    -fx-background-color: white;
+    -fx-background-radius: 0 0 9 9;
+    -fx-padding: 8;
+}
+
+.popup-content-center {
+    -fx-border-color: derive(forestgreen, -40%);
+    -fx-border-width: 0 2 0 2;
+    -fx-background-color: white;
+    -fx-padding: 8;
+}
+
+.popup-content-footer {
+    -fx-border-color: derive(forestgreen, -40%);
+    -fx-border-width: 0 2 2 2;
+    -fx-background-color: white;
+    -fx-padding: 0 8 8 8;
+    -fx-background-radius: 0 0 9 9;
+    -fx-border-radius: 0 0 8 8;
+}
+
 .section-heading {
     -fx-font-size: 16px;
 }

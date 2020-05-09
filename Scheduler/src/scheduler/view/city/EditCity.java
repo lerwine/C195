@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -14,24 +18,27 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
-import scheduler.view.MainController;
 import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.HandlesFxmlViewEvent;
+import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.event.FxmlViewEvent;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
@@ -42,13 +49,26 @@ import scheduler.view.task.TaskWaiter;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends EditItem.EditController<CityDAO, CityModel> {
+public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel> {
 
     private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
-    public static CityModel edit(CityModel model, MainController mainController, Stage stage) throws IOException {
-        return edit(model, EditCity.class, mainController, stage);
+    public static CityModel edit(CityModel model) throws IOException {
+        return EditItem.showAndWait(EditCity.class, model);
     }
+
+    private final ReadOnlyBooleanWrapper valid;
+
+    private final ReadOnlyStringWrapper windowTitle;
+
+    @ModelEditor
+    private CityModel model;
+
+    @ModelEditor
+    private WaitBorderPane waitBorderPane;
+
+    @FXML // ResourceBundle that was given to the FXMLLoader
+    private ResourceBundle resources;
 
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
@@ -66,6 +86,11 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModel> 
     private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
 
     private ObservableList<AddressModel> itemList;
+
+    public EditCity() {
+        this.valid = new ReadOnlyBooleanWrapper(false);
+        this.windowTitle = new ReadOnlyStringWrapper();
+    }
 
     @FXML
     void onAddCityButtonAction(ActionEvent event) {
@@ -102,25 +127,37 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModel> 
     @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
     protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
-        event.getStage().setTitle(String.format(getResourceString(RESOURCEKEY_EDITCITY), getModel().getName()));
+        event.getStage().setTitle(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
     }
 
     @Override
-    protected FxRecordModel.ModelFactory<CityDAO, CityModel> getFactory() {
+    public FxRecordModel.ModelFactory<CityDAO, CityModel> modelFactory() {
         return CityModel.getFactory();
     }
 
     @Override
-    protected BooleanExpression getValidationExpression() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#getValidationExpression
+    public boolean isValid() {
+        return valid.get();
     }
 
     @Override
-    protected void updateModel(CityModel model) {
-        if (!getValidationExpression().get()) {
-            throw new IllegalStateException();
-        }
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#updateModel
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getWindowTitle() {
+        return windowTitle.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty windowTitleProperty() {
+        return windowTitle.getReadOnlyProperty();
+    }
+
+    @Override
+    public boolean applyChangesToModel() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#applyChangesToModel
     }
 
     private class ItemsLoadTask extends TaskWaiter<List<AddressDAO>> {
@@ -128,9 +165,9 @@ public final class EditCity extends EditItem.EditController<CityDAO, CityModel> 
         private final int pk;
 
         private ItemsLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGADDRESSES));
-            pk = getModel().getPrimaryKey();
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES));
+            pk = model.getPrimaryKey();
         }
 
         @Override

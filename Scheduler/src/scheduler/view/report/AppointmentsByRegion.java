@@ -3,8 +3,6 @@ package scheduler.view.report;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -12,7 +10,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -25,8 +22,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
@@ -136,8 +133,8 @@ public class AppointmentsByRegion {
         private final String monthName;
 
         private CountLoadTask(Stage owner, LocalDate start, String monthName) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGAPPOINTMENTS));
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
             this.start = start.withDayOfMonth(1);
             this.monthName = monthName;
         }

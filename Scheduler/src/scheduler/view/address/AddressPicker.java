@@ -1,40 +1,42 @@
 package scheduler.view.address;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.Observable;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
-import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import static scheduler.util.NodeUtil.bindCollapsible;
+import scheduler.model.db.CityRowData;
+import scheduler.model.db.CountryRowData;
+import scheduler.model.ui.CountryItem;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.ErrorDetailDialog;
+import static scheduler.view.address.AddressPickerResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.RelatedCity;
 import scheduler.view.country.RelatedCountry;
-import scheduler.view.task.TaskWaiter;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
-import scheduler.model.ui.CountryItem;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * FXML Controller class
@@ -43,27 +45,19 @@ import scheduler.model.ui.CountryItem;
  */
 @GlobalizationResource("scheduler/view/address/AddressPicker")
 @FXMLResource("/scheduler/view/address/AddressPicker.fxml")
-public class AddressPicker {
+public class AddressPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(AddressPicker.class.getName());
 
-    private ObservableList<RelatedCity> allCities;
-    private ObservableList<RelatedCity> cityOptions;
-    private ObservableList<CountryItem> allCountries;
+    private final ObservableList<RelatedCity> allCities;
+    private final ObservableList<RelatedCity> cityOptions;
+    private final ObservableList<CountryItem> allCountries;
+    private final ObservableList<AddressModel> addressOptions;
     private ObservableList<AddressModel> allAddresses;
-    private ObservableList<AddressModel> addressOptions;
-    private SingleSelectionModel<CountryItem> countrySelectionModel;
-    private SingleSelectionModel<RelatedCity> citySelectionModel;
-    private TableView.TableViewSelectionModel<AddressModel> addressSelectionModel;
-    private BiConsumer<Stage, AddressModel> onClosed;
+    private Consumer<AddressModel> onClosed;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-//    @FXML // URL location of the FXML file that was given to the FXMLLoader
-//    private URL location;
-    @FXML // fx:id="rootBorderPane"
-    private BorderPane rootBorderPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
     private ComboBox<CountryItem> countryComboBox; // Value injected by FXMLLoader
@@ -83,25 +77,43 @@ public class AddressPicker {
     @FXML // fx:id="selectButton"
     private Button selectButton; // Value injected by FXMLLoader
 
-    @FXML
-    void onCountryComboBoxAction(ActionEvent event) {
-        addressSelectionModel.clearSelection();
-        citySelectionModel.clearSelection();
-        cityOptions.clear();
-        addressOptions.clear();
-        CountryItem selectedItem = countrySelectionModel.getSelectedItem();
-        // CURRENT: Find better way to get matching item
-//        if (null != selectedItem) {
-//            int pk = selectedItem.getPrimaryKey();
-//            allCities.stream().filter((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
-//        }
+    @SuppressWarnings("LeakingThisInConstructor")
+    public AddressPicker() {
+        allCountries = FXCollections.observableArrayList();
+        allCities = FXCollections.observableArrayList();
+        cityOptions = FXCollections.observableArrayList();
+        addressOptions = FXCollections.observableArrayList();
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
     }
 
     @FXML
-    void onCityComboBoxAction(ActionEvent event) {
-        addressSelectionModel.clearSelection();
+    private void onCountryComboBoxAction(ActionEvent event) {
+        addressesTableView.getSelectionModel().clearSelection();
+        cityComboBox.getSelectionModel().clearSelection();
+        cityOptions.clear();
         addressOptions.clear();
-        RelatedCity selectedItem = citySelectionModel.getSelectedItem();
+        CountryItem selectedItem = countryComboBox.getValue();
+        if (null == selectedItem) {
+            restoreLabeled(cityWarningLabel, resources.getString(RESOURCEKEY_COUNTRYNOTSELECTED));
+            restoreNode(countryWarningLabel);
+        } else {
+            collapseNode(countryWarningLabel);
+            restoreLabeled(cityWarningLabel, resources.getString(RESOURCEKEY_CITYNOTSELECTED));
+            int pk = selectedItem.getPrimaryKey();
+            allCities.stream().filter((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
+        }
+    }
+
+    @FXML
+    private void onCityComboBoxAction(ActionEvent event) {
+        addressesTableView.getSelectionModel().clearSelection();
+        addressOptions.clear();
+        RelatedCity selectedItem = cityComboBox.getValue();
         if (null != selectedItem) {
             int pk = selectedItem.getPrimaryKey();
             allAddresses.stream().filter((t) -> t.getCity().getPrimaryKey() == pk).forEach((t) -> addressOptions.add(t));
@@ -109,104 +121,92 @@ public class AddressPicker {
     }
 
     @FXML
-    synchronized void onSelectButtonAction(ActionEvent event) {
-        close().accept((Stage) ((Button) event.getSource()).getScene().getWindow(), addressSelectionModel.getSelectedItem());
+    private synchronized void onSelectButtonAction(ActionEvent event) {
+        close().accept(addressesTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    synchronized void onCancelButtonAction(ActionEvent event) {
-        close().accept((Stage) ((Button) event.getSource()).getScene().getWindow(), null);
+    private synchronized void onCancelButtonAction(ActionEvent event) {
+        close().accept(null);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
-        assert rootBorderPane != null : "fx:id=\"rootBorderPane\" was not injected: check your FXML file 'AddressPicker.fxml'.";
+    private void initialize() {
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'AddressPicker.fxml'.";
         assert countryWarningLabel != null : "fx:id=\"countryWarningLabel\" was not injected: check your FXML file 'AddressPicker.fxml'.";
         assert cityComboBox != null : "fx:id=\"cityComboBox\" was not injected: check your FXML file 'AddressPicker.fxml'.";
         assert cityWarningLabel != null : "fx:id=\"cityWarningLabel\" was not injected: check your FXML file 'AddressPicker.fxml'.";
         assert addressesTableView != null : "fx:id=\"addressesTableView\" was not injected: check your FXML file 'AddressPicker.fxml'.";
         assert selectButton != null : "fx:id=\"selectButton\" was not injected: check your FXML file 'AddressPicker.fxml'.";
-        allCountries = FXCollections.observableArrayList();
-        allCities = FXCollections.observableArrayList();
-        cityOptions = FXCollections.observableArrayList();
-        addressOptions = FXCollections.observableArrayList();
 
-        rootBorderPane.setVisible(false);
-        collapseNode(rootBorderPane);
+        collapseNode(this);
 
-        countrySelectionModel = countryComboBox.getSelectionModel();
         countryComboBox.setItems(allCountries);
-
-        citySelectionModel = cityComboBox.getSelectionModel();
         cityComboBox.setItems(cityOptions);
-        cityComboBox.disableProperty().bind(countrySelectionModel.selectedItemProperty().isNull());
-
-        bindCollapsible(countryWarningLabel, () -> null != countrySelectionModel.getSelectedItem(), countrySelectionModel.selectedItemProperty());
-
-        bindCollapsible(cityWarningLabel, () -> null != citySelectionModel.getSelectedItem(), citySelectionModel.selectedItemProperty());
-
-        addressSelectionModel = addressesTableView.getSelectionModel();
-        addressesTableView.disableProperty().bind(citySelectionModel.selectedItemProperty().isNull());
-
-        selectButton.disableProperty().bind(addressSelectionModel.selectedItemProperty().isNull());
+        addressesTableView.getSelectionModel().selectedItemProperty().addListener(this::onAddressChanged);
     }
 
-    private synchronized BiConsumer<Stage, AddressModel> close() {
-        BiConsumer<Stage, AddressModel> c = onClosed;
+    private void onAddressChanged(Observable observable) {
+        selectButton.setDisable(null == ((ReadOnlyObjectProperty<AddressModel>) observable).get());
+    }
+
+    private synchronized Consumer<AddressModel> close() {
+        Consumer<AddressModel> c = onClosed;
         onClosed = null;
-        rootBorderPane.setVisible(false);
-        collapseNode(rootBorderPane);
+        collapseNode(this);
         return c;
     }
 
-    public synchronized void PickAddress(Stage stage, BiConsumer<Stage, AddressModel> onClosed) {
+    public synchronized void PickAddress(WaitBorderPane waitBorderPane, Consumer<AddressModel> onClosed) {
         if (null != this.onClosed) {
-            BiConsumer<Stage, AddressModel> c = this.onClosed;
-            this.onClosed = (t, u) -> {
-                c.accept(t, u);
-                onClosed.accept(t, u);
+            Consumer<AddressModel> c = this.onClosed;
+            this.onClosed = (t) -> {
+                c.accept(t);
+                onClosed.accept(t);
             };
         } else {
             this.onClosed = onClosed;
             if (null == allAddresses) {
                 allAddresses = FXCollections.observableArrayList();
-                TaskWaiter.startNow(new InitialLoadTask(stage));
+                waitBorderPane.startNow(new InitialLoadTask());
             } else {
-                addressSelectionModel.clearSelection();
-                citySelectionModel.clearSelection();
-                countrySelectionModel.clearSelection();
+                addressesTableView.getSelectionModel().clearSelection();
+                cityComboBox.getSelectionModel().clearSelection();
+                countryComboBox.getSelectionModel().clearSelection();
             }
-            restoreNode(rootBorderPane);
-            rootBorderPane.setVisible(true);
+            restoreNode(this);
         }
     }
 
-    private class InitialLoadTask extends TaskWaiter<List<AddressDAO>> {
+    private class InitialLoadTask extends Task<List<AddressDAO>> {
 
-        private InitialLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(RESOURCEKEY_LOADINGADDRESSES));
+        private InitialLoadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES));
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
         }
 
         @Override
-        protected List<AddressDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            AddressDAO.FactoryImpl factory = AddressDAO.getFactory();
-            return factory.load(connection, factory.getAllItemsFilter());
+        protected List<AddressDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                AddressDAO.FactoryImpl factory = AddressDAO.getFactory();
+                return factory.load(dbConnector.getConnection(), factory.getAllItemsFilter());
+            }
         }
 
         @Override
-        protected void processResult(List<AddressDAO> result, Stage stage) {
+        protected void succeeded() {
+            List<AddressDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
                     CityRowData city = t.getCity();
-                    int cityPk = city.getPrimaryKey();
-                    if (!allCities.stream().anyMatch((u) -> u.getPrimaryKey() == cityPk)) {
+                    String rk = city.asPredefinedData().getResourceKey();
+                    if (!allCities.stream().anyMatch((u) -> u.asPredefinedData().getResourceKey().equals(rk))) {
                         allCities.add(new RelatedCity(city));
                         CountryRowData country = city.getCountry();
-                        int countryPk = country.getPrimaryKey();
-                        if (!allCountries.stream().anyMatch((u) -> u.getPrimaryKey() == countryPk)) {
+                        String rc = country.asPredefinedData().getRegionCode();
+                        if (!allCountries.stream().anyMatch((u) -> country.asPredefinedData().getRegionCode().equals(rc))) {
                             allCountries.add(new RelatedCountry(country));
                         }
                     }
@@ -216,9 +216,10 @@ public class AddressPicker {
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
+                    getException());
+            getScene().getWindow().hide();
         }
 
     }

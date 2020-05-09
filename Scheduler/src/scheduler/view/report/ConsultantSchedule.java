@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
@@ -44,6 +45,8 @@ import scheduler.view.user.UserModel;
 @FXMLResource("/scheduler/view/report/ConsultantSchedule.fxml")
 public class ConsultantSchedule {
 
+    private static final Logger LOG = Logger.getLogger(ConsultantSchedule.class.getName());
+
     public static ConsultantSchedule loadInto(MainController mainController, Stage stage, Object loadEventListener) throws IOException {
         return mainController.loadContent(ConsultantSchedule.class, loadEventListener);
     }
@@ -51,8 +54,6 @@ public class ConsultantSchedule {
     public static ConsultantSchedule loadInto(MainController mainController, Stage stage) throws IOException {
         return mainController.loadContent(ConsultantSchedule.class);
     }
-
-    private static final Logger LOG = Logger.getLogger(ConsultantSchedule.class.getName());
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -157,8 +158,8 @@ public class ConsultantSchedule {
         private final UserDAO user;
 
         private InitializeTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGUSERS));
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             start = LocalDate.now();
             user = Scheduler.getCurrentUser();
         }
@@ -201,8 +202,8 @@ public class ConsultantSchedule {
         private final UserDAO user;
 
         private AppointmentReloadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResources.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResources.RESOURCEKEY_LOADINGUSERS));
+            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             start = rangeStartDatePicker.getValue();
             end = rangeEndDatePicker.getValue();
             user = consultantsComboBox.getValue().getDataObject();

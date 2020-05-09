@@ -231,6 +231,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
             };
 
             dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.CITY_NAME.toString()));
+            dao.setPredefinedCity(PredefinedData.lookupCity(dao.name));
             dao.country = CountryDAO.getFactory().fromJoinedResultSet(rs);
             return propertyChanges;
         }

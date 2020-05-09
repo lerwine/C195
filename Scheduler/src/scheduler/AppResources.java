@@ -2,17 +2,11 @@ package scheduler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.FormatStyle;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -27,14 +21,13 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
 // TODO: Test alert for scheduling overlapping appointments
-
 /**
  * Gets settings from the {@code /resources/scheduler/config.properties} file.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/App")
-public final class AppResources implements AppResourceKeys {
+public final class AppResources {
 
     public static final String FXMLPROPERTYNAME_CONTROLLER = "scheduler.Controller";
 
@@ -64,6 +57,21 @@ public final class AppResources implements AppResourceKeys {
         }
     }
 
+    static {
+        CLASSNAME_TO_FXMLNAME = new HashMap<>();
+        APPCONFIG_PROPERTIES = new Properties();
+        ClassLoader classLoader = AppResources.class.getClassLoader();
+        try (InputStream iStream = classLoader.getResourceAsStream(PROPERTIES_FILE_APPCONFIG)) {
+            if (iStream == null) {
+                LOG.log(Level.SEVERE, String.format("Resource \"%s\" not found.", PROPERTIES_FILE_APPCONFIG));
+            } else {
+                APPCONFIG_PROPERTIES.load(iStream);
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, String.format("Error loading resource \"%s\"", PROPERTIES_FILE_APPCONFIG), ex);
+        }
+    }
+
     /**
      * Get the value of currentLocale
      *
@@ -80,21 +88,6 @@ public final class AppResources implements AppResourceKeys {
         if (currentLocale != Objects.requireNonNull(newLocale)) {
             currentLocale = newLocale;
             Locale.setDefault(currentLocale.getLocale());
-        }
-    }
-
-    static {
-        CLASSNAME_TO_FXMLNAME = new HashMap<>();
-        APPCONFIG_PROPERTIES = new Properties();
-        ClassLoader classLoader = AppResources.class.getClassLoader();
-        try (InputStream iStream = classLoader.getResourceAsStream(PROPERTIES_FILE_APPCONFIG)) {
-            if (iStream == null) {
-                LOG.log(Level.SEVERE, String.format("Resource \"%s\" not found.", PROPERTIES_FILE_APPCONFIG));
-            } else {
-                APPCONFIG_PROPERTIES.load(iStream);
-            }
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, String.format("Error loading resource \"%s\"", PROPERTIES_FILE_APPCONFIG), ex);
         }
     }
 

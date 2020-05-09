@@ -1,6 +1,7 @@
 package scheduler.observables;
 
 import javafx.beans.property.ReadOnlyProperty;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.model.AppointmentType;
 import scheduler.model.db.CustomerRowData;
@@ -38,7 +39,7 @@ public class EffectiveLocationProperty extends StringBindingProperty {
         switch (type.getValue()) {
             case CORPORATE_LOCATION:
                 PredefinedAddress a = PredefinedData.lookupAddress(l);
-                return (null == a) ? AppResources.getResourceString(AppResources.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE) : AddressTextProperty.convertToString(a);
+                return (null == a) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE) : AddressTextProperty.convertToString(a);
             case CUSTOMER_SITE:
                 if (null != c) {
                     return c.addressTextProperty().getValue();
