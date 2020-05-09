@@ -330,6 +330,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
             if (count > 0) {
                 return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE);
             }
+            // CURRENT: Get country conflict message if it is has been modified.
             return "";
         }
 

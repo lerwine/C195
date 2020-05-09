@@ -281,9 +281,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             if (null == addressModel) {
                 throw new IllegalArgumentException("No associated address");
             }
-            // FIXME: When the model is a new item, the DAO is not initialized and will fail
-            AddressRowData addressDAO = (addressModel instanceof AddressDbItem)
+            AddressRowData addressDAO;
+            if (addressModel instanceof AddressModel) {
+                addressDAO = AddressModel.getFactory().updateDAO((AddressModel)addressModel);
+            } else {
+                addressDAO = (addressModel instanceof AddressDbItem)
                     ? ((AddressDbItem<? extends AddressRowData>) addressModel).getDataObject() : (AddressRowData) addressModel;
+            }
             if (ModelHelper.getRowState(addressDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated address has been deleted");
             }

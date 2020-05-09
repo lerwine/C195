@@ -278,6 +278,11 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
         }
 
         @Override
+        public void save(AddressDAO dao, Connection connection, boolean force) throws SQLException {
+            super.save(dao, connection, force); // CURRENT: Save city if it is has been modified
+        }
+
+        @Override
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(AddressDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldAddress1 = dao.address1;
@@ -338,6 +343,7 @@ public class AddressDAO extends DataAccessObject implements AddressRowData {
             // PENDING: Internationalize these
             switch (count) {
                 case 0:
+                    // CURRENT: Get city conflict message if it is has been modified.
                     return "";
                 case 1:
                     return "Address is referenced by one customer.";

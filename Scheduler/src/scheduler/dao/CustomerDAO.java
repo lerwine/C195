@@ -344,6 +344,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
             if (count > 0) {
                 return "Another customer has the same name";
             }
+            // CURRENT: Get address conflict message if it is has been modified
             return "";
         }
 

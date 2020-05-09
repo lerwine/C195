@@ -21,6 +21,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.db.CityRowData;
 import scheduler.model.ui.AddressDbItem;
 import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CityDbItem;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.FxDbModel;
 import scheduler.model.ui.FxRecordModel;
@@ -256,16 +257,16 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             if (null == cityModel) {
                 throw new IllegalArgumentException("No associated city");
             }
-
-            if (cityModel instanceof FxDbModel) {
-                CityRowData cityDAO = ((FxDbModel<? extends CityRowData>) cityModel).getDataObject();
-                if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
-                    throw new IllegalArgumentException("Associated city has been deleted");
-                }
-                dao.setCity(cityDAO);
+            CityRowData cityDAO;
+            if (cityModel instanceof CityModel) {
+                cityDAO = CityModel.getFactory().updateDAO((CityModel)cityModel);
             } else {
-                dao.setCity(cityModel);
+                cityDAO = (cityModel instanceof CityDbItem) ? ((CityDbItem<? extends CityRowData>)cityModel).getDataObject() : (CityRowData)cityModel;
             }
+            if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
+                throw new IllegalArgumentException("Associated city has been deleted");
+            }
+            dao.setCity(cityDAO);
             dao.setAddress1(address1);
             dao.setAddress2(address2);
             dao.setPostalCode(item.getPostalCode());
