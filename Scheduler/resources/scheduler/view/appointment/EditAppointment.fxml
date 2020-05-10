@@ -19,14 +19,14 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import scheduler.controls.AddressListCell?>
-<?import scheduler.controls.AddressListCellFactory?>
-<?import scheduler.controls.AppointmentTypeListCell?>
-<?import scheduler.controls.AppointmentTypeListCellFactory?>
-<?import scheduler.controls.CustomerListCell?>
-<?import scheduler.controls.CustomerListCellFactory?>
-<?import scheduler.controls.UserListCell?>
-<?import scheduler.controls.UserListCellFactory?>
+<?import scheduler.fx.AddressListCell?>
+<?import scheduler.fx.AddressListCellFactory?>
+<?import scheduler.fx.appointment.AppointmentTypeListCell?>
+<?import scheduler.fx.appointment.AppointmentTypeListCellFactory?>
+<?import scheduler.fx.CustomerListCell?>
+<?import scheduler.fx.CustomerListCellFactory?>
+<?import scheduler.fx.user.UserListCell?>
+<?import scheduler.fx.user.UserListCellFactory?>
 
 <fx:root stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>

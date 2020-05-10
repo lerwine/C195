@@ -1,48 +1,31 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
-import javafx.geometry.VPos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+import javafx.scene.layout.StackPane;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
+import scheduler.Scheduler;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.DB;
-import scheduler.util.EventHelper;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.ErrorDetailDialog;
-import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.event.FxmlViewControllerEventListener;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventType;
 
 /**
  * FXML Controller class
@@ -51,27 +34,25 @@ import scheduler.view.event.FxmlViewEventType;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ByMonth.fxml")
-public class ByMonth {
+public class ByMonth extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
 
+    public static ByMonth loadIntoMainContent(LocalDate month) {
+        ByMonth newContent = new ByMonth();
+        newContent.monthStart = ((null == month) ? LocalDate.now() : month).withDayOfMonth(1);
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        Scheduler.getMainController().replaceContent(newContent);
+        return newContent;
+    }
+
     private LocalDate monthStart;
     ObservableList<AppointmentModel> allAppointments;
-
-    public static ByMonth loadInto(MainController mainController, Stage stage, LocalDate month,
-            Object loadEventListener) throws IOException {
-        return mainController.loadContent(ByMonth.class, (FxmlViewControllerEventListener<Parent, ByMonth>) (event) -> {
-            if (event.getType() == FxmlViewEventType.LOADED) {
-                event.getController().monthStart = ((null == month) ? LocalDate.now() : month).withDayOfMonth(1);
-            }
-
-            EventHelper.fireFxmlViewEvent(loadEventListener, event);
-        });
-    }
-
-    public static ByMonth loadInto(MainController mainController, Stage stage, LocalDate month) throws IOException {
-        return loadInto(mainController, stage, month, null);
-    }
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -95,8 +76,7 @@ public class ByMonth {
     @FXML
     void onRunButtonAction(ActionEvent event) {
         monthNameLabel.setText(monthComboBox.getValue());
-        loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1,
-                (Stage)((Button)event.getSource()).getScene().getWindow());
+        loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -121,22 +101,18 @@ public class ByMonth {
         monthComboBox.setItems(monthNames);
         monthComboBox.getSelectionModel().select(d.getMonthValue() - 1);
         monthNameLabel.setText(monthComboBox.getValue());
+
+        loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1, event.getStage());
-    }
-
-    private void loadAppointments(int year, int month, Stage stage) {
+    private void loadAppointments(int year, int month) {
         LocalDate d = LocalDate.of(year, Month.of(month), 1);
-        AppointmentModel.getFactory().loadAsync(stage,
-                AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
-                        DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
+        AppointmentModel.getFactory().loadAsync(AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
+                DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
             allAppointments.clear();
             allAppointments.addAll(t);
         }, (Throwable t) -> {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, t);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), t);
         });
     }
 

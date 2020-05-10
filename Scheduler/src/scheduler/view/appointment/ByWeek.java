@@ -9,21 +9,17 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
-import scheduler.util.EventHelper;
-import scheduler.view.MainController;
+import javafx.scene.layout.StackPane;
+import scheduler.Scheduler;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.event.FxmlViewControllerEventListener;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventType;
 
 /**
  * FXML Controller class
@@ -32,26 +28,27 @@ import scheduler.view.event.FxmlViewEventType;
  */
 @GlobalizationResource("scheduler/view/appointment/Calendar")
 @FXMLResource("/scheduler/view/appointment/ByWeek.fxml")
-public class ByWeek {
+public class ByWeek extends StackPane {
 
-    public static ByWeek loadInto(MainController mainController, Stage stage, LocalDate week,
-            Object loadEventListener) throws IOException {
-        return mainController.loadContent(ByWeek.class, (FxmlViewControllerEventListener<Parent, ByWeek>) (event) -> {
-            if (event.getType() == FxmlViewEventType.LOADED) {
-                LocalDate d = (null == week) ? LocalDate.now() : week;
-                while (d.getDayOfWeek() != DayOfWeek.SUNDAY) {
-                    d = d.minusDays(1);
-                }
-                event.getController().weekStart = d;
-            }
+    private static final Logger LOG = Logger.getLogger(ByWeek.class.getName());
 
-            EventHelper.fireFxmlViewEvent(loadEventListener, event);
-        });
+    public static ByWeek loadIntoMainContent(LocalDate week) {
+        ByWeek newContent = new ByWeek();
+        LocalDate d = (null == week) ? LocalDate.now() : week;
+        while (d.getDayOfWeek() != DayOfWeek.SUNDAY) {
+            d = d.minusDays(1);
+        }
+        newContent.weekStart = d;
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        Scheduler.getMainController().replaceContent(newContent);
+        return newContent;
     }
 
-    public static ByWeek loadInto(MainController mainController, Stage stage, LocalDate month) throws IOException {
-        return loadInto(mainController, stage, month, null);
-    }
     private LocalDate weekStart;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -105,11 +102,6 @@ public class ByWeek {
         assert titleLabel != null : "fx:id=\"titleLabel\" was not injected: check your FXML file 'ByWeek.fxml'.";
         assert timeLabel != null : "fx:id=\"timeLabel\" was not injected: check your FXML file 'ByWeek.fxml'.";
         assert customerLabel != null : "fx:id=\"customerLabel\" was not injected: check your FXML file 'ByWeek.fxml'.";
-
-    }
-
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
 
     }
 

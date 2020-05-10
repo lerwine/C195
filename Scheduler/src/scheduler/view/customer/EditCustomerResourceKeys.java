@@ -1,7 +1,7 @@
 package scheduler.view.customer;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/customer/EditCustomer}.
+ * Defines resource bundle keys for the {@code scheduler/view/customer/EditCustomer} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -133,12 +133,12 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\nSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customers.\nSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customers.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
 
@@ -246,4 +246,5 @@ public interface EditCustomerResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Yes"}.
      */
     public static final String RESOURCEKEY_YES = "yes";
+
 }

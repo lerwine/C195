@@ -1,8 +1,5 @@
 package scheduler.view.report;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -13,16 +10,16 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -31,28 +28,17 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.ItemCountResult;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.predefined.PredefinedData;
+import scheduler.util.DbConnector;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 
 @GlobalizationResource("scheduler/view/report/Reports")
 @FXMLResource("/scheduler/view/report/AppointmentsByRegion.fxml")
-public class AppointmentsByRegion {
+public class AppointmentsByRegion extends VBox {
 
     private static final Logger LOG = Logger.getLogger(AppointmentsByRegion.class.getName());
-
-    public static AppointmentsByRegion loadInto(MainController mainController, Stage stage, Object loadEventListener) throws IOException {
-        return mainController.loadContent(AppointmentsByRegion.class, loadEventListener);
-    }
-
-    public static AppointmentsByRegion loadInto(MainController mainController, Stage stage) throws IOException {
-        return mainController.loadContent(AppointmentsByRegion.class);
-    }
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -82,7 +68,7 @@ public class AppointmentsByRegion {
 
     @FXML
     void onRunButtonAction(ActionEvent event) {
-        TaskWaiter.startNow(new CountLoadTask((Stage) ((Button) event.getSource()).getScene().getWindow(), date, monthComboBox.getValue()));
+        MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
     }
 
     private void onDateChanged(Integer year) {
@@ -120,27 +106,25 @@ public class AppointmentsByRegion {
         yearSpinner.valueProperty().addListener((observable) -> {
             onDateChanged(((ReadOnlyObjectProperty<Integer>) observable).get());
         });
+
+        MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        TaskWaiter.startNow(new CountLoadTask(event.getStage(), date, monthComboBox.getValue()));
-    }
-
-    private class CountLoadTask extends TaskWaiter<List<ItemCountResult<String>>> {
+    private class CountLoadTask extends Task<List<ItemCountResult<String>>> {
 
         private final LocalDate start;
         private final String monthName;
 
-        private CountLoadTask(Stage owner, LocalDate start, String monthName) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
+        private CountLoadTask(LocalDate start, String monthName) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
             this.start = start.withDayOfMonth(1);
             this.monthName = monthName;
         }
 
         @Override
-        protected void processResult(List<ItemCountResult<String>> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            List<ItemCountResult<String>> result = getValue();
             HashMap<String, Integer> regions = new HashMap<>();
             result.forEach((t) -> regions.put(t.getValue(), t.getCount()));
             ObservableMap<String, PredefinedCountry> countryMap = PredefinedData.getCountryMap();
@@ -156,15 +140,18 @@ public class AppointmentsByRegion {
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            super.failed();
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
         }
 
         @Override
-        protected List<ItemCountResult<String>> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            return AppointmentDAO.getFactory().getCountsByCustomerRegion(connection, start.atStartOfDay(), start.plusMonths(1).atStartOfDay());
+        protected List<ItemCountResult<String>> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                return AppointmentDAO.getFactory().getCountsByCustomerRegion(dbConnector.getConnection(), start.atStartOfDay(), start.plusMonths(1).atStartOfDay());
+            }
         }
 
     }

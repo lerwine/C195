@@ -41,6 +41,7 @@ public final class AppResources {
     public static final String PROPERTYKEY_DBLOGIN = "dbLogin";
     public static final String PROPERTYKEY_DBPASSWORD = "dbPassword";
     public static final String PROPERTYKEY_APPOINTMENTALERTLEADTIME = "appointmentAlertLeadTime";
+    public static final String PROPERTYKEY_APPOINTMENTCHECKFREQUENCY = "appointmentCheckFrequency";
     public static final String PROPERTIES_FILE_APPCONFIG = "scheduler/config.properties";
 
     private static final Locale ORIGINAL_LOCALE;
@@ -139,6 +140,11 @@ public final class AppResources {
 
     public static final int getAppointmentAlertLeadTime() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_APPOINTMENTALERTLEADTIME, "");
+        return NumberFormat.getIntegerInstance().parse(s).intValue();
+    }
+
+    public static final int getAppointmentCheckFrequency() throws ParseException {
+        String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_APPOINTMENTCHECKFREQUENCY, "");
         return NumberFormat.getIntegerInstance().parse(s).intValue();
     }
 

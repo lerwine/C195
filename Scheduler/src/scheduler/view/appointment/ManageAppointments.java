@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -23,11 +24,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
-import scheduler.view.ListingController;
+import scheduler.fx.MainListingControl;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
@@ -59,17 +62,19 @@ import scheduler.model.ui.UserItem;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public final class ManageAppointments extends ListingController<AppointmentDAO, AppointmentModel> {
+public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentDaoEvent> {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
 
-    public static ManageAppointments loadInto(MainController mainController, Stage stage, AppointmentModelFilter filter,
-            Object loadEventListener) throws IOException {
-        return loadInto(ManageAppointments.class, mainController, stage, filter, loadEventListener);
+    public static ManageAppointments loadIntoMainContent(AppointmentModelFilter filter) {
+        ManageAppointments newContent = new ManageAppointments();
+        Scheduler.getMainController().replaceContent(newContent);
+        newContent.setFilter(filter);
+        return newContent;
     }
 
-    public static ManageAppointments loadInto(MainController mainController, Stage stage, AppointmentModelFilter filter) throws IOException {
-        return loadInto(mainController, stage, filter, null);
+    public static ManageAppointments loadIntoMainContent() {
+        return loadIntoMainContent(AppointmentModel.getFactory().getDefaultFilter());
     }
 
     @FXML // fx:id="titleTableColumn"
@@ -195,61 +200,61 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                     public String getHeaderText(DbColumn column) {
                         switch (column) {
                             case APPOINTMENT_CUSTOMER:
-                                return getResourceString(RESOURCEKEY_CUSTOMERID);
+                                return getResources().getString(RESOURCEKEY_CUSTOMERID);
                             case CUSTOMER_NAME:
-                                return getResourceString(RESOURCEKEY_CUSTOMER);
+                                return getResources().getString(RESOURCEKEY_CUSTOMER);
                             case CUSTOMER_ADDRESS:
-                                return getResourceString(RESOURCEKEY_ADDRESSID);
+                                return getResources().getString(RESOURCEKEY_ADDRESSID);
                             case ADDRESS1:
-                                return getResourceString(RESOURCEKEY_ADDRESS);
+                                return getResources().getString(RESOURCEKEY_ADDRESS);
                             case ADDRESS2:
-                                return getResourceString(RESOURCEKEY_ADDRESS2);
+                                return getResources().getString(RESOURCEKEY_ADDRESS2);
                             case ADDRESS_CITY:
-                                return getResourceString(RESOURCEKEY_CITYID);
+                                return getResources().getString(RESOURCEKEY_CITYID);
                             case CITY_NAME:
-                                return getResourceString(RESOURCEKEY_CITY);
+                                return getResources().getString(RESOURCEKEY_CITY);
                             case CITY_COUNTRY:
-                                return getResourceString(RESOURCEKEY_COUNTRYID);
+                                return getResources().getString(RESOURCEKEY_COUNTRYID);
                             case COUNTRY_NAME:
-                                return getResourceString(RESOURCEKEY_COUNTRY);
+                                return getResources().getString(RESOURCEKEY_COUNTRY);
                             case POSTAL_CODE:
-                                return getResourceString(RESOURCEKEY_POSTALCODE);
+                                return getResources().getString(RESOURCEKEY_POSTALCODE);
                             case PHONE:
-                                return getResourceString(RESOURCEKEY_PHONENUMBER);
+                                return getResources().getString(RESOURCEKEY_PHONENUMBER);
                             case ACTIVE:
-                                return getResourceString(RESOURCEKEY_ACTIVE);
+                                return getResources().getString(RESOURCEKEY_ACTIVE);
                             case APPOINTMENT_USER:
-                                return getResourceString(RESOURCEKEY_USERID);
+                                return getResources().getString(RESOURCEKEY_USERID);
                             case USER_NAME:
-                                return getResourceString(RESOURCEKEY_USER);
+                                return getResources().getString(RESOURCEKEY_USER);
                             case STATUS:
-                                return getResourceString(RESOURCEKEY_STATUS);
+                                return getResources().getString(RESOURCEKEY_STATUS);
                             case TITLE:
-                                return getResourceString(RESOURCEKEY_TITLE);
+                                return getResources().getString(RESOURCEKEY_TITLE);
                             case DESCRIPTION:
-                                return getResourceString(RESOURCEKEY_DESCRIPTION);
+                                return getResources().getString(RESOURCEKEY_DESCRIPTION);
                             case LOCATION:
-                                return getResourceString(RESOURCEKEY_LOCATION);
+                                return getResources().getString(RESOURCEKEY_LOCATION);
                             case CONTACT:
-                                return getResourceString(RESOURCEKEY_POINTOFCONTACT);
+                                return getResources().getString(RESOURCEKEY_POINTOFCONTACT);
                             case TYPE:
-                                return getResourceString(RESOURCEKEY_TYPE);
+                                return getResources().getString(RESOURCEKEY_TYPE);
                             case URL:
-                                return getResourceString(RESOURCEKEY_MEETINGURL);
+                                return getResources().getString(RESOURCEKEY_MEETINGURL);
                             case START:
-                                return getResourceString(RESOURCEKEY_START);
+                                return getResources().getString(RESOURCEKEY_START);
                             case END:
-                                return getResourceString(RESOURCEKEY_END);
+                                return getResources().getString(RESOURCEKEY_END);
                             case APPOINTMENT_ID:
-                                return getResourceString(RESOURCEKEY_APPOINTMENTID);
+                                return getResources().getString(RESOURCEKEY_APPOINTMENTID);
                             case APPOINTMENT_CREATE_DATE:
-                                return getResourceString(RESOURCEKEY_CREATEDON);
+                                return getResources().getString(RESOURCEKEY_CREATEDON);
                             case APPOINTMENT_CREATED_BY:
-                                return getResourceString(RESOURCEKEY_CREATEDBY);
+                                return getResources().getString(RESOURCEKEY_CREATEDBY);
                             case APPOINTMENT_LAST_UPDATE:
-                                return getResourceString(RESOURCEKEY_UPDATEDON);
+                                return getResources().getString(RESOURCEKEY_UPDATEDON);
                             case APPOINTMENT_LAST_UPDATE_BY:
-                                return getResourceString(RESOURCEKEY_UPDATEDBY);
+                                return getResources().getString(RESOURCEKEY_UPDATEDBY);
                             default:
                                 return column.getDbName().toString();
                         }
@@ -361,23 +366,23 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
                 try {
                     if (ef == csvAll || ef == csvDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
-                            (new CsvDataExporter<>(dataReader)).export(fileWriter, getItemsList());
+                            (new CsvDataExporter<>(dataReader)).export(fileWriter, getItems());
                         }
                     } else if (ef == tsvAll || ef == tsvDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
-                            (new TsvDataExporter<>(dataReader)).export(fileWriter, getItemsList());
+                            (new TsvDataExporter<>(dataReader)).export(fileWriter, getItems());
                         }
                     } else if (ef == htmAll || ef == htmDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
                             ModelFilter<AppointmentDAO, AppointmentModel, ? extends DaoFilter<AppointmentDAO>> filter = getFilter();
-                            (new HtmlDataExporter<>(filter.getHeadingText(), dataReader)).export(fileWriter, getItemsList());
+                            (new HtmlDataExporter<>(filter.getHeadingText(), dataReader)).export(fileWriter, getItems());
                         }
                     } else {
-                        Alert alert = new Alert(Alert.AlertType.WARNING, getResourceString(RESOURCEKEY_FILETYPENOTSUPPORTED));
+                        Alert alert = new Alert(Alert.AlertType.WARNING, getResources().getString(RESOURCEKEY_FILETYPENOTSUPPORTED));
                         alert.initModality(Modality.APPLICATION_MODAL);
                         alert.initOwner(stage);
                         alert.initStyle(StageStyle.UTILITY);
-                        alert.setTitle(getResourceString(RESOURCEKEY_UNKNOWNFILETYPE));
+                        alert.setTitle(getResources().getString(RESOURCEKEY_UNKNOWNFILETYPE));
                         alert.showAndWait();
                     }
                 } catch (IOException ex) {
@@ -412,28 +417,48 @@ public final class ManageAppointments extends ListingController<AppointmentDAO, 
     }
 
     @Override
-    protected void onDeleteItem(Stage stage, AppointmentModel item) {
-        getMainController().deleteAppointment(stage, item);
-    }
-
-    @Override
-    protected AppointmentModel toModel(AppointmentDAO dao) {
-        return new AppointmentModel(dao);
-    }
-
-    @Override
-    protected void onAddNewItem(Stage stage) throws IOException {
-        getMainController().addNewAppointment(stage, null, null);
-    }
-
-    @Override
-    protected void onEditItem(Stage stage, AppointmentModel item) throws IOException {
-        getMainController().editAppointment(stage, item);
-    }
-
-    @Override
     protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
         return AppointmentModel.getFactory();
+    }
+
+    @Override
+    protected String getLoadingTitle() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.ManageAppointments#getLoadingTitle
+    }
+
+    @Override
+    protected String getFailMessage() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.ManageAppointments#getFailMessage
+    }
+
+    @Override
+    protected void onNewItem() {
+        getMainController().addNewAppointment(null, null);
+    }
+
+    @Override
+    protected void onEditItem(AppointmentModel item) {
+        getMainController().editAppointment(item);
+    }
+
+    @Override
+    protected void onDeleteItem(AppointmentModel item) {
+        getMainController().deleteAppointment(item);
+    }
+
+    @Override
+    protected EventType<AppointmentDaoEvent> getInsertedEventType() {
+        return AppointmentDaoEvent.APPOINTMENT_DAO_INSERT;
+    }
+
+    @Override
+    protected EventType<AppointmentDaoEvent> getUpdatedEventType() {
+        return AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE;
+    }
+
+    @Override
+    protected EventType<AppointmentDaoEvent> getDeletedEventType() {
+        return AppointmentDaoEvent.APPOINTMENT_DAO_DELETE;
     }
 
 }

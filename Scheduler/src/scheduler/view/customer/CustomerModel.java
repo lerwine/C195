@@ -22,8 +22,8 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringBindingProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.view.address.AddressModel;
-import scheduler.view.address.RelatedAddress;
+import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.RelatedAddress;
 
 /**
  *

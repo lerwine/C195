@@ -2,8 +2,6 @@ package scheduler.view.customer;
 
 import com.sun.javafx.scene.control.behavior.OptionalBoolean;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,10 +14,10 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -27,29 +25,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS;
-import static scheduler.AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.city.CityModel;
 import scheduler.view.country.CountryModel;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * FXML Controller class for picking a {@link CustomerModel}.
@@ -64,128 +55,6 @@ public class CustomerPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
 
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "All"}.
-     */
-    public static final String RESOURCEKEY_ALL = "all";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Active"}.
-     */
-    public static final String RESOURCEKEY_ACTIVE = "active";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Inactive"}.
-     */
-    public static final String RESOURCEKEY_INACTIVE = "inactive";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CountryDAO"}.
-     */
-    public static final String RESOURCEKEY_COUNTRY = "country";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityDAO"}.
-     */
-    public static final String RESOURCEKEY_CITY = "city";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name:"}.
-     */
-    public static final String RESOURCEKEY_NAMELABEL = "nameLabel";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Select"}.
-     */
-    public static final String RESOURCEKEY_SELECT = "select";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Cancel"}.
-     */
-    public static final String RESOURCEKEY_CANCEL = "cancel";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "New"}.
-     */
-    public static final String RESOURCEKEY_NEW = "new";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Name"}.
-     */
-    public static final String RESOURCEKEY_NAME = "name";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Phone"}.
-     */
-    public static final String RESOURCEKEY_PHONE = "phone";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created On"}.
-     */
-    public static final String RESOURCEKEY_CREATEDON = "createdOn";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created By"}.
-     */
-    public static final String RESOURCEKEY_CREATEDBY = "createdBy";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Address"}.
-     */
-    public static final String RESOURCEKEY_ADDRESS = "address";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Postal Code"}.
-     */
-    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated On"}.
-     */
-    public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Updated By"}.
-     */
-    public static final String RESOURCEKEY_UPDATEDBY = "updatedBy";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CountryDAO:"}.
-     */
-    public static final String RESOURCEKEY_COUNTRYLABEL = "countryLabel";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "CityDAO:"}.
-     */
-    public static final String RESOURCEKEY_CITYLABEL = "cityLabel";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Modified"}.
-     */
-    public static final String RESOURCEKEY_MODIFIED = "modified";
-
-    /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the text for {@code "Created"}.
-     */
-    public static final String RESOURCEKEY_CREATED = "created";
-
-    public static CustomerModel pickCustomer(Stage parent) {
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(parent);
-//        try {
-//            CustomerPicker ctrl = loadViewAndController(parent, CustomerPicker.class, (Parent v, CustomerPicker c) -> {
-//                stage.setScene(new Scene(v));
-//            });
-//            stage.showAndWait();
-//            return ctrl.selectedCustomer;
-//        } catch (IOException ex) {
-//            AlertHelper.logAndAlertError(parent, LOG, CustomerPicker.class, "pickCustomer", String.format("Error loading FXML for %s", CustomerPicker.class.getName()), ex);
-//        }
-//        return null;
-        throw new UnsupportedOperationException();
-        // TODO: Implement scheduler.view.customer.CustomerPicker#pickCustomer(Stage parent)
-    }
     private ObservableList<CountryModel> countries;
     private ObservableList<CityModel> cities;
     private ObservableList<StatusOption> statusOptions;
@@ -252,6 +121,9 @@ public class CustomerPicker extends BorderPane {
     @FXML // fx:id="modifiedLabel"
     private Label modifiedLabel; // Value injected by FXMLLoader
 
+    @FXML // fx:id="waitBorderPane"
+    private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
+
     @SuppressWarnings("LeakingThisInConstructor")
     public CustomerPicker() {
         try {
@@ -294,6 +166,7 @@ public class CustomerPicker extends BorderPane {
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
         assert createdLabel != null : "fx:id=\"createdLabel\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
         assert modifiedLabel != null : "fx:id=\"modifiedLabel\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
+        assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
     }
 
     void customerSelected(CustomerModel customer) {
@@ -327,11 +200,7 @@ public class CustomerPicker extends BorderPane {
         createdLabel.setText(ResourceBundleHelper.formatCreatedByOn(customer.getCreatedBy(), customer.getCreateDate()));
         modifiedLabel.setText(ResourceBundleHelper.formatModifiedByOn(customer.getLastModifiedBy(), customer.getLastModifiedDate()));
         selectCustomerButton.setDisable(false);
-    }
-
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        TaskWaiter.startNow(new LoadCountriesTask(event.getStage()));
+        waitBorderPane.startNow(new LoadCountriesTask());
     }
 
     @FXML
@@ -381,7 +250,7 @@ public class CustomerPicker extends BorderPane {
             countryComboBox.setDisable(false);
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                TaskWaiter.startNow(new LoadCitiesTask(event, country.getDataObject(),
+                waitBorderPane.startNow(new LoadCitiesTask(country.getDataObject(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
             }
         } else {
@@ -391,7 +260,7 @@ public class CustomerPicker extends BorderPane {
             cityFilterCheckBox.setDisable(true);
             countryComboBox.setDisable(true);
             cityComboBox.setDisable(true);
-            TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), null, null,
+            waitBorderPane.startNow(new LoadCustomersTask(null, null,
                     statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
         }
@@ -402,7 +271,7 @@ public class CustomerPicker extends BorderPane {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                TaskWaiter.startNow(new LoadCitiesTask(event, country.getDataObject(),
+                waitBorderPane.startNow(new LoadCitiesTask(country.getDataObject(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
             }
         }
@@ -416,12 +285,12 @@ public class CustomerPicker extends BorderPane {
                 if (cityFilterCheckBox.isSelected()) {
                     CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                        waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                     }
                 } else {
-                    TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                    waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
                             null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                             (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 }
@@ -437,7 +306,7 @@ public class CustomerPicker extends BorderPane {
             if (null != country) {
                 CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                 if (null != city) {
-                    TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                    waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
                             city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                             (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 }
@@ -453,19 +322,19 @@ public class CustomerPicker extends BorderPane {
                 if (cityFilterCheckBox.isSelected()) {
                     CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                        waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                         return;
                     }
                 }
-                TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), country.getDataObject(),
+                waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
                         null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 return;
             }
         }
-        TaskWaiter.startNow(new LoadCustomersTask((Stage) ((Node) event.getSource()).getScene().getWindow(), null, null,
+        waitBorderPane.startNow(new LoadCustomersTask(null, null,
                 statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
     }
@@ -513,70 +382,82 @@ public class CustomerPicker extends BorderPane {
 
     }
 
-    class LoadCitiesTask extends TaskWaiter<ArrayList<CityDAO>> {
+    class LoadCitiesTask extends Task<ArrayList<CityDAO>> {
 
         private final CountryDAO country;
         private final CustomerDAO customer;
 
-        public LoadCitiesTask(ActionEvent event, CountryDAO country, CustomerDAO customer) {
-            super((Stage) ((Node) event.getSource()).getScene().getWindow(), AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
+        public LoadCitiesTask(CountryDAO country, CustomerDAO customer) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
             this.country = Objects.requireNonNull(country);
             this.customer = customer;
         }
 
         @Override
-        protected void processResult(ArrayList<CityDAO> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            ArrayList<CityDAO> result = getValue();
             cities.clear();
             result.forEach((item) -> {
                 cities.add(new CityModel(item));
             });
-            TaskWaiter.startNow(new LoadCustomersTask(stage, country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
+            waitBorderPane.startNow(new LoadCustomersTask(country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     customer));
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORHEADING), stage, ex,
-                    AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORDETAILS));
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
+            super.failed();
         }
 
         @Override
-        protected ArrayList<CityDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            return CityDAO.getFactory().getByCountry(connection, country.getPrimaryKey());
+        protected ArrayList<CityDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                return CityDAO.getFactory().getByCountry(dbConnector.getConnection(), country.getPrimaryKey());
+            }
         }
 
     }
 
-    class LoadCountriesTask extends TaskWaiter<ArrayList<CountryDAO>> {
+    class LoadCountriesTask extends Task<ArrayList<CountryDAO>> {
 
-        public LoadCountriesTask(Stage stage) {
-            super(stage, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
+        public LoadCountriesTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
         @Override
-        protected void processResult(ArrayList<CountryDAO> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            ArrayList<CountryDAO> result = getValue();
             result.stream().forEach((item) -> {
                 countries.add(new CountryModel(item));
             });
-            TaskWaiter.startNow(new LoadCustomersTask(stage, null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
+            waitBorderPane.startNow(new LoadCustomersTask(null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORHEADING), stage, ex,
-                    AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORDETAILS));
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
+            super.failed();
         }
 
         @Override
-        protected ArrayList<CountryDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            return CountryDAO.getFactory().getAllCountries(connection);
+        protected ArrayList<CountryDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                return CountryDAO.getFactory().getAllCountries(dbConnector.getConnection());
+            }
         }
 
     }
 
-    class LoadCustomersTask extends TaskWaiter<ArrayList<CustomerDAO>> {
+    class LoadCustomersTask extends Task<ArrayList<CustomerDAO>> {
 
         // PENDING: The value of the field CustomerPicker.LoadCustomersTask.country is not used
         private final CountryDAO country;
@@ -586,8 +467,8 @@ public class CustomerPicker extends BorderPane {
         private final OptionalBoolean active;
         private final CustomerDAO customer;
 
-        public LoadCustomersTask(Stage stage, CountryDAO country, CityDAO city, OptionalBoolean active, CustomerDAO customer) {
-            super(stage, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
+        public LoadCustomersTask(CountryDAO country, CityDAO city, OptionalBoolean active, CustomerDAO customer) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             this.country = country;
             this.city = city;
             this.active = active;
@@ -595,7 +476,9 @@ public class CustomerPicker extends BorderPane {
         }
 
         @Override
-        protected void processResult(ArrayList<CustomerDAO> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            ArrayList<CustomerDAO> result = getValue();
             allCustomers.clear();
 
             if (null == customer) {
@@ -615,14 +498,17 @@ public class CustomerPicker extends BorderPane {
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORHEADING), stage, ex,
-                    AppResources.getResourceString(RESOURCEKEY_UNEXPECTEDERRORDETAILS));
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
+            super.failed();
         }
 
         @Override
-        protected ArrayList<CustomerDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+        protected ArrayList<CustomerDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
 //            switch (active) {
 //                case TRUE:
 //                    if (null == country) {
@@ -648,8 +534,9 @@ public class CustomerPicker extends BorderPane {
 //                return CustomerFilter.byCountry(country).get(connection);
 //            }
 //            return CustomerFilter.byCity(city).get(connection);
-            throw new UnsupportedOperationException();
-            // TODO: Implement scheduler.view.customer.CustomerPicker#getResult(Connection connection)
+                throw new UnsupportedOperationException();
+                // TODO: Implement scheduler.view.customer.CustomerPicker#getResult(Connection connection)
+            }
         }
 
     }

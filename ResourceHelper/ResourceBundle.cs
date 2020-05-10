@@ -207,12 +207,13 @@ namespace ResourceHelper
             elements.RemoveAt(0);
             if (elements.Count > 1)
                 elements.Reverse();
-            string packageRoot = Path.GetFileName(rootDirectory);
+
             using (StreamWriter writer = new StreamWriter(Path.Combine(dirName, fileName + "ResourceKeys.java"), false, new UTF8Encoding(false, false)))
             {
                 writer.Write("package ");
-                writer.Write(packageRoot);
                 IEnumerator<string> enumerator = elements.GetEnumerator();
+                enumerator.MoveNext();
+                writer.Write(enumerator.Current);
                 while (enumerator.MoveNext())
                 {
                     writer.Write(".");
@@ -222,8 +223,6 @@ namespace ResourceHelper
                 writer.WriteLine("");
                 writer.WriteLine("/**");
                 writer.Write(" * Defines resource bundle keys for the {@code ");
-                writer.Write(packageRoot);
-                writer.Write("/");
                 writer.Write(baseName.Replace("\\", "/"));
                 writer.WriteLine("} resource bundle.");
                 writer.WriteLine(" *");

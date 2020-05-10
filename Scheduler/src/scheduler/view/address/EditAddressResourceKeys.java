@@ -1,7 +1,7 @@
 package scheduler.view.address;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/address/EditAddress}.
+ * Defines resource bundle keys for the {@code scheduler/view/address/EditAddress} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -66,4 +66,5 @@ public interface EditAddressResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
      */
     public static final String RESOURCEKEY_REQUIRED = "required";
+
 }

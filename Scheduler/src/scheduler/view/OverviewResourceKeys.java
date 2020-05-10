@@ -38,6 +38,11 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_ADDINGAPPOINTMENTS2LINK = "addingAppointments2Link";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "<TextFlow>\u000a   <children>\u000a      <Text text=\"Select \" />\u000a      <Hyperlink id=\"newHyperlink\" text=\"&quot;New&quot;\" />\u000a      <Text text=\" from the &quot;Appointments Menu&quot;&#10;\" />\u000a      <Text styleClass=\"sub-section-heading\" text=\"&#9;or&#10;\" />\u000a      <Text text=\"Use the &quot;Customers&quot; menu to open a \" />\u000a      <Hyperlink id=\"listingHyperlink\" text=\"customer listing\" />\u000a      <Text text=\", open a customer and click the &quot;Add Appointment&quot; button at the bottom.\" />\u000a   </children>\u000a</TextFlow>"}.
+     */
+    public static final String RESOURCEKEY_ADDINGAPPOINTMENTSCONTENT = "addingAppointmentsContent";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Adding Appointments"}.
      */
     public static final String RESOURCEKEY_ADDINGAPPOINTMENTSHEADING = "addingAppointmentsHeading";

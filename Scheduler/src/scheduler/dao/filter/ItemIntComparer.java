@@ -8,7 +8,7 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.view.address.AddressModel;
+import scheduler.model.ui.AddressModel;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.city.CityModel;
 import scheduler.view.customer.CustomerModel;

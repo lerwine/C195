@@ -19,7 +19,7 @@ import scheduler.model.ui.CustomerItem;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringBindingProperty;
 import scheduler.observables.RowStateProperty;
-import scheduler.view.address.RelatedAddress;
+import scheduler.model.ui.RelatedAddress;
 
 /**
  *

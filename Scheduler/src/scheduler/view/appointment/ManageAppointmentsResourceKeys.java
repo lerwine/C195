@@ -1,7 +1,7 @@
 package scheduler.view.appointment;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/appointment/ManageAppointments}.
+ * Defines resource bundle keys for the {@code scheduler/view/appointment/ManageAppointments} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -13,17 +13,22 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ACTIVE = "active";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Address:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add new appointment"}.
+     */
+    public static final String RESOURCEKEY_ADDNEWAPPOINTMENT = "addNewAppointment";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Address"}.
      */
     public static final String RESOURCEKEY_ADDRESS = "address";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Address (line 2)"}.
      */
     public static final String RESOURCEKEY_ADDRESS2 = "address2";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Address ID"}.
      */
     public static final String RESOURCEKEY_ADDRESSID = "addressId";
 
@@ -88,7 +93,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ANYTITLEOPTION = "anyTitleOption";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointment ID"}.
      */
     public static final String RESOURCEKEY_APPOINTMENTID = "appointmentId";
 
@@ -223,12 +228,12 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CANCEL = "cancel";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "City:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "City"}.
      */
     public static final String RESOURCEKEY_CITY = "city";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "City ID"}.
      */
     public static final String RESOURCEKEY_CITYID = "cityId";
 
@@ -243,12 +248,12 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_COUNT = "count";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country"}.
      */
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country ID"}.
      */
     public static final String RESOURCEKEY_COUNTRYID = "countryId";
 
@@ -343,7 +348,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CUSTOMER = "customer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Customer ID"}.
      */
     public static final String RESOURCEKEY_CUSTOMERID = "customerId";
 
@@ -383,19 +388,34 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_EDIT = "edit";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit / Delete"}.
+     */
+    public static final String RESOURCEKEY_EDITDELETE = "editDelete";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "End"}.
      */
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\nSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading fiter data.\nSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading fiter data.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGDATA = "errorLoadingData";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Export"}.
+     */
+    public static final String RESOURCEKEY_EXPORT = "export";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Export appointment list to file"}.
+     */
+    public static final String RESOURCEKEY_EXPORTAPPOINTMENTLISTTOFILE = "exportAppointmentListToFile";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That file type is not supported."}.
@@ -478,7 +498,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_MANAGEAPPOINTMENTS = "manageAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Meeting URL:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Meeting URL"}.
      */
     public static final String RESOURCEKEY_MEETINGURL = "meetingUrl";
 
@@ -491,7 +511,7 @@ public interface ManageAppointmentsResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Month:"}.
      */
     public static final String RESOURCEKEY_MONTH = "month";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "My Appointments before %tm %<te, %<tY"}.
      */
@@ -548,14 +568,14 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_NONE = "none";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Occurs before"}.
-     */
-    public static final String RESOURCEKEY_OCCURSBEFORE = "occursBefore";
-
-    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Occurs after"}.
      */
     public static final String RESOURCEKEY_OCCURSAFTER = "occursAfter";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Occurs before"}.
+     */
+    public static final String RESOURCEKEY_OCCURSBEFORE = "occursBefore";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Occurs on"}.
@@ -618,7 +638,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_PASTAPPOINTMENTSFORUSER = "pastAppointmentsForUser";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number"}.
      */
     public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
 
@@ -628,7 +648,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_POINTOFCONTACT = "pointOfContact";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Postal Code:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Postal Code"}.
      */
     public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
@@ -663,7 +683,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_STARTMUSTBEBEFOREEND = "startMustBeBeforeEnd";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Status"}.
      */
     public static final String RESOURCEKEY_STATUS = "status";
 
@@ -728,7 +748,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_USER = "user";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User ID"}.
      */
     public static final String RESOURCEKEY_USERID = "userId";
 
@@ -736,10 +756,10 @@ public interface ManageAppointmentsResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User:"}.
      */
     public static final String RESOURCEKEY_USERLABELTEXT = "userLabelText";
-    
+
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Year:"}.
      */
     public static final String RESOURCEKEY_YEAR = "year";
-    
+
 }

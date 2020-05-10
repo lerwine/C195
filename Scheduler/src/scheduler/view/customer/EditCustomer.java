@@ -60,7 +60,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
-import scheduler.view.address.AddressModel;
+import scheduler.model.ui.AddressModel;
 import scheduler.view.address.AddressPicker;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -222,7 +222,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         Scene scene = ((ComboBox) event.getSource()).getScene();
         MainController mainController = getMainController();
         Stage stage = (Stage) scene.getWindow();
-        mainController.addNewAppointment(stage, model.getDataObject(), null);
+        mainController.addNewAppointment(model.getDataObject(), null);
     }
 
     @FXML
@@ -256,7 +256,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         if (null != item) {
             MainController mainController = getMainController();
             Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
-            mainController.deleteAppointment(stage, item);
+            mainController.deleteAppointment(item);
         }
     }
 
@@ -266,7 +266,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         if (null != item) {
             MainController mainController = getMainController();
             Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
-            mainController.editAppointment(stage, item);
+            mainController.editAppointment(item);
         }
     }
 

@@ -1,8 +1,6 @@
 package scheduler.view;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -12,36 +10,31 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
-import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS;
+import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
+import scheduler.util.DbConnector;
+import scheduler.util.ViewControllerLoader;
 import static scheduler.view.OverviewResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.ManageAppointments;
-import scheduler.view.country.CountryModel;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.ManageCustomers;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.ManageUsers;
 import scheduler.view.user.UserModel;
 
@@ -52,23 +45,12 @@ import scheduler.view.user.UserModel;
  */
 @GlobalizationResource("scheduler/view/Overview")
 @FXMLResource("/scheduler/view/Overview.fxml")
-public class Overview {
+public class Overview extends VBox {
 
     private static final Logger LOG = Logger.getLogger(Overview.class.getName());
 
-    public static Overview loadInto(MainController mainController, Stage stage, Object loadEventListener) throws IOException {
-        return mainController.loadContent(Overview.class, loadEventListener);
-    }
-
-    public static Overview loadInto(MainController mainController, Stage stage) throws IOException {
-        return mainController.loadContent(Overview.class);
-    }
-
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-    @FXML // fx:id="contentVBox"
-    private VBox contentVBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsTodayLabel"
     private Label appointmentsTodayLabel; // Value injected by FXMLLoader
@@ -88,22 +70,22 @@ public class Overview {
     @FXML // fx:id="appointmentsNextMonthLabel"
     private Label appointmentsNextMonthLabel; // Value injected by FXMLLoader
 
-    void onByMonthHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
+    @SuppressWarnings("LeakingThisInConstructor")
+    public Overview() {
         try {
-            ByMonth.loadInto(getMainController(), stage, LocalDate.now());
+            ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
         }
     }
 
+    void onByMonthHyperlinkAction(ActionEvent event) {
+        ByMonth.loadIntoMainContent(LocalDate.now());
+    }
+
     void onByWeekHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        try {
-            ByWeek.loadInto(getMainController(), stage, LocalDate.now());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_USERLOADERROR), stage, ex);
-        }
+        ByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
@@ -119,17 +101,12 @@ public class Overview {
     @FXML
     void onNewAppointmentHyperlinkAction(ActionEvent event) {
         Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        getMainController().addNewAppointment(stage, null, null);
+        getMainController().addNewAppointment(null, null);
     }
 
     @FXML
     void onAppointmentListHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        try {
-            ManageAppointments.loadInto(getMainController(), stage, AppointmentModelFilter.myCurrentAndFuture());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS), stage, ex);
-        }
+        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
     }
 
     @FXML
@@ -139,7 +116,6 @@ public class Overview {
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsTodayLabel != null : "fx:id=\"appointmentsTodayLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsTomorrowLabel != null : "fx:id=\"appointmentsTomorrowLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsThisWeekLabel != null : "fx:id=\"appointmentsThisWeekLabel\" was not injected: check your FXML file 'Overview.fxml'.";
@@ -152,41 +128,38 @@ public class Overview {
             case "de":
             case "hi":
             case "es":
-                resourcePath = String.format("/scheduler/view/Overview_%s.fxml", Locale.getDefault().getLanguage());
+                resourcePath = String.format("/scheduler/fx/Overview_%s.fxml", Locale.getDefault().getLanguage());
                 break;
             default:
-                resourcePath = "/scheduler/view/Overview_en.fxml";
+                resourcePath = "/scheduler/fx/Overview_en.fxml";
                 break;
         }
         try {
-            contentVBox.getChildren().add(FXMLLoader.load(getClass().getResource(resourcePath)));
-            Hyperlink hyperlink = (Hyperlink)contentVBox.lookup("#byMonthHyperlink");
+            TextFlow textFlow = FXMLLoader.load(getClass().getResource(resourcePath));
+            getChildren().add(textFlow);
+            Hyperlink hyperlink = (Hyperlink) textFlow.lookup("#byMonthHyperlink");
             hyperlink.setOnAction(this::onByMonthHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#byWeekHyperlink");
+            hyperlink = (Hyperlink) textFlow.lookup("#byWeekHyperlink");
             hyperlink.setOnAction(this::onByWeekHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#newAppointmentHyperlink");
+            hyperlink = (Hyperlink) textFlow.lookup("#newAppointmentHyperlink");
             hyperlink.setOnAction(this::onNewAppointmentHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#appointmentListHyperlink");
+            hyperlink = (Hyperlink) textFlow.lookup("#appointmentListHyperlink");
             hyperlink.setOnAction(this::onAppointmentListHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#customerListingHyperlink1");
+            hyperlink = (Hyperlink) textFlow.lookup("#customerListingHyperlink1");
             hyperlink.setOnAction(this::onCustomerListingHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#customerListingHyperlink2");
+            hyperlink = (Hyperlink) textFlow.lookup("#customerListingHyperlink2");
             hyperlink.setOnAction(this::onCustomerListingHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#countryListingHyperlink");
+            hyperlink = (Hyperlink) textFlow.lookup("#countryListingHyperlink");
             hyperlink.setOnAction(this::onCountryListingHyperlinkAction);
-            hyperlink = (Hyperlink)contentVBox.lookup("#userListingHyperlink");
+            hyperlink = (Hyperlink) textFlow.lookup("#userListingHyperlink");
             hyperlink.setOnAction(this::onUserListingHyperlinkAction);
         } catch (IOException ex) {
             Logger.getLogger(Overview.class.getName()).log(Level.SEVERE, null, ex);
         }
+        MainController.startBusyTaskNow(new InitializeTask());
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        TaskWaiter.startNow(new InitializeTask(event.getStage()));
-    }
-
-    private class InitializeTask extends TaskWaiter<Integer> {
+    private class InitializeTask extends Task<Integer> {
 
         private int appointmentsTomorrow;
         private int appointmentsThisWeek;
@@ -194,12 +167,13 @@ public class Overview {
         private int appointmentsThisMonth;
         private int appointmentsNextMonth;
 
-        public InitializeTask(Stage stage) {
-            super(stage, resources.getString(RESOURCEKEY_GETTINGAPPOINTMENTCOUNTS));
+        public InitializeTask() {
+            updateTitle(resources.getString(RESOURCEKEY_GETTINGAPPOINTMENTCOUNTS));
         }
 
         @Override
-        protected void processResult(Integer result, Stage stage) {
+        protected void succeeded() {
+            Integer result = getValue();
             NumberFormat nf = NumberFormat.getIntegerInstance();
             if (null != result) {
                 appointmentsTodayLabel.setText(nf.format(result.intValue()));
@@ -212,31 +186,35 @@ public class Overview {
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex,
-                    AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
+            super.failed();
         }
 
         @Override
-        protected Integer getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            AppointmentDAO.FactoryImpl factory = AppointmentDAO.getFactory();
-            final LocalDateTime start = LocalDateTime.now();
-            LocalDateTime end = start.toLocalDate().atStartOfDay().plusDays(1);
-            appointmentsTomorrow = factory.countByRange(connection, end, end.plusDays(1));
-            while (end.getDayOfWeek() != DayOfWeek.SUNDAY) {
-                end = end.plusDays(1);
+        protected Integer call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                AppointmentDAO.FactoryImpl factory = AppointmentDAO.getFactory();
+                final LocalDateTime start = LocalDateTime.now();
+                LocalDateTime end = start.toLocalDate().atStartOfDay().plusDays(1);
+                appointmentsTomorrow = factory.countByRange(dbConnector.getConnection(), end, end.plusDays(1));
+                while (end.getDayOfWeek() != DayOfWeek.SUNDAY) {
+                    end = end.plusDays(1);
+                }
+                appointmentsThisWeek = factory.countByRange(dbConnector.getConnection(), start, end);
+                appointmentsNextWeek = factory.countByRange(dbConnector.getConnection(), end, end.plusDays(7));
+                Month month = start.getMonth();
+                end = start.toLocalDate().atStartOfDay().plusDays(1);
+                while (end.getMonth() != month) {
+                    end = end.plusDays(1);
+                }
+                appointmentsThisMonth = factory.countByRange(dbConnector.getConnection(), start, end);
+                appointmentsNextMonth = factory.countByRange(dbConnector.getConnection(), end, end.plusMonths(1));
+                return factory.countByRange(dbConnector.getConnection(), start, start.toLocalDate().atStartOfDay().plusDays(1));
             }
-            appointmentsThisWeek = factory.countByRange(connection, start, end);
-            appointmentsNextWeek = factory.countByRange(connection, end, end.plusDays(7));
-            Month month = start.getMonth();
-            end = start.toLocalDate().atStartOfDay().plusDays(1);
-            while (end.getMonth() != month) {
-                end = end.plusDays(1);
-            }
-            appointmentsThisMonth = factory.countByRange(connection, start, end);
-            appointmentsNextMonth = factory.countByRange(connection, end, end.plusMonths(1));
-            return factory.countByRange(connection, start, start.toLocalDate().atStartOfDay().plusDays(1));
         }
     }
 }

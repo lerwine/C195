@@ -20,7 +20,6 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -53,19 +52,19 @@ import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.fx.HelpContent;
+import scheduler.fx.appointment.AppointmentAlert;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
-import scheduler.view.address.AddressModel;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
@@ -80,8 +79,6 @@ import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
-import scheduler.view.event.FxmlViewControllerEventListener;
-import scheduler.view.event.FxmlViewEvent;
 import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
@@ -118,8 +115,7 @@ public final class MainController implements EventTarget {
     }
 
     private Object contentController;
-    private AppointmentAlert appointmentAlert;
-    private HelpContent helpContent;
+
     private EventHelper<DataObjectEventListener<? extends DataAccessObject>, DataObjectEvent<? extends DataAccessObject>> daoEventHelper;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -162,63 +158,39 @@ public final class MainController implements EventTarget {
     @FXML // fx:id="contentPane"
     private StackPane contentPane; // Value injected by FXMLLoader
 
+    @FXML // fx:id="helpContent"
+    private HelpContent helpContent; // Value injected by FXMLLoader
+
     @FXML // fx:id="waitBorderPane"
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="appointmentAlert"
+    private AppointmentAlert appointmentAlert; // Value injected by FXMLLoader
+
     private final EventHandlerManager eventHandlerManager;
 
     public MainController() {
         this.eventHandlerManager = new EventHandlerManager(this);
     }
 
-    public StackPane getContentPane() {
-        return contentPane;
-    }
-
     @FXML
     void onAllAppointmentsMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ManageAppointments.loadInto(MainController.this, stage, AppointmentModel.getFactory().getAllItemsFilter());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), stage, ex);
-        }
+        ManageAppointments.loadIntoMainContent(AppointmentModel.getFactory().getAllItemsFilter());
     }
 
     @FXML
     void onByRegionMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            AppointmentsByRegion.loadInto(MainController.this, stage);
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
-        }
+        replaceContent(new AppointmentsByRegion());
     }
 
     @FXML
     void onConsultantScheduleMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ConsultantSchedule.loadInto(MainController.this, stage);
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
-        }
+        replaceContent(new ConsultantSchedule());
     }
 
     @FXML
     void onTypesByMonthMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            AppointmentTypesByMonth.loadInto(MainController.this, stage);
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(scheduler.AppResourceKeys.RESOURCEKEY_LOADERRORMESSAGE), stage, ex);
-        }
-    }
-
-    public void replaceContent(Region newContent) {
-        Object oldController = contentController;
-        ViewControllerLoader.replaceContent(this, contentPane, 0, newContent);
-        contentController = newContent;
-        onControllerReplaced(oldController, contentController);
+        replaceContent(new AppointmentTypesByMonth());
     }
 
     @FXML
@@ -238,7 +210,7 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onNewAppointmentMenuItemAction(ActionEvent event) {
-        addNewAppointment((Stage) contentPane.getScene().getWindow(), null, null);
+        addNewAppointment(null, null);
     }
 
     @FXML
@@ -258,138 +230,50 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onMyCurrentAndFutureAppointmentsMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ManageAppointments.loadInto(MainController.this, stage, AppointmentModelFilter.myCurrentAndFuture());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), stage, ex);
-        }
+        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
     }
 
     @FXML
     void onOverviewMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            Overview.loadInto(this, stage);
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), stage, ex);
-        }
+        replaceContent(new Overview());
     }
 
     @FXML
     void onWeeklyCalendarMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ByWeek.loadInto(this, stage, LocalDate.now());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CALENDARLOADERROR), stage, ex);
-        }
+        ByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
     void onMonthlyCalendarMenuItemAction(ActionEvent event) {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        try {
-            ByMonth.loadInto(this, stage, LocalDate.now());
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_CALENDARLOADERROR), stage, ex);
-        }
+        ByMonth.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
     private void initialize() {
+        assert overviewMenu != null : "fx:id=\"overviewMenu\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert weeklyCalendarMenuItem != null : "fx:id=\"weeklyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert monthlyCalendarMenuItem != null : "fx:id=\"monthlyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert myCurrentAndFutureAppointmentsMenuItem != null : "fx:id=\"myCurrentAndFutureAppointmentsMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert allAppointmentsMenuItem != null : "fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert typesByMonthMenuItem != null : "fx:id=\"typesByMonthMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert consultantScheduleMenuItem != null : "fx:id=\"consultantScheduleMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert byRegionMenuItem != null : "fx:id=\"byRegionMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert manageCustomersMenuItem != null : "fx:id=\"manageCustomersMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert manageUsersMenuItem != null : "fx:id=\"manageUsersMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert manageAddressesMenuItem != null : "fx:id=\"manageAddressesMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert contentPane != null : "fx:id=\"contentPane\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert helpContent != null : "fx:id=\"helpContent\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert appointmentAlert != null : "fx:id=\"appointmentAlert\" was not injected: check your FXML file 'MainView.fxml'.";
+
         daoEventHelper = new EventHelper<>("onDataObjectEvent");
     }
 
-    /**
-     * Loads a view and controller for the {@link #contentPane}.
-     *
-     * @param <T> The type of controller that will be instantiated.
-     * @param controllerClass The controller class that will be used to load the FXML view.
-     * @param loadEventListener An object that can listen for FXML load events. This object can implement {@link FxmlViewControllerEventListener} or
-     * use the {@link scheduler.view.annotations.HandlesFxmlViewEvent} annotation to handle view/controller life-cycle events.
-     * @return The instantiated controller.
-     * @throws IOException if not able to load the FXML resource.
-     */
-    public <T> T loadContent(Class<T> controllerClass, Object loadEventListener) throws IOException {
+    public void replaceContent(Region newContent) {
         Object oldController = contentController;
-        return ViewControllerLoader.replacePaneContent(this, contentPane, controllerClass,
-                (FxmlViewControllerEventListener<Parent, T>) (event) -> {
-                    Parent childView;
-                    switch (event.getType()) {
-                        case LOADED:
-                            event.getStage().setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
-                            break;
-                        case BEFORE_SHOW:
-                            childView = event.getView();
-                            if (childView instanceof Region) {
-                                Region r = (Region) childView;
-                                r.prefWidthProperty().bind(contentPane.widthProperty());
-                                r.minWidthProperty().bind(contentPane.widthProperty());
-                                r.prefHeightProperty().bind(contentPane.heightProperty());
-                                r.minHeightProperty().bind(contentPane.heightProperty());
-                            }
-                            break;
-                        case SHOWN:
-                            contentController = event.getController();
-                            onControllerReplaced(oldController, contentController);
-                            break;
-                        case UNLOADED:
-                            childView = event.getView();
-                            if (childView instanceof Region) {
-                                Region r = (Region) childView;
-                                r.prefWidthProperty().unbind();
-                                r.minWidthProperty().unbind();
-                                r.prefHeightProperty().unbind();
-                                r.minHeightProperty().unbind();
-                            }
-                            break;
-                    }
-                    EventHelper.fireFxmlViewEvent(loadEventListener, event);
-                });
-    }
-
-    /**
-     * Loads a view and controller for the {@link #contentPane}.
-     *
-     * @param <T> The type of controller that will be instantiated.
-     * @param controllerClass The controller class that will be used to load the FXML view.
-     * @return The instantiated controller.
-     * @throws IOException if not able to load the FXML resource.
-     */
-    public <T> T loadContent(Class<T> controllerClass) throws IOException {
-        return loadContent(controllerClass, null);
-    }
-
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.SHOWN)
-    private void onShown(FxmlViewEvent<? extends Parent> event) {
-        event.getStage().setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
-        try {
-            appointmentAlert = new AppointmentAlert();
-            Overview.loadInto(this, event.getStage());
-            helpContent = ViewControllerLoader.loadViewAndController(HelpContent.class).getController();
-        } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_OVERVIEWLOADERROR), event.getStage(), ex);
-        }
-        if (null != helpContent) {
-            helpContent.initialize(contentPane);
-        }
-        if (null != appointmentAlert) {
-            contentPane.getChildren().add(appointmentAlert);
-            appointmentAlert.prefWidthProperty().bind(contentPane.widthProperty());
-            appointmentAlert.minWidthProperty().bind(contentPane.widthProperty());
-            appointmentAlert.prefHeightProperty().bind(contentPane.heightProperty());
-            appointmentAlert.minHeightProperty().bind(contentPane.heightProperty());
-        }
-    }
-
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.UNLOADED)
-    private void onUnloaded(FxmlViewEvent<? extends Parent> event) {
-        ViewControllerLoader.clearPaneContent(this, contentPane);
-        if (null != appointmentAlert) {
-            appointmentAlert.shutdown();
-        }
+        ViewControllerLoader.replaceContent(this, contentPane, 0, newContent);
+        contentController = newContent;
+        onControllerReplaced(oldController, contentController);
     }
 
     private MenuItem getAssociatedMenuItem(Object controller) {
@@ -500,18 +384,16 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param customer The customer to initially select or {@code null} for no initial selection.
      * @param user The user to initially select or {@code null} for no initial selection.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
      */
-    // TODO: Remove stage parameter
-    public AppointmentModel addNewAppointment(Stage stage, CustomerRowData customer, UserRowData user) {
+    public AppointmentModel addNewAppointment(CustomerRowData customer, UserRowData user) {
         AppointmentModel result;
         try {
             result = EditAppointment.editNew(customer, user);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), stage, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), ex);
             return null;
         }
         if (null != result) {
@@ -523,16 +405,14 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit an {@link AppointmentModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be edited.
      */
-    // TODO: Remove stage parameter
-    public void editAppointment(Stage stage, AppointmentModel item) {
+    public void editAppointment(AppointmentModel item) {
         AppointmentModel result;
         try {
             result = EditAppointment.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), stage, ex);
+            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), ex);
             return;
         }
         if (null != result) {
@@ -543,11 +423,9 @@ public final class MainController implements EventTarget {
     /**
      * Deletes an {@link AppointmentModel} item after confirming with user.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link AppointmentModel} to be deleted.
      */
-    // TODO: Remove stage parameter
-    public void deleteAppointment(Stage stage, AppointmentModel item) {
+    public void deleteAppointment(AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);

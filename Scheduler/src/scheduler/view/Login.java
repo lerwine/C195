@@ -17,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResources;
@@ -28,10 +27,7 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.event.FxmlViewEvent;
 
 /**
  * FXML Controller class for the application login screen.
@@ -42,7 +38,7 @@ import scheduler.view.event.FxmlViewEvent;
  */
 @GlobalizationResource("scheduler/view/Login")
 @FXMLResource("/scheduler/view/Login.fxml")
-public final class Login extends Scheduler.LoginController {
+public final class Login extends Scheduler.LoginBorderPane {
 
     private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
@@ -65,11 +61,6 @@ public final class Login extends Scheduler.LoginController {
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-//    @FXML // URL location of the FXML file that was given to the FXMLLoader
-//    private URL location;
-    @FXML // fx:id="loginRootBorderPane"
-    private BorderPane loginRootBorderPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="languageComboBox"
     private ComboBox<SupportedLocale> languageComboBox; // Value injected by FXMLLoader
@@ -127,9 +118,9 @@ public final class Login extends Scheduler.LoginController {
     @FXML
     void onLoginButtonAction(ActionEvent event) {
         Stage stage = (Stage) userNameTextField.getScene().getWindow();
-        tryLoginUser(stage, loginRootBorderPane, userNameTextField.getText(), passwordField.getText());
+        tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
     }
-
+    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'Login.fxml'.";
@@ -144,10 +135,7 @@ public final class Login extends Scheduler.LoginController {
 
         languageSelectionModel = languageComboBox.getSelectionModel();
         resourceBundle = new ReadOnlyObjectWrapper<>(resources);
-    }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<BorderPane> event) {
         ObservableList<SupportedLocale> languages = FXCollections.observableArrayList(SupportedLocale.values());
         languageComboBox.setItems(languages);
         languageSelectionModel.select(AppResources.getCurrentLocale());
@@ -203,12 +191,12 @@ public final class Login extends Scheduler.LoginController {
     }
 
     @Override
-    protected void onLoginFailure(Stage stage, Throwable reason) {
+    protected void onLoginFailure(Throwable reason) {
         ResourceBundle rb = resourceBundle.get();
         if (reason == null) {
-            AlertHelper.showErrorAlert(stage, RESOURCEKEY_EXIT, loginButton);
+            AlertHelper.showErrorAlert(RESOURCEKEY_EXIT, loginButton);
         } else {
-            ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), stage, reason,
+            ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), reason,
                     rb.getString(RESOURCEKEY_VALIDATIONERROR));
         }
     }

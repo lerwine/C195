@@ -9,7 +9,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
-import scheduler.controls.MainListingControl;
+import scheduler.fx.MainListingControl;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.view.annotations.FXMLResource;

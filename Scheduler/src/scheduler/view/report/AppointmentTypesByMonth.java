@@ -1,8 +1,5 @@
 package scheduler.view.report;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -15,9 +12,9 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -27,7 +24,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -35,26 +32,15 @@ import scheduler.AppResources;
 import scheduler.dao.AppointmentCountByType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.AppointmentType;
+import scheduler.util.DbConnector;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 
 @GlobalizationResource("scheduler/view/report/Reports")
 @FXMLResource("/scheduler/view/report/AppointmentTypesByMonth.fxml")
-public class AppointmentTypesByMonth {
-
-    public static AppointmentTypesByMonth loadInto(MainController mainController, Stage stage, Object loadEventListener) throws IOException {
-        return mainController.loadContent(AppointmentTypesByMonth.class, loadEventListener);
-    }
-
-    public static AppointmentTypesByMonth loadInto(MainController mainController, Stage stage) throws IOException {
-        return mainController.loadContent(AppointmentTypesByMonth.class);
-    }
+public class AppointmentTypesByMonth extends VBox {
 
     private static final Logger LOG = Logger.getLogger(AppointmentTypesByMonth.class.getName());
 
@@ -94,7 +80,7 @@ public class AppointmentTypesByMonth {
 
     @FXML
     private void onRunButtonAction(ActionEvent event) {
-        TaskWaiter.startNow(new CountLoadTask((Stage) ((Button) event.getSource()).getScene().getWindow(), date, monthComboBox.getValue()));
+        MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
     }
 
     private void onDateChanged(Integer year) {
@@ -144,27 +130,24 @@ public class AppointmentTypesByMonth {
         yearSpinner.valueProperty().addListener((observable) -> {
             onDateChanged(((ReadOnlyObjectProperty<Integer>) observable).get());
         });
+        MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
     }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        TaskWaiter.startNow(new CountLoadTask(event.getStage(), date, monthComboBox.getValue()));
-    }
-
-    private class CountLoadTask extends TaskWaiter<List<AppointmentCountByType>> {
+    private class CountLoadTask extends Task<List<AppointmentCountByType>> {
 
         private final LocalDate start;
         private final String monthName;
 
-        private CountLoadTask(Stage owner, LocalDate start, String monthName) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
+        private CountLoadTask(LocalDate start, String monthName) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
             this.start = start.withDayOfMonth(1);
             this.monthName = monthName;
         }
 
         @Override
-        protected void processResult(List<AppointmentCountByType> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            List<AppointmentCountByType> result = getValue();
             ObservableList<XYChart.Data<String, Number>> data = dataSeries.getData();
             data.clear();
             HashMap<AppointmentType, Integer> types = new HashMap<>();
@@ -180,15 +163,18 @@ public class AppointmentTypesByMonth {
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            super.failed();
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
         }
 
         @Override
-        protected List<AppointmentCountByType> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            return AppointmentDAO.getFactory().getCountsByType(connection, start.atStartOfDay(), start.plusMonths(1).atStartOfDay());
+        protected List<AppointmentCountByType> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                return AppointmentDAO.getFactory().getCountsByType(dbConnector.getConnection(), start.atStartOfDay(), start.plusMonths(1).atStartOfDay());
+            }
         }
 
     }

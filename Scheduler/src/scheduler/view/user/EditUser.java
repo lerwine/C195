@@ -1,8 +1,6 @@
 package scheduler.view.user;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -17,6 +15,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -27,9 +26,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBACCESSERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
@@ -38,21 +36,18 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.task.WaitBorderPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
 
@@ -204,10 +199,7 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         passwordErrorMessageLabel.textProperty().bind(getPasswordValidationMessage());
         passwordErrorMessageLabel.visibleProperty().bind(getPasswordValidationMessage().isNotEmpty());
         bindCssCollapse(passwordErrorMessageLabel, getPasswordValidationMessage().isEmpty());
-    }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<SplitPane> event) {
         LocalDate today = LocalDate.now();
         UserDAO dao = model.getDataObject();
         if (dao.isExisting()) {
@@ -219,8 +211,8 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
                     AppointmentModelFilter.of(null, today, dao)));
             filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         }
-        TaskWaiter.startNow(new InitialLoadTask(event.getStage()));
-        event.getStage().setTitle(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+        waitBorderPane.startNow(new InitialLoadTask());
+        windowTitle.set(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 
     private StringBinding getUserNameValidationMessage() {
@@ -334,17 +326,18 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
 
     }
 
-    private class InitialLoadTask extends TaskWaiter<List<AppointmentDAO>> {
+    private class InitialLoadTask extends Task<List<AppointmentDAO>> {
 
         private List<UserDAO> users;
 
-        private InitialLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+        private InitialLoadTask() {
+            updateTitle(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
         }
 
         @Override
-        protected void processResult(List<AppointmentDAO> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            List<AppointmentDAO> result = getValue();
             if (null != users && !users.isEmpty()) {
                 if (model.isNewItem()) {
                     users.forEach((t) -> unavailableUserNames.add(t.getUserName().toLowerCase()));
@@ -365,20 +358,23 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), getException());
+            super.failed();
         }
 
         @Override
-        protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            UserDAO.FactoryImpl uf = UserDAO.getFactory();
-            users = uf.load(connection, uf.getAllItemsFilter());
-            if (!filterOptions.isEmpty()) {
-                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
-                return af.load(connection, filterOptions.get(0).getModelFilter().getDaoFilter());
+        protected List<AppointmentDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                users = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
+                if (!filterOptions.isEmpty()) {
+                    updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+                    AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                    return af.load(dbConnector.getConnection(), filterOptions.get(0).getModelFilter().getDaoFilter());
+                }
             }
             return null;
         }

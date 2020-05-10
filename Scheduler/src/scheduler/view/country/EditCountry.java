@@ -1,8 +1,6 @@
 package scheduler.view.country;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
@@ -12,15 +10,14 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -30,20 +27,17 @@ import scheduler.dao.CountryDAO;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.CityModel;
 import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -133,10 +127,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         itemList = FXCollections.observableArrayList();
         countryList = FXCollections.observableArrayList();
         citiesTableView.setItems(itemList);
-    }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
         if (model.isNewItem()) {
             collapseNode(countryNameValueLabel);
             collapseNode(citiesTableView);
@@ -153,8 +144,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             collapseNode(saveButton);
             collapseNode(nameValidationLabel);
             cancelButton.setText("Close");
-            TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
-            event.getStage().setTitle(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
+            waitBorderPane.startNow(new ItemsLoadTask());
+            windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
         }
     }
 
@@ -188,19 +179,19 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#applyChangesToModel
     }
 
-    private class ItemsLoadTask extends TaskWaiter<List<CityDAO>> {
+    private class ItemsLoadTask extends Task<List<CityDAO>> {
 
         private final int pk;
 
-        private ItemsLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
+        private ItemsLoadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
             pk = model.getPrimaryKey();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        protected void processResult(List<CityDAO> result, Stage owner) {
+        protected void succeeded() {
+            super.succeeded();
+            List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 CityModel.Factory factory = CityModel.getFactory();
                 result.forEach((t) -> {
@@ -210,16 +201,19 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
+            super.failed();
         }
 
         @Override
-        protected List<CityDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            CityDAO.FactoryImpl cf = CityDAO.getFactory();
-            return cf.load(connection, cf.getByCountryFilter(pk));
+        protected List<CityDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                CityDAO.FactoryImpl cf = CityDAO.getFactory();
+                return cf.load(dbConnector.getConnection(), cf.getByCountryFilter(pk));
+            }
         }
 
     }

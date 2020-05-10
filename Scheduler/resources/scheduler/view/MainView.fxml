@@ -7,11 +7,13 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import scheduler.fx.HelpContent?>
+<?import scheduler.fx.appointment.AppointmentAlert?>
 <?import scheduler.view.task.WaitBorderPane?>
 
 <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.MainController">
     <children>
-        <VBox id="AnchorPane" styleClass="mainFxmlClass">
+        <VBox styleClass="mainFxmlClass">
             <children>
                 <MenuBar>
                     <menus>
@@ -27,13 +29,13 @@
                                 <MenuItem mnemonicParsing="false" onAction="#onNewAppointmentMenuItemAction" text="%new" />
                             </items>
                         </Menu>
-                  <Menu mnemonicParsing="false" text="%reports">
-                    <items>
-                      <MenuItem fx:id="typesByMonthMenuItem" mnemonicParsing="false" onAction="#onTypesByMonthMenuItemAction" text="%typesByMonth" />
-                        <MenuItem fx:id="consultantScheduleMenuItem" mnemonicParsing="false" onAction="#onConsultantScheduleMenuItemAction" text="%consultantSchedule" />
-                        <MenuItem fx:id="byRegionMenuItem" mnemonicParsing="false" onAction="#onByRegionMenuItemAction" text="%appointmentsByRegion" />
-                    </items>
-                  </Menu>
+                        <Menu mnemonicParsing="false" text="%reports">
+                            <items>
+                                <MenuItem fx:id="typesByMonthMenuItem" mnemonicParsing="false" onAction="#onTypesByMonthMenuItemAction" text="%typesByMonth" />
+                                <MenuItem fx:id="consultantScheduleMenuItem" mnemonicParsing="false" onAction="#onConsultantScheduleMenuItemAction" text="%consultantSchedule" />
+                                <MenuItem fx:id="byRegionMenuItem" mnemonicParsing="false" onAction="#onByRegionMenuItemAction" text="%appointmentsByRegion" />
+                            </items>
+                        </Menu>
                         <Menu mnemonicParsing="false" text="%customers">
                             <items>
                                 <MenuItem fx:id="manageCustomersMenuItem" mnemonicParsing="false" onAction="#onManageCustomersMenuItemAction" text="%manageCustomers" />
@@ -61,6 +63,8 @@
                 </StackPane>
             </children>
         </VBox>
+      <HelpContent fx:id="helpContent" />
       <WaitBorderPane fx:id="waitBorderPane" />
+      <AppointmentAlert fx:id="appointmentAlert" />
     </children>
 </StackPane>

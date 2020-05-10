@@ -1,7 +1,7 @@
 package scheduler.view.user;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/user/EditUser}.
+ * Defines resource bundle keys for the {@code scheduler/view/user/EditUser} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -88,7 +88,7 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\nSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
@@ -196,4 +196,5 @@ public interface EditUserResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That user name is already in use."}.
      */
     public static final String RESOURCEKEY_USERNAMEINUSE = "userNameInUse";
+
 }

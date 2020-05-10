@@ -7,7 +7,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
-import scheduler.controls.MainListingControl;
+import scheduler.fx.MainListingControl;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;

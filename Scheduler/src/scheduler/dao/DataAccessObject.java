@@ -21,9 +21,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.concurrent.Task;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventTarget;
 import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -38,8 +40,10 @@ import scheduler.model.DataRecord;
 import scheduler.model.RelatedRecord;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
+import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
+import scheduler.view.MainController;
 import scheduler.view.task.TaskWaiter;
 
 /**
@@ -279,14 +283,53 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
         return Scheduler.buildMainControllerEventDispatchChain(tail);
     }
 
-    private static class LoadTask<T extends DataAccessObject> extends TaskWaiter<List<T>> {
+    private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
 
         private final DaoFactory<T> factory;
         private final DaoFilter<T> filter;
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(Stage stage, DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+        LoadTask(DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+            updateTitle(filter.getLoadingTitle());
+            this.factory = Objects.requireNonNull(factory);
+            this.filter = Objects.requireNonNull(filter);
+            this.onSuccess = Objects.requireNonNull(onSuccess);
+            this.onFail = onFail;
+        }
+
+        @Override
+        protected void succeeded() {
+            onSuccess.accept(getValue());
+            super.succeeded();
+        }
+
+        @Override
+        protected void failed() {
+            if (null != onFail) {
+                onFail.accept(getException());
+            }
+            super.failed();
+        }
+
+        @Override
+        protected List<T> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(filter.getLoadingMessage());
+                return factory.load(dbConnector.getConnection(), filter);
+            }
+        }
+    }
+
+    private static class LoadTask_obsolete<T extends DataAccessObject> extends TaskWaiter<List<T>> {
+
+        private final DaoFactory<T> factory;
+        private final DaoFilter<T> filter;
+        private final Consumer<List<T>> onSuccess;
+        private final Consumer<Throwable> onFail;
+
+        LoadTask_obsolete(Stage stage, DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
             super(stage, filter.getLoadingTitle(), filter.getLoadingMessage());
             this.factory = Objects.requireNonNull(factory);
             this.filter = Objects.requireNonNull(filter);
@@ -381,8 +424,14 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
          * @return The {@link TaskWaiter} that has been started.
          */
         public TaskWaiter<List<T>> loadAsync(Stage stage, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
-            LoadTask<T> task = new LoadTask<>(stage, this, filter, onSuccess, onFail);
+            LoadTask_obsolete<T> task = new LoadTask_obsolete<>(stage, this, filter, onSuccess, onFail);
             TaskWaiter.startNow(task);
+            return task;
+        }
+
+        public Task<List<T>> loadAsync(DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+            LoadTask<T> task = new LoadTask<>(this, filter, onSuccess, onFail);
+            MainController.startBusyTaskNow(task);
             return task;
         }
 

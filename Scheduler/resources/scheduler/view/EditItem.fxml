@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
+<?import scheduler.view.task.WaitBorderPane?>
 
 <fx:root prefHeight="559.0" prefWidth="884.0" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
@@ -48,5 +48,6 @@
             <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
          </padding>
       </VBox>
+      <WaitBorderPane fx:id="waitBorderPane" />
    </children>
 </fx:root>

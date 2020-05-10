@@ -8,22 +8,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.Parent;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
-import scheduler.view.annotations.DaoChangeType;
-import scheduler.view.annotations.FxmlViewEventHandling;
-import scheduler.view.annotations.HandlesDataObjectEvent;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
-import scheduler.view.event.FxmlViewControllerEvent;
-import scheduler.view.event.FxmlViewControllerEventListener;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.event.FxmlViewEventListener;
-import scheduler.view.event.FxmlViewEventType;
 import static scheduler.util.AnnotationHelper.getAnnotatedEventHandlerMethods;
+import scheduler.view.annotations.DaoChangeType;
 import scheduler.view.annotations.HandlesDataLoaded;
+import scheduler.view.annotations.HandlesDataObjectEvent;
 import scheduler.view.event.DataLoadedEvent;
 import scheduler.view.event.DataLoadedEventListener;
 
@@ -34,41 +26,9 @@ import scheduler.view.event.DataLoadedEventListener;
  * @param <E> Event object type.
  */
 public final class EventHelper<T, E extends EventObject> {
-    
+
     private static final Logger LOG = Logger.getLogger(EventHelper.class.getName());
 
-    private final HashSet<T> listeners;
-    private final String methodName;
-    public EventHelper(String methodName) {
-        this.listeners = new HashSet<>();
-        this.methodName = methodName;
-    }
-    
-    public synchronized void addListener(T listener) {
-        if (null != listener && !listeners.contains(listener))
-            listeners.add(listener);
-    }
-    
-    public synchronized void removeListener(T listener) {
-        if (null != listener && listeners.contains(listener))
-            listeners.remove(listener);
-    }
-    
-    public void raiseEvent(E event) {
-        Iterator<Object> iterator = Arrays.stream(listeners.toArray()).iterator();
-        Class<?> eventType = event.getClass();
-        while (iterator.hasNext()) {
-            Object target = iterator.next();
-            Method m = getListenerMethod(target.getClass(), methodName, eventType);
-            if (null != m)
-                try {
-                    m.invoke(target, event);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    Logger.getLogger(EventHelper.class.getName()).log(Level.SEVERE, "Error invoking listener method", ex);
-                }
-        }
-    }
-    
     private static void invokeEventMethods(Object target, Iterator<Method> methodIterator, EventObject event) {
         if (!methodIterator.hasNext()) {
             return;
@@ -93,7 +53,7 @@ public final class EventHelper<T, E extends EventObject> {
         }
         invokeEventMethods(target, methodIterator, event);
     }
-    
+
     private static Method getListenerMethod(Class<?> listenerType, String methodName, Class<?> eventType) {
         for (Method m : listenerType.getDeclaredMethods()) {
             if (m.getName().equals(methodName)) {
@@ -105,7 +65,7 @@ public final class EventHelper<T, E extends EventObject> {
         }
         return null;
     }
-    
+
     /**
      * Fires a {@link DataObjectEvent} on a target object.
      * <p>
@@ -133,10 +93,11 @@ public final class EventHelper<T, E extends EventObject> {
         if (target instanceof DataObjectEventListener) {
             try {
                 Method m = getListenerMethod(DataObjectEventListener.class, "onDataObjectEvent", event.getClass());
-                if (null != m)
+                if (null != m) {
                     m.invoke(target, event);
-                else
-                    ((DataObjectEventListener<T>)target).onDataObjectEvent(event);
+                } else {
+                    ((DataObjectEventListener<T>) target).onDataObjectEvent(event);
+                }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
             }
@@ -148,81 +109,6 @@ public final class EventHelper<T, E extends EventObject> {
     }
 
     /**
-     * Fires a {@link FxmlViewEvent} on a target object.
-     * <p>
-     * The target object can receive the event in two ways:</p>
-     * <dl>
-     * <dt>Annotate a method using {@link HandlesFxmlViewEvent}</dt>
-     * <dd>The annotated method must return void and can up to one parameter. If it defines the parameter, it must assignable from event object
-     * type.</dd>
-     * <dt>Implement the {@link FxmlViewEventListener} or {@link FxmlViewControllerEventListener} interface</dt>
-     * <dd>The {@link FxmlViewEventListener#onFxmlViewEvent(FxmlViewEvent)} method will be called with the event object as the parameter. If the event is a
-     * {@link FxmlViewControllerEvent}, then the {@link FxmlViewControllerEventListener#onFxmlViewControllerEvent(FxmlViewControllerEvent)} method will be
-     * called with the event object as the parameter.</dd>
-     * </dl>
-     *
-     * @param <T> The type of root {@link Parent} for the view.
-     * @param <U> The type of controller
-     * @param target The object to fire the event on.
-     * @param event The {@link FxmlViewEvent} to be fired.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends Parent, U> void fireFxmlViewEvent(Object target, FxmlViewEvent<T> event) {
-        if (event instanceof FxmlViewControllerEvent) {
-            LOG.log(Level.FINE, () -> String.format("Firing FxmlViewControllerEvent %s for %s", event.getType().name(),
-                    ((FxmlViewControllerEvent<T, U>) event).getController().getClass().getName()));
-        } else {
-            LOG.log(Level.FINE, () -> String.format("Firing FxmlViewEvent %s", event.getType().name()));
-        }
-        if (null == target) {
-            return;
-        }
-        Class<?> targetClass = target.getClass();
-        Class<? extends EventObject> eventClass = event.getClass();
-        final FxmlViewEventType reason = event.getType();
-        Iterator<Method> methods = getAnnotatedEventHandlerMethods(targetClass, HandlesFxmlViewEvent.class, eventClass, true, (t) -> {
-            FxmlViewEventHandling h = t.value();
-            LOG.log(Level.FINER, () -> String.format("Found annotation %s", h.name()));
-            if (h == FxmlViewEventHandling.ANY) {
-                LOG.log(Level.FINER, () -> "Returning true because annotation was for ANY");
-                return true;
-            }
-            if (h.getType() == reason) {
-                LOG.log(Level.FINER, () -> "Returning true because type matched");
-                return true;
-            }
-            LOG.log(Level.FINER, () -> "Returning false");
-            return false;
-        }
-        ).iterator();
-
-        invokeEventMethods(target, methods, event);
-        if (target instanceof FxmlViewControllerEventListener) {
-            if (event instanceof FxmlViewControllerEvent) {
-                try {
-                    Method m = getListenerMethod(FxmlViewControllerEventListener.class, "onFxmlViewControllerEvent", event.getClass());
-                    if (null != m)
-                        m.invoke(target, event);
-                    else
-                        ((FxmlViewControllerEventListener<T, U>) target).onFxmlViewControllerEvent((FxmlViewControllerEvent<T, U>) event);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                    LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
-                }
-            }
-        } else if (target instanceof FxmlViewEventListener) {
-        try {
-                Method m = getListenerMethod(FxmlViewEventListener.class, "onFxmlViewEvent", event.getClass());
-                if (null != m)
-                    m.invoke(target, event);
-                else
-                    ((FxmlViewEventListener<T>) target).onFxmlViewEvent(event);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
-            }
-        }
-    }
-
-    /**
      * Fires a {@link DataLoadedEvent} on a target object.
      * <p>
      * The target object can receive the event in two ways:</p>
@@ -231,7 +117,8 @@ public final class EventHelper<T, E extends EventObject> {
      * <dd>The annotated method must return void and can up to one parameter. If it defines the parameter, it must assignable from event object
      * type.</dd>
      * <dt>Implement the {@link DataLoadedEventListener} interface</dt>
-     * <dd>The {@link DataLoadedEventListener#onDataLoaded(scheduler.view.event.DataLoadedEvent)} method will be called with the event object as the parameter</dd>
+     * <dd>The {@link DataLoadedEventListener#onDataLoaded(scheduler.view.event.DataLoadedEvent)} method will be called with the event object as the
+     * parameter</dd>
      * </dl>
      *
      * @param <T> The type of {@link DataAccessObject} for the {@link DataObjectEvent}.
@@ -252,13 +139,51 @@ public final class EventHelper<T, E extends EventObject> {
         if (target instanceof DataLoadedEventListener) {
             try {
                 Method m = getListenerMethod(DataLoadedEventListener.class, "onDataLoaded", event.getClass());
-                if (null != m)
+                if (null != m) {
                     m.invoke(target, event);
-                else
+                } else {
                     ((DataLoadedEventListener<T>) target).onDataLoaded(event);
+                }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 LOG.log(Level.WARNING, "Error invoking interface implementation method", ex);
             }
         }
     }
+
+    private final HashSet<T> listeners;
+    private final String methodName;
+
+    public EventHelper(String methodName) {
+        this.listeners = new HashSet<>();
+        this.methodName = methodName;
+    }
+
+    public synchronized void addListener(T listener) {
+        if (null != listener && !listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    public synchronized void removeListener(T listener) {
+        if (null != listener && listeners.contains(listener)) {
+            listeners.remove(listener);
+        }
+    }
+
+    public void raiseEvent(E event) {
+        Iterator<Object> iterator = Arrays.stream(listeners.toArray()).iterator();
+        Class<?> eventType = event.getClass();
+        while (iterator.hasNext()) {
+            Object target = iterator.next();
+            Method m = getListenerMethod(target.getClass(), methodName, eventType);
+            if (null != m) {
+                try {
+                    m.invoke(target, event);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                    Logger.getLogger(EventHelper.class.getName()).log(Level.SEVERE, "Error invoking listener method", ex);
+                }
+            }
+        }
+    }
+
 }

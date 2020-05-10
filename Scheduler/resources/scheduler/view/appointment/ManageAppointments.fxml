@@ -13,9 +13,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.controls.DateTimeTableCellFactory?>
-<?import scheduler.controls.ItemEditTableCellFactory?>
-<?import scheduler.controls.RelayCellValueFactory?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
+<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.RelayCellValueFactory?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>

@@ -241,6 +241,35 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
             }, onFail);
         }
 
+        public final void loadAsync(DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
+                Consumer<Throwable> onFail) {
+            DataAccessObject.DaoFactory<T> factory = getDaoFactory();
+            factory.loadAsync(filter, (t) -> {
+                ArrayList<U> newItems = new ArrayList<>();
+                t.forEach((u) -> {
+                    Optional<U> existing = target.stream().filter((s) -> s.getDataObject().equals(u)).findFirst();
+                    if (existing.isPresent()) {
+                        updateItem(existing.get(), u);
+                        newItems.add(existing.get());
+                    } else {
+                        newItems.add(createNew(u));
+                    }
+                });
+                for (int i = 0; i < target.size() && i < newItems.size(); i++) {
+                    target.set(i, newItems.get(i));
+                }
+                while (target.size() < newItems.size()) {
+                    target.add(newItems.get(target.size()));
+                }
+                while (target.size() > newItems.size()) {
+                    target.remove(newItems.size());
+                }
+                if (null != onSuccess) {
+                    onSuccess.accept(target);
+                }
+            }, onFail);
+        }
+
         public final Optional<U> find(Iterator<U> source, T dao) {
             if (null != source) {
                 DataAccessObject.DaoFactory<T> daoFactory = getDaoFactory();

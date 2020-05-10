@@ -6,14 +6,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +18,7 @@ import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.EventDispatchChain;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -35,20 +33,15 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserDAO;
 import scheduler.util.DbConnector;
-import scheduler.util.EventHelper;
 import scheduler.util.PwHash;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.Login;
 import scheduler.view.MainController;
 import scheduler.view.ViewAndController;
-import scheduler.view.event.FxmlViewControllerEvent;
-import scheduler.view.event.FxmlViewEventType;
-import scheduler.view.task.TaskWaiter;
 
 /**
  * Main Application class for the Scheduler application.
@@ -243,43 +236,33 @@ public final class Scheduler extends Application {
     public void start(Stage stage) throws Exception {
         currentApp = this;
         primaryStage = stage;
-        // Load login view and controller.
-        ViewAndController<BorderPane, Login> loginViewAndController = ViewControllerLoader.loadViewAndController(Login.class);
-        // Store log path
+        stage.setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
 
         // Load main view and controller
         mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
         StackPane mainView = mainViewAndController.getView();
         MainController mainController = mainViewAndController.getController();
 
+        Login login = new Login();
         // Bind extents of login view to main view extents.
-        loginViewAndController.getView().setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
-        loginViewAndController.getView().setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
+        login.setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
+        login.setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
 
-        EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
-                loginViewAndController.toEvent(this, FxmlViewEventType.LOADED, stage));
         stage.setScene(new Scene(mainView));
         mainView.getProperties().put(PROPERTY_MAINCONTROLLER, mainController);
         ObservableList<Node> children = mainView.getChildren();
-        BorderPane loginView = loginViewAndController.getView();
-        children.add(loginViewAndController.getView());
-        loginView.minWidthProperty().bind(mainView.widthProperty());
-        loginView.prefWidthProperty().bind(mainView.widthProperty());
-        loginView.minHeightProperty().bind(mainView.heightProperty());
-        loginView.prefHeightProperty().bind(mainView.heightProperty());
-        EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
-                loginViewAndController.toEvent(this, FxmlViewEventType.BEFORE_SHOW, stage));
-        stage.setOnHidden((event) -> {
-            EventHelper.fireFxmlViewEvent(mainController, mainViewAndController.toEvent(this, FxmlViewEventType.UNLOADED, stage));
-        });
+        children.add(login);
+        login.minWidthProperty().bind(mainView.widthProperty());
+        login.prefWidthProperty().bind(mainView.widthProperty());
+        login.minHeightProperty().bind(mainView.heightProperty());
+        login.prefHeightProperty().bind(mainView.heightProperty());
         stage.show();
-        EventHelper.fireFxmlViewEvent(loginViewAndController.getController(),
-                loginViewAndController.toEvent(this, FxmlViewEventType.SHOWN, stage));
     }
 
     @Override
     public void stop() throws Exception {
         if (null != currentUser) {
+            // TODO: Call appointmentAlert.stop();
             HostServices services = getHostServices();
             String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
             LOG.info(String.format("Loggin logout timestamp to %s", logUri));
@@ -298,57 +281,64 @@ public final class Scheduler extends Application {
         super.stop();
     }
 
-    public static abstract class LoginController {
+    public static abstract class LoginBorderPane extends BorderPane {
 
-        protected LoginController() {
+        @SuppressWarnings("LeakingThisInConstructor")
+        protected LoginBorderPane() {
             if (null != currentUser) {
                 throw new IllegalStateException("Login controller cannot be instantiated after user is logged in");
+            }
+            try {
+                ViewControllerLoader.initializeCustomControl(this);
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error loading view", ex);
+                throw new InternalError("Error loading view", ex);
             }
         }
 
         /**
          * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
          *
-         * @param stage The stage
          * @param loginView The view for the login.
          * @param userName The login name for the user to look up.
          * @param password The raw password provided by the user.
          */
-        protected void tryLoginUser(Stage stage, BorderPane loginView, String userName, String password) {
-            TaskWaiter.startNow(new LoginTask(stage, loginView, userName, password, this::onLoginFailure));
+        protected void tryLoginUser(LoginBorderPane loginView, String userName, String password) {
+            MainController.startBusyTaskNow(new LoginTask(loginView, userName, password, this::onLoginFailure));
         }
 
         /**
          * This gets called when a login has failed.
          *
-         * @param stage The current application {@link Stage}.
          * @param reason The reason for login failure. If this is {@code null}, then the login name was not found or the password hash did not match.
          */
-        protected abstract void onLoginFailure(Stage stage, Throwable reason);
+        protected abstract void onLoginFailure(Throwable reason);
     }
 
-    private static class LoginTask extends TaskWaiter<UserDAO> {
+    private static class LoginTask extends Task<UserDAO> {
 
         private final String userName, password;
-        private final BiConsumer<Stage, Throwable> onNotSucceeded;
+        private final Consumer<Throwable> onNotSucceeded;
         private final MainController mainController;
         private final StackPane mainPane;
         private final BorderPane loginView;
 
-        LoginTask(Stage stage, BorderPane loginView, String userName, String password, BiConsumer<Stage, Throwable> onNotSucceeded) {
-            super(stage, AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB), AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
+        LoginTask(LoginBorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+            updateTitle(AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
             this.loginView = Objects.requireNonNull(loginView);
             this.userName = Objects.requireNonNull(userName);
             this.password = Objects.requireNonNull(password);
             this.onNotSucceeded = Objects.requireNonNull(onNotSucceeded);
-            mainPane = (StackPane) stage.getScene().getRoot();
+            mainPane = (StackPane) loginView.getScene().getRoot();
             mainController = (MainController) (mainPane.getProperties().get(PROPERTY_MAINCONTROLLER));
         }
 
         @Override
-        protected void processResult(UserDAO user, Stage owner) {
+        protected void succeeded() {
+            super.succeeded();
+            UserDAO user = getValue();
             if (null == user) {
-                onNotSucceeded.accept(owner, null);
+                onNotSucceeded.accept(null);
             } else {
                 HostServices services = currentApp.getHostServices();
                 String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
@@ -363,44 +353,42 @@ public final class Scheduler extends Application {
                 } catch (IOException | URISyntaxException ex) {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
-                EventHelper.fireFxmlViewEvent(mainController,
-                        new FxmlViewControllerEvent<>(this, FxmlViewEventType.LOADED, mainPane, mainController, owner));
                 loginView.minWidthProperty().unbind();
                 loginView.prefWidthProperty().unbind();
                 loginView.minHeightProperty().unbind();
                 loginView.prefHeightProperty().unbind();
                 mainPane.getChildren().remove(loginView);
-                EventHelper.fireFxmlViewEvent(mainController,
-                        new FxmlViewControllerEvent<>(this, FxmlViewEventType.BEFORE_SHOW, mainPane, mainController, owner));
-                EventHelper.fireFxmlViewEvent(mainController,
-                        new FxmlViewControllerEvent<>(this, FxmlViewEventType.SHOWN, mainPane, mainController, owner));
             }
         }
 
         @Override
-        protected void processException(Throwable ex, Stage owner) {
-            onNotSucceeded.accept(owner, ex);
+        protected void failed() {
+            super.failed();
+            onNotSucceeded.accept(getException());
         }
 
         @Override
-        protected UserDAO getResult(Connection connection) throws SQLException {
+        protected UserDAO call() throws Exception {
             Optional<UserDAO> result;
-            LOG.log(Level.INFO, String.format("Looking up %s", userName));
-            Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB)));
-            result = UserDAO.getFactory().findByUserName(connection, userName);
-            if (result.isPresent()) {
-                // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
-                // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
-                // as the stored password. If the password is correct, then the hash values will match.
-                PwHash hash = new PwHash(result.get().getPassword(), false);
-                if (hash.test(password)) {
-                    LOG.log(Level.INFO, "Password matched");
-                    currentUser = result.get();
-                    return result.get();
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                LOG.log(Level.INFO, String.format("Looking up %s", userName));
+                Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB)));
+                result = UserDAO.getFactory().findByUserName(dbConnector.getConnection(), userName);
+                if (result.isPresent()) {
+                    // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
+                    // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed
+                    // as the stored password. If the password is correct, then the hash values will match.
+                    PwHash hash = new PwHash(result.get().getPassword(), false);
+                    if (hash.test(password)) {
+                        LOG.log(Level.INFO, "Password matched");
+                        currentUser = result.get();
+                        return result.get();
+                    }
+                    LOG.log(Level.WARNING, "Password mismatch");
+                } else {
+                    LOG.log(Level.WARNING, "No matching userName found");
                 }
-                LOG.log(Level.WARNING, "Password mismatch");
-            } else {
-                LOG.log(Level.WARNING, "No matching userName found");
             }
             return null;
         }

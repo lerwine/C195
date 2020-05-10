@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -24,11 +22,10 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -45,10 +42,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
-import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT;
-import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
@@ -69,6 +62,7 @@ import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.util.AlertHelper;
+import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -81,15 +75,11 @@ import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
 import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
 import scheduler.view.customer.RelatedCustomer;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.user.RelatedUser;
 import scheduler.view.user.UserModel;
@@ -292,7 +282,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             } else {
                 showActiveUsers = Optional.of(true);
             }
-            TaskWaiter.startNow(new UserReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
+            waitBorderPane.startNow(new UserReloadTask());
         } else {
             if (dropdownOptionsInactiveRadioButton.isSelected()) {
                 showActiveCustomers = Optional.of(false);
@@ -301,7 +291,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             } else {
                 showActiveCustomers = Optional.of(true);
             }
-            TaskWaiter.startNow(new CustomerReloadTask((Stage) ((Button) event.getSource()).getScene().getWindow()));
+            waitBorderPane.startNow(new CustomerReloadTask());
         }
         dropdownOptionsBorderPane.setVisible(false);
     }
@@ -488,11 +478,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         urlTextField.textProperty().addListener((observable) -> {
             onUrlChanged(((StringProperty) observable).get());
         });
-    }
 
-    @SuppressWarnings("incomplete-switch")
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.LOADED)
-    private void onLoaded(FxmlViewEvent<? extends Parent> event) {
         try {
             ViewAndController<GridPane, DateRange> drVc = ViewControllerLoader.loadViewAndController(DateRange.class);
             ViewAndController<BorderPane, AppointmentConflicts> acVc = ViewControllerLoader.loadViewAndController(AppointmentConflicts.class);
@@ -510,14 +496,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             bp.prefWidthProperty().bind(widthProperty());
             bp.minWidthProperty().bind(widthProperty());
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), event.getStage(), ex);
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), ex);
         }
-    }
-
-    @SuppressWarnings("incomplete-switch")
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    private void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        event.getStage().setTitle(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
+        windowTitle.set(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
         SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
         typeSelectionModel.select(model.getType());
         titleTextField.setText(model.getTitle());
@@ -533,7 +514,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 duration = null;
             }
             dateRangeController.setDateRange(start, duration, TimeZone.getTimeZone(z));
-            TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
+            waitBorderPane.startNow(new ItemsLoadTask());
         }
         switch (typeSelectionModel.getSelectedItem()) {
             case OTHER:
@@ -806,18 +787,18 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
     }
 
-    private class CustomerReloadTask extends TaskWaiter<List<CustomerDAO>> {
+    private class CustomerReloadTask extends Task<List<CustomerDAO>> {
 
         private final Optional<Boolean> loadOption;
 
-        private CustomerReloadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
+        private CustomerReloadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             loadOption = showActiveCustomers;
         }
 
         @Override
-        protected void processResult(List<CustomerDAO> result, Stage stage) {
+        protected void succeeded() {
+            List<CustomerDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveCustomers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
                 SingleSelectionModel<CustomerModel> customerSelectionModel = customerComboBox.getSelectionModel();
@@ -836,38 +817,42 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                     }
                 }
             }
+            super.succeeded();
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            super.failed();
         }
 
         @Override
-        protected List<CustomerDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-            if (loadOption.isPresent()) {
-                return cf.load(connection, cf.getActiveStatusFilter(loadOption.get()));
+        protected List<CustomerDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                if (loadOption.isPresent()) {
+                    return cf.load(dbConnector.getConnection(), cf.getActiveStatusFilter(loadOption.get()));
+                }
+                return cf.load(dbConnector.getConnection(), cf.getAllItemsFilter());
             }
-            return cf.load(connection, cf.getAllItemsFilter());
         }
 
     }
 
-    private class UserReloadTask extends TaskWaiter<List<UserDAO>> {
+    private class UserReloadTask extends Task<List<UserDAO>> {
 
         private final Optional<Boolean> loadOption;
 
-        private UserReloadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
+        private UserReloadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             loadOption = showActiveUsers;
         }
 
         @Override
-        protected void processResult(List<UserDAO> result, Stage stage) {
+        protected void succeeded() {
+            List<UserDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveUsers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
                 SingleSelectionModel<UserModel> userSelectionModel = userComboBox.getSelectionModel();
@@ -886,30 +871,34 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                     }
                 }
             }
+            super.succeeded();
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            super.failed();
         }
 
         @Override
-        protected List<UserDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            UserDAO.FactoryImpl uf = UserDAO.getFactory();
-            if (loadOption.isPresent()) {
-                if (loadOption.get()) {
-                    return uf.load(connection, uf.getActiveUsersFilter());
+        protected List<UserDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                if (loadOption.isPresent()) {
+                    if (loadOption.get()) {
+                        return uf.load(dbConnector.getConnection(), uf.getActiveUsersFilter());
+                    }
+                    return uf.load(dbConnector.getConnection(), UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
                 }
-                return uf.load(connection, UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
             }
-            return uf.load(connection, uf.getAllItemsFilter());
         }
 
     }
 
-    private class ItemsLoadTask extends TaskWaiter<List<AppointmentDAO>> {
+    private class ItemsLoadTask extends Task<List<AppointmentDAO>> {
 
         private List<CustomerDAO> customerDaoList;
         private List<UserDAO> userDaoList;
@@ -919,9 +908,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         private final CustomerRowData appointmentCustomer;
         private final UserRowData appointmentUser;
 
-        private ItemsLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_INITIALIZING));
+        private ItemsLoadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             customerDaoList = null;
             userDaoList = null;
             CustomerItem<? extends CustomerRowData> customer = model.getCustomer();
@@ -933,7 +921,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
 
         @Override
-        protected void processResult(List<AppointmentDAO> result, Stage owner) {
+        protected void succeeded() {
+            List<AppointmentDAO> result = getValue();
             if (null != customerDaoList && !customerDaoList.isEmpty()) {
                 customerDaoList.forEach((t) -> customerModelList.add(new CustomerModel(t)));
             }
@@ -952,47 +941,54 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                     -> userComboBox.getSelectionModel().select(t));
+            if (null != result && !result.isEmpty()) {
+                appointments.addAll(result);
+            }
             appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this);
+            super.succeeded();
         }
 
         @Override
-        protected void processException(Throwable ex, Stage owner) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), owner, ex);
-            owner.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            super.failed();
         }
 
         @Override
-        protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
-            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-            UserDAO.FactoryImpl uf = UserDAO.getFactory();
-            AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
-            if (customerLoadOption.isPresent()) {
-                customerDaoList = cf.load(connection, cf.getActiveStatusFilter(customerLoadOption.get()));
-            } else {
-                customerDaoList = cf.load(connection, cf.getAllItemsFilter());
-            }
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
-            if (userLoadOption.isPresent()) {
-                if (userLoadOption.get()) {
-                    userDaoList = uf.load(connection, uf.getActiveUsersFilter());
+        protected List<AppointmentDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
+                if (customerLoadOption.isPresent()) {
+                    customerDaoList = cf.load(dbConnector.getConnection(), cf.getActiveStatusFilter(customerLoadOption.get()));
                 } else {
-                    userDaoList = uf.load(connection, UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                    customerDaoList = cf.load(dbConnector.getConnection(), cf.getAllItemsFilter());
                 }
-            } else {
-                userDaoList = uf.load(connection, uf.getAllItemsFilter());
-            }
-
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-            if (null != customerDaoList && null != userDaoList && !(customerDaoList.isEmpty() || userDaoList.isEmpty())) {
-                if (null != appointmentCustomer && ModelHelper.existsInDatabase(appointmentCustomer)) {
-                    if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
-                        return af.load(connection, AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+                if (userLoadOption.isPresent()) {
+                    if (userLoadOption.get()) {
+                        userDaoList = uf.load(dbConnector.getConnection(), uf.getActiveUsersFilter());
+                    } else {
+                        userDaoList = uf.load(dbConnector.getConnection(), UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
                     }
-                    return af.load(connection, AppointmentFilter.of(appointmentCustomer, null, null, null));
+                } else {
+                    userDaoList = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 }
-                if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
-                    return af.load(connection, AppointmentFilter.of(null, appointmentUser, null, null));
+
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
+                if (null != customerDaoList && null != userDaoList && !(customerDaoList.isEmpty() || userDaoList.isEmpty())) {
+                    if (null != appointmentCustomer && ModelHelper.existsInDatabase(appointmentCustomer)) {
+                        if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
+                            return af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
+                        }
+                        return af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, null, null, null));
+                    }
+                    if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
+                        return af.load(dbConnector.getConnection(), AppointmentFilter.of(null, appointmentUser, null, null));
+                    }
                 }
             }
             return null;

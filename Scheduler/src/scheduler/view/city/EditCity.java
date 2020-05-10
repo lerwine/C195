@@ -1,8 +1,6 @@
 package scheduler.view.city;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
@@ -12,32 +10,28 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.DbConnector;
 import scheduler.view.EditItem;
 import scheduler.view.ErrorDetailDialog;
-import scheduler.view.address.AddressModel;
 import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.FxmlViewEventHandling;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.annotations.HandlesFxmlViewEvent;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
-import scheduler.view.event.FxmlViewEvent;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -122,12 +116,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
         itemList = FXCollections.observableArrayList();
         addressesTableView.setItems(itemList);
-    }
 
-    @HandlesFxmlViewEvent(FxmlViewEventHandling.BEFORE_SHOW)
-    protected void onBeforeShow(FxmlViewEvent<? extends Parent> event) {
-        TaskWaiter.startNow(new ItemsLoadTask(event.getStage()));
-        event.getStage().setTitle(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
+        waitBorderPane.startNow(new ItemsLoadTask());
+        windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
     }
 
     @Override
@@ -160,18 +151,19 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#applyChangesToModel
     }
 
-    private class ItemsLoadTask extends TaskWaiter<List<AddressDAO>> {
+    private class ItemsLoadTask extends Task<List<AddressDAO>> {
 
         private final int pk;
 
-        private ItemsLoadTask(Stage owner) {
-            super(owner, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES));
+        private ItemsLoadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES));
             pk = model.getPrimaryKey();
         }
 
         @Override
-        protected void processResult(List<AddressDAO> result, Stage owner) {
+        protected void succeeded() {
+            super.succeeded();
+            List<AddressDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 AddressModel.Factory factory = AddressModel.getFactory();
                 result.forEach((t) -> {
@@ -181,16 +173,19 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
-            stage.close();
+        protected void failed() {
+            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
+            super.failed();
         }
 
         @Override
-        protected List<AddressDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            AddressDAO.FactoryImpl cf = AddressDAO.getFactory();
-            return cf.load(connection, cf.getByCityFilter(pk));
+        protected List<AddressDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                AddressDAO.FactoryImpl cf = AddressDAO.getFactory();
+                return cf.load(dbConnector.getConnection(), cf.getByCityFilter(pk));
+            }
         }
 
     }

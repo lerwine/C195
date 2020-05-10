@@ -1,5 +1,6 @@
 package scheduler.view.address;
 
+import scheduler.model.ui.AddressModel;
 import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;

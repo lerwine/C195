@@ -90,7 +90,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         return showAndWait(null, editorType, model);
     }
 
-    private final WaitBorderPane waitBorderPane;
     private final S editorRegion;
     private U model;
 
@@ -120,6 +119,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML // fx:id="deleteButton"
     private Button deleteButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="waitBorderPane"
+    private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
     private EditItem(S editorRegion, U model) {
         waitBorderPane = new WaitBorderPane();

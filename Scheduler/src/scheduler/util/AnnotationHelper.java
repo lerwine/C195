@@ -13,7 +13,6 @@ import scheduler.dao.schema.DbTable;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
-import scheduler.view.event.FxmlViewEvent;
 
 /**
  * Utility class for getting annotated information.
@@ -99,10 +98,6 @@ public class AnnotationHelper {
                                     annotationClass.getName()));
                         } else if (parameters.length == 0 || parameters[0].isAssignableFrom(eventClass)) {
                             builder.accept(m);
-                        } else if (parameters[0].isAssignableFrom(FxmlViewEvent.class)) {
-                            LOG.log(Level.FINE,
-                                    String.format("Method %s uses the %s annotation, but was skipped because the argument is not assignable from %s",
-                                            m.toString(), annotationClass.getName(), eventClass.getName()));
                         } else {
                             LOG.log(Level.WARNING,
                                     String.format("Method %s uses the %s annotation, but has the wrong type of argument", m.toString(),
@@ -123,21 +118,6 @@ public class AnnotationHelper {
      * @param targetClass The class to search for annotated methods.
      * @param annotationClass The type of {@link Annotation} to look for.
      * @param eventClass The type of {@link EventObject} to look for in the single parameter.
-     * @param filter A {@link Predicate} that is used to filter the results or {@code null} to return all results.
-     * @return A {@link Stream} of {@link Method} objects.
-     */
-    public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
-            Class<? extends EventObject> eventClass, Predicate<T> filter) {
-        return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, false, filter);
-    }
-
-    /**
-     * Gets methods that have a specific annotation.
-     *
-     * @param <T> The type of {@link Annotation}.
-     * @param targetClass The class to search for annotated methods.
-     * @param annotationClass The type of {@link Annotation} to look for.
-     * @param eventClass The type of {@link EventObject} to look for in the single parameter.
      * @param allowZeroLengthParameters {@code true} to accept methods with zero-length parameters; otherwise {@code false} to require exactly 1
      * parameter.
      * @return A {@link Stream} of {@link Method} objects.
@@ -145,20 +125,6 @@ public class AnnotationHelper {
     public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
             Class<? extends EventObject> eventClass, boolean allowZeroLengthParameters) {
         return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, allowZeroLengthParameters, null);
-    }
-
-    /**
-     * Gets methods that have a specific annotation.
-     *
-     * @param <T> The type of {@link Annotation}.
-     * @param targetClass The class to search for annotated methods.
-     * @param annotationClass The type of {@link Annotation} to look for.
-     * @param eventClass The type of {@link EventObject} to look for in the single parameter.
-     * @return A {@link Stream} of {@link Method} objects.
-     */
-    public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
-            Class<? extends EventObject> eventClass) {
-        return getAnnotatedEventHandlerMethods(targetClass, annotationClass, eventClass, null);
     }
 
     /**

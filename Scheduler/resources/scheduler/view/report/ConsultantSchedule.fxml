@@ -10,11 +10,11 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.controls.DailyAppointmentsListCellFactory?>
-<?import scheduler.controls.UserListCellFactory?>
-<?import scheduler.controls.UserListCell?>
+<?import scheduler.fx.appointment.DailyAppointmentsListCellFactory?>
+<?import scheduler.fx.user.UserListCell?>
+<?import scheduler.fx.user.UserListCellFactory?>
 
-<VBox spacing="8.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.report.ConsultantSchedule">
+<fx:root spacing="8.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane>
             <columnConstraints>
@@ -58,4 +58,4 @@
             </cellFactory>
         </ListView>
     </children>
-</VBox>
+</fx:root>
