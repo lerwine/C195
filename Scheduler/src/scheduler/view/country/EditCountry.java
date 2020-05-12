@@ -32,7 +32,7 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
@@ -202,7 +202,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
             super.failed();
         }
 

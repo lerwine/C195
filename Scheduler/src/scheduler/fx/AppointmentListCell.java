@@ -1,4 +1,4 @@
-package scheduler.fx.appointment;
+package scheduler.fx;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -10,7 +10,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import scheduler.util.NodeUtil;
-import scheduler.view.CssClassName;
+import scheduler.fx.CssClassName;
 import scheduler.view.appointment.AppointmentModel;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 
@@ -32,7 +32,7 @@ public class AppointmentListCell extends ListCell<AppointmentModel> {
         this.formatter = Objects.requireNonNull(formatter);
         graphic = new TextFlow();
         ObservableList<Node> children = graphic.getChildren();
-        headerText = NodeUtil.setCssClass(new Text(), CssClassName.SUBSECTION_HEADING);
+        headerText = NodeUtil.setCssClass(new Text(), CssClassName.H1);
         children.add(headerText);
         locationLabelText = NodeUtil.setCssClass(new Text(), CssClassName.BOLD_TEXT);
         children.add(locationLabelText);

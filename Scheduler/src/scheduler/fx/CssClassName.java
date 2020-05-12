@@ -1,11 +1,10 @@
-package scheduler.view;
+package scheduler.fx;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -13,7 +12,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import scheduler.util.MapHelper;
 
 /**
  * CSS class names defined in {@code scheduler/default.css}.
@@ -25,88 +23,59 @@ public enum CssClassName {
      * The {@code "symbol-button"} CSS class for buttons that display text using the {@code Segoe UI Symbol} font.
      */
     SYMBOL_BUTTON("symbol-button"),
-    
     /**
      * The {@code "collapsed"} CSS class that sets visibility to {@code false} and collapses the height and width to zero.
      */
-    COLLAPSED("collapsed", ExclusiveCssClassGroup.VALIDATION),
-    
+    COLLAPSED("collapsed"),
     /**
      * The {@code "bordered"} CSS class for nodes that will contain a normal border.
      */
     BORDERED("bordered"),
-    
     /**
      * The {@code "error"} CSS class for nodes that display in red text, aligned to the upper-left and have no padding.
      */
-    ERROR("error", ExclusiveCssClassGroup.VALIDATION),
-    
+    ERROR("error"),
     /**
-     * The {@code "warningMessage"} CSS class for nodes that display in yellow italicized text.
+     * The {@code "warning"} CSS class for nodes that display in yellow italicized text.
      */
-    WARNING("warningMessage", ExclusiveCssClassGroup.VALIDATION),
-    
+    WARNING("warning"),
     /**
-     * The {@code "infoMessage"} CSS class for nodes that display in diminished-color italicized text.
+     * The {@code "information"} CSS class for nodes that display in diminished-color italicized text.
      */
-    INFO("infoMessage", ExclusiveCssClassGroup.VALIDATION),
-    
+    INFO("information"),
     /**
-     * The {@code "formControlValidationMessage"} CSS class for nodes that display in red text.
+     * The {@code "validationMessage"} CSS class for nodes that display in red text.
      */
-    VALIDATIONMSG("formControlValidationMessage", ExclusiveCssClassGroup.VALIDATION),
-    
+    VALIDATIONMSG("validationMessage"),
     /**
      * The {@code "leftControlLabel"} CSS class for {@link Labeled} nodes aligned to the left of the control they label.
      */
     LEFTCONTROLLABEL("leftControlLabel"),
-    
     /**
      * The {@code "leftLabeledControl"} CSS class for nodes aligned to the right their label.
      */
     LEFTLABELEDCONTROL("leftLabeledControl"),
-    
     /**
-     * The {@code "section-heading"} CSS class for the heading text of a {@link #SECTION_CONTAINER}.
+     * The {@code "h1"} CSS class for larger, bold text representing a sub-heading within a {@link #SECTION_CONTAINER}.
      */
-    SECTION_HEADING("section-heading"),
-    
+    H1("h1"),
     /**
-     * The {@code "section-container"} CSS class for a bordered nodes representing the container of a section of content.
-     */
-    SECTION_CONTAINER("section-container"),
-    
-    /**
-     * The {@code "sub-section-heading"} CSS class for larger, bold text representing a sub-heading within a {@link #SECTION_CONTAINER}.
-     */
-    SUBSECTION_HEADING("sub-section-heading"),
-    
-    /**
-     * The {@code "wait-titled-pane"} CSS clasS.
+     * The {@code "wait-titled-pane"} CSS class.
+     * @deprecated 
      */
     WAIT_TITLED_PANE("wait-titled-pane"),
-    
     /**
-     * The {@code "error-titled-pane"} CSS clasS.
+     * The {@code "error-titled-pane"} CSS class.
+     * @deprecated 
      */
     ERROR_TITLED_PANE("error-titled-pane"),
-    
     /**
      * The {@code "boldText"} CSS class for bold text.
      */
     BOLD_TEXT("boldText");
 
-    private static final Map<ExclusiveCssClassGroup, List<CssClassName>> byGroup;
-
-    static {
-        byGroup = Collections.unmodifiableMap(MapHelper.remap(MapHelper.groupMapFlat(CssClassName.values(), (t) -> (t.exclusiveGroups.isEmpty())
-                ? Collections.singleton(ExclusiveCssClassGroup.NONE).iterator() : t.exclusiveGroups.iterator()), (t) -> Collections.unmodifiableList(t)));
-
-    }
-
-    public static List<CssClassName> ofGroup(ExclusiveCssClassGroup group) {
-        return byGroup.get(group);
-    }
+    public static final List<CssClassName> VALIDATION_CSS_CLASSES = Collections.unmodifiableList(Arrays.asList(CssClassName.INFO, CssClassName.WARNING, CssClassName.ERROR));
+    public static final CssClassName VALIDATION_MESSAGE_CSS_CLASS = CssClassName.VALIDATIONMSG;
 
     public static String[] toStringArray(CssClassName... classNames) {
         if (null == classNames || classNames.length == 0) {
@@ -314,15 +283,9 @@ public enum CssClassName {
         return Stream.empty();
     }
     private final String value;
-    private final List<ExclusiveCssClassGroup> exclusiveGroups;
 
-    private CssClassName(String value, ExclusiveCssClassGroup... exclusiveGroups) {
+    private CssClassName(String value) {
         this.value = value;
-        this.exclusiveGroups = (null == exclusiveGroups || exclusiveGroups.length == 0) ? Collections.emptyList() : Collections.unmodifiableList(Arrays.asList(exclusiveGroups));
-    }
-
-    public List<ExclusiveCssClassGroup> getExclusiveGroups() {
-        return exclusiveGroups;
     }
 
     @Override

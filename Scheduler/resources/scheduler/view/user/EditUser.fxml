@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
@@ -34,7 +35,12 @@
             <children>
                 <Label styleClass="leftControlLabel" text="%userName" />
                 <TextField fx:id="userNameTextField" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
-                <Label fx:id="userNameErrorMessageLabel" styleClass="formControlValidationMessage" text="%userNameCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label fx:id="userNameErrorMessageLabel" text="%userNameCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
                 <CheckBox fx:id="changePasswordCheckBox" mnemonicParsing="false" styleClass="leftControlLabel" text="%password" GridPane.rowIndex="2">
                     <GridPane.margin>
                         <Insets top="16.0" />
@@ -45,7 +51,12 @@
                         <Insets top="16.0" />
                     </GridPane.margin>
                 </PasswordField>
-                <Label fx:id="passwordErrorMessageLabel" styleClass="formControlValidationMessage" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label fx:id="passwordErrorMessageLabel" text="%passwordCannotBeEmpty" textFill="#7f0000" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
                 <Label fx:id="confirmLabel" styleClass="leftControlLabel" text="%confirmPassword" GridPane.rowIndex="4">
                     <GridPane.margin>
                         <Insets top="16.0" />

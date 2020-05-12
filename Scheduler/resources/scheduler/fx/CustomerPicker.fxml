@@ -16,11 +16,13 @@
 <?import javafx.scene.layout.VBox?>
 
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" styleClass="translucentGrayBg" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <center>
-      <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="popup-container">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0"
+         styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
          <center>
-            <VBox styleClass="popup-content" stylesheets="@../../defaultStyles.css">
+            <VBox styleClass="popup-content">
                <children>
                   <GridPane hgap="4.0" vgap="8.0">
                     <columnConstraints>

@@ -34,6 +34,8 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOGGINGIN;
+import static scheduler.util.NodeUtil.bindExtents;
+import static scheduler.util.NodeUtil.unbindExtents;
 import scheduler.dao.UserDAO;
 import scheduler.util.DbConnector;
 import scheduler.util.PwHash;
@@ -41,6 +43,7 @@ import scheduler.util.ThrowableConsumer;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.Login;
 import scheduler.view.MainController;
+import scheduler.view.Overview;
 import scheduler.view.ViewAndController;
 
 /**
@@ -251,11 +254,8 @@ public final class Scheduler extends Application {
         stage.setScene(new Scene(mainView));
         mainView.getProperties().put(PROPERTY_MAINCONTROLLER, mainController);
         ObservableList<Node> children = mainView.getChildren();
-        children.add(login);
-        login.minWidthProperty().bind(mainView.widthProperty());
-        login.prefWidthProperty().bind(mainView.widthProperty());
-        login.minHeightProperty().bind(mainView.heightProperty());
-        login.prefHeightProperty().bind(mainView.heightProperty());
+        children.add(1, login);
+        bindExtents(login, mainView);
         stage.show();
     }
 
@@ -353,11 +353,9 @@ public final class Scheduler extends Application {
                 } catch (IOException | URISyntaxException ex) {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
-                loginView.minWidthProperty().unbind();
-                loginView.prefWidthProperty().unbind();
-                loginView.minHeightProperty().unbind();
-                loginView.prefHeightProperty().unbind();
+                unbindExtents(loginView);
                 mainPane.getChildren().remove(loginView);
+                mainController.replaceContent(new Overview());
             }
         }
 

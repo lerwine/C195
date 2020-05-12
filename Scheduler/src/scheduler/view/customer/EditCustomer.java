@@ -58,10 +58,10 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.model.ui.AddressModel;
-import scheduler.view.address.AddressPicker;
+import scheduler.fx.AddressPicker;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
@@ -570,7 +570,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
                     getException());
             getScene().getWindow().hide();
         }
@@ -622,7 +622,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
                     getException());
             getScene().getWindow().hide();
         }

@@ -1,4 +1,4 @@
-package scheduler.fx.appointment;
+package scheduler.fx;
 
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;

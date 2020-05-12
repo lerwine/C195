@@ -41,7 +41,12 @@
                   <ComboBox fx:id="countryNameComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
                </children>
             </StackPane>
-            <Label fx:id="nameValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label fx:id="nameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <styleClass>
+                    <String fx:value="validationMessage" />
+                    <String fx:value="error" />
+                </styleClass>
+            </Label>
          </children>
       </GridPane>
         <Label maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%cities">

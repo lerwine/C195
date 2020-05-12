@@ -124,7 +124,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
     private EditItem(S editorRegion, U model) {
-        waitBorderPane = new WaitBorderPane();
         this.editorRegion = editorRegion;
         this.model = model;
     }
@@ -142,7 +141,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         parentVBox.getChildren().add(0, editorRegion);
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
-        getChildren().add(waitBorderPane);
         saveChangesButton.disableProperty().bind(editorRegion.validProperty().not());
 
         if (model.isNewItem()) {
@@ -217,7 +215,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVEFAILURE), getException(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVEFAILURE), getException(),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORSAVINGCHANGES));
             super.failed();
         }
@@ -280,7 +278,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), getException(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), getException(),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
             super.failed();
         }

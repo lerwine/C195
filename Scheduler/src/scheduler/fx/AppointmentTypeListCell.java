@@ -1,13 +1,13 @@
-package scheduler.fx.appointment;
+package scheduler.fx;
 
-import javafx.scene.control.TableCell;
+import javafx.scene.control.ListCell;
 import scheduler.model.AppointmentType;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class AppointmentTypeTableCell extends TableCell<String, AppointmentType> {
+public class AppointmentTypeListCell extends ListCell<AppointmentType> {
 
     @Override
     protected void updateItem(AppointmentType item, boolean empty) {

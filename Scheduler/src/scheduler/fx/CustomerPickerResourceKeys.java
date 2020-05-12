@@ -1,4 +1,4 @@
-package scheduler.view.customer;
+package scheduler.fx;
 
 /**
  * Defines resource bundle keys for the {@code scheduler/view/customer/CustomerPicker} resource bundle.

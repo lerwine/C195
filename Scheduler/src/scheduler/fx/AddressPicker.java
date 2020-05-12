@@ -1,4 +1,4 @@
-package scheduler.view.address;
+package scheduler.fx;
 
 import scheduler.model.ui.AddressModel;
 import java.io.IOException;
@@ -31,8 +31,8 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ErrorDetailDialog;
-import static scheduler.view.address.AddressPickerResourceKeys.*;
+import scheduler.view.ErrorDetailControl;
+import static scheduler.fx.AddressPickerResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.RelatedCity;
@@ -44,8 +44,8 @@ import scheduler.view.task.WaitBorderPane;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-@GlobalizationResource("scheduler/view/address/AddressPicker")
-@FXMLResource("/scheduler/view/address/AddressPicker.fxml")
+@GlobalizationResource("scheduler/fx/AddressPicker")
+@FXMLResource("/scheduler/fx/AddressPicker.fxml")
 public class AddressPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(AddressPicker.class.getName());
@@ -218,7 +218,7 @@ public class AddressPicker extends BorderPane {
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
                     getException());
             getScene().getWindow().hide();
         }

@@ -11,7 +11,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 
 /**
  * Utility class for alerts and logging.
@@ -82,7 +82,7 @@ public class AlertHelper {
     public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, String userMessage, String logMessage, Throwable error,
             ButtonType... buttons) {
         logger.log(Level.SEVERE, logMessage, error);
-        return ErrorDetailDialog.showAndWait(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), error, userMessage, buttons);
+        return ErrorDetailControl.showAndWait(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), error, userMessage, buttons);
     }
 
     /**

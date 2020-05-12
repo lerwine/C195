@@ -1,4 +1,4 @@
-package scheduler.fx.appointment;
+package scheduler.fx;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;

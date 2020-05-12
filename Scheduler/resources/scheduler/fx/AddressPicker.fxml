@@ -16,14 +16,24 @@
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.CountryListCell?>
 
-<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0"
+         styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171"
+         xmlns:fx="http://javafx.com/fxml/1">
     <center>
-      <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
          <BorderPane.margin>
-            <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+                <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
          </BorderPane.margin>
+         <top>
+                <Label alignment="CENTER" text="%selectAddress">
+                    <styleClass>
+                            <String fx:value="top" />
+                            <String fx:value="h1" />
+                    </styleClass>
+                </Label>
+         </top>
          <center>
-                <SplitPane dividerPositions="0.5" maxHeight="-Infinity">
+                <SplitPane dividerPositions="0.5" maxHeight="-Infinity" styleClass="center">
                     <items>
                         <VBox>
                             <children>
@@ -36,7 +46,12 @@
                                         <CountryListCell />
                                     </buttonCell>
                                 </ComboBox>
-                                <Label fx:id="countryWarningLabel" styleClass="warningMessage" text="%countryNotSelected" />
+                                <Label fx:id="countryWarningLabel" text="%countryNotSelected">
+                                    <styleClass>
+                                        <String fx:value="validationMessage" />
+                                        <String fx:value="warning" />
+                                    </styleClass>
+                                </Label>
                                 <Label styleClass="topControlLabel" text="%city">
                                     <VBox.margin>
                                         <Insets top="16.0" />
@@ -50,7 +65,12 @@
                                         <CityListCell />
                                     </buttonCell>
                                 </ComboBox>
-                                <Label fx:id="cityWarningLabel" styleClass="warningMessage" text="%cityNotSelected" />
+                                <Label fx:id="cityWarningLabel" text="%cityNotSelected">
+                                    <styleClass>
+                                        <String fx:value="validationMessage" />
+                                        <String fx:value="warning" />
+                                    </styleClass>
+                                </Label>
                             </children>
                             <padding>
                                 <Insets left="8.0" right="8.0" />
@@ -76,22 +96,12 @@
                </BorderPane.margin>
                 </SplitPane>
          </center>
-         <top>
-                <Label alignment="CENTER" styleClass="popup-heading" text="%selectAddress" BorderPane.alignment="CENTER" />
-         </top>
-         <styleClass>
-            <String fx:value="mainFxmlClass" />
-            <String fx:value="bordered" />
-         </styleClass>
          <bottom>
-                <ButtonBar BorderPane.alignment="CENTER">
+                <ButtonBar styleClass="bottom">
                     <buttons>
                         <Button fx:id="selectButton" mnemonicParsing="false" onAction="#onSelectButtonAction" text="%select" />
                         <Button mnemonicParsing="false" onAction="#onCancelButtonAction" text="%cancel" />
                     </buttons>
-               <BorderPane.margin>
-                  <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-               </BorderPane.margin>
                 </ButtonBar>
          </bottom>
       </BorderPane>

@@ -23,7 +23,7 @@
             <children>
                 <StackPane>
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="%currentAndFutureAppointments" wrapText="true" />
+                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-title" text="%currentAndFutureAppointments" wrapText="true" />
                         <HBox alignment="CENTER_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" StackPane.alignment="CENTER_RIGHT">
                             <children>
                                 <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓">

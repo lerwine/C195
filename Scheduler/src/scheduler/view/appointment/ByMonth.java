@@ -23,7 +23,7 @@ import scheduler.Scheduler;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.DB;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -112,7 +112,7 @@ public class ByMonth extends StackPane {
             allAppointments.clear();
             allAppointments.addAll(t);
         }, (Throwable t) -> {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), t);
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), t);
         });
     }
 

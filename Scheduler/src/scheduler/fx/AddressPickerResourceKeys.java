@@ -1,4 +1,4 @@
-package scheduler.view.address;
+package scheduler.fx;
 
 /**
  * Resource bundle keys for {@code resources/scheduler/view/address/AddressPicker}.

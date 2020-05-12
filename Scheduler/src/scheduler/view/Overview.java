@@ -187,7 +187,7 @@ public class Overview extends VBox {
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException(),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
             super.failed();
         }

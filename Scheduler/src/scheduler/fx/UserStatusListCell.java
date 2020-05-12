@@ -1,4 +1,4 @@
-package scheduler.fx.user;
+package scheduler.fx;
 
 import javafx.collections.ObservableMap;
 import javafx.scene.control.ListCell;

@@ -23,7 +23,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.view.address.AddressPicker?>
+<?import scheduler.fx.AddressPicker?>
 <?import scheduler.fx.CityListCellFactory?>
 <?import scheduler.fx.CityListCell?>
 <?import scheduler.fx.CountryListCellFactory?>
@@ -56,7 +56,12 @@
                     <children>
                         <Label styleClass="leftControlLabel" text="%name" />
                         <TextField fx:id="nameTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
-                        <Label fx:id="nameValidationLabel" styleClass="formControlValidationMessage" text="%nameCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label fx:id="nameValidationLabel" text="%nameCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
                         <Label styleClass="leftControlLabel" text="%active" GridPane.rowIndex="2">
                             <GridPane.margin>
                                 <Insets top="16.0" />
@@ -95,7 +100,12 @@
                             </GridPane.margin>
                         </StackPane>
                         <TextField fx:id="address2TextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                        <Label fx:id="addressValidationLabel" styleClass="formControlValidationMessage" text="%addressCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <Label fx:id="addressValidationLabel" text="%addressCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
                         <Label fx:id="cityLabel" styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6">
                             <GridPane.margin>
                                 <Insets top="16.0" />
@@ -122,7 +132,12 @@
                                 <Insets top="16.0" />
                             </GridPane.margin>
                         </StackPane>
-                        <Label fx:id="cityValidationLabel" styleClass="formControlValidationMessage" text="%countryNotSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                        <Label fx:id="cityValidationLabel" text="%countryNotSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
                         <Label fx:id="postalCodeLabel" styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="8">
                             <GridPane.margin>
                                 <Insets top="16.0" />
@@ -168,7 +183,12 @@
                                 <CountryListCell />
                             </buttonCell>
                         </ComboBox>
-                        <Label fx:id="countryValidationLabel" styleClass="formControlValidationMessage" text="%countryMustBeSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+                        <Label fx:id="countryValidationLabel" text="%countryMustBeSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="11">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
                         <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="12" GridPane.valignment="TOP">
                             <buttons>
                                 <Button fx:id="existingAddressButton" mnemonicParsing="false" onAction="#onExistingAddressButtonAction" text="%existingAddress" />

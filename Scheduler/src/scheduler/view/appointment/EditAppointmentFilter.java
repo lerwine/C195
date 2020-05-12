@@ -60,7 +60,7 @@ import scheduler.observables.StringBindingProperty;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreErrorLabel;
+import static scheduler.util.NodeUtil.restoreErrorLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -758,7 +758,7 @@ public final class EditAppointmentFilter extends BorderPane {
             if (null == message || message.trim().isEmpty()) {
                 collapseNode(dateRangeErrorLabel);
             } else {
-                restoreErrorLabel(dateRangeErrorLabel, message);
+                restoreErrorLabeled(dateRangeErrorLabel, message);
             }
         });
 

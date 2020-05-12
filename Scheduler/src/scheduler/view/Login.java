@@ -121,6 +121,10 @@ public final class Login extends Scheduler.LoginBorderPane {
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
     }
     
+    public Login() {
+        super();
+    }
+    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'Login.fxml'.";
@@ -196,7 +200,7 @@ public final class Login extends Scheduler.LoginBorderPane {
         if (reason == null) {
             AlertHelper.showErrorAlert(RESOURCEKEY_EXIT, loginButton);
         } else {
-            ErrorDetailDialog.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), reason,
+            ErrorDetailControl.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), reason,
                     rb.getString(RESOURCEKEY_VALIDATIONERROR));
         }
     }

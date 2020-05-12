@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+            <top>
+                <Label text="%appointmentReminder">
+                    <styleClass>
+                        <String fx:value="top" />
+                        <String fx:value="h1" />
+                    </styleClass>
+                </Label>
+            </top>
+            <center>
+                <ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" styleClass="center">
+                    <content>
+                        <VBox fx:id="appointmentAlertsVBox" spacing="8.0" />
+                    </content>
+                </ScrollPane>
+            </center>
+            <bottom>
+                <ButtonBar styleClass="bottom">
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#onDismissAllAppointmentAlerts" text="%dismissAll" />
+                    </buttons>
+                </ButtonBar>
+            </bottom>
+            <BorderPane.margin>
+                <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
+            </BorderPane.margin>
+            <styleClass>
+                <String fx:value="bordered-section" />
+                <String fx:value="warning" />
+            </styleClass>
+        </BorderPane>
+    </center>
+</fx:root>

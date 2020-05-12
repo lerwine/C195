@@ -23,8 +23,9 @@ import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
@@ -52,15 +53,15 @@ import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DataObjectEventListener;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
-import scheduler.fx.appointment.AppointmentAlert;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.EventHelper;
-import scheduler.util.ViewControllerLoader;
+import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -114,12 +115,18 @@ public final class MainController implements EventTarget {
         Scheduler.getMainController().waitBorderPane.schedule(task, delay, unit);
     }
 
-    private Object contentController;
+    private Node contentView;
 
     private EventHelper<DataObjectEventListener<? extends DataAccessObject>, DataObjectEvent<? extends DataAccessObject>> daoEventHelper;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
+
+    @FXML // fx:id="rootStackPane"
+    private StackPane rootStackPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="contentVBox"
+    private VBox contentVBox; // Value injected by FXMLLoader
 
     // FIXME: Menu not working
     @FXML // fx:id="overviewMenu"
@@ -154,9 +161,6 @@ public final class MainController implements EventTarget {
 
     @FXML // fx:id="manageAddressesMenuItem"
     private MenuItem manageAddressesMenuItem; // Value injected by FXMLLoader
-
-    @FXML // fx:id="contentPane"
-    private StackPane contentPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="helpContent"
     private HelpContent helpContent; // Value injected by FXMLLoader
@@ -205,7 +209,7 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onNewAddressMenuItem(ActionEvent event) {
-        addNewAddress((Stage) contentPane.getScene().getWindow());
+        addNewAddress((Stage) contentVBox.getScene().getWindow());
     }
 
     @FXML
@@ -215,12 +219,12 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onNewCustomerMenuItemAction(ActionEvent event) {
-        addNewCustomer((Stage) contentPane.getScene().getWindow());
+        addNewCustomer((Stage) contentVBox.getScene().getWindow());
     }
 
     @FXML
     void onNewUserMenuItemAction(ActionEvent event) {
-        addNewUser((Stage) contentPane.getScene().getWindow());
+        addNewUser((Stage) contentVBox.getScene().getWindow());
     }
 
     @FXML
@@ -250,6 +254,8 @@ public final class MainController implements EventTarget {
 
     @FXML
     private void initialize() {
+        assert rootStackPane != null : "fx:id=\"rootStackPane\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'MainView.fxml'.";
         assert overviewMenu != null : "fx:id=\"overviewMenu\" was not injected: check your FXML file 'MainView.fxml'.";
         assert weeklyCalendarMenuItem != null : "fx:id=\"weeklyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert monthlyCalendarMenuItem != null : "fx:id=\"monthlyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
@@ -261,19 +267,28 @@ public final class MainController implements EventTarget {
         assert manageCustomersMenuItem != null : "fx:id=\"manageCustomersMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert manageUsersMenuItem != null : "fx:id=\"manageUsersMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert manageAddressesMenuItem != null : "fx:id=\"manageAddressesMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
-        assert contentPane != null : "fx:id=\"contentPane\" was not injected: check your FXML file 'MainView.fxml'.";
         assert helpContent != null : "fx:id=\"helpContent\" was not injected: check your FXML file 'MainView.fxml'.";
         assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'MainView.fxml'.";
         assert appointmentAlert != null : "fx:id=\"appointmentAlert\" was not injected: check your FXML file 'MainView.fxml'.";
 
         daoEventHelper = new EventHelper<>("onDataObjectEvent");
+        bindExtents(helpContent, rootStackPane);
+        bindExtents(waitBorderPane, rootStackPane);
+        bindExtents(appointmentAlert, rootStackPane);
     }
 
-    public void replaceContent(Region newContent) {
-        Object oldController = contentController;
-        ViewControllerLoader.replaceContent(this, contentPane, 0, newContent);
-        contentController = newContent;
-        onControllerReplaced(oldController, contentController);
+    public synchronized void replaceContent(Node newContent) {
+        Node oldView = contentView;
+        contentView = newContent;
+        if (null != oldView) {
+            contentVBox.getChildren().remove(oldView);
+        }
+        if (null != newContent) {
+            VBox.setVgrow(newContent, Priority.ALWAYS);
+            contentVBox.getChildren().add(newContent);
+        }
+
+        onContentReplaced(oldView, contentView);
     }
 
     private MenuItem getAssociatedMenuItem(Object controller) {
@@ -323,58 +338,55 @@ public final class MainController implements EventTarget {
         return null;
     }
 
-    private void onControllerReplaced(Object oldController, Object newController) {
+    private void onContentReplaced(Node oldNode, Node newNode) {
         MenuItem menuItem;
-        if (null != oldController) {
-            if (oldController instanceof Overview) {
+        if (null != oldNode) {
+            if (oldNode instanceof Overview) {
                 overviewMenu.setDisable(false);
-            } else if (null != (menuItem = getAssociatedMenuItem(oldController))) {
+            } else if (null != (menuItem = getAssociatedMenuItem(oldNode))) {
                 menuItem.setDisable(false);
             }
         }
-        if (null != newController) {
-            if (newController instanceof Overview) {
+        if (null != newNode) {
+            if (newNode instanceof Overview) {
                 overviewMenu.setDisable(true);
-            } else if (null != (menuItem = getAssociatedMenuItem(newController))) {
+            } else if (null != (menuItem = getAssociatedMenuItem(newNode))) {
                 menuItem.setDisable(true);
             }
         }
     }
 
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
-        return helpContent.show(title, fxmlResourceName, bundleBaseName);
+        return helpContent.show((null == title || title.trim().isEmpty()) ? resources.getString(RESOURCEKEY_SCHEDULERHELP) : title, fxmlResourceName,
+                bundleBaseName);
     }
 
-    public <T extends Node> T showHelp(String title, String fxmlResourceName) throws IOException {
-        return helpContent.show(title, fxmlResourceName, null);
-    }
-
-    public <T extends Node> T showHelp(String fxmlResourceName) throws IOException {
-        return helpContent.show(null, fxmlResourceName, null);
+    public <T extends Node> T showHelp(String fxmlResourceName, String bundleBaseName) throws IOException {
+        return helpContent.show(resources.getString(RESOURCEKEY_SCHEDULERHELP), fxmlResourceName, bundleBaseName);
     }
 
     public <T extends Iterable<Text>> void showHelp(String title, T source) {
-        helpContent.show(title, source);
+        helpContent.show((null == title || title.trim().isEmpty()) ? resources.getString(RESOURCEKEY_SCHEDULERHELP) : title, source);
     }
 
     public void showHelp(String title, Stream<Text> source) {
-        helpContent.show(title, source);
+        helpContent.show((null == title || title.trim().isEmpty()) ? resources.getString(RESOURCEKEY_SCHEDULERHELP) : title, source);
     }
 
     public void showHelp(String title, Node source) {
-        helpContent.show(title, source);
+        helpContent.show((null == title || title.trim().isEmpty()) ? resources.getString(RESOURCEKEY_SCHEDULERHELP) : title, source);
     }
 
     public <T extends Iterable<Text>> void showHelp(T source) {
-        helpContent.show(null, source);
+        helpContent.show(resources.getString(RESOURCEKEY_SCHEDULERHELP), source);
     }
 
     public void showHelp(Stream<Text> source) {
-        helpContent.show(null, source);
+        helpContent.show(resources.getString(RESOURCEKEY_SCHEDULERHELP), source);
     }
 
     public void showHelp(Node source) {
-        helpContent.show(null, source);
+        helpContent.show(resources.getString(RESOURCEKEY_SCHEDULERHELP), source);
     }
 
     public void hideHelp() {
@@ -393,7 +405,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditAppointment.editNew(customer, user);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), ex);
             return null;
         }
         if (null != result) {
@@ -412,7 +424,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditAppointment.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), ex);
             return;
         }
         if (null != result) {
@@ -426,11 +438,11 @@ public final class MainController implements EventTarget {
      * @param item The {@link AppointmentModel} to be deleted.
      */
     public void deleteAppointment(AppointmentModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AppointmentModel.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AppointmentModel.getFactory(),
                     this::onAppointmentDeleted));
         }
     }
@@ -447,7 +459,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditCustomer.editNew();
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -469,7 +481,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditCustomer.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -486,11 +498,11 @@ public final class MainController implements EventTarget {
      */
     // TODO: Remove stage parameter
     public void deleteCustomer(Stage stage, CustomerModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CustomerModel.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CustomerModel.getFactory(),
                     (t) -> {
                         CustomerDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.DELETED, dataObject));
@@ -510,7 +522,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditCountry.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -527,11 +539,11 @@ public final class MainController implements EventTarget {
      */
     // TODO: Remove stage parameter
     public void deleteCountry(Stage stage, CountryModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CountryModel.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CountryModel.getFactory(),
                     (t) -> {
                         CountryDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CountryDaoEvent(this, DaoChangeAction.DELETED, dataObject));
@@ -551,7 +563,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditCity.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -568,11 +580,11 @@ public final class MainController implements EventTarget {
      */
     // TODO: Remove stage parameter
     public void deleteCity(Stage stage, CityModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), CityModel.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CityModel.getFactory(),
                     (t) -> {
                         CityDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CityDaoEvent(this, DaoChangeAction.DELETED, dataObject));
@@ -592,7 +604,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditAddress.editNew();
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -614,7 +626,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditAddress.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -631,11 +643,11 @@ public final class MainController implements EventTarget {
      */
     // TODO: Remove stage parameter
     public void deleteAddress(Stage stage, AddressModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), AddressModel.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AddressModel.getFactory(),
                     (t) -> {
                         AddressDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.DELETED, dataObject));
@@ -655,7 +667,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditUser.editNew();
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), stage, ex);
             return null;
         }
         if (null != result) {
@@ -677,7 +689,7 @@ public final class MainController implements EventTarget {
         try {
             result = EditUser.edit(item);
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), stage, ex);
             return;
         }
         if (null != result) {
@@ -694,11 +706,11 @@ public final class MainController implements EventTarget {
      */
     // TODO: Remove stage parameter
     public void deleteUser(Stage stage, UserModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentPane.getScene().getWindow(), LOG,
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentPane.getScene().getWindow(), UserModel.getFactory(),
+            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), UserModel.getFactory(),
                     (t) -> {
                         UserDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.DELETED, dataObject));
@@ -777,7 +789,7 @@ public final class MainController implements EventTarget {
 
         @Override
         protected void processException(Throwable ex, Stage owner) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), owner, ex,
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), owner, ex,
                     AppResources.getResourceString(RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 

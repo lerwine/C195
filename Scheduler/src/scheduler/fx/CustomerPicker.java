@@ -1,4 +1,4 @@
-package scheduler.view.customer;
+package scheduler.fx;
 
 import com.sun.javafx.scene.control.behavior.OptionalBoolean;
 import java.io.IOException;
@@ -35,22 +35,23 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.CityModel;
 import scheduler.view.country.CountryModel;
+import scheduler.view.customer.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
 
 /**
  * FXML Controller class for picking a {@link CustomerModel}.
  * <p>
- * The associated view is {@code /resources/scheduler/view/appointment/CustomerPicker.fxml}.</p>
+ * The associated view is {@code /resources/scheduler/fx/CustomerPicker.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-@GlobalizationResource("scheduler/view/appointment/CustomerPicker")
-@FXMLResource("/scheduler/view/appointment/CustomerPicker.fxml")
+@GlobalizationResource("scheduler/fx/CustomerPicker")
+@FXMLResource("/scheduler/fx/CustomerPicker.fxml")
 public class CustomerPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
@@ -407,7 +408,7 @@ public class CustomerPicker extends BorderPane {
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
             super.failed();
         }
@@ -441,7 +442,7 @@ public class CustomerPicker extends BorderPane {
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
             super.failed();
         }
@@ -499,7 +500,7 @@ public class CustomerPicker extends BorderPane {
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
             super.failed();
         }

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -46,10 +46,10 @@ import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import scheduler.fx.CssClassName;
+import scheduler.fx.ValidationStatus;
 import scheduler.observables.BindingHelper;
 import scheduler.observables.MutationBindableObservableList;
-import scheduler.view.CssClassName;
-import scheduler.view.ExclusiveCssClassGroup;
 import scheduler.view.SymbolText;
 
 /**
@@ -147,6 +147,20 @@ public class NodeUtil {
         return parent;
     }
 
+    public static void bindExtents(Region inner, Region outer) {
+        inner.prefWidthProperty().bind(outer.widthProperty());
+        inner.minWidthProperty().bind(outer.widthProperty());
+        inner.prefHeightProperty().bind(outer.heightProperty());
+        inner.minHeightProperty().bind(outer.heightProperty());
+    }
+    
+    public static void unbindExtents(Region region) {
+        region.prefWidthProperty().unbind();
+        region.minWidthProperty().unbind();
+        region.prefHeightProperty().unbind();
+        region.minHeightProperty().unbind();
+    }
+    
     /**
      * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
      *
@@ -491,19 +505,83 @@ public class NodeUtil {
         return addCssClass(node, CssClassName.LEFTLABELEDCONTROL);
     }
 
-    private static <T extends Styleable> T setGroup(T node, CssClassName className, ExclusiveCssClassGroup group) {
-        List<CssClassName> g = CssClassName.ofGroup(group);
-        ObservableList<String> classes = node.getStyleClass();
-        classes.removeAll(g.stream().filter((t) -> t != className).map((t) -> t.toString()).toArray(String[]::new));
-        String s = className.toString();
-        if (!classes.contains(s)) {
-            classes.add(s);
+    private static <T extends Styleable> T setCollapsingValidationCss(T node, ValidationStatus status) {
+        Optional<CssClassName> cssClass = status.getCssClass();
+        if (cssClass.isPresent()) {
+            CssClassName c = cssClass.get();
+            for (ValidationStatus s : ValidationStatus.values()) {
+                s.getCssClass().ifPresent((t) -> {
+                    if (t != c) {
+                        removeCssClass(node, t);
+                    }
+                });
+            }
+            removeCssClass(node, CssClassName.COLLAPSED);
+            addCssClass(node, c);
+            if (node instanceof Node) {
+                Node n = (Node) node;
+                if (!n.isVisible()) {
+                    n.setVisible(true);
+                }
+            }
+        } else {
+            for (ValidationStatus s : ValidationStatus.values()) {
+                s.getCssClass().ifPresent((t) -> removeCssClass(node, t));
+            }
+            addCssClass(node, CssClassName.COLLAPSED);
+            if (node instanceof Node) {
+                Node n = (Node) node;
+                if (n.isVisible()) {
+                    n.setVisible(false);
+                }
+            }
         }
         return node;
     }
 
-    private static <T extends Styleable> T clearGroup(T node, CssClassName className, ExclusiveCssClassGroup group) {
-        node.getStyleClass().removeAll(CssClassName.ofGroup(group));
+    private static <T extends Node> T setValidationCss(T node, ValidationStatus status, boolean hideIfOk) {
+        Optional<CssClassName> cssClass = status.getCssClass();
+        if (cssClass.isPresent()) {
+            CssClassName c = cssClass.get();
+            for (ValidationStatus s : ValidationStatus.values()) {
+                s.getCssClass().ifPresent((t) -> {
+                    if (t != c) {
+                        removeCssClass(node, t);
+                    }
+                });
+            }
+            addCssClass(node, c);
+            if (hideIfOk && !node.isVisible()) {
+                node.setVisible(true);
+            }
+        } else {
+            for (ValidationStatus s : ValidationStatus.values()) {
+                s.getCssClass().ifPresent((t) -> removeCssClass(node, t));
+            }
+            if (hideIfOk && node.isVisible()) {
+                node.setVisible(false);
+            }
+        }
+        return node;
+    }
+
+    private static <T extends Styleable> T setValidationCss(T node, ValidationStatus status) {
+        Optional<CssClassName> cssClass = status.getCssClass();
+        if (cssClass.isPresent()) {
+            CssClassName c = cssClass.get();
+            for (ValidationStatus s : ValidationStatus.values()) {
+                s.getCssClass().ifPresent((t) -> {
+                    if (t != c) {
+                        removeCssClass(node, t);
+                    }
+                });
+            }
+            addCssClass(node, c);
+        } else {
+            for (ValidationStatus s : ValidationStatus.values()) {
+                s.getCssClass().ifPresent((t) -> removeCssClass(node, t));
+            }
+        }
         return node;
     }
 
@@ -516,7 +594,7 @@ public class NodeUtil {
      * @return The collapsed {@link Node}.
      */
     public static <T extends Node> T collapseNode(T node) {
-        return setGroup(node, CssClassName.COLLAPSED, ExclusiveCssClassGroup.VALIDATION);
+        return addCssClass(node, CssClassName.COLLAPSED);
     }
 
     /**
@@ -708,27 +786,17 @@ public class NodeUtil {
      * @param text The text to apply to the {@link javafx.scene.control.Labeled} control.
      * @return The restored {@link Labeled} control.
      */
-    public static <T extends Labeled> T restoreErrorLabel(T control, String text) {
-        setGroup(control, CssClassName.ERROR, ExclusiveCssClassGroup.VALIDATION);
-        if (!control.isVisible()) {
-            control.setVisible(true);
+    public static <T extends Labeled> T restoreErrorLabeled(T control, String text) {
+        CssClassName n = CssClassName.ERROR;
+        for (ValidationStatus s : ValidationStatus.values()) {
+            s.getCssClass().ifPresent((t) -> {
+                if (t != n) {
+                    removeCssClass(control, t);
+                }
+            });
         }
-        control.setText(text);
-        return control;
-    }
-
-    /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_VALIDATIONMSG}. This
-     * removes the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "formControlValidationMessage"} class and
-     * sets the {@link javafx.scene.control.Labeled#text} property.
-     *
-     * @param <T> The type of {@link Labeled} control to restore.
-     * @param control The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
-     * @param text The text to apply to the {@link javafx.scene.control.Labeled} control.
-     * @return The restored {@link Labeled} control.
-     */
-    public static <T extends Labeled> T restoreValidationErrorLabel(T control, String text) {
-        setGroup(control, CssClassName.VALIDATIONMSG, ExclusiveCssClassGroup.VALIDATION);
+        removeCssClass(control, CssClassName.COLLAPSED);
+        addCssClass(control, n);
         if (!control.isVisible()) {
             control.setVisible(true);
         }
@@ -738,7 +806,7 @@ public class NodeUtil {
 
     /**
      * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_WARNING}. This removes the
-     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "warningMessage"} class and sets the
+     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "warning"} class and sets the
      * {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
@@ -746,8 +814,17 @@ public class NodeUtil {
      * @param text The text to apply to the {@link javafx.scene.control.Labeled} control.
      * @return The restored {@link Labeled} control.
      */
-    public static <T extends Labeled> T restoreWarningLabel(T control, String text) {
-        setGroup(control, CssClassName.WARNING, ExclusiveCssClassGroup.VALIDATION);
+    public static <T extends Labeled> T restoreWarningLabeled(T control, String text) {
+        CssClassName n = CssClassName.WARNING;
+        for (ValidationStatus s : ValidationStatus.values()) {
+            s.getCssClass().ifPresent((t) -> {
+                if (t != n) {
+                    removeCssClass(control, t);
+                }
+            });
+        }
+        removeCssClass(control, CssClassName.COLLAPSED);
+        addCssClass(control, n);
         if (!control.isVisible()) {
             control.setVisible(true);
         }
@@ -757,7 +834,7 @@ public class NodeUtil {
 
     /**
      * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_INFO}. This removes the
-     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "infoMessage"} class and sets the
+     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "information"} class and sets the
      * {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
@@ -765,8 +842,17 @@ public class NodeUtil {
      * @param text The text to apply to the {@link javafx.scene.control.Labeled} control.
      * @return The restored {@link Labeled} control.
      */
-    public static <T extends Labeled> T restoreInfoLabel(T control, String text) {
-        setGroup(control, CssClassName.INFO, ExclusiveCssClassGroup.VALIDATION);
+    public static <T extends Labeled> T restoreInfoLabeled(T control, String text) {
+        CssClassName n = CssClassName.INFO;
+        for (ValidationStatus s : ValidationStatus.values()) {
+            s.getCssClass().ifPresent((t) -> {
+                if (t != n) {
+                    removeCssClass(control, t);
+                }
+            });
+        }
+        removeCssClass(control, CssClassName.COLLAPSED);
+        addCssClass(control, n);
         if (!control.isVisible()) {
             control.setVisible(true);
         }

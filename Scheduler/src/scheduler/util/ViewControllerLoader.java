@@ -1,17 +1,12 @@
 package scheduler.util;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import scheduler.AppResources;
@@ -71,63 +66,22 @@ public class ViewControllerLoader {
         return loadViewAndController(controllerClass, ResourceBundleHelper.getBundle(controllerClass));
     }
 
-    public static <T extends Parent, S> ViewAndController<T, S> loadView(S controller, ResourceBundle resourceBundle) throws IOException {
-        Class<S> c = (Class<S>) controller.getClass();
+    public static <T extends Node> T loadView(Object controller, T view, ResourceBundle resourceBundle) throws IOException {
+        Class<?> c = controller.getClass();
         String path = AppResources.getFXMLResourceName(c);
         LOG.info(String.format("Loading %s", path));
         FXMLLoader loader = new FXMLLoader(c.getResource(path), resourceBundle);
         loader.setController(controller);
-        ViewAndController<T, S> result = new ViewAndController<T, S>() {
-            private final T view = loader.load();
-            private final S controller = loader.getController();
-
-            @Override
-            public T getView() {
-                return view;
-            }
-
-            @Override
-            public S getController() {
-                return controller;
-            }
-        };
+        loader.setRoot(view);
+        T result = loader.load();
         LOG.info(String.format("%s loaded", path));
         return result;
     }
 
-    public static <T extends Parent, S> ViewAndController<T, S> loadView(S controller) throws IOException {
-        Class<S> c = (Class<S>) controller.getClass();
-        String path = AppResources.getFXMLResourceName(c);
-        LOG.info(String.format("Loading %s", path));
-        FXMLLoader loader = new FXMLLoader(c.getResource(path), ResourceBundleHelper.getBundle(c));
-        loader.setController(controller);
-        ViewAndController<T, S> result = new ViewAndController<T, S>() {
-            private final T view = loader.load();
-            private final S controller = loader.getController();
-
-            @Override
-            public T getView() {
-                return view;
-            }
-
-            @Override
-            public S getController() {
-                return controller;
-            }
-        };
-        LOG.info(String.format("%s loaded", path));
-        return result;
+    public static <T extends Node> T loadView(Object controller, T view) throws IOException {
+        return loadView(controller, view, ResourceBundleHelper.getBundle(controller.getClass()));
     }
 
-    /**
-     * Loads the FXML for a custom control.
-     *
-     * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} annotation. It must also have the
-     * {@link scheduler.view.annotations.GlobalizationResource} annotation if the {@link RsourceBundle} value is not provided.
-     * @param customControl The custom control to be initialized.
-     * @param resources The resources used to resolve resource key attribute values.
-     * @throws IOException If unable to load the FXML.
-     */
     public static <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
         Class<T> c = (Class<T>) customControl.getClass();
         String path = AppResources.getFXMLResourceName(c);
@@ -231,179 +185,6 @@ public class ViewControllerLoader {
      */
     public static <T extends Parent, S> S showAndWait(Object source, Stage parent, Class<S> controllerClass) throws IOException {
         return showAndWait(source, parent, controllerClass, (Object) null);
-    }
-
-    /**
-     * This is intended to be invoked by a controller that uses
-     * {@link #replacePaneContent(Object, StackPane, scheduler.view.ViewAndController, java.lang.Object)} to manage contents when its host window has
-     * closed. This is to ensure that the {@link FxmlViewEventType#UNLOADED} event is raised on the nested controller.
-     *
-     * @param source The event source object for this operation.
-     * @param pane The {@link StackPane} that may contain a loaded view and controller.
-     */
-    public static void clearPaneContent(Object source, StackPane pane) {
-        Stage stage = (Stage) pane.getScene().getWindow();
-        ObservableMap<Object, Object> properties = pane.getProperties();
-        Object oldController;
-        Optional<Node> oldView;
-        ObservableList<Node> children = pane.getChildren();
-        if (children.isEmpty() || !properties.containsKey(PANE_CONTROLLER_PROPERTY_KEY)) {
-            oldController = null;
-        } else {
-            if (null != (oldController = properties.get(PANE_CONTROLLER_PROPERTY_KEY))) {
-                oldView = children.stream().filter((t) -> t instanceof Parent).findFirst();
-                if (!oldView.isPresent()) {
-                    oldController = null;
-                }
-            }
-            properties.remove(PANE_CONTROLLER_PROPERTY_KEY);
-        }
-        children.clear();
-    }
-
-    /**
-     * Replaces stack pane content, binding its dimensions to the dimensions of the parent {@link StackPane}.
-     *
-     * @param <T> The node type.
-     * @param source The object that initiated the current activity.
-     * @param pane The parent {@link StackPane}.
-     * @param index The index of the node to replace or {@code -1} to replace the first {@link Parent} node.
-     * @param newChild The new child node.
-     * @param loadEventListener An object that can listen for {@link FxmlViewEvent}s or {@link FxmlViewControllerEvent}s that are fired for the
-     * instantiated controller.
-     */
-    public static <T extends Region> void replaceContent(Object source, StackPane pane, int index, T newChild, Object loadEventListener) {
-        Stage stage = (Stage) pane.getScene().getWindow();
-        ObservableMap<Object, Object> properties = pane.getProperties();
-        Object oldController;
-        Optional<Node> oldView;
-        ObservableList<Node> children = pane.getChildren();
-        if (children.isEmpty() || !properties.containsKey(PANE_CONTROLLER_PROPERTY_KEY)) {
-            oldController = null;
-            oldView = Optional.empty();
-        } else if (null == (oldController = properties.get(PANE_CONTROLLER_PROPERTY_KEY))) {
-            oldView = Optional.empty();
-        } else if (index < 0) {
-            oldView = children.stream().filter((t) -> t instanceof Parent).findFirst();
-            if (!oldView.isPresent()) {
-                oldController = null;
-            }
-        } else if (index < children.size()) {
-            oldView = Optional.of(children.get(index));
-        } else {
-            oldView = Optional.empty();
-            oldController = null;
-        }
-
-        children.clear();
-        children.add(newChild);
-        newChild.prefWidthProperty().bind(pane.widthProperty());
-        newChild.minWidthProperty().bind(pane.widthProperty());
-        newChild.prefHeightProperty().bind(pane.heightProperty());
-        newChild.minHeightProperty().bind(pane.heightProperty());
-        properties.put(PANE_CONTROLLER_PROPERTY_KEY, newChild);
-
-        if (null != oldController) {
-            Node p = oldView.get();
-            if (p instanceof Region) {
-                Region r = (Region) p;
-                r.prefWidthProperty().unbind();
-                r.minWidthProperty().unbind();
-                r.prefHeightProperty().unbind();
-                r.minHeightProperty().unbind();
-            }
-        }
-    }
-
-    public static <T extends Region> void replaceContent(Object source, StackPane pane, int index, T newChild) {
-        replaceContent(source, pane, index, newChild, null);
-    }
-
-    /**
-     * Replaces the nested view and controller contained within a {@link StackPane}.
-     * <p>
-     * This fires {@link FxmlViewControllerEvent}s during each {@link FxmlViewEventType} on both the controller and the event listener (if not
-     * {@code null}).</p>
-     *
-     * @param <T> The type of {@link Parent} node that represents the view.
-     * @param <S> The controller type.
-     * @param source The object that initiated the current activity.
-     * @param pane The parent {@link StackPane}.
-     * @param viewAndController The loaded view and controller.
-     * @param loadEventListener An object that can listen for {@link FxmlViewEvent}s or {@link FxmlViewControllerEvent}s that are fired for the
-     * instantiated controller.
-     * @return The value value {@link ViewAndController#getController()}.
-     * @throws IOException If unable to load the view and controller.
-     */
-    public static <T extends Parent, S> S replacePaneContent(Object source, StackPane pane, ViewAndController<T, S> viewAndController,
-            Object loadEventListener) throws IOException {
-        Stage stage = (Stage) pane.getScene().getWindow();
-        ObservableMap<Object, Object> properties = pane.getProperties();
-        Object oldController;
-        Optional<Node> oldView;
-        ObservableList<Node> children = pane.getChildren();
-        if (children.isEmpty() || !properties.containsKey(PANE_CONTROLLER_PROPERTY_KEY)) {
-            oldController = null;
-        } else if (null != (oldController = properties.get(PANE_CONTROLLER_PROPERTY_KEY))) {
-            oldView = children.stream().filter((t) -> t instanceof Parent).findFirst();
-            if (!oldView.isPresent()) {
-                oldController = null;
-            }
-        }
-
-        children.clear();
-        children.add(viewAndController.getView());
-        properties.put(PANE_CONTROLLER_PROPERTY_KEY, viewAndController.getController());
-
-        return viewAndController.getController();
-    }
-
-    /**
-     * Replaces the nested view and controller contained within a {@link StackPane}.
-     * <p>
-     * The controller is instantiated by the {@link javafx.fxml.FXMLLoader}. The {@link scheduler.view.annotations.FXMLResource} annotation on the
-     * controller class determines what FXML view is loaded, and the {@link scheduler.view.annotations.GlobalizationResource} annotation determines
-     * what resource bundle is loaded for the view and controller.</p>
-     * <p>
-     * This fires {@link FxmlViewControllerEvent}s during each {@link FxmlViewEventType} on both the instantiated controller and the event listener
-     * (if not {@code null}).</p>
-     *
-     * @param <T> The type of {@link Parent} node that represents the view.
-     * @param <S> The controller type.
-     * @param source The object that initiated the current activity.
-     * @param pane The parent {@link StackPane}.
-     * @param controllerClass The type of controller to instantiate.
-     * @param loadEventListener An object that can listen for {@link FxmlViewEvent}s or {@link FxmlViewControllerEvent}s that are fired for the
-     * instantiated controller.
-     * @return The instantiated controller.
-     * @throws IOException If unable to load the view and controller.
-     */
-    public static <T extends Parent, S> S replacePaneContent(Object source, StackPane pane, Class<S> controllerClass,
-            Object loadEventListener) throws IOException {
-        ViewAndController<T, S> viewAndController = loadViewAndController(controllerClass);
-        return replacePaneContent(source, pane, viewAndController, loadEventListener);
-    }
-
-    /**
-     * Replaces the nested view and controller contained within a {@link StackPane}.
-     * <p>
-     * The controller is instantiated by the {@link javafx.fxml.FXMLLoader}. The {@link scheduler.view.annotations.FXMLResource} annotation on the
-     * controller class determines what FXML view is loaded, and the {@link scheduler.view.annotations.GlobalizationResource} annotation determines
-     * what resource bundle is loaded for the view and controller.</p>
-     * <p>
-     * This fires {@link FxmlViewControllerEvent}s during each {@link FxmlViewEventType} on the instantiated controller.</p>
-     *
-     * @param <T> The type of {@link Parent} node that represents the view.
-     * @param <S> The controller type.
-     * @param source The object that initiated the current activity.
-     * @param pane The parent {@link StackPane}.
-     * @param controllerClass The type of controller to instantiate.
-     * @return The instantiated controller.
-     * @throws IOException If unable to load the view and controller.
-     */
-    public static <T extends Parent, S> S replacePaneContent(Object source, StackPane pane, Class<S> controllerClass) throws IOException {
-        ViewAndController<T, S> viewAndController = loadViewAndController(controllerClass);
-        return replacePaneContent(source, pane, viewAndController, null);
     }
 
 }

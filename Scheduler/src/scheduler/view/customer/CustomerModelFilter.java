@@ -52,14 +52,14 @@ public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerMo
 
     public static CustomerModelFilter active() {
         return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_ACTIVECUSTOMERS),
-                CustomerFilter.of(DaoFilterExpression.empty()),
+                CustomerFilter.of(CustomerFilter.expressionOf(true)),
                 (t) -> null != t && t.isActive()
         );
     }
 
     public static CustomerModelFilter inactive() {
         return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_INACTIVECUSTOMERS),
-                CustomerFilter.of(DaoFilterExpression.empty()),
+                CustomerFilter.of(CustomerFilter.expressionOf(false)),
                 (t) -> null != t && !t.isActive()
         );
     }

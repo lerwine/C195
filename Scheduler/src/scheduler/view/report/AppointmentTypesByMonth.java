@@ -33,7 +33,7 @@ import scheduler.dao.AppointmentCountByType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.AppointmentType;
 import scheduler.util.DbConnector;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -165,7 +165,7 @@ public class AppointmentTypesByMonth extends VBox {
         @Override
         protected void failed() {
             super.failed();
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
         }
 
         @Override

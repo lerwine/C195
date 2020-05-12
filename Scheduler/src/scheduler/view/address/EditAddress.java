@@ -25,7 +25,7 @@ import scheduler.model.ui.CityItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -156,7 +156,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
             super.failed();
         }
 

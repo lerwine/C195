@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
@@ -10,9 +11,9 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.fx.appointment.DailyAppointmentsListCellFactory?>
-<?import scheduler.fx.user.UserListCell?>
-<?import scheduler.fx.user.UserListCellFactory?>
+<?import scheduler.fx.DailyAppointmentsListCellFactory?>
+<?import scheduler.fx.UserListCell?>
+<?import scheduler.fx.UserListCellFactory?>
 
 <fx:root spacing="8.0" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
@@ -34,7 +35,12 @@
                 <DatePicker fx:id="rangeStartDatePicker" onAction="#onParameterAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
                 <Label styleClass="innerLeftControlLabel" text="%end" GridPane.columnIndex="2" />
                 <DatePicker fx:id="rangeEndDatePicker" onAction="#onParameterAction" styleClass="leftLabeledControl" GridPane.columnIndex="3" />
-                <Label fx:id="rangeValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" />
+                <Label fx:id="rangeValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
                 <Label styleClass="leftControlLabel" text="%consultant" GridPane.rowIndex="2" />
                 <ComboBox fx:id="consultantsComboBox" maxWidth="1.7976931348623157E308" onAction="#onParameterAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
                     <cellFactory>
@@ -44,7 +50,12 @@
                         <UserListCell />
                     </buttonCell>
                 </ComboBox>
-                <Label fx:id="consultantValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label fx:id="consultantValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
             </children>
         </GridPane>
         <ButtonBar>

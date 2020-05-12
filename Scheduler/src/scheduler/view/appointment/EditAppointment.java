@@ -70,9 +70,9 @@ import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.CssClassName;
+import scheduler.fx.CssClassName;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -496,7 +496,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             bp.prefWidthProperty().bind(widthProperty());
             bp.minWidthProperty().bind(widthProperty());
         } catch (IOException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), ex);
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), ex);
         }
         windowTitle.set(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
         SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
@@ -548,7 +548,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             busStart = apptStart.toLocalDate().atTime(AppResources.getBusinessHoursStart());
             busEnd = busStart.plusHours(AppResources.getBusinessHoursDuration());
         } catch (ParseException ex) {
-            ErrorDetailDialog.logShowAndWait(LOG, "Error getting application-configured business hours", ex);
+            ErrorDetailControl.logShowAndWait(LOG, "Error getting application-configured business hours", ex);
             return false;
         }
         Optional<ButtonType> response;
@@ -822,7 +822,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
             super.failed();
         }
 
@@ -876,7 +876,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
             super.failed();
         }
 
@@ -950,7 +950,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void failed() {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
             super.failed();
         }
 

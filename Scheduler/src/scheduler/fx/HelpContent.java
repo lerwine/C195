@@ -20,6 +20,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainResourceKeys;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -52,7 +54,6 @@ public class HelpContent extends BorderPane {
         assert titleLabel != null : "fx:id=\"titleLabel\" was not injected: check your FXML file 'HelpContent.fxml'.";
         assert contentScrollPane != null : "fx:id=\"contentScrollPane\" was not injected: check your FXML file 'HelpContent.fxml'.";
         parentProperty().addListener(this::parentChanged);
-        setVisible(false);
     }
 
     private void parentChanged(Observable observable) {
@@ -122,6 +123,7 @@ public class HelpContent extends BorderPane {
         } else {
             titleLabel.setText((null == title || title.trim().isEmpty()) ? resources.getString(MainResourceKeys.RESOURCEKEY_SCHEDULERHELP) : title);
             contentScrollPane.setContent(source);
+            restoreNode(this);
         }
     }
 
@@ -142,6 +144,6 @@ public class HelpContent extends BorderPane {
     public void hide() {
         contentScrollPane.setContent(new Text(""));
         titleLabel.setText("");
-        setVisible(false);
+        collapseNode(this);
     }
 }

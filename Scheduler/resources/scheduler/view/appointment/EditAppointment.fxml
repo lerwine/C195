@@ -21,14 +21,14 @@
 <?import javafx.scene.text.Font?>
 <?import scheduler.fx.AddressListCell?>
 <?import scheduler.fx.AddressListCellFactory?>
-<?import scheduler.fx.appointment.AppointmentTypeListCell?>
-<?import scheduler.fx.appointment.AppointmentTypeListCellFactory?>
+<?import scheduler.fx.AppointmentTypeListCell?>
+<?import scheduler.fx.AppointmentTypeListCellFactory?>
 <?import scheduler.fx.CustomerListCell?>
 <?import scheduler.fx.CustomerListCellFactory?>
-<?import scheduler.fx.user.UserListCell?>
-<?import scheduler.fx.user.UserListCellFactory?>
+<?import scheduler.fx.UserListCell?>
+<?import scheduler.fx.UserListCellFactory?>
 
-<fx:root stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="509.0" prefWidth="900.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane hgap="16.0" StackPane.alignment="CENTER">
             <columnConstraints>
@@ -49,7 +49,11 @@
             </rowConstraints>
             <children>
                 <TextField fx:id="titleTextField" styleClass="topLabeledControl" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                <Label fx:id="titleValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+                <Label fx:id="titleValidationLabel" text="%required" GridPane.columnSpan="2" GridPane.rowIndex="2">
+               <styleClass>
+                  <String fx:value="validationMessage" />
+                  <String fx:value="error" />
+               </styleClass></Label>
                 <Label styleClass="topControlLabel" text="%titleLabelText" />
                 <HBox GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
                     <children>
@@ -109,15 +113,15 @@
                 </ComboBox>
                 <VBox fx:id="lowerLeftVBox" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
                     <children>
-                  <HBox>
-                     <VBox.margin>
-                        <Insets top="6.0" />
-                     </VBox.margin>
-                     <children>
-                              <Label fx:id="locationLabel" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%locationLabelText" HBox.hgrow="ALWAYS" />
-                        <CheckBox fx:id="includeRemoteCheckBox" mnemonicParsing="false" onAction="#onIncludeRemoteCheckBoxAction" styleClass="collapsed" text="Include remote satellite offices" />
-                     </children>
-                  </HBox>
+                        <HBox>
+                            <VBox.margin>
+                                <Insets top="6.0" />
+                            </VBox.margin>
+                            <children>
+                                <Label fx:id="locationLabel" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%locationLabelText" HBox.hgrow="ALWAYS" />
+                                <CheckBox fx:id="includeRemoteCheckBox" mnemonicParsing="false" onAction="#onIncludeRemoteCheckBoxAction" styleClass="collapsed" text="Include remote satellite offices" />
+                            </children>
+                        </HBox>
                         <VBox>
                             <children>
                                 <ComboBox fx:id="corporateLocationComboBox" maxWidth="1.7976931348623157E308" onAction="#onCorporateLocationComboBoxAction">
@@ -146,7 +150,12 @@
                                 </StackPane>
                             </children>
                         </VBox>
-                        <Label fx:id="locationValidationLabel" styleClass="formControlValidationMessage" text="%required" />
+                        <Label fx:id="locationValidationLabel" text="%required">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
                     </children>
                     <GridPane.margin>
                         <Insets top="2.0" />
@@ -175,7 +184,12 @@
                     <children>
                         <Label styleClass="topControlLabel" text="%meetingUrl" />
                         <TextField fx:id="urlTextField" styleClass="topLabeledControl" />
-                        <Label fx:id="urlValidationLabel" maxWidth="-Infinity" styleClass="formControlValidationMessage" text="%required" visible="false" />
+                        <Label fx:id="urlValidationLabel" maxWidth="-Infinity" text="%required" visible="false">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
                         <Label styleClass="topControlLabel" text="%description">
                             <VBox.margin>
                                 <Insets top="6.0" />
@@ -187,60 +201,53 @@
                         <Insets top="2.0" />
                     </GridPane.margin>
                 </VBox>
-                <Label fx:id="customerValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="5" />
-                <Label fx:id="userValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                <Label fx:id="contactValidationLabel" styleClass="formControlValidationMessage" text="%required" GridPane.rowIndex="8" />
+                <Label fx:id="customerValidationLabel" text="%required" GridPane.rowIndex="5">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
+                <Label fx:id="userValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
+                <Label fx:id="contactValidationLabel" text="%required" GridPane.rowIndex="8">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
             </children>
         </GridPane>
-        <BorderPane fx:id="dropdownOptionsBorderPane" layoutX="10.0" layoutY="10.0" styleClass="translucentGrayBg" visible="false">
+        <BorderPane fx:id="dropdownOptionsBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
             <center>
-                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
-                    <center>
-                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="%inactive">
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
+                    <top>
+                        <Label fx:id="dropdownOptionsLabel" styleClass="top" />
+                    </top>
+                    <left>
+                        <RadioButton fx:id="dropdownOptionsActiveRadioButton" mnemonicParsing="false" selected="true" styleClass="left" text="%active" BorderPane.alignment="CENTER">
                             <toggleGroup>
                                 <ToggleGroup fx:id="dropdownOptions" />
                             </toggleGroup>
-                            <BorderPane.margin>
-                                <Insets top="8.0" />
-                            </BorderPane.margin>
-                        </RadioButton>
-                    </center>
-                    <top>
-                        <Label fx:id="dropdownOptionsLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="popup-heading" text="%customersToShow" textAlignment="CENTER" BorderPane.alignment="CENTER">
-                            <font>
-                                <Font size="18.0" />
-                            </font>
-                        </Label>
-                    </top>
-                    <left>
-                        <RadioButton fx:id="dropdownOptionsActiveRadioButton" mnemonicParsing="false" selected="true" text="%active" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER">
-                            <BorderPane.margin>
-                                <Insets left="8.0" top="8.0" />
-                            </BorderPane.margin>
                         </RadioButton>
                     </left>
+                    <center>
+                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="%inactive" toggleGroup="$dropdownOptions" />
+                    </center>
                     <right>
-                        <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" text="%all" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER">
-                            <BorderPane.margin>
-                                <Insets right="8.0" top="8.0" />
-                            </BorderPane.margin>
-                        </RadioButton>
+                        <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" styleClass="right" text="%all" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
                     </right>
                     <bottom>
-                        <ButtonBar BorderPane.alignment="CENTER">
+                        <ButtonBar styleClass="bottom">
                             <buttons>
                                 <Button mnemonicParsing="false" onAction="#onDropdownOptionsOkButtonAction" text="%apply" />
                                 <Button layoutX="687.0" layoutY="10.0" mnemonicParsing="false" onAction="#onDropdownOptionsCancelButtonAction" text="%cancel" />
                             </buttons>
-                            <BorderPane.margin>
-                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                            </BorderPane.margin>
                         </ButtonBar>
                     </bottom>
-                    <styleClass>
-                        <String fx:value="bordered" />
-                        <String fx:value="mainFxmlClass" />
-                    </styleClass>
                 </BorderPane>
             </center>
         </BorderPane>

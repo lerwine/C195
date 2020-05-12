@@ -11,6 +11,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -41,15 +43,13 @@ public class WaitBorderPane extends BorderPane {
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert waitAccordion != null : "fx:id=\"waitAccordion\" was not injected: check your FXML file 'WaitMessage.fxml'.";
-        setVisible(false);
+        collapseNode(this);
     }
 
     private void onRunning(WaitTitledPaneEvent event) {
         WaitTitledPane pane = event.getTarget();
         waitAccordion.getPanes().add(pane);
-        if (!isVisible()) {
-            setVisible(true);
-        }
+        restoreNode(this);
         pane.setExpanded(true);
     }
 
@@ -57,7 +57,7 @@ public class WaitBorderPane extends BorderPane {
         ObservableList<TitledPane> panes = waitAccordion.getPanes();
         panes.remove(event.getTarget());
         if (panes.isEmpty()) {
-            setVisible(false);
+            collapseNode(this);
             return;
         }
         Optional<TitledPane> f = panes.stream().filter((t) -> ((WaitTitledPane) t).isExpanded()).findFirst();
@@ -69,6 +69,7 @@ public class WaitBorderPane extends BorderPane {
                 panes.get(panes.size() - 1).setExpanded(true);
             }
         }
+        restoreNode(this);
     }
 
     /**

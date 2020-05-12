@@ -9,6 +9,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
+import static scheduler.util.NodeUtil.bindExtents;
+import static scheduler.util.NodeUtil.unbindExtents;
 import scheduler.fx.MainListingControl;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.event.CustomerDaoEvent;
@@ -93,7 +95,9 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
         assert inactiveCustomersRadioButton != null : "fx:id=\"inactiveCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert allCustomersRadioButton != null : "fx:id=\"allCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert helpBorderPane != null : "fx:id=\"helpBorderPane\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-
+        
+        bindExtents(customerFilterBorderPane, this);
+        bindExtents(helpBorderPane, this);
     }
 
     @Override

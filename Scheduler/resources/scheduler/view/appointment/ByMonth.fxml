@@ -30,7 +30,7 @@
                   <Insets bottom="8.0" />
                </VBox.margin>
             </HBox>
-                <Label fx:id="monthNameLabel" styleClass="page-heading" text="January" />
+                <Label fx:id="monthNameLabel" styleClass="page-title" text="January" />
             <MonthGridPane fx:id="monthGridPane" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
             </children>
         </VBox>

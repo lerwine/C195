@@ -28,7 +28,7 @@
             <children>
                 <StackPane>
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-heading" text="Active Users" wrapText="true" />
+                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-title" text="Active Users" wrapText="true" />
                         <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
                             <StackPane.margin>
                                 <Insets right="8.0" />

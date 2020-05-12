@@ -26,7 +26,7 @@ import scheduler.view.appointment.AppointmentModel;
 /**
  * List item for {@link ConsultantSchedule#appointmentScheduleListView} to display an ordered list of consultant appointments for a single day.
  * <p>
- * {@link scheduler.controls.DailyAppointmentsListCell} will use this object as the graphic for the {@link ListView} items.</p>
+ * {@link scheduler.fx.DailyAppointmentsListCell} will use this object as the graphic for the {@link ListView} items.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

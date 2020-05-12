@@ -1,4 +1,4 @@
-package scheduler.fx.appointment;
+package scheduler.fx;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -47,11 +47,13 @@ import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import static scheduler.util.NodeUtil.setBorderedNode;
 import static scheduler.util.NodeUtil.setLeftControlLabel;
 import static scheduler.util.NodeUtil.setLeftLabeledControl;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.MainController;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
@@ -64,7 +66,7 @@ import scheduler.view.appointment.AppointmentModel;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/Main")
-@FXMLResource("/scheduler/fx/appointment/AppointmentAlert.fxml")
+@FXMLResource("/scheduler/fx/AppointmentAlert.fxml")
 public class AppointmentAlert extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
@@ -124,7 +126,6 @@ public class AppointmentAlert extends BorderPane {
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert appointmentAlertsVBox != null : "fx:id=\"appointmentAlertsVBox\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
-        setVisible(false);
         dismissed = Collections.synchronizedList(new ArrayList<>());
         formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
         // Add listener to see when scene changes, so we can add listeners for when the window is hidden.
@@ -302,7 +303,7 @@ public class AppointmentAlert extends BorderPane {
                 children.clear();
             });
             itemsViewList.clear();
-            setVisible(false);
+            collapseNode(this);
         }
     }
 
@@ -312,7 +313,7 @@ public class AppointmentAlert extends BorderPane {
         reBind(flowPane, null);
         itemsViewList.remove(flowPane);
         if (itemsViewList.isEmpty()) {
-            setVisible(false);
+            collapseNode(this);
         }
     }
 
@@ -352,7 +353,7 @@ public class AppointmentAlert extends BorderPane {
     private void onCheckAppointmentsTaskError(Throwable ex) {
         if (AppointmentAlert.this.stop(false)) {
             try {
-                ErrorDetailDialog.showAndWait(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), ex,
+                ErrorDetailControl.showAndWait(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), ex,
                         resources.getString(RESOURCEKEY_ERRORCHECKINGIMPENDINGAPPOINTMENTS));
             } finally {
                 start(false);
@@ -394,10 +395,10 @@ public class AppointmentAlert extends BorderPane {
             }
         }
         if (itemsViewList.isEmpty()) {
-            setVisible(false);
+            collapseNode(this);
             return;
         }
-        setVisible(true);
+        restoreNode(this);
     }
 
     private synchronized void onAppointmentUpdate(AppointmentModel item) {

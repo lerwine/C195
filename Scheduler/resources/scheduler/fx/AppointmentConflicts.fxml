@@ -12,15 +12,21 @@
 <?import javafx.scene.text.Font?>
 
 
-<BorderPane fx:id="rootBorderPane" styleClass="translucentGrayBg" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.AppointmentConflicts">
-
+<BorderPane fx:id="rootBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.AppointmentConflicts">
     <center>
-        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #ffffffff; -fx-border-color: black; -fx-border-width: 2;" styleClass="bordered" BorderPane.alignment="CENTER">
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
             <BorderPane.margin>
                 <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
             </BorderPane.margin>
+            <top>
+                <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="popup-heading" text="%conflictingAppointments" textAlignment="CENTER" BorderPane.alignment="CENTER">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Label>
+            </top>
             <center>
-                <TableView fx:id="conflictingAppointmentsTableView">
+                <TableView styleClass="center" fx:id="conflictingAppointmentsTableView">
                     <columns>
                         <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%titleColHeading">
                             <cellValueFactory>
@@ -90,26 +96,13 @@
                             </cellValueFactory>
                         </TableColumn>
                     </columns>
-                    <BorderPane.margin>
-                        <Insets bottom="8.0" left="8.0" right="8.0" />
-                    </BorderPane.margin>
                 </TableView>
             </center>
-            <top>
-                <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="popup-heading" text="%conflictingAppointments" textAlignment="CENTER" BorderPane.alignment="CENTER">
-                    <font>
-                        <Font size="18.0" />
-                    </font>
-                </Label>
-            </top>
             <bottom>
-                <ButtonBar BorderPane.alignment="CENTER">
+                <ButtonBar styleClass="bottom">
                     <buttons>
                         <Button mnemonicParsing="false" onAction="#onCloseConflictsBorderPaneButtonAction" text="%close" />
                     </buttons>
-                    <BorderPane.margin>
-                        <Insets bottom="8.0" left="8.0" right="8.0" />
-                    </BorderPane.margin>
                 </ButtonBar>
             </bottom>
         </BorderPane>

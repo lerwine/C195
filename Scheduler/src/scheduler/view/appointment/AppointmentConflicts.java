@@ -29,7 +29,7 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
-import scheduler.view.ErrorDetailDialog;
+import scheduler.view.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
@@ -37,13 +37,14 @@ import scheduler.view.customer.CustomerModel;
 import scheduler.view.task.TaskWaiter;
 import scheduler.view.user.UserModel;
 
+// TODO: Move to /scheduler/fx
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
-@FXMLResource("/scheduler/view/appointment/AppointmentConflicts.fxml")
+@FXMLResource("/scheduler/fx/AppointmentConflicts.fxml")
 public class AppointmentConflicts {
 
     private static final Logger LOG = Logger.getLogger(AppointmentConflicts.class.getName());
@@ -307,7 +308,7 @@ public class AppointmentConflicts {
 
         @Override
         protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailDialog.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
         }
 
         @Override
