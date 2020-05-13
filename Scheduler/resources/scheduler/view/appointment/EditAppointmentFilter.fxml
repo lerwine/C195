@@ -23,277 +23,277 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" styleClass="translucentGrayBg" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <center>
-      <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
-         <children>
-            <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass">
-                <stylesheets>
-                    <URL value="@/scheduler/defaultStyles.css" />
-                </stylesheets>
-                <children>
-                    <TabPane fx:id="searchTypesTabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
-                        <VBox.margin>
-                            <Insets />
-                        </VBox.margin>
-                        <tabs>
-                            <Tab fx:id="preDefinedRangesTab" closable="false" onSelectionChanged="#searchTypesTabSelectionChanged" text="%preDefinedRanges">
-                                <content>
-                                    <VBox alignment="CENTER">
-                                        <children>
-                                            <GridPane hgap="4.0" vgap="8.0">
-                                                <columnConstraints>
-                                                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
-                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                </columnConstraints>
-                                                <rowConstraints>
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                </rowConstraints>
-                                                <children>
-                                                    <Label text="%customerLabelText" GridPane.rowIndex="1" />
-                                                    <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                    <Label text="%userLabelText" GridPane.rowIndex="2" />
-                                                    <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                    <ComboBox fx:id="rangeTypeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
-                                                    <Label text="%rangeLabelText" />
-                                                </children>
-                                            </GridPane>
-                                        </children>
-                                        <padding>
-                                            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                        </padding>
-                                    </VBox>
-                                </content>
-                            </Tab>
-                            <Tab fx:id="customTab" closable="false" onSelectionChanged="#searchTypesTabSelectionChanged" text="%customSearch">
-                                <content>
-                                    <GridPane>
-                                        <columnConstraints>
-                                            <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
-                                            <ColumnConstraints hgrow="SOMETIMES" />
-                                            <ColumnConstraints maxWidth="-Infinity" />
-                                            <ColumnConstraints maxWidth="-Infinity" />
-                                            <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
-                                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" />
-                                        </columnConstraints>
-                                        <rowConstraints>
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                                        </rowConstraints>
-                                        <children>
-                                            <RadioButton fx:id="dateRadioButton" disable="true" mnemonicParsing="false" onAction="#timeRadioButtonChanged" selected="true" text="%date" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                                <toggleGroup>
-                                                    <ToggleGroup fx:id="dateGranularity" />
-                                                </toggleGroup>
-                                            </RadioButton>
-                                            <RadioButton fx:id="hourRadioButton" disable="true" mnemonicParsing="false" onAction="#timeRadioButtonChanged" text="%hour" toggleGroup="$dateGranularity" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </RadioButton>
-                                            <RadioButton fx:id="minuteRadioButton" disable="true" mnemonicParsing="false" onAction="#timeRadioButtonChanged" text="%minute" toggleGroup="$dateGranularity" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </RadioButton>
-                                            <DatePicker fx:id="startDatePicker" disable="true" prefWidth="100.0" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
-                                                <GridPane.margin>
-                                                    <Insets bottom="2.0" left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </DatePicker>
-                                            <Spinner fx:id="startHourSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="3" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
-                                                <GridPane.margin>
-                                                    <Insets bottom="2.0" left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Spinner>
-                                            <Spinner fx:id="startMinuteSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="5" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
-                                                <GridPane.margin>
-                                                    <Insets bottom="2.0" left="4.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Spinner>
-                                            <DatePicker fx:id="endDatePicker" disable="true" prefWidth="100.0" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="3">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="2.0" />
-                                                </GridPane.margin>
-                                            </DatePicker>
-                                            <Spinner fx:id="endHourSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="3" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="3">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="2.0" />
-                                                </GridPane.margin>
-                                            </Spinner>
-                                            <Spinner fx:id="endMinuteSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="5" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="3">
-                                                <GridPane.margin>
-                                                    <Insets left="4.0" top="2.0" />
-                                                </GridPane.margin>
-                                            </Spinner>
-                                            <Label alignment="CENTER_RIGHT" minHeight="-Infinity" minWidth="-Infinity" text="%customerLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <ComboBox fx:id="customCustomerComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <Label minHeight="-Infinity" minWidth="-Infinity" text="%cityLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#cityComboBoxChanged" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <Label alignment="CENTER_RIGHT" minHeight="-Infinity" minWidth="-Infinity" text="%countryLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#countryComboBoxChanged" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <Label alignment="CENTER_RIGHT" minHeight="-Infinity" minWidth="-Infinity" text="%userLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <ComboBox fx:id="customUserComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <Label text=":" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1">
-                                                <GridPane.margin>
-                                                    <Insets left="4.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <Label text=":" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="3">
-                                                <GridPane.margin>
-                                                    <Insets left="4.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <TextField fx:id="titleTextField" disable="true" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </TextField>
-                                            <TextField fx:id="locationTextField" disable="true" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="9">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </TextField>
-                                            <ComboBox fx:id="startComboBox" maxWidth="1.7976931348623157E308" onAction="#startComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
-                                                <GridPane.margin>
-                                                    <Insets bottom="2.0" left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <ComboBox fx:id="endComboBox" maxWidth="1.7976931348623157E308" onAction="#endComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="2.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <ComboBox fx:id="titleComboBox" maxWidth="1.7976931348623157E308" onAction="#titleComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <ComboBox fx:id="locationComboBox" maxWidth="1.7976931348623157E308" onAction="#locationComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" top="8.0" />
-                                                </GridPane.margin>
-                                            </ComboBox>
-                                            <Label fx:id="dateRangeErrorLabel" graphicTextGap="0.0" styleClass="collapsed" text="%startCannotBeAfterEnd" wrapText="true" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="2">
-                                                <GridPane.margin>
-                                                    <Insets left="8.0" />
-                                                </GridPane.margin>
-                                            </Label>
-                                            <RadioButton fx:id="customerRadioButton" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerRadioButtonChanged" selected="true" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                                                <toggleGroup>
-                                                    <ToggleGroup fx:id="customCustomer" />
-                                                </toggleGroup>
-                                       <GridPane.margin>
-                                          <Insets top="8.0" />
-                                       </GridPane.margin>
-                                            </RadioButton>
-                                            <RadioButton fx:id="cityRadioButton" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerRadioButtonChanged" toggleGroup="$customCustomer" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
-                                       <GridPane.margin>
-                                          <Insets top="8.0" />
-                                       </GridPane.margin>
-                                    </RadioButton>
-                                            <RadioButton fx:id="countryRadioButton" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerRadioButtonChanged" toggleGroup="$customCustomer" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
-                                       <GridPane.margin>
-                                          <Insets top="8.0" />
-                                       </GridPane.margin>
-                                    </RadioButton>
-                                        </children>
-                                        <padding>
-                                            <Insets bottom="8.0" right="8.0" />
-                                        </padding>
-                                    </GridPane>
-                                </content>
-                            </Tab>
-                        </tabs>
-                    </TabPane>
-                  <HBox VBox.vgrow="NEVER">
-                     <VBox.margin>
-                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                     </VBox.margin>
-                     <children>
-                        <Button mnemonicParsing="false" onAction="#lookupOptionsButtonClick" text="%lookupOptions" HBox.hgrow="NEVER" />
-                          <ButtonBar HBox.hgrow="ALWAYS">
-                              <buttons>
-                                  <Button fx:id="okButton" defaultButton="true" mnemonicParsing="false" onAction="#okButtonAction" text="%ok" />
-                                  <Button cancelButton="true" mnemonicParsing="false" onAction="#cancelButtonAction" text="%cancel" />
-                              </buttons>
-                           <HBox.margin>
-                              <Insets left="16.0" />
-                           </HBox.margin>
-                          </ButtonBar>
-                     </children>
-                  </HBox>
-                </children>
-            </VBox>
-            <BorderPane fx:id="lookupOptionsBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #0000007f;" visible="false">
-               <center>
-                  <Pane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
-                     <children>
-                        <VBox fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" spacing="8.0" style="-fx-background-color: White; -fx-border-color: Black; -fx-border-width: 4px;">
-                           <children>
-                              <CheckBox fx:id="lookupOptionCustomersCheckBox" mnemonicParsing="false" text="Include inactive customers" />
-                              <CheckBox fx:id="lookupOptionUsersCheckBox" mnemonicParsing="false" text="Include inactive users" />
-                              <ButtonBar>
-                                <buttons>
-                                  <Button mnemonicParsing="false" onAction="#lookupOptionsOkClick" text="%ok" />
-                                    <Button mnemonicParsing="false" onAction="#lookupOptionsCancelClick" text="%cancel" />
-                                </buttons>
-                              </ButtonBar>
-                           </children>
-                           <padding>
-                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                           </padding>
-                        </VBox>
-                     </children>
-                  </Pane>
-               </center>
-            </BorderPane>
-         </children>
-      </StackPane>
-   </center>
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
+            <children>
+                <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass">
+                    <stylesheets>
+                        <URL value="@/scheduler/defaultStyles.css" />
+                    </stylesheets>
+                    <children>
+                        <TabPane fx:id="searchTypesTabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                            <VBox.margin>
+                                <Insets />
+                            </VBox.margin>
+                            <tabs>
+                                <Tab fx:id="preDefinedRangesTab" closable="false" onSelectionChanged="#searchTypesTabSelectionChanged" text="%preDefinedRanges">
+                                    <content>
+                                        <VBox alignment="CENTER">
+                                            <children>
+                                                <GridPane hgap="4.0" vgap="8.0">
+                                                    <columnConstraints>
+                                                        <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                    </columnConstraints>
+                                                    <rowConstraints>
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                    </rowConstraints>
+                                                    <children>
+                                                        <Label text="%customerLabelText" GridPane.rowIndex="1" />
+                                                        <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                        <Label text="%userLabelText" GridPane.rowIndex="2" />
+                                                        <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                        <ComboBox fx:id="rangeTypeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
+                                                        <Label text="%rangeLabelText" />
+                                                    </children>
+                                                </GridPane>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                            </padding>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                                <Tab fx:id="customTab" closable="false" onSelectionChanged="#searchTypesTabSelectionChanged" text="%customSearch">
+                                    <content>
+                                        <GridPane>
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
+                                                <ColumnConstraints hgrow="SOMETIMES" />
+                                                <ColumnConstraints maxWidth="-Infinity" />
+                                                <ColumnConstraints maxWidth="-Infinity" />
+                                                <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
+                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                            <children>
+                                                <RadioButton fx:id="dateRadioButton" disable="true" mnemonicParsing="false" onAction="#timeRadioButtonChanged" selected="true" text="%date" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                    <toggleGroup>
+                                                        <ToggleGroup fx:id="dateGranularity" />
+                                                    </toggleGroup>
+                                                </RadioButton>
+                                                <RadioButton fx:id="hourRadioButton" disable="true" mnemonicParsing="false" onAction="#timeRadioButtonChanged" text="%hour" toggleGroup="$dateGranularity" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </RadioButton>
+                                                <RadioButton fx:id="minuteRadioButton" disable="true" mnemonicParsing="false" onAction="#timeRadioButtonChanged" text="%minute" toggleGroup="$dateGranularity" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.hgrow="NEVER">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </RadioButton>
+                                                <DatePicker fx:id="startDatePicker" disable="true" prefWidth="100.0" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
+                                                    <GridPane.margin>
+                                                        <Insets bottom="2.0" left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </DatePicker>
+                                                <Spinner fx:id="startHourSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="3" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
+                                                    <GridPane.margin>
+                                                        <Insets bottom="2.0" left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Spinner>
+                                                <Spinner fx:id="startMinuteSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="5" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="1">
+                                                    <GridPane.margin>
+                                                        <Insets bottom="2.0" left="4.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Spinner>
+                                                <DatePicker fx:id="endDatePicker" disable="true" prefWidth="100.0" GridPane.columnIndex="2" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="3">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="2.0" />
+                                                    </GridPane.margin>
+                                                </DatePicker>
+                                                <Spinner fx:id="endHourSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="3" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="3">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="2.0" />
+                                                    </GridPane.margin>
+                                                </Spinner>
+                                                <Spinner fx:id="endMinuteSpinner" disable="true" prefWidth="84.0" GridPane.columnIndex="5" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="3">
+                                                    <GridPane.margin>
+                                                        <Insets left="4.0" top="2.0" />
+                                                    </GridPane.margin>
+                                                </Spinner>
+                                                <Label alignment="CENTER_RIGHT" minHeight="-Infinity" minWidth="-Infinity" text="%customerLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <ComboBox fx:id="customCustomerComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <Label minHeight="-Infinity" minWidth="-Infinity" text="%cityLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#cityComboBoxChanged" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <Label alignment="CENTER_RIGHT" minHeight="-Infinity" minWidth="-Infinity" text="%countryLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#countryComboBoxChanged" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <Label alignment="CENTER_RIGHT" minHeight="-Infinity" minWidth="-Infinity" text="%userLabelText" textAlignment="RIGHT" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <ComboBox fx:id="customUserComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <Label text=":" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                                                    <GridPane.margin>
+                                                        <Insets left="4.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <Label text=":" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="3">
+                                                    <GridPane.margin>
+                                                        <Insets left="4.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <TextField fx:id="titleTextField" disable="true" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </TextField>
+                                                <TextField fx:id="locationTextField" disable="true" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="9">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </TextField>
+                                                <ComboBox fx:id="startComboBox" maxWidth="1.7976931348623157E308" onAction="#startComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                                                    <GridPane.margin>
+                                                        <Insets bottom="2.0" left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <ComboBox fx:id="endComboBox" maxWidth="1.7976931348623157E308" onAction="#endComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="2.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <ComboBox fx:id="titleComboBox" maxWidth="1.7976931348623157E308" onAction="#titleComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <ComboBox fx:id="locationComboBox" maxWidth="1.7976931348623157E308" onAction="#locationComboBoxChanged" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" top="8.0" />
+                                                    </GridPane.margin>
+                                                </ComboBox>
+                                                <Label fx:id="dateRangeErrorLabel" graphicTextGap="0.0" styleClass="collapsed" text="%startCannotBeAfterEnd" wrapText="true" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="2">
+                                                    <GridPane.margin>
+                                                        <Insets left="8.0" />
+                                                    </GridPane.margin>
+                                                </Label>
+                                                <RadioButton fx:id="customerRadioButton" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerRadioButtonChanged" selected="true" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+                                                    <toggleGroup>
+                                                        <ToggleGroup fx:id="customCustomer" />
+                                                    </toggleGroup>
+                                                    <GridPane.margin>
+                                                        <Insets top="8.0" />
+                                                    </GridPane.margin>
+                                                </RadioButton>
+                                                <RadioButton fx:id="cityRadioButton" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerRadioButtonChanged" toggleGroup="$customCustomer" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                                                    <GridPane.margin>
+                                                        <Insets top="8.0" />
+                                                    </GridPane.margin>
+                                                </RadioButton>
+                                                <RadioButton fx:id="countryRadioButton" graphicTextGap="0.0" mnemonicParsing="false" onAction="#customerRadioButtonChanged" toggleGroup="$customCustomer" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
+                                                    <GridPane.margin>
+                                                        <Insets top="8.0" />
+                                                    </GridPane.margin>
+                                                </RadioButton>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="8.0" right="8.0" />
+                                            </padding>
+                                        </GridPane>
+                                    </content>
+                                </Tab>
+                            </tabs>
+                        </TabPane>
+                        <HBox VBox.vgrow="NEVER">
+                            <VBox.margin>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                            </VBox.margin>
+                            <children>
+                                <Button mnemonicParsing="false" onAction="#lookupOptionsButtonClick" text="%lookupOptions" HBox.hgrow="NEVER" />
+                                <ButtonBar HBox.hgrow="ALWAYS">
+                                    <buttons>
+                                        <Button fx:id="okButton" defaultButton="true" mnemonicParsing="false" onAction="#okButtonAction" text="%ok" />
+                                        <Button cancelButton="true" mnemonicParsing="false" onAction="#cancelButtonAction" text="%cancel" />
+                                    </buttons>
+                                    <HBox.margin>
+                                        <Insets left="16.0" />
+                                    </HBox.margin>
+                                </ButtonBar>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+                <BorderPane fx:id="lookupOptionsBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #0000007f;" visible="false">
+                    <center>
+                        <Pane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+                            <children>
+                                <VBox fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" spacing="8.0" style="-fx-background-color: White; -fx-border-color: Black; -fx-border-width: 4px;">
+                                    <children>
+                                        <CheckBox fx:id="lookupOptionCustomersCheckBox" mnemonicParsing="false" text="Include inactive customers" />
+                                        <CheckBox fx:id="lookupOptionUsersCheckBox" mnemonicParsing="false" text="Include inactive users" />
+                                        <ButtonBar>
+                                            <buttons>
+                                                <Button mnemonicParsing="false" onAction="#lookupOptionsOkClick" text="%ok" />
+                                                <Button mnemonicParsing="false" onAction="#lookupOptionsCancelClick" text="%cancel" />
+                                            </buttons>
+                                        </ButtonBar>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                    </padding>
+                                </VBox>
+                            </children>
+                        </Pane>
+                    </center>
+                </BorderPane>
+            </children>
+        </StackPane>
+    </center>
 </fx:root>

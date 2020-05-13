@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
@@ -10,33 +11,34 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.ItemEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <VBox styleClass="mainFxmlClass">
+        <VBox styleClass="content">
             <children>
-                <StackPane>
+                <StackPane styleClass="header">
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-title" text="%currentAndFutureAppointments" wrapText="true" />
-                        <HBox alignment="CENTER_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" StackPane.alignment="CENTER_RIGHT">
-                            <children>
-                                <Button fx:id="helpButton" mnemonicParsing="false" styleClass="symbol-button" text="❓">
-                                    <HBox.margin>
-                                        <Insets right="8.0" />
-                                    </HBox.margin>
-                                </Button>
-                            </children>
-                        </HBox>
+                        <Label fx:id="headingLabel" styleClass="h1" text="%manageAppointments" />
+                        <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT" />
                     </children>
                 </StackPane>
-                <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
-                <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                <Label fx:id="subHeadingLabel" VBox.vgrow="SOMETIMES">
+                    <styleClass>
+                        <String fx:value="header" />
+                        <String fx:value="h2" />
+                        <String fx:value="collapsed" />
+                    </styleClass>
+                </Label>
+                <TableView fx:id="listingTableView" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="titleTableColumn" editable="false" minWidth="-1.0" prefWidth="-1.0" text="%title">
                             <cellValueFactory>
@@ -125,15 +127,16 @@
                                 <RelayCellValueFactory />
                             </cellValueFactory>
                             <cellFactory>
-                                <ItemEditTableCellFactory fx:id="itemEditTableCellFactory" />
+                                <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                             </cellFactory>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8.0">
                                     <children>
                                         <Button mnemonicParsing="false" onAction="#filterButtonClick" styleClass="symbol-button" text="">
-                                 <HBox.margin>
-                                    <Insets />
-                                 </HBox.margin></Button>
+                                            <HBox.margin>
+                                                <Insets />
+                                            </HBox.margin>
+                                        </Button>
                                         <Button mnemonicParsing="false" onAction="#onExportButtonAction" styleClass="symbol-button" text="">
                                             <tooltip>
                                                 <Tooltip text="%exportAppointmentListToFile" />
@@ -150,8 +153,8 @@
                     <contextMenu>
                         <ContextMenu>
                             <items>
-                                <MenuItem fx:id="editMenuItem" mnemonicParsing="false" text="%edit" />
-                                <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" text="%delete" />
+                                <MenuItem mnemonicParsing="false" onAction="#onEditMenuItemAction" text="%edit" />
+                                <MenuItem mnemonicParsing="false" onAction="#onDeleteMenuItemAction" text="%delete" />
                             </items>
                         </ContextMenu>
                     </contextMenu>
@@ -162,19 +165,74 @@
                         <Label text="%noAppointmentsToShow" />
                     </placeholder>
                 </TableView>
-                <ButtonBar VBox.vgrow="SOMETIMES">
+                <ButtonBar styleClass="footer">
                     <buttons>
-                        <Button fx:id="newButton" mnemonicParsing="false" text="%new">
-                            <tooltip>
-                                <Tooltip text="%addNewAppointment" />
-                            </tooltip>
-                        </Button>
+                        <Button mnemonicParsing="false" onAction="#onNewButtonAction" text="New" />
                     </buttons>
-                    <VBox.margin>
-                        <Insets top="8.0" />
-                    </VBox.margin>
                 </ButtonBar>
             </children>
         </VBox>
+      <BorderPane fx:id="helpBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
+         <center>
+            <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+               <top>
+                  <Label text="Appointment Listing Help">
+                     <styleClass>
+                        <String fx:value="header" />
+                        <String fx:value="h1" />
+                     </styleClass>
+                  </Label>
+               </top>
+               <styleClass>
+                  <String fx:value="mainFxmlClass" />
+                  <String fx:value="bordered" />
+               </styleClass>
+               <center>
+                  <VBox spacing="8.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <TextFlow>
+                           <children>
+                              <Text styleClass="h2" text="Edit Countries" />
+                              <Text text="&#10;Select a country and hit " />
+                              <Text styleClass="refNameText" text="ENTER" />
+                              <Text text=" or right-click and select " />
+                              <Text styleClass="refNameText" text="&quot;Edit&quot;" />
+                              <Text text="." />
+                              <Text styleClass="h2" text="&#10;Add Countries" />
+                              <Text text="&#10;Countries are automatically added from a pre-determined compatibility list when needed." />
+                              <Text styleClass="h2" text="&#10;Delete Countries" />
+                              <Text text="&#10;Select a country and hit " />
+                              <Text styleClass="refNameText" text="DELETE" />
+                              <Text text=" or right-click and select " />
+                              <Text styleClass="refNameText" text="&quot;Delete&quot;" />
+                              <Text text="." />
+                              <Text styleClass="h2" text="&#10;Listing Display Options" />
+                              <Text styleClass="symbol" text="&#10;•" />
+                              <Text text=" Click column headings to sort." />
+                              <Text styleClass="symbol" text="&#10;•" />
+                              <Text text=" Click the " />
+                              <Text text="&quot;✚&quot;">
+                                 <styleClass>
+                                    <String fx:value="refNameText" />
+                                    <String fx:value="symbol" />
+                                 </styleClass>
+                              </Text>
+                              <Text text=" symbol at the upper left to select what colums are displayed." />
+                           </children>
+                        </TextFlow>
+                        <ButtonBar>
+                           <buttons>
+                              <Button mnemonicParsing="false" onAction="#onHelpOKButtonAction" text="OK" />
+                           </buttons>
+                        </ButtonBar>
+                     </children>
+                     <padding>
+                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                     </padding>
+                  </VBox>
+               </center>
+            </BorderPane>
+         </center>
+      </BorderPane>
     </children>
 </fx:root>

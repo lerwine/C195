@@ -44,6 +44,10 @@ public enum CssClassName {
      */
     INFO("information"),
     /**
+     * The {@code "error"} CSS class for nodes that display in red text, aligned to the upper-left and have no padding.
+     */
+    PROGRESS("progress"),
+    /**
      * The {@code "validationMessage"} CSS class for nodes that display in red text.
      */
     VALIDATIONMSG("validationMessage"),

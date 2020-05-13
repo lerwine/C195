@@ -1,19 +1,13 @@
 package scheduler.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.Styleable;
@@ -48,7 +42,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ValidationStatus;
-import scheduler.observables.BindingHelper;
 import scheduler.observables.MutationBindableObservableList;
 import scheduler.view.SymbolText;
 
@@ -153,14 +146,14 @@ public class NodeUtil {
         inner.prefHeightProperty().bind(outer.heightProperty());
         inner.minHeightProperty().bind(outer.heightProperty());
     }
-    
+
     public static void unbindExtents(Region region) {
         region.prefWidthProperty().unbind();
         region.minWidthProperty().unbind();
         region.prefHeightProperty().unbind();
         region.minHeightProperty().unbind();
     }
-    
+
     /**
      * Set {@link GridPane} constraints, adding the {@link Node} to the {@link GridPane} if it is not already a child node.
      *
@@ -650,63 +643,6 @@ public class NodeUtil {
                         .then(MutationBindableObservableList.createRemoveAddOperation(removeIfTrue, addIfTrue))
                         .otherwise(MutationBindableObservableList.createRemoveAddOperation(removeIfFalse, addIfFalse))
         );
-    }
-
-    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName[] ifTrue, CssClassName... ifFalse) {
-        bindCssClassSwitch(node, observable, Arrays.asList(ifTrue), (null == ifFalse || ifFalse.length == 0) ? Collections.emptyList() : Arrays.asList(ifFalse));
-    }
-
-    /**
-     * @deprecated Doesn't work
-     */
-    public static void bindCssClassSwitch(Node node, BooleanBinding observable, CssClassName... ifTrue) {
-        bindCssClassSwitch(node, observable, Arrays.asList(ifTrue), Collections.emptyList());
-    }
-
-    /**
-     * @deprecated Doesn't work
-     */
-    public static BooleanBinding bindCssClassSwitch(Node node, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse, Callable<Boolean> func, Observable... dependencies) {
-        BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
-        bindCssClassSwitch(node, result, ifTrue, ifFalse);
-        return result;
-    }
-
-    /**
-     * @deprecated Doesn't work
-     */
-    public static BooleanBinding bindCssClassSwitch(Node node, CssClassName[] ifTrue, CssClassName[] ifFalse, Callable<Boolean> func, Observable... dependencies) {
-        BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
-        bindCssClassSwitch(node, result, Arrays.asList(ifTrue), Arrays.asList(ifFalse));
-        return result;
-    }
-
-    /**
-     * @deprecated Doesn't work
-     */
-    public static BooleanBinding bindCollapsibleMessage(Labeled label, ObservableValue<String> observable) {
-        label.textProperty().bind(observable);
-        BooleanBinding result = BindingHelper.isNullOrWhiteSpace(Objects.requireNonNull(observable));
-        bindCssCollapse(label, result);
-        return result;
-    }
-
-    /**
-     * @deprecated Doesn't work
-     */
-    public static StringBinding bindCollapsibleMessage(Labeled label, Callable<String> func, Observable... dependencies) {
-        StringBinding result = Bindings.createStringBinding(func, dependencies);
-        bindCollapsibleMessage(label, result);
-        return result;
-    }
-
-    /**
-     * @deprecated Doesn't work
-     */
-    public static BooleanBinding bindCollapsible(Node node, Callable<Boolean> func, Observable... dependencies) {
-        BooleanBinding result = Bindings.createBooleanBinding(func, dependencies);
-        bindCssCollapse(node, result);
-        return result;
     }
 
     /**

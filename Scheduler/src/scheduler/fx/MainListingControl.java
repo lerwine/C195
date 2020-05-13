@@ -11,6 +11,7 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
@@ -19,6 +20,7 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyEvent;
@@ -83,26 +85,31 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
 
         listingTableView.setItems(items);
-        parentProperty().addListener(new InvalidationListener() {
+        
+        sceneProperty().addListener(new InvalidationListener() {
             private boolean isListening = false;
 
             {
-                onChange(null != getParent());
+                onChange(null != getScene());
             }
 
             private void onChange(boolean hasParent) {
                 if (hasParent) {
+                    LOG.info("Scene is not null");
                     if (!isListening) {
                         Scheduler.getMainController().addDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
                         Scheduler.getMainController().addDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
                         Scheduler.getMainController().addDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
                         isListening = true;
                     }
-                } else if (isListening) {
-                    Scheduler.getMainController().removeDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                    Scheduler.getMainController().removeDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                    Scheduler.getMainController().removeDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                    isListening = false;
+                } else {
+                    LOG.info("Scene is null");
+                    if (isListening) {
+                        Scheduler.getMainController().removeDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+                        Scheduler.getMainController().removeDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+                        Scheduler.getMainController().removeDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+                        isListening = false;
+                    }
                 }
             }
 
@@ -110,7 +117,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
             public void invalidated(Observable observable) {
                 onChange(null != ((ObservableObjectValue<?>) observable).get());
             }
+            
         });
+        
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());

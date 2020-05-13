@@ -4,7 +4,7 @@ import javafx.event.EventType;
 import scheduler.dao.UserDAO;
 
 /**
- * Represents a {@link DaoChangeAction#CREATED}, {@link DaoChangeAction#CREATED} or {@link DaoChangeAction#CREATED} event for a {@link UserDAO}.
+ * Represents a {@link DbChangeType#CREATED}, {@link DbChangeType#CREATED} or {@link DbChangeType#CREATED} event for a {@link UserDAO}.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -16,22 +16,22 @@ public class UserDaoEvent extends DataObjectEvent<UserDAO> {
     public static final EventType<UserDaoEvent> ANY_USER_EVENT = new EventType<>(ANY_DAO_EVENT, "SCHEDULER_ANY_USER_EVENT");
 
     /**
-     * Event type for {@link UserDAO} {@link DaoChangeAction#CREATED} events.
+     * Event type for {@link UserDAO} {@link DbChangeType#CREATED} events.
      */
     public static final EventType<UserDaoEvent> USER_DAO_INSERT = new EventType<>(ANY_USER_EVENT, "SCHEDULER_USER_DAO_INSERT");
 
     /**
-     * Event type for {@link UserDAO} {@link DaoChangeAction#UPDATED} events.
+     * Event type for {@link UserDAO} {@link DbChangeType#UPDATED} events.
      */
     public static final EventType<UserDaoEvent> USER_DAO_UPDATE = new EventType<>(ANY_USER_EVENT, "SCHEDULER_USER_DAO_UPDATE");
 
     /**
-     * Event type for {@link UserDAO} {@link DaoChangeAction#DELETED} events.
+     * Event type for {@link UserDAO} {@link DbChangeType#DELETED} events.
      */
     public static final EventType<UserDaoEvent> USER_DAO_DELETE = new EventType<>(ANY_USER_EVENT, "SCHEDULER_USER_DAO_DELETE");
 
-    public static EventType<UserDaoEvent> toEventType(DaoChangeAction changeAction) {
-        switch (changeAction) {
+    public static EventType<UserDaoEvent> toEventType(DbChangeType changeType) {
+        switch (changeType) {
             case CREATED:
                 return USER_DAO_INSERT;
             case DELETED:
@@ -45,11 +45,16 @@ public class UserDaoEvent extends DataObjectEvent<UserDAO> {
      * Initializes a new {@link UserDAO} event.
      *
      * @param source The object which sent the {@code UserDaoEvent}.
-     * @param changeAction The {@link DaoChangeAction} value indicating the type of change event that occurred.
+     * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
      * @param dataObject The target {@link UserDAO}.
      */
-    public UserDaoEvent(Object source, DaoChangeAction changeAction, UserDAO dataObject) {
+    public UserDaoEvent(Object source, DbChangeType changeAction, UserDAO dataObject) {
         super(source, dataObject, changeAction, toEventType(changeAction));
+    }
+
+    @Override
+    public EventType<UserDaoEvent> getEventType() {
+        return (EventType<UserDaoEvent>) super.getEventType();
     }
 
 }

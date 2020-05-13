@@ -29,7 +29,7 @@ import scheduler.dao.ItemCountResult;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.util.DbConnector;
-import scheduler.view.ErrorDetailControl;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;

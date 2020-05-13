@@ -16,14 +16,19 @@
 <?import scheduler.fx.LocaleLanguageListCell?>
 <?import scheduler.fx.LocaleLanguageListCellFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section">
             <top>
-                <Label alignment="CENTER" styleClass="top" text="%appointmentSchedulerLogin" BorderPane.alignment="CENTER" />
+                <Label text="%appointmentSchedulerLogin">
+                    <styleClass>
+                        <String fx:value="header" />
+                        <String fx:value="h1" />
+                    </styleClass>
+                </Label>
             </top>
             <center>
-                <GridPane hgap="4.0" vgap="4.0" styleClass="center">
+                <GridPane hgap="4.0" vgap="4.0" styleClass="content">
                     <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" />
                         <ColumnConstraints hgrow="ALWAYS" />
@@ -82,16 +87,13 @@
                 </GridPane>
             </center>
             <bottom>
-                <ButtonBar styleClass="bottom" BorderPane.alignment="CENTER">
+                <ButtonBar styleClass="footer" BorderPane.alignment="CENTER">
                     <buttons>
                         <Button fx:id="loginButton" minWidth="100.0" mnemonicParsing="false" onAction="#onLoginButtonAction" prefWidth="100.0" text="Login" />
                         <Button fx:id="exitButton" minWidth="100.0" mnemonicParsing="false" onAction="#onExitButtonAction" prefWidth="100.0" text="Exit" />
                     </buttons>
                 </ButtonBar>
             </bottom>
-            <BorderPane.margin>
-                <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
-            </BorderPane.margin>
         </BorderPane>
     </center>
 </fx:root>

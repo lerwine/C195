@@ -25,7 +25,7 @@ import scheduler.model.ui.CityItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailControl;
+import scheduler.fx.ErrorDetailControl;
 import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;

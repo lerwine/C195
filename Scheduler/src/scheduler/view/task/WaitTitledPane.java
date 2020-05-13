@@ -27,17 +27,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TitledPane;
-import javafx.scene.layout.StackPane;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CANCELLING;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CLOSE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_NOFN;
 import static scheduler.AppResourceKeys.RESOURCEKEY_PLEASEWAIT;
+import scheduler.fx.CssClassName;
+import scheduler.fx.ErrorDetailGridPane;
 import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
-import scheduler.fx.CssClassName;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -52,26 +52,23 @@ public class WaitTitledPane extends TitledPane {
 
     private static final Logger LOG = Logger.getLogger(WaitTitledPane.class.getName());
 
+    private final ReadOnlyBooleanWrapper faulted;
+    private final ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskRunning;
+    private final ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskDone;
+    private Task<?> currentTask;
+    private ErrorDetailGridPane errorDetail;
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
     @FXML // fx:id="messageLabel"
     private Label messageLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="statusStackPane"
-    private StackPane statusStackPane; // Value injected by FXMLLoader
-
     @FXML // fx:id="progressIndicator"
     private ProgressIndicator progressIndicator; // Value injected by FXMLLoader
 
     @FXML // fx:id="cancelButton"
     private Button cancelButton; // Value injected by FXMLLoader
-    
-    private final ReadOnlyBooleanWrapper faulted;
-    private final ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskRunning;
-    private final ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskDone;
-    private Task<?> currentTask;
-    private ErrorDetailGridPane errorDetail;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public WaitTitledPane() {
@@ -116,7 +113,7 @@ public class WaitTitledPane extends TitledPane {
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        assert statusStackPane != null : "fx:id=\"statusStackPane\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";
+        assert messageLabel != null : "fx:id=\"messageLabel\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";
         assert progressIndicator != null : "fx:id=\"progressIndicator\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";
 
@@ -165,10 +162,10 @@ public class WaitTitledPane extends TitledPane {
             Throwable ex = task.getException();
             LOG.log(Level.SEVERE, "Background task failed", ex);
             errorDetail = ErrorDetailGridPane.of(ex);
-            statusStackPane.getChildren().add(errorDetail);
+            getChildren().add(errorDetail);
             cancelButton.setText(resources.getString(RESOURCEKEY_CLOSE));
-            addCssClass(this, CssClassName.ERROR_TITLED_PANE);
-            removeCssClass(this, CssClassName.WAIT_TITLED_PANE);
+            addCssClass(this, CssClassName.ERROR);
+            removeCssClass(this, CssClassName.PROGRESS);
             this.setExpanded(true);
             faulted.set(true);
         }
@@ -216,13 +213,14 @@ public class WaitTitledPane extends TitledPane {
             Platform.runLater(() -> startNow(task));
         }
     }
-    
+
     private void onTitleChanged(Observable observable) {
-        String s = ((ReadOnlyStringProperty)observable).get();
-        if (null == s || s.trim().isEmpty())
+        String s = ((ReadOnlyStringProperty) observable).get();
+        if (null == s || s.trim().isEmpty()) {
             setText(resources.getString(RESOURCEKEY_PLEASEWAIT));
-        else
+        } else {
             setText(s);
+        }
     }
 
     private void onStatusChanged(String message, double totalWork, double workDone, double progress) {
@@ -235,10 +233,10 @@ public class WaitTitledPane extends TitledPane {
             } else {
                 message = "";
             }
-        } else if (progress < 0.0 && totalWork > 0.0 && workDone >= 0.0){
+        } else if (progress < 0.0 && totalWork > 0.0 && workDone >= 0.0) {
             progress = workDone / totalWork;
         }
-        
+
         if (progress < 0.0) {
             progressIndicator.setProgress(-1);
         } else if (progress > 100.0) {
@@ -248,28 +246,29 @@ public class WaitTitledPane extends TitledPane {
         } else {
             progressIndicator.setProgress(progress);
         }
-        
+
         messageLabel.setText(message);
-        if (message.isEmpty())
+        if (message.isEmpty()) {
             collapseNode(messageLabel);
-        else
+        } else {
             restoreLabeled(messageLabel, message);
+        }
     }
 
     private void onMessageChanged(Observable observable) {
-        onStatusChanged(((ReadOnlyStringProperty)observable).get(), currentTask.getTotalWork(), currentTask.getWorkDone(), currentTask.getProgress());
+        onStatusChanged(((ReadOnlyStringProperty) observable).get(), currentTask.getTotalWork(), currentTask.getWorkDone(), currentTask.getProgress());
     }
 
     private void onTotalWorkChanged(Observable observable) {
-        onStatusChanged(currentTask.getMessage(), ((ReadOnlyDoubleProperty)observable).get(), currentTask.getWorkDone(), currentTask.getProgress());
+        onStatusChanged(currentTask.getMessage(), ((ReadOnlyDoubleProperty) observable).get(), currentTask.getWorkDone(), currentTask.getProgress());
     }
 
     private void onWorkDoneChanged(Observable observable) {
-        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), ((ReadOnlyDoubleProperty)observable).get(), currentTask.getProgress());
+        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), ((ReadOnlyDoubleProperty) observable).get(), currentTask.getProgress());
     }
 
     private void onProgressChanged(Observable observable) {
-        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), currentTask.getWorkDone(), ((ReadOnlyDoubleProperty)observable).get());
+        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), currentTask.getWorkDone(), ((ReadOnlyDoubleProperty) observable).get());
     }
 
     private synchronized void prepare(Task<?> task) {
@@ -277,11 +276,11 @@ public class WaitTitledPane extends TitledPane {
             throw new IllegalStateException();
         }
         if (faulted.get()) {
-            statusStackPane.getChildren().remove(errorDetail);
+            getChildren().remove(errorDetail);
             errorDetail = null;
             progressIndicator.setVisible(true);
-            addCssClass(this, CssClassName.WAIT_TITLED_PANE);
-            removeCssClass(this, CssClassName.ERROR_TITLED_PANE);
+            addCssClass(this, CssClassName.PROGRESS);
+            removeCssClass(this, CssClassName.ERROR);
             faulted.set(false);
         }
         currentTask = task;

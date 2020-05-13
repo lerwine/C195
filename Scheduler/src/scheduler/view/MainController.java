@@ -48,19 +48,18 @@ import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.event.CityDaoEvent;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.event.CustomerDaoEvent;
-import scheduler.dao.event.DaoChangeAction;
 import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DataObjectEventListener;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.AppointmentAlert;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.db.UserRowData;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
-import scheduler.util.EventHelper;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
@@ -117,8 +116,6 @@ public final class MainController implements EventTarget {
 
     private Node contentView;
 
-    private EventHelper<DataObjectEventListener<? extends DataAccessObject>, DataObjectEvent<? extends DataAccessObject>> daoEventHelper;
-
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
@@ -174,7 +171,14 @@ public final class MainController implements EventTarget {
     private final EventHandlerManager eventHandlerManager;
 
     public MainController() {
-        this.eventHandlerManager = new EventHandlerManager(this);
+        eventHandlerManager = new EventHandlerManager(this);
+        // Add handlers that will fire a separate generic event for each specific DAO event.
+        eventHandlerManager.addEventHandler(AddressDaoEvent.ANY_ADDRESS_EVENT, this::onAddressDaoEvent);
+        eventHandlerManager.addEventHandler(AppointmentDaoEvent.ANY_APPOINTMENT_EVENT, this::onAppointmentDaoEvent);
+        eventHandlerManager.addEventHandler(CityDaoEvent.ANY_CITY_EVENT, this::onCityDaoEvent);
+        eventHandlerManager.addEventHandler(CountryDaoEvent.ANY_COUNTRY_EVENT, this::onCountryDaoEvent);
+        eventHandlerManager.addEventHandler(CustomerDaoEvent.ANY_CUSTOMER_EVENT, this::onCustomerDaoEvent);
+        eventHandlerManager.addEventHandler(UserDaoEvent.ANY_USER_EVENT, this::onUserDaoEvent);
     }
 
     @FXML
@@ -209,7 +213,7 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onNewAddressMenuItem(ActionEvent event) {
-        addNewAddress((Stage) contentVBox.getScene().getWindow());
+        addNewAddress();
     }
 
     @FXML
@@ -219,12 +223,12 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onNewCustomerMenuItemAction(ActionEvent event) {
-        addNewCustomer((Stage) contentVBox.getScene().getWindow());
+        addNewCustomer();
     }
 
     @FXML
     void onNewUserMenuItemAction(ActionEvent event) {
-        addNewUser((Stage) contentVBox.getScene().getWindow());
+        addNewUser();
     }
 
     @FXML
@@ -271,7 +275,6 @@ public final class MainController implements EventTarget {
         assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'MainView.fxml'.";
         assert appointmentAlert != null : "fx:id=\"appointmentAlert\" was not injected: check your FXML file 'MainView.fxml'.";
 
-        daoEventHelper = new EventHelper<>("onDataObjectEvent");
         bindExtents(helpContent, rootStackPane);
         bindExtents(waitBorderPane, rootStackPane);
         bindExtents(appointmentAlert, rootStackPane);
@@ -338,6 +341,30 @@ public final class MainController implements EventTarget {
         return null;
     }
 
+    private void onAddressDaoEvent(AddressDaoEvent event) {
+        DataObjectEvent.fireGenericEvent(event);
+    }
+
+    private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
+        DataObjectEvent.fireGenericEvent(event);
+    }
+
+    private void onCityDaoEvent(CityDaoEvent event) {
+        DataObjectEvent.fireGenericEvent(event);
+    }
+
+    private void onCountryDaoEvent(CountryDaoEvent event) {
+        DataObjectEvent.fireGenericEvent(event);
+    }
+
+    private void onCustomerDaoEvent(CustomerDaoEvent event) {
+        DataObjectEvent.fireGenericEvent(event);
+    }
+
+    private void onUserDaoEvent(UserDaoEvent event) {
+        DataObjectEvent.fireGenericEvent(event);
+    }
+
     private void onContentReplaced(Node oldNode, Node newNode) {
         MenuItem menuItem;
         if (null != oldNode) {
@@ -346,6 +373,7 @@ public final class MainController implements EventTarget {
             } else if (null != (menuItem = getAssociatedMenuItem(oldNode))) {
                 menuItem.setDisable(false);
             }
+
         }
         if (null != newNode) {
             if (newNode instanceof Overview) {
@@ -450,21 +478,19 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
      *
-     * @param stage The current {@link Stage}.
      * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
      */
-    // TODO: Remove stage parameter
-    public CustomerModel addNewCustomer(Stage stage) {
+    public CustomerModel addNewCustomer() {
         CustomerModel result;
         try {
             result = EditCustomer.editNew();
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), ex);
             return null;
         }
         if (null != result) {
             CustomerDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.CREATED, dataObject));
+            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.CREATED, dataObject));
         }
         return result;
     }
@@ -472,32 +498,28 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a {@link CustomerModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModel} to be edited.
      */
-    // TODO: Remove stage parameter
-    public void editCustomer(Stage stage, CustomerModel item) {
+    public void editCustomer(CustomerModel item) {
         CustomerModel result;
         try {
             result = EditCustomer.edit(item);
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), ex);
             return;
         }
         if (null != result) {
             CustomerDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.UPDATED, dataObject));
         }
     }
 
     /**
      * Deletes a {@link CustomerModel} item after confirming with user.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link CustomerModel} to be deleted.
      */
-    // TODO: Remove stage parameter
-    public void deleteCustomer(Stage stage, CustomerModel item) {
+    public void deleteCustomer(CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -505,7 +527,7 @@ public final class MainController implements EventTarget {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CustomerModel.getFactory(),
                     (t) -> {
                         CustomerDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new CustomerDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                        Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.DELETED, dataObject));
                     }));
         }
     }
@@ -513,32 +535,28 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a {@link CountryModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be edited.
      */
-    // TODO: Remove stage parameter
-    public void openCountry(Stage stage, CountryModel item) {
+    public void openCountry(CountryModel item) {
         CountryModel result;
         try {
             result = EditCountry.edit(item);
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), ex);
             return;
         }
         if (null != result) {
             CountryDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CountryDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+            Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.UPDATED, dataObject));
         }
     }
 
     /**
      * Deletes a {@link CountryModel} item after confirming with user.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link CountryModel} to be deleted.
      */
-    // TODO: Remove stage parameter
-    public void deleteCountry(Stage stage, CountryModel item) {
+    public void deleteCountry(CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -546,7 +564,7 @@ public final class MainController implements EventTarget {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CountryModel.getFactory(),
                     (t) -> {
                         CountryDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new CountryDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                        Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.DELETED, dataObject));
                     }));
         }
     }
@@ -554,32 +572,28 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a {@link CityModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link CityModel} to be edited.
      */
-    // TODO: Remove stage parameter
-    public void openCity(Stage stage, CityModel item) {
+    public void openCity(CityModel item) {
         CityModel result;
         try {
             result = EditCity.edit(item);
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), ex);
             return;
         }
         if (null != result) {
             CityDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CityDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+            Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.UPDATED, dataObject));
         }
     }
 
     /**
      * Deletes a {@link CityModel} item after confirming with user.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link CityModel} to be deleted.
      */
-    // TODO: Remove stage parameter
-    public void deleteCity(Stage stage, CityModel item) {
+    public void deleteCity(CityModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -587,7 +601,7 @@ public final class MainController implements EventTarget {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CityModel.getFactory(),
                     (t) -> {
                         CityDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new CityDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                        Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.DELETED, dataObject));
                     }));
         }
     }
@@ -595,21 +609,19 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
      *
-     * @param stage The current {@link Stage}.
      * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
-    // TODO: Remove stage parameter
-    public AddressModel addNewAddress(Stage stage) {
+    public AddressModel addNewAddress() {
         AddressModel result;
         try {
             result = EditAddress.editNew();
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), ex);
             return null;
         }
         if (null != result) {
             AddressDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.CREATED, dataObject));
+            Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.CREATED, dataObject));
         }
         return result;
     }
@@ -617,32 +629,28 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit an {@link AddressModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link AddressModel} to be edited.
      */
-    // TODO: Remove stage parameter
-    public void editAddress(Stage stage, AddressModel item) {
+    public void editAddress(AddressModel item) {
         AddressModel result;
         try {
             result = EditAddress.edit(item);
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), ex);
             return;
         }
         if (null != result) {
             AddressDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+            Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.UPDATED, dataObject));
         }
     }
 
     /**
      * Deletes an {@link AddressModel} item after confirming with user.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link AddressModel} to be deleted.
      */
-    // TODO: Remove stage parameter
-    public void deleteAddress(Stage stage, AddressModel item) {
+    public void deleteAddress(AddressModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -650,7 +658,7 @@ public final class MainController implements EventTarget {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AddressModel.getFactory(),
                     (t) -> {
                         AddressDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new AddressDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                        Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.DELETED, dataObject));
                     }));
         }
     }
@@ -658,21 +666,19 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link UserModel}.
      *
-     * @param stage The current {@link Stage}.
      * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
      */
-    // TODO: Remove stage parameter
-    public UserModel addNewUser(Stage stage) {
+    public UserModel addNewUser() {
         UserModel result;
         try {
             result = EditUser.editNew();
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), ex);
             return null;
         }
         if (null != result) {
             UserDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.CREATED, dataObject));
+            Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.CREATED, dataObject));
         }
         return result;
     }
@@ -680,32 +686,28 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a {@link UserModel}.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link UserModel} to be edited.
      */
-    // TODO: Remove stage parameter
-    public void editUser(Stage stage, UserModel item) {
+    public void editUser(UserModel item) {
         UserModel result;
         try {
             result = EditUser.edit(item);
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), stage, ex);
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), ex);
             return;
         }
         if (null != result) {
             UserDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+            Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.UPDATED, dataObject));
         }
     }
 
     /**
      * Deletes a {@link UserModel} item after confirming with user.
      *
-     * @param stage The current {@link Stage}.
      * @param item The {@link UserModel} to be deleted.
      */
-    // TODO: Remove stage parameter
-    public void deleteUser(Stage stage, UserModel item) {
+    public void deleteUser(UserModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -713,50 +715,135 @@ public final class MainController implements EventTarget {
             TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), UserModel.getFactory(),
                     (t) -> {
                         UserDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new UserDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+                        Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.DELETED, dataObject));
                     }));
         }
-    }
-
-    public void addDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
-        daoEventHelper.addListener(listener);
-    }
-
-    public void removeDaoEventListener(DataObjectEventListener<? extends DataAccessObject> listener) {
-        daoEventHelper.removeListener(listener);
     }
 
     private void onAppointmentCreated(AppointmentModel item) {
         AppointmentDAO dataObject = item.getDataObject();
         // TODO: Notify AppointmentAlert?
-        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DaoChangeAction.CREATED, dataObject));
+        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DbChangeType.CREATED, dataObject));
     }
 
     private void onAppointmentUpdated(AppointmentModel item) {
         AppointmentDAO dataObject = item.getDataObject();
-        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DaoChangeAction.UPDATED, dataObject));
+        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DbChangeType.UPDATED, dataObject));
         // TODO: Notify AppointmentAlert?
     }
 
     private void onAppointmentDeleted(AppointmentModel item) {
         AppointmentDAO dataObject = item.getDataObject();
-        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DaoChangeAction.DELETED, dataObject));
+        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DbChangeType.DELETED, dataObject));
         // TODO: Notify AppointmentAlert
     }
 
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+    /**
+     * Registers a {@link DataObjectEvent} handler in the {@code EventHandlerManager}.
+     * <dl>
+     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
+     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
+     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
+     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
+     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
+     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
+     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
+     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
+     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
+     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
+     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
+     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
+     * </dl>
+     *
+     * @param <T> The type of {@link Event}.
+     * @param type The {@link EventType}.
+     * @param eventHandler The {@link EventHandler}.
+     */
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventFilter(EventType<T> type, EventHandler<? super T> eventHandler) {
+    /**
+     * Registers a {@link DataObjectEvent} filter in the {@code EventHandlerManager}.
+     * <dl>
+     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
+     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
+     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
+     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
+     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
+     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
+     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
+     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
+     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
+     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
+     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
+     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
+     * </dl>
+     *
+     *
+     * @param <T> The type of {@link Event}.
+     * @param type The {@link EventType}.
+     * @param eventHandler The {@link EventHandler}.
+     */
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+    /**
+     * Un-registers a {@link DataObjectEvent} handler from the {@code EventHandlerManager}.
+     * <dl>
+     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
+     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
+     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
+     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
+     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
+     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
+     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
+     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
+     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
+     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
+     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
+     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
+     * </dl>
+     *
+     * @param <T> The type of {@link Event}.
+     * @param type The {@link EventType}.
+     * @param eventHandler The {@link EventHandler}.
+     */
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventFilter(EventType<T> type, EventHandler<? super T> eventHandler) {
+    /**
+     * Un-registers a {@link DataObjectEvent} filter in the {@code EventHandlerManager}.
+     * <dl>
+     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
+     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
+     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
+     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
+     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
+     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
+     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
+     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
+     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
+     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
+     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
+     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
+     * </dl>
+     *
+     * @param <T> The type of {@link Event}.
+     * @param type The {@link EventType}.
+     * @param eventHandler The {@link EventHandler}.
+     */
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 

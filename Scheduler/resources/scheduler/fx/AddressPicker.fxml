@@ -16,24 +16,19 @@
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.CountryListCell?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0"
-         styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171"
-         xmlns:fx="http://javafx.com/fxml/1">
+<fx:root minHeight="-Infinity" minWidth="-Infinity"  styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
-         <BorderPane.margin>
-                <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
-         </BorderPane.margin>
-         <top>
-                <Label alignment="CENTER" text="%selectAddress">
+            <top>
+                <Label text="%selectAddress">
                     <styleClass>
-                            <String fx:value="top" />
-                            <String fx:value="h1" />
+                        <String fx:value="header" />
+                        <String fx:value="h1" />
                     </styleClass>
                 </Label>
-         </top>
-         <center>
-                <SplitPane dividerPositions="0.5" maxHeight="-Infinity" styleClass="center">
+            </top>
+            <center>
+                <SplitPane dividerPositions="0.5" maxHeight="-Infinity" styleClass="content">
                     <items>
                         <VBox>
                             <children>
@@ -91,19 +86,19 @@
                             </padding>
                         </TableView>
                     </items>
-               <BorderPane.margin>
-                  <Insets />
-               </BorderPane.margin>
+                    <BorderPane.margin>
+                        <Insets />
+                    </BorderPane.margin>
                 </SplitPane>
-         </center>
-         <bottom>
-                <ButtonBar styleClass="bottom">
+            </center>
+            <bottom>
+                <ButtonBar styleClass="footer">
                     <buttons>
                         <Button fx:id="selectButton" mnemonicParsing="false" onAction="#onSelectButtonAction" text="%select" />
                         <Button mnemonicParsing="false" onAction="#onCancelButtonAction" text="%cancel" />
                     </buttons>
                 </ButtonBar>
-         </bottom>
-      </BorderPane>
+            </bottom>
+        </BorderPane>
     </center>
 </fx:root>

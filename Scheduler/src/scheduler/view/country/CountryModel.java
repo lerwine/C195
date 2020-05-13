@@ -1,8 +1,11 @@
 package scheduler.view.country;
 
 import java.util.Objects;
+import javafx.beans.Observable;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -29,13 +32,31 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return FACTORY;
     }
 
+    private final ObjectProperty<PredefinedCountry> predefinedData;
     private final ReadOnlyStringWrapper name;
-    private PredefinedCountry predefinedData;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        predefinedData = dao.asPredefinedData();
-        name = new ReadOnlyStringWrapper(this, "name", predefinedData.getName());
+        name = new ReadOnlyStringWrapper(this, "name");
+        predefinedData = new SimpleObjectProperty<>(dao.asPredefinedData());
+        onPredefinedDataChange(predefinedData);
+    }
+
+    private void onPredefinedDataChange(Observable observable) {
+        PredefinedCountry country = ((SimpleObjectProperty<PredefinedCountry>) observable).get();
+        name.set((null == country) ? "" : country.getName());
+    }
+
+    public PredefinedCountry getPredefinedData() {
+        return predefinedData.get();
+    }
+
+    public void setPredefinedData(PredefinedCountry value) {
+        predefinedData.set(value);
+    }
+
+    public ObjectProperty predefinedDataProperty() {
+        return predefinedData;
     }
 
     @Override
@@ -68,7 +89,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     @Override
     public PredefinedCountry asPredefinedData() {
-        return predefinedData;
+        return predefinedData.get();
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel> {
@@ -89,14 +110,13 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         @Override
         public void updateItem(CountryModel item, CountryDAO dao) {
             super.updateItem(item, dao);
-            item.predefinedData = dao.getPredefinedCountry();
-            item.name.set(item.getName());
+            item.predefinedData.set(dao.getPredefinedCountry());
         }
 
         @Override
         public CountryDAO updateDAO(CountryModel item) {
             CountryDAO dataObject = item.getDataObject();
-            dataObject.setPredefinedCountry(item.predefinedData);
+            dataObject.setPredefinedCountry(item.predefinedData.get());
             return dataObject;
         }
 

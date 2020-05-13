@@ -29,7 +29,7 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
-import scheduler.view.ErrorDetailControl;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;

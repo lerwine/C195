@@ -1,5 +1,6 @@
 package scheduler.view;
 
+import scheduler.fx.ErrorDetailControl;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;

@@ -12,6 +12,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
@@ -26,6 +27,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
@@ -73,6 +75,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         }
         EditItem<T, U, S> result = new EditItem<>(editorRegion, model);
         Scheduler.showAndWait(result, parentStage, (t) -> {
+            ViewControllerLoader.initializeCustomControl(result);
             try {
                 AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
                 AnnotationHelper.injectModelEditorField(result.waitBorderPane, "waitBorderPane", editorRegion);
@@ -81,7 +84,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             }
             t.titleProperty().bind(editorRegion.windowTitleProperty());
             ViewControllerLoader.initializeCustomControl(editorRegion);
-            ViewControllerLoader.initializeCustomControl(result);
         });
         return result.model;
     }
@@ -141,6 +143,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         parentVBox.getChildren().add(0, editorRegion);
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
+        VBox.setMargin(editorRegion, new Insets(8.0));
         saveChangesButton.disableProperty().bind(editorRegion.validProperty().not());
 
         if (model.isNewItem()) {

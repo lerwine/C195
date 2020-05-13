@@ -9,38 +9,37 @@
 <?import javafx.scene.layout.VBox?>
 
 
-<StackPane fx:id="rootStackPane" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <BorderPane styleClass="translucentGrayBg" StackPane.alignment="CENTER">
-         <center>
-              <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="wait-border" BorderPane.alignment="CENTER">
-                  <top>
-                        <Label fx:id="headingLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" styleClass="wait-heading" text="%pleaseWait" textAlignment="CENTER" />
-                  </top>
-                  <center>
-                  <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
-                     <children>
-                              <Label fx:id="operationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%connectingToDb" textAlignment="CENTER" wrapText="true">
-                           <VBox.margin>
-                              <Insets bottom="8.0" />
-                           </VBox.margin>
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" fx:id="rootStackPane" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <BorderPane minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" StackPane.alignment="CENTER">
+            <center>
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
+                    <top>
+                        <Label fx:id="headingLabel" text="%pleaseWait">
+                            <styleClass>
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
+                                <String fx:value="progress" />
+                            </styleClass>
                         </Label>
-                            <ProgressIndicator minHeight="12.0" minWidth="12.0" />
-                     </children>
-                     <BorderPane.margin>
-                        <Insets left="8.0" right="8.0" top="8.0" />
-                     </BorderPane.margin>
-                  </VBox>
-                  </center>
-                  <bottom>
-                      <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" BorderPane.alignment="CENTER">
-                          <BorderPane.margin>
-                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                          </BorderPane.margin>
-                      </Button>
-                  </bottom>
-              </BorderPane>
-         </center>
-      </BorderPane>
-   </children>
+                    </top>
+                    <center>
+                        <VBox styleClass="content">
+                            <children>
+                                <Label fx:id="operationLabel" styleClass="validationMessage" text="%connectingToDb" />
+                                <ProgressIndicator minHeight="12.0" minWidth="12.0" />
+                            </children>
+                        </VBox>
+                    </center>
+                    <bottom>
+                        <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel" styleClass="footer" />
+                    </bottom>
+                    <styleClass>
+                        <String fx:value="mainFxmlClass" />
+                        <String fx:value="bordered" />
+                    </styleClass>
+                </BorderPane>
+            </center>
+        </BorderPane>
+    </children>
 </StackPane>

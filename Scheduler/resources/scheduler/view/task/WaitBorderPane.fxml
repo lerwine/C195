@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Accordion?>
 <?import javafx.scene.layout.BorderPane?>
 
-<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <center>
-      <Accordion fx:id="waitAccordion" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="128.0" minWidth="128.0" BorderPane.alignment="CENTER">
-         <BorderPane.margin>
-            <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
-         </BorderPane.margin>
-        <styleClass>
-            <String fx:value="bordered-section" />
-            <String fx:value="warning" />
-        </styleClass>
-      </Accordion>
-   </center>
+<fx:root minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <Accordion fx:id="waitAccordion" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="128.0" minWidth="128.0" styleClass="bordered-section" BorderPane.alignment="CENTER" />
+    </center>
 </fx:root>

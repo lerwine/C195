@@ -1,5 +1,6 @@
 package scheduler.view;
 
+import scheduler.fx.ErrorDetailControl;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;

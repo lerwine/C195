@@ -7,28 +7,24 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
 
-<fx:root fx:id="backingBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-         prefHeight="600.0" prefWidth="900.0" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane"
+<fx:root fx:id="backingBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" type="BorderPane"
          xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
             <top>
                 <Label fx:id="titleLabel">
                     <styleClass>
-                            <String fx:value="top" />
-                            <String fx:value="h1" />
+                        <String fx:value="header" />
+                        <String fx:value="h1" />
                     </styleClass>
                 </Label>
             </top>
             <center>
-                <ScrollPane fx:id="contentScrollPane" fitToHeight="true" fitToWidth="true" pannable="true" styleClass="center" BorderPane.alignment="CENTER" />
+                <ScrollPane fx:id="contentScrollPane" fitToHeight="true" fitToWidth="true" pannable="true" styleClass="content" BorderPane.alignment="CENTER" />
             </center>
             <bottom>
-                <ButtonBar fx:id="buttonBar" styleClass="bottom" />
+                <ButtonBar fx:id="buttonBar" styleClass="footer" />
             </bottom>
-            <BorderPane.margin>
-                <Insets bottom="64.0" left="64.0" right="64.0" top="64.0" />
-            </BorderPane.margin>
         </BorderPane>
     </center>
 </fx:root>

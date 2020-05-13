@@ -20,6 +20,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -31,6 +32,15 @@ import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.fx.MainListingControl;
+import scheduler.model.db.CustomerRowData;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.UserItem;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
@@ -38,15 +48,8 @@ import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.view.export.TabularDataReader;
 import scheduler.view.export.TsvDataExporter;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.UserItem;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
@@ -118,6 +121,25 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @FXML // fx:id="lastUpdateByTableColumn"
     private TableColumn<AppointmentModel, String> lastUpdateByTableColumn; // Value injected by FXMLLoader
+
+    @FXML // fx:id="helpBorderPane"
+    private BorderPane helpBorderPane; // Value injected by FXMLLoader
+
+    @FXML
+    void filterButtonClick(ActionEvent event) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "This method is not implemented");
+        alert.initStyle(StageStyle.UTILITY);
+        alert.initOwner((Stage) ((Button) event.getSource()).getScene().getWindow());
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.setTitle("Not implemented");
+        alert.showAndWait();
+//        FilterOptionState result = EditAppointmentFilter.waitEdit(filterState, (Stage) ((Button) event.getSource()).getScene().getWindow());
+//        if (null != result && !result.equals(filterState)) {
+//            filterState = result;
+//            AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
+//        }
+        // TODO: Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
+    }
 
     @SuppressWarnings("unchecked")
     @FXML
@@ -394,25 +416,34 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @FXML
-    void filterButtonClick(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "This method is not implemented");
-        alert.initStyle(StageStyle.UTILITY);
-        alert.initOwner((Stage) ((Button) event.getSource()).getScene().getWindow());
-        alert.initModality(Modality.APPLICATION_MODAL);
-        alert.setTitle("Not implemented");
-        alert.showAndWait();
-//        FilterOptionState result = EditAppointmentFilter.waitEdit(filterState, (Stage) ((Button) event.getSource()).getScene().getWindow());
-//        if (null != result && !result.equals(filterState)) {
-//            filterState = result;
-//            AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
-//        }
-        // TODO: Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
+    void onHelpButtonAction(ActionEvent event) {
+        restoreNode(helpBorderPane);
+    }
+
+    @FXML
+    void onHelpOKButtonAction(ActionEvent event) {
+        collapseNode(helpBorderPane);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     @Override
     protected void initialize() {
         super.initialize();
+
+        assert titleTableColumn != null : "fx:id=\"titleTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert startTableColumn != null : "fx:id=\"startTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert endTableColumn != null : "fx:id=\"endTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert typeTableColumn != null : "fx:id=\"typeTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert customerTableColumn != null : "fx:id=\"customerTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert userTableColumn != null : "fx:id=\"userTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert locationTableColumn != null : "fx:id=\"locationTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert urlTableColumn != null : "fx:id=\"urlTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert contactTableColumn != null : "fx:id=\"contactTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert descriptionTableColumn != null : "fx:id=\"descriptionTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert createDateTableColumn != null : "fx:id=\"createDateTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert createdByTableColumn != null : "fx:id=\"createdByTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert lastUpdateTableColumn != null : "fx:id=\"lastUpdateTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
+        assert lastUpdateByTableColumn != null : "fx:id=\"lastUpdateByTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
 
     }
 

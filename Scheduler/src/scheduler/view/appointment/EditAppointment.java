@@ -51,6 +51,8 @@ import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
+import scheduler.fx.CssClassName;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.model.AppointmentType;
 import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
@@ -70,9 +72,7 @@ import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
-import scheduler.fx.CssClassName;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailControl;
 import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -217,7 +217,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
+    // TODO: Convert to custom control
     private DateRange dateRangeController;
+    // TODO: Convert to custom control
     private AppointmentConflicts appointmentConflictsController;
     private AppointmentType currentType;
     private HashSet<String> invalidControlIds;

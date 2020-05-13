@@ -53,7 +53,6 @@ import static scheduler.util.NodeUtil.setBorderedNode;
 import static scheduler.util.NodeUtil.setLeftControlLabel;
 import static scheduler.util.NodeUtil.setLeftLabeledControl;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ErrorDetailControl;
 import scheduler.view.MainController;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;

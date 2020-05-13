@@ -58,7 +58,7 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
-import scheduler.view.ErrorDetailControl;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.model.ui.AddressModel;
 import scheduler.fx.AddressPicker;
@@ -219,10 +219,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML
     void onAddButtonAction(ActionEvent event) {
-        Scene scene = ((ComboBox) event.getSource()).getScene();
-        MainController mainController = getMainController();
-        Stage stage = (Stage) scene.getWindow();
-        mainController.addNewAppointment(model.getDataObject(), null);
+        getMainController().addNewAppointment(model.getDataObject(), null);
     }
 
     @FXML

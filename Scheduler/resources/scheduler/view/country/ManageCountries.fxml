@@ -19,22 +19,24 @@
 <?import scheduler.fx.ItemEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 
-<fx:root prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <VBox styleClass="mainFxmlClass">
+        <VBox styleClass="content">
             <children>
-                <StackPane>
+                <StackPane styleClass="header">
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-title" text="%manageCountries" wrapText="true" />
-                        <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
-                            <StackPane.margin>
-                                <Insets right="8.0" />
-                            </StackPane.margin>
-                        </Button>
+                        <Label fx:id="headingLabel" styleClass="h1" text="%manageCountries" />
+                        <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT" />
                     </children>
                 </StackPane>
-                <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
-                <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                <Label fx:id="subHeadingLabel" VBox.vgrow="SOMETIMES">
+                    <styleClass>
+                        <String fx:value="header" />
+                        <String fx:value="h2" />
+                        <String fx:value="collapsed" />
+                    </styleClass>
+                </Label>
+                <TableView fx:id="listingTableView" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%name">
                             <cellValueFactory>
@@ -91,13 +93,23 @@
                         <Label text="%noCountriesToShow" />
                     </placeholder>
                 </TableView>
+                <ButtonBar styleClass="footer">
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#onNewButtonAction" text="New" />
+                    </buttons>
+                </ButtonBar>
             </children>
         </VBox>
-        <BorderPane fx:id="helpBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="translucentGrayBg" visible="false">
+        <BorderPane fx:id="helpBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
                     <top>
-                        <Label styleClass="popup-heading" text="Country Listing Help" BorderPane.alignment="CENTER" />
+                        <Label text="Country Listing Help">
+                            <styleClass>
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
+                            </styleClass>
+                        </Label>
                     </top>
                     <styleClass>
                         <String fx:value="mainFxmlClass" />

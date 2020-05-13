@@ -1,4 +1,4 @@
-package scheduler.view;
+package scheduler.fx;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +34,7 @@ import scheduler.Scheduler;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.Values;
 import scheduler.util.ViewControllerLoader;
+import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -43,7 +44,7 @@ import scheduler.view.annotations.GlobalizationResource;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/App")
-@FXMLResource("/scheduler/view/ErrorDetailControl.fxml")
+@FXMLResource("/scheduler/fx/ErrorDetailControl.fxml")
 public class ErrorDetailControl extends GridPane {
 
     private static final Logger LOG = Logger.getLogger(ErrorDetailControl.class.getName());

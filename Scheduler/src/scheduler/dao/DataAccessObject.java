@@ -52,6 +52,8 @@ import scheduler.view.task.TaskWaiter;
  * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
  * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
  * {@code getFactory()} method.</p>
+ * <p>
+ * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  * <dl>
  * <dt>{@link DataAccessObject.DaoFactory}</dt><dd>Base factory class for {@link RowData} objects.</dd>
  * <dt>{@link scheduler.view.model.ItemModel}</dt><dd>Base class for corresponding Java FX object model objects.</dd>

@@ -4,13 +4,14 @@ import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
-import scheduler.fx.MainListingControl;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.fx.MainListingControl;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -46,12 +47,12 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @FXML
     void onHelpButtonAction(ActionEvent event) {
-        helpBorderPane.setVisible(true);
+        restoreNode(helpBorderPane);
     }
 
     @FXML
     void onHelpOKButtonAction(ActionEvent event) {
-        helpBorderPane.setVisible(false);
+        collapseNode(helpBorderPane);
     }
 
     @Override
@@ -83,12 +84,12 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected void onEditItem(CountryModel item) {
-        getMainController().openCountry((Stage) getScene().getWindow(), item);
+        getMainController().openCountry(item);
     }
 
     @Override
     protected void onDeleteItem(CountryModel item) {
-        getMainController().deleteCountry((Stage) getScene().getWindow(), item);
+        getMainController().deleteCountry(item);
     }
 
     @Override

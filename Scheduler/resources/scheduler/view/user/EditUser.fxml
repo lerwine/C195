@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
 
-<fx:root dividerPositions="0.36" prefHeight="517.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" type="SplitPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root dividerPositions="0.36" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="SplitPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <items>
         <GridPane hgap="4.0" vgap="2.0">
             <columnConstraints>

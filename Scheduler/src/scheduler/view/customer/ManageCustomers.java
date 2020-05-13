@@ -6,14 +6,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
-import static scheduler.util.NodeUtil.bindExtents;
-import static scheduler.util.NodeUtil.unbindExtents;
-import scheduler.fx.MainListingControl;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.event.CustomerDaoEvent;
+import scheduler.fx.MainListingControl;
+import static scheduler.util.NodeUtil.bindExtents;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.customer.ManageCustomersResourceKeys.*;
@@ -56,17 +56,17 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @FXML
     void filterButtonClick(ActionEvent event) {
-        customerFilterBorderPane.setVisible(true);
+        restoreNode(customerFilterBorderPane);
     }
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
-        helpBorderPane.setVisible(true);
+        restoreNode(helpBorderPane);
     }
 
     @FXML
     void onHelpOKButtonAction(ActionEvent event) {
-        helpBorderPane.setVisible(false);
+        collapseNode(helpBorderPane);
     }
 
     @FXML
@@ -83,7 +83,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
         } else {
             setFilter(CustomerModelFilter.active());
         }
-        customerFilterBorderPane.setVisible(false);
+        collapseNode(customerFilterBorderPane);
     }
 
     @Override
@@ -95,7 +95,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
         assert inactiveCustomersRadioButton != null : "fx:id=\"inactiveCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert allCustomersRadioButton != null : "fx:id=\"allCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert helpBorderPane != null : "fx:id=\"helpBorderPane\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        
+
         bindExtents(customerFilterBorderPane, this);
         bindExtents(helpBorderPane, this);
     }
@@ -117,17 +117,17 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewCustomer((Stage) getScene().getWindow());
+        getMainController().addNewCustomer();
     }
 
     @Override
     protected void onEditItem(CustomerModel item) {
-        getMainController().editCustomer((Stage) getScene().getWindow(), item);
+        getMainController().editCustomer(item);
     }
 
     @Override
     protected void onDeleteItem(CustomerModel item) {
-        getMainController().deleteCustomer((Stage) getScene().getWindow(), item);
+        getMainController().deleteCustomer(item);
     }
 
     @Override

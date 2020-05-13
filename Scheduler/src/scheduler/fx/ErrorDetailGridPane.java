@@ -1,4 +1,4 @@
-package scheduler.view.task;
+package scheduler.fx;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,7 +29,7 @@ import scheduler.view.annotations.GlobalizationResource;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/App")
-@FXMLResource("/scheduler/view/task/ErrorDetailGridPane.fxml")
+@FXMLResource("/scheduler/fx/ErrorDetailGridPane.fxml")
 public class ErrorDetailGridPane extends GridPane {
 
     private static final Logger LOG = Logger.getLogger(ErrorDetailGridPane.class.getName());

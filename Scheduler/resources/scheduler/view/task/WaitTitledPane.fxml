@@ -2,39 +2,28 @@
 
 <?import java.lang.String?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<fx:root contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" styleClass="wait-titled-pane" stylesheets="@../../defaultStyles.css" text="%initializing" type="TitledPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <content>
-      <GridPane vgap="8.0">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
-          <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
-          <RowConstraints valignment="BOTTOM" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <Label fx:id="messageLabel" text="%pleaseWait">
-               <styleClass>
-                     <String fx:value="validationMessage" />
-                     <String fx:value="information" />
-               </styleClass>
-            </Label>
-            <StackPane fx:id="statusStackPane" GridPane.rowIndex="1">
-               <children>
-                  <ProgressIndicator fx:id="progressIndicator" minHeight="128.0" minWidth="128.0" />
-               </children>
-            </StackPane>
-          <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#onCancelButtonAction" text="%cancel" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" GridPane.vgrow="NEVER" />
-         </children>
-      </GridPane>
-   </content>
+<fx:root contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" stylesheets="@../../defaultStyles.css" text="%initializing" type="TitledPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <content>
+        <VBox spacing="8.0" styleClass="content">
+            <children>
+                <Label fx:id="messageLabel" styleClass="validationMessage" text="%pleaseWait" />
+                <ProgressIndicator fx:id="progressIndicator" minHeight="128.0" minWidth="128.0" />
+                <ButtonBar>
+                    <buttons>
+                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#onCancelButtonAction" text="%cancel" />
+                    </buttons>
+                </ButtonBar>
+            </children>
+        </VBox>
+    </content>
+    <styleClass>
+        <String fx:value="bordered-section" />
+        <String fx:value="progress" />
+    </styleClass>
 </fx:root>

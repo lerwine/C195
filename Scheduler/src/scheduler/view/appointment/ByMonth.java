@@ -23,7 +23,7 @@ import scheduler.Scheduler;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.util.DB;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ErrorDetailControl;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 

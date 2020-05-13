@@ -6,97 +6,97 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root prefHeight="559.0" prefWidth="884.0" styleClass="mainFxmlClass" stylesheets="@../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <Label styleClass="section-heading" text="%upcomingAppointments" />
-      <FlowPane>
-         <children>
-            <HBox>
-               <children>
-                  <Label styleClass="leftControlLabel" text="%today" />
-                  <Label fx:id="appointmentsTodayLabel" styleClass="leftLabeledControl" text="0">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
-            </HBox>
-            <HBox layoutX="10.0" layoutY="10.0">
-               <children>
-                  <Label styleClass="leftControlLabel" text="%tomorrow">
-                     <HBox.margin>
-                        <Insets left="16.0" />
-                     </HBox.margin>
-                  </Label>
-                  <Label fx:id="appointmentsTomorrowLabel" styleClass="leftLabeledControl" text="0">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
-            </HBox>
-            <HBox layoutX="141.0" layoutY="10.0">
-               <children>
-                  <Label styleClass="leftControlLabel" text="%thisWeek">
-                     <HBox.margin>
-                        <Insets left="16.0" />
-                     </HBox.margin>
-                  </Label>
-                  <Label fx:id="appointmentsThisWeekLabel" styleClass="leftLabeledControl" text="0">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
-            </HBox>
-            <HBox layoutX="147.0" layoutY="10.0">
-               <children>
-                  <Label styleClass="leftControlLabel" text="%nextWeek">
-                     <HBox.margin>
-                        <Insets left="16.0" />
-                     </HBox.margin>
-                  </Label>
-                  <Label fx:id="appointmentsNextWeekLabel" styleClass="leftLabeledControl" text="0">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
-            </HBox>
-            <HBox layoutX="236.0" layoutY="10.0">
-               <children>
-                  <Label styleClass="leftControlLabel" text="%thisMonth">
-                     <HBox.margin>
-                        <Insets left="16.0" />
-                     </HBox.margin>
-                  </Label>
-                  <Label fx:id="appointmentsThisMonthLabel" styleClass="leftLabeledControl" text="0">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
-            </HBox>
-            <HBox layoutX="326.0" layoutY="10.0">
-               <children>
-                  <Label styleClass="leftControlLabel" text="%nextMonth">
-                     <HBox.margin>
-                        <Insets left="16.0" />
-                     </HBox.margin>
-                  </Label>
-                  <Label fx:id="appointmentsNextMonthLabel" styleClass="leftLabeledControl" text="0">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
-            </HBox>
-         </children>
-      </FlowPane>
-      <Label styleClass="section-heading" text="%commonTasks">
-         <VBox.margin>
-            <Insets top="8.0" />
-         </VBox.margin>
-      </Label>
-   </children>
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Label styleClass="h2" text="%upcomingAppointments" />
+        <FlowPane>
+            <children>
+                <HBox>
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%today" />
+                        <Label fx:id="appointmentsTodayLabel" styleClass="leftLabeledControl" text="0">
+                            <HBox.margin>
+                                <Insets left="4.0" />
+                            </HBox.margin>
+                        </Label>
+                    </children>
+                </HBox>
+                <HBox layoutX="10.0" layoutY="10.0">
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%tomorrow">
+                            <HBox.margin>
+                                <Insets left="16.0" />
+                            </HBox.margin>
+                        </Label>
+                        <Label fx:id="appointmentsTomorrowLabel" styleClass="leftLabeledControl" text="0">
+                            <HBox.margin>
+                                <Insets left="4.0" />
+                            </HBox.margin>
+                        </Label>
+                    </children>
+                </HBox>
+                <HBox layoutX="141.0" layoutY="10.0">
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%thisWeek">
+                            <HBox.margin>
+                                <Insets left="16.0" />
+                            </HBox.margin>
+                        </Label>
+                        <Label fx:id="appointmentsThisWeekLabel" styleClass="leftLabeledControl" text="0">
+                            <HBox.margin>
+                                <Insets left="4.0" />
+                            </HBox.margin>
+                        </Label>
+                    </children>
+                </HBox>
+                <HBox layoutX="147.0" layoutY="10.0">
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%nextWeek">
+                            <HBox.margin>
+                                <Insets left="16.0" />
+                            </HBox.margin>
+                        </Label>
+                        <Label fx:id="appointmentsNextWeekLabel" styleClass="leftLabeledControl" text="0">
+                            <HBox.margin>
+                                <Insets left="4.0" />
+                            </HBox.margin>
+                        </Label>
+                    </children>
+                </HBox>
+                <HBox layoutX="236.0" layoutY="10.0">
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%thisMonth">
+                            <HBox.margin>
+                                <Insets left="16.0" />
+                            </HBox.margin>
+                        </Label>
+                        <Label fx:id="appointmentsThisMonthLabel" styleClass="leftLabeledControl" text="0">
+                            <HBox.margin>
+                                <Insets left="4.0" />
+                            </HBox.margin>
+                        </Label>
+                    </children>
+                </HBox>
+                <HBox layoutX="326.0" layoutY="10.0">
+                    <children>
+                        <Label styleClass="leftControlLabel" text="%nextMonth">
+                            <HBox.margin>
+                                <Insets left="16.0" />
+                            </HBox.margin>
+                        </Label>
+                        <Label fx:id="appointmentsNextMonthLabel" styleClass="leftLabeledControl" text="0">
+                            <HBox.margin>
+                                <Insets left="4.0" />
+                            </HBox.margin>
+                        </Label>
+                    </children>
+                </HBox>
+            </children>
+        </FlowPane>
+        <Label styleClass="h2" text="%commonTasks">
+            <VBox.margin>
+                <Insets top="8.0" />
+            </VBox.margin>
+        </Label>
+    </children>
 </fx:root>

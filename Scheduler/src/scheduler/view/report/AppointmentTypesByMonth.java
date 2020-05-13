@@ -33,7 +33,7 @@ import scheduler.dao.AppointmentCountByType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.AppointmentType;
 import scheduler.util.DbConnector;
-import scheduler.view.ErrorDetailControl;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;

@@ -5,26 +5,26 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<fx:root maxWidth="1.7976931348623157E308" stylesheets="@../../defaultStyles.css" type="GridPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <rowConstraints>
-      <RowConstraints vgrow="NEVER" />
-   </rowConstraints>
-   <columnConstraints>
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
-   </columnConstraints>
-   <children>
-      <Label fx:id="sundayLabel" styleClass="sub-section-heading" text="Sunday" GridPane.halignment="CENTER" />
-      <Label fx:id="mondayLabel" styleClass="sub-section-heading" text="Monday" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-      <Label fx:id="tuesdayLabel" styleClass="sub-section-heading" text="Tuesday" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
-      <Label fx:id="wednesdayLabel" styleClass="sub-section-heading" text="Wednesday" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
-      <Label fx:id="thursdayLabel" styleClass="sub-section-heading" text="Thursday" GridPane.columnIndex="4" GridPane.halignment="CENTER" />
-      <Label fx:id="fridayLabel" styleClass="sub-section-heading" text="Friday" GridPane.columnIndex="5" GridPane.halignment="CENTER" />
-      <Label fx:id="saturdayLabel" styleClass="sub-section-heading" text="Saturday" GridPane.columnIndex="6" GridPane.halignment="CENTER" />
-   </children>
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="GridPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <rowConstraints>
+        <RowConstraints vgrow="NEVER" />
+    </rowConstraints>
+    <columnConstraints>
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+        <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
+    </columnConstraints>
+    <children>
+        <Label fx:id="sundayLabel" styleClass="h3" text="Sunday" GridPane.halignment="CENTER" />
+        <Label fx:id="mondayLabel" styleClass="h3" text="Monday" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+        <Label fx:id="tuesdayLabel" styleClass="h3" text="Tuesday" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+        <Label fx:id="wednesdayLabel" styleClass="h3" text="Wednesday" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
+        <Label fx:id="thursdayLabel" styleClass="h3" text="Thursday" GridPane.columnIndex="4" GridPane.halignment="CENTER" />
+        <Label fx:id="fridayLabel" styleClass="h3" text="Friday" GridPane.columnIndex="5" GridPane.halignment="CENTER" />
+        <Label fx:id="saturdayLabel" styleClass="h3" text="Saturday" GridPane.columnIndex="6" GridPane.halignment="CENTER" />
+    </children>
 </fx:root>

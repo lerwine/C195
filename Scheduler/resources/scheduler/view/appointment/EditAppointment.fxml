@@ -28,7 +28,7 @@
 <?import scheduler.fx.UserListCell?>
 <?import scheduler.fx.UserListCellFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="509.0" prefWidth="900.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane hgap="16.0" StackPane.alignment="CENTER">
             <columnConstraints>
@@ -50,10 +50,11 @@
             <children>
                 <TextField fx:id="titleTextField" styleClass="topLabeledControl" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                 <Label fx:id="titleValidationLabel" text="%required" GridPane.columnSpan="2" GridPane.rowIndex="2">
-               <styleClass>
-                  <String fx:value="validationMessage" />
-                  <String fx:value="error" />
-               </styleClass></Label>
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
                 <Label styleClass="topControlLabel" text="%titleLabelText" />
                 <HBox GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
                     <children>
@@ -221,11 +222,16 @@
                 </Label>
             </children>
         </GridPane>
-        <BorderPane fx:id="dropdownOptionsBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
+        <BorderPane fx:id="dropdownOptionsBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
                     <top>
-                        <Label fx:id="dropdownOptionsLabel" styleClass="top" />
+                        <Label fx:id="dropdownOptionsLabel">
+                            <styleClass>
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
+                            </styleClass>
+                        </Label>
                     </top>
                     <left>
                         <RadioButton fx:id="dropdownOptionsActiveRadioButton" mnemonicParsing="false" selected="true" styleClass="left" text="%active" BorderPane.alignment="CENTER">
@@ -235,13 +241,13 @@
                         </RadioButton>
                     </left>
                     <center>
-                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="%inactive" toggleGroup="$dropdownOptions" />
+                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="%inactive" styleClass="content" toggleGroup="$dropdownOptions" />
                     </center>
                     <right>
                         <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" styleClass="right" text="%all" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />
                     </right>
                     <bottom>
-                        <ButtonBar styleClass="bottom">
+                        <ButtonBar styleClass="footer">
                             <buttons>
                                 <Button mnemonicParsing="false" onAction="#onDropdownOptionsOkButtonAction" text="%apply" />
                                 <Button layoutX="687.0" layoutY="10.0" mnemonicParsing="false" onAction="#onDropdownOptionsCancelButtonAction" text="%cancel" />

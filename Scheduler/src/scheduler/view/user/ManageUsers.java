@@ -6,12 +6,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
-import scheduler.fx.MainListingControl;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.UserDaoEvent;
+import scheduler.fx.MainListingControl;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.user.ManageUsersResourceKeys.*;
@@ -54,17 +55,17 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @FXML
     void filterButtonClick(ActionEvent event) {
-        userFilterBorderPane.setVisible(true);
+        restoreNode(userFilterBorderPane);
     }
 
     @FXML
     void onHelpButtonAction(ActionEvent event) {
-        helpBorderPane.setVisible(true);
+        restoreNode(helpBorderPane);
     }
 
     @FXML
     void onHelpOKButtonAction(ActionEvent event) {
-        helpBorderPane.setVisible(false);
+        collapseNode(helpBorderPane);
     }
 
     @FXML
@@ -81,7 +82,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         } else {
             setFilter(UserModelFilter.active());
         }
-        userFilterBorderPane.setVisible(false);
+        collapseNode(userFilterBorderPane);
     }
 
     @Override
@@ -113,17 +114,17 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewUser((Stage) getScene().getWindow());
+        getMainController().addNewUser();
     }
 
     @Override
     protected void onEditItem(UserModel item) {
-        getMainController().editUser((Stage) getScene().getWindow(), item);
+        getMainController().editUser(item);
     }
 
     @Override
     protected void onDeleteItem(UserModel item) {
-        getMainController().deleteUser((Stage) getScene().getWindow(), item);
+        getMainController().deleteUser(item);
     }
 
     @Override

@@ -22,22 +22,24 @@
 <?import scheduler.fx.ItemEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 
-<fx:root prefHeight="559.0" prefWidth="884.0" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <VBox styleClass="mainFxmlClass">
+        <VBox styleClass="content">
             <children>
-                <StackPane>
+                <StackPane styleClass="header">
                     <children>
-                        <Label fx:id="headingLabel" maxWidth="1.7976931348623157E308" styleClass="page-title" text="%activeCustomers" wrapText="true" />
-                        <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT">
-                            <StackPane.margin>
-                                <Insets right="8.0" />
-                            </StackPane.margin>
-                        </Button>
+                        <Label fx:id="headingLabel" styleClass="h1" text="%activeCustomers" />
+                        <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT" />
                     </children>
                 </StackPane>
-                <Label fx:id="subHeadingLabel" maxWidth="1.7976931348623157E308" styleClass="collapsed" wrapText="true" VBox.vgrow="SOMETIMES" />
-                <TableView fx:id="listingTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                <Label fx:id="subHeadingLabel" VBox.vgrow="SOMETIMES">
+                    <styleClass>
+                        <String fx:value="header" />
+                        <String fx:value="h2" />
+                        <String fx:value="collapsed" />
+                    </styleClass>
+                </Label>
+                <TableView fx:id="listingTableView" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%customerName">
                             <cellValueFactory>
@@ -134,24 +136,26 @@
                         <Label text="%noCustomersToShow" />
                     </placeholder>
                 </TableView>
-                <ButtonBar>
+                <ButtonBar styleClass="footer">
                     <buttons>
                         <Button mnemonicParsing="false" onAction="#onNewButtonAction" text="New" />
                     </buttons>
-                    <padding>
-                        <Insets bottom="8.0" right="8.0" />
-                    </padding>
                 </ButtonBar>
             </children>
         </VBox>
-        <BorderPane fx:id="customerFilterBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="view-modal-mask" visible="false">
+        <BorderPane fx:id="customerFilterBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
                     <top>
-                        <Label styleClass="popup-heading" text="Customer Display Options" BorderPane.alignment="CENTER" />
+                        <Label text="Customer Display Options">
+                            <styleClass>
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
+                            </styleClass>
+                        </Label>
                     </top>
                     <center>
-                        <VBox spacing="8.0" styleClass="center" BorderPane.alignment="CENTER">
+                        <VBox spacing="8.0" styleClass="content" BorderPane.alignment="CENTER">
                             <children>
                                 <RadioButton fx:id="activeCustomersRadioButton" mnemonicParsing="false" selected="true" text="Active Customers">
                                     <toggleGroup>
@@ -166,78 +170,78 @@
                             </padding>
                         </VBox>
                     </center>
-               <bottom>
-                          <ButtonBar styleClass="bottom" BorderPane.alignment="CENTER">
-                              <buttons>
-                                  <Button mnemonicParsing="false" onAction="#onCustomerFilterOKButtonAction" text="OK" />
-                                  <Button mnemonicParsing="false" onAction="#onCustomerFilterCancelButtonAction" text="Cancel" />
-                              </buttons>
-                          </ButtonBar>
-               </bottom>
+                    <bottom>
+                        <ButtonBar styleClass="footer" BorderPane.alignment="CENTER">
+                            <buttons>
+                                <Button mnemonicParsing="false" onAction="#onCustomerFilterOKButtonAction" text="OK" />
+                                <Button mnemonicParsing="false" onAction="#onCustomerFilterCancelButtonAction" text="Cancel" />
+                            </buttons>
+                        </ButtonBar>
+                    </bottom>
                 </BorderPane>
             </center>
         </BorderPane>
-        <BorderPane fx:id="helpBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="view-modal-mask" visible="false">
+        <BorderPane fx:id="helpBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
                     <top>
                         <Label text="Customer Listing Help">
                             <styleClass>
-                                    <String fx:value="top" />
-                                    <String fx:value="h1" />
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
                             </styleClass>
                         </Label>
                     </top>
                     <center>
-                          <TextFlow styleClass="center">
-                              <children>
-                                  <Text styleClass="h2" text="Edit Customers" />
-                                  <Text text="&#10;Select a customer and hit " />
-                                  <Text styleClass="refNameText" text="ENTER" />
-                                  <Text text=" or right-click and select " />
-                                  <Text styleClass="refNameText" text="&quot;Edit&quot;" />
-                                  <Text text="." />
-                                  <Text styleClass="h2" text="&#10;Add Customers" />
-                                  <Text text="&#10;Use the " />
-                                  <Text text="&quot;New&quot;" />
-                                  <Text text="button at the bottom." />
-                                  <Text styleClass="h2" text="&#10;Delete Customers" />
-                                  <Text text="&#10;Select a customer and hit " />
-                                  <Text styleClass="refNameText" text="DELETE" />
-                                  <Text text=" or right-click and select " />
-                                  <Text styleClass="refNameText" text="&quot;Delete&quot;" />
-                                  <Text text="." />
-                                  <Text styleClass="h2" text="&#10;Listing Display Options" />
-                                  <Text styleClass="symbol" text="&#10;•" />
-                                  <Text text=" Click column headings to sort." />
-                                  <Text styleClass="symbol" text="&#10;•" />
-                                  <Text text=" Click the " />
-                                  <Text text="&quot;&quot;">
-                                      <styleClass>
-                                          <String fx:value="refNameText" />
-                                          <String fx:value="symbol" />
-                                      </styleClass>
-                                  </Text>
-                                  <Text text=" button toward the upper-left to select which customers are displayed." />
-                                  <Text styleClass="symbol" text="&#10;•" />
-                                  <Text text=" Click the " />
-                                  <Text text="&quot;✚&quot;">
-                                      <styleClass>
-                                          <String fx:value="refNameText" />
-                                          <String fx:value="symbol" />
-                                      </styleClass>
-                                  </Text>
-                                  <Text text=" symbol at the upper left to select what colums are displayed." />
-                              </children>
-                          </TextFlow>
+                        <TextFlow styleClass="content">
+                            <children>
+                                <Text styleClass="h2" text="Edit Customers" />
+                                <Text text="&#10;Select a customer and hit " />
+                                <Text styleClass="refNameText" text="ENTER" />
+                                <Text text=" or right-click and select " />
+                                <Text styleClass="refNameText" text="&quot;Edit&quot;" />
+                                <Text text="." />
+                                <Text styleClass="h2" text="&#10;Add Customers" />
+                                <Text text="&#10;Use the " />
+                                <Text text="&quot;New&quot;" />
+                                <Text text="button at the bottom." />
+                                <Text styleClass="h2" text="&#10;Delete Customers" />
+                                <Text text="&#10;Select a customer and hit " />
+                                <Text styleClass="refNameText" text="DELETE" />
+                                <Text text=" or right-click and select " />
+                                <Text styleClass="refNameText" text="&quot;Delete&quot;" />
+                                <Text text="." />
+                                <Text styleClass="h2" text="&#10;Listing Display Options" />
+                                <Text styleClass="symbol" text="&#10;•" />
+                                <Text text=" Click column headings to sort." />
+                                <Text styleClass="symbol" text="&#10;•" />
+                                <Text text=" Click the " />
+                                <Text text="&quot;&quot;">
+                                    <styleClass>
+                                        <String fx:value="refNameText" />
+                                        <String fx:value="symbol" />
+                                    </styleClass>
+                                </Text>
+                                <Text text=" button toward the upper-left to select which customers are displayed." />
+                                <Text styleClass="symbol" text="&#10;•" />
+                                <Text text=" Click the " />
+                                <Text text="&quot;✚&quot;">
+                                    <styleClass>
+                                        <String fx:value="refNameText" />
+                                        <String fx:value="symbol" />
+                                    </styleClass>
+                                </Text>
+                                <Text text=" symbol at the upper left to select what colums are displayed." />
+                            </children>
+                        </TextFlow>
                     </center>
-               <bottom>
-                          <ButtonBar styleClass="bottom" BorderPane.alignment="CENTER">
-                              <buttons>
-                                  <Button mnemonicParsing="false" onAction="#onHelpOKButtonAction" text="OK" />
-                              </buttons>
-                          </ButtonBar>
-               </bottom>
+                    <bottom>
+                        <ButtonBar styleClass="footer" BorderPane.alignment="CENTER">
+                            <buttons>
+                                <Button mnemonicParsing="false" onAction="#onHelpOKButtonAction" text="OK" />
+                            </buttons>
+                        </ButtonBar>
+                    </bottom>
                 </BorderPane>
             </center>
         </BorderPane>

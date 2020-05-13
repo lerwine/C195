@@ -1,10 +1,21 @@
 .root {
     -fx-font-size: 12px;
     -fx-font-family: Arial, Helvetica, sans-serif;
-    -scheduler-dark-color: forestgreen; /* #228b22, Hue: 120, Saturation: 60, Lightness: 33 */
-    -scheduler-darker-color: derive(-scheduler-dark-color, -40%);
-    -scheduler-dark-gradient: linear-gradient(derive(-scheduler-dark-color, 40%), -scheduler-darker-color);
-
+    -scheduler-info-color: forestgreen; /* #228b22, Hue: 120, Saturation: 60, Lightness: 33 */
+    -scheduler-info-color-light:  derive(-scheduler-info-color, 40%);
+    -scheduler-info-color-lighter:  derive(-scheduler-info-color, 90%);
+    -scheduler-info-color-dark: derive(-scheduler-info-color, -40%);
+    -scheduler-info-gradient: linear-gradient(-scheduler-info-color-light, -scheduler-info-color-dark);
+    -fx-accent: #00c600; /* Hue: 120, Saturation: 100, Lightness: 39 */
+    -fx-default-button: #abecab; /* Hue: 120, Saturation: 64, Lightness: 80 */
+    -fx-focus-color: #03cd03; /* Hue: 120, Saturation: 97, Lightness: 41 */
+    -fx-faint-focus-color: #03cd0322; /* Hue: 120, Saturation: 97, Lightness: 41, Transparency: 13 */
+    -fx-cell-hover-color: #c8f3c8; /* Hue: 120, Saturation: 64, Lightness: 87 */
+    -fx-page-indicator-hover-border: #a9e4a9; /* Hue: 120, Saturation: 52, Lightness: 78 */
+    -scheduler-progress-gradient: linear-gradient(-scheduler-info-color-lighter, -scheduler-info-color-light);
+    -scheduler-transparent-mask: #a3a3a359; /* Hue: 0, Saturation: 0, Lightness: 64, Transparency: 35 */
+    -scheduler-shadow: #00000065; /* Hue: 0, Saturation: 0, Lightness: 0, Transparency: 60 */
+    
     -scheduler-alt-dark-color: saddlebrown; /* #8b4513, Hue: 25, Saturation: 75, Lightness: 30 */
     -scheduler-alt-darker-color: derive(-scheduler-alt-dark-color, -60%);
     -scheduler-alt-dark-gradient: linear-gradient(derive(-scheduler-alt-dark-color, 20%), -scheduler-alt-darker-color);
@@ -13,29 +24,15 @@
     -fx-selection-bar-non-focused: #decec3; /* Hue: 25, Saturation: 30, Lightness: 82 */
     -fx-page-bullet-border: #423023; /* Hue: 25, Saturation: 30, Lightness: 67 */
 
-    -scheduler-light-color: gold; /* #ffd700, Hue: 255, Saturation: 215, Lightness: 0 */
-    -scheduler-lighter-color: derive(-scheduler-light-color, 40%);
-    -scheduler-warning-color: derive(-scheduler-light-color, -40%);
-    -scheduler-warning-color-dark: derive(-scheduler-light-color, -80%);
+    -scheduler-text-color-light: gold; /* #ffd700, Hue: 255, Saturation: 215, Lightness: 0 */
+    -scheduler-text-color-lighter: derive(-scheduler-text-color-light, 40%);
+    -scheduler-warning-color: derive(-scheduler-text-color-light, -40%);
+    -scheduler-warning-color-dark: derive(-scheduler-text-color-light, -80%);
     -scheduler-warning-gradient: linear-gradient(-scheduler-warning-color, -scheduler-warning-color-dark);
 
     -scheduler-error-color: firebrick; /* #b22222, Hue: 0, Saturation: 67, Lightness: 41 */
     -scheduler-error-color-dark: derive(-scheduler-error-color, -40%);
     -scheduler-error-gradient: linear-gradient(-scheduler-error-color, -scheduler-error-color-dark);
-    
-    -scheduler-info-color: blueviolet; /* #8a2be2, Hue: 271, Saturation: 75, Lightness: 52 */
-    -scheduler-info-color-light: derive(-scheduler-info-color, 40%);
-    -scheduler-info-color-dark: derive(-scheduler-info-color, -40%);
-    -scheduler-info-color-darker: derive(-scheduler-info-color, -80%);
-    -scheduler-info-gradient: linear-gradient(-scheduler-info-color-dark, -scheduler-info-color-darker);
-    -fx-accent: #6700c9; /* Hue: 271, Saturation: 100, Lightness: 39 */
-    -fx-default-button: #cdabed; /* Hue: 271, Saturation: 64, Lightness: 80 */
-    -fx-focus-color: #6e02d3; /* Hue: 271, Saturation: 97, Lightness: 41 */
-    -fx-faint-focus-color: #6e02d322; /* Hue: 271, Saturation: 97, Lightness: 41, Transparency: 13 */
-    -fx-cell-hover-color: #e0ccf4; /* Hue: 271, Saturation: 64, Lightness: 87 */
-    -fx-page-indicator-hover-border: #c9ace5; /* Hue: 271, Saturation: 52, Lightness: 78 */
-    -scheduler-transparent-mask: #a3a3a359; /* Hue: 0, Saturation: 0, Lightness: 64, Transparency: 35 */
-    -scheduler-shadow: #00000065; /* Hue: 0, Saturation: 0, Lightness: 0, Transparency: 60 */
 }
 
 @font-face {
@@ -47,27 +44,8 @@
     -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 5, 0.0, 0, 1);
 }
 
-/*
-.button {
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 5, 0.0, 0, 1);
-}
-
-.progress-indicator:determinate .determinate-indicator .progress {
-    -fx-background-color: -scheduler-dark-gradient;
-}
-
-.progress-indicator:indeterminate *.segment {
-    -fx-background-color: -scheduler-dark-gradient;
-}
-
-.progress-indicator:determinate .determinate-indicator .percentage {
-    -fx-fill: dimgray;
-}
-
-*/
-
-.text-area, .text-field {
+.text-area,
+.text-field {
     -fx-border-radius: 2px;
     -fx-background-radius: 2px;
 }
@@ -82,15 +60,17 @@
     -fx-background-radius: 4px;
 }
 
-.scroll-pane, .scroll-pane .viewport {
+.scroll-pane,
+.scroll-pane .viewport {
     -fx-background-color: transparent;
 }
 
-TextFlow > .label, TextFlow > .hyperlink {
+TextFlow .label,
+TextFlow .hyperlink {
     -fx-wrap-text: true;
 }
 
-TextFlow > .hyperlink {
+TextFlow .hyperlink {
     -fx-padding: 0px;
     -fx-border-width: 0px;
 }
@@ -99,22 +79,54 @@ TextFlow > .hyperlink {
     -fx-font-style: italic;
 }
 
+.calendar HBox {
+    -fx-border-color: -scheduler-info-color-dark;
+    -fx-border-width: 1px;
+    -fx-border-style: solid centered;
+    -fx-padding: 4px;
+}
+
+.calendar .list-view {
+    -fx-box-border: transparent;
+}
+
 .mainFxmlClass {
     -fx-background-color: -fx-background;
 }
 
+.normal-padding {
+    -fx-padding: 8px;
+}
+
+.wide-padding,
+.view-modal-mask {
+    -fx-padding: 64px;
+}
+
 .topControlLabel {
     -fx-font-weight: bold;
-    -fx-alignment: bottom-left;
+    -fx-alignment: BOTTOM_LEFT;
 }
 
 .topLabeledControl {
-    -fx-alignment: top-left;
+    -fx-alignment: TOP_LEFT;
 }
 
-.leftControlLabel, .innerLeftControlLabel {
+Labeled.topLabeledControl,
+Labeled.leftLabeledControl {
+    -fx-wrap-text: true;
+}
+
+.leftControlLabel,
+.innerLeftControlLabel {
     -fx-font-weight: bold;
-    -fx-alignment: top-right;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+Labeled.topControlLabel,
+Labeled.leftControlLabel,
+Labeled.innerLeftControlLabel {
+    -fx-wrap-text: false;
 }
 
 .innerLeftControlLabel {
@@ -122,29 +134,42 @@ TextFlow > .hyperlink {
 }
 
 .leftLabeledControl {
-    -fx-alignment: top-left;
+    -fx-alignment: CENTER_LEFT;
 }
 
-Labeled.leftLabeledControl {
-    -fx-wrap-text: true;
+.error,
+.bordered-section.error .validationMessage,
+.bordered-section.error > .validationMessage {
+    -fx-text-fill: -scheduler-error-color;
+    -fx-fill: -scheduler-error-color;
 }
 
-.page-title, .h1, .h2, .h3 {
-    -fx-font-weight: bold;
+.warning,
+.bordered-section.warning .validationMessage,
+.bordered-section.warning > .validationMessage {
+    -fx-text-fill: -scheduler-warning-color-dark;
+    -fx-fill: -scheduler-warning-color-dark;
 }
 
-.page-title, .h1 {
+.information,
+.bordered-section.information .validationMessage {
+    -fx-text-fill: -scheduler-info-color;
+    -fx-fill: -scheduler-info-color;
+}
+
+.progress,
+.bordered-section.progress .validationMessage {
+    -fx-text-fill: -scheduler-info-color-dark;
+    -fx-fill: -scheduler-info-color-dark;
+}
+
+.information > .text,
+.warning > .text {
+    -fx-font-style: italic;
+}
+
+.h1 {
     -fx-font-size: 18px;
-}
-
-.page-title {
-    -fx-padding: 4px;
-    -fx-alignment: CENTER;
-}
-
-.h1, .h2, .h3 {
-    -fx-text-fill: -scheduler-darker-color;
-    -fx-fill: -scheduler-darker-color;
 }
 
 .h2 {
@@ -155,14 +180,23 @@ Labeled.leftLabeledControl {
     -fx-font-size: 16px;
 }
 
+.h1,
+.h2,
+.h3,
+.h1 .text,
+.h2 .text,
+.h3 .text {
+    -fx-font-weight: bold;
+    -fx-text-fill: -scheduler-info-color-dark;
+    -fx-fill: -scheduler-info-color-dark;
+    -fx-wrap-text: true;
+}
+
 .view-modal-mask {
     -fx-background-color: -scheduler-transparent-mask;
     -fx-background-radius: 0px;
     -fx-border-style: none;
     -fx-border-width: 0px;
-    -fx-padding: 16px;
-    -fx-max-width: infinity;
-    -fx-max-height: infinity;
 }
 
 .bordered-section {
@@ -170,127 +204,192 @@ Labeled.leftLabeledControl {
     -fx-background-radius: 8px;
     -fx-border-style: solid centered;
     -fx-border-width: 3px;
-    -fx-border-color: -scheduler-dark-color;
+    -fx-border-color: -scheduler-info-color;
     -fx-border-radius: 8px;
 }
 
 .bordered-section.error {
-    -fx-border-color: -scheduler-error-gradient;
+    -fx-border-color: -scheduler-error-color;
 }
 
 .bordered-section.warning {
-    -fx-border-color: -scheduler-warning-gradient;
+    -fx-border-color: -scheduler-warning-color;
 }
 
 .bordered-section.information {
-    -fx-border-color: -scheduler-info-gradient;
+    -fx-border-color: -scheduler-info-color;
 }
 
-.bordered-section > .top, .bordered-section > .left, .bordered-section > .center, .bordered-section > .right, .bordered-section > .bottom {
+.bordered-section.progress {
+    -fx-border-color: -fx-page-indicator-hover-border;
+}
+
+.bordered-section > .content {
     -fx-padding: 8px;
 }
 
-.bordered-section > * {
-    -fx-border-style: none;
-    -fx-border-width: 0px;
+.bordered-section > .left {
+    -fx-padding: 8px 0px 8px 8px;
 }
 
-.bordered-section > .top {
-    -fx-background-radius: 8px 8px 0px 0px;
-    -fx-alignment: CENTER;
-    
+.bordered-section > .right {
+    -fx-padding: 8px 8px 8px 0px;
 }
 
-.bordered-section > .center {
+.mainFxmlClass,
+.mainFxmlClass > .content,
+.bordered-section > .content,
+.view-modal-mask {
     -fx-max-width: infinity;
     -fx-max-height: infinity;
 }
 
-.bordered-section > .bottom {
-    -fx-background-radius: 0px 0px 8px 8px;
-}
-
-.page-title .button, .bordered-section > .top .button, .bordered-section > .bottom .button {
-    -fx-background-color: -scheduler-alt-dark-gradient;
-    -fx-text-fill: -scheduler-lighter-color;
-    -fx-fill: -scheduler-lighter-color;
-}
-
-.casts-shadow, .view-modal-mask > * {
-    -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 15.0, 0.5, 7.0, 7.0);
-}
-
-.page-title, .bordered-section > .top, .bordered-section > .bottom {
-    -fx-text-fill: -scheduler-lighter-color;
-    -fx-background-color: -scheduler-dark-gradient;
+.header,
+.footer,
+.bordered-section > .title {
+    -fx-background-color: -scheduler-info-gradient;
     -fx-border-style: none;
     -fx-border-width: 0px;
     -fx-max-width: infinity;
+    -fx-alignment: CENTER;
+    -fx-padding: 4px;
+}
+
+.header,
+.footer,
+.bordered-section > .title,
+.header .text,
+.footer .text,
+.bordered-section > .title .text {
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+}
+
+.header .button,
+.footer .button {
+    -fx-background-color: -scheduler-alt-dark-gradient;
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+}
+
+.bordered-section > .header,
+.bordered-section > .title {
+    -fx-background-radius: 8px 8px 0px 0px;
+}
+
+.bordered-section > .footer {
+    -fx-background-radius: 0px 0px 8px 8px;
+}
+
+.casts-shadow,
+.view-modal-mask > * {
+    -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 15.0, 0.5, 7.0, 7.0);
 }
 
 .validationMessage {
     -fx-wrap-text: true;
 }
 
-.error {
-    -fx-text-fill: -scheduler-error-color;
-    -fx-fill: -scheduler-error-color;
-}
-
-.information > .text, .warning > .text {
-    -fx-font-style: italic;
-}
-
-.warning {
-    -fx-text-fill: -scheduler-warning-color-dark;
-    -fx-fill: -scheduler-warning-color-dark;
-}
-
-.information {
-    -fx-text-fill: -scheduler-info-color;
-    -fx-fill: -scheduler-info-color;
-}
-
-.bordered-section.error > .top, .bordered-section.error > .bottom, .bordered-section.error > .top .error, .bordered-section.error > .bottom .error {
-    -fx-text-fill: -scheduler-lighter-color;
+.header.error,
+.footer.error,
+.bordered-section.error > .title,
+.bordered-section.error > .header,
+.bordered-section.error > .footer {
     -fx-background-color: -scheduler-error-gradient;
 }
 
-.bordered-section.warning > .top, .bordered-section.warning > .bottom, .bordered-section.warning > .top .warning, .bordered-section.warning > .bottom .warning {
-    -fx-text-fill: -scheduler-lighter-color;
+.header.error,
+.footer.error,
+.bordered-section.error > .title,
+.bordered-section.error > .header,
+.bordered-section.error > .footer,
+.header.error .text,
+.footer.error .text,
+.bordered-section.error > .title .text,
+.bordered-section.error > .header .text,
+.bordered-section.error > .footer .text {
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+}
+
+.header.warning,
+.footer.warning,
+.bordered-section.warning > .title,
+.bordered-section.warning > .header,
+.bordered-section.warning > .footer {
     -fx-background-color: -scheduler-warning-gradient;
 }
 
-.bordered-section.information > .top, .bordered-section.information > .bottom, .bordered-section.information > .top .information, .bordered-section.information > .bottom .information {
-    -fx-text-fill: -scheduler-lighter-color;
+.header.warning,
+.footer.warning,
+.bordered-section.warning > .title,
+.bordered-section.warning > .header,
+.bordered-section.warning > .footer,
+.header.warning .text,
+.footer.warning .text,
+.bordered-section.warning > .title .text,
+.bordered-section.warning > .header .text,
+.bordered-section.warning > .footer .text {
+    -fx-text-fill: white;
+    -fx-fill: white;
+}
+
+.header.information,
+.footer.information,
+.bordered-section.information > .title,
+.bordered-section.information > .header,
+.bordered-section.information > .footer {
     -fx-background-color: -scheduler-info-gradient;
 }
 
-.symbol, .symbol-button {
+.header.information,
+.footer.information,
+.bordered-section.information > .title,
+.bordered-section.information > .header,
+.bordered-section.information > .footer,
+.header.information .text,
+.footer.information .text,
+.bordered-section.information > .title .text,
+.bordered-section.information > .header .text,
+.bordered-section.information > .footer .text {
+    -fx-text-fill: -scheduler-text-color-lighter;
+    -fx-fill: -scheduler-text-color-lighter;
+}
+
+.header.progress,
+.footer.progress,
+.bordered-section.information > .title,
+.bordered-section.progress > .header,
+.bordered-section.progress > .footer,
+.header.progress .text,
+.footer.progress .text,
+.bordered-section.progress > .title .text,
+.bordered-section.progress > .header .text,
+.bordered-section.progress > .footer .text {
+    -fx-text-fill: -scheduler-info-color-dark;
+    -fx-fill: -scheduler-info-color-dark;
+}
+
+.header.progress,
+.footer.progress,
+.bordered-section.progress > .title,
+.bordered-section.progress > .header,
+.bordered-section.progress > .footer {
+    -fx-background-color: -scheduler-progress-gradient;
+}
+
+.symbol,
+.symbol-button {
     -fx-font-family: "Segoe UI Symbol", sans-serif;
 }
 
-.small-button, .symbol-button {
+.small-button,
+.symbol-button {
     -fx-font-size: 10px;
     -fx-padding: 1px 4px 1px 4px;
 }
 
-Text.refNameText, Label.refNameText {
-    -fx-font-style: italic;
-}
-
-Text.refNameText, Text.symbolText {
-    -fx-fill: -scheduler-info-color;
-    -fx-stroke: -scheduler-info-color;
-    -fx-stroke-width: 0.25;
-
-}
-
-.boldText {
-    -fx-font-weight: bold;
-}
-
-Label.refNameText {
+.refNameText {
     -fx-text-fill: #2a3258;
     -fx-border-color: #bfbff2;
     -fx-font-weight: bold;
@@ -300,17 +399,19 @@ Label.refNameText {
     -fx-font-size: 11px;
     -fx-padding: 0px 2px 0px 2px;
     -fx-background-color: #e9e9fa;
+    -fx-font-style: italic;
 }
 
-.calendar HBox {
-    -fx-border-color: -scheduler-darker-color;
-    -fx-border-width: 1px;
-    -fx-border-style: solid centered;
-    -fx-padding: 4px;
+.refNameText,
+.symbolText {
+    -fx-fill: -scheduler-info-color;
+    -fx-stroke: -scheduler-info-color;
+    -fx-stroke-width: 0.25;
+
 }
 
-.calendar .list-view {
-    -fx-box-border: transparent;
+.boldText {
+    -fx-font-weight: bold;
 }
 
 .zero-padding {
