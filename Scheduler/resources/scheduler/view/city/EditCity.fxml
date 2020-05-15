@@ -1,77 +1,149 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
+<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.RelayCellValueFactory?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <GridPane hgap="4.0" maxHeight="-Infinity" minHeight="-Infinity" vgap="8.0">
+        <GridPane maxHeight="-Infinity" minHeight="-Infinity">
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
                 <ColumnConstraints hgrow="ALWAYS" />
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <TextField fx:id="nameTextField" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
-                <Label text="%name" />
-                <Label text="%language" GridPane.rowIndex="2" />
-                <TextField fx:id="languageTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <Label text="%timeZone" GridPane.rowIndex="3" />
-                <TextField fx:id="timeZoneTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                <Label text="%country" GridPane.rowIndex="1" />
-                <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                <Label styleClass="leftControlLabel" text="%name" />
+                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1">
                     <children>
-                        <Label fx:id="countryNameLabel" />
-                        <Button mnemonicParsing="false" onAction="#onOpenCountryButtonAction" text="%open">
+                        <Label fx:id="nameValueLabel" styleClass="leftLabeledControl" />
+                        <ComboBox fx:id="nameValueComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
+                    </children>
+                </StackPane>
+                <Label fx:id="nameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
+                <Label styleClass="leftControlLabel" text="%country" GridPane.rowIndex="2" />
+                <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                    <children>
+                        <StackPane GridPane.columnIndex="1" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label fx:id="countryNameValueLabel" styleClass="leftLabeledControl" />
+                                <ComboBox fx:id="countryNameValueComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
+                            </children>
+                        </StackPane>
+                            <Button mnemonicParsing="false" onAction="#onOpenCountryButtonAction" text="%open">
                             <HBox.margin>
                                 <Insets left="8.0" />
                             </HBox.margin>
                         </Button>
                     </children>
                 </HBox>
+                <Label fx:id="countryNameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
+                <Label styleClass="leftControlLabel" text="%language" GridPane.rowIndex="4" />
+                <Label fx:id="languageLabel" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label styleClass="leftControlLabel" text="%timeZone" GridPane.rowIndex="5" />
+                <Label fx:id="timeZoneLabel" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="5" />
             </children>
             <VBox.margin>
                 <Insets bottom="8.0" />
             </VBox.margin>
         </GridPane>
         <Label maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%addresses" />
-        <TableView fx:id="addressesTableView" VBox.vgrow="ALWAYS">
+        <TableView fx:id="addressesTableView" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%address" />
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%postalCode" />
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%phone" />
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%createdBy" />
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%createdOn" />
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%updatedBy" />
-                <TableColumn minWidth="64.0" prefWidth="100.0" text="%updatedOn" />
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%address">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="%address" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%postalCode">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="%postalCode" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%phone">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="%phone" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%createdOn" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="createDate" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <DateTimeTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%createdBy" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="createdBy" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%updatedOn" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="lastModifiedDate" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <DateTimeTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%updatedBy" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="lastModifiedBy" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false" visible="false">
+                    <cellValueFactory>
+                        <RelayCellValueFactory />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                    </cellFactory>
+                </TableColumn>
             </columns>
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#onCityEditMenuItemAction" text="%edit">
+                        <MenuItem mnemonicParsing="false" onAction="#onAddressEditMenuItemAction" text="%edit">
                             <accelerator>
                                 <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
                             </accelerator>
                         </MenuItem>
-                        <MenuItem mnemonicParsing="false" onAction="#onCityDeleteMenuItemAction" text="%delete">
+                        <MenuItem mnemonicParsing="false" onAction="#onAddressDeleteMenuItemAction" text="%delete">
                             <accelerator>
                                 <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
                             </accelerator>
@@ -79,10 +151,16 @@
                     </items>
                 </ContextMenu>
             </contextMenu>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                    <placeholder>
+                        <Label text="%noAddressesToShow" />
+                    </placeholder>
         </TableView>
         <ButtonBar>
             <buttons>
-                <Button mnemonicParsing="false" onAction="#onAddCityButtonAction" text="%add" />
+                <Button mnemonicParsing="false" onAction="#onAddAddressButtonAction" text="%add" />
             </buttons>
             <VBox.margin>
                 <Insets top="8.0" />

@@ -30,8 +30,8 @@ import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
-import scheduler.Scheduler;
 import static scheduler.util.NodeUtil.collapseNode;
+import scheduler.util.StageManager;
 import scheduler.util.Values;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.ViewAndController;
@@ -101,8 +101,9 @@ public class ErrorDetailControl extends GridPane {
         }
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(title);
-        if (null == owner)
-            owner = Scheduler.getCurrentStage((Window)null);
+        if (null == owner) {
+            owner = StageManager.getCurrentStage((Window) null);
+        }
         if (null != owner) {
             alert.initOwner(owner);
         }

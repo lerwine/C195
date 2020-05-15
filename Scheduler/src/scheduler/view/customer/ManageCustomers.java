@@ -117,12 +117,12 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewCustomer();
+        getMainController().addNewCustomer(null, getScene().getWindow(), true);
     }
 
     @Override
     protected void onEditItem(CustomerModel item) {
-        getMainController().editCustomer(item);
+        getMainController().editCustomer(item, getScene().getWindow());
     }
 
     @Override

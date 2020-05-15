@@ -9,6 +9,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableObjectValue;
@@ -22,6 +23,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -59,8 +61,13 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
 
-    public static CountryModel edit(CountryModel model) throws IOException {
-        return EditItem.showAndWait(EditCountry.class, model);
+    public static CountryModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
+        CountryModel.Factory factory = CountryModel.getFactory();
+        return EditItem.showAndWait(parentWindow, EditCountry.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
+    }
+
+    public static CountryModel edit(CountryModel model, Window parentWindow) throws IOException {
+        return EditItem.showAndWait(parentWindow, EditCountry.class, model, false);
     }
 
     private final ReadOnlyBooleanWrapper valid;
@@ -96,28 +103,36 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private ObservableList<CityModel> itemList;
     private ObservableList<PredefinedCountry> countryList;
+    private final ReadOnlyBooleanWrapper changed;
 
     public EditCountry() {
+        changed = new ReadOnlyBooleanWrapper(true);
         valid = new ReadOnlyBooleanWrapper(false);
         windowTitle = new ReadOnlyStringWrapper();
+        addEventHandler(CityDaoEvent.CITY_DAO_INSERT, (CityDaoEvent event) -> {
+            LOG.info("Caught event!");
+        });
     }
 
     @FXML
     void onCityDeleteMenuItemAction(ActionEvent event) {
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            getMainController().deleteCity(item);
+            getMainController().deleteCity(item, waitBorderPane);
         }
     }
 
     @FXML
     void onCityEditMenuItemAction(ActionEvent event) {
-
+        CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            getMainController().openCity(item, getScene().getWindow());
+        }
     }
 
     @FXML
     void onNewButtonAction(ActionEvent event) {
-
+        getMainController().addNewCity(model, getScene().getWindow(), true);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -134,62 +149,86 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         citiesTableView.setItems(itemList);
 
         if (model.isNewItem()) {
-            collapseNode(countryNameValueLabel);
-            collapseNode(citiesLabel);
-            collapseNode(citiesTableView);
-            restoreNode(countryNameComboBox);
-            collapseNode(newButtonBar);
-            countryList.addAll(PredefinedData.getCountryMap().values());
-            restoreNode(nameValidationLabel);
-            // TODO: Set window title
-            countryNameComboBox.setItems(countryList);
         } else {
-            restoreLabeled(countryNameValueLabel, model.getName());
-            restoreNode(citiesLabel);
-            restoreNode(citiesTableView);
-            collapseNode(countryNameComboBox);
-            restoreNode(newButtonBar);
-            collapseNode(nameValidationLabel);
-            windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
-            
-            sceneProperty().addListener(new InvalidationListener() {
-                private boolean isListening = false;
+        }
+    }
 
-                {
-                    onChange(null != getScene());
-                }
+    @Override
+    public void onEditNew() {
+        collapseNode(countryNameValueLabel);
+        collapseNode(citiesLabel);
+        collapseNode(citiesTableView);
+        restoreNode(countryNameComboBox);
+        collapseNode(newButtonBar);
+        countryList.addAll(PredefinedData.getCountryMap().values());
+        restoreNode(nameValidationLabel);
+        windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
+        countryNameComboBox.setItems(countryList);
+        countryNameComboBox.getSelectionModel().selectedItemProperty().addListener(this::onCountryNameChanged);
+    }
 
-                private void onChange(boolean hasParent) {
-                    if (hasParent) {
-                        LOG.info("Scene is not null");
-                        if (!isListening) {
-                            getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
-                            getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
-                            getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
-                            isListening = true;
-                        }
-                    } else {
-                        LOG.info("Scene is null");
-                        if (isListening) {
-                            getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
-                            getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
-                            getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
-                            isListening = false;
-                        }
+    @Override
+    public void onEditExisting(boolean isInitialize) {
+        restoreLabeled(countryNameValueLabel, model.getName());
+        restoreNode(citiesLabel);
+        restoreNode(citiesTableView);
+        collapseNode(countryNameComboBox);
+        restoreNode(newButtonBar);
+        if (!isInitialize) {
+            countryNameComboBox.getSelectionModel().selectedItemProperty().removeListener(this::onCountryNameChanged);
+        }
+        collapseNode(nameValidationLabel);
+        windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
+        sceneProperty().addListener(new InvalidationListener() {
+            private boolean isListening = false;
+
+            {
+                onChange(null != getScene());
+            }
+
+            private void onChange(boolean hasParent) {
+                if (hasParent) {
+                    LOG.info("Scene is not null");
+                    if (!isListening) {
+                        getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
+                        getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
+                        getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
+                        isListening = true;
+                    }
+                } else {
+                    LOG.info("Scene is null");
+                    if (isListening) {
+                        getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
+                        getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
+                        getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
+                        isListening = false;
                     }
                 }
+            }
 
-                @Override
-                public void invalidated(Observable observable) {
-                    onChange(null != ((ObservableObjectValue<?>) observable).get());
-                }
-            });
-            
-            waitBorderPane.startNow(new ItemsLoadTask());
+            @Override
+            public void invalidated(Observable observable) {
+                onChange(null != ((ObservableObjectValue<?>) observable).get());
+            }
+        });
+        waitBorderPane.startNow(new ItemsLoadTask());
+    }
+
+    private void onCountryNameChanged(Observable observable) {
+        PredefinedCountry c = ((ReadOnlyObjectProperty<PredefinedCountry>) observable).get();
+        if (null == c) {
+            changed.set(true);
+            valid.set(false);
+        } else {
+            valid.set(true);
+            if (!model.isNewItem()) {
+                changed.set(!c.getRegionCode().equals(model.asPredefinedData().getRegionCode()));
+            }
         }
     }
 
     private void onCityAdded(CityDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         CityDAO dao = event.getTarget();
         if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
             itemList.add(new CityModel(dao));
@@ -197,6 +236,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityUpdated(CityDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         CityDAO dao = event.getTarget();
         int pk = dao.getPrimaryKey();
         Optional<CityModel> match = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny();
@@ -213,6 +253,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityDeleted(CityDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         int pk = event.getTarget().getPrimaryKey();
         itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> itemList.remove(t));
     }
@@ -252,6 +293,16 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         return true;
     }
 
+    @Override
+    public boolean isChanged() {
+        return changed.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        return changed.getReadOnlyProperty();
+    }
+
     private class ItemsLoadTask extends Task<List<CityDAO>> {
 
         private final int pk;
@@ -270,6 +321,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 result.forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });
+                changed.set(false);
             }
         }
 

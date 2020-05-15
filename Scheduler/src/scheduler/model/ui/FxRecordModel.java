@@ -15,7 +15,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
-import javafx.stage.Stage;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -25,6 +24,7 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.RowStateProperty;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * Java FX object model for a {@link DataAccessObject} object.
@@ -212,10 +212,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
             model.lastModifiedBy.set(dao.getLastModifiedBy());
         }
 
-        public final void loadAsync(Stage stage, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
+        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
                 Consumer<Throwable> onFail) {
             DataAccessObject.DaoFactory<T> factory = getDaoFactory();
-            factory.loadAsync(stage, filter, (t) -> {
+            factory.loadAsync(waitBorderPane, filter, (t) -> {
                 ArrayList<U> newItems = new ArrayList<>();
                 t.forEach((u) -> {
                     Optional<U> existing = target.stream().filter((s) -> s.getDataObject().equals(u)).findFirst();

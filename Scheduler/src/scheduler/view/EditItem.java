@@ -22,9 +22,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.Scheduler;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.fx.ErrorDetailControl;
@@ -35,6 +35,7 @@ import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.StageManager;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
@@ -66,15 +67,16 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> U showAndWait(Stage parentStage, Class<? extends S> editorType, U model) throws IOException {
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
+            U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
             editorRegion = editorType.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
             throw new IOException("Error creating editor region", ex);
         }
-        EditItem<T, U, S> result = new EditItem<>(editorRegion, model);
-        Scheduler.showAndWait(result, parentStage, (t) -> {
+        EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
+        StageManager.showAndWait(result, parentWindow, (t) -> {
             ViewControllerLoader.initializeCustomControl(result);
             try {
                 AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
@@ -85,15 +87,12 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             t.titleProperty().bind(editorRegion.windowTitleProperty());
             ViewControllerLoader.initializeCustomControl(editorRegion);
         });
-        return result.model;
-    }
-
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> U showAndWait(Class<? extends S> editorType, U model) throws IOException {
-        return showAndWait(null, editorType, model);
+        return (result.model.isNewItem() || result.editorRegion.isChanged()) ? null : result.model;
     }
 
     private final S editorRegion;
-    private U model;
+    private final U model;
+    private final boolean keepOpen;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -125,9 +124,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML // fx:id="waitBorderPane"
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
-    private EditItem(S editorRegion, U model) {
+    private EditItem(S editorRegion, U model, boolean keepOpen) {
         this.editorRegion = editorRegion;
         this.model = model;
+        this.keepOpen = keepOpen;
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -153,17 +153,24 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             collapseNode(createdValue);
             collapseNode(lastUpdateLabel);
             collapseNode(lastUpdateValue);
+            editorRegion.onEditNew();
         } else {
-            deleteButton.setDisable(false);
-            DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-            Locale.getDefault(Locale.Category.DISPLAY);
-            restoreNode(createdLabel);
-            restoreLabeled(createdValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
-                    dtf.format(model.getCreateDate()), model.getCreatedBy()));
-            restoreNode(lastUpdateLabel);
-            restoreLabeled(lastUpdateValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
-                    dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
+            onEditExisting(true);
         }
+    }
+
+    private void onEditExisting(boolean isInitialize) {
+        restoreNode(deleteButton);
+        deleteButton.setDisable(false);
+        DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+        Locale.getDefault(Locale.Category.DISPLAY);
+        restoreNode(createdLabel);
+        restoreLabeled(createdValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
+                dtf.format(model.getCreateDate()), model.getCreatedBy()));
+        restoreNode(lastUpdateLabel);
+        restoreLabeled(lastUpdateValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
+                dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
+        editorRegion.onEditExisting(isInitialize);
     }
 
     @FXML
@@ -185,7 +192,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     private void onCancelButtonAction(ActionEvent event) {
-        model = null;
         getScene().getWindow().hide();
     }
 
@@ -197,11 +203,19 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         ReadOnlyBooleanProperty validProperty();
 
+        boolean isChanged();
+
+        ReadOnlyBooleanProperty changedProperty();
+
         String getWindowTitle();
 
         ReadOnlyStringProperty windowTitleProperty();
 
         boolean applyChangesToModel();
+
+        void onEditNew();
+
+        void onEditExisting(boolean isInitialize);
 
     }
 
@@ -209,8 +223,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         private final T dataAccessobject;
         private final DaoFactory<T> daoFactory;
+        private final boolean closeOnSuccess;
 
         SaveTask(T dataAccessobject) {
+            closeOnSuccess = dataAccessobject.isExisting() || !keepOpen;
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
             this.dataAccessobject = dataAccessobject;
             daoFactory = editorRegion.modelFactory().getDaoFactory();
@@ -228,7 +244,11 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             String message = getValue();
             if (null == message) {
                 editorRegion.modelFactory().updateItem(model, dataAccessobject);
-                getScene().getWindow().hide();
+                if (closeOnSuccess) {
+                    getScene().getWindow().hide();
+                } else {
+                    onEditExisting(false);
+                }
             } else {
                 AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVEFAILURE), message);

@@ -26,6 +26,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBACCESSERROR;
@@ -34,6 +35,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
@@ -41,7 +43,6 @@ import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
@@ -64,13 +65,13 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
 
     private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
-    public static UserModel editNew() throws IOException {
+    public static UserModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         UserModel.Factory factory = UserModel.getFactory();
-        return EditItem.showAndWait(EditUser.class, factory.createNew(factory.getDaoFactory().createNew()));
+        return EditItem.showAndWait(parentWindow, EditUser.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
     }
 
-    public static UserModel edit(UserModel model) throws IOException {
-        return EditItem.showAndWait(EditUser.class, model);
+    public static UserModel edit(UserModel model, Window parentWindow) throws IOException {
+        return EditItem.showAndWait(parentWindow, EditUser.class, model, false);
     }
 
     private final ReadOnlyBooleanWrapper valid;
@@ -278,6 +279,16 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
             model.setPassword(pw.getEncodedHash());
         }
         return true;
+    }
+
+    @Override
+    public boolean isChanged() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#isChanged
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#changedProperty
     }
 
     private class AppointmentFilterItem {

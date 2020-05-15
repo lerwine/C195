@@ -1,6 +1,5 @@
 package scheduler.view;
 
-import scheduler.fx.ErrorDetailControl;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
@@ -19,11 +18,11 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
-import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.util.DbConnector;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.OverviewResourceKeys.*;
@@ -101,8 +100,7 @@ public class Overview extends VBox {
 
     @FXML
     void onNewAppointmentHyperlinkAction(ActionEvent event) {
-        Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
-        getMainController().addNewAppointment(null, null);
+        getMainController().addNewAppointment(null, null, getScene().getWindow(), true);
     }
 
     @FXML

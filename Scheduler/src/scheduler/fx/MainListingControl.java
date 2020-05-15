@@ -11,7 +11,6 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
@@ -20,7 +19,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyEvent;
@@ -85,7 +83,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
 
         listingTableView.setItems(items);
-        
+
         sceneProperty().addListener(new InvalidationListener() {
             private boolean isListening = false;
 
@@ -117,9 +115,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
             public void invalidated(Observable observable) {
                 onChange(null != ((ObservableObjectValue<?>) observable).get());
             }
-            
+
         });
-        
+
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());

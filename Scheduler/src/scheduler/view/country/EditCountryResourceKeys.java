@@ -1,7 +1,7 @@
 package scheduler.view.country;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/country/EditCountry}.
+ * Defines resource bundle keys for the {@code scheduler/view/country/EditCountry} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -11,6 +11,11 @@ public interface EditCountryResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add"}.
      */
     public static final String RESOURCEKEY_ADD = "add";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "\u000d\u000a                            LOG.info(\"Scene is not null\");"}.
+     */
+    public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Cities"}.
@@ -88,6 +93,11 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_OPEN = "open";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
+     */
+    public static final String RESOURCEKEY_REQUIRED = "required";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "A country with that name has already been added."}.
      */
     public static final String RESOURCEKEY_SAVECONFLICTMESSAGE = "saveConflictMessage";
@@ -106,4 +116,5 @@ public interface EditCountryResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Updated On"}.
      */
     public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+
 }

@@ -41,6 +41,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.PwHash;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.ViewControllerLoader;
+import scheduler.util.StageManager;
 import scheduler.view.Login;
 import scheduler.view.MainController;
 import scheduler.view.Overview;
@@ -109,138 +110,18 @@ public final class Scheduler extends Application {
         launch(args);
     }
 
-    private static Stage getCurrentStage() {
-        Scheduler app = currentApp;
-        if (null == app) {
-            throw new IllegalStateException();
-        }
-        synchronized (app.childStages) {
-            return (app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast();
-        }
-    }
-
-    public static Stage getCurrentStage(Window window) {
-        if (null != window) {
-            if (window instanceof Stage) {
-                return (Stage) window;
-            }
-            if (window instanceof PopupWindow) {
-                return getCurrentStage(((PopupWindow) window).getOwnerWindow());
-            }
-        }
-        return getCurrentStage();
-    }
-
-    public static Stage getCurrentStage(Scene scene) {
-        if (null != scene) {
-            return getCurrentStage(scene.getWindow());
-        }
-        return getCurrentStage();
-    }
-
-    public static Stage getCurrentStage(Node referenceNode) {
-        if (null != referenceNode) {
-            return getCurrentStage(referenceNode.getScene());
-        }
-        return getCurrentStage();
-    }
-
-    public static void showAndWait(Region content, Stage owner, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        Scheduler app = currentApp;
-        if (null == app) {
-            throw new IllegalStateException();
-        }
-
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(style);
-        stage.setScene(new Scene(content));
-        synchronized (app.childStages) {
-            stage.initOwner((null != owner) ? owner : (app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast());
-        }
-        if (null != beforeShow) {
-            beforeShow.accept(stage);
-        }
-        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, app::onChildStageShown);
-        stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, app::onChildStageHidden);
-        stage.showAndWait();
-    }
-
-    public static void showAndWait(Region content, Stage owner, StageStyle style) throws IOException {
-        showAndWait(content, owner, style, null);
-    }
-
-    public static void showAndWait(Region content, Stage owner, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        showAndWait(content, owner, StageStyle.UTILITY, beforeShow);
-    }
-
-    public static void showAndWait(Region content, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        showAndWait(content, null, style, beforeShow);
-    }
-
-    public static void showAndWait(Region content, Stage owner) throws IOException {
-        showAndWait(content, owner, (ThrowableConsumer<Stage, IOException>) null);
-    }
-
-    public static void showAndWait(Region content, StageStyle style) throws IOException {
-        showAndWait(content, style, null);
-    }
-
-    public static void showAndWait(Region content, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        showAndWait(content, (Stage) null, beforeShow);
-    }
-
-    public static void showAndWait(Region content) throws IOException {
-        showAndWait(content, (Stage) null);
-    }
-
-    public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, StageStyle style, Consumer<ViewAndController<U, T>> onBeforeShow) throws IOException {
-        Scheduler app = currentApp;
-        if (null == app) {
-            throw new IllegalStateException();
-        }
-        ViewAndController<U, T> viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
-
-        Stage stage = new Stage();
-        stage.initModality(Modality.NONE);
-        stage.initStyle(style);
-        stage.setScene(new Scene(viewAndController.getView()));
-        synchronized (app.childStages) {
-            stage.initOwner((app.childStages.isEmpty()) ? app.primaryStage : app.childStages.getLast());
-        }
-
-        if (null != onBeforeShow) {
-            onBeforeShow.accept(viewAndController);
-        }
-        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, app::onChildStageShown);
-        stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, app::onChildStageHidden);
-        stage.showAndWait();
-
-        return viewAndController.getController();
-    }
-
     private ViewAndController<StackPane, MainController> mainViewAndController;
-    private Stage primaryStage;
-    private final LinkedList<Stage> childStages = new LinkedList<>();
 
-    private void onChildStageShown(WindowEvent event) {
-        synchronized (childStages) {
-            childStages.addLast((Stage) event.getSource());
-        }
-    }
-
-    private void onChildStageHidden(WindowEvent event) {
-        synchronized (childStages) {
-            childStages.remove((Stage) event.getSource());
-        }
+    @Override
+    public void init() throws Exception {
+        currentApp = this;
+        super.init();
     }
 
     @Override
     public void start(Stage stage) throws Exception {
-        currentApp = this;
-        primaryStage = stage;
+        StageManager.setPrimaryStage(stage);
         stage.setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
-
         // Load main view and controller
         mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
         StackPane mainView = mainViewAndController.getView();

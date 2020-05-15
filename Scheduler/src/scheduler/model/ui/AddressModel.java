@@ -19,12 +19,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
 import scheduler.model.db.CityRowData;
-import scheduler.model.ui.AddressDbItem;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CityDbItem;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.FxDbModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.CityZipCountryProperty;
 import scheduler.observables.NestedStringBindingProperty;
 import scheduler.observables.NonNullableStringProperty;
@@ -259,9 +253,9 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             }
             CityRowData cityDAO;
             if (cityModel instanceof CityModel) {
-                cityDAO = CityModel.getFactory().updateDAO((CityModel)cityModel);
+                cityDAO = CityModel.getFactory().updateDAO((CityModel) cityModel);
             } else {
-                cityDAO = (cityModel instanceof CityDbItem) ? ((CityDbItem<? extends CityRowData>)cityModel).getDataObject() : (CityRowData)cityModel;
+                cityDAO = (cityModel instanceof CityDbItem) ? ((CityDbItem<? extends CityRowData>) cityModel).getDataObject() : (CityRowData) cityModel;
             }
             if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");

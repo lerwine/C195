@@ -23,7 +23,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -36,6 +35,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
@@ -59,7 +59,6 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.fx.ErrorDetailControl;
-import scheduler.view.MainController;
 import scheduler.model.ui.AddressModel;
 import scheduler.fx.AddressPicker;
 import scheduler.view.annotations.FXMLResource;
@@ -83,13 +82,16 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
-    public static CustomerModel editNew() throws IOException {
+    public static CustomerModel editNew(AddressItem address, Window parentWindow, boolean keepOpen) throws IOException {
         CustomerModel.Factory factory = CustomerModel.getFactory();
-        return EditItem.showAndWait(EditCustomer.class, factory.createNew(factory.getDaoFactory().createNew()));
+        CustomerModel model = factory.createNew(factory.getDaoFactory().createNew());
+        if (null != address)
+            model.setAddress(address);
+        return EditItem.showAndWait(parentWindow, EditCustomer.class, model, keepOpen);
     }
 
-    public static CustomerModel edit(CustomerModel model) throws IOException {
-        return EditItem.showAndWait(EditCustomer.class, model);
+    public static CustomerModel edit(CustomerModel model, Window parentWindow) throws IOException {
+        return EditItem.showAndWait(parentWindow, EditCustomer.class, model, false);
     }
 
     private final ReadOnlyBooleanWrapper valid;
@@ -219,7 +221,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML
     void onAddButtonAction(ActionEvent event) {
-        getMainController().addNewAppointment(model.getDataObject(), null);
+        getMainController().addNewAppointment(model, null, getScene().getWindow(), false);
     }
 
     @FXML
@@ -251,9 +253,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            MainController mainController = getMainController();
-            Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
-            mainController.deleteAppointment(item);
+            getMainController().deleteAppointment(item);
         }
     }
 
@@ -261,9 +261,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     void onEditAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            MainController mainController = getMainController();
-            Stage stage = (Stage) appointmentsTableView.getScene().getWindow();
-            mainController.editAppointment(item);
+            getMainController().editAppointment(item, getScene().getWindow());
         }
     }
 
@@ -481,6 +479,16 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             model.setAddress(address);
         }
         return true;
+    }
+
+    @Override
+    public boolean isChanged() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#isChanged
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#changedProperty
     }
 
     private class AppointmentFilterItem {

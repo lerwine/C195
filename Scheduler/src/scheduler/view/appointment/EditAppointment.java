@@ -41,6 +41,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -79,9 +80,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
-import scheduler.view.customer.RelatedCustomer;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.view.user.RelatedUser;
 import scheduler.view.user.UserModel;
 
 /**
@@ -97,20 +96,21 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 
-    public static AppointmentModel editNew(CustomerRowData customer, UserRowData user) throws IOException {
+    public static AppointmentModel editNew(CustomerItem<? extends CustomerRowData> customer, UserItem<? extends UserRowData> user,
+            Window parentWindow, boolean keepOpen) throws IOException {
         AppointmentModel.Factory factory = AppointmentModel.getFactory();
         AppointmentModel model = factory.createNew(factory.getDaoFactory().createNew());
         if (null != customer) {
-            model.setCustomer(new RelatedCustomer(customer));
+            model.setCustomer(customer);
         }
         if (null != user) {
-            model.setUser(new RelatedUser(user));
+            model.setUser(user);
         }
-        return EditItem.showAndWait(EditAppointment.class, model);
+        return EditItem.showAndWait(parentWindow, EditAppointment.class, model, keepOpen);
     }
 
-    public static AppointmentModel edit(AppointmentModel model) throws IOException {
-        return EditItem.showAndWait(EditAppointment.class, model);
+    public static AppointmentModel edit(AppointmentModel model, Window parentWindow) throws IOException {
+        return EditItem.showAndWait(parentWindow, EditAppointment.class, model, false);
     }
 
     private final ReadOnlyBooleanWrapper valid;
@@ -787,6 +787,16 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    @Override
+    public boolean isChanged() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#isChanged
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#changedProperty
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

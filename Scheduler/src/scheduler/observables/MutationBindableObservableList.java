@@ -102,11 +102,11 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> ObjectBinding<MutationOperation<T>> createAddOperationBinding(T ...value) {
+    public static <T> ObjectBinding<MutationOperation<T>> createAddOperationBinding(T... value) {
         MutationOperation<T> operation = createAddOperation(Objects.requireNonNull(value));
         return Bindings.createObjectBinding(() -> operation);
     }
-    
+
     public static <E> MutationOperation<E> createRemoveOperation(Iterator<E> iterator) {
         Objects.requireNonNull(iterator);
         if (iterator.hasNext()) {

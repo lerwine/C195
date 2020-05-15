@@ -114,12 +114,12 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewUser();
+        getMainController().addNewUser(getScene().getWindow(), true);
     }
 
     @Override
     protected void onEditItem(UserModel item) {
-        getMainController().editUser(item);
+        getMainController().editUser(item, getScene().getWindow());
     }
 
     @Override

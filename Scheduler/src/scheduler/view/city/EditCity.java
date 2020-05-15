@@ -13,21 +13,25 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
+import scheduler.fx.ErrorDetailControl;
+import scheduler.model.predefined.PredefinedCity;
+import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.view.EditItem;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
@@ -47,10 +51,21 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
-    public static CityModel edit(CityModel model) throws IOException {
-        return EditItem.showAndWait(EditCity.class, model);
+    public static CityModel edit(CityModel model, Window parentWindow) throws IOException {
+        return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
     }
 
+    public static CityModel editNew(CountryItem country, Window parentWindow, boolean keepOpen) throws IOException {
+        CityModel.Factory factory = CityModel.getFactory();
+        CityModel model = factory.createNew(factory.getDaoFactory().createNew());
+        if (null != country) {
+            model.setCountry(country);
+        }
+        return EditItem.showAndWait(parentWindow, EditCity.class, model, keepOpen);
+    }
+
+    private ObservableList<AddressModel> itemList;
+    
     private final ReadOnlyBooleanWrapper valid;
 
     private final ReadOnlyStringWrapper windowTitle;
@@ -64,22 +79,32 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="nameTextField"
-    private TextField nameTextField; // Value injected by FXMLLoader
+    @FXML // fx:id="nameValueLabel"
+    private Label nameValueLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="languageTextField"
-    private TextField languageTextField; // Value injected by FXMLLoader
+    @FXML // fx:id="nameValueComboBox"
+    private ComboBox<PredefinedCity> nameValueComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="timeZoneTextField"
-    private TextField timeZoneTextField; // Value injected by FXMLLoader
+    @FXML // fx:id="nameValidationLabel"
+    private Label nameValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="countryNameLabel"
-    private Label countryNameLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="countryNameValueLabel"
+    private Label countryNameValueLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="countryNameValueComboBox"
+    private ComboBox<PredefinedCountry> countryNameValueComboBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="countryNameValidationLabel"
+    private Label countryNameValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="languageLabel"
+    private Label languageLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="timeZoneLabel"
+    private Label timeZoneLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesTableView"
     private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
-
-    private ObservableList<AddressModel> itemList;
 
     public EditCity() {
         this.valid = new ReadOnlyBooleanWrapper(false);
@@ -87,17 +112,22 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    void onAddCityButtonAction(ActionEvent event) {
+    void onAddAddressButtonAction(ActionEvent event) {
 
     }
 
     @FXML
-    void onCityDeleteMenuItemAction(ActionEvent event) {
+    void onAddressDeleteMenuItemAction(ActionEvent event) {
 
     }
 
     @FXML
-    void onCityEditMenuItemAction(ActionEvent event) {
+    void onAddressEditMenuItemAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void onItemActionRequest(ActionEvent event) {
 
     }
 
@@ -108,10 +138,14 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert languageTextField != null : "fx:id=\"languageTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert timeZoneTextField != null : "fx:id=\"timeZoneTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert countryNameLabel != null : "fx:id=\"countryNameLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert nameValueLabel != null : "fx:id=\"nameValueLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert nameValueComboBox != null : "fx:id=\"nameValueComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert countryNameValueLabel != null : "fx:id=\"countryNameValueLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert countryNameValueComboBox != null : "fx:id=\"countryNameValueComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert countryNameValidationLabel != null : "fx:id=\"countryNameValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert languageLabel != null : "fx:id=\"languageLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert timeZoneLabel != null : "fx:id=\"timeZoneLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert addressesTableView != null : "fx:id=\"addressesTableView\" was not injected: check your FXML file 'EditCity.fxml'.";
 
         itemList = FXCollections.observableArrayList();
@@ -119,6 +153,16 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
         waitBorderPane.startNow(new ItemsLoadTask());
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
+    }
+
+    @Override
+    public void onEditNew() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#onEditNew
+    }
+
+    @Override
+    public void onEditExisting(boolean isInitialize) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#onEditExisting
     }
 
     @Override
@@ -149,6 +193,16 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @Override
     public boolean applyChangesToModel() {
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#applyChangesToModel
+    }
+
+    @Override
+    public boolean isChanged() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#isChanged
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#changedProperty
     }
 
     private class ItemsLoadTask extends Task<List<AddressDAO>> {

@@ -79,12 +79,12 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected void onNewItem() {
-        throw new UnsupportedOperationException();
+        getMainController().addNewCountry(getScene().getWindow(), true);
     }
 
     @Override
     protected void onEditItem(CountryModel item) {
-        getMainController().openCountry(item);
+        getMainController().openCountry(item, getScene().getWindow());
     }
 
     @Override

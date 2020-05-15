@@ -464,12 +464,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewAppointment(null, null);
+        getMainController().addNewAppointment(null, null, getScene().getWindow(), true);
     }
 
     @Override
     protected void onEditItem(AppointmentModel item) {
-        getMainController().editAppointment(item);
+        getMainController().editAppointment(item, getScene().getWindow());
     }
 
     @Override

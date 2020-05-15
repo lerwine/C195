@@ -47,6 +47,7 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of value produced by the task.
+ * @deprecated 
  */
 @GlobalizationResource("scheduler/App")
 @FXMLResource("/scheduler/view/TaskWaiter.fxml")
@@ -60,6 +61,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param task The {@link TaskWaiter} to startNow after the specified delay.
      * @param delay The time from now to delay execution.
      * @param unit The time unit of the delay parameter.
+     * @deprecated 
      */
     public static void schedule(TaskWaiter<?> task, long delay, TimeUnit unit) {
         ScheduledExecutorService svc = Executors.newSingleThreadScheduledExecutor();
@@ -74,6 +76,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * Starts a {@link TaskWaiter} immediately.
      *
      * @param task The {@link TaskWaiter} to startNow.
+     * @deprecated 
      */
     public static void startNow(TaskWaiter<?> task) {
         ExecutorService svc = Executors.newSingleThreadExecutor();
@@ -91,6 +94,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
      * @return A new {@link TaskWaiter} object that invokes the specified {@code consumer} when executed.
+     * @deprecated 
      */
     public static TaskWaiter<?> fromConsumer(Stage stage, ThrowableConsumer<Connection, SQLException> consumer) {
         return fromConsumer(stage, null, consumer);
@@ -104,6 +108,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
      * @return A new {@link TaskWaiter} object that invokes the specified {@code consumer} when executed.
+     * @deprecated 
      */
     public static TaskWaiter<?> fromConsumer(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer) {
         return fromConsumer(stage, operation, null, consumer);
@@ -118,6 +123,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
      * @return A new {@link TaskWaiter} object that invokes the specified {@code consumer} when executed.
+     * @deprecated 
      */
     public static TaskWaiter<?> fromConsumer(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer) {
         return new TaskWaiterImpl<>(stage, operation, heading, (connection) -> {
@@ -138,6 +144,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * application thread.
      * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer,
             Runnable onSuccess, Consumer<Exception> onError) {
@@ -168,6 +175,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * from a background thread.
      * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer,
             Runnable onSuccess) {
@@ -197,6 +205,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * from a background thread.
      * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
         TaskWaiter<?> task = fromConsumer(stage, operation, heading, consumer);
@@ -223,6 +232,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
      * @return The {@link TaskWaiter} that was started.
+     * @deprecated 
      */
     public static TaskWaiter<?> acceptAsync(Stage stage, String operation, String heading, ThrowableConsumer<Connection, SQLException> consumer) {
         TaskWaiter<?> task = fromConsumer(stage, operation, heading, consumer);
@@ -241,6 +251,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * application thread.
      * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess, Consumer<Exception> onError) {
         acceptAsync(stage, operation, null, consumer, onSuccess, onError);
@@ -255,6 +266,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * from a background thread.
      * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess) {
         acceptAsync(stage, operation, null, consumer, onSuccess);
@@ -269,6 +281,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * from a background thread.
      * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
         acceptAsync(stage, operation, null, consumer, onError);
@@ -282,6 +295,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
      * @return The {@link TaskWaiter} that was started.
+     * @deprecated 
      */
     public static TaskWaiter<?> acceptAsync(Stage stage, String operation, ThrowableConsumer<Connection, SQLException> consumer) {
         return acceptAsync(stage, operation, null, consumer);
@@ -297,6 +311,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * application thread.
      * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess, Consumer<Exception> onError) {
         acceptAsync(stage, null, consumer, onSuccess, onError);
@@ -310,6 +325,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * from a background thread.
      * @param onSuccess The {@link Runnable} to invoke after the {@code consumer} is executed without any exceptions. This will be executed in the FX
      * application thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer, Runnable onSuccess) {
         acceptAsync(stage, null, consumer, onSuccess);
@@ -323,6 +339,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * from a background thread.
      * @param onError The {@link Consumer} to invoke if the main {@code consumer} throws an exception. This will be executed in the FX application
      * thread.
+     * @deprecated 
      */
     public static void acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer, Consumer<Exception> onError) {
         acceptAsync(stage, null, consumer, onError);
@@ -335,6 +352,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param consumer The {@link ThrowableConsumer} that performs an operation using an opened database {@link Connection}. This will be executed
      * from a background thread.
      * @return The {@link TaskWaiter} that was started.
+     * @deprecated 
      */
     public static TaskWaiter<?> acceptAsync(Stage stage, ThrowableConsumer<Connection, SQLException> consumer) {
         return acceptAsync(stage, null, consumer);
@@ -348,6 +366,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @return A new {@link TaskWaiter} object that invokes the specified {@code func} when executed.
+     * @deprecated 
      */
     public static <T> TaskWaiter<T> fromFunction(Stage stage, ThrowableFunction<Connection, T, SQLException> func) {
         return fromFunction(stage, null, func);
@@ -362,6 +381,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @return A new {@link TaskWaiter} object that invokes the specified {@code func} when executed.
+     * @deprecated 
      */
     public static <T> TaskWaiter<T> fromFunction(Stage stage, String operation, ThrowableFunction<Connection, T, SQLException> func) {
         return fromFunction(stage, operation, null, func);
@@ -377,6 +397,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @return A new {@link TaskWaiter} object that invokes the specified {@code func} when executed.
+     * @deprecated 
      */
     public static <T> TaskWaiter<T> fromFunction(Stage stage, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func) {
         return new TaskWaiterImpl<>(stage, operation, heading, func);
@@ -393,6 +414,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * background thread.
      * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
      * @param onError The {@link Consumer} to invoke if {@code func} throws an exception. This will be executed in the FX application thread.
+     * @deprecated 
      */
     public static <T> void applyAsync(Stage stage, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
         TaskWaiterImpl<T> task = new TaskWaiterImpl<>(stage, operation, heading, func);
@@ -423,6 +445,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
+     * @deprecated 
      */
     public static <T> void applyAsync(Stage stage, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
         TaskWaiterImpl<T> task = new TaskWaiterImpl<>(stage, operation, heading, func);
@@ -452,6 +475,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @return The {@link TaskWaiter} that was started.
+     * @deprecated 
      */
     public static <T> TaskWaiter<T> applyAsync(Stage stage, String operation, String heading, ThrowableFunction<Connection, T, SQLException> func) {
         return new TaskWaiterImpl<>(stage, operation, heading, func);
@@ -467,6 +491,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * background thread.
      * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
      * @param onError The {@link Consumer} to invoke if {@code func} throws an exception. This will be executed in the FX application thread.
+     * @deprecated 
      */
     public static <T> void applyAsync(Stage stage, String operation, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
         applyAsync(stage, operation, null, func, onSuccess, onError);
@@ -481,6 +506,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
+     * @deprecated 
      */
     public static <T> void applyAsync(Stage stage, String operation, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
         applyAsync(stage, operation, null, func, onSuccess);
@@ -495,6 +521,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @return The {@link TaskWaiter} that was started.
+     * @deprecated 
      */
     public static <T> TaskWaiter<T> applyAsync(Stage stage, String operation, ThrowableFunction<Connection, T, SQLException> func) {
         return applyAsync(stage, operation, null, func);
@@ -509,6 +536,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * background thread.
      * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
      * @param onError The {@link Consumer} to invoke if {@code func} throws an exception. This will be executed in the FX application thread.
+     * @deprecated 
      */
     public static <T> void applyAsync(Stage stage, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess, Consumer<Exception> onError) {
         applyAsync(stage, null, func, onSuccess, onError);
@@ -522,6 +550,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @param onSuccess The {@link Consumer} to accept the results of {@code func}. This will be executed in the FX application thread.
+     * @deprecated 
      */
     public static <T> void applyAsync(Stage stage, ThrowableFunction<Connection, T, SQLException> func, Consumer<T> onSuccess) {
         applyAsync(stage, null, func, onSuccess);
@@ -535,6 +564,7 @@ public abstract class TaskWaiter<T> extends Task<T> {
      * @param func The {@link ThrowableFunction} that gets the results using an opened database {@link Connection}. This will be executed from a
      * background thread.
      * @return The {@link TaskWaiter} that was started.
+     * @deprecated 
      */
     public static <T> TaskWaiter<T> applyAsync(Stage stage, ThrowableFunction<Connection, T, SQLException> func) {
         return applyAsync(stage, null, func);

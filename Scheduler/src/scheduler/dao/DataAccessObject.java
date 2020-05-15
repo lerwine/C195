@@ -24,9 +24,7 @@ import java.util.logging.Logger;
 import javafx.concurrent.Task;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventTarget;
-import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.filter.DaoFilter;
@@ -45,6 +43,7 @@ import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.MainController;
 import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * Data access object that represents all columns from a data row.
@@ -324,40 +323,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
         }
     }
 
-    private static class LoadTask_obsolete<T extends DataAccessObject> extends TaskWaiter<List<T>> {
-
-        private final DaoFactory<T> factory;
-        private final DaoFilter<T> filter;
-        private final Consumer<List<T>> onSuccess;
-        private final Consumer<Throwable> onFail;
-
-        LoadTask_obsolete(Stage stage, DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
-            super(stage, filter.getLoadingTitle(), filter.getLoadingMessage());
-            this.factory = Objects.requireNonNull(factory);
-            this.filter = Objects.requireNonNull(filter);
-            this.onSuccess = Objects.requireNonNull(onSuccess);
-            this.onFail = onFail;
-        }
-
-        @Override
-        protected void processResult(List<T> result, Stage stage) {
-            onSuccess.accept(result);
-        }
-
-        @Override
-        protected void processException(Throwable ex, Stage stage) {
-            if (null != onFail) {
-                onFail.accept(ex);
-            }
-        }
-
-        @Override
-        protected List<T> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            return factory.load(connection, filter);
-        }
-    }
-
     /**
      * Base factory class for {@link RowData} objects.
      * <dl>
@@ -419,15 +384,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
         /**
          * Asynchronously loads {@link DataAccessObject} objects from the database.
          *
-         * @param stage The {@link Stage} on which to show the busy indicator.
+         * @param waitBorderPane The {@link WaitBorderPane} on which to show the busy indicator.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
          * @param onSuccess The {@link Consumer} to invoke if successful.
          * @param onFail The {@link Consumer} to invoke if an exception is thrown.
          * @return The {@link TaskWaiter} that has been started.
          */
-        public TaskWaiter<List<T>> loadAsync(Stage stage, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
-            LoadTask_obsolete<T> task = new LoadTask_obsolete<>(stage, this, filter, onSuccess, onFail);
-            TaskWaiter.startNow(task);
+        public Task<List<T>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+            LoadTask<T> task = new LoadTask<>(this, filter, onSuccess, onFail);
+            waitBorderPane.startNow(task);
             return task;
         }
 

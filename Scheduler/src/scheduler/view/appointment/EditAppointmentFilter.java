@@ -383,8 +383,7 @@ public final class EditAppointmentFilter extends BorderPane {
             } else {
                 stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
                 CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-                cf.loadAsync(stage,
-                        (this.includeInactiveCustomers) ? cf.getAllItemsFilter() : cf.getActiveStatusFilter(true),
+                cf.loadAsync((this.includeInactiveCustomers) ? cf.getAllItemsFilter() : cf.getActiveStatusFilter(true),
                         (t) -> importCustomers(t), (t) -> AlertHelper.logAndAlertDbError(stage, LOG,
                                 resources.getString(RESOURCEKEY_ERRORLOADINGDATA), "Error loading reloading customers", t));
             }
@@ -392,7 +391,7 @@ public final class EditAppointmentFilter extends BorderPane {
             includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
             stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
             UserDAO.FactoryImpl uf = UserDAO.getFactory();
-            uf.loadAsync(stage, (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getAllItemsFilter(), (t) -> importUsers(t),
+            uf.loadAsync((this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getAllItemsFilter(), (t) -> importUsers(t),
                     (t) -> AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
                             "Error loading reloading users", t));
         }

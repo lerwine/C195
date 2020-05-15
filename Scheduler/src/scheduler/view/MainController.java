@@ -2,8 +2,6 @@ package scheduler.view;
 
 import com.sun.javafx.event.EventHandlerManager;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -28,6 +26,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
@@ -56,10 +55,13 @@ import scheduler.fx.AppointmentAlert;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
 import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
+import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
@@ -82,7 +84,6 @@ import scheduler.view.customer.ManageCustomers;
 import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
@@ -213,22 +214,22 @@ public final class MainController implements EventTarget {
 
     @FXML
     void onNewAddressMenuItem(ActionEvent event) {
-        addNewAddress();
+        addNewAddress(null, contentView.getScene().getWindow(), true);
     }
 
     @FXML
     void onNewAppointmentMenuItemAction(ActionEvent event) {
-        addNewAppointment(null, null);
+        addNewAppointment(null, null, contentView.getScene().getWindow(), false);
     }
 
     @FXML
     void onNewCustomerMenuItemAction(ActionEvent event) {
-        addNewCustomer();
+        addNewCustomer(null, contentView.getScene().getWindow(), true);
     }
 
     @FXML
     void onNewUserMenuItemAction(ActionEvent event) {
-        addNewUser();
+        addNewUser(contentView.getScene().getWindow(), true);
     }
 
     @FXML
@@ -342,26 +343,32 @@ public final class MainController implements EventTarget {
     }
 
     private void onAddressDaoEvent(AddressDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onCityDaoEvent(CityDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onCountryDaoEvent(CountryDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onCustomerDaoEvent(CustomerDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onUserDaoEvent(UserDaoEvent event) {
+        LOG.info(String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
@@ -426,12 +433,14 @@ public final class MainController implements EventTarget {
      *
      * @param customer The customer to initially select or {@code null} for no initial selection.
      * @param user The user to initially select or {@code null} for no initial selection.
+     * @param parentWindow The parent {@link Window}.
+     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
      */
-    public AppointmentModel addNewAppointment(CustomerRowData customer, UserRowData user) {
+    public AppointmentModel addNewAppointment(CustomerItem<? extends CustomerRowData> customer, UserDAO user, Window parentWindow, boolean keepOpen) {
         AppointmentModel result;
         try {
-            result = EditAppointment.editNew(customer, user);
+            result = EditAppointment.editNew(customer, (null == user) ? null : UserModel.getFactory().createNew(user), parentWindow, keepOpen);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), ex);
             return null;
@@ -446,11 +455,12 @@ public final class MainController implements EventTarget {
      * Opens an {@link EditItem} window to edit an {@link AppointmentModel}.
      *
      * @param item The {@link AppointmentModel} to be edited.
+     * @param parentWindow The parent {@link Window}.
      */
-    public void editAppointment(AppointmentModel item) {
+    public void editAppointment(AppointmentModel item, Window parentWindow) {
         AppointmentModel result;
         try {
-            result = EditAppointment.edit(item);
+            result = EditAppointment.edit(item, parentWindow);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), ex);
             return;
@@ -470,7 +480,7 @@ public final class MainController implements EventTarget {
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AppointmentModel.getFactory(),
+            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AppointmentModel.getFactory(),
                     this::onAppointmentDeleted));
         }
     }
@@ -478,12 +488,15 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
      *
+     * @param address The initial {@link AddressItem}.
+     * @param parentWindow The parent {@link Window}.
+     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
      */
-    public CustomerModel addNewCustomer() {
+    public CustomerModel addNewCustomer(AddressItem address, Window parentWindow, boolean keepOpen) {
         CustomerModel result;
         try {
-            result = EditCustomer.editNew();
+            result = EditCustomer.editNew(address, parentWindow, keepOpen);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), ex);
             return null;
@@ -499,11 +512,12 @@ public final class MainController implements EventTarget {
      * Opens an {@link EditItem} window to edit a {@link CustomerModel}.
      *
      * @param item The {@link CustomerModel} to be edited.
+     * @param parentWindow The parent {@link Window}.
      */
-    public void editCustomer(CustomerModel item) {
+    public void editCustomer(CustomerModel item, Window parentWindow) {
         CustomerModel result;
         try {
-            result = EditCustomer.edit(item);
+            result = EditCustomer.edit(item, parentWindow);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), ex);
             return;
@@ -524,7 +538,7 @@ public final class MainController implements EventTarget {
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CustomerModel.getFactory(),
+            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CustomerModel.getFactory(),
                     (t) -> {
                         CustomerDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -532,15 +546,30 @@ public final class MainController implements EventTarget {
         }
     }
 
+    public void addNewCountry(Window parentWindow, boolean keepOpen) {
+        CountryModel result;
+        try {
+            result = EditCountry.editNew(parentWindow, keepOpen);
+        } catch (IOException ex) {
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), ex);
+            return;
+        }
+        if (null != result) {
+            CountryDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.UPDATED, dataObject));
+        }
+    }
+
     /**
      * Opens an {@link EditItem} window to edit a {@link CountryModel}.
      *
      * @param item The {@link CountryModel} to be edited.
+     * @param parentWindow The parent {@link Window}.
      */
-    public void openCountry(CountryModel item) {
+    public void openCountry(CountryModel item, Window parentWindow) {
         CountryModel result;
         try {
-            result = EditCountry.edit(item);
+            result = EditCountry.edit(item, parentWindow);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), ex);
             return;
@@ -561,7 +590,7 @@ public final class MainController implements EventTarget {
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CountryModel.getFactory(),
+            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CountryModel.getFactory(),
                     (t) -> {
                         CountryDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -573,11 +602,12 @@ public final class MainController implements EventTarget {
      * Opens an {@link EditItem} window to edit a {@link CityModel}.
      *
      * @param item The {@link CityModel} to be edited.
+     * @param parentWindow The parent {@link Window}.
      */
-    public void openCity(CityModel item) {
+    public void openCity(CityModel item, Window parentWindow) {
         CityModel result;
         try {
-            result = EditCity.edit(item);
+            result = EditCity.edit(item, parentWindow);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), ex);
             return;
@@ -592,13 +622,14 @@ public final class MainController implements EventTarget {
      * Deletes a {@link CityModel} item after confirming with user.
      *
      * @param item The {@link CityModel} to be deleted.
+     * @param waitBorderPane Control for displaying data loading status.
      */
-    public void deleteCity(CityModel item) {
+    public void deleteCity(CityModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CityModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CityModel.getFactory(),
                     (t) -> {
                         CityDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -609,12 +640,15 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
      *
+     * @param city The initial {@link CityItem}.
+     * @param parentWindow The parent {@link Window}.
+     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
-    public AddressModel addNewAddress() {
+    public AddressModel addNewAddress(CityItem city, Window parentWindow, boolean keepOpen) {
         AddressModel result;
         try {
-            result = EditAddress.editNew();
+            result = EditAddress.editNew(city, parentWindow, keepOpen);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), ex);
             return null;
@@ -626,15 +660,31 @@ public final class MainController implements EventTarget {
         return result;
     }
 
+    public CityModel addNewCity(CountryModel country, Window parentWindow, boolean keepOpen) {
+        CityModel result;
+        try {
+            result = EditCity.editNew(country, parentWindow, keepOpen);
+        } catch (IOException ex) {
+            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), ex);
+            return null;
+        }
+        if (null != result) {
+            CityDAO dataObject = result.getDataObject();
+            Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.CREATED, dataObject));
+        }
+        return result;
+    }
+
     /**
      * Opens an {@link EditItem} window to edit an {@link AddressModel}.
      *
      * @param item The {@link AddressModel} to be edited.
+     * @param parentWindow The parent {@link Window}.
      */
-    public void editAddress(AddressModel item) {
+    public void editAddress(AddressModel item, Window parentWindow) {
         AddressModel result;
         try {
-            result = EditAddress.edit(item);
+            result = EditAddress.edit(item, parentWindow);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), ex);
             return;
@@ -655,7 +705,7 @@ public final class MainController implements EventTarget {
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AddressModel.getFactory(),
+            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AddressModel.getFactory(),
                     (t) -> {
                         AddressDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -666,12 +716,14 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link UserModel}.
      *
+     * @param parentWindow The parent {@link Window}.
+     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
      */
-    public UserModel addNewUser() {
+    public UserModel addNewUser(Window parentWindow, boolean keepOpen) {
         UserModel result;
         try {
-            result = EditUser.editNew();
+            result = EditUser.editNew(parentWindow, keepOpen);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), ex);
             return null;
@@ -687,11 +739,12 @@ public final class MainController implements EventTarget {
      * Opens an {@link EditItem} window to edit a {@link UserModel}.
      *
      * @param item The {@link UserModel} to be edited.
+     * @param parentWindow The parent {@link Window}.
      */
-    public void editUser(UserModel item) {
+    public void editUser(UserModel item, Window parentWindow) {
         UserModel result;
         try {
-            result = EditUser.edit(item);
+            result = EditUser.edit(item, parentWindow);
         } catch (IOException ex) {
             ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), ex);
             return;
@@ -712,7 +765,7 @@ public final class MainController implements EventTarget {
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            TaskWaiter.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), UserModel.getFactory(),
+            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), UserModel.getFactory(),
                     (t) -> {
                         UserDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -852,43 +905,50 @@ public final class MainController implements EventTarget {
         return tail.append(eventHandlerManager);
     }
 
-    private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends TaskWaiter<String> {
+    private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends Task<String> {
 
         private final M model;
+        private final Window parentWindow;
         private final Consumer<M> onDeleted;
         private final DataAccessObject.DaoFactory<D> factory;
 
-        DeleteTask(M model, Stage stage, FxRecordModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
-            super(stage, AppResources.getResourceString(RESOURCEKEY_DELETINGRECORD));
+        DeleteTask(M model, Window parentWindow, FxRecordModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
+            updateTitle(AppResources.getResourceString(RESOURCEKEY_DELETINGRECORD));
             this.model = model;
+            this.parentWindow = parentWindow;
             this.onDeleted = onDeleted;
             this.factory = factory.getDaoFactory();
         }
 
         @Override
-        protected void processResult(String message, Stage owner) {
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
             if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(owner, LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), message);
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), message);
             } else if (null != onDeleted) {
                 onDeleted.accept(model);
             }
         }
 
         @Override
-        protected void processException(Throwable ex, Stage owner) {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), owner, ex,
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
                     AppResources.getResourceString(RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override
-        protected String getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CHECKINGDEPENDENCIES));
-            String message = factory.getDeleteDependencyMessage(model.getDataObject(), connection);
-            if (null != message && !message.trim().isEmpty()) {
-                return message;
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = factory.getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_COMPLETINGOPERATION));
+                factory.delete(model.getDataObject(), connector.getConnection());
             }
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_COMPLETINGOPERATION));
-            factory.delete(model.getDataObject(), connection);
             return null;
         }
     }

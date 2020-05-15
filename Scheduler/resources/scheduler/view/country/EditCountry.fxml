@@ -32,7 +32,7 @@
                 <Label styleClass="leftControlLabel" text="%nameFieldLabel" />
                 <StackPane GridPane.columnIndex="1">
                     <children>
-                        <Label fx:id="countryNameValueLabel" wrapText="true">
+                        <Label fx:id="countryNameValueLabel">
                             <styleClass>
                                 <String fx:value="leftLabeledControl" />
                                 <String fx:value="collapsed" />

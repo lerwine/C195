@@ -17,13 +17,13 @@ import scheduler.model.db.AddressRowData;
 import scheduler.model.db.CustomerRowData;
 import scheduler.model.ui.AddressDbItem;
 import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.RelatedAddress;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringBindingProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.RelatedAddress;
 
 /**
  *
