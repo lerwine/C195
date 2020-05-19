@@ -37,7 +37,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.APPOINTMENT)
-public final class AppointmentDAO extends DataAccessObject implements IAppointmentDAO {
+public final class AppointmentDAO extends DbRecordBase implements AppointmentDbRecord {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -327,7 +327,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      * <dd>{@code ModelHelper} with all data from a database entity.</dd>
      * </dl>
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
+    public static final class FactoryImpl extends DbRecordBase.DaoFactory<AppointmentDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

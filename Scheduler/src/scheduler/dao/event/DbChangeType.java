@@ -9,15 +9,15 @@ import javafx.event.EventType;
  */
 public enum DbChangeType {
     /**
-     * The target {@link scheduler.dao.DataAccessObject} was inserted into the database.
+     * The target {@link scheduler.dao.DbRecordBase} was inserted into the database.
      */
     CREATED(DataObjectEvent.ANY_DAO_INSERT),
     /**
-     * The target {@link scheduler.dao.DataAccessObject} was updated in the database.
+     * The target {@link scheduler.dao.DbRecordBase} was updated in the database.
      */
     UPDATED(DataObjectEvent.ANY_DAO_UPDATE),
     /**
-     * The target {@link scheduler.dao.DataAccessObject} was removed from the database.
+     * The target {@link scheduler.dao.DbRecordBase} was removed from the database.
      */
     DELETED(DataObjectEvent.ANY_DAO_DELETE);
 

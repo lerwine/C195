@@ -12,7 +12,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.predefined.PredefinedCity;

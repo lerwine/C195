@@ -1,22 +1,22 @@
 package scheduler.dao.filter;
 
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 import scheduler.model.ui.FxRecordModel;
 
 /**
- * Compares {@link DataAccessObject} and {@link FxRecordModel} to boolean values.
+ * Compares {@link DbRecordBase} and {@link FxRecordModel} to boolean values.
  *
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DataAccessObject} object.
+ * @param <T> The type of {@link DbRecordBase} object.
  * @param <U> The type of {@link FxRecordModel} object.
  */
-public interface ItemBooleanComparer<T extends DataAccessObject, U extends FxRecordModel<T>> {
+public interface ItemBooleanComparer<T extends DbRecordBase, U extends FxRecordModel<T>> {
 
     /**
-     * Gets the boolean value associated with the target {@link DataAccessObject}.
+     * Gets the boolean value associated with the target {@link DbRecordBase}.
      *
-     * @param dao The target {@link DataAccessObject}.
-     * @return The boolean value associated with the target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
+     * @return The boolean value associated with the target {@link DbRecordBase}.
      */
     boolean get(T dao);
 
@@ -29,11 +29,11 @@ public interface ItemBooleanComparer<T extends DataAccessObject, U extends FxRec
     boolean get(U model);
 
     /**
-     * Tests whether the value associated with a {@link DataAccessObject} object is equal to another value.
+     * Tests whether the value associated with a {@link DbRecordBase} object is equal to another value.
      *
-     * @param dao The target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DataAccessObject} object is equal to {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DbRecordBase} object is equal to {@code value}; otherwise, {@code false}.
      */
     default boolean test(T dao, boolean value) {
         return get(dao) == value;

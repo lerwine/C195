@@ -51,7 +51,7 @@ import static scheduler.AppResources.FXMLPROPERTYNAME_CONTROLLER;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
@@ -80,7 +80,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
-    private static <T extends DataAccessObject, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
+    private static <T extends DbRecordBase, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
         if (null == obj) {
             return clearAndSelect(source, (t) -> null == t.getValue());
         }
@@ -1414,7 +1414,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     }
 
-    private abstract class DataObjectItem<T extends DataAccessObject> extends SelectionItem<T> {
+    private abstract class DataObjectItem<T extends DbRecordBase> extends SelectionItem<T> {
 
         protected DataObjectItem(T value) {
             super(value);

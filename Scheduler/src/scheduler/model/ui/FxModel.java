@@ -7,7 +7,6 @@ import javafx.beans.property.ReadOnlyProperty;
 import scheduler.dao.DAO;
 import scheduler.dao.DataRowState;
 import scheduler.model.DataModel;
-import scheduler.model.RelatedRecord;
 
 /**
  * Interface for UI {@code DbDataModel}s with bindable JavaFX properties.

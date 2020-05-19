@@ -37,7 +37,7 @@ import javafx.scene.control.DatePicker;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalDateStringConverter;
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.ui.CustomerItem;
@@ -431,7 +431,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
             if (observable instanceof ReadOnlyObjectProperty) {
                 list = conflictingAppointments;
-                FxRecordModel<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends FxRecordModel<? extends DataAccessObject>>) observable).get();
+                FxRecordModel<? extends DbRecordBase> obj = ((ReadOnlyObjectProperty<? extends FxRecordModel<? extends DbRecordBase>>) observable).get();
                 if (null != obj) {
                     if (obj instanceof CustomerModel) {
                         sc = (CustomerModel) obj;

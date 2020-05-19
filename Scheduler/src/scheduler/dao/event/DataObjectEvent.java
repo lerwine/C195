@@ -4,40 +4,40 @@ import java.util.Objects;
 import javafx.event.Event;
 import static javafx.event.Event.ANY;
 import javafx.event.EventType;
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 
 /**
- * Represents a {@link DbChangeType#CREATED}, {@link DbChangeType#CREATED} or {@link DbChangeType#CREATED} event for a {@link DataAccessObject}.
+ * Represents a {@link DbChangeType#CREATED}, {@link DbChangeType#CREATED} or {@link DbChangeType#CREATED} event for a {@link DbRecordBase}.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DataAccessObject}.
+ * @param <T> The type of {@link DbRecordBase}.
  */
-public class DataObjectEvent<T extends DataAccessObject> extends Event {
+public class DataObjectEvent<T extends DbRecordBase> extends Event {
 
     private static final long serialVersionUID = -4153967201114554143L;
 
     /**
-     * Base event type for all {@link DataAccessObject} events.
+     * Base event type for all {@link DbRecordBase} events.
      */
-    public static final EventType<DataObjectEvent<? extends DataAccessObject>> ANY_DAO_EVENT = new EventType<>(ANY, "SCHEDULER_ANY_DAO_EVENT");
+    public static final EventType<DataObjectEvent<? extends DbRecordBase>> ANY_DAO_EVENT = new EventType<>(ANY, "SCHEDULER_ANY_DAO_EVENT");
 
     /**
-     * Generic event type for all {@link DataAccessObject} {@link DbChangeType#CREATED} events. This a generic super-type and does not use
+     * Generic event type for all {@link DbRecordBase} {@link DbChangeType#CREATED} events. This a generic super-type and does not use
      * {@link #ANY_DAO_EVENT} as the super-type, because that would cause handlers for {@link #ANY_DAO_EVENT} to get invoked twice.
      */
-    public static final EventType<DataObjectEvent<DataAccessObject>> ANY_DAO_INSERT = new EventType<>(ANY, "SCHEDULER_ANY_DAO_INSERT");
+    public static final EventType<DataObjectEvent<DbRecordBase>> ANY_DAO_INSERT = new EventType<>(ANY, "SCHEDULER_ANY_DAO_INSERT");
 
     /**
-     * Generic event type for all {@link DataAccessObject} {@link DbChangeType#UPDATED} events. This a generic super-type and does not use
+     * Generic event type for all {@link DbRecordBase} {@link DbChangeType#UPDATED} events. This a generic super-type and does not use
      * {@link #ANY_DAO_EVENT} as the super-type, because that would cause handlers for {@link #ANY_DAO_EVENT} to get invoked twice.
      */
-    public static final EventType<DataObjectEvent<DataAccessObject>> ANY_DAO_UPDATE = new EventType<>(ANY, "SCHEDULER_ANY_DAO_UPDATE");
+    public static final EventType<DataObjectEvent<DbRecordBase>> ANY_DAO_UPDATE = new EventType<>(ANY, "SCHEDULER_ANY_DAO_UPDATE");
 
     /**
-     * Generic event type for all {@link DataAccessObject} {@link DbChangeType#DELETED} events. This a generic super-type and does not use
+     * Generic event type for all {@link DbRecordBase} {@link DbChangeType#DELETED} events. This a generic super-type and does not use
      * {@link #ANY_DAO_EVENT} as the super-type, because that would cause handlers for {@link #ANY_DAO_EVENT} to get invoked twice.
      */
-    public static final EventType<DataObjectEvent<DataAccessObject>> ANY_DAO_DELETE = new EventType<>(ANY, "SCHEDULER_ANY_DAO_DELETE");
+    public static final EventType<DataObjectEvent<DbRecordBase>> ANY_DAO_DELETE = new EventType<>(ANY, "SCHEDULER_ANY_DAO_DELETE");
 
     public static void fireGenericEvent(AddressDaoEvent event) {
         Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
@@ -66,10 +66,10 @@ public class DataObjectEvent<T extends DataAccessObject> extends Event {
     private final DbChangeType changeType;
 
     /**
-     * Initializes a new {@link DataAccessObject} event.
+     * Initializes a new {@link DbRecordBase} event.
      *
      * @param source The object which sent the {@code DataObjectEvent}.
-     * @param dataObject The target {@link DataAccessObject}.
+     * @param dataObject The target {@link DbRecordBase}.
      * @param changeType The {@link DbChangeType} value indicating the type of change event that occurred.
      * @param eventType The event type.
      */
@@ -93,9 +93,9 @@ public class DataObjectEvent<T extends DataAccessObject> extends Event {
     }
 
     /**
-     * Gets the {@link DataAccessObject} that was affected.
+     * Gets the {@link DbRecordBase} that was affected.
      *
-     * @return The {@link DataAccessObject} instance that was affected.
+     * @return The {@link DbRecordBase} instance that was affected.
      */
     @Override
     @SuppressWarnings("unchecked")

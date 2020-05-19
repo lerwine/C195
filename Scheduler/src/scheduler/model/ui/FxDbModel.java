@@ -3,6 +3,7 @@ package scheduler.model.ui;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import scheduler.dao.DAO;
+import scheduler.model.DataRecord;
 
 /**
  * A UI {@code DataModel} with bindable JavaFX properties and a backing data access object.

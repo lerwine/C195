@@ -9,7 +9,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.RelatedModel;
+import scheduler.model.ui.RelatedModel;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.CountryDbItem;
 

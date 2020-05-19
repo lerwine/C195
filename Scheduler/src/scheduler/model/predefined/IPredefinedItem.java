@@ -1,7 +1,6 @@
 package scheduler.model.predefined;
 
 import scheduler.model.DataModel;
-import scheduler.model.RelatedRecord;
 
 /**
  *

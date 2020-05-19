@@ -11,7 +11,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICustomerDAO;
-import scheduler.model.RelatedModel;
+import scheduler.model.ui.RelatedModel;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.RelatedAddress;

@@ -1,12 +1,14 @@
 package scheduler.model;
 
+import java.io.Serializable;
+
 /**
  * Interface for objects that contain either partial or complete information from the {@code appointment} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of object for date/time values
  */
-public interface Appointment<T extends Comparable<? super T>> extends DataModel {
+public interface Appointment<T extends Serializable & Comparable<? super T>> extends DataModel {
 
     public static boolean arePropertiesEqual(Appointment<?> a, Appointment<?> b) {
         if (null == a) {

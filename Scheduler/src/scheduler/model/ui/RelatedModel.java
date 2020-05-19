@@ -1,4 +1,4 @@
-package scheduler.model;
+package scheduler.model.ui;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -7,9 +7,9 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import scheduler.dao.DAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.model.ui.FxDbModel;
+import scheduler.dao.DbRecordBase;
+import scheduler.model.DataRecord;
 import scheduler.observables.RowStateProperty;
 import scheduler.util.IPropertyBindable;
 
@@ -38,18 +38,18 @@ public abstract class RelatedModel<T extends DAO> implements FxDbModel<T> {
             d.addPropertyChangeListener((evt) -> {
                 String propertyName = evt.getPropertyName();
                 switch (propertyName) {
-                    case DataAccessObject.PROP_CREATEDATE:
-                    case DataAccessObject.PROP_CREATEDBY:
-                    case DataAccessObject.PROP_LASTMODIFIEDBY:
-                    case DataAccessObject.PROP_LASTMODIFIEDDATE:
+                    case DbRecordBase.PROP_CREATEDATE:
+                    case DbRecordBase.PROP_CREATEDBY:
+                    case DbRecordBase.PROP_LASTMODIFIEDBY:
+                    case DbRecordBase.PROP_LASTMODIFIEDDATE:
                         break;
-                    case DataAccessObject.PROP_PRIMARYKEY:
+                    case DbRecordBase.PROP_PRIMARYKEY:
                         Object i = evt.getNewValue();
                         if (null != i && i instanceof Integer) {
                             primaryKey.set((int) i);
                         }
                         break;
-                    case DataAccessObject.PROP_ROWSTATE:
+                    case DbRecordBase.PROP_ROWSTATE:
                         Object rs = evt.getNewValue();
                         if (null != rs && rs instanceof DataRowState) {
                             rowState.set((DataRowState) rs);

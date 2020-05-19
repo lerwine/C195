@@ -19,8 +19,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.util.Pair;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DbRecordBase;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.DataRecord;
 import scheduler.model.ModelHelper;
@@ -30,10 +30,10 @@ import scheduler.view.ModelFilter;
 import scheduler.view.task.WaitBorderPane;
 
 /**
- * Java FX object model for a {@link DataAccessObject} object.
+ * Java FX object model for a {@link DbRecordBase} object.
  * <dl>
  * <dt>{@link ItemModel.ModelFactory}</dt><dd>Base factory class for {@link FxDbModel} objects.</dd>
- * <dt>{@link scheduler.dao.DataAccessObject}</dt><dd>Base class for corresponding data access objects.</dd>
+ * <dt>{@link scheduler.dao.DbRecordBase}</dt><dd>Base class for corresponding data access objects.</dd>
  * </dl>
  * Entity-specific extensions:
  * <ul>
@@ -45,9 +45,9 @@ import scheduler.view.task.WaitBorderPane;
  * </ul>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
+ * @param <T> The type of {@link DbRecordBase} to be used for data access operations.
  */
-public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T>, DataRecord<LocalDateTime> {
+public abstract class FxRecordModel<T extends DbRecordBase> implements IFxRecordModel<T>, DataRecord<LocalDateTime> {
 
     private final ReadOnlyObjectWrapper<T> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
@@ -62,7 +62,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     /**
      * Initializes a new ModelBase object.
      *
-     * @param dao The {@link DataAccessObject} to be used for data access operations.
+     * @param dao The {@link DbRecordBase} to be used for data access operations.
      */
     protected FxRecordModel(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {
@@ -175,22 +175,22 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         T dao = dataObject.get();
         String propertyName = evt.getPropertyName();
         switch (propertyName) {
-            case DataAccessObject.PROP_CREATEDATE:
+            case DbRecordBase.PROP_CREATEDATE:
                 createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
                 break;
-            case DataAccessObject.PROP_CREATEDBY:
+            case DbRecordBase.PROP_CREATEDBY:
                 createdBy.set(dao.getCreatedBy());
                 break;
-            case DataAccessObject.PROP_LASTMODIFIEDBY:
+            case DbRecordBase.PROP_LASTMODIFIEDBY:
                 lastModifiedBy.set(dao.getLastModifiedBy());
                 break;
-            case DataAccessObject.PROP_LASTMODIFIEDDATE:
+            case DbRecordBase.PROP_LASTMODIFIEDDATE:
                 lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
                 break;
-            case DataAccessObject.PROP_PRIMARYKEY:
+            case DbRecordBase.PROP_PRIMARYKEY:
                 primaryKey.set(dao.getPrimaryKey());
                 break;
-            case DataAccessObject.PROP_ROWSTATE:
+            case DbRecordBase.PROP_ROWSTATE:
                 DataRowState rs = dao.getRowState();
                 rowState.set(rs);
                 if (newItem.get()) {
@@ -247,17 +247,17 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         return null != model && dataObject.get().equals(model);
     }
 
-    public static abstract class ModelFactory<T extends DataAccessObject, U extends FxRecordModel<T>> {
+    public static abstract class ModelFactory<T extends DbRecordBase, U extends FxRecordModel<T>> {
 
-        public abstract DataAccessObject.DaoFactory<T> getDaoFactory();
+        public abstract DbRecordBase.DaoFactory<T> getDaoFactory();
 
         public abstract U createNew(T dao);
 
         /**
-         * Applies changes made in the {@link FxRecordModel} to the underlying {@link DataAccessObject}.
+         * Applies changes made in the {@link FxRecordModel} to the underlying {@link DbRecordBase}.
          *
          * @param item The model item.
-         * @return The {@link DataAccessObject} with changes applied.
+         * @return The {@link DbRecordBase} with changes applied.
          */
         public abstract T updateDAO(U item);
 
@@ -266,10 +266,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getDefaultFilter();
 
         /**
-         * Updates the {@link FxRecordModel} with changes from a {@link DataAccessObject}.
+         * Updates the {@link FxRecordModel} with changes from a {@link DbRecordBase}.
          *
          * @param item The {@link FxRecordModel} to be updated.
-         * @param updatedDao The source {@link DataAccessObject}.
+         * @param updatedDao The source {@link DbRecordBase}.
          */
         public final void updateItem(U item, T updatedDao) {
             T currentDao = item.getDataObject();
@@ -286,7 +286,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
                 Consumer<Throwable> onFail) {
-            DataAccessObject.DaoFactory<T> factory = getDaoFactory();
+            DbRecordBase.DaoFactory<T> factory = getDaoFactory();
             factory.loadAsync(waitBorderPane, filter, (t) -> {
                 ArrayList<U> newItems = new ArrayList<>();
                 t.forEach((u) -> {
@@ -315,7 +315,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         public final void loadAsync(DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
                 Consumer<Throwable> onFail) {
-            DataAccessObject.DaoFactory<T> factory = getDaoFactory();
+            DbRecordBase.DaoFactory<T> factory = getDaoFactory();
             factory.loadAsync(filter, (t) -> {
                 ArrayList<U> newItems = new ArrayList<>();
                 t.forEach((u) -> {
@@ -371,7 +371,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     @FunctionalInterface
-    public interface PropertyValueExporter<T extends FxRecordModel<? extends DataAccessObject>> {
+    public interface PropertyValueExporter<T extends FxRecordModel<? extends DbRecordBase>> {
 
         Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
     }

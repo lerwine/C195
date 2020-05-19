@@ -9,12 +9,15 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
-import scheduler.dao.CityDAO;
-import scheduler.dao.ICityDAO;
+import scheduler.dao.CityDbRecord;
+import scheduler.dao.DbRecord;
+import scheduler.dao.DbRecordBase;
+import scheduler.dao.ICountryDAO;
 import scheduler.model.City;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.IFxRecordModel;
 import scheduler.observables.NestedStringProperty;
+import scheduler.util.DB;
 
 /**
  * Represents a pre-defined city that is loaded with the application.
@@ -23,7 +26,7 @@ import scheduler.observables.NestedStringProperty;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedCity extends PredefinedItem implements IFxRecordModel<CityDAO>, CityItem, City {
+public class PredefinedCity extends PredefinedItem implements IFxRecordModel, CityItem, City {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper resourceKey;
@@ -32,9 +35,15 @@ public class PredefinedCity extends PredefinedItem implements IFxRecordModel<Cit
     private final ReadOnlyObjectWrapper<PredefinedCountry> country;
     private final ReadOnlyListWrapper<PredefinedAddress> addresses;
     private final NestedStringProperty<PredefinedCountry> countryName;
-    private ICityDAO dao = null;
+    private final ReadOnlyObjectWrapper<CityDbRecord> dataObject;
+    private final PredefinedDataProperty<PredefinedCity> predefinedData;
+    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
+    private final ReadOnlyStringWrapper createdBy;
+    private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
+    private final ReadOnlyStringWrapper lastModifiedBy;
 
     PredefinedCity(CityElement source, PredefinedCountry country, ObservableList<PredefinedAddress> addresses) {
+        PlaceHolderDAO dao = new PlaceHolderDAO();
         String key = source.getKey();
         name = new ReadOnlyStringWrapper(this, "name", PredefinedData.getCityDisplayName(key));
         resourceKey = new ReadOnlyStringWrapper(this, "resourceKey", key);
@@ -43,6 +52,51 @@ public class PredefinedCity extends PredefinedItem implements IFxRecordModel<Cit
         this.addresses = new ReadOnlyListWrapper<>(this, "addresses", addresses);
         countryName = new NestedStringProperty<>(this, "countryName", this.country, (t) -> t.nameProperty());
         language = new ReadOnlyStringWrapper(this, "language", country.getLanguage());
+        predefinedData = new PredefinedDataProperty<>(this);
+        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
+        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.toLocalDateTime(dao.getCreateDate()));
+        createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
+        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.toLocalDateTime(dao.getLastModifiedDate()));
+        lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
+        dataObject.addListener(this::dataObjectChanged);
+    }
+
+    @Override
+    protected void onDataObjectChanged(DbRecord newValue) {
+        LocalDateTime d = DB.toLocalDateTime(newValue.getCreateDate());
+        if (!d.equals(createDate.get())) {
+            createDate.set(d);
+        }
+        String s = newValue.getCreatedBy();
+        if (!s.equals(createdBy.get())) {
+            createdBy.set(s);
+        }
+        d = DB.toLocalDateTime(newValue.getLastModifiedDate());
+        if (!d.equals(lastModifiedDate.get())) {
+            lastModifiedDate.set(d);
+        }
+        s = newValue.getLastModifiedBy();
+        if (!s.equals(lastModifiedBy.get())) {
+            lastModifiedBy.set(s);
+        }
+    }
+
+    @Override
+    protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
+        switch (propertyName) {
+            case DbRecordBase.PROP_CREATEDATE:
+                createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
+                break;
+            case DbRecordBase.PROP_CREATEDBY:
+                createdBy.set(dao.getCreatedBy());
+                break;
+            case DbRecordBase.PROP_LASTMODIFIEDBY:
+                lastModifiedBy.set(dao.getLastModifiedBy());
+                break;
+            case DbRecordBase.PROP_LASTMODIFIEDDATE:
+                lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
+                break;
+        }
     }
 
     @Override
@@ -132,38 +186,77 @@ public class PredefinedCity extends PredefinedItem implements IFxRecordModel<Cit
     }
 
     @Override
+    public LocalDateTime getCreateDate() {
+        return createDate.get();
+    }
+
+    @Override
     public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#createDateProperty
+        return createDate.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getCreatedBy() {
+        return createdBy.get();
     }
 
     @Override
     public ReadOnlyStringProperty createdByProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#createdByProperty
+        return createdBy.getReadOnlyProperty();
+    }
+
+    @Override
+    public LocalDateTime getLastModifiedDate() {
+        return lastModifiedDate.get();
     }
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#lastModifiedDateProperty
+        return lastModifiedDate.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getLastModifiedBy() {
+        return lastModifiedBy.get();
     }
 
     @Override
     public ReadOnlyStringProperty lastModifiedByProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#lastModifiedByProperty
+        return lastModifiedBy.getReadOnlyProperty();
     }
 
     @Override
-    public CityDAO getDataObject() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#getDataObject
+    public CityDbRecord getDataObject() {
+        return dataObject.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<? extends CityDAO> dataObjectProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#dataObjectProperty
+    public ReadOnlyObjectProperty<? extends CityDbRecord> dataObjectProperty() {
+        return dataObject.getReadOnlyProperty();
     }
 
     @Override
     public ReadOnlyObjectProperty<PredefinedCity> predefinedDataProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedCity#predefinedDataProperty
+        return predefinedData;
+    }
+
+    class PlaceHolderDAO extends BasePlaceHolderDAO implements CityDbRecord {
+
+        @Override
+        public ICountryDAO getCountry() {
+            return PredefinedCity.this.getCountry().getDataObject();
+        }
+
+        @Override
+        public String getName() {
+            return PredefinedCity.this.getName();
+        }
+
+        @Override
+        public PredefinedCity getPredefinedData() {
+            return PredefinedCity.this;
+        }
+
     }
 
 }

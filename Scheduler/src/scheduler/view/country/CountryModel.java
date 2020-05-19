@@ -12,7 +12,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;

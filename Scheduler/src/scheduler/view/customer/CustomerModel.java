@@ -10,7 +10,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.model.ModelHelper;

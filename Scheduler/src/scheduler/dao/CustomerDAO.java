@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -20,9 +21,10 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.model.Customer;
-import scheduler.model.ModelHelper;
 import scheduler.model.Address;
+import scheduler.model.Customer;
+import scheduler.model.CustomerRecord;
+import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
@@ -33,7 +35,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CUSTOMER)
-public final class CustomerDAO extends DataAccessObject implements ICustomerDAO {
+public final class CustomerDAO extends DbRecordBase implements ICustomerDAO, CustomerRecord<Timestamp> {
 
     public static final int MAX_LENGTH_NAME = 45;
 
@@ -140,7 +142,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
     /**
      * Factory implementation for {@link scheduler.model.db.Customer} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
+    public static final class FactoryImpl extends DbRecordBase.DaoFactory<CustomerDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

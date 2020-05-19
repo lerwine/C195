@@ -1,21 +1,21 @@
 package scheduler.model.predefined;
 
+import com.sun.javafx.binding.ExpressionHelper;
+import java.beans.PropertyChangeEvent;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import scheduler.dao.DAO;
-import scheduler.dao.DataAccessObject;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import scheduler.dao.DataRowState;
-import scheduler.dao.IDataAccessObject;
-import scheduler.dao.ValidationResult;
-import scheduler.model.DataRecord;
-import scheduler.model.ui.FxDbModel;
+import scheduler.dao.DbRecord;
+import scheduler.dao.DbRecordBase;
 import scheduler.model.ui.FxModel;
 import scheduler.util.DB;
 import scheduler.util.PropertyBindable;
@@ -72,10 +72,88 @@ public abstract class PredefinedItem implements FxModel, IPredefinedItem {
         return valid.getReadOnlyProperty();
     }
 
-    protected class BasePlaceHolderDAO extends PropertyBindable implements IDataAccessObject {
+    private void onDaoPropertyChange(PropertyChangeEvent evt) {
+        DbRecord dao = (DbRecord) evt.getSource();
+        String propertyName = evt.getPropertyName();
+        switch (propertyName) {
+            case DbRecordBase.PROP_PRIMARYKEY:
+                primaryKey.set(dao.getPrimaryKey());
+                break;
+            case DbRecordBase.PROP_ROWSTATE:
+                DataRowState rs = dao.getRowState();
+                rowState.set(rs);
+                break;
+            default:
+                onDaoPropertyChanged(dao, propertyName);
+                break;
+        }
+    }
+
+    protected abstract void onDaoPropertyChanged(DbRecord dao, String propertyName);
+
+    protected abstract void onDataObjectChanged(DbRecord dao);
+
+    protected <T extends DbRecord> void dataObjectChanged(ObservableValue<? extends T> observable, T oldValue, T newValue) {
+        if (!(oldValue instanceof PredefinedItem)) {
+            oldValue.removePropertyChangeListener(this::onDaoPropertyChange);
+        }
+        if (!(newValue instanceof PredefinedItem)) {
+            newValue.addPropertyChangeListener(this::onDaoPropertyChange);
+        }
+        primaryKey.set(newValue.getPrimaryKey());
+        rowState.set(newValue.getRowState());
+        onDataObjectChanged(newValue);
+    }
+
+    protected static class PredefinedDataProperty<T extends PredefinedItem> extends ReadOnlyObjectProperty<T> {
+
+        private ExpressionHelper<T> helper = null;
+        private final T value;
+
+        PredefinedDataProperty(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public T get() {
+            return value;
+        }
+
+        @Override
+        public void addListener(ChangeListener<? super T> listener) {
+            helper = ExpressionHelper.addListener(helper, this, listener);
+        }
+
+        @Override
+        public void removeListener(ChangeListener<? super T> listener) {
+            helper = ExpressionHelper.removeListener(helper, listener);
+        }
+
+        @Override
+        public void addListener(InvalidationListener listener) {
+            helper = ExpressionHelper.addListener(helper, this, listener);
+        }
+
+        @Override
+        public void removeListener(InvalidationListener listener) {
+            helper = ExpressionHelper.removeListener(helper, listener);
+        }
+
+        @Override
+        public Object getBean() {
+            return value;
+        }
+
+        @Override
+        public String getName() {
+            return "predefinedData";
+        }
+    }
+
+    protected class BasePlaceHolderDAO extends PropertyBindable implements DbRecord {
 
         private final Timestamp TS = DB.toUtcTimestamp(LocalDateTime.now());
-        
+
         @Override
         public int getPrimaryKey() {
             return Integer.MIN_VALUE;
@@ -110,7 +188,7 @@ public abstract class PredefinedItem implements FxModel, IPredefinedItem {
         public boolean isExisting() {
             return false;
         }
-        
+
     }
-    
+
 }

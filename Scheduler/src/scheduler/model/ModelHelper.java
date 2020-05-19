@@ -3,12 +3,10 @@ package scheduler.model;
 import com.sun.javafx.binding.ExpressionHelper;
 import java.util.Objects;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ChangeListener;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DbRecordBase;
 import scheduler.model.predefined.PredefinedItem;
 import scheduler.model.ui.FxRecordModel;
 
@@ -21,6 +19,7 @@ public class ModelHelper {
 
     final static ReadOnlyBooleanProperty VALIDPROPERTY = new ReadOnlyBooleanProperty() {
         private ExpressionHelper<Boolean> helper = null;
+
         @Override
         public boolean get() {
             return true;
@@ -55,8 +54,9 @@ public class ModelHelper {
         public String getName() {
             return "valid";
         }
-        
+
     };
+
     /**
      * Tests whether two {@link DataModel} objects represent the same database entity.
      *
@@ -77,7 +77,7 @@ public class ModelHelper {
         }
         if (existsInDatabase(a)) {
             if (existsInDatabase(b)) {
-                return ((RelatedRecord) a).getPrimaryKey() == ((RelatedRecord) b).getPrimaryKey();
+                return a.getPrimaryKey() == b.getPrimaryKey();
             }
         } else if (!existsInDatabase(b)) {
             if (a instanceof Appointment) {
@@ -117,7 +117,7 @@ public class ModelHelper {
         if (obj instanceof PredefinedItem) {
             return DataRowState.NEW;
         }
-        return (obj instanceof RelatedRecord) ? DataRowState.UNMODIFIED : DataRowState.NEW;
+        return DataRowState.UNMODIFIED;
     }
 
     /**
@@ -130,7 +130,7 @@ public class ModelHelper {
      */
     public static int getPrimaryKey(DataModel obj) {
         if (existsInDatabase(obj)) {
-            return ((RelatedRecord) obj).getPrimaryKey();
+            return obj.getPrimaryKey();
         }
         return Integer.MIN_VALUE;
     }
@@ -146,44 +146,44 @@ public class ModelHelper {
                         return false;
                 }
             }
-            return obj instanceof RelatedRecord;
+            return true;
         }
         return false;
     }
 
     /**
-     * Asserts that the properties of a {@link DataAccessObject} can be applied to a {@link FxRecordModel}.
-     * 
-     * @param <T> The {@link DataAccessObject} type.
+     * Asserts that the properties of a {@link DbRecordBase} can be applied to a {@link FxRecordModel}.
+     *
+     * @param <T> The {@link DbRecordBase} type.
      * @param <U> The {@link FxRecordModel} type.
-     * @param source The source {@link DataAccessObject}.
+     * @param source The source {@link DbRecordBase}.
      * @param targetFxModel The target {@link FxRecordModel}.
      * @return The target {@link FxRecordModel}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>> U requiredAssignable(T source, U targetFxModel) {
+    public static <T extends DbRecordBase, U extends FxRecordModel<T>> U requiredAssignable(T source, U targetFxModel) {
         Objects.requireNonNull(source);
-        if (null != targetFxModel && targetFxModel.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW ||
-                targetFxModel.getPrimaryKey() != source.getPrimaryKey())) {
+        if (null != targetFxModel && targetFxModel.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
+                || targetFxModel.getPrimaryKey() != source.getPrimaryKey())) {
             throw new IllegalArgumentException("Objects do not represent the same database entity");
         }
         return targetFxModel;
     }
 
     /**
-     * Asserts that the properties of a {@link FxRecordModel} can be applied to a {@link DataAccessObject}.
-     * 
+     * Asserts that the properties of a {@link FxRecordModel} can be applied to a {@link DbRecordBase}.
+     *
      * @param <T> The {@link FxRecordModel} type.
-     * @param <U> The {@link DataAccessObject} type.
+     * @param <U> The {@link DbRecordBase} type.
      * @param source The source {@link FxRecordModel}.
-     * @param targetDataAccessObject The target {@link DataAccessObject}.
-     * @return The target {@link DataAccessObject}.
+     * @param targetDataAccessObject The target {@link DbRecordBase}.
+     * @return The target {@link DbRecordBase}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends FxRecordModel<U>, U extends DataAccessObject> U requiredAssignable(T source, U targetDataAccessObject) {
+    public static <T extends FxRecordModel<U>, U extends DbRecordBase> U requiredAssignable(T source, U targetDataAccessObject) {
         Objects.requireNonNull(source);
-        if (null != targetDataAccessObject && targetDataAccessObject.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW ||
-                targetDataAccessObject.getPrimaryKey() != source.getPrimaryKey())) {
+        if (null != targetDataAccessObject && targetDataAccessObject.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
+                || targetDataAccessObject.getPrimaryKey() != source.getPrimaryKey())) {
             throw new IllegalArgumentException("Objects do not represent the same database entity");
         }
         return targetDataAccessObject;

@@ -15,7 +15,7 @@ import javafx.beans.property.StringProperty;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;

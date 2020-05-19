@@ -63,7 +63,7 @@ import scheduler.view.task.WaitBorderPane;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements IDataAccessObject, EventTarget {
+public abstract class DbRecordBase extends PropertyBindable implements DbRecord, EventTarget {
 
     /**
      * The name of the 'primaryKey' property.
@@ -100,7 +100,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
     /**
      * Initializes a {@link DataRowState#NEW} data access object.
      */
-    protected DataAccessObject() {
+    protected DbRecordBase() {
         primaryKey = Integer.MIN_VALUE;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
@@ -224,7 +224,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         return Scheduler.buildMainControllerEventDispatchChain(tail);
     }
 
-    private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
+    private static class LoadTask<T extends DbRecordBase> extends Task<List<T>> {
 
         private final DaoFactory<T> factory;
         private final DaoFilter<T> filter;
@@ -278,9 +278,9 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * <li>{@link CountryDAO.FactoryImpl}</li>
      * </ul>
      *
-     * @param <T> The type of {@link DataAccessObject} object supported.
+     * @param <T> The type of {@link DbRecordBase} object supported.
      */
-    public static abstract class DaoFactory<T extends DataAccessObject> {
+    public static abstract class DaoFactory<T extends DbRecordBase> {
 
         private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
 
@@ -322,7 +322,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Asynchronously loads {@link DataAccessObject} objects from the database.
+         * Asynchronously loads {@link DbRecordBase} objects from the database.
          *
          * @param waitBorderPane The {@link WaitBorderPane} on which to show the busy indicator.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
@@ -356,9 +356,9 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Creates a new {@link DataAccessObject} object.
+         * Creates a new {@link DbRecordBase} object.
          *
-         * @return A newly constructed {@link DataAccessObject} object.
+         * @return A newly constructed {@link DbRecordBase} object.
          */
         public abstract T createNew();
 
@@ -370,9 +370,9 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         public abstract DaoFilter<T> getAllItemsFilter();
 
         /**
-         * Completes property initialization for a {@link DataAccessObject}.
+         * Completes property initialization for a {@link DbRecordBase}.
          *
-         * @param dao The {@link DataAccessObject} to be initialized.
+         * @param dao The {@link DbRecordBase} to be initialized.
          * @param rs The {@link ResultSet} to read from.
          * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
          * implementing classes to set fields directly and defer property change events. This value can be {@code null} if it is not applicable.
@@ -381,33 +381,33 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
 
         /**
-         * Gets the {@link DbTable} for the supported {@link DataAccessObject}.
+         * Gets the {@link DbTable} for the supported {@link DbRecordBase}.
          *
-         * @return The {@link DbTable} for the supported {@link DataAccessObject}.
+         * @return The {@link DbTable} for the supported {@link DbRecordBase}.
          */
         public DbTable getDbTable() {
             return AnnotationHelper.getDbTable(getDaoClass());
         }
 
         /**
-         * Gets the primary key {@link DbColumn} for the supported {@link DataAccessObject}.
+         * Gets the primary key {@link DbColumn} for the supported {@link DbRecordBase}.
          *
-         * @return The primary key {@link DbColumn} for the supported {@link DataAccessObject}.
+         * @return The primary key {@link DbColumn} for the supported {@link DbRecordBase}.
          */
         public final DbColumn getPrimaryKeyColumn() {
             return SchemaHelper.getPrimaryKey(AnnotationHelper.getDbTable(getDaoClass()));
         }
 
         /**
-         * Initializes the properties of a {@link DataAccessObject} from a {@link ResultSet}. This method will call
+         * Initializes the properties of a {@link DbRecordBase} from a {@link ResultSet}. This method will call
          * {@link #onInitializeFromResultSet(DataAccessObject, ResultSet)} for implementing classes to finish property initialization.
          *
-         * @param dao The {@link DataAccessObject} to be initialized.
+         * @param dao The {@link DbRecordBase} to be initialized.
          * @param rs The {@link ResultSet} to read from.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected final void initializeFromResultSet(T dao, ResultSet rs) throws SQLException {
-            DataAccessObject obj = (DataAccessObject) dao;
+            DbRecordBase obj = (DbRecordBase) dao;
 
             PropertyStateInfo propertyChangeInfo = null;
             Consumer<PropertyChangeSupport> consumer = null;
@@ -436,9 +436,9 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Gets the {@link Class} for the target {@link DataAccessObject} type.
+         * Gets the {@link Class} for the target {@link DbRecordBase} type.
          *
-         * @return The {@link Class} for the target {@link DataAccessObject} type.
+         * @return The {@link Class} for the target {@link DbRecordBase} type.
          */
         public abstract Class<? extends T> getDaoClass();
 
@@ -450,12 +450,12 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         public abstract DmlSelectQueryBuilder createDmlSelectQueryBuilder();
 
         /**
-         * Saves a {@link DataAccessObject} to the database if there are changes.
+         * Saves a {@link DbRecordBase} to the database if there are changes.
          * <p>
          * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
          * database conflict errors ahead of time and to get a descriptive message.</p>
          *
-         * @param dao The {@link DataAccessObject} to be inserted or updated.
+         * @param dao The {@link DbRecordBase} to be inserted or updated.
          * @param connection The database connection to use.
          * @throws SQLException If unable to perform the database operation.
          */
@@ -464,18 +464,18 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Saves a {@link DataAccessObject} to the database.
+         * Saves a {@link DbRecordBase} to the database.
          * <p>
          * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
          * database conflict errors ahead of time and to get a descriptive message.</p>
          *
-         * @param dao The {@link DataAccessObject} to be inserted or updated.
+         * @param dao The {@link DbRecordBase} to be inserted or updated.
          * @param connection The database connection to use.
          * @param force A {@code true} value will save changes to the database, even if {@link #rowState} is {@link DataRowState#UNMODIFIED}.
          * @throws SQLException If unable to perform the database operation.
          */
         public void save(T dao, Connection connection, boolean force) throws SQLException {
-            DataAccessObject dataObj = (DataAccessObject) dao;
+            DbRecordBase dataObj = (DbRecordBase) dao;
             PropertyStateInfo propertyChangeInfo = null;
             try {
                 synchronized (dao) {
@@ -486,7 +486,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
                     propertyChangeInfo = dataObj.getPropertyStateInfo();
                     Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
                     DbColumn[] columns;
-                    switch (((DataAccessObject) dao).rowState) {
+                    switch (((DbRecordBase) dao).rowState) {
                         case NEW:
                             sb = new StringBuilder();
                             sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (");
@@ -617,7 +617,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         /**
          * Sets the parameter value at the specified index from the value associated with the given {@link DbColumn}.
          *
-         * @param dao The {@link DataAccessObject} to retrieve the value from.
+         * @param dao The {@link DbRecordBase} to retrieve the value from.
          * @param dbColumn The {@link DbColumn} related to the value to apply.
          * @param ps The {@link PreparedStatement} to apply the value to.
          * @param index The index at which to apply the value.
@@ -634,11 +634,11 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         public abstract boolean isCompoundSelect();
 
         /**
-         * Retrieves the {@link DataAccessObject} from the database which matches the given primary key.
+         * Retrieves the {@link DbRecordBase} from the database which matches the given primary key.
          *
          * @param connection The database connection to use.
-         * @param pk The value of the primary key for the {@link DataAccessObject}.
-         * @return An {@link Optional} {@link DataAccessObject} which will be empty if no match was found.
+         * @param pk The value of the primary key for the {@link DbRecordBase}.
+         * @return An {@link Optional} {@link DbRecordBase} which will be empty if no match was found.
          * @throws SQLException If unable to perform the database operation.
          */
         public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
@@ -669,19 +669,19 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Deletes the corresponding {@link DataAccessObject} from the database.
+         * Deletes the corresponding {@link DbRecordBase} from the database.
          * <p>
          * {@link #getDeleteDependencyMessage(scheduler.dao.DataAccessObject, java.sql.Connection)} should be called before this method is invoked in
          * order to check for dependency errors ahead of time and to get a descriptive error message.</p>
          *
-         * @param dao The {@link DataAccessObject} to delete.
+         * @param dao The {@link DbRecordBase} to delete.
          * @param connection The database connection to use.
          * @throws SQLException If unable to perform the database operation.
          */
         public void delete(T dao, Connection connection) throws SQLException {
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
-            DataAccessObject dataObj = (DataAccessObject) dao;
+            DbRecordBase dataObj = (DbRecordBase) dao;
             PropertyStateInfo propertyChangeInfo = null;
             try {
                 synchronized (dao) {
@@ -712,11 +712,11 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Checks to see if the current {@link DataAccessObject} can safely be deleted from the database.
+         * Checks to see if the current {@link DbRecordBase} can safely be deleted from the database.
          *
-         * @param dao The {@link DataAccessObject} intended for deletion.
+         * @param dao The {@link DbRecordBase} intended for deletion.
          * @param connection The database connection to use.
-         * @return A user-friendly description of the reason that the {@link DataAccessObject} cannot be deleted or a null or empty string if it can
+         * @return A user-friendly description of the reason that the {@link DbRecordBase} cannot be deleted or a null or empty string if it can
          * be safely deleted.
          * @throws SQLException If unable to perform the database operation.
          */
@@ -725,21 +725,21 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         /**
          * Checks to see if any impending changes cause any database conflicts.
          *
-         * @param dao The target {@link DataAccessObject}.
+         * @param dao The target {@link DbRecordBase}.
          * @param connection The database connection to use.
-         * @return A user-friendly description of the reason that the changes to the {@link DataAccessObject} cannot be saved or a null or empty
+         * @return A user-friendly description of the reason that the changes to the {@link DbRecordBase} cannot be saved or a null or empty
          * string if it can be safely deleted.
          * @throws SQLException If unable to perform the database operation.
          */
         public abstract String getSaveDbConflictMessage(T dao, Connection connection) throws SQLException;
 
         /**
-         * Helper method that can be used to determine if a {@link DataAccessObject} object is supported by the current factory class.
+         * Helper method that can be used to determine if a {@link DbRecordBase} object is supported by the current factory class.
          *
-         * @param dao The {@link DataAccessObject} to test.
-         * @return {@code true} if the current factory supports the {@link DataAccessObject} type; otherwise, {@code false}.
+         * @param dao The {@link DbRecordBase} to test.
+         * @return {@code true} if the current factory supports the {@link DbRecordBase} type; otherwise, {@code false}.
          */
-        public final boolean isAssignableFrom(DataAccessObject dao) {
+        public final boolean isAssignableFrom(DbRecordBase dao) {
             return null != dao && getDaoClass().isAssignableFrom(dao.getClass());
         }
 

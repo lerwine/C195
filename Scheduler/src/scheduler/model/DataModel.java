@@ -3,7 +3,6 @@ package scheduler.model;
 /**
  * Base interface for all objects that represent a database entity.
  */
-// CURRENT: Rename to BusinessObject
 public interface DataModel {
     /**
      * Gets the value of the primary key for the current data object.

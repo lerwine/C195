@@ -5,7 +5,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.AddressModel;
@@ -14,15 +14,15 @@ import scheduler.view.city.CityModel;
 import scheduler.view.customer.CustomerModel;
 
 /**
- * Compares {@link DataAccessObject} and {@link FxRecordModel} to integer values.
+ * Compares {@link DbRecordBase} and {@link FxRecordModel} to integer values.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DataAccessObject} object.
+ * @param <T> The type of {@link DbRecordBase} object.
  * @param <U> The type of {@link FxRecordModel} object.
  */
-public interface ItemIntComparer<T extends DataAccessObject, U extends FxRecordModel<T>> {
+public interface ItemIntComparer<T extends DbRecordBase, U extends FxRecordModel<T>> {
 
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>> ItemIntComparer<T, U> of(ToIntFunction<T> getDaoValue, ToIntFunction<U> getModelValue) {
+    public static <T extends DbRecordBase, U extends FxRecordModel<T>> ItemIntComparer<T, U> of(ToIntFunction<T> getDaoValue, ToIntFunction<U> getModelValue) {
         return new ItemIntComparer<T, U>() {
             @Override
             public int get(T dao) {
@@ -36,7 +36,7 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends FxRecordM
         };
     }
 
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>> ItemIntComparer<T, U> forPrimaryKey() {
+    public static <T extends DbRecordBase, U extends FxRecordModel<T>> ItemIntComparer<T, U> forPrimaryKey() {
         return new ItemIntComparer<T, U>() {
             @Override
             public int get(T dao) {
@@ -111,10 +111,10 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends FxRecordM
     };
 
     /**
-     * Gets the integer value associated with the target {@link DataAccessObject}.
+     * Gets the integer value associated with the target {@link DbRecordBase}.
      *
-     * @param dao The target {@link DataAccessObject}.
-     * @return The integer value associated with the target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
+     * @return The integer value associated with the target {@link DbRecordBase}.
      */
     int get(T dao);
 
@@ -127,11 +127,11 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends FxRecordM
     int get(U model);
 
     /**
-     * Tests whether the value associated with a {@link DataAccessObject} object is equal to another value.
+     * Tests whether the value associated with a {@link DbRecordBase} object is equal to another value.
      *
-     * @param dao The target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DataAccessObject} object is equal to {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DbRecordBase} object is equal to {@code value}; otherwise, {@code false}.
      */
     default boolean test(T dao, int value) {
         return get(dao) == value;
@@ -149,20 +149,20 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends FxRecordM
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object with another value.
+     * Compares the value associated with a {@link DbRecordBase} object with another value.
      *
-     * @param dao The target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DbRecordBase} object is equal to {@code value}. If the value associated with a
+     * {@link DbRecordBase} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link DbRecordBase} object is greater than {@code value}.
      */
     default int compareTo(T dao, int value) {
         return Integer.compare(get(dao), value);
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object with another value.
+     * Compares the value associated with a {@link DbRecordBase} object with another value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.

@@ -3,16 +3,16 @@ package scheduler.dao.filter;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.function.Predicate;
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 
 /**
  * Base interface for DAO filter expressions.
- * This is used to generate DML conditional statements and as a filtering predicate for {@link DataAccessObject}s.
+ * This is used to generate DML conditional statements and as a filtering predicate for {@link DbRecordBase}s.
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DataAccessObject}.
+ * @param <T> The type of {@link DbRecordBase}.
  */
-public interface DaoFilterExpression<T extends DataAccessObject> extends Predicate<T> {
+public interface DaoFilterExpression<T extends DbRecordBase> extends Predicate<T> {
 
     /**
      * Append the conditional statement for a DML query that contains only one table.
@@ -34,7 +34,7 @@ public interface DaoFilterExpression<T extends DataAccessObject> extends Predica
         return false;
     }
 
-    public static <T extends DataAccessObject, U extends DaoFilterExpression<T>> U empty() {
+    public static <T extends DbRecordBase, U extends DaoFilterExpression<T>> U empty() {
         @SuppressWarnings("unchecked")
         U expr = (U) (new DaoFilterExpression<T>() {
             @Override
@@ -67,7 +67,7 @@ public interface DaoFilterExpression<T extends DataAccessObject> extends Predica
 
             @Override
             public boolean equals(Object obj) {
-                return null != obj && obj instanceof DaoFilterExpression && ((DaoFilterExpression<? extends DataAccessObject>) obj).isEmpty();
+                return null != obj && obj instanceof DaoFilterExpression && ((DaoFilterExpression<? extends DbRecordBase>) obj).isEmpty();
             }
         });
         return expr;

@@ -25,8 +25,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.dao.DataAccessObject;
-import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DbRecordBase;
+import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
@@ -63,11 +63,11 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> extends StackPane {
+public final class EditItem<T extends DbRecordBase, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
+    public static <T extends DbRecordBase, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -195,7 +195,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         getScene().getWindow().hide();
     }
 
-    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>> {
+    public interface ModelEditor<T extends DbRecordBase, U extends FxRecordModel<T>> {
 
         FxRecordModel.ModelFactory<T, U> modelFactory();
 

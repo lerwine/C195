@@ -3,18 +3,18 @@ package scheduler.dao.filter;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecordBase;
 import scheduler.util.DB;
 import scheduler.model.ui.FxRecordModel;
 
 /**
- * Compares {@link DataAccessObject} and {@link FxRecordModel} to {@link LocalDateTime}, {@link LocalDate} and {@link Timestamp} values.
+ * Compares {@link DbRecordBase} and {@link FxRecordModel} to {@link LocalDateTime}, {@link LocalDate} and {@link Timestamp} values.
  *
- * @param <T> The type of {@link DataAccessObject} object.
+ * @param <T> The type of {@link DbRecordBase} object.
  * @param <U> The type of {@link FxRecordModel} object.
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRecordModel<T>> extends ItemValueComparer<T, U, LocalDateTime> {
+public interface ItemTemporalComparer<T extends DbRecordBase, U extends FxRecordModel<T>> extends ItemValueComparer<T, U, LocalDateTime> {
 
     @Override
     public default LocalDateTime get(T dao) {
@@ -22,10 +22,10 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Gets the {@link Timestamp} value associated with the target {@link DataAccessObject}.
+     * Gets the {@link Timestamp} value associated with the target {@link DbRecordBase}.
      *
-     * @param dao The target {@link DataAccessObject}.
-     * @return The value associated with the target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
+     * @return The value associated with the target {@link DbRecordBase}.
      */
     Timestamp getTimestamp(T dao);
 
@@ -50,10 +50,10 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Gets the {@link LocalDate} value associated with the target {@link DataAccessObject}.
+     * Gets the {@link LocalDate} value associated with the target {@link DbRecordBase}.
      *
-     * @param dao The target {@link DataAccessObject}.
-     * @return The value associated with the target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
+     * @return The value associated with the target {@link DbRecordBase}.
      */
     default LocalDate getLocalDate(T dao) {
         return DB.toLocalDateTime(getTimestamp(dao)).toLocalDate();
@@ -80,13 +80,13 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object with a {@link LocalDateTime} value.
+     * Compares the value associated with a {@link DbRecordBase} object with a {@link LocalDateTime} value.
      *
-     * @param dao The target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DbRecordBase} object is equal to {@code value}. If the value associated with a
+     * {@link DbRecordBase} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link DbRecordBase} object is greater than {@code value}.
      */
     default int compareTo(T dao, LocalDateTime value) {
         LocalDateTime s = get(dao);
@@ -97,7 +97,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object a {@link LocalDateTime} value.
+     * Compares the value associated with a {@link DbRecordBase} object a {@link LocalDateTime} value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
@@ -114,13 +114,13 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object with a {@link LocalDate} value.
+     * Compares the value associated with a {@link DbRecordBase} object with a {@link LocalDate} value.
      *
-     * @param dao The target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DbRecordBase} object is equal to {@code value}. If the value associated with a
+     * {@link DbRecordBase} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link DbRecordBase} object is greater than {@code value}.
      */
     default int compareTo(T dao, LocalDate value) {
         LocalDate s = getLocalDate(dao);
@@ -131,7 +131,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object a {@link LocalDate} value.
+     * Compares the value associated with a {@link DbRecordBase} object a {@link LocalDate} value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
@@ -148,13 +148,13 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object with a {@link Timestamp} value.
+     * Compares the value associated with a {@link DbRecordBase} object with a {@link Timestamp} value.
      *
-     * @param dao The target {@link DataAccessObject}.
+     * @param dao The target {@link DbRecordBase}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DbRecordBase} object is equal to {@code value}. If the value associated with a
+     * {@link DbRecordBase} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link DbRecordBase} object is greater than {@code value}.
      */
     default int compareTo(T dao, Timestamp value) {
         Timestamp s = getTimestamp(dao);
@@ -165,7 +165,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     }
 
     /**
-     * Compares the value associated with a {@link DataAccessObject} object a {@link Timestamp} value.
+     * Compares the value associated with a {@link DbRecordBase} object a {@link Timestamp} value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.

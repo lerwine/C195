@@ -10,7 +10,6 @@ import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.ModelHelper;
-import scheduler.model.RelatedModel;
 import scheduler.observables.CalculatedStringExpression;
 import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
 import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;

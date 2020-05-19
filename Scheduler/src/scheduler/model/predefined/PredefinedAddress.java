@@ -8,8 +8,9 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.AddressDAO;
-import scheduler.dao.IAddressDAO;
+import scheduler.dao.AddressDbRecord;
+import scheduler.dao.DbRecord;
+import scheduler.dao.DbRecordBase;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.ui.AddressItem;
@@ -24,6 +25,7 @@ import scheduler.observables.NestedObjectValueProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.ObservableTriplet;
 import scheduler.observables.ObservableTuple;
+import scheduler.util.DB;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
@@ -33,7 +35,7 @@ import scheduler.util.Values;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<AddressDAO>, AddressItem, Address {
+public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<AddressDbRecord>, AddressItem, Address {
 
     private final ReadOnlyBooleanWrapper mainOffice;
     private final ReadOnlyStringWrapper address1;
@@ -49,10 +51,16 @@ public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<
     private final NestedObjectValueProperty<PredefinedCity, ZoneId> zoneId;
     private final ReadOnlyStringWrapper referenceKey;
     private final CalculatedStringProperty<Triplet<String, String, String>> multiLineAddress;
+    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
+    private final ReadOnlyStringWrapper createdBy;
+    private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
+    private final ReadOnlyStringWrapper lastModifiedBy;
 //    private DAO dao;
-    private final ReadOnlyObjectWrapper<AddressDAO> dataObject = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<AddressDbRecord> dataObject;
 
     PredefinedAddress(AddressElement source, PredefinedCity city) {
+        PlaceHolderDAO dao = new PlaceHolderDAO();
+        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
         referenceKey = new ReadOnlyStringWrapper(this, "referenceKey", source.getKey());
         mainOffice = new ReadOnlyBooleanWrapper(this, "mainOffice", source.isMainOffice());
         address1 = new ReadOnlyStringWrapper(this, "address1", source.getAddress1());
@@ -85,6 +93,49 @@ public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<
         );
         language = new NestedStringProperty<>(this, "language", this.city, (t) -> t.languageProperty());
         zoneId = new NestedObjectValueProperty<>(this, "zoneId", this.city, (t) -> t.zoneIdProperty());
+        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.toLocalDateTime(dao.getCreateDate()));
+        createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
+        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.toLocalDateTime(dao.getLastModifiedDate()));
+        lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
+        dataObject.addListener(this::dataObjectChanged);
+    }
+
+    @Override
+    protected void onDataObjectChanged(DbRecord newValue) {
+        LocalDateTime d = DB.toLocalDateTime(newValue.getCreateDate());
+        if (!d.equals(createDate.get())) {
+            createDate.set(d);
+        }
+        String s = newValue.getCreatedBy();
+        if (!s.equals(createdBy.get())) {
+            createdBy.set(s);
+        }
+        d = DB.toLocalDateTime(newValue.getLastModifiedDate());
+        if (!d.equals(lastModifiedDate.get())) {
+            lastModifiedDate.set(d);
+        }
+        s = newValue.getLastModifiedBy();
+        if (!s.equals(lastModifiedBy.get())) {
+            lastModifiedBy.set(s);
+        }
+    }
+
+    @Override
+    protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
+        switch (propertyName) {
+            case DbRecordBase.PROP_CREATEDATE:
+                createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
+                break;
+            case DbRecordBase.PROP_CREATEDBY:
+                createdBy.set(dao.getCreatedBy());
+                break;
+            case DbRecordBase.PROP_LASTMODIFIEDBY:
+                lastModifiedBy.set(dao.getLastModifiedBy());
+                break;
+            case DbRecordBase.PROP_LASTMODIFIEDDATE:
+                lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
+                break;
+        }
     }
 
     public String getReferenceKey() {
@@ -218,36 +269,57 @@ public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<
         return language.getReadOnlyStringProperty();
     }
 
-    public AddressDAO getDataObject() {
+    @Override
+    public AddressDbRecord getDataObject() {
         return dataObject.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<? extends AddressDAO> dataObjectProperty() {
+    public ReadOnlyObjectProperty<? extends AddressDbRecord> dataObjectProperty() {
         return dataObject.getReadOnlyProperty();
     }
 
     @Override
+    public LocalDateTime getCreateDate() {
+        return createDate.get();
+    }
+
+    @Override
     public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#createDateProperty
+        return createDate.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getCreatedBy() {
+        return createdBy.get();
     }
 
     @Override
     public ReadOnlyStringProperty createdByProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#createdByProperty
+        return createdBy.getReadOnlyProperty();
+    }
+
+    @Override
+    public LocalDateTime getLastModifiedDate() {
+        return lastModifiedDate.get();
     }
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#lastModifiedDateProperty
+        return lastModifiedDate.getReadOnlyProperty();
+    }
+
+    @Override
+    public String getLastModifiedBy() {
+        return lastModifiedBy.get();
     }
 
     @Override
     public ReadOnlyStringProperty lastModifiedByProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#lastModifiedByProperty
+        return lastModifiedBy.getReadOnlyProperty();
     }
 
-    class PlaceHolderDAO extends BasePlaceHolderDAO implements IAddressDAO {
+    class PlaceHolderDAO extends BasePlaceHolderDAO implements AddressDbRecord {
 
         @Override
         public ICityDAO getCity() {
