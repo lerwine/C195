@@ -214,6 +214,17 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         waitBorderPane.startNow(new ItemsLoadTask());
     }
 
+    // CURRENT: Update model from listeners
+    public boolean applyChangesToModel() {
+        PredefinedCountry value = countryNameComboBox.getValue();
+        if (null == value) {
+            return false;
+        }
+        model.setPredefinedData(value);
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
     private void onCountryNameChanged(Observable observable) {
         PredefinedCountry c = ((ReadOnlyObjectProperty<PredefinedCountry>) observable).get();
         if (null == c) {
@@ -222,7 +233,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         } else {
             valid.set(true);
             if (!model.isNewItem()) {
-                changed.set(!c.getRegionCode().equals(model.asPredefinedData().getRegionCode()));
+                changed.set(!c.getRegionCode().equals(model.getPredefinedData().getRegionCode()));
             }
         }
     }
@@ -281,16 +292,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @Override
     public FxRecordModel.ModelFactory<CountryDAO, CountryModel> modelFactory() {
         return CountryModel.getFactory();
-    }
-
-    @Override
-    public boolean applyChangesToModel() {
-        PredefinedCountry value = countryNameComboBox.getValue();
-        if (null == value) {
-            return false;
-        }
-        model.setPredefinedData(value);
-        return true;
     }
 
     @Override

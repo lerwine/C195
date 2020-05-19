@@ -38,6 +38,11 @@ import javafx.util.Pair;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalDateStringConverter;
 import scheduler.dao.DataAccessObject;
+import scheduler.model.Customer;
+import scheduler.model.User;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.UserItem;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
 import scheduler.util.ResourceBundleHelper;
@@ -45,14 +50,7 @@ import scheduler.util.TernarySelective;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.customer.CustomerModel;
-import scheduler.view.customer.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.view.user.UserModel;
-import scheduler.view.user.UserModel;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.UserItem;
 
 /**
  * Binding to validate date and time controls.
@@ -123,7 +121,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
                     assert s.getKey() instanceof ZonedDateTime : "Type check failure on secondary";
                     return s.getKey();
                 },
-                (u) -> (ZonedDateTime)null
+                (u) -> (ZonedDateTime) null
         ));
         conflictingAppointments.addListener(intermediary::invalidated);
         customer.addListener(intermediary::invalidated);
@@ -471,8 +469,8 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
                 int upk = su.getPrimaryKey();
                 while (iterator.hasNext()) {
                     AppointmentModel m = iterator.next();
-                    CustomerItem<? extends CustomerRowData> cm = m.getCustomer();
-                    UserItem<? extends UserRowData> um = m.getUser();
+                    CustomerItem<? extends Customer> cm = m.getCustomer();
+                    UserItem<? extends User> um = m.getUser();
                     if (null == cm || cm.getPrimaryKey() != cpk) {
                         uc++;
                     } else {

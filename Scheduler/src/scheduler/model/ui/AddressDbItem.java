@@ -1,12 +1,12 @@
 package scheduler.model.ui;
 
-import scheduler.model.db.AddressRowData;
+import scheduler.dao.IAddressDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface AddressDbItem<T extends AddressRowData> extends AddressItem, FxDbModel<T> {
+public interface AddressDbItem<T extends IAddressDAO> extends AddressItem, FxDbModel<T> {
 
 }

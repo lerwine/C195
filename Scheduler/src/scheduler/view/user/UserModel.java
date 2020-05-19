@@ -1,6 +1,8 @@
 package scheduler.view.user;
 
 import java.util.Objects;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -10,8 +12,10 @@ import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
-import scheduler.observables.UserStatusDisplayProperty;
+import scheduler.observables.CalculatedBooleanProperty;
+import scheduler.observables.ObservableTriplet;
 import scheduler.observables.UserStatusProperty;
+import scheduler.util.Triplet;
 
 /**
  *
@@ -28,14 +32,45 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     private final SimpleStringProperty userName;
     private final SimpleStringProperty password;
     private final UserStatusProperty status;
-    private final UserStatusDisplayProperty statusDisplay;
+    private final CalculatedBooleanProperty<Triplet<String, String, UserStatus>> valid;
 
     public UserModel(UserDAO dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
-        password = new ReadOnlyStringWrapper(this, "password", dao.getPassword());
+        password = new SimpleStringProperty(this, "password", dao.getPassword());
         status = new UserStatusProperty(this, "status", dao.getStatus());
-        statusDisplay = new UserStatusDisplayProperty(this, "statusDisplay", status);
+        valid = new CalculatedBooleanProperty<>(this, "valid", new ObservableTriplet<>(userName, password, status), (t) -> {
+            String s = t.getValue1();
+            if (null != s && !s.trim().isEmpty()) {
+                s = t.getValue2();
+                if (null != s && !s.trim().isEmpty()) {
+                    return null != t.getValue2();
+                }
+            }
+            return false;
+        });
+    }
+
+    @Override
+    protected void onDaoPropertyChanged(UserDAO dao, String propertyName) {
+        switch (propertyName) {
+            case UserDAO.PROP_PASSWORD:
+                password.set(dao.getPassword());
+                break;
+            case UserDAO.PROP_STATUS:
+                status.set(dao.getStatus());
+                break;
+            case UserDAO.PROP_USERNAME:
+                userName.set(dao.getUserName());
+                break;
+        }
+    }
+
+    @Override
+    protected void onDataObjectChanged(UserDAO dao) {
+        password.set(dao.getPassword());
+        setUserName(dao.getUserName());
+        setStatus(dao.getStatus());
     }
 
     @Override
@@ -80,12 +115,12 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
     @Override
     public String getStatusDisplay() {
-        return statusDisplay.get();
+        return status.getDisplayText();
     }
 
     @Override
-    public UserStatusDisplayProperty statusDisplayProperty() {
-        return statusDisplay;
+    public ReadOnlyStringProperty statusDisplayProperty() {
+        return status.displayTextProperty();
     }
 
     @Override
@@ -115,9 +150,22 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         return false;
     }
 
+    @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyBooleanProperty();
+    }
+
     public final static class Factory extends FxRecordModel.ModelFactory<UserDAO, UserModel> {
 
+        // Singleton
         private Factory() {
+            if (null != FACTORY)
+                throw new IllegalStateException();
         }
 
         @Override
@@ -128,14 +176,6 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         @Override
         public UserModel createNew(UserDAO dao) {
             return new UserModel(dao);
-        }
-
-        @Override
-        public void updateItem(UserModel item, UserDAO dao) {
-            super.updateItem(item, dao);
-            item.setPassword(dao.getPassword());
-            item.setUserName(dao.getUserName());
-            item.setStatus(dao.getStatus());
         }
 
         @Override
@@ -154,16 +194,8 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("User has been deleted");
             }
-            String name = item.userName.get();
-            if (name.trim().isEmpty()) {
-                throw new IllegalArgumentException("User name is empty");
-            }
-            String pwd = item.password.get();
-            if (name.trim().isEmpty()) {
-                throw new IllegalArgumentException("Password is empty");
-            }
-            dao.setUserName(name);
-            dao.setPassword(pwd);
+            dao.setUserName(item.userName.get());
+            dao.setPassword(item.password.get());
             dao.setStatus(item.getStatus());
             return dao;
         }

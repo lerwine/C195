@@ -23,8 +23,8 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.db.UserRowData;
 import scheduler.util.InternalException;
+import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -35,17 +35,17 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.USER)
-public class UserDAO extends DataAccessObject implements UserRowData {
+public final class UserDAO extends DataAccessObject implements IUserDAO {
 
     public static final int MAX_LENGTH_USERNAME = 50;
-    
+
     /**
      * The name of the 'userName' property.
      */
     public static final String PROP_USERNAME = "userName";
 
     public static final int MAX_LENGTH_PASSWORD = 50;
-    
+
     /**
      * The name of the 'password' property.
      */
@@ -75,19 +75,6 @@ public class UserDAO extends DataAccessObject implements UserRowData {
         userName = "";
         password = "";
         status = UserStatus.NORMAL;
-    }
-
-    @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (userName.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.NAME_EMPTY);
-        }
-        if (password.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.PASSWORD_EMPTY);
-        }
-        if (null == status) {
-            status = UserStatus.NORMAL;
-        }
     }
 
     @Override
@@ -233,7 +220,7 @@ public class UserDAO extends DataAccessObject implements UserRowData {
             return propertyChanges;
         }
 
-        UserRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+        IUserDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.APPOINTMENT_USER.toString()), asNonNullAndTrimmed(rs.getString(DbColumn.USER_NAME.toString())),
                     UserStatus.of(rs.getInt(DbColumn.STATUS.toString()), UserStatus.INACTIVE));
         }
@@ -329,7 +316,7 @@ public class UserDAO extends DataAccessObject implements UserRowData {
 
     }
 
-    private static final class Related implements UserRowData {
+    private static final class Related extends PropertyBindable implements IUserDAO {
 
         private final int primaryKey;
         private final String userName;

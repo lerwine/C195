@@ -53,6 +53,7 @@ public class UserDaoEvent extends DataObjectEvent<UserDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<UserDaoEvent> getEventType() {
         return (EventType<UserDaoEvent>) super.getEventType();
     }

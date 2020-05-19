@@ -1,20 +1,31 @@
 package scheduler.model.predefined;
 
-import javafx.beans.binding.StringBinding;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import scheduler.model.db.AddressRowData;
+import scheduler.dao.AddressDAO;
+import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
+import scheduler.model.Address;
 import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.IFxRecordModel;
 import scheduler.observables.AddressTextProperty;
-import scheduler.observables.CityZipCountryProperty;
-import scheduler.observables.NestedStringBindingProperty;
+import scheduler.observables.CalculatedStringExpression;
+import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
+import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;
+import static scheduler.observables.CalculatedStringExpression.calculateMultiLineAddress;
+import scheduler.observables.CalculatedStringProperty;
+import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedStringProperty;
+import scheduler.observables.ObservableTriplet;
+import scheduler.observables.ObservableTuple;
+import scheduler.util.Triplet;
+import scheduler.util.Tuple;
 import scheduler.util.Values;
 
 /**
@@ -22,34 +33,58 @@ import scheduler.util.Values;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedAddress extends PredefinedItem implements AddressItem, AddressRowData {
+public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<AddressDAO>, AddressItem, Address {
 
     private final ReadOnlyBooleanWrapper mainOffice;
     private final ReadOnlyStringWrapper address1;
     private final ReadOnlyStringWrapper address2;
-    private final AddressLinesProperty addressLines;
+    private final CalculatedStringProperty<Tuple<String, String>> addressLines;
     private final ReadOnlyObjectWrapper<PredefinedCity> city;
-    private final NestedStringBindingProperty<PredefinedCity> cityName;
-    private final NestedStringBindingProperty<PredefinedCity> countryName;
+    private final NestedStringProperty<PredefinedCity> cityName;
+    private final NestedStringProperty<PredefinedCity> countryName;
     private final ReadOnlyStringWrapper postalCode;
     private final ReadOnlyStringWrapper phone;
-    private final CityZipCountryProperty cityZipCountry;
+    private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
+    private final NestedStringProperty<PredefinedCity> language;
+    private final NestedObjectValueProperty<PredefinedCity, ZoneId> zoneId;
     private final ReadOnlyStringWrapper referenceKey;
-    private final StringBinding multiLineAddress;
+    private final CalculatedStringProperty<Triplet<String, String, String>> multiLineAddress;
+//    private DAO dao;
+    private final ReadOnlyObjectWrapper<AddressDAO> dataObject = new ReadOnlyObjectWrapper<>();
 
     PredefinedAddress(AddressElement source, PredefinedCity city) {
         referenceKey = new ReadOnlyStringWrapper(this, "referenceKey", source.getKey());
         mainOffice = new ReadOnlyBooleanWrapper(this, "mainOffice", source.isMainOffice());
         address1 = new ReadOnlyStringWrapper(this, "address1", source.getAddress1());
         address2 = new ReadOnlyStringWrapper(this, "address2", source.getAddress2());
-        addressLines = new AddressLinesProperty();
+        addressLines = new CalculatedStringProperty<>(this, "addressLines",
+                new ObservableTuple<>(
+                        new CalculatedStringExpression<>(address1, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(address2, Values::asNonNullAndWsNormalized)
+                ), (t) -> calculateAddressLines(t.getValue1(), t.getValue2())
+        );
         this.city = new ReadOnlyObjectWrapper<>(this, "city", city);
-        cityName = new NestedStringBindingProperty<>(this, "cityName", this.city, (t) -> t.nameProperty());
-        countryName = new NestedStringBindingProperty<>(this, "countryName", this.city, (t) -> t.countryNameProperty());
+        cityName = new NestedStringProperty<>(this, "cityName", this.city, (t) -> t.nameProperty());
+        countryName = new NestedStringProperty<>(this, "countryName", this.city, (t) -> t.countryNameProperty());
         postalCode = new ReadOnlyStringWrapper(this, "postalCode", source.getPostalCode());
         phone = new ReadOnlyStringWrapper(this, "phone", source.getPhone());
-        cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
-        multiLineAddress = AddressItem.createMultiLineAddressBinding(address1, address2, cityZipCountry, phone);
+        cityZipCountry = new CalculatedStringProperty<>(this, "cityZipCountry",
+                new ObservableTriplet<>(
+                        new CalculatedStringExpression<>(cityName, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(countryName, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(postalCode, Values::asNonNullAndWsNormalized)
+                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        );
+
+        multiLineAddress = new CalculatedStringProperty<>(this, "cityZipCountry",
+                new ObservableTriplet<>(
+                        addressLines,
+                        cityZipCountry,
+                        new CalculatedStringExpression<>(phone, Values::asNonNullAndWsNormalized)
+                ), (t) -> calculateMultiLineAddress(t.getValue1(), t.getValue2(), t.getValue3())
+        );
+        language = new NestedStringProperty<>(this, "language", this.city, (t) -> t.languageProperty());
+        zoneId = new NestedObjectValueProperty<>(this, "zoneId", this.city, (t) -> t.zoneIdProperty());
     }
 
     public String getReferenceKey() {
@@ -89,6 +124,11 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
     }
 
     @Override
+    public ReadOnlyStringProperty addressLinesProperty() {
+        return addressLines.getReadOnlyStringProperty();
+    }
+
+    @Override
     public PredefinedCity getCity() {
         return city.get();
     }
@@ -124,8 +164,8 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
     }
 
     @Override
-    public NestedStringBindingProperty<PredefinedCity> cityNameProperty() {
-        return cityName;
+    public ReadOnlyStringProperty cityNameProperty() {
+        return cityName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -134,13 +174,8 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
     }
 
     @Override
-    public NestedStringBindingProperty<PredefinedCity> countryNameProperty() {
-        return countryName;
-    }
-
-    @Override
-    public ReadOnlyProperty<String> addressLinesProperty() {
-        return addressLines;
+    public ReadOnlyStringProperty countryNameProperty() {
+        return countryName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -149,12 +184,8 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
     }
 
     @Override
-    public ReadOnlyProperty<String> cityZipCountryProperty() {
-        return cityZipCountry;
-    }
-
-    public StringBinding getMultiLineAddress() {
-        return multiLineAddress;
+    public ReadOnlyStringProperty cityZipCountryProperty() {
+        return cityZipCountry.getReadOnlyStringProperty();
     }
 
     @Override
@@ -162,41 +193,85 @@ public class PredefinedAddress extends PredefinedItem implements AddressItem, Ad
         return AddressTextProperty.convertToString(this);
     }
 
-    class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {
+    @Override
+    public PredefinedAddress getPredefinedData() {
+        return this;
+    }
 
-        AddressLinesProperty() {
-            super.bind(address1, address2);
+    @Override
+    public ZoneId getZoneId() {
+        return zoneId.get();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getLanguage() {
+        return language.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        return language.getReadOnlyStringProperty();
+    }
+
+    public AddressDAO getDataObject() {
+        return dataObject.get();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<? extends AddressDAO> dataObjectProperty() {
+        return dataObject.getReadOnlyProperty();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#createDateProperty
+    }
+
+    @Override
+    public ReadOnlyStringProperty createdByProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#createdByProperty
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#lastModifiedDateProperty
+    }
+
+    @Override
+    public ReadOnlyStringProperty lastModifiedByProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.predefined.PredefinedAddress#lastModifiedByProperty
+    }
+
+    class PlaceHolderDAO extends BasePlaceHolderDAO implements IAddressDAO {
+
+        @Override
+        public ICityDAO getCity() {
+            return PredefinedAddress.this.getCity().getDataObject();
         }
 
         @Override
-        protected String computeValue() {
-            String a1 = Values.asNonNullAndWsNormalized(address1.get());
-            String a2 = Values.asNonNullAndWsNormalized(address2.get());
-            if (a2.isEmpty()) {
-                return a1;
-            }
-            return a1.isEmpty() ? a2 : String.format("%s%n%s", a1, a2);
+        public String getAddress1() {
+            return PredefinedAddress.this.getAddress1();
         }
 
         @Override
-        public Object getBean() {
-            return PredefinedAddress.this;
+        public String getAddress2() {
+            return PredefinedAddress.this.getAddress2();
         }
 
         @Override
-        public String getName() {
-            return "addressLines";
+        public String getPostalCode() {
+            return PredefinedAddress.this.getPostalCode();
         }
 
         @Override
-        public ObservableList<?> getDependencies() {
-            return FXCollections.observableArrayList(address1, address2);
-        }
-
-        @Override
-        public void dispose() {
-            super.unbind(address1, address2);
-            super.dispose();
+        public String getPhone() {
+            return PredefinedAddress.this.getPhone();
         }
 
     }

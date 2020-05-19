@@ -1,10 +1,12 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
-import java.util.Objects;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -16,12 +18,23 @@ import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
-import scheduler.model.db.CityRowData;
-import scheduler.observables.CityZipCountryProperty;
-import scheduler.observables.NestedStringBindingProperty;
+import scheduler.model.predefined.PredefinedCity;
+import scheduler.observables.CalculatedBooleanProperty;
+import scheduler.observables.CalculatedStringExpression;
+import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
+import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;
+import scheduler.observables.CalculatedStringProperty;
+import scheduler.observables.NestedObjectValueExpression;
+import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
+import scheduler.observables.ObservableTriplet;
+import scheduler.observables.ObservableTuple;
+import scheduler.util.Triplet;
+import scheduler.util.Tuple;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 import scheduler.view.city.CityModel;
@@ -39,35 +52,52 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         return FACTORY;
     }
 
-    public static ZoneId getZoneId(AddressItem address) {
-        if (null != address) {
-            return CityModel.getZoneId(address.getCity());
-        }
-        return ZoneId.systemDefault();
-    }
-
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
-    private final AddressLinesProperty addressLines;
+    private final CalculatedStringProperty<Tuple<String, String>> addressLines;
     private final SimpleObjectProperty<CityItem> city;
-    private final NestedStringBindingProperty<CityItem> cityName;
-    private final NestedStringBindingProperty<CityItem> countryName;
+    private final NestedStringProperty<CityItem> cityName;
+    private final NestedStringProperty<CityItem> countryName;
     private final NonNullableStringProperty postalCode;
     private final NonNullableStringProperty phone;
-    private final CityZipCountryProperty cityZipCountry;
+    private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
+    private final NestedStringProperty<CityItem> language;
+    private final NestedObjectValueProperty<CityItem, ZoneId> zoneId;
+    private final CalculatedBooleanProperty<Triplet<String, PredefinedCity, String>> valid;
 
     public AddressModel(AddressDAO dao) {
         super(dao);
         address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
         address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
-        addressLines = new AddressLinesProperty();
-        CityRowData c = dao.getCity();
+        addressLines = new CalculatedStringProperty<>(this, "addressLines",
+                new ObservableTuple<>(
+                        new CalculatedStringExpression<>(address1, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(address2, Values::asNonNullAndWsNormalized)
+                ), (t) -> calculateAddressLines(t.getValue1(), t.getValue2())
+        );
+        ICityDAO c = dao.getCity();
         city = new SimpleObjectProperty<>(this, "city", (null == c) ? null : new RelatedCity(c));
-        cityName = new NestedStringBindingProperty<>(this, "cityName", city, (t) -> t.nameProperty());
-        countryName = new NestedStringBindingProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
+        cityName = new NestedStringProperty<>(this, "cityName", city, (t) -> t.nameProperty());
+        countryName = new NestedStringProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
         postalCode = new NonNullableStringProperty(this, "postalCode", dao.getPostalCode());
         phone = new NonNullableStringProperty(this, "phone", dao.getPhone());
-        cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
+        CalculatedStringExpression<String> zipNormalized = new CalculatedStringExpression<>(postalCode, Values::asNonNullAndWsNormalized);
+        cityZipCountry = new CalculatedStringProperty<>(this, "cityZipCountry",
+                new ObservableTriplet<>(
+                        new CalculatedStringExpression<>(cityName, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(countryName, Values::asNonNullAndWsNormalized),
+                        zipNormalized
+                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        );
+        language = new NestedStringProperty<>(this, "language", city, (t) -> t.languageProperty());
+        zoneId = new NestedObjectValueProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
+        valid = new CalculatedBooleanProperty<>(this, "valid",
+                new ObservableTriplet<>(
+                        addressLines,
+                        new NestedObjectValueExpression<>(city, (CityItem u) -> u.predefinedDataProperty()),
+                        zipNormalized
+                ), (t) -> !(t.getValue1().isEmpty() || null == t.getValue2() || t.getValue1().isEmpty())
+        );
     }
 
     @Override
@@ -103,8 +133,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public ReadOnlyProperty<String> addressLinesProperty() {
-        return addressLines;
+    public ReadOnlyStringProperty addressLinesProperty() {
+        return addressLines.getReadOnlyStringProperty();
     }
 
     @Override
@@ -127,8 +157,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public NestedStringBindingProperty<CityItem> cityNameProperty() {
-        return cityName;
+    public ReadOnlyStringProperty cityNameProperty() {
+        return cityName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -137,8 +167,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public NestedStringBindingProperty<CityItem> countryNameProperty() {
-        return countryName;
+    public ReadOnlyStringProperty countryNameProperty() {
+        return countryName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -175,22 +205,47 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public ReadOnlyProperty<String> cityZipCountryProperty() {
-        return cityZipCountry;
+    public ReadOnlyStringProperty cityZipCountryProperty() {
+        return cityZipCountry.getReadOnlyStringProperty();
+    }
+
+    @Override
+    public ZoneId getZoneId() {
+        return zoneId.get();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getLanguage() {
+        return language.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        return language.getReadOnlyStringProperty();
+    }
+
+    @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyBooleanProperty();
     }
 
     @Override
     public int hashCode() {
-        if (isNewItem()) {
-            int hash = 3;
-            hash = 19 * hash + Objects.hashCode(address1.get());
-            hash = 19 * hash + Objects.hashCode(address2.get());
-            hash = 19 * hash + Objects.hashCode(city.get());
-            hash = 19 * hash + Objects.hashCode(postalCode.get());
-            hash = 19 * hash + Objects.hashCode(phone.get());
-            return hash;
-        }
-        return getPrimaryKey();
+        int hash = 3;
+        hash = 79 * hash + addressLines.get().hashCode();
+        hash = 79 * hash + phone.get().hashCode();
+        hash = 79 * hash + cityZipCountry.hashCode();
+        return hash;
     }
 
     @Override
@@ -209,9 +264,45 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         return false;
     }
 
+    @Override
+    protected void onDaoPropertyChanged(AddressDAO dao, String propertyName) {
+        switch (propertyName) {
+            case AddressDAO.PROP_ADDRESS1:
+                address1.set(dao.getAddress1());
+                break;
+            case AddressDAO.PROP_ADDRESS2:
+                address2.set(dao.getAddress2());
+                break;
+            case AddressDAO.PROP_CITY:
+                ICityDAO c = dao.getCity();
+                city.set((null == c) ? null : new RelatedCity(c));
+                break;
+            case AddressDAO.PROP_PHONE:
+                phone.set(dao.getPhone());
+                break;
+            case AddressDAO.PROP_POSTALCODE:
+                postalCode.set(dao.getPostalCode());
+                break;
+        }
+    }
+
+    @Override
+    protected void onDataObjectChanged(AddressDAO dao) {
+        address1.set(dao.getAddress1());
+        address2.set(dao.getAddress2());
+        ICityDAO c = dao.getCity();
+        city.set((null == c) ? null : new RelatedCity(c));
+        postalCode.set(dao.getPostalCode());
+        phone.set(dao.getPhone());
+    }
+
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {
 
+        // Singleton
         private Factory() {
+            if (null != FACTORY) {
+                throw new IllegalStateException();
+            }
         }
 
         @Override
@@ -225,18 +316,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public void updateItem(AddressModel item, AddressDAO dao) {
-            super.updateItem(item, dao);
-
-            item.address1.set(dao.getAddress1());
-            item.address2.set(dao.getAddress2());
-            CityRowData c = dao.getCity();
-            item.city.set((null == c) ? null : new RelatedCity(c));
-            item.postalCode.set(dao.getPostalCode());
-            item.phone.set(dao.getPhone());
-        }
-
-        @Override
         public AddressDAO updateDAO(AddressModel item) {
             AddressDAO dao = item.getDataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
@@ -244,22 +323,17 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             }
             String address1 = item.address1.get();
             String address2 = item.address2.get();
-            if (address1.trim().isEmpty() && address2.trim().isEmpty()) {
-                throw new IllegalArgumentException("Address lines 1 and 2 are empty");
-            }
             CityItem cityModel = item.city.get();
-            if (null == cityModel) {
-                throw new IllegalArgumentException("No associated city");
-            }
-            CityRowData cityDAO;
+            ICityDAO cityDAO;
             if (cityModel instanceof CityModel) {
                 cityDAO = CityModel.getFactory().updateDAO((CityModel) cityModel);
             } else {
-                cityDAO = (cityModel instanceof CityDbItem) ? ((CityDbItem<? extends CityRowData>) cityModel).getDataObject() : (CityRowData) cityModel;
+                cityDAO = cityModel.getDataObject();
             }
             if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");
             }
+            item.isNewItem();
             dao.setCity(cityDAO);
             dao.setAddress1(address1);
             dao.setAddress2(address2);
@@ -300,6 +374,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     }
 
+    @Deprecated
     class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {
 
         AddressLinesProperty() {

@@ -53,6 +53,7 @@ public class AddressDaoEvent extends DataObjectEvent<AddressDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<AddressDaoEvent> getEventType() {
         return (EventType<AddressDaoEvent>) super.getEventType();
     }

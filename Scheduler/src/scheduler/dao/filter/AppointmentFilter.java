@@ -8,23 +8,16 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
 import static scheduler.model.ModelHelper.getPrimaryKey;
+import scheduler.model.User;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
-
-    DaoFilterExpression<AppointmentDAO> getExpression();
-
-    @Override
-    public default String getLoadingMessage() {
-        return AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS);
-    }
 
     public static AppointmentFilter of(DaoFilterExpression<AppointmentDAO> expr) {
         return new AppointmentFilter() {
@@ -81,7 +74,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         };
     }
 
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(Customer customer) {
         if (ModelHelper.existsInDatabase(customer)) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_CUSTOMER, ComparisonOperator.EQUALS, customer.getPrimaryKey(),
                     (t) -> getPrimaryKey(t.getCustomer()));
@@ -89,7 +82,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(UserRowData user) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(User user) {
         if (ModelHelper.existsInDatabase(user)) {
             return IntColumnValueFilter.of(DbColumn.APPOINTMENT_USER, ComparisonOperator.EQUALS, user.getPrimaryKey(),
                     (t) -> getPrimaryKey(t.getUser()));
@@ -97,7 +90,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer, UserRowData user) {
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(Customer customer, User user) {
         return expressionOf(customer).or(expressionOf(user));
     }
 
@@ -109,7 +102,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
      * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
      */
     public static DaoFilterExpression<AppointmentDAO> expressionOf(Timestamp start, Timestamp end) {
-        
+
         /*
             appointments from 11:15 to 12:15
             end = 12:15
@@ -119,7 +112,7 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         
             DbColumn.START < end && DbColumn.END > start
                     10:00  < 12:15 && 12:00 > 11:15
-        */
+         */
         if (null != start) {
             if (null != end) {
                 return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
@@ -143,9 +136,10 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
      * @param end The exclusive end date/time.
      * @return A filter expression for appointments that occur on or after {@code start} and before {@code end};
      */
-    public static DaoFilterExpression<AppointmentDAO> expressionOf(CustomerRowData customer, Timestamp start, Timestamp end) {
-        if (ModelHelper.existsInDatabase(customer))
+    public static DaoFilterExpression<AppointmentDAO> expressionOf(Customer customer, Timestamp start, Timestamp end) {
+        if (ModelHelper.existsInDatabase(customer)) {
             return expressionOf(start, end);
+        }
         if (null != start) {
             if (null != end) {
                 return AppointmentFilter.of(LogicalFilter.of(LogicalOperator.AND,
@@ -161,8 +155,15 @@ public interface AppointmentFilter extends DaoFilter<AppointmentDAO> {
         return DaoFilterExpression.empty();
     }
 
-    public static AppointmentFilter of(CustomerRowData customer, UserRowData user, Timestamp start, Timestamp end) {
+    public static AppointmentFilter of(Customer customer, User user, Timestamp start, Timestamp end) {
         return AppointmentFilter.of(expressionOf(customer, user).and(expressionOf(start, end)));
+    }
+
+    DaoFilterExpression<AppointmentDAO> getExpression();
+
+    @Override
+    public default String getLoadingMessage() {
+        return AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS);
     }
 
 }

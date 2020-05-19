@@ -201,19 +201,19 @@ public class MonthGridPane extends GridPane {
         targetDate.set(value);
     }
 
-    public ObjectProperty targetDateProperty() {
+    public ObjectProperty<LocalDate> targetDateProperty() {
         return targetDate;
     }
 
-    public ObservableList getItems() {
+    public ObservableList<AppointmentModel> getItems() {
         return items.get();
     }
 
-    public void setItems(ObservableList value) {
+    public void setItems(ObservableList<AppointmentModel> value) {
         items.set(value);
     }
 
-    public ListProperty itemsProperty() {
+    public ListProperty<AppointmentModel> itemsProperty() {
         return items;
     }
 

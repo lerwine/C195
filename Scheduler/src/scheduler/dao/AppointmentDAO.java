@@ -24,11 +24,9 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
+import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.RelatedRecord;
-import scheduler.model.db.AppointmentRowData;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
+import scheduler.model.User;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import static scheduler.util.Values.asNonNullAndTrimmed;
@@ -39,7 +37,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.APPOINTMENT)
-public class AppointmentDAO extends DataAccessObject implements AppointmentRowData {
+public final class AppointmentDAO extends DataAccessObject implements IAppointmentDAO {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -54,42 +52,42 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
     public static final String PROP_USER = "user";
 
     public static final int MAX_LENGTH_TITLE = 255;
-    
+
     /**
      * The name of the 'title' property.
      */
     public static final String PROP_TITLE = "title";
 
     public static final int MAX_LENGTH_DESCRIPTION = 65535;
-    
+
     /**
      * The name of the 'description' property.
      */
     public static final String PROP_DESCRIPTION = "description";
 
     public static final int MAX_LENGTH_LOCATION = 65535;
-    
+
     /**
      * The name of the 'location' property.
      */
     public static final String PROP_LOCATION = "location";
 
     public static final int MAX_LENGTH_CONTACT = 65535;
-    
+
     /**
      * The name of the 'contact' property.
      */
     public static final String PROP_CONTACT = "contact";
 
     public static final int MAX_LENGTH_TYPE = 65535;
-    
+
     /**
      * The name of the 'type' property.
      */
     public static final String PROP_TYPE = "type";
 
     public static final int MAX_LENGTH_URL = 255;
-    
+
     /**
      * The name of the 'url' property.
      */
@@ -109,8 +107,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
         return FACTORY;
     }
 
-    private CustomerRowData customer;
-    private UserRowData user;
+    private ICustomerDAO customer;
+    private IUserDAO user;
     private String title;
     private String description;
     private String location;
@@ -139,50 +137,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
     }
 
     @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (null == customer) {
-            addValidation.accept(ValidationResult.NO_CUSTOMER);
-        } else if (RelatedRecord.validate(customer) != ValidationResult.OK) {
-            addValidation.accept(ValidationResult.CUSTOMER_INVALID);
-        } else if (ModelHelper.getRowState(customer) == DataRowState.DELETED) {
-            addValidation.accept(ValidationResult.CUSTOMER_NOT_SAVED);
-        }
-        if (null == user) {
-            addValidation.accept(ValidationResult.NO_USER);
-        } else if (RelatedRecord.validate(user) != ValidationResult.OK) {
-            addValidation.accept(ValidationResult.USER_INVALID);
-        } else if (ModelHelper.getRowState(user) == DataRowState.NEW) {
-            addValidation.accept(ValidationResult.USER_NOT_SAVED);
-        }
-        if (title.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.TITLE_EMPTY);
-        }
-        if (null == start) {
-            addValidation.accept(ValidationResult.NO_START_DATE);
-        } else if (null == end) {
-            addValidation.accept(ValidationResult.NO_END_DATE);
-        } else if (start.compareTo(end) > 0) {
-            addValidation.accept(ValidationResult.START_FOLLOWS_END);
-        }
-        switch (type) {
-            case CORPORATE_LOCATION:
-            case CUSTOMER_SITE:
-                break;
-            case PHONE:
-            case VIRTUAL:
-                if (url.trim().isEmpty()) {
-                    addValidation.accept(ValidationResult.URL_EMPTY);
-                }
-            default:
-                if (location.trim().isEmpty()) {
-                    addValidation.accept(ValidationResult.LOCATION_EMPTY);
-                }
-                break;
-        }
-    }
-
-    @Override
-    public CustomerRowData getCustomer() {
+    public ICustomerDAO getCustomer() {
         return customer;
     }
 
@@ -191,14 +146,14 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
      *
      * @param customer new value of customer
      */
-    public void setCustomer(CustomerRowData customer) {
-        CustomerRowData oldValue = this.customer;
+    public void setCustomer(ICustomerDAO customer) {
+        ICustomerDAO oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
     }
 
     @Override
-    public UserRowData getUser() {
+    public IUserDAO getUser() {
         return user;
     }
 
@@ -207,8 +162,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
      *
      * @param user new value of user
      */
-    public void setUser(UserRowData user) {
-        UserRowData oldValue = this.user;
+    public void setUser(IUserDAO user) {
+        IUserDAO oldValue = this.user;
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
     }
@@ -366,7 +321,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.AppointmentRowData} objects.
+     * Factory implementation for {@link scheduler.model.db.Appointment} objects.
      * <dl>
      * <dt>{@link scheduler.view.model.ItemModel}</dt>
      * <dd>{@code ModelHelper} with all data from a database entity.</dd>
@@ -452,8 +407,8 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
         @Override
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(AppointmentDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
-                private final CustomerRowData oldCustomer = dao.customer;
-                private final UserRowData oldUser = dao.user;
+                private final Customer oldCustomer = dao.customer;
+                private final User oldUser = dao.user;
                 private final String oldTitle = dao.title;
                 private final String oldDescription = dao.description;
                 private final String oldLocation = dao.location;
@@ -567,10 +522,12 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
                     .append(" GROUP BY ").append(DbColumn.TYPE.getDbName());
             if (null != start) {
                 sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
-                if (null != end)
+                if (null != end) {
                     sb.append(" AND ").append(DbColumn.START.getDbName()).append(" < ?");
-            } else if (null != end)
+                }
+            } else if (null != end) {
                 sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" < ?");
+            }
             String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
@@ -590,7 +547,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
                 }
             }
         }
-        
+
         public List<ItemCountResult<String>> getCountsByCustomerRegion(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append("), a.")
                     .append(DbColumn.START.getDbName()).append(" AS ").append(DbColumn.START.getDbName()).append(", a.")
@@ -607,10 +564,12 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
                     .append(" GROUP BY ").append(DbColumn.COUNTRY_NAME.getDbName());
             if (null != start) {
                 sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
-                if (null != end)
+                if (null != end) {
                     sb.append(" AND ").append(DbColumn.START.getDbName()).append(" <= ?");
-            } else if (null != end)
+                }
+            } else if (null != end) {
                 sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" <= ?");
+            }
             String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
@@ -630,7 +589,7 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
                 }
             }
         }
-        
+
         /**
          * Gets the number of appointments that reference the specified customer ID.
          *
@@ -719,11 +678,11 @@ public class AppointmentDAO extends DataAccessObject implements AppointmentRowDa
 
         @Override
         public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
-            CustomerRowData customer = dao.getCustomer();
+            Customer customer = dao.getCustomer();
             if (customer instanceof CustomerDAO && (force || ModelHelper.getRowState(customer) != DataRowState.UNMODIFIED)) {
                 CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
             }
-            UserRowData user = dao.getUser();
+            User user = dao.getUser();
             if (user instanceof UserDAO && (force || ModelHelper.getRowState(user) != DataRowState.UNMODIFIED)) {
                 UserDAO.getFactory().save((UserDAO) user, connection, force);
             }

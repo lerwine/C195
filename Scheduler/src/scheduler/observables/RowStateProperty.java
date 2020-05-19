@@ -1,5 +1,7 @@
 package scheduler.observables;
 
+import java.util.Objects;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -13,7 +15,20 @@ import scheduler.dao.DataRowState;
  */
 public class RowStateProperty extends SimpleObjectProperty<DataRowState> {
 
-    private final ReadOnlyObjectProperty<DataRowState> readOnlyProperty;
+    private final ReadOnlyPropertyImpl readOnlyProperty;
+    private final CalculatedBooleanProperty<DataRowState> valid;
+    private final CalculatedBooleanProperty<DataRowState> newRow;
+    private final CalculatedBooleanProperty<DataRowState> change;
+    private final CalculatedBooleanProperty<DataRowState> existingInDb;
+
+    public RowStateProperty(Object bean, String name, DataRowState initialValue) {
+        super(bean, name, initialValue);
+        readOnlyProperty = new ReadOnlyPropertyImpl();
+        valid = new CalculatedBooleanProperty<>(this, "valid", this, Objects::nonNull);
+        newRow = new CalculatedBooleanProperty<>(this, "newRow", this, (t) -> null != t && t == DataRowState.NEW);
+        change = new CalculatedBooleanProperty<>(this, "change", this, DataRowState::isChange);
+        existingInDb = new CalculatedBooleanProperty<>(this, "existingInDb", this, DataRowState::existsInDb);
+    }
 
     /**
      * Returns the readonly property, that is synchronized with this {@code RowStateProperty}.
@@ -24,22 +39,9 @@ public class RowStateProperty extends SimpleObjectProperty<DataRowState> {
         return readOnlyProperty;
     }
 
-    public RowStateProperty() {
-        this(DataRowState.NEW);
-    }
-
-    public RowStateProperty(DataRowState initialValue) {
-        super((null == initialValue) ? DataRowState.NEW : initialValue);
-        readOnlyProperty = new ReadOnlyPropertyImpl();
-    }
-
-    public RowStateProperty(Object bean, String name) {
-        this(bean, name, DataRowState.NEW);
-    }
-
-    public RowStateProperty(Object bean, String name, DataRowState initialValue) {
-        super(bean, name, (null == initialValue) ? DataRowState.NEW : initialValue);
-        readOnlyProperty = new ReadOnlyPropertyImpl();
+    public DataRowState getSafe() {
+        DataRowState status = get();
+        return (null == status) ? DataRowState.NEW : status;
     }
 
     @Override
@@ -47,11 +49,43 @@ public class RowStateProperty extends SimpleObjectProperty<DataRowState> {
         super.set((null == newValue) ? DataRowState.NEW : newValue);
     }
 
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyBooleanProperty();
+    }
+
+    public boolean isNewRow() {
+        return newRow.get();
+    }
+
+    public ReadOnlyBooleanProperty newRowProperty() {
+        return newRow.getReadOnlyBooleanProperty();
+    }
+
+    public boolean isChange() {
+        return change.get();
+    }
+
+    public ReadOnlyBooleanProperty changeProperty() {
+        return change.getReadOnlyBooleanProperty();
+    }
+
+    public boolean isExistingInDb() {
+        return existingInDb.get();
+    }
+
+    public ReadOnlyBooleanProperty existingInDbProperty() {
+        return existingInDb.getReadOnlyBooleanProperty();
+    }
+
     private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<DataRowState> {
 
         @Override
         public DataRowState get() {
-            return RowStateProperty.this.get();
+            return RowStateProperty.this.getSafe();
         }
 
         @Override
@@ -66,8 +100,10 @@ public class RowStateProperty extends SimpleObjectProperty<DataRowState> {
 
         private ReadOnlyPropertyImpl() {
             RowStateProperty.this.addListener((observable, oldValue, newValue) -> {
-                super.fireValueChangedEvent();
+                ReadOnlyPropertyImpl.this.fireValueChangedEvent();
             });
         }
-    };
+
+    }
+
 }

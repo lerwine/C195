@@ -53,6 +53,7 @@ public class AppointmentDaoEvent extends DataObjectEvent<AppointmentDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<AppointmentDaoEvent> getEventType() {
         return (EventType<AppointmentDaoEvent>) super.getEventType();
     }

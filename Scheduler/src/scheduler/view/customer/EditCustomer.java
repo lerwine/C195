@@ -235,10 +235,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         cityOptions.clear();
         CountryItem selectedItem = countryComboBox.getValue();
         if (null != selectedItem) {
-            String regionCode = selectedItem.asPredefinedData().getRegionCode();
+            String regionCode = selectedItem.getPredefinedData().getRegionCode();
             allCities.stream().filter((CityItem t) -> {
                 CountryItem m = t.getCountry();
-                return null != m && m.asPredefinedData().getRegionCode().equals(regionCode);
+                return null != m && m.getPredefinedData().getRegionCode().equals(regionCode);
             }).forEach((t) -> cityOptions.add(t));
         }
         onAddressComponentChanged(address1TextField.getText(), address1TextField.getText(), cityComboBox.getValue(), countryComboBox.getValue());
@@ -343,6 +343,25 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         waitBorderPane.startNow(new InitialLoadTask());
         onSelectedAddressChanged(selectedAddress, null, selectedAddress.get());
         onNameChanged(nameTextField.textProperty());
+    }
+
+    // CURRENT: Update model from listeners
+    public boolean applyChangesToModel() {
+        model.setName(nameTextField.getText());
+        model.setActive(activeTrueRadioButton.isSelected());
+        AddressItem address = selectedAddress.get();
+        if (null == address) {
+            AddressModel addressModel = new AddressModel(AddressDAO.getFactory().createNew());
+            addressModel.setAddress1(address1TextField.getText());
+            addressModel.setAddress2(address2TextField.getText());
+            addressModel.setCity(cityComboBox.getValue());
+            addressModel.setPostalCode(postalCodeTextField.getText());
+            addressModel.setPhone(phoneNumberTextField.getText());
+            model.setAddress(addressModel);
+        } else {
+            model.setAddress(address);
+        }
+        return true;
     }
 
     private void onAddressValidChanged(Observable observable) {
@@ -463,32 +482,23 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @Override
-    public boolean applyChangesToModel() {
-        model.setName(nameTextField.getText());
-        model.setActive(activeTrueRadioButton.isSelected());
-        AddressItem address = selectedAddress.get();
-        if (null == address) {
-            AddressModel addressModel = new AddressModel(AddressDAO.getFactory().createNew());
-            addressModel.setAddress1(address1TextField.getText());
-            addressModel.setAddress2(address2TextField.getText());
-            addressModel.setCity(cityComboBox.getValue());
-            addressModel.setPostalCode(postalCodeTextField.getText());
-            addressModel.setPhone(phoneNumberTextField.getText());
-            model.setAddress(addressModel);
-        } else {
-            model.setAddress(address);
-        }
-        return true;
-    }
-
-    @Override
     public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#isChanged
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#isChanged
     }
 
     @Override
     public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#changedProperty
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#changedProperty
+    }
+
+    @Override
+    public void onEditNew() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditNew
+    }
+
+    @Override
+    public void onEditExisting(boolean isInitialize) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditExisting
     }
 
     private class AppointmentFilterItem {

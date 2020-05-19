@@ -25,6 +25,7 @@ public class ItemActionRequestEvent<T> extends ObjectActionRequestEvent {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T getItem() {
         return (T) super.getItem();
     }

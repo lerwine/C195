@@ -82,6 +82,7 @@ public class ViewControllerLoader {
         return loadView(controller, view, ResourceBundleHelper.getBundle(controller.getClass()));
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
         Class<T> c = (Class<T>) customControl.getClass();
         String path = AppResources.getFXMLResourceName(c);

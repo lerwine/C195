@@ -5,7 +5,6 @@ import java.util.Optional;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.fx.ValidationStatus}
  */
 public enum ValidationStatus {
     OK(0),
@@ -47,7 +46,7 @@ public enum ValidationStatus {
 
     @Override
     public String toString() {
-        return super.toString(); // TODO: Implement scheduler.fx.ValidationStatus#toString
+        return cssClass.map((t) -> t.toString()).orElse("");
     }
 
 }

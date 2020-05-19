@@ -1,8 +1,10 @@
 package scheduler.model.ui;
 
+import java.beans.PropertyChangeEvent;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -14,6 +16,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
@@ -44,7 +47,7 @@ import scheduler.view.task.WaitBorderPane;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
-public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbModel<T>, DataRecord<LocalDateTime> {
+public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T>, DataRecord<LocalDateTime> {
 
     private final ReadOnlyObjectWrapper<T> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
@@ -54,6 +57,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
     private final ReadOnlyStringWrapper lastModifiedBy;
     private final ReadOnlyBooleanWrapper newItem;
     private final RowStateProperty rowState;
+//    private final ReadOnlyBooleanWrapper valid;
 
     /**
      * Initializes a new ModelBase object.
@@ -72,7 +76,11 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
         lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
         DataRowState rs = dao.getRowState();
         newItem = new ReadOnlyBooleanWrapper(this, "newItem", rs == DataRowState.NEW);
-        rowState = new RowStateProperty(rs);
+        rowState = new RowStateProperty(this, "rowState", rs);
+//        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+        dao.addPropertyChangeListener(this::onDaoPropertyChange);
+        dataObject.addListener(this::dataObjectChanged);
+
     }
 
     @Override
@@ -86,58 +94,62 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
     }
 
     @Override
-    public int getPrimaryKey() {
+    public final int getPrimaryKey() {
         return primaryKey.get();
     }
 
     @Override
-    public ReadOnlyIntegerProperty primaryKeyProperty() {
+    public final ReadOnlyIntegerProperty primaryKeyProperty() {
         return primaryKey.getReadOnlyProperty();
     }
 
     @Override
-    public LocalDateTime getCreateDate() {
+    public final LocalDateTime getCreateDate() {
         return createDate.get();
     }
 
-    public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
+    @Override
+    public final ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
         return createDate.getReadOnlyProperty();
     }
 
     @Override
-    public String getCreatedBy() {
+    public final String getCreatedBy() {
         return createdBy.get();
     }
 
-    public ReadOnlyStringProperty createdByProperty() {
+    @Override
+    public final ReadOnlyStringProperty createdByProperty() {
         return createdBy.getReadOnlyProperty();
     }
 
     @Override
-    public LocalDateTime getLastModifiedDate() {
+    public final LocalDateTime getLastModifiedDate() {
         return lastModifiedDate.get();
     }
 
-    public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
+    @Override
+    public final ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
         return lastModifiedDate.getReadOnlyProperty();
     }
 
     @Override
-    public String getLastModifiedBy() {
+    public final String getLastModifiedBy() {
         return lastModifiedBy.get();
     }
 
-    public ReadOnlyStringProperty lastModifiedByProperty() {
+    @Override
+    public final ReadOnlyStringProperty lastModifiedByProperty() {
         return lastModifiedBy.getReadOnlyProperty();
     }
 
     @Override
-    public DataRowState getRowState() {
+    public final DataRowState getRowState() {
         return rowState.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
+    public final ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
         return rowState.getReadOnlyProperty();
     }
 
@@ -146,7 +158,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
      *
      * @return {@code true} if the current item has not been saved to the database; otherwise, {@code false}.
      */
-    public boolean isNewItem() {
+    public final boolean isNewItem() {
         return newItem.get();
     }
 
@@ -155,11 +167,83 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
      *
      * @return The property that indicates whether the current item has not yet been saved to the database.
      */
-    public ReadOnlyBooleanProperty newItemProperty() {
+    public final ReadOnlyBooleanProperty newItemProperty() {
         return newItem.getReadOnlyProperty();
     }
 
-    public boolean modelEquals(T model) {
+    private void onDaoPropertyChange(PropertyChangeEvent evt) {
+        T dao = dataObject.get();
+        String propertyName = evt.getPropertyName();
+        switch (propertyName) {
+            case DataAccessObject.PROP_CREATEDATE:
+                createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
+                break;
+            case DataAccessObject.PROP_CREATEDBY:
+                createdBy.set(dao.getCreatedBy());
+                break;
+            case DataAccessObject.PROP_LASTMODIFIEDBY:
+                lastModifiedBy.set(dao.getLastModifiedBy());
+                break;
+            case DataAccessObject.PROP_LASTMODIFIEDDATE:
+                lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
+                break;
+            case DataAccessObject.PROP_PRIMARYKEY:
+                primaryKey.set(dao.getPrimaryKey());
+                break;
+            case DataAccessObject.PROP_ROWSTATE:
+                DataRowState rs = dao.getRowState();
+                rowState.set(rs);
+                if (newItem.get()) {
+                    if (rs != DataRowState.NEW) {
+                        newItem.set(false);
+                    }
+                } else if (rs == DataRowState.NEW) {
+                    newItem.set(true);
+                }
+                break;
+            default:
+                onDaoPropertyChanged(dao, propertyName);
+                break;
+        }
+    }
+
+    private void dataObjectChanged(ObservableValue<? extends T> observable, T oldValue, T newValue) {
+        oldValue.removePropertyChangeListener(this::onDaoPropertyChange);
+        newValue.addPropertyChangeListener(this::onDaoPropertyChange);
+        if (newItem.get()) {
+            primaryKey.set(newValue.getPrimaryKey());
+            createDate.set(DB.toLocalDateTime(newValue.getCreateDate()));
+            createdBy.set(newValue.getCreatedBy());
+            lastModifiedDate.set(DB.toLocalDateTime(newValue.getLastModifiedDate()));
+            lastModifiedBy.set(newValue.getLastModifiedBy());
+            newItem.set(false);
+            rowState.set(newValue.getRowState());
+        } else {
+            LocalDateTime d = DB.toLocalDateTime(newValue.getCreateDate());
+            if (!d.equals(createDate.get())) {
+                createDate.set(d);
+            }
+            String s = newValue.getCreatedBy();
+            if (!s.equals(createdBy.get())) {
+                createdBy.set(s);
+            }
+            d = DB.toLocalDateTime(newValue.getLastModifiedDate());
+            if (!d.equals(lastModifiedDate.get())) {
+                lastModifiedDate.set(d);
+            }
+            s = newValue.getLastModifiedBy();
+            if (!s.equals(lastModifiedBy.get())) {
+                lastModifiedBy.set(s);
+            }
+        }
+        onDataObjectChanged(newValue);
+    }
+
+    protected abstract void onDaoPropertyChanged(T dao, String propertyName);
+
+    protected abstract void onDataObjectChanged(T dao);
+
+    public final boolean modelEquals(T model) {
         return null != model && dataObject.get().equals(model);
     }
 
@@ -185,31 +269,19 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
          * Updates the {@link FxRecordModel} with changes from a {@link DataAccessObject}.
          *
          * @param item The {@link FxRecordModel} to be updated.
-         * @param dao The source {@link DataAccessObject}.
+         * @param updatedDao The source {@link DataAccessObject}.
          */
-        public void updateItem(U item, T dao) {
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
+        public final void updateItem(U item, T updatedDao) {
+            T currentDao = item.getDataObject();
+            if (Objects.requireNonNull(updatedDao) == currentDao) {
+                return;
             }
-
-            FxRecordModel<T> model = (FxRecordModel<T>) ModelHelper.requiredAssignable(dao, item);
-            DataRowState rs = dao.getRowState();
-            if (item.isNewItem()) {
-                model.dataObject.set(dao);
-                model.primaryKey.set(dao.getPrimaryKey());
-                model.newItem.set(rs == DataRowState.NEW);
-            } else {
-                if (rs == DataRowState.NEW || dao.getPrimaryKey() != item.getPrimaryKey()) {
-                    throw new IllegalArgumentException("Invalid data access object");
-                }
-                model.dataObject.set(dao);
+            if (updatedDao.getRowState() == DataRowState.NEW) {
+                throw new IllegalArgumentException("Replacement data access object cannot have a new row state");
+            } else if (currentDao.getRowState() != DataRowState.NEW && currentDao.getPrimaryKey() != updatedDao.getPrimaryKey()) {
+                throw new IllegalArgumentException("Replacement data access object does not represent the same record as the current data object.");
             }
-
-            model.rowState.set(rs);
-            model.createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
-            model.createdBy.set(dao.getCreatedBy());
-            model.lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
-            model.lastModifiedBy.set(dao.getLastModifiedBy());
+            ((FxRecordModel<T>) item).dataObject.set(updatedDao);
         }
 
         public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
@@ -272,7 +344,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements FxDbM
 
         public final Optional<U> find(Iterator<U> source, T dao) {
             if (null != source) {
-                DataAccessObject.DaoFactory<T> daoFactory = getDaoFactory();
                 while (source.hasNext()) {
                     U m = source.next();
                     if (null != m && ModelHelper.areSameRecord(m.getDataObject(), dao)) {

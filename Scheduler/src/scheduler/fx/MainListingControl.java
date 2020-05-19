@@ -77,6 +77,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
+    @SuppressWarnings("unchecked")
     protected void initialize() {
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert subHeadingLabel != null : "fx:id=\"subHeadingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
@@ -118,6 +119,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
         });
 
+    
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());

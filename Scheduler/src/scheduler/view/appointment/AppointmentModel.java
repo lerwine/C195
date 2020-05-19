@@ -3,37 +3,43 @@ package scheduler.view.appointment;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.ICustomerDAO;
+import scheduler.dao.IUserDAO;
 import scheduler.model.AppointmentType;
 import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
 import scheduler.model.predefined.PredefinedAddress;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.model.ui.AppointmentItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
-import scheduler.observables.AppointmentTypeDisplayProperty;
+import scheduler.observables.AddressTextProperty;
 import scheduler.observables.AppointmentTypeProperty;
-import scheduler.observables.EffectiveLocationProperty;
-import scheduler.observables.NestedBooleanBindingProperty;
-import scheduler.observables.NestedObjectBindingProperty;
-import scheduler.observables.NestedStringBindingProperty;
+import scheduler.observables.CalculatedStringExpression;
+import scheduler.observables.CalculatedStringProperty;
+import scheduler.observables.NestedBooleanProperty;
+import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
+import scheduler.observables.ObservableQuadruplet;
 import scheduler.util.DB;
-import scheduler.view.customer.CustomerModel;
+import scheduler.util.Quadruplet;
+import scheduler.util.Values;
 import scheduler.view.customer.RelatedCustomer;
 import scheduler.view.user.RelatedUser;
 
@@ -80,99 +86,161 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return FACTORY;
     }
 
-    static ZoneId getZoneId(AppointmentModel model) {
-        if (null != model) {
-            ZoneId result;
-            switch (model.getType()) {
-                case CORPORATE_LOCATION:
-                    PredefinedAddress a = PredefinedData.lookupAddress(model.getLocation());
-                    if (null != a) {
-                        result = a.getCity().getZoneId();
-                    } else {
-                        result = null;
-                    }
-                    break;
-                case CUSTOMER_SITE:
-                    return CustomerModel.getZoneId(model.getCustomer());
-                default:
-                    result = null;
-                    break;
-            }
-            if (null != result) {
-                return result;
-            }
-        }
-        return ZoneId.systemDefault();
-    }
-
-    private final SimpleObjectProperty<CustomerItem<? extends CustomerRowData>> customer;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerName;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerAddress1;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerAddress2;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerCityName;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerCountryName;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerPostalCode;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerPhone;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerAddressText;
-    private final NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerCityZipCountry;
-    private final NestedBooleanBindingProperty<CustomerItem<? extends CustomerRowData>> customerActive;
-    private final SimpleObjectProperty<UserItem<? extends UserRowData>> user;
-    private final NestedStringBindingProperty<UserItem<? extends UserRowData>> userName;
-    private final NestedObjectBindingProperty<UserItem<? extends UserRowData>, UserStatus> userStatus;
-    private final NestedStringBindingProperty<UserItem<? extends UserRowData>> userStatusDisplay;
+    private final SimpleObjectProperty<CustomerItem<? extends ICustomerDAO>> customer;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerName;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerAddress1;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerAddress2;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerCityName;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerCountryName;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerPostalCode;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerPhone;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerAddressText;
+    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerCityZipCountry;
+    private final NestedBooleanProperty<CustomerItem<? extends ICustomerDAO>> customerActive;
+    private final SimpleObjectProperty<UserItem<? extends IUserDAO>> user;
+    private final NestedStringProperty<UserItem<? extends IUserDAO>> userName;
+    private final NestedObjectValueProperty<UserItem<? extends IUserDAO>, UserStatus> userStatus;
+    private final NestedStringProperty<UserItem<? extends IUserDAO>> userStatusDisplay;
     private final NonNullableStringProperty title;
     private final NonNullableStringProperty description;
     private final NonNullableStringProperty location;
     private final NonNullableStringProperty contact;
     private final AppointmentTypeProperty type;
-    private final AppointmentTypeDisplayProperty typeDisplay;
     private final NonNullableStringProperty url;
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
-    private final EffectiveLocationProperty effectiveLocation;
+    private final CalculatedStringProperty<Quadruplet<String, String, String, AppointmentType>> effectiveLocation;
 
     public AppointmentModel(AppointmentDAO dao) {
         super(dao);
-        CustomerRowData c = dao.getCustomer();
+        ICustomerDAO c = dao.getCustomer();
         customer = new SimpleObjectProperty<>(this, "customer", (null == c) ? null : new RelatedCustomer(c));
-        customerName = new NestedStringBindingProperty<>(this, "customerName", customer, (t) -> t.nameProperty());
-        customerAddress1 = new NestedStringBindingProperty<>(this, "customerAddress1", customer, (t) -> t.address1Property());
-        customerAddress2 = new NestedStringBindingProperty<>(this, "customerAddress2", customer, (t) -> t.address2Property());
-        customerCityName = new NestedStringBindingProperty<>(this, "customerCityName", customer, (t) -> t.cityNameProperty());
-        customerCountryName = new NestedStringBindingProperty<>(this, "customerCountryName", customer, (t) -> t.countryNameProperty());
-        customerPostalCode = new NestedStringBindingProperty<>(this, "customerPostalCode", customer, (t) -> t.postalCodeProperty());
-        customerPhone = new NestedStringBindingProperty<>(this, "customerPhone", customer, (t) -> t.phoneProperty());
-        customerCityZipCountry = new NestedStringBindingProperty<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
-        customerAddressText = new NestedStringBindingProperty<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
-        customerActive = new NestedBooleanBindingProperty<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        UserRowData u = dao.getUser();
+        customerName = new NestedStringProperty<>(this, "customerName", customer, (t) -> t.nameProperty());
+        customerAddress1 = new NestedStringProperty<>(this, "customerAddress1", customer, (t) -> t.address1Property());
+        customerAddress2 = new NestedStringProperty<>(this, "customerAddress2", customer, (t) -> t.address2Property());
+        customerCityName = new NestedStringProperty<>(this, "customerCityName", customer, (t) -> t.cityNameProperty());
+        customerCountryName = new NestedStringProperty<>(this, "customerCountryName", customer, (t) -> t.countryNameProperty());
+        customerPostalCode = new NestedStringProperty<>(this, "customerPostalCode", customer, (t) -> t.postalCodeProperty());
+        customerPhone = new NestedStringProperty<>(this, "customerPhone", customer, (t) -> t.phoneProperty());
+        customerCityZipCountry = new NestedStringProperty<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
+        customerAddressText = new NestedStringProperty<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
+        customerActive = new NestedBooleanProperty<>(this, "customerActive", customer, (t) -> t.activeProperty());
+        IUserDAO u = dao.getUser();
         user = new SimpleObjectProperty<>(this, "user", (null == u) ? null : new RelatedUser(u));
-        userName = new NestedStringBindingProperty<>(this, "userName", user, (t) -> t.userNameProperty());
-        userStatus = new NestedObjectBindingProperty<>(this, "userStatus", user, (t) -> t.statusProperty());
-        userStatusDisplay = new NestedStringBindingProperty<>(this, "userStatusDisplay", user, (t) -> t.statusDisplayProperty());
+        userName = new NestedStringProperty<>(this, "userName", user, (t) -> t.userNameProperty());
+        userStatus = new NestedObjectValueProperty<>(this, "userStatus", user, (t) -> t.statusProperty());
+        userStatusDisplay = new NestedStringProperty<>(this, "userStatusDisplay", user, (t) -> t.statusDisplayProperty());
         title = new NonNullableStringProperty(this, "title", dao.getTitle());
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
         location = new NonNullableStringProperty(this, "location", dao.getLocation());
         contact = new NonNullableStringProperty(this, "contact", dao.getContact());
         type = new AppointmentTypeProperty(this, "type", dao.getType());
-        typeDisplay = new AppointmentTypeDisplayProperty(this, "typeDisplay", type);
         url = new NonNullableStringProperty(this, "url", dao.getUrl());
         start = new SimpleObjectProperty<>(this, "start", DB.toLocalDateTime(dao.getStart()));
         end = new SimpleObjectProperty<>(this, "end", DB.toLocalDateTime(dao.getEnd()));
-        effectiveLocation = new EffectiveLocationProperty(this, "effectiveLocation", this);
+        effectiveLocation = new CalculatedStringProperty<>(this, "effectiveLocation", new ObservableQuadruplet<>(
+                customerAddressText,
+                new CalculatedStringExpression<>(location, Values::asNonNullAndWsNormalized),
+                new CalculatedStringExpression<>(url, Values::asNonNullAndWsNormalized),
+                type
+        ), (t) -> {
+            String s;
+            switch (t.getValue4()) {
+                case CUSTOMER_SITE:
+                    s = t.getValue1();
+                    if (s.isEmpty()) {
+                        return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER);
+                    }
+                    break;
+                case VIRTUAL:
+                    s = t.getValue3();
+                    if (s.isEmpty()) {
+                        return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL);
+                    }
+                case CORPORATE_LOCATION:
+                    s = t.getValue2();
+                    PredefinedAddress a = PredefinedData.lookupAddress(s);
+                    return (null == a) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE) : AddressTextProperty.convertToString(a);
+                case PHONE:
+                    s = t.getValue2();
+                    if (s.isEmpty()) {
+                        return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE);
+                    }
+                    return String.format("tel: %s", s);
+                default:
+                    s = t.getValue2();
+                    break;
+            }
+            return s;
+        });
+        // CURRENT: Add validation properties
     }
 
     @Override
-    public CustomerItem<? extends CustomerRowData> getCustomer() {
+    protected void onDaoPropertyChanged(AppointmentDAO dao, String propertyName) {
+        switch (propertyName) {
+            case AppointmentDAO.PROP_CONTACT:
+                contact.set(dao.getContact());
+                break;
+            case AppointmentDAO.PROP_CUSTOMER:
+                ICustomerDAO c = dao.getCustomer();
+                customer.set((null == c) ? null : new RelatedCustomer(c));
+                break;
+            case AppointmentDAO.PROP_DESCRIPTION:
+                description.set(dao.getDescription());
+                break;
+            case AppointmentDAO.PROP_END:
+                end.set(DB.toLocalDateTime(dao.getEnd()));
+                break;
+            case AppointmentDAO.PROP_LOCATION:
+                location.set(dao.getLocation());
+                break;
+            case AppointmentDAO.PROP_START:
+                start.set(DB.toLocalDateTime(dao.getStart()));
+                break;
+            case AppointmentDAO.PROP_TITLE:
+                title.set(dao.getTitle());
+                break;
+            case AppointmentDAO.PROP_TYPE:
+                type.set(dao.getType());
+                break;
+            case AppointmentDAO.PROP_URL:
+                url.set(dao.getUrl());
+                break;
+            case AppointmentDAO.PROP_USER:
+                IUserDAO u = dao.getUser();
+                user.set((null == u) ? null : new RelatedUser(u));
+                break;
+        }
+    }
+
+    @Override
+    protected void onDataObjectChanged(AppointmentDAO dao) {
+        contact.set(dao.getContact());
+        ICustomerDAO c = dao.getCustomer();
+        customer.set((null == c) ? null : new RelatedCustomer(c));
+        description.set(dao.getDescription());
+        end.set(DB.toLocalDateTime(dao.getEnd()));
+        location.set(dao.getLocation());
+        start.set(DB.toLocalDateTime(dao.getStart()));
+        title.set(dao.getTitle());
+        IUserDAO u = dao.getUser();
+        user.set((null == u) ? null : new RelatedUser(u));
+        type.set(dao.getType());
+        url.set(dao.getUrl());
+    }
+
+    @Override
+    public CustomerItem<? extends ICustomerDAO> getCustomer() {
         return customer.get();
     }
 
-    public void setCustomer(CustomerItem<? extends CustomerRowData> value) {
+    public void setCustomer(CustomerItem<? extends ICustomerDAO> value) {
         customer.set(value);
     }
 
     @Override
-    public ObjectProperty<? extends CustomerItem<? extends CustomerRowData>> customerProperty() {
+    public ObjectProperty<? extends CustomerItem<? extends ICustomerDAO>> customerProperty() {
         return customer;
     }
 
@@ -182,8 +250,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerNameProperty() {
-        return customerName;
+    public ReadOnlyStringProperty customerNameProperty() {
+        return customerName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -192,8 +260,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerAddress1Property() {
-        return customerAddress1;
+    public ReadOnlyStringProperty customerAddress1Property() {
+        return customerAddress1.getReadOnlyStringProperty();
     }
 
     @Override
@@ -202,8 +270,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerAddress2Property() {
-        return customerAddress2;
+    public ReadOnlyStringProperty customerAddress2Property() {
+        return customerAddress2.getReadOnlyStringProperty();
     }
 
     @Override
@@ -212,8 +280,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerCityNameProperty() {
-        return customerCityName;
+    public ReadOnlyStringProperty customerCityNameProperty() {
+        return customerCityName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -222,8 +290,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerCountryNameProperty() {
-        return customerCountryName;
+    public ReadOnlyStringProperty customerCountryNameProperty() {
+        return customerCountryName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -232,8 +300,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerPostalCodeProperty() {
-        return customerPostalCode;
+    public ReadOnlyStringProperty customerPostalCodeProperty() {
+        return customerPostalCode.getReadOnlyStringProperty();
     }
 
     @Override
@@ -242,8 +310,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerPhoneProperty() {
-        return customerPhone;
+    public ReadOnlyStringProperty customerPhoneProperty() {
+        return customerPhone.getReadOnlyStringProperty();
     }
 
     @Override
@@ -252,8 +320,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerCityZipCountryProperty() {
-        return customerCityZipCountry;
+    public ReadOnlyStringProperty customerCityZipCountryProperty() {
+        return customerCityZipCountry.getReadOnlyStringProperty();
     }
 
     @Override
@@ -262,8 +330,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<CustomerItem<? extends CustomerRowData>> customerAddressTextProperty() {
-        return customerAddressText;
+    public ReadOnlyStringProperty customerAddressTextProperty() {
+        return customerAddressText.getReadOnlyStringProperty();
     }
 
     @Override
@@ -272,21 +340,21 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedBooleanBindingProperty<CustomerItem<? extends CustomerRowData>> customerActiveProperty() {
-        return customerActive;
+    public ReadOnlyBooleanProperty customerActiveProperty() {
+        return customerActive.getReadOnlyBooleanProperty();
     }
 
     @Override
-    public UserItem<? extends UserRowData> getUser() {
+    public UserItem<? extends IUserDAO> getUser() {
         return user.get();
     }
 
-    public void setUser(UserItem<? extends UserRowData> value) {
+    public void setUser(UserItem<? extends IUserDAO> value) {
         user.set(value);
     }
 
     @Override
-    public ObjectProperty<UserItem<? extends UserRowData>> userProperty() {
+    public ObjectProperty<UserItem<? extends IUserDAO>> userProperty() {
         return user;
     }
 
@@ -296,8 +364,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<UserItem<? extends UserRowData>> userNameProperty() {
-        return userName;
+    public ReadOnlyStringProperty userNameProperty() {
+        return userName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -306,8 +374,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedObjectBindingProperty<UserItem<? extends UserRowData>, UserStatus> userStatusProperty() {
-        return userStatus;
+    public ReadOnlyObjectProperty<UserStatus> userStatusProperty() {
+        return userStatus.getReadOnlyObjectProperty();
     }
 
     @Override
@@ -316,8 +384,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public NestedStringBindingProperty<UserItem<? extends UserRowData>> userStatusDisplayProperty() {
-        return userStatusDisplay;
+    public ReadOnlyStringProperty userStatusDisplayProperty() {
+        return userStatusDisplay.getReadOnlyStringProperty();
     }
 
     @Override
@@ -368,8 +436,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public ReadOnlyProperty<String> effectiveLocationProperty() {
-        return effectiveLocation;
+    public ReadOnlyStringProperty effectiveLocationProperty() {
+        return effectiveLocation.getReadOnlyStringProperty();
     }
 
     @Override
@@ -396,18 +464,18 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public AppointmentTypeProperty typeProperty() {
+    public SimpleObjectProperty<AppointmentType> typeProperty() {
         return type;
     }
 
     @Override
     public String getTypeDisplay() {
-        return typeDisplay.get();
+        return type.getDisplayText();
     }
 
     @Override
-    public ReadOnlyProperty<String> typeDisplayProperty() {
-        return typeDisplay;
+    public ReadOnlyStringProperty typeDisplayProperty() {
+        return type.displayTextProperty();
     }
 
     @Override
@@ -489,6 +557,16 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return false;
     }
 
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentModel#isValid
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentModel#validProperty
+    }
+
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {
 
         private Factory() {
@@ -502,23 +580,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         @Override
         public AppointmentModel createNew(AppointmentDAO dao) {
             return new AppointmentModel(dao);
-        }
-
-        @Override
-        public void updateItem(AppointmentModel item, AppointmentDAO dao) {
-            super.updateItem(item, dao);
-            item.contact.set(dao.getContact());
-            CustomerRowData customer = dao.getCustomer();
-            item.customer.set((null == customer) ? null : new RelatedCustomer(customer));
-            item.description.set(dao.getDescription());
-            item.end.set(DB.toLocalDateTime(dao.getEnd()));
-            item.location.set(dao.getLocation());
-            item.start.set(DB.toLocalDateTime(dao.getStart()));
-            item.title.set(dao.getTitle());
-            UserRowData user = dao.getUser();
-            item.user.set((null == user) ? null : new RelatedUser(user));
-            item.type.set(dao.getType());
-            item.url.set(dao.getUrl());
         }
 
         @Override
@@ -591,19 +652,19 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                     }
                     break;
             }
-            CustomerItem<? extends CustomerRowData> customerModel = item.customer.get();
+            CustomerItem<? extends ICustomerDAO> customerModel = item.customer.get();
             if (null == customerModel) {
                 throw new IllegalArgumentException("No associated customer");
             }
-            UserItem<? extends UserRowData> userModel = item.user.get();
+            UserItem<? extends IUserDAO> userModel = item.user.get();
             if (null == userModel) {
                 throw new IllegalArgumentException("No associated user");
             }
-            CustomerRowData customerDAO = customerModel.getDataObject();
+            ICustomerDAO customerDAO = customerModel.getDataObject();
             if (ModelHelper.getRowState(customerDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated customer has been deleted");
             }
-            UserRowData userDAO = userModel.getDataObject();
+            IUserDAO userDAO = userModel.getDataObject();
             if (ModelHelper.getRowState(userDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated user has been deleted");
             }

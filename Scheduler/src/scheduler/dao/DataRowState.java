@@ -11,6 +11,8 @@ public enum DataRowState {
     DELETED;
     
     public static boolean existsInDb(DataRowState status) {
+        if (null == status)
+            return false;
         switch (status) {
             case MODIFIED:
             case UNMODIFIED:
@@ -19,4 +21,17 @@ public enum DataRowState {
                 return false;
         }
     }
+    
+    public static boolean isChange(DataRowState status) {
+        if (null == status)
+            return false;
+        switch (status) {
+            case MODIFIED:
+            case NEW:
+                return true;
+            default:
+                return false;
+        }
+    }
+    
 }

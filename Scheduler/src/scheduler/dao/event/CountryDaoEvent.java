@@ -53,6 +53,7 @@ public class CountryDaoEvent extends DataObjectEvent<CountryDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<CountryDaoEvent> getEventType() {
         return (EventType<CountryDaoEvent>) super.getEventType();
     }

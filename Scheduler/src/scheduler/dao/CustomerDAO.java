@@ -22,10 +22,9 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.RelatedRecord;
-import scheduler.model.db.AddressRowData;
-import scheduler.model.db.CustomerRowData;
+import scheduler.model.Address;
 import scheduler.util.InternalException;
+import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -34,10 +33,10 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CUSTOMER)
-public class CustomerDAO extends DataAccessObject implements CustomerRowData {
+public final class CustomerDAO extends DataAccessObject implements ICustomerDAO {
 
     public static final int MAX_LENGTH_NAME = 45;
-    
+
     /**
      * The name of the 'name' property.
      */
@@ -60,7 +59,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
     }
 
     private String name;
-    private AddressRowData address;
+    private IAddressDAO address;
     private boolean active;
 
     /**
@@ -71,20 +70,6 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
         name = "";
         address = null;
         active = true;
-    }
-
-    @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (name.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.NAME_EMPTY);
-        }
-        if (null == address) {
-            addValidation.accept(ValidationResult.NO_ADDRESS);
-        } else if (RelatedRecord.validate(address) != ValidationResult.OK) {
-            addValidation.accept(ValidationResult.INVALID_ADDRESS);
-        } else if (ModelHelper.getRowState(address) == DataRowState.DELETED) {
-            addValidation.accept(ValidationResult.ADDRESS_DELETED);
-        }
     }
 
     @Override
@@ -104,7 +89,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
     }
 
     @Override
-    public AddressRowData getAddress() {
+    public IAddressDAO getAddress() {
         return address;
     }
 
@@ -113,8 +98,8 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
      *
      * @param address new value of address
      */
-    public void setAddress(AddressRowData address) {
-        AddressRowData oldValue = this.address;
+    public void setAddress(IAddressDAO address) {
+        IAddressDAO oldValue = this.address;
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
     }
@@ -153,7 +138,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.CustomerRowData} objects.
+     * Factory implementation for {@link scheduler.model.db.Customer} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
 
@@ -199,7 +184,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
             return CustomerFilter.of(CustomerFilter.expressionOf(active));
         }
 
-        public DaoFilter<CustomerDAO> getByAddressFilter(AddressRowData address) {
+        public DaoFilter<CustomerDAO> getByAddressFilter(Address address) {
             return CustomerFilter.of(CustomerFilter.expressionOf(address));
         }
 
@@ -219,7 +204,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CustomerDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
-                private final AddressRowData oldAddress = dao.address;
+                private final Address oldAddress = dao.address;
                 private final boolean oldActive = dao.active;
 
                 @Override
@@ -244,7 +229,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
             return propertyChanges;
         }
 
-        CustomerRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+        ICustomerDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString()),
                     asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString())),
                     AddressDAO.getFactory().fromJoinedResultSet(rs), rs.getBoolean(DbColumn.ACTIVE.toString()));
@@ -305,7 +290,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
 
         @Override
         public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
-            AddressRowData address = dao.getAddress();
+            Address address = dao.getAddress();
             if (address instanceof AddressDAO && (force || ModelHelper.getRowState(address) != DataRowState.UNMODIFIED)) {
                 AddressDAO.getFactory().save((AddressDAO) address, connection, force);
             }
@@ -350,14 +335,14 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
 
     }
 
-    private static class Related implements CustomerRowData {
+    private static class Related extends PropertyBindable implements ICustomerDAO {
 
         private final String name;
-        private final AddressRowData address;
+        private final IAddressDAO address;
         private final boolean active;
         private final int primaryKey;
 
-        Related(int primaryKey, String name, AddressRowData address, boolean active) {
+        Related(int primaryKey, String name, IAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.address = address;
@@ -370,7 +355,7 @@ public class CustomerDAO extends DataAccessObject implements CustomerRowData {
         }
 
         @Override
-        public AddressRowData getAddress() {
+        public IAddressDAO getAddress() {
             return address;
         }
 

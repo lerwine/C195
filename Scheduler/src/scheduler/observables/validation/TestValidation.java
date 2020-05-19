@@ -34,7 +34,8 @@ public class TestValidation<T> extends ValidationNode<Boolean> implements Observ
         super.onValidValueChanged(isValidValue);
         fireValueChangedEvent();
     }
-
+    
+    @SuppressWarnings("unchecked")
     private void onObservableChanged(Observable observable) {
         updateValidity((t) -> {
             t.accept(predicate.test(((ObservableValue<T>) observable).getValue()));

@@ -14,7 +14,7 @@ public class CityListCellFactory<T extends CityItem> implements Callback<ListVie
 
     @Override
     public ListCell<T> call(ListView<T> param) {
-        return new CityListCell();
+        return new CityListCell<>();
     }
 
 }

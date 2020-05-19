@@ -1,30 +1,24 @@
-package scheduler.model.db;
+package scheduler.dao;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import scheduler.model.Appointment;
-import scheduler.model.RelatedRecord;
 import scheduler.util.DB;
 
 /**
- * Represents a data row from the "appointment" database table.
- * <dl>
- * <dt>{@link scheduler.dao.AppointmentDAO}</dt><dd>Data access object.</dd>
- * <dt>{@link scheduler.model.ui.AppointmentItem}</dt><dd>UI Model with JavaFX properties.</dd>
- * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface AppointmentRowData extends Appointment<Timestamp>, RelatedRecord {
+public interface IAppointmentDAO extends DAO, Appointment<Timestamp> {
 
     @Override
-    public CustomerRowData getCustomer();
+    public ICustomerDAO getCustomer();
 
     @Override
-    public UserRowData getUser();
-
+    public IUserDAO getUser();
+    
     @Override
     public default boolean startEquals(Object value) {
         Timestamp start = getStart();

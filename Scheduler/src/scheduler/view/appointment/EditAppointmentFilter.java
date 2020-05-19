@@ -55,7 +55,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
-import scheduler.model.db.AddressRowData;
+import scheduler.model.Address;
 import scheduler.observables.StringBindingProperty;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.clearAndSelect;
@@ -1303,7 +1303,7 @@ public final class EditAppointmentFilter extends BorderPane {
                 countryId = new ReadOnlyIntegerWrapper(-1);
             } else {
                 text = new ReadOnlyStringWrapper(customer.getName());
-                AddressRowData addr = customer.getAddress();
+                Address addr = customer.getAddress();
                 cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
                 countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
             }

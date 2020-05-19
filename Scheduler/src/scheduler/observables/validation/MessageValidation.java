@@ -35,7 +35,8 @@ public class MessageValidation<T> extends ValidationNode<String> implements Obse
     public String get() {
         return message;
     }
-
+    
+    @SuppressWarnings("unchecked")
     private void onObservableChanged(Observable observable) {
         String value = getMessage.apply(((ObservableValue<T>)observable).getValue());
         String s = (null == value) ? "" : value.trim();

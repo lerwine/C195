@@ -54,7 +54,7 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
-import scheduler.model.db.CustomerRowData;
+import scheduler.model.Customer;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
@@ -437,7 +437,7 @@ public final class MainController implements EventTarget {
      * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
      */
-    public AppointmentModel addNewAppointment(CustomerItem<? extends CustomerRowData> customer, UserDAO user, Window parentWindow, boolean keepOpen) {
+    public AppointmentModel addNewAppointment(CustomerItem<? extends Customer> customer, UserDAO user, Window parentWindow, boolean keepOpen) {
         AppointmentModel result;
         try {
             result = EditAppointment.editNew(customer, (null == user) ? null : UserModel.getFactory().createNew(user), parentWindow, keepOpen);

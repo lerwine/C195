@@ -20,10 +20,10 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.model.db.CountryRowData;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
+import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
@@ -35,7 +35,7 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.COUNTRY)
-public class CountryDAO extends DataAccessObject implements CountryRowData {
+public final class CountryDAO extends DataAccessObject implements ICountryDAO {
 
     public static final int MAX_LENGTH_NAME = 50;
 
@@ -77,7 +77,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
     }
 
     @Override
-    public PredefinedCountry asPredefinedData() {
+    public PredefinedCountry getPredefinedData() {
         return predefinedCountry;
     }
 
@@ -103,13 +103,6 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
         this.predefinedCountry = country;
         firePropertyChange(PROP_PREDEFINEDCOUNTRY, oldPredefinedCountry, country);
         firePropertyChange(PROP_NAME, oldName, name);
-    }
-
-    @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (name.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.NAME_EMPTY);
-        }
     }
 
     @Override
@@ -185,7 +178,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
             return propertyChanges;
         }
 
-        CountryRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+        ICountryDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), rs.getString(DbColumn.COUNTRY_NAME.toString()));
         }
 
@@ -273,7 +266,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
 
     }
 
-    private final static class Related implements CountryRowData {
+    private final static class Related extends PropertyBindable implements ICountryDAO {
 
         private final int primaryKey;
         private final String name;
@@ -306,7 +299,7 @@ public class CountryDAO extends DataAccessObject implements CountryRowData {
         }
 
         @Override
-        public PredefinedCountry asPredefinedData() {
+        public PredefinedCountry getPredefinedData() {
             return predefinedCountry;
         }
 

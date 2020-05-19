@@ -49,6 +49,7 @@ public abstract class SchedulerNodeEvent<T extends Node, U> extends Event {
      * @return The target {@link Node} representing the view.
      */
     @Override
+    @SuppressWarnings("unchecked")
     public T getTarget() {
         return (T) super.getTarget();
     }

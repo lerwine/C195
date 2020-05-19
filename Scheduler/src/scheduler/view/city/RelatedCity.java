@@ -1,56 +1,62 @@
 package scheduler.view.city;
 
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
+import java.time.ZoneId;
+import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.DataRowState;
-import scheduler.model.ModelHelper;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
+import scheduler.dao.CityDAO;
+import scheduler.dao.ICityDAO;
+import scheduler.model.RelatedModel;
 import scheduler.model.predefined.PredefinedCity;
+import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.CityDbItem;
 import scheduler.model.ui.CountryItem;
-import scheduler.observables.NestedStringBindingProperty;
-import scheduler.observables.RowStateProperty;
-import scheduler.view.country.RelatedCountry;
+import scheduler.observables.NestedStringProperty;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCity implements CityDbItem<CityRowData> {
+public class RelatedCity extends RelatedModel<ICityDAO> implements CityDbItem<ICityDAO> {
 
-    private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyStringWrapper name;
-    private final NestedStringBindingProperty<CountryItem> countryName;
+    private final NestedStringProperty<CountryItem> countryName;
     private final ReadOnlyObjectWrapper<CountryItem> country;
-    private final ReadOnlyObjectWrapper<CityRowData> dataObject;
-    private final RowStateProperty rowState;
-    private final PredefinedCity predefinedData;
+    private final ReadOnlyObjectWrapper<PredefinedCity> predefinedData;
+    private final ReadOnlyStringWrapper language;
+    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
 
-    public RelatedCity(CityRowData rowData) {
-        predefinedData = rowData.asPredefinedData();
-        primaryKey = new ReadOnlyIntegerWrapper(this, "primaryKey", rowData.getPrimaryKey());
-        name = new ReadOnlyStringWrapper(this, "name", rowData.getName());
-        CountryRowData c = rowData.getCountry();
-        country = new ReadOnlyObjectWrapper<>(this, "country", (null == c) ? null : new RelatedCountry(c));
-        countryName = new NestedStringBindingProperty<>(this, "countryName", country, (t) -> t.nameProperty());
-        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", rowData);
-        rowState = new RowStateProperty(this, "rowState", ModelHelper.getRowState(rowData));
+    public RelatedCity(ICityDAO dao) {
+        super(dao);
+        PredefinedCity c = dao.getPredefinedData();
+        predefinedData = new ReadOnlyObjectWrapper<>(this, "predefinedData", c);
+        name = new ReadOnlyStringWrapper(this, "name", c.getName());
+        PredefinedCountry n = c.getCountry();
+        country = new ReadOnlyObjectWrapper<>(this, "country");
+        countryName = new NestedStringProperty<>(this, "countryName", country, (t) -> t.nameProperty());
+        zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId");
+        language = new ReadOnlyStringWrapper(this, "language");
+        predefinedData.addListener(this::onPredefinedDataChanged);
+        onPredefinedDataChanged(predefinedData);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void onPredefinedDataChanged(Observable observable) {
+        PredefinedCity c = ((ReadOnlyObjectWrapper<PredefinedCity>) observable).get();
+        PredefinedCountry n = c.getCountry();
+        country.set(n);
+        name.set(c.getName());
+        zoneId.set(c.getZoneId());
+        language.set(n.getLanguage());
     }
 
     @Override
-    public int getPrimaryKey() {
-        return primaryKey.get();
-    }
-
-    @Override
-    public ReadOnlyIntegerProperty primaryKeyProperty() {
-        return primaryKey.getReadOnlyProperty();
+    protected void onDataObjectPropertyChanged(ICityDAO dao, String propertyName) {
+        if (propertyName.equals(CityDAO.PROP_PREDEFINEDCITY)) {
+            predefinedData.set(dao.getPredefinedData());
+        }
     }
 
     @Override
@@ -74,33 +80,37 @@ public class RelatedCity implements CityDbItem<CityRowData> {
     }
 
     @Override
-    public NestedStringBindingProperty<CountryItem> countryNameProperty() {
-        return countryName;
+    public ReadOnlyStringProperty countryNameProperty() {
+        return countryName.getReadOnlyStringProperty();
     }
 
     @Override
-    public CityRowData getDataObject() {
-        return dataObject.get();
+    public ZoneId getZoneId() {
+        return zoneId.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityRowData> dataObjectProperty() {
-        return dataObject.getReadOnlyProperty();
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId;
     }
 
     @Override
-    public DataRowState getRowState() {
-        return rowState.get();
+    public String getLanguage() {
+        return language.get();
     }
 
     @Override
-    public ReadOnlyProperty<DataRowState> rowStateProperty() {
-        return rowState.getReadOnlyProperty();
+    public ReadOnlyStringProperty languageProperty() {
+        return language.getReadOnlyProperty();
     }
 
     @Override
-    public PredefinedCity asPredefinedData() {
-        return predefinedData;
+    public PredefinedCity getPredefinedData() {
+        return predefinedData.get();
+    }
+
+    public ReadOnlyObjectProperty<PredefinedCity> predefinedDataProperty() {
+        return predefinedData.getReadOnlyProperty();
     }
 
 }

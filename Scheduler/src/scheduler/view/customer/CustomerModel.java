@@ -1,10 +1,10 @@
 package scheduler.view.customer;
 
-import java.time.ZoneId;
 import java.util.Objects;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -12,9 +12,8 @@ import javafx.beans.property.StringProperty;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.IAddressDAO;
 import scheduler.model.ModelHelper;
-import scheduler.model.db.AddressRowData;
-import scheduler.model.db.CustomerRowData;
 import scheduler.model.ui.AddressDbItem;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
@@ -22,7 +21,7 @@ import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.RelatedAddress;
 import scheduler.observables.AddressTextProperty;
-import scheduler.observables.NestedStringBindingProperty;
+import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
 
 /**
@@ -33,26 +32,19 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     private static final Factory FACTORY = new Factory();
 
-    public static ZoneId getZoneId(CustomerItem<? extends CustomerRowData> customer) {
-        if (null != customer) {
-            return AddressModel.getZoneId(customer.getAddress());
-        }
-        return ZoneId.systemDefault();
-    }
-
     public static final Factory getFactory() {
         return FACTORY;
     }
 
     private final NonNullableStringProperty name;
     private final SimpleObjectProperty<AddressItem> address;
-    private final NestedStringBindingProperty<AddressItem> address1;
-    private final NestedStringBindingProperty<AddressItem> address2;
-    private final NestedStringBindingProperty<AddressItem> cityName;
-    private final NestedStringBindingProperty<AddressItem> countryName;
-    private final NestedStringBindingProperty<AddressItem> postalCode;
-    private final NestedStringBindingProperty<AddressItem> phone;
-    private final NestedStringBindingProperty<AddressItem> cityZipCountry;
+    private final NestedStringProperty<AddressItem> address1;
+    private final NestedStringProperty<AddressItem> address2;
+    private final NestedStringProperty<AddressItem> cityName;
+    private final NestedStringProperty<AddressItem> countryName;
+    private final NestedStringProperty<AddressItem> postalCode;
+    private final NestedStringProperty<AddressItem> phone;
+    private final NestedStringProperty<AddressItem> cityZipCountry;
     private final AddressTextProperty addressText;
     private final SimpleBooleanProperty active;
     private final StringBinding multiLineAddress;
@@ -60,18 +52,43 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     public CustomerModel(CustomerDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
-        AddressRowData a = dao.getAddress();
+        IAddressDAO a = dao.getAddress();
         address = new SimpleObjectProperty<>(this, "address", (null == a) ? null : new RelatedAddress(a));
-        address1 = new NestedStringBindingProperty<>(this, "address1", address, (c) -> c.address1Property());
-        address2 = new NestedStringBindingProperty<>(this, "address2", address, (c) -> c.address2Property());
-        cityName = new NestedStringBindingProperty<>(this, "cityName", address, (c) -> c.cityNameProperty());
-        countryName = new NestedStringBindingProperty<>(this, "countryName", address, (c) -> c.countryNameProperty());
-        postalCode = new NestedStringBindingProperty<>(this, "postalCode", address, (c) -> c.postalCodeProperty());
-        phone = new NestedStringBindingProperty<>(this, "phone", address, (c) -> c.phoneProperty());
-        cityZipCountry = new NestedStringBindingProperty<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
+        address1 = new NestedStringProperty<>(this, "address1", address, (c) -> c.address1Property());
+        address2 = new NestedStringProperty<>(this, "address2", address, (c) -> c.address2Property());
+        cityName = new NestedStringProperty<>(this, "cityName", address, (c) -> c.cityNameProperty());
+        countryName = new NestedStringProperty<>(this, "countryName", address, (c) -> c.countryNameProperty());
+        postalCode = new NestedStringProperty<>(this, "postalCode", address, (c) -> c.postalCodeProperty());
+        phone = new NestedStringProperty<>(this, "phone", address, (c) -> c.phoneProperty());
+        cityZipCountry = new NestedStringProperty<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
         addressText = new AddressTextProperty(this, "addressText", this);
         active = new SimpleBooleanProperty(this, "active", dao.isActive());
         multiLineAddress = AddressItem.createMultiLineAddressBinding(address1, address2, cityZipCountry, phone);
+        // CURRENT: Add validation properties
+    }
+
+    @Override
+    protected void onDaoPropertyChanged(CustomerDAO dao, String propertyName) {
+        switch (propertyName) {
+            case CustomerDAO.PROP_ACTIVE:
+                setActive(isActive());
+                break;
+            case CustomerDAO.PROP_ADDRESS:
+                IAddressDAO addressDAO = dao.getAddress();
+                setAddress((null == addressDAO) ? null : new RelatedAddress(addressDAO));
+                break;
+            case CustomerDAO.PROP_NAME:
+                setName(dao.getName());
+                break;
+        }
+    }
+
+    @Override
+    protected void onDataObjectChanged(CustomerDAO dao) {
+        setName(dao.getName());
+        setActive(isActive());
+        IAddressDAO addressDAO = dao.getAddress();
+        setAddress((null == addressDAO) ? null : new RelatedAddress(addressDAO));
     }
 
     @Override
@@ -113,7 +130,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> address1Property() {
+    public NestedStringProperty<AddressItem> address1Property() {
         return address1;
     }
 
@@ -123,7 +140,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> address2Property() {
+    public NestedStringProperty<AddressItem> address2Property() {
         return address2;
     }
 
@@ -133,7 +150,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> cityNameProperty() {
+    public NestedStringProperty<AddressItem> cityNameProperty() {
         return cityName;
     }
 
@@ -143,7 +160,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> countryNameProperty() {
+    public NestedStringProperty<AddressItem> countryNameProperty() {
         return countryName;
     }
 
@@ -153,7 +170,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> postalCodeProperty() {
+    public NestedStringProperty<AddressItem> postalCodeProperty() {
         return postalCode;
     }
 
@@ -163,7 +180,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> phoneProperty() {
+    public NestedStringProperty<AddressItem> phoneProperty() {
         return phone;
     }
 
@@ -187,7 +204,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringBindingProperty<AddressItem> cityZipCountryProperty() {
+    public NestedStringProperty<AddressItem> cityZipCountryProperty() {
         return cityZipCountry;
     }
 
@@ -233,6 +250,16 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         return false;
     }
 
+    @Override
+    public boolean isValid() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.CustomerModel#isValid
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.CustomerModel#validProperty
+    }
+
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {
 
         private Factory() {
@@ -246,15 +273,6 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         @Override
         public CustomerModel createNew(CustomerDAO dao) {
             return new CustomerModel(dao);
-        }
-
-        @Override
-        public void updateItem(CustomerModel item, CustomerDAO dao) {
-            super.updateItem(item, dao);
-            item.setName(dao.getName());
-            item.setActive(item.isActive());
-            AddressRowData addressDAO = dao.getAddress();
-            item.setAddress((null == addressDAO) ? null : new RelatedAddress(addressDAO));
         }
 
         @Override
@@ -281,12 +299,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             if (null == addressModel) {
                 throw new IllegalArgumentException("No associated address");
             }
-            AddressRowData addressDAO;
+            IAddressDAO addressDAO;
             if (addressModel instanceof AddressModel) {
-                addressDAO = AddressModel.getFactory().updateDAO((AddressModel)addressModel);
+                addressDAO = AddressModel.getFactory().updateDAO((AddressModel) addressModel);
             } else {
                 addressDAO = (addressModel instanceof AddressDbItem)
-                    ? ((AddressDbItem<? extends AddressRowData>) addressModel).getDataObject() : (AddressRowData) addressModel;
+                        ? ((AddressDbItem<? extends IAddressDAO>) addressModel).getDataObject() : (IAddressDAO) addressModel;
             }
             if (ModelHelper.getRowState(addressDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated address has been deleted");

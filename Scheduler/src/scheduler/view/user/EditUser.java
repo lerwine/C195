@@ -216,6 +216,17 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         windowTitle.set(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 
+    // CURRENT: Update model from listeners
+    public boolean applyChangesToModel() {
+        model.setUserName(userNameTextField.getText());
+        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
+        if (changePasswordCheckBox.isSelected()) {
+            PwHash pw = new PwHash(passwordField.getText(), true);
+            model.setPassword(pw.getEncodedHash());
+        }
+        return true;
+    }
+
     private StringBinding getUserNameValidationMessage() {
         return Bindings.createStringBinding(() -> {
             String n = userNameTextField.getText().trim().toLowerCase();
@@ -271,24 +282,23 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     }
 
     @Override
-    public boolean applyChangesToModel() {
-        model.setUserName(userNameTextField.getText());
-        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
-        if (changePasswordCheckBox.isSelected()) {
-            PwHash pw = new PwHash(passwordField.getText(), true);
-            model.setPassword(pw.getEncodedHash());
-        }
-        return true;
-    }
-
-    @Override
     public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#isChanged
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#isChanged
     }
 
     @Override
     public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#changedProperty
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#changedProperty
+    }
+
+    @Override
+    public void onEditNew() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onEditNew
+    }
+
+    @Override
+    public void onEditExisting(boolean isInitialize) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onEditExisting
     }
 
     private class AppointmentFilterItem {

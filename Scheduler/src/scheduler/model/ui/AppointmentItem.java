@@ -5,14 +5,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.Date;
-import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import scheduler.dao.IAppointmentDAO;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
+import scheduler.model.Customer;
+import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.db.AppointmentRowData;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
 import scheduler.util.DB;
 
 /**
@@ -20,125 +21,134 @@ import scheduler.util.DB;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface AppointmentItem<T extends AppointmentRowData> extends Appointment<LocalDateTime>, FxDbModel<T> {
+public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<LocalDateTime>, FxDbModel<T> {
 
     @Override
-    CustomerItem<? extends CustomerRowData> getCustomer();
+    CustomerItem<? extends Customer> getCustomer();
 
-    ReadOnlyProperty<? extends CustomerItem<? extends CustomerRowData>> customerProperty();
+    ReadOnlyObjectProperty<? extends CustomerItem<? extends Customer>> customerProperty();
 
-    ReadOnlyProperty<String> customerNameProperty();
+    ReadOnlyStringProperty customerNameProperty();
 
     String getCustomerName();
 
     String getCustomerAddress1();
 
-    ReadOnlyProperty<String> customerAddress1Property();
+    ReadOnlyStringProperty customerAddress1Property();
 
     String getCustomerAddress2();
 
-    ReadOnlyProperty<String> customerAddress2Property();
+    ReadOnlyStringProperty customerAddress2Property();
 
     String getCustomerCityName();
 
-    ReadOnlyProperty<String> customerCityNameProperty();
+    ReadOnlyStringProperty customerCityNameProperty();
 
     String getCustomerCountryName();
 
-    ReadOnlyProperty<String> customerCountryNameProperty();
+    ReadOnlyStringProperty customerCountryNameProperty();
 
     String getCustomerCityZipCountry();
 
-    ReadOnlyProperty<String> customerCityZipCountryProperty();
+    ReadOnlyStringProperty customerCityZipCountryProperty();
 
     String getCustomerAddressText();
 
     String getCustomerPhone();
 
-    ReadOnlyProperty<String> customerPhoneProperty();
+    ReadOnlyStringProperty customerPhoneProperty();
 
     String getCustomerPostalCode();
 
-    ReadOnlyProperty<String> customerPostalCodeProperty();
+    ReadOnlyStringProperty customerPostalCodeProperty();
 
-    ReadOnlyProperty<String> customerAddressTextProperty();
+    ReadOnlyStringProperty customerAddressTextProperty();
 
     boolean isCustomerActive();
 
-    ReadOnlyProperty<Boolean> customerActiveProperty();
+    ReadOnlyBooleanProperty customerActiveProperty();
 
-    ReadOnlyProperty<? extends UserItem<? extends UserRowData>> userProperty();
+    ReadOnlyObjectProperty<? extends UserItem<? extends User>> userProperty();
 
     String getUserName();
 
-    ReadOnlyProperty<String> userNameProperty();
+    ReadOnlyStringProperty userNameProperty();
 
     UserStatus getUserStatus();
 
-    ReadOnlyProperty<String> userStatusDisplayProperty();
+    ReadOnlyStringProperty userStatusDisplayProperty();
 
-    ReadOnlyProperty<UserStatus> userStatusProperty();
+    ReadOnlyObjectProperty<UserStatus> userStatusProperty();
 
     String getUserStatusDisplay();
 
-    ReadOnlyProperty<String> titleProperty();
+    ReadOnlyStringProperty titleProperty();
 
-    ReadOnlyProperty<AppointmentType> typeProperty();
+    ReadOnlyObjectProperty<AppointmentType> typeProperty();
 
     String getTypeDisplay();
 
-    ReadOnlyProperty<String> typeDisplayProperty();
+    ReadOnlyStringProperty typeDisplayProperty();
 
-    ReadOnlyProperty<String> contactProperty();
+    ReadOnlyStringProperty contactProperty();
 
-    ReadOnlyProperty<String> descriptionProperty();
+    ReadOnlyStringProperty descriptionProperty();
 
-    ReadOnlyProperty<String> locationProperty();
+    ReadOnlyStringProperty locationProperty();
 
-    ReadOnlyProperty<LocalDateTime> startProperty();
+    ReadOnlyObjectProperty<LocalDateTime> startProperty();
 
-    ReadOnlyProperty<LocalDateTime> endProperty();
+    ReadOnlyObjectProperty<LocalDateTime> endProperty();
 
-    ReadOnlyProperty<String> urlProperty();
+    ReadOnlyStringProperty urlProperty();
 
     String getEffectiveLocation();
 
-    ReadOnlyProperty<String> effectiveLocationProperty();
+    ReadOnlyStringProperty effectiveLocationProperty();
 
     @Override
     public default boolean startEquals(Object value) {
         LocalDateTime start = getStart();
-        if (null == start)
+        if (null == start) {
             return null == value;
-        
-        if (null == value)
+        }
+
+        if (null == value) {
             return false;
-        
-        if (value instanceof ChronoLocalDateTime)
-            return start.equals((ChronoLocalDateTime<?>)value);
-        
-        if (value instanceof ZonedDateTime)
-            return start.equals(((ZonedDateTime)value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
-        return value instanceof Timestamp && start.equals(DB.toLocalDateTime((Timestamp)value));
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return start.equals((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return start.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+        return value instanceof Timestamp && start.equals(DB.toLocalDateTime((Timestamp) value));
     }
 
     @Override
     public default int compareStart(Object value) {
         LocalDateTime start = getStart();
-        if (null == start)
+        if (null == start) {
             return (null == value) ? 0 : 1;
-        
-        if (null == value)
-            return -1;
-        
-        if (value instanceof ChronoLocalDateTime)
-            return start.compareTo((ChronoLocalDateTime<?>)value);
-        
-        if (value instanceof ZonedDateTime)
-            return start.compareTo(((ZonedDateTime)value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
 
-        if (value instanceof Timestamp)
-            return start.compareTo((ChronoLocalDateTime<?>)value);
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return start.compareTo((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return start.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+
+        if (value instanceof Timestamp) {
+            return start.compareTo((ChronoLocalDateTime<?>) value);
+        }
 
         return -1;
     }
@@ -146,37 +156,46 @@ public interface AppointmentItem<T extends AppointmentRowData> extends Appointme
     @Override
     public default boolean endEquals(Object value) {
         LocalDateTime end = getEnd();
-        if (null == end)
+        if (null == end) {
             return null == value;
-        
-        if (null == value)
+        }
+
+        if (null == value) {
             return false;
-        
-        if (value instanceof ChronoLocalDateTime)
-            return end.equals((ChronoLocalDateTime<?>)value);
-        
-        if (value instanceof ZonedDateTime)
-            return end.equals(((ZonedDateTime)value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
-        return value instanceof Timestamp && end.equals(DB.toLocalDateTime((Timestamp)value));
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return end.equals((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return end.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+        return value instanceof Timestamp && end.equals(DB.toLocalDateTime((Timestamp) value));
     }
 
     @Override
     public default int compareEnd(Object value) {
         LocalDateTime end = getEnd();
-        if (null == end)
+        if (null == end) {
             return (null == value) ? 0 : 1;
-        
-        if (null == value)
-            return -1;
-        
-        if (value instanceof ChronoLocalDateTime)
-            return end.compareTo((ChronoLocalDateTime<?>)value);
-        
-        if (value instanceof ZonedDateTime)
-            return end.compareTo(((ZonedDateTime)value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
 
-        if (value instanceof Timestamp)
-            return end.compareTo((ChronoLocalDateTime<?>)value);
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return end.compareTo((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return end.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+
+        if (value instanceof Timestamp) {
+            return end.compareTo((ChronoLocalDateTime<?>) value);
+        }
 
         return -1;
     }

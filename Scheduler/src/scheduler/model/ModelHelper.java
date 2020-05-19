@@ -1,6 +1,12 @@
 package scheduler.model;
 
+import com.sun.javafx.binding.ExpressionHelper;
 import java.util.Objects;
+import javafx.beans.InvalidationListener;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.value.ChangeListener;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.model.predefined.PredefinedItem;
@@ -13,6 +19,44 @@ import scheduler.model.ui.FxRecordModel;
  */
 public class ModelHelper {
 
+    final static ReadOnlyBooleanProperty VALIDPROPERTY = new ReadOnlyBooleanProperty() {
+        private ExpressionHelper<Boolean> helper = null;
+        @Override
+        public boolean get() {
+            return true;
+        }
+
+        @Override
+        public void addListener(ChangeListener<? super Boolean> listener) {
+            helper = ExpressionHelper.addListener(helper, this, listener);
+        }
+
+        @Override
+        public void removeListener(ChangeListener<? super Boolean> listener) {
+            helper = ExpressionHelper.removeListener(helper, listener);
+        }
+
+        @Override
+        public void addListener(InvalidationListener listener) {
+            helper = ExpressionHelper.addListener(helper, this, listener);
+        }
+
+        @Override
+        public void removeListener(InvalidationListener listener) {
+            helper = ExpressionHelper.removeListener(helper, listener);
+        }
+
+        @Override
+        public Object getBean() {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return "valid";
+        }
+        
+    };
     /**
      * Tests whether two {@link DataModel} objects represent the same database entity.
      *

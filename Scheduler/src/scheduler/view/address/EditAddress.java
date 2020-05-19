@@ -129,6 +129,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             phoneTextField.textProperty().addListener(this::checkPhoneChanged);
             cityComboBox.getSelectionModel().selectedItemProperty().addListener(this::checkCityChanged);
         }
+        // CURRENT: Update model from listeners
     }
 
     private void validateAddress1(String address1) {
@@ -254,10 +255,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void validateCity(Observable observable) {
         validateCity(((ReadOnlyObjectProperty<CityItem>) observable).get());
     }
 
+    @SuppressWarnings("unchecked")
     private void checkCityChanged(Observable observable) {
         CityItem city = ((ReadOnlyObjectProperty<CityItem>) observable).get();
         validateCity(city);
@@ -303,8 +306,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public boolean applyChangesToModel() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#applyChangesToModel
+    public void onEditNew() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onEditNew
+    }
+
+    @Override
+    public void onEditExisting(boolean isInitialize) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onEditExisting
     }
 
     private class ItemsLoadTask extends Task<List<CustomerDAO>> {

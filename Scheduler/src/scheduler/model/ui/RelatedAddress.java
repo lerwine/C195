@@ -1,25 +1,26 @@
 package scheduler.model.ui;
 
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
+import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import scheduler.dao.DataRowState;
+import scheduler.dao.AddressDAO;
+import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.ModelHelper;
-import scheduler.model.db.AddressRowData;
-import scheduler.model.db.CityRowData;
-import scheduler.model.ui.AddressDbItem;
-import scheduler.model.ui.CityItem;
-import scheduler.observables.CityZipCountryProperty;
-import scheduler.observables.NestedStringBindingProperty;
-import scheduler.observables.RowStateProperty;
+import scheduler.model.RelatedModel;
+import scheduler.observables.CalculatedStringExpression;
+import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
+import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;
+import scheduler.observables.CalculatedStringProperty;
+import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedStringProperty;
+import scheduler.observables.ObservableTriplet;
+import scheduler.observables.ObservableTuple;
+import scheduler.util.Triplet;
+import scheduler.util.Tuple;
 import scheduler.util.Values;
 import scheduler.view.city.RelatedCity;
 
@@ -27,45 +28,67 @@ import scheduler.view.city.RelatedCity;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedAddress implements AddressDbItem<AddressRowData> {
+public class RelatedAddress extends RelatedModel<IAddressDAO> implements AddressDbItem<IAddressDAO> {
 
-    private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyStringWrapper address1;
     private final ReadOnlyStringWrapper address2;
-    private final AddressLinesProperty addressLines;
+    private final CalculatedStringProperty<Tuple<String, String>> addressLines;
     private final ReadOnlyObjectWrapper<CityItem> city;
-    private final NestedStringBindingProperty<CityItem> cityName;
-    private final NestedStringBindingProperty<CityItem> countryName;
+    private final NestedStringProperty<CityItem> cityName;
+    private final NestedStringProperty<CityItem> countryName;
     private final ReadOnlyStringWrapper postalCode;
     private final ReadOnlyStringWrapper phone;
-    private final CityZipCountryProperty cityZipCountry;
-    private final ReadOnlyObjectWrapper<AddressRowData> dataObject;
-    private final RowStateProperty rowState;
+    private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
+    private final NestedStringProperty<CityItem> language;
+    private final NestedObjectValueProperty<CityItem, ZoneId> zoneId;
 
-    public RelatedAddress(AddressRowData rowData) {
-        primaryKey = new ReadOnlyIntegerWrapper(this, "primaryKey", rowData.getPrimaryKey());
+    public RelatedAddress(IAddressDAO rowData) {
+        super(rowData);
         address1 = new ReadOnlyStringWrapper(this, "address1", rowData.getAddress1());
         address2 = new ReadOnlyStringWrapper(this, "address2", rowData.getAddress2());
-        addressLines = new AddressLinesProperty();
-        CityRowData c = rowData.getCity();
+        addressLines = new CalculatedStringProperty<>(this, "addressLines",
+                new ObservableTuple<>(
+                        new CalculatedStringExpression<>(address1, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(address2, Values::asNonNullAndWsNormalized)
+                ), (t) -> calculateAddressLines(t.getValue1(), t.getValue2())
+        );
+        ICityDAO c = rowData.getCity();
         city = new ReadOnlyObjectWrapper<>(this, "city", (null == c) ? null : new RelatedCity(c));
-        cityName = new NestedStringBindingProperty<>(this, "cityName", city, (t) -> t.nameProperty());
-        countryName = new NestedStringBindingProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
+        cityName = new NestedStringProperty<>(this, "cityName", city, (t) -> t.nameProperty());
+        countryName = new NestedStringProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
         postalCode = new ReadOnlyStringWrapper(this, "postalCode", rowData.getPostalCode());
         phone = new ReadOnlyStringWrapper(this, "phone", rowData.getPhone());
-        cityZipCountry = new CityZipCountryProperty(this, "cityZipCountry", this);
-        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", rowData);
-        rowState = new RowStateProperty(this, "rowState", ModelHelper.getRowState(rowData));
+        cityZipCountry = new CalculatedStringProperty<>(this, "cityZipCountry",
+                new ObservableTriplet<>(
+                        new CalculatedStringExpression<>(cityName, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(countryName, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(postalCode, Values::asNonNullAndWsNormalized)
+                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        );
+        language = new NestedStringProperty<>(this, "language", city, (t) -> t.languageProperty());
+        zoneId = new NestedObjectValueProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
     }
 
     @Override
-    public int getPrimaryKey() {
-        return primaryKey.get();
-    }
-
-    @Override
-    public ReadOnlyIntegerProperty primaryKeyProperty() {
-        return primaryKey.getReadOnlyProperty();
+    protected void onDataObjectPropertyChanged(IAddressDAO dao, String propertyName) {
+        switch (propertyName) {
+            case AddressDAO.PROP_ADDRESS1:
+                address1.set(dao.getAddress1());
+                break;
+            case AddressDAO.PROP_ADDRESS2:
+                address2.set(dao.getAddress2());
+                break;
+            case AddressDAO.PROP_CITY:
+                ICityDAO c = dao.getCity();
+                city.set((null == c) ? null : new RelatedCity(c));
+                break;
+            case AddressDAO.PROP_PHONE:
+                phone.set(dao.getPhone());
+                break;
+            case AddressDAO.PROP_POSTALCODE:
+                postalCode.set(dao.getPostalCode());
+                break;
+        }
     }
 
     @Override
@@ -93,8 +116,8 @@ public class RelatedAddress implements AddressDbItem<AddressRowData> {
     }
 
     @Override
-    public ReadOnlyProperty<String> addressLinesProperty() {
-        return addressLines;
+    public ReadOnlyStringProperty addressLinesProperty() {
+        return addressLines.getReadOnlyStringProperty();
     }
 
     @Override
@@ -108,8 +131,8 @@ public class RelatedAddress implements AddressDbItem<AddressRowData> {
     }
 
     @Override
-    public NestedStringBindingProperty<CityItem> cityNameProperty() {
-        return cityName;
+    public ReadOnlyStringProperty cityNameProperty() {
+        return cityName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -118,8 +141,8 @@ public class RelatedAddress implements AddressDbItem<AddressRowData> {
     }
 
     @Override
-    public NestedStringBindingProperty<CityItem> countryNameProperty() {
-        return countryName;
+    public ReadOnlyStringProperty countryNameProperty() {
+        return countryName.getReadOnlyStringProperty();
     }
 
     @Override
@@ -153,28 +176,28 @@ public class RelatedAddress implements AddressDbItem<AddressRowData> {
     }
 
     @Override
-    public ReadOnlyProperty<String> cityZipCountryProperty() {
-        return cityZipCountry;
+    public ReadOnlyStringProperty cityZipCountryProperty() {
+        return cityZipCountry.getReadOnlyStringProperty();
     }
 
     @Override
-    public AddressRowData getDataObject() {
-        return dataObject.get();
+    public ZoneId getZoneId() {
+        return zoneId.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<AddressRowData> dataObjectProperty() {
-        return dataObject.getReadOnlyProperty();
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId.getReadOnlyObjectProperty();
     }
 
     @Override
-    public DataRowState getRowState() {
-        return rowState.get();
+    public String getLanguage() {
+        return language.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
-        return rowState.getReadOnlyProperty();
+    public ReadOnlyStringProperty languageProperty() {
+        return language.getReadOnlyStringProperty();
     }
 
     @Override
@@ -185,45 +208,6 @@ public class RelatedAddress implements AddressDbItem<AddressRowData> {
     @Override
     public int hashCode() {
         return getPrimaryKey();
-    }
-
-    class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {
-
-        AddressLinesProperty() {
-            super.bind(address1, address2);
-        }
-
-        @Override
-        protected String computeValue() {
-            String a1 = Values.asNonNullAndWsNormalized(address1.get());
-            String a2 = Values.asNonNullAndWsNormalized(address2.get());
-            if (a2.isEmpty()) {
-                return a1;
-            }
-            return a1.isEmpty() ? a2 : String.format("%s%n%s", a1, a2);
-        }
-
-        @Override
-        public Object getBean() {
-            return RelatedAddress.this;
-        }
-
-        @Override
-        public String getName() {
-            return "addressLines";
-        }
-
-        @Override
-        public ObservableList<?> getDependencies() {
-            return FXCollections.observableArrayList(address1, address2);
-        }
-
-        @Override
-        public void dispose() {
-            super.unbind(address1, address2);
-            super.dispose();
-        }
-
     }
 
 }

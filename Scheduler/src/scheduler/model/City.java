@@ -10,6 +10,18 @@ import scheduler.model.predefined.PredefinedCity;
  */
 public interface City extends DataModel {
 
+    public static String toString(City city) {
+        if (null != city) {
+            String n = city.getName();
+            String country = Country.toString(city.getCountry()).trim();
+            if (null == n || (n = n.trim()).isEmpty()) {
+                return country;
+            }
+            return (country.isEmpty()) ? n : String.format("%s, %s", n, country);
+        }
+        return "";
+    }
+
     public static boolean arePropertiesEqual(City a, City b) {
         if (null == a) {
             return null == b;
@@ -49,6 +61,6 @@ public interface City extends DataModel {
      */
     Country getCountry();
     
-    PredefinedCity asPredefinedData();
+    PredefinedCity getPredefinedData();
     
 }

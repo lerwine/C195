@@ -32,7 +32,7 @@ import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.fx.MainListingControl;
-import scheduler.model.db.CustomerRowData;
+import scheduler.model.Customer;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CountryItem;
@@ -284,7 +284,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
                     @Override
                     public String getColumnText(AppointmentModel item, DbColumn column) {
-                        CustomerItem<? extends CustomerRowData> customer;
+                        CustomerItem<? extends Customer> customer;
                         AddressItem address;
                         CityItem city;
                         switch (column) {

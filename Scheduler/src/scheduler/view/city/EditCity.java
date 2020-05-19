@@ -58,9 +58,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     public static CityModel editNew(CountryItem country, Window parentWindow, boolean keepOpen) throws IOException {
         CityModel.Factory factory = CityModel.getFactory();
         CityModel model = factory.createNew(factory.getDaoFactory().createNew());
-        if (null != country) {
-            model.setCountry(country);
-        }
+        // TODO: Select country in view
         return EditItem.showAndWait(parentWindow, EditCity.class, model, keepOpen);
     }
 
@@ -153,16 +151,17 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
         waitBorderPane.startNow(new ItemsLoadTask());
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
+        // CURRENT: Update model from listeners
     }
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onEditExisting
     }
 
     @Override
@@ -191,18 +190,13 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public boolean applyChangesToModel() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#applyChangesToModel
-    }
-
-    @Override
     public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#isChanged
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#isChanged
     }
 
     @Override
     public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.EditCity#changedProperty
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#changedProperty
     }
 
     private class ItemsLoadTask extends Task<List<AddressDAO>> {

@@ -14,6 +14,9 @@ public enum UserStatus {
     INACTIVE(0);
 
     public static String toDisplayValue(UserStatus value) {
+        if (null == value) {
+            return "";
+        }
         switch (value) {
             case INACTIVE:
                 return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_INACTIVE);
@@ -52,4 +55,8 @@ public enum UserStatus {
         return value;
     }
 
+    public static boolean isActive(UserStatus value) {
+        return null != value && value != INACTIVE;
+    }
+    
 }

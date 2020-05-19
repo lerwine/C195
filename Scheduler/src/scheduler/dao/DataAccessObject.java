@@ -11,13 +11,10 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,14 +32,12 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.DataRecord;
-import scheduler.model.RelatedRecord;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.MainController;
-import scheduler.view.task.TaskWaiter;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -68,7 +63,7 @@ import scheduler.view.task.WaitBorderPane;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements RelatedRecord, DataRecord<Timestamp>, EventTarget {
+public abstract class DataAccessObject extends PropertyBindable implements IDataAccessObject, EventTarget {
 
     /**
      * The name of the 'primaryKey' property.
@@ -101,8 +96,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
     private DataRowState rowState;
-    private ValidationResult lastValidationResult = null;
-    private Set<ValidationResult> allValidationResults = Collections.emptySet();
 
     /**
      * Initializes a {@link DataRowState#NEW} data access object.
@@ -219,65 +212,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Relat
                     return;
                 default:
                     if (propertyChangeModifiesState(event.getPropertyName())) {
-                        lastValidationResult = null;
                         setChanged().firePropertyChanges();
                     }
                     break;
             }
         }
     }
-
-    /**
-     * Gets all object property validation results.
-     *
-     * <p>
-     * If any changes have occurred since the last validation, then {@link #reValidate(java.util.function.Consumer)} will be invoked.</p>
-     *
-     * @return A {@link Set} of {@link ValidationResult} objects that represent validation information.
-     */
-    public synchronized Set<ValidationResult> getAllValidationResults() {
-        if (null == lastValidationResult) {
-            validate();
-        }
-        return allValidationResults;
-    }
-
-    /**
-     * Checks validity of {@link DataAccessObject} properties.
-     * <p>
-     * This simply checks property values and does not connect to the database to do any validation of foreign key relationships or key conflicts.</p>
-     *
-     * @return A {@link ValidationResult} value representing the final validation status.
-     */
-    @Override
-    public synchronized final ValidationResult validate() {
-        if (null == lastValidationResult) {
-            HashSet<ValidationResult> results = new HashSet<>();
-            reValidate((r) -> {
-                if (!(r == ValidationResult.OK || results.contains(r))) {
-                    results.add(r);
-                }
-                lastValidationResult = r;
-            });
-            if (rowState == DataRowState.DELETED) {
-                lastValidationResult = ValidationResult.DATA_OBJECT_DELETED;
-                results.add(lastValidationResult);
-            }
-            if (results.isEmpty()) {
-                lastValidationResult = ValidationResult.OK;
-                results.add(lastValidationResult);
-            }
-            allValidationResults = Collections.unmodifiableSet(results);
-        }
-        return lastValidationResult;
-    }
-
-    /**
-     * Re-validates properties for the validation object.
-     *
-     * @param addValidation A {@link Consumer} function for adding validation results. If all properties are valid, then nothing should be added.
-     */
-    protected abstract void reValidate(Consumer<ValidationResult> addValidation);
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

@@ -1,9 +1,13 @@
 package scheduler.model.ui;
 
+import java.time.ZoneId;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import scheduler.model.db.AddressRowData;
+import javafx.beans.property.ReadOnlyStringProperty;
+import scheduler.dao.IAddressDAO;
+import scheduler.model.Address;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
@@ -12,60 +16,10 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface AddressItem extends AddressRowData, FxModel {
+public interface AddressItem extends Address, FxModel {
 
-    /**
-     * Gets the property that contains the first line of the address.
-     * 
-     * @return The property that contains the first line of the address.
-     */
-    ReadOnlyProperty<String> address1Property();
-
-    /**
-     * Gets the property that contains the second line of the address.
-     * 
-     * @return The property that contains the second line of the address.
-     */
-    ReadOnlyProperty<String> address2Property();
-
-    @Override
-    public CityItem getCity();
-
-    /**
-     * Gets the property that contains the city model for the address.
-     * 
-     * @return The property that contains the city model for the address.
-     */
-    ReadOnlyProperty<? extends CityItem> cityProperty();
-
-    /**
-     * Gets the property that contains the postal code for the address.
-     * 
-     * @return The property that contains the postal code for the address.
-     */
-    ReadOnlyProperty<String> postalCodeProperty();
-
-    /**
-     * Gets the property that contains the phone number associated with the address.
-     * 
-     * @return The property that contains the phone number associated with the address.
-     */
-    ReadOnlyProperty<String> phoneProperty();
-
-    ReadOnlyProperty<String> cityNameProperty();
-
-    ReadOnlyProperty<String> countryNameProperty();
-    
-    ReadOnlyProperty<String> addressLinesProperty();
-
-    ReadOnlyProperty<String> cityZipCountryProperty();
-
-    String getCityName();
-
-    String getCityZipCountry();
-
-    String getCountryName();
-
+    // TODO: Replace this with calculated expressions
+    @Deprecated
     public static StringBinding createMultiLineAddressBinding(ReadOnlyProperty<String> address1, ReadOnlyProperty<String> address2,
             ReadOnlyProperty<String> cityZipCountry, ReadOnlyProperty<String> phone) {
         return Bindings.createStringBinding(() -> {
@@ -101,10 +55,76 @@ public interface AddressItem extends AddressRowData, FxModel {
                     : String.format("%s%n%s%n%s%n%s %s", a1, a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
         }, address1, address2, cityZipCountry, phone);
     }
-    
+
     public static StringBinding createMultiLineAddressBinding(AddressItem source) {
         return createMultiLineAddressBinding(source.address1Property(), source.address2Property(), source.cityZipCountryProperty(),
                 source.phoneProperty());
     }
-    
+
+    /**
+     * Gets the property that contains the first line of the address.
+     *
+     * @return The property that contains the first line of the address.
+     */
+    ReadOnlyStringProperty address1Property();
+
+    /**
+     * Gets the property that contains the second line of the address.
+     *
+     * @return The property that contains the second line of the address.
+     */
+    ReadOnlyStringProperty address2Property();
+
+    ReadOnlyStringProperty addressLinesProperty();
+
+    @Override
+    public CityItem getCity();
+
+    /**
+     * Gets the property that contains the city model for the address.
+     *
+     * @return The property that contains the city model for the address.
+     */
+    ReadOnlyObjectProperty<? extends CityItem> cityProperty();
+
+    /**
+     * Gets the property that contains the postal code for the address.
+     *
+     * @return The property that contains the postal code for the address.
+     */
+    ReadOnlyStringProperty postalCodeProperty();
+
+    /**
+     * Gets the property that contains the phone number associated with the address.
+     *
+     * @return The property that contains the phone number associated with the address.
+     */
+    ReadOnlyStringProperty phoneProperty();
+
+    String getCityName();
+
+    ReadOnlyStringProperty cityNameProperty();
+
+    String getCountryName();
+
+    ReadOnlyStringProperty countryNameProperty();
+
+    String getCityZipCountry();
+
+    ReadOnlyStringProperty cityZipCountryProperty();
+
+    ZoneId getZoneId();
+
+    ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
+
+    String getLanguage();
+
+    ReadOnlyStringProperty languageProperty();
+
+    @Override
+    IAddressDAO getDataObject();
+
+    @Override
+    ReadOnlyObjectProperty<? extends IAddressDAO> dataObjectProperty();
+
 }

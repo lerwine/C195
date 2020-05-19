@@ -98,11 +98,13 @@ public class DataObjectEvent<T extends DataAccessObject> extends Event {
      * @return The {@link DataAccessObject} instance that was affected.
      */
     @Override
+    @SuppressWarnings("unchecked")
     public T getTarget() {
         return (T) super.getTarget();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<? extends DataObjectEvent<? extends T>> getEventType() {
         return (EventType<? extends DataObjectEvent<? extends T>>) super.getEventType();
     }

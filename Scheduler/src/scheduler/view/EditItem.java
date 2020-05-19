@@ -157,6 +157,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         } else {
             onEditExisting(true);
         }
+        // CURRENT: Update model from listeners
     }
 
     private void onEditExisting(boolean isInitialize) {
@@ -175,7 +176,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
-        editorRegion.applyChangesToModel();
         waitBorderPane.startNow(new SaveTask(editorRegion.modelFactory().updateDAO(model)));
     }
 
@@ -210,8 +210,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         String getWindowTitle();
 
         ReadOnlyStringProperty windowTitleProperty();
-
-        boolean applyChangesToModel();
 
         void onEditNew();
 

@@ -53,6 +53,7 @@ public class CityDaoEvent extends DataObjectEvent<CityDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<CityDaoEvent> getEventType() {
         return (EventType<CityDaoEvent>)super.getEventType();
     }

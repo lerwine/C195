@@ -1,56 +1,77 @@
 package scheduler.observables;
 
+import java.util.Objects;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import scheduler.model.UserStatus;
 
 /**
+ * An integer property that only stores specific integer values that represent active status for users.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class UserStatusProperty extends SimpleObjectProperty<UserStatus> {
+public final class UserStatusProperty extends SimpleObjectProperty<UserStatus> {
 
-    private ReadOnlyObjectProperty<UserStatus> readOnlyProperty;
-
-    public UserStatusProperty() {
-        this(UserStatus.NORMAL);
-    }
-
-    public UserStatusProperty(UserStatus initialValue) {
-        super((null == initialValue) ? UserStatus.NORMAL : initialValue);
-    }
-
-    public UserStatusProperty(Object bean, String name) {
-        this(bean, name, UserStatus.NORMAL);
-    }
-
-    public UserStatusProperty(Object bean, String name, UserStatus initialValue) {
-        super(bean, name, (null == initialValue) ? UserStatus.NORMAL : initialValue);
-    }
+    private final ReadOnlyPropertyImpl readOnlyProperty;
+    private final CalculatedBooleanProperty<UserStatus> valid;
+    private final CalculatedStringProperty<UserStatus> displayText;
+    private final CalculatedBooleanProperty<UserStatus> active;
 
     /**
-     * Returns the readonly property, that is synchronized with this {@code StatusProperty}.
      *
-     * @return the readonly property
+     * @param bean
+     * @param name
+     * @param initialValue
      */
+    public UserStatusProperty(Object bean, String name, UserStatus initialValue) {
+        super(bean, name, initialValue);
+        readOnlyProperty = new ReadOnlyPropertyImpl();
+        valid = new CalculatedBooleanProperty<>(this, "valid", this, Objects::nonNull);
+        displayText = new CalculatedStringProperty<>(this, "active", this, UserStatus::toDisplayValue);
+        active = new CalculatedBooleanProperty<>(this, "active", this, UserStatus::isActive);
+    }
+
+    public UserStatus getSafe() {
+        UserStatus status = get();
+        return (null == status) ? UserStatus.NORMAL : status;
+    }
+
     public ReadOnlyObjectProperty<UserStatus> getReadOnlyProperty() {
-        if (readOnlyProperty == null) {
-            readOnlyProperty = new ReadOnlyPropertyImpl();
-        }
         return readOnlyProperty;
     }
 
-    @Override
-    public void set(UserStatus newValue) {
-        super.set((null == newValue) ? UserStatus.NORMAL : newValue);
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyBooleanProperty();
+    }
+
+    public String getDisplayText() {
+        return displayText.get();
+    }
+    
+    public ReadOnlyStringProperty displayTextProperty() {
+        return displayText.getReadOnlyStringProperty();
+    }
+    
+    public boolean isActive() {
+        return active.get();
+    }
+
+    public ReadOnlyBooleanProperty activeProperty() {
+        return active.getReadOnlyBooleanProperty();
     }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<UserStatus> {
 
         @Override
         public UserStatus get() {
-            return UserStatusProperty.this.get();
+            return UserStatusProperty.this.getSafe();
         }
 
         @Override
@@ -65,8 +86,10 @@ public class UserStatusProperty extends SimpleObjectProperty<UserStatus> {
 
         private ReadOnlyPropertyImpl() {
             UserStatusProperty.this.addListener((observable, oldValue, newValue) -> {
-                super.fireValueChangedEvent();
+                ReadOnlyPropertyImpl.this.fireValueChangedEvent();
             });
         }
-    };
+
+    }
+
 }

@@ -1,6 +1,5 @@
 package scheduler.fx;
 
-import scheduler.model.ui.AddressModel;
 import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -23,15 +22,16 @@ import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
+import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
+import static scheduler.fx.AddressPickerResourceKeys.*;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CountryItem;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
-import static scheduler.fx.AddressPickerResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.city.RelatedCity;
@@ -146,6 +146,7 @@ public class AddressPicker extends BorderPane {
         addressesTableView.getSelectionModel().selectedItemProperty().addListener(this::onAddressChanged);
     }
 
+    @SuppressWarnings("unchecked")
     private void onAddressChanged(Observable observable) {
         selectButton.setDisable(null == ((ReadOnlyObjectProperty<AddressModel>) observable).get());
     }
@@ -200,13 +201,13 @@ public class AddressPicker extends BorderPane {
             List<AddressDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    CityRowData city = t.getCity();
-                    String rk = city.asPredefinedData().getResourceKey();
-                    if (!allCities.stream().anyMatch((u) -> u.asPredefinedData().getResourceKey().equals(rk))) {
+                    ICityDAO city = t.getCity();
+                    String rk = city.getPredefinedData().getResourceKey();
+                    if (!allCities.stream().anyMatch((u) -> u.getPredefinedData().getResourceKey().equals(rk))) {
                         allCities.add(new RelatedCity(city));
-                        CountryRowData country = city.getCountry();
-                        String rc = country.asPredefinedData().getRegionCode();
-                        if (!allCountries.stream().anyMatch((u) -> country.asPredefinedData().getRegionCode().equals(rc))) {
+                        ICountryDAO country = city.getCountry();
+                        String rc = country.getPredefinedData().getRegionCode();
+                        if (!allCountries.stream().anyMatch((u) -> country.getPredefinedData().getRegionCode().equals(rc))) {
                             allCountries.add(new RelatedCountry(country));
                         }
                     }

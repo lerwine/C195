@@ -3,8 +3,9 @@ package scheduler.view.city;
 import java.time.ZoneId;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
@@ -14,15 +15,15 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.City;
-import scheduler.model.db.CountryRowData;
 import scheduler.model.predefined.PredefinedCity;
+import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.CityDbItem;
 import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.observables.NestedStringBindingProperty;
+import scheduler.observables.CalculatedBooleanProperty;
+import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedStringProperty;
 import scheduler.view.ModelFilter;
-import scheduler.view.country.RelatedCountry;
 
 /**
  *
@@ -32,44 +33,37 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
 
     private static final Factory FACTORY = new Factory();
 
-    public static ZoneId getZoneId(City city) {
-        city.asPredefinedData().getZoneId();
-//        if (null != city) {
-//            CityOptionModel optionModel = city.getOptionModel();
-//            if (null != optionModel) {
-//                return optionModel.getZoneId();
-//            }
-//            return CountryModel.getZoneId(city.getCountry());
-//        }
-        return ZoneId.systemDefault();
-    }
-
     public static final Factory getFactory() {
         return FACTORY;
     }
 
-    private PredefinedCity predefinedData;
-    private final ReadOnlyStringWrapper name;
-    private final SimpleObjectProperty<CountryItem> country;
-    private final NestedStringBindingProperty<CountryItem> countryName;
+    private final SimpleObjectProperty<PredefinedCity> predefinedData;
+    private final NestedStringProperty<PredefinedCity> name;
+    private final NestedObjectValueProperty<PredefinedCity, PredefinedCountry> country;
+    private final NestedStringProperty<PredefinedCountry> countryName;
+    private final NestedStringProperty<PredefinedCountry> language;
+    private final NestedObjectValueProperty<PredefinedCity, ZoneId> zoneId;
+    private final CalculatedBooleanProperty<PredefinedCity> valid;
 
     public CityModel(CityDAO dao) {
         super(dao);
-        predefinedData = dao.asPredefinedData();
-        name = new ReadOnlyStringWrapper(this, "name", predefinedData.getName());
-        CountryRowData c = dao.getCountry();
-        country = new SimpleObjectProperty<>(this, "country", (null == c) ? null : new RelatedCountry(c));
-        countryName = new NestedStringBindingProperty<>(this, "countryName", country, (t) -> t.nameProperty());
+        predefinedData = new SimpleObjectProperty<>(this, "predefinedData", dao.getPredefinedData());
+        name = new NestedStringProperty<>(this, "name", predefinedData, (t) -> t.nameProperty());
+        country = new NestedObjectValueProperty<>(this, "country", predefinedData, (t) -> t.countryProperty());
+        countryName = new NestedStringProperty<>(this, "countryName", country, (t) -> t.nameProperty());
+        language = new NestedStringProperty<>(this, "language", country, (t) -> t.languageProperty());
+        zoneId = new NestedObjectValueProperty<>(this, "zoneId", predefinedData, (t) -> t.zoneIdProperty());
+        valid = new CalculatedBooleanProperty<>(this, "valid", predefinedData, Objects::nonNull);
     }
 
     @Override
     public String getName() {
-        return name.get();
+        return nameProperty().get();
     }
 
     @Override
     public ReadOnlyStringProperty nameProperty() {
-        return name;
+        return name.getReadOnlyStringProperty();
     }
 
     @Override
@@ -77,22 +71,62 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
         return country.get();
     }
 
-    public void setCountry(CountryItem value) {
-        country.set(value);
-    }
-
     @Override
-    public ObjectProperty<CountryItem> countryProperty() {
-        return country;
+    public ReadOnlyObjectProperty<PredefinedCountry> countryProperty() {
+        return country.getReadOnlyObjectProperty();
     }
 
     public String getCountryName() {
-        return countryName.get();
+        return countryNameProperty().get();
     }
 
     @Override
-    public NestedStringBindingProperty<CountryItem> countryNameProperty() {
-        return countryName;
+    public ReadOnlyStringProperty countryNameProperty() {
+        return countryName.getReadOnlyStringProperty();
+    }
+
+    @Override
+    public ZoneId getZoneId() {
+        return zoneId.get();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getLanguage() {
+        return language.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        return language.getReadOnlyStringProperty();
+    }
+
+    @Override
+    public PredefinedCity getPredefinedData() {
+        return predefinedData.get();
+    }
+
+    public void setPredefinedData(PredefinedCity value) {
+        predefinedData.set(value);
+    }
+
+    @Override
+    public ObjectProperty<PredefinedCity> predefinedDataProperty() {
+        return predefinedData;
+    }
+
+    @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyBooleanProperty();
     }
 
     @Override
@@ -119,7 +153,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
         if (null != obj && obj instanceof CityModel) {
             final CityModel other = (CityModel) obj;
             if (isNewItem()) {
-                return name.isEqualTo(other.name).get() && country.isEqualTo(other.country).get();
+                return Objects.equals(name.get(), other.name.get()) && Objects.equals(country.get(), other.country.get());
             }
             return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
@@ -127,13 +161,24 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
     }
 
     @Override
-    public PredefinedCity asPredefinedData() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.city.CityModel#asPredefinedData
+    protected void onDaoPropertyChanged(CityDAO dao, String propertyName) {
+        if (propertyName.equals(CityDAO.PROP_PREDEFINEDCITY)) {
+            onDataObjectChanged(dao);
+        }
+    }
+
+    @Override
+    protected void onDataObjectChanged(CityDAO dao) {
+        predefinedData.set(dao.getPredefinedData());
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel> {
 
+        // Singleton
         private Factory() {
+            if (null != FACTORY) {
+                throw new IllegalStateException();
+            }
         }
 
         @Override
@@ -147,28 +192,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
         }
 
         @Override
-        public void updateItem(CityModel item, CityDAO dao) {
-            super.updateItem(item, dao);
-            CountryRowData countryDAO = dao.getCountry();
-            PredefinedCity p = dao.asPredefinedData();
-            if (countryDAO.asPredefinedData() != p.getCountry()) {
-                throw new IllegalArgumentException("Invalid country assignment");
-            }
-            item.predefinedData = p;
-            item.setCountry(new RelatedCountry(countryDAO));
-        }
-
-        @Override
         public CityDAO updateDAO(CityModel item) {
             CityDAO dao = item.getDataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("City has been deleted");
             }
-            CountryItem country = item.getCountry();
-            if (item.asPredefinedData().getCountry() != country.asPredefinedData()) {
-                throw new IllegalArgumentException("Invalid country assignment");
-            }
-            dao.setPredefinedCity(item.asPredefinedData());
+            dao.setPredefinedData(item.getPredefinedData());
             return dao;
         }
 

@@ -48,6 +48,7 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import static scheduler.dao.AppointmentDAO.*;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.ICustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
@@ -55,15 +56,18 @@ import scheduler.dao.filter.UserFilter;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.AppointmentType;
+import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
+import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.db.CustomerRowData;
-import scheduler.model.db.UserRowData;
 import scheduler.model.predefined.PredefinedAddress;
 import scheduler.model.predefined.PredefinedData;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
+import static scheduler.observables.CalculatedStringExpression.calculateMultiLineAddress;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -72,6 +76,7 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.EditItem;
 import scheduler.view.ViewAndController;
@@ -96,7 +101,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 
-    public static AppointmentModel editNew(CustomerItem<? extends CustomerRowData> customer, UserItem<? extends UserRowData> user,
+    public static AppointmentModel editNew(CustomerItem<? extends Customer> customer, UserItem<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
         AppointmentModel.Factory factory = AppointmentModel.getFactory();
         AppointmentModel model = factory.createNew(factory.getDaoFactory().createNew());
@@ -508,7 +513,20 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (null != dateRangeController) {
             LocalDateTime start = model.getStart();
             LocalDateTime end = model.getEnd();
-            ZoneId z = AppointmentModel.getZoneId(model);
+            CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
+            ZoneId z = null;
+            if (null != c) {
+                AddressItem a = c.getAddress();
+                if (null != a) {
+                    CityItem t = a.getCity();
+                    if (null != t) {
+                        z = t.getZoneId();
+                    }
+                }
+            }
+            if (null == z) {
+                z = ZoneId.systemDefault();
+            }
             Duration duration;
             if (null != start && null != end) {
                 duration = Duration.between(start, end);
@@ -539,7 +557,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         descriptionTextArea.setText(model.getDescription());
     }
 
-    @Override
+    // CURRENT: Update model from listeners
     public boolean applyChangesToModel() {
         ZonedAppointmentTimeSpan ts = dateRangeController.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
@@ -745,7 +763,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 implicitLocationLabel.setText("");
             } else {
                 applyValidationResult(corporateLocationComboBox, locationValidationLabel, true);
-                implicitLocationLabel.setText(corporateAddress.getMultiLineAddress().get());
+                implicitLocationLabel.setText(calculateMultiLineAddress(corporateAddress.addressLinesProperty().get(), corporateAddress.getCityZipCountry(),
+                        asNonNullAndWsNormalized(corporateAddress.getPhone())));
             }
         }
     }
@@ -791,12 +810,22 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#isChanged
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#isChanged
     }
 
     @Override
     public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#changedProperty
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#changedProperty
+    }
+
+    @Override
+    public void onEditNew() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditNew
+    }
+
+    @Override
+    public void onEditExisting(boolean isInitialize) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditExisting
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {
@@ -917,16 +946,16 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         private List<AppointmentDAO> appointments;
         private final Optional<Boolean> customerLoadOption;
         private final Optional<Boolean> userLoadOption;
-        private final CustomerRowData appointmentCustomer;
-        private final UserRowData appointmentUser;
+        private final Customer appointmentCustomer;
+        private final User appointmentUser;
 
         private ItemsLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             customerDaoList = null;
             userDaoList = null;
-            CustomerItem<? extends CustomerRowData> customer = model.getCustomer();
+            CustomerItem<? extends Customer> customer = model.getCustomer();
             appointmentCustomer = (null == customer) ? null : customer.getDataObject();
-            UserItem<? extends UserRowData> user = model.getUser();
+            UserItem<? extends User> user = model.getUser();
             appointmentUser = (null == user) ? null : user.getDataObject();
             customerLoadOption = showActiveCustomers;
             userLoadOption = showActiveUsers;
@@ -943,13 +972,13 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             }
             customerComboBox.setItems(customerModelList);
             userComboBox.setItems(userModelList);
-            CustomerItem<? extends CustomerRowData> customer = model.getCustomer();
+            CustomerItem<? extends Customer> customer = model.getCustomer();
             if (null != customer) {
                 int cpk = customer.getPrimaryKey();
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
                         -> customerComboBox.getSelectionModel().select(t));
             }
-            UserItem<? extends UserRowData> user = model.getUser();
+            UserItem<? extends User> user = model.getUser();
             int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                     -> userComboBox.getSelectionModel().select(t));

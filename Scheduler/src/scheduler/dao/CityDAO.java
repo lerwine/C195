@@ -24,12 +24,11 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
-import scheduler.model.RelatedRecord;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
+import scheduler.model.Country;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
+import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.city.EditCity;
@@ -44,10 +43,10 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEM
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CITY)
-public class CityDAO extends DataAccessObject implements CityRowData {
-    
+public final class CityDAO extends DataAccessObject implements ICityDAO {
+
     public static final int MAX_LENGTH_NAME = 50;
-    
+
     /**
      * The name of the 'name' property.
      */
@@ -67,8 +66,8 @@ public class CityDAO extends DataAccessObject implements CityRowData {
     }
 
     private String name;
-    private CountryRowData country;
-    private PredefinedCity predefinedCity;
+    private ICountryDAO country;
+    private PredefinedCity predefinedData;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -80,47 +79,34 @@ public class CityDAO extends DataAccessObject implements CityRowData {
     }
 
     @Override
-    protected void reValidate(Consumer<ValidationResult> addValidation) {
-        if (name.trim().isEmpty()) {
-            addValidation.accept(ValidationResult.NAME_EMPTY);
-        }
-        if (null == country) {
-            addValidation.accept(ValidationResult.NO_COUNTRY);
-        } else if (RelatedRecord.validate(country) != ValidationResult.OK) {
-            addValidation.accept(ValidationResult.INVALID_COUNTRY);
-        } else if (ModelHelper.getRowState(country) == DataRowState.DELETED) {
-            addValidation.accept(ValidationResult.COUNTRY_DELETED);
-        }
-    }
-
-    @Override
     public String getName() {
         return name;
     }
 
     @Override
-    public CountryRowData getCountry() {
+    public ICountryDAO getCountry() {
         return country;
     }
 
     /**
-     * Get the value of predefinedCity
+     * Get the value of predefinedData
      *
-     * @return the value of predefinedCity
+     * @return the value of predefinedData
      */
-    public PredefinedCity getPredefinedCity() {
-        return predefinedCity;
+    @Override
+    public PredefinedCity getPredefinedData() {
+        return predefinedData;
     }
 
     /**
-     * Set the value of predefinedCity
+     * Set the value of predefinedData
      *
-     * @param city new value of predefinedCity
+     * @param city new value of predefinedData
      */
-    public void setPredefinedCity(PredefinedCity city) {
-        CountryRowData oldCountry = country;
+    public void setPredefinedData(PredefinedCity city) {
+        ICountryDAO oldCountry = country;
         String oldName = name;
-        PredefinedCity oldPredefinedCity = predefinedCity;
+        PredefinedCity oldPredefinedCity = predefinedData;
         if (null == city) {
             if (null == oldPredefinedCity) {
                 return;
@@ -131,19 +117,14 @@ public class CityDAO extends DataAccessObject implements CityRowData {
                 return;
             }
             name = city.getName();
-            country = city.getCountry();
+            country = city.getCountry().getDataObject();
         }
 
         name = city.getName();
-        predefinedCity = city;
+        predefinedData = city;
         firePropertyChange(PROP_NAME, oldName, name);
-        firePropertyChange(PROP_PREDEFINEDCITY, oldPredefinedCity, predefinedCity);
+        firePropertyChange(PROP_PREDEFINEDCITY, oldPredefinedCity, predefinedData);
         firePropertyChange(PROP_COUNTRY, oldCountry, country);
-    }
-
-    @Override
-    public PredefinedCity asPredefinedData() {
-        return predefinedCity;
     }
 
     @Override
@@ -163,7 +144,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.CityRowData} objects.
+     * Factory implementation for {@link scheduler.model.db.City} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
@@ -217,7 +198,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
-                private final CountryRowData oldCountry = dao.country;
+                private final Country oldCountry = dao.country;
 
                 @Override
                 public void accept(PropertyChangeSupport t) {
@@ -231,12 +212,12 @@ public class CityDAO extends DataAccessObject implements CityRowData {
             };
 
             dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.CITY_NAME.toString()));
-            dao.setPredefinedCity(PredefinedData.lookupCity(dao.name));
+            dao.setPredefinedData(PredefinedData.lookupCity(dao.name));
             dao.country = CountryDAO.getFactory().fromJoinedResultSet(rs);
             return propertyChanges;
         }
 
-        CityRowData fromJoinedResultSet(ResultSet rs) throws SQLException {
+        ICityDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), rs.getString(DbColumn.CITY_NAME.toString()),
                     CountryDAO.getFactory().fromJoinedResultSet(rs));
         }
@@ -272,22 +253,25 @@ public class CityDAO extends DataAccessObject implements CityRowData {
             if (target.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Data access object already deleted");
             }
-            CountryRowData country = target.getCountry();
-            if (null == country)
+            Country country = target.getCountry();
+            if (null == country) {
                 throw new IllegalStateException("Country not specified");
-            
-            if (target.predefinedCity.getCountry() != country.asPredefinedData())
+            }
+
+            if (target.predefinedData.getCountry() != country.getPredefinedData()) {
                 throw new IllegalStateException("Invalid country association");
+            }
             return target;
         }
 
+        // CURRENT: Need to re-think this - perhaps tracking primary key in the predefined objects for city and country, and maybe address as well...
         @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYALREADYDELETED);
             }
 
-            CountryRowData country = assertValidCity(dao).getCountry();
+            Country country = assertValidCity(dao).getCountry();
 
             if (country instanceof CountryDAO && ModelHelper.getRowState(country) != DataRowState.UNMODIFIED) {
                 String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO) country, connection);
@@ -367,14 +351,14 @@ public class CityDAO extends DataAccessObject implements CityRowData {
 
     }
 
-    private static final class Related implements CityRowData {
+    private static final class Related extends PropertyBindable implements ICityDAO {
 
         private final int primaryKey;
         private final String name;
-        private final CountryRowData country;
+        private final ICountryDAO country;
         private final PredefinedCity predefinedCity;
 
-        Related(int primaryKey, String resourceKey, CountryRowData country) {
+        Related(int primaryKey, String resourceKey, ICountryDAO country) {
             this.primaryKey = primaryKey;
             predefinedCity = PredefinedData.getCityMap().get(resourceKey);
             name = predefinedCity.getName();
@@ -392,7 +376,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         }
 
         @Override
-        public CountryRowData getCountry() {
+        public ICountryDAO getCountry() {
             return country;
         }
 
@@ -407,7 +391,7 @@ public class CityDAO extends DataAccessObject implements CityRowData {
         }
 
         @Override
-        public PredefinedCity asPredefinedData() {
+        public PredefinedCity getPredefinedData() {
             return predefinedCity;
         }
 

@@ -2,8 +2,8 @@ package scheduler.fx;
 
 import javafx.scene.control.ListCell;
 import scheduler.model.City;
-import scheduler.model.db.CityRowData;
-import scheduler.model.db.CountryRowData;
+import scheduler.model.City;
+import scheduler.model.Country;
 import scheduler.model.ui.AddressItem;
 
 /**
@@ -24,17 +24,17 @@ public class AddressListCell<T extends AddressItem> extends ListCell<T> {
             if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
                 if (null == (city = item.getCity())) {
                     cityZipCountry = "";
-                } else if ((cityZipCountry = CityRowData.toString(city).trim()).isEmpty()) {
-                    cityZipCountry = CountryRowData.toString(city.getCountry()).trim();
+                } else if ((cityZipCountry = City.toString(city).trim()).isEmpty()) {
+                    cityZipCountry = Country.toString(city.getCountry()).trim();
                 } else {
-                    String country = CountryRowData.toString(city.getCountry()).trim();
+                    String country = Country.toString(city.getCountry()).trim();
                     if (!country.isEmpty()) {
                         cityZipCountry = String.format("%s, %s", cityZipCountry, country);
                     }
                 }
             } else if (null != (city = item.getCity())) {
                 String cityName = city.getName();
-                String country = CountryRowData.toString(city.getCountry()).trim();
+                String country = Country.toString(city.getCountry()).trim();
                 if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
                     if (!country.isEmpty()) {
                         cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);

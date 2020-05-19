@@ -1,13 +1,22 @@
 package scheduler.model;
 
 import scheduler.model.predefined.PredefinedCountry;
+import scheduler.model.predefined.IPredefinedItem;
 
 /**
  * Interface for objects that contain either partial or complete information from the {@code country} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface Country extends DataModel {
+public interface Country extends IPredefinedItem {
+
+    public static String toString(Country country) {
+        if (null != country) {
+            String n = country.getName();
+            return (null == n) ? "" : n;
+        }
+        return "";
+    }
 
     public static boolean arePropertiesEqual(Country a, Country b) {
         if (null == a) {
@@ -39,6 +48,7 @@ public interface Country extends DataModel {
      */
     String getName();
 
-    PredefinedCountry asPredefinedData();
+    @Override
+    PredefinedCountry getPredefinedData();
     
 }

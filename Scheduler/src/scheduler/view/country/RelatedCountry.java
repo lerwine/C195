@@ -1,37 +1,46 @@
 package scheduler.view.country;
 
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
+import java.time.ZoneId;
+import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.DataRowState;
-import scheduler.model.ModelHelper;
-import scheduler.model.db.CountryRowData;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.ICountryDAO;
+import scheduler.model.RelatedModel;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.CountryDbItem;
-import scheduler.observables.RowStateProperty;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCountry implements CountryDbItem<CountryRowData> {
+public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryDbItem<ICountryDAO> {
 
-    private final ReadOnlyObjectWrapper<CountryRowData> dataObject;
-    private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyStringWrapper name;
-    private final PredefinedCountry predefinedData;
-    private final RowStateProperty rowState;
+    private final ReadOnlyObjectWrapper<PredefinedCountry> predefinedData;
+    private final ReadOnlyStringWrapper language;
+    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
 
-    public RelatedCountry(CountryRowData rowData) {
-        primaryKey = new ReadOnlyIntegerWrapper(this, "primaryKey", rowData.getPrimaryKey());
-        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", rowData);
-        rowState = new RowStateProperty(this, "rowState", ModelHelper.getRowState(rowData));
-        name = new ReadOnlyStringWrapper(this, "name", rowData.asPredefinedData().getName());
-        predefinedData = rowData.asPredefinedData();
+    public RelatedCountry(ICountryDAO rowData) {
+        super(rowData);
+        PredefinedCountry c = rowData.getPredefinedData();
+        name = new ReadOnlyStringWrapper(this, "name", c.getName());
+        predefinedData = new ReadOnlyObjectWrapper<>(this, "predefinedData", c);
+        zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId");
+        language = new ReadOnlyStringWrapper(this, "language");
+        predefinedData.addListener(this::onPredefinedDataChange);
+        onPredefinedDataChange(predefinedData);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void onPredefinedDataChange(Observable observable) {
+        PredefinedCountry country = ((ReadOnlyObjectWrapper<PredefinedCountry>) observable).get();
+        name.set(country.getName());
+        zoneId.set(country.getZoneId());
+        language.set(country.getLocale().getDisplayLanguage());
     }
 
     @Override
@@ -45,38 +54,39 @@ public class RelatedCountry implements CountryDbItem<CountryRowData> {
     }
 
     @Override
-    public CountryRowData getDataObject() {
-        return dataObject.get();
+    public ZoneId getZoneId() {
+        return zoneId.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CountryRowData> dataObjectProperty() {
-        return dataObject.getReadOnlyProperty();
+    public  ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        return zoneId.getReadOnlyProperty();
     }
 
     @Override
-    public int getPrimaryKey() {
-        return primaryKey.get();
+    public String getLanguage() {
+        return language.get();
     }
 
     @Override
-    public ReadOnlyIntegerProperty primaryKeyProperty() {
-        return primaryKey.getReadOnlyProperty();
+    public ReadOnlyStringProperty languageProperty() {
+        return language.getReadOnlyProperty();
     }
 
     @Override
-    public DataRowState getRowState() {
-        return rowState.get();
+    public PredefinedCountry getPredefinedData() {
+        return predefinedData.get();
     }
 
-    @Override
-    public ReadOnlyProperty<? extends DataRowState> rowStateProperty() {
-        return rowState.getReadOnlyProperty();
-    }
-
-    @Override
-    public PredefinedCountry asPredefinedData() {
+    public ReadOnlyObjectProperty<PredefinedCountry> predefinedDataProperty() {
         return predefinedData;
+    }
+
+    @Override
+    protected void onDataObjectPropertyChanged(ICountryDAO dao, String propertyName) {
+        if (propertyName.equals(CountryDAO.PROP_PREDEFINEDCOUNTRY)) {
+            predefinedData.set(dao.getPredefinedData());
+        }
     }
 
 }
