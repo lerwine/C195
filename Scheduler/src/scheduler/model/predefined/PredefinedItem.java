@@ -93,7 +93,7 @@ public abstract class PredefinedItem<T extends DbRecord> implements FxDbModel<T>
 
     protected abstract void onDataObjectChanged(DbRecord dao);
 
-    protected <T extends DbRecord> void dataObjectChanged(ObservableValue<? extends T> observable, T oldValue, T newValue) {
+    protected <U extends DbRecord> void dataObjectChanged(ObservableValue<? extends U> observable, U oldValue, U newValue) {
         if (!(oldValue instanceof PredefinedItem)) {
             oldValue.removePropertyChangeListener(this::onDaoPropertyChange);
         }

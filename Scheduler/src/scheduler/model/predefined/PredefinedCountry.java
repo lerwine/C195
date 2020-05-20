@@ -26,7 +26,7 @@ import scheduler.model.ui.CountryItem;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implements IFxRecordModel<CountryDbRecord>, CountryItem<CountryDbRecord>, Country {
+public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implements IFxRecordModel<CountryDbRecord>, CountryItem<CountryDbRecord> {
 
     private static final Logger LOG = Logger.getLogger(PredefinedCountry.class.getName());
 

@@ -26,7 +26,7 @@ public class ItemEditTableCellFactory<T> implements Callback<TableColumn<T, T>, 
         onItemActionRequest.set(value);
     }
 
-    public ObjectProperty onItemActionRequestProperty() {
+    public ObjectProperty<EventHandler<ItemActionRequestEvent<T>>> onItemActionRequestProperty() {
         return onItemActionRequest;
     }
 

@@ -10,6 +10,8 @@ import scheduler.dao.UserDAO;
  */
 public class UserDaoEvent extends DataObjectEvent<UserDAO> {
 
+    private static final long serialVersionUID = -1168833365092070768L;
+
     /**
      * Base event type for all {@link UserDAO} events.
      */

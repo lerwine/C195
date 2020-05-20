@@ -156,6 +156,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     private void onListingTableViewKeyReleased(KeyEvent event) {
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             M item;

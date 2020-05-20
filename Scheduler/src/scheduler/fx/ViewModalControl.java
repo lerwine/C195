@@ -148,7 +148,7 @@ public class ViewModalControl extends Control {
         content.set(value);
     }
 
-    public ObjectProperty contentProperty() {
+    public ObjectProperty<Node> contentProperty() {
         return content;
     }
 

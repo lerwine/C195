@@ -11,7 +11,9 @@ import javafx.scene.control.ButtonType;
  */
 public class ViewModalEvent extends Event {
 
-    public static final EventType<ViewModalEvent> VIEW_MODAL = new EventType<ViewModalEvent>(Event.ANY, "SCHEDULER_VIEW_MODAL");
+    private static final long serialVersionUID = 7121861121625669682L;
+    public static final EventType<ViewModalEvent> VIEW_MODAL = new EventType<ViewModalEvent>(Event.ANY,
+            "SCHEDULER_VIEW_MODAL");
     private final ButtonType type;
 
     public ViewModalEvent(Object source, EventTarget target, ButtonType type) {

@@ -1,6 +1,7 @@
 package scheduler.dao.event;
 
 import javafx.event.EventType;
+import scheduler.dao.DataAccessObject;
 
 /**
  * Represents the type of database change that occurred.
@@ -21,9 +22,9 @@ public enum DbChangeType {
      */
     DELETED(DataObjectEvent.ANY_DAO_DELETE);
 
-    private final EventType<? extends DataObjectEvent> eventType;
+    private final EventType<? extends DataObjectEvent<? extends DataAccessObject>> eventType;
 
-    private DbChangeType(EventType<? extends DataObjectEvent> eventType) {
+    private DbChangeType(EventType<? extends DataObjectEvent<? extends DataAccessObject>> eventType) {
         this.eventType = eventType;
     }
 
@@ -32,7 +33,7 @@ public enum DbChangeType {
      *
      * @return The generic {@link EventType} for the change type.
      */
-    public EventType<? extends DataObjectEvent> getEventType() {
+    public EventType<? extends DataObjectEvent<? extends DataAccessObject>> getEventType() {
         return eventType;
     }
 }

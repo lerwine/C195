@@ -26,7 +26,7 @@ import scheduler.model.ui.CityItem;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxRecordModel<CityDbRecord>, CityItem<CityDbRecord>, City {
+public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxRecordModel<CityDbRecord>, CityItem<CityDbRecord> {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper resourceKey;

@@ -35,7 +35,7 @@ import scheduler.model.ui.AddressItem;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implements IFxRecordModel<AddressDbRecord>, AddressItem<AddressDbRecord>, Address {
+public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implements IFxRecordModel<AddressDbRecord>, AddressItem<AddressDbRecord> {
 
     private final ReadOnlyBooleanWrapper mainOffice;
     private final ReadOnlyStringWrapper address1;

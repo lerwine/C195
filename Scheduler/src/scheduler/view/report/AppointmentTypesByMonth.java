@@ -94,6 +94,7 @@ public class AppointmentTypesByMonth extends VBox {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'AppointmentTypesByMonth.fxml'.";

@@ -10,7 +10,10 @@ import javafx.event.EventType;
  */
 public class WaitTitledPaneEvent extends Event {
 
-    public static final EventType<WaitTitledPaneEvent> BASE = new EventType<WaitTitledPaneEvent>(ANY, "WAIT_TITLED_PANE_EVENT");
+    private static final long serialVersionUID = -8940568199287753069L;
+
+    public static final EventType<WaitTitledPaneEvent> BASE = new EventType<WaitTitledPaneEvent>(ANY,
+            "WAIT_TITLED_PANE_EVENT");
 
     public static final EventType<WaitTitledPaneEvent> RUNNING = new EventType<WaitTitledPaneEvent>(BASE, "WAIT_TITLED_PANE_EVENT_RUNNING");
 

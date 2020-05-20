@@ -14,6 +14,8 @@ import javafx.scene.Node;
  */
 public abstract class SchedulerNodeEvent<T extends Node, U> extends Event {
 
+    private static final long serialVersionUID = 5773445431243864055L;
+
     /**
      * The base event type for all {@code SchedulerNodeEvent}s.
      */

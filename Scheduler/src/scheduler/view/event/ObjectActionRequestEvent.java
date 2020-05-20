@@ -13,7 +13,10 @@ import javafx.event.EventType;
 // TODO: Replace with individual typed events
 public class ObjectActionRequestEvent extends Event {
 
-    public static final EventType<ObjectActionRequestEvent> OBJECT_ACTION_REQUEST = new EventType<ObjectActionRequestEvent>(ANY,
+    private static final long serialVersionUID = -203758390149542530L;
+
+    public static final EventType<ObjectActionRequestEvent> OBJECT_ACTION_REQUEST = new EventType<ObjectActionRequestEvent>(
+            ANY,
             "OBJECT_ACTION_REQUEST");
 
     private final Event fxEvent;

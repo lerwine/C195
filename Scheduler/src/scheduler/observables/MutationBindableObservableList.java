@@ -66,7 +66,6 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createAddOperation(Collection<E> coll) {
         Objects.requireNonNull(coll);
         if (coll.size() == 1) {
@@ -82,7 +81,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         }
         return new MutationOperation<E>() {
 
-            private final Optional<Collection<? extends E>> addOpt = Optional.of(Collections.unmodifiableList((coll instanceof List) ? (List<E>) coll : new ArrayList(coll)));
+            private final Optional<Collection<? extends E>> addOpt = Optional.of(Collections.unmodifiableList((coll instanceof List) ? (List<E>) coll : new ArrayList<>(coll)));
 
             @Override
             public Optional<Collection<? extends E>> addAll() {
@@ -146,7 +145,6 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createRemoveOperation(Collection<E> coll) {
         Objects.requireNonNull(coll);
         if (coll.size() == 1) {
@@ -162,7 +160,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         }
         return new MutationOperation<E>() {
 
-            private final Optional<Collection<? extends E>> removeOpt = Optional.of(Collections.unmodifiableList((coll instanceof List) ? (List<E>) coll : new ArrayList(coll)));
+            private final Optional<Collection<? extends E>> removeOpt = Optional.of(Collections.unmodifiableList((coll instanceof List) ? (List<E>) coll : new ArrayList<>(coll)));
 
             @Override
             public Optional<Collection<? extends E>> removeAll() {
@@ -187,11 +185,10 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return Bindings.createObjectBinding(() -> operation);
     }
 
-    @SuppressWarnings("unchecked")
     public static <E> MutationOperation<E> createRemoveAddOperation(Collection<E> toRemove, Collection<E> toAdd) {
-        ArrayList<E> rc = new ArrayList();
+        ArrayList<E> rc = new ArrayList<>();
         rc.addAll(Objects.requireNonNull(toRemove));
-        ArrayList<E> ac = new ArrayList();
+        ArrayList<E> ac = new ArrayList<>();
         ac.addAll(Objects.requireNonNull(toAdd));
         if (rc.isEmpty()) {
             if (ac.size() == 1) {
@@ -357,7 +354,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @return The last mutation operation that was performed on the current {@code MutationBindableObservableList}.
      */
-    public MutationOperation getMutation() {
+    public MutationOperation<E> getMutation() {
         return mutation.get();
     }
 
@@ -374,7 +371,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @param operation The mutation operation to be performed.
      */
-    public void setMutation(MutationOperation operation) {
+    public void setMutation(MutationOperation<E> operation) {
         mutation.set(operation);
     }
 
@@ -393,7 +390,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @param operation The mutation operation to be performed.
      */
-    public synchronized void setMutationIfNew(MutationOperation operation) {
+    public synchronized void setMutationIfNew(MutationOperation<E> operation) {
         if (!Objects.equals(mutation.get(), operation)) {
             mutation.set(operation);
         }
@@ -412,7 +409,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @return An {@link ObjectProperty} that can be bound to {@link MutationOperation}s.
      */
-    public ObjectProperty<MutationOperation> mutationProperty() {
+    public ObjectProperty<MutationOperation<E>> mutationProperty() {
         return mutation;
     }
 
@@ -421,7 +418,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @return The last set of mutation operations that were performed on the current {@code MutationBindableObservableList}.
      */
-    public Set<MutationOperation> getMutationSet() {
+    public Set<MutationOperation<E>> getMutationSet() {
         return mutationSet.get();
     }
 
@@ -438,7 +435,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @param operations The mutation operations to be performed.
      */
-    public void setMutationSet(Set<MutationOperation> operations) {
+    public void setMutationSet(Set<MutationOperation<E>> operations) {
         mutationSet.set(operations);
     }
 
@@ -456,7 +453,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @return An {@link ObjectProperty} that can be bound to {@link Set}s of {@link MutationOperation}s.
      */
-    public ObjectProperty<Set<MutationOperation>> mutationSetProperty() {
+    public ObjectProperty<Set<MutationOperation<E>>> mutationSetProperty() {
         return mutationSet;
     }
 
@@ -472,8 +469,7 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
      *
      * @param <E> The element type.
      */
-    @SuppressWarnings("unchecked")
-    private synchronized void mutate(Set<MutationOperation> mutation, Consumer<MutationOperation> onMutate) {
+    private synchronized void mutate(Set<MutationOperation<E>> mutation, Consumer<MutationOperation<E>> onMutate) {
         if (null == mutation || mutation.isEmpty()) {
             return;
         }
@@ -531,35 +527,35 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         }
     }
 
-    private class MutationProperty extends SimpleObjectProperty<MutationOperation> {
+    private class MutationProperty extends SimpleObjectProperty<MutationOperation<E>> {
 
         private final SetProperty setProperty = new SetProperty();
 
         @Override
-        public void set(MutationOperation newValue) {
+        public void set(MutationOperation<E> newValue) {
             super.set(newValue);
             MutationBindableObservableList.this.mutationSet.set(Collections.singleton(super.get()));
         }
 
         @Override
-        public final void setValue(MutationOperation v) {
+        public final void setValue(MutationOperation<E> v) {
             this.set(v);
         }
 
-        private void setInternal(MutationOperation newValue) {
+        private void setInternal(MutationOperation<E> newValue) {
             super.set(newValue);
         }
 
-        class SetProperty extends SimpleObjectProperty<Set<MutationOperation>> {
+        class SetProperty extends SimpleObjectProperty<Set<MutationOperation<E>>> {
 
             @Override
-            public void set(Set<MutationOperation> newValue) {
+            public void set(Set<MutationOperation<E>> newValue) {
                 super.set(newValue);
                 MutationBindableObservableList.this.mutate(super.get(), MutationBindableObservableList.this.mutation::setInternal);
             }
 
             @Override
-            public final void setValue(Set<MutationOperation> v) {
+            public final void setValue(Set<MutationOperation<E>> v) {
                 this.set(v);
             }
 

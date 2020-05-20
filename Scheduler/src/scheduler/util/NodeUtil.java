@@ -384,7 +384,6 @@ public class NodeUtil {
         return createCompactBorderPane(null, null, null, className);
     }
 
-    @SuppressWarnings("unchecked")
     public static Label createLabel(String text, CssClassName... className) {
         Label result = new Label((null == text) ? "" : text);
         if (null != className && className.length > 0) {
@@ -637,7 +636,7 @@ public class NodeUtil {
                 }
             });
         }
-        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList();
+        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList<>();
         boundClassNames.addAll(node.getStyleClass());
         Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
         boundClassNames.mutationProperty().bind(
@@ -655,7 +654,7 @@ public class NodeUtil {
      */
     @SuppressWarnings("unchecked")
     public static void bindCssCollapse(Node node, BooleanExpression isCollapsed) {
-        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList();
+        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList<>();
         boundClassNames.addAll(node.getStyleClass());
         Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
         boundClassNames.mutationProperty().bind(Bindings.when(isCollapsed)
