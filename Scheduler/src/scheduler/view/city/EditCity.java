@@ -1,6 +1,5 @@
 package scheduler.view.city;
 
-import scheduler.model.ui.CityModel;
 import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -25,11 +24,12 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CityModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.view.EditItem;
@@ -38,6 +38,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.model.ui.CountryItem;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
@@ -56,7 +57,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
     }
 
-    public static CityModel editNew(CountryItem country, Window parentWindow, boolean keepOpen) throws IOException {
+    public static CityModel editNew(CountryItem<? extends ICountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
         CityModel.Factory factory = CityModel.getFactory();
         CityModel model = factory.createNew(factory.getDaoFactory().createNew());
         // TODO: Select country in view
@@ -64,7 +65,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     private ObservableList<AddressModel> itemList;
-    
+
     private final ReadOnlyBooleanWrapper valid;
 
     private final ReadOnlyStringWrapper windowTitle;

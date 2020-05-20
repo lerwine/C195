@@ -24,9 +24,10 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.ICityDAO;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -36,8 +37,8 @@ import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
-import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for editing an {@link AddressModel}.
@@ -52,7 +53,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
 
-    public static AddressModel editNew(CityItem city, Window parentWindow, boolean keepOpen) throws IOException {
+    public static AddressModel editNew(CityItem<? extends ICityDAO> city, Window parentWindow, boolean keepOpen) throws IOException {
         AddressModel.Factory factory = AddressModel.getFactory();
         AddressModel model = factory.createNew(factory.getDaoFactory().createNew());
         if (null != city) {
@@ -101,7 +102,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private TextField phoneTextField;
 
     @FXML
-    private ComboBox<CityItem> cityComboBox;
+    private ComboBox<CityItem<? extends ICityDAO>> cityComboBox;
 
     @FXML
     private Label cityError;
@@ -155,9 +156,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void checkAddress1Changed(Observable observable) {
         String s = ((StringProperty) observable).get();
         validateAddress1(s);
-        if (s.equals(model.getAddress1()) && address2TextField.getText().equals(model.getAddress2()) &&
-                postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())) {
-            CityItem selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
+        if (s.equals(model.getAddress1()) && address2TextField.getText().equals(model.getAddress2())
+                && postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())) {
+            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
             changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
         } else {
             changed.set(true);
@@ -187,9 +188,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void checkAddress2Changed(Observable observable) {
         String s = ((StringProperty) observable).get();
         validateAddress2(s);
-        if (s.equals(model.getAddress2()) && address1TextField.getText().equals(model.getAddress1()) &&
-                postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())) {
-            CityItem selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
+        if (s.equals(model.getAddress2()) && address1TextField.getText().equals(model.getAddress1())
+                && postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())) {
+            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
             changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
         } else {
             changed.set(true);
@@ -219,9 +220,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void checkPostalCodeChanged(Observable observable) {
         String s = ((StringProperty) observable).get();
         validatePostalCode(s);
-        if (s.equals(model.getPostalCode()) && address1TextField.getText().equals(model.getAddress1()) && 
-                address2TextField.getText().equals(model.getAddress2()) && phoneTextField.getText().equals(model.getPhone())) {
-            CityItem selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
+        if (s.equals(model.getPostalCode()) && address1TextField.getText().equals(model.getAddress1())
+                && address2TextField.getText().equals(model.getAddress2()) && phoneTextField.getText().equals(model.getPhone())) {
+            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
             changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
         } else {
             changed.set(true);
@@ -230,16 +231,16 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void checkPhoneChanged(Observable observable) {
         String s = ((StringProperty) observable).get();
-        if (s.equals(model.getPhone()) && address1TextField.getText().equals(model.getAddress1()) && 
-                address2TextField.getText().equals(model.getAddress2()) && postalCodeTextField.getText().equals(model.getPostalCode())) {
-            CityItem selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
+        if (s.equals(model.getPhone()) && address1TextField.getText().equals(model.getAddress1())
+                && address2TextField.getText().equals(model.getAddress2()) && postalCodeTextField.getText().equals(model.getPostalCode())) {
+            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
             changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
         } else {
             changed.set(true);
         }
     }
 
-    private void validateCity(CityItem city) {
+    private void validateCity(CityItem<? extends ICityDAO> city) {
         if (null == city) {
             if (cityValid) {
                 cityValid = false;
@@ -257,17 +258,17 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @SuppressWarnings("unchecked")
     private void validateCity(Observable observable) {
-        validateCity(((ReadOnlyObjectProperty<CityItem>) observable).get());
+        validateCity(((ReadOnlyObjectProperty<CityItem<? extends ICityDAO>>) observable).get());
     }
 
     @SuppressWarnings("unchecked")
     private void checkCityChanged(Observable observable) {
-        CityItem city = ((ReadOnlyObjectProperty<CityItem>) observable).get();
+        CityItem<? extends ICityDAO> city = ((ReadOnlyObjectProperty<CityItem<? extends ICityDAO>>) observable).get();
         validateCity(city);
-        CityItem selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
-        changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey() ||
-                !(address1TextField.getText().equals(model.getAddress1()) && address2TextField.getText().equals(model.getAddress2()) &&
-                postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())));
+        CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
+        changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey()
+                || !(address1TextField.getText().equals(model.getAddress1()) && address2TextField.getText().equals(model.getAddress2())
+                && postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())));
     }
 
     @Override

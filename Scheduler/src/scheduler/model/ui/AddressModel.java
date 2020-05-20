@@ -17,8 +17,8 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
@@ -44,7 +44,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AddressModel extends FxRecordModel<AddressDAO> implements AddressDbItem<AddressDAO> {
+public final class AddressModel extends FxRecordModel<AddressDAO> implements AddressItem<AddressDAO> {
 
     private static final Factory FACTORY = new Factory();
 
@@ -121,14 +121,14 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
     private final CalculatedStringProperty<Tuple<String, String>> addressLines;
-    private final SimpleObjectProperty<CityItem> city;
-    private final NestedStringProperty<CityItem> cityName;
-    private final NestedStringProperty<CityItem> countryName;
+    private final SimpleObjectProperty<CityItem<? extends ICityDAO>> city;
+    private final NestedStringProperty<CityItem<? extends ICityDAO>> cityName;
+    private final NestedStringProperty<CityItem<? extends ICityDAO>> countryName;
     private final NonNullableStringProperty postalCode;
     private final NonNullableStringProperty phone;
     private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
-    private final NestedStringProperty<CityItem> language;
-    private final NestedObjectValueProperty<CityItem, ZoneId> zoneId;
+    private final NestedStringProperty<CityItem<? extends ICityDAO>> language;
+    private final NestedObjectValueProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
     private final CalculatedBooleanProperty<Triplet<String, PredefinedCity, String>> valid;
 
     public AddressModel(AddressDAO dao) {
@@ -160,7 +160,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         valid = new CalculatedBooleanProperty<>(this, "valid",
                 new ObservableTriplet<>(
                         addressLines,
-                        new NestedObjectValueExpression<>(city, (CityItem u) -> u.predefinedDataProperty()),
+                        new NestedObjectValueExpression<>(city, (CityItem<? extends ICityDAO> u) -> u.predefinedDataProperty()),
                         zipNormalized
                 ), (t) -> !(t.getValue1().isEmpty() || null == t.getValue2() || t.getValue1().isEmpty())
         );
@@ -204,16 +204,16 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public CityItem getCity() {
+    public CityItem<? extends ICityDAO> getCity() {
         return city.get();
     }
 
-    public void setCity(CityItem value) {
+    public void setCity(CityItem<? extends ICityDAO> value) {
         city.set(value);
     }
 
     @Override
-    public ObjectProperty<CityItem> cityProperty() {
+    public ObjectProperty<CityItem<? extends ICityDAO>> cityProperty() {
         return city;
     }
 
@@ -389,13 +389,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             }
             String address1 = item.address1.get();
             String address2 = item.address2.get();
-            CityItem cityModel = item.city.get();
-            ICityDAO cityDAO;
-            if (cityModel instanceof CityModel) {
-                cityDAO = CityModel.getFactory().updateDAO((CityModel) cityModel);
-            } else {
-                cityDAO = cityModel.getDataObject();
-            }
+            CityItem<? extends ICityDAO> cityModel = item.city.get();
+            ICityDAO cityDAO = cityModel.getDataObject();
             if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");
             }

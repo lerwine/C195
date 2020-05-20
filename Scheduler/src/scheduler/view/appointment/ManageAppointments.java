@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.model.ui.AppointmentModel;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,20 +28,20 @@ import javafx.stage.StageStyle;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -51,10 +50,14 @@ import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
 import scheduler.view.export.TsvDataExporter;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
- * <p>The associated view is {@code /resources/scheduler/view/appointment/ManageAppointments.fxml}.</p>
+ * <p>
+ * The associated view is {@code /resources/scheduler/view/appointment/ManageAppointments.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -280,8 +283,8 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                     @Override
                     public String getColumnText(AppointmentModel item, DbColumn column) {
                         CustomerItem<? extends Customer> customer;
-                        AddressItem address;
-                        CityItem city;
+                        AddressItem<? extends IAddressDAO> address;
+                        CityItem<? extends ICityDAO> city;
                         switch (column) {
                             case APPOINTMENT_CUSTOMER:
                                 customer = item.getCustomer();
@@ -322,7 +325,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                                     if (null != address) {
                                         city = address.getCity();
                                         if (null != city) {
-                                            CountryItem country = city.getCountry();
+                                            CountryItem<? extends ICountryDAO> country = city.getCountry();
                                             if (null != country) {
                                                 return numberFormat.format(country.getPrimaryKey());
                                             }

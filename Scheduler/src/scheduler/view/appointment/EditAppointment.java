@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.model.ui.AppointmentModel;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -49,6 +48,8 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import static scheduler.dao.AppointmentDAO.*;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
@@ -63,12 +64,13 @@ import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.predefined.PredefinedAddress;
 import scheduler.model.predefined.PredefinedData;
-import scheduler.model.ui.AddressItem;
 import static scheduler.model.ui.AddressModel.calculateMultiLineAddress;
-import scheduler.model.ui.CityItem;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
+import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -85,9 +87,9 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.model.ui.UserModel;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
@@ -517,9 +519,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
             ZoneId z = null;
             if (null != c) {
-                AddressItem a = c.getAddress();
+                AddressItem<? extends IAddressDAO> a = c.getAddress();
                 if (null != a) {
-                    CityItem t = a.getCity();
+                    CityItem<? extends ICityDAO> t = a.getCity();
                     if (null != t) {
                         z = t.getZoneId();
                     }

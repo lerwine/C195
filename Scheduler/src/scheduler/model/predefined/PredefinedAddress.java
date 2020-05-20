@@ -9,11 +9,10 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.AddressDbRecord;
-import scheduler.dao.DbRecord;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecord;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
-import scheduler.model.ui.AddressItem;
 import static scheduler.model.ui.AddressModel.calculateAddressLines;
 import static scheduler.model.ui.AddressModel.calculateCityZipCountry;
 import static scheduler.model.ui.AddressModel.calculateMultiLineAddress;
@@ -29,13 +28,14 @@ import scheduler.util.DB;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
+import scheduler.model.ui.AddressItem;
 
 /**
  * Represents a pre-defined address that is loaded with the application.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<AddressDbRecord>, AddressItem, Address {
+public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implements IFxRecordModel<AddressDbRecord>, AddressItem<AddressDbRecord>, Address {
 
     private final ReadOnlyBooleanWrapper mainOffice;
     private final ReadOnlyStringWrapper address1;

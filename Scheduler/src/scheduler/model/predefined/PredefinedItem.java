@@ -13,10 +13,10 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DbRecord;
-import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.FxModel;
+import scheduler.model.ui.FxDbModel;
 import scheduler.util.DB;
 import scheduler.util.PropertyBindable;
 
@@ -25,7 +25,7 @@ import scheduler.util.PropertyBindable;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class PredefinedItem implements FxModel, IPredefinedItem {
+public abstract class PredefinedItem<T extends DbRecord> implements FxDbModel<T>, IPredefinedItem {
 
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyObjectWrapper<DataRowState> rowState;
@@ -105,7 +105,7 @@ public abstract class PredefinedItem implements FxModel, IPredefinedItem {
         onDataObjectChanged(newValue);
     }
 
-    protected static class PredefinedDataProperty<T extends PredefinedItem> extends ReadOnlyObjectProperty<T> {
+    protected static class PredefinedDataProperty<T extends PredefinedItem<? extends DbRecord>> extends ReadOnlyObjectProperty<T> {
 
         private ExpressionHelper<T> helper = null;
         private final T value;

@@ -8,6 +8,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CityDAO;
 import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.observables.NestedStringProperty;
@@ -16,11 +17,11 @@ import scheduler.observables.NestedStringProperty;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCity extends RelatedModel<ICityDAO> implements CityDbItem<ICityDAO> {
+public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICityDAO> {
 
     private final ReadOnlyStringWrapper name;
-    private final NestedStringProperty<CountryItem> countryName;
-    private final ReadOnlyObjectWrapper<CountryItem> country;
+    private final NestedStringProperty<CountryItem<? extends ICountryDAO>> countryName;
+    private final ReadOnlyObjectWrapper<CountryItem<? extends ICountryDAO>> country;
     private final ReadOnlyObjectWrapper<PredefinedCity> predefinedData;
     private final ReadOnlyStringWrapper language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
@@ -67,12 +68,12 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityDbItem<IC
     }
 
     @Override
-    public CountryItem getCountry() {
+    public CountryItem<? extends ICountryDAO> getCountry() {
         return country.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CountryItem> countryProperty() {
+    public ReadOnlyObjectProperty<CountryItem<? extends ICountryDAO>> countryProperty() {
         return country.getReadOnlyProperty();
     }
 

@@ -22,16 +22,18 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
-import scheduler.util.ResourceBundleHelper;
-import scheduler.view.annotations.GlobalizationResource;
+import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
+import scheduler.util.ResourceBundleHelper;
+import scheduler.view.annotations.GlobalizationResource;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CityItem;
 
 /**
  * Contains static methods for getting pre-defined location and time zone information.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/cityNames")
@@ -90,17 +92,17 @@ public class PredefinedData {
         CheckLoad();
         return (null != regionCode && COUNTRY_MAP.containsKey(regionCode)) ? COUNTRY_MAP.get(regionCode) : null;
     }
-    
+
     public static PredefinedCity lookupCity(String key) {
         CheckLoad();
         return (null != key && CITY_MAP.containsKey(key)) ? CITY_MAP.get(key) : null;
     }
-    
+
     public static PredefinedAddress lookupAddress(String key) {
         CheckLoad();
         return (null != key && ADDRESS_MAP.containsKey(key)) ? ADDRESS_MAP.get(key) : null;
     }
-    
+
     public static ObservableMap<String, PredefinedCountry> getCountryMap() {
         CheckLoad();
         return COUNTRY_MAP;
@@ -119,7 +121,7 @@ public class PredefinedData {
         return null;
     }
 
-    public static Stream<? extends CityItem> getCityOptions(Collection<CityDAO> values) {
+    public static Stream<? extends CityItem<? extends ICityDAO>> getCityOptions(Collection<CityDAO> values) {
         if (null == values || values.isEmpty()) {
             return CITY_MAP.values().stream();
         }
@@ -130,7 +132,7 @@ public class PredefinedData {
         return CITY_MAP.values().stream().map((t) -> (map.containsKey(t.getResourceKey())) ? new CityModel(map.get(t.getResourceKey())) : t);
     }
 
-    public static Stream<? extends CountryItem> getCountryOptions(Collection<CountryDAO> values) {
+    public static Stream<? extends CountryItem<? extends ICountryDAO>> getCountryOptions(Collection<CountryDAO> values) {
         if (null == values || values.isEmpty()) {
             return COUNTRY_MAP.values().stream();
         }

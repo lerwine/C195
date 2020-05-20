@@ -3,7 +3,6 @@ package scheduler.model.ui;
 import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.Country;
 import scheduler.model.predefined.PredefinedCountry;
@@ -11,22 +10,9 @@ import scheduler.model.predefined.PredefinedCountry;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T> Type of object for database access.
  */
-public interface CountryItem extends Country, FxModel {
-
-    public static CountryItem createItem(ICountryDAO dao) {
-        if (null == dao) {
-            return null;
-        }
-        if (dao instanceof CountryDAO) {
-            return new CountryModel((CountryDAO) dao);
-        }
-        PredefinedCountry p = dao.getPredefinedData();
-        if (null != p && p.getDataObject() == dao) {
-            return p;
-        }
-        return new RelatedCountry(dao);
-    }
+public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T> {
 
     ReadOnlyStringProperty nameProperty();
 
@@ -41,9 +27,9 @@ public interface CountryItem extends Country, FxModel {
     ReadOnlyObjectProperty<PredefinedCountry> predefinedDataProperty();
 
     @Override
-    ICountryDAO getDataObject();
+    T getDataObject();
 
     @Override
-    ReadOnlyObjectProperty<? extends ICountryDAO> dataObjectProperty();
+    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
 
 }

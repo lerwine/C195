@@ -11,6 +11,11 @@ import scheduler.dao.CityDAO;
 public class CityDaoEvent extends DataObjectEvent<CityDAO> {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -6045915909630349308L;
+
+    /**
      * Base event type for all {@link CityDAO} events.
      */
     public static final EventType<CityDaoEvent> ANY_CITY_EVENT = new EventType<>(ANY_DAO_EVENT, "SCHEDULER_ANY_CITY_EVENT");

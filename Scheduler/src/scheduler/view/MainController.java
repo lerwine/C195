@@ -41,6 +41,8 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.AddressDaoEvent;
 import scheduler.dao.event.AppointmentDaoEvent;
@@ -55,11 +57,14 @@ import scheduler.fx.AppointmentAlert;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
 import scheduler.model.Customer;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityItem;
+import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.bindExtents;
@@ -67,18 +72,14 @@ import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.model.ui.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
-import scheduler.model.ui.CityModel;
 import scheduler.view.city.EditCity;
-import scheduler.model.ui.CountryModel;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.ManageCountries;
-import scheduler.model.ui.CustomerModel;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.report.AppointmentTypesByMonth;
@@ -87,7 +88,8 @@ import scheduler.view.report.ConsultantSchedule;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
-import scheduler.model.ui.UserModel;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for main application content.
@@ -493,7 +495,7 @@ public final class MainController implements EventTarget {
      * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
      */
-    public CustomerModel addNewCustomer(AddressItem address, Window parentWindow, boolean keepOpen) {
+    public CustomerModel addNewCustomer(AddressItem<? extends IAddressDAO> address, Window parentWindow, boolean keepOpen) {
         CustomerModel result;
         try {
             result = EditCustomer.editNew(address, parentWindow, keepOpen);
@@ -645,7 +647,7 @@ public final class MainController implements EventTarget {
      * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
-    public AddressModel addNewAddress(CityItem city, Window parentWindow, boolean keepOpen) {
+    public AddressModel addNewAddress(CityItem<? extends ICityDAO> city, Window parentWindow, boolean keepOpen) {
         AddressModel result;
         try {
             result = EditAddress.editNew(city, parentWindow, keepOpen);

@@ -11,6 +11,11 @@ import scheduler.dao.CustomerDAO;
 public class CustomerDaoEvent extends DataObjectEvent<CustomerDAO> {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 456933879493635488L;
+
+    /**
      * Base event type for all {@link CustomerDAO} events.
      */
     public static final EventType<CustomerDaoEvent> ANY_CUSTOMER_EVENT = new EventType<>(ANY_DAO_EVENT, "SCHEDULER_ANY_CUSTOMER_EVENT");

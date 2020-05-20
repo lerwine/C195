@@ -26,19 +26,19 @@ import scheduler.util.Values;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedAddress extends RelatedModel<IAddressDAO> implements AddressDbItem<IAddressDAO> {
+public class RelatedAddress extends RelatedModel<IAddressDAO> implements AddressItem<IAddressDAO> {
 
     private final ReadOnlyStringWrapper address1;
     private final ReadOnlyStringWrapper address2;
     private final CalculatedStringProperty<Tuple<String, String>> addressLines;
-    private final ReadOnlyObjectWrapper<CityItem> city;
-    private final NestedStringProperty<CityItem> cityName;
-    private final NestedStringProperty<CityItem> countryName;
+    private final ReadOnlyObjectWrapper<CityItem<? extends ICityDAO>> city;
+    private final NestedStringProperty<CityItem<? extends ICityDAO>> cityName;
+    private final NestedStringProperty<CityItem<? extends ICityDAO>> countryName;
     private final ReadOnlyStringWrapper postalCode;
     private final ReadOnlyStringWrapper phone;
     private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
-    private final NestedStringProperty<CityItem> language;
-    private final NestedObjectValueProperty<CityItem, ZoneId> zoneId;
+    private final NestedStringProperty<CityItem<? extends ICityDAO>> language;
+    private final NestedObjectValueProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
 
     public RelatedAddress(IAddressDAO rowData) {
         super(rowData);
@@ -119,7 +119,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     }
 
     @Override
-    public CityItem getCity() {
+    public CityItem<? extends ICityDAO> getCity() {
         return city.get();
     }
 
@@ -144,7 +144,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityItem> cityProperty() {
+    public ReadOnlyObjectProperty<CityItem<? extends ICityDAO>> cityProperty() {
         return city.getReadOnlyProperty();
     }
 

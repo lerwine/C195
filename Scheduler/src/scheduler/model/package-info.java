@@ -321,7 +321,7 @@
  *             </ul>
  *             </li>
  *             <li>
- *             <a href="{@docRoot}/scheduler/model/ui/AddressDbItem.html">AddressDbItem</a>
+ *             <a href="{@docRoot}/scheduler/model/ui/AddressItem.html">AddressItem</a>
  *             <ul class="inheritance">
  *                 <li>
  *                 <a href="{@docRoot}/scheduler/model/ui/AddressItem.html">AddressItem</a>
@@ -569,7 +569,7 @@
  *             </ul>
  *             </li>
  *             <li>
- *             <a href="{@docRoot}/scheduler/model/ui/AppointmentDbItem.html">AppointmentDbItem</a>
+ *             <a href="{@docRoot}/scheduler/model/ui/AppointmentItem.html">AppointmentItem</a>
  *             <ul class="inheritance">
  *                 <li>
  *                 <a href="{@docRoot}/scheduler/model/ui/AppointmentItem.html">AppointmentItem</a>
@@ -817,7 +817,7 @@
  *             </ul>
  *             </li>
  *             <li>
- *             <a href="{@docRoot}/scheduler/model/ui/CityDbItem.html">CityDbItem</a>
+ *             <a href="{@docRoot}/scheduler/model/ui/CityItem.html">CityItem</a>
  *             <ul class="inheritance">
  *                 <li>
  *                 <a href="{@docRoot}/scheduler/model/ui/CityItem.html">CityItem</a>
@@ -1065,7 +1065,7 @@
  *             </ul>
  *             </li>
  *             <li>
- *             <a href="{@docRoot}/scheduler/model/ui/CountryDbItem.html">CountryDbItem</a>
+ *             <a href="{@docRoot}/scheduler/model/ui/CountryItem.html">CountryItem</a>
  *             <ul class="inheritance">
  *                 <li>
  *                 <a href="{@docRoot}/scheduler/model/ui/CountryItem.html">CountryItem</a>
@@ -1313,7 +1313,7 @@
  *             </ul>
  *             </li>
  *             <li>
- *             <a href="{@docRoot}/scheduler/model/ui/CustomerDbItem.html">CustomerDbItem</a>
+ *             <a href="{@docRoot}/scheduler/model/ui/CustomerItem.html">CustomerItem</a>
  *             <ul class="inheritance">
  *                 <li>
  *                 <a href="{@docRoot}/scheduler/model/ui/CustomerItem.html">CustomerItem</a>
@@ -1561,7 +1561,7 @@
  *             </ul>
  *             </li>
  *             <li>
- *             <a href="{@docRoot}/scheduler/model/ui/UserDbItem.html">UserDbItem</a>
+ *             <a href="{@docRoot}/scheduler/model/ui/UserItem.html">UserItem</a>
  *             <ul class="inheritance">
  *                 <li>
  *                 <a href="{@docRoot}/scheduler/model/ui/UserItem.html">UserItem</a>

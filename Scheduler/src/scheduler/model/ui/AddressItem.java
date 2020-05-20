@@ -7,6 +7,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.view.address.EditAddress;
@@ -15,8 +16,9 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T> Type of object for database access.
  */
-public interface AddressItem extends Address, FxModel {
+public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T> {
 
     // TODO: Replace this with calculated expressions
     @Deprecated
@@ -56,7 +58,8 @@ public interface AddressItem extends Address, FxModel {
         }, address1, address2, cityZipCountry, phone);
     }
 
-    public static StringBinding createMultiLineAddressBinding(AddressItem source) {
+    @Deprecated
+    public static StringBinding createMultiLineAddressBinding(AddressItem<? extends IAddressDAO> source) {
         return createMultiLineAddressBinding(source.address1Property(), source.address2Property(), source.cityZipCountryProperty(),
                 source.phoneProperty());
     }
@@ -78,14 +81,14 @@ public interface AddressItem extends Address, FxModel {
     ReadOnlyStringProperty addressLinesProperty();
 
     @Override
-    public CityItem getCity();
+    public CityItem<? extends ICityDAO> getCity();
 
     /**
      * Gets the property that contains the city model for the address.
      *
      * @return The property that contains the city model for the address.
      */
-    ReadOnlyObjectProperty<? extends CityItem> cityProperty();
+    ReadOnlyObjectProperty<? extends CityItem<? extends ICityDAO>> cityProperty();
 
     /**
      * Gets the property that contains the postal code for the address.
@@ -122,9 +125,9 @@ public interface AddressItem extends Address, FxModel {
     ReadOnlyStringProperty languageProperty();
 
     @Override
-    IAddressDAO getDataObject();
+    T getDataObject();
 
     @Override
-    ReadOnlyObjectProperty<? extends IAddressDAO> dataObjectProperty();
+    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
 
 }

@@ -11,6 +11,11 @@ import scheduler.dao.AddressDAO;
 public class AddressDaoEvent extends DataObjectEvent<AddressDAO> {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 4454831542623353266L;
+
+    /**
      * Base event type for all {@link AddressDAO} events.
      */
     public static final EventType<AddressDaoEvent> ANY_ADDRESS_EVENT = new EventType<>(ANY_DAO_EVENT, "SCHEDULER_ANY_ADDRESS_EVENT");

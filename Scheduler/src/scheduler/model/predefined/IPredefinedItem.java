@@ -1,5 +1,6 @@
 package scheduler.model.predefined;
 
+import scheduler.dao.DbRecord;
 import scheduler.model.DataObject;
 
 /**
@@ -8,5 +9,5 @@ import scheduler.model.DataObject;
  */
 public interface IPredefinedItem extends DataObject {
 
-    PredefinedItem getPredefinedData();
+    PredefinedItem<? extends DbRecord> getPredefinedData();
 }

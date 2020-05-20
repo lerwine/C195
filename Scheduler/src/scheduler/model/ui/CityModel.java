@@ -12,8 +12,8 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
@@ -26,7 +26,7 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CityModel extends FxRecordModel<CityDAO> implements CityDbItem<CityDAO> {
+public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<CityDAO> {
 
     private static final Factory FACTORY = new Factory();
 
@@ -64,7 +64,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityDbIte
     }
 
     @Override
-    public CountryItem getCountry() {
+    public PredefinedCountry getCountry() {
         return country.get();
     }
 

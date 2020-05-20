@@ -4,10 +4,11 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import scheduler.dao.IAddressDAO;
 import scheduler.model.Customer;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.util.Values;
+import scheduler.model.ui.AddressItem;
 
 /**
  *
@@ -15,7 +16,7 @@ import scheduler.util.Values;
  */
 public class AddressTextProperty extends StringBinding implements ReadOnlyProperty<String> {
 
-    public static String convertToString(AddressItem address) {
+    public static String convertToString(AddressItem<? extends IAddressDAO> address) {
         if (null == address) {
             return "";
         }

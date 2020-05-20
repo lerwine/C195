@@ -5,21 +5,23 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.model.City;
 import scheduler.model.predefined.PredefinedCity;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T> Type of object for database access.
  */
-public interface CityItem extends City, FxModel {
+public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     ReadOnlyStringProperty nameProperty();
 
     @Override
-    public CountryItem getCountry();
+    public CountryItem<? extends ICountryDAO> getCountry();
 
-    ReadOnlyProperty<? extends CountryItem> countryProperty();
+    ReadOnlyProperty<? extends CountryItem<? extends ICountryDAO>> countryProperty();
 
     ReadOnlyStringProperty countryNameProperty();
 
@@ -39,7 +41,7 @@ public interface CityItem extends City, FxModel {
      * @return The backing {@link ICityDAO} data access object.
      */
     @Override
-    ICityDAO getDataObject();
+    T getDataObject();
 
     /**
      * Gets the {@link ReadOnlyProperty} that contains the backing {@link ICityDAO} data access object.
@@ -47,6 +49,6 @@ public interface CityItem extends City, FxModel {
      * @return The {@link ReadOnlyProperty} that contains the backing {@link ICityDAO} data access object.
      */
     @Override
-    ReadOnlyObjectProperty<? extends ICityDAO> dataObjectProperty();
+    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
 
 }

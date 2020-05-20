@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.model.City;
+import scheduler.dao.IAddressDAO;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ui.AddressItem;
@@ -11,7 +11,7 @@ import scheduler.model.ui.AddressItem;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class AddressListCell<T extends AddressItem> extends ListCell<T> {
+public class AddressListCell<T extends AddressItem<? extends IAddressDAO>> extends ListCell<T> {
 
     @Override
     protected void updateItem(T item, boolean empty) {

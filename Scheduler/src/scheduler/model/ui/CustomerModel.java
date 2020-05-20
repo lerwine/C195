@@ -10,8 +10,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.model.ModelHelper;
 import scheduler.observables.AddressTextProperty;
@@ -32,14 +32,14 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     private final NonNullableStringProperty name;
-    private final SimpleObjectProperty<AddressItem> address;
-    private final NestedStringProperty<AddressItem> address1;
-    private final NestedStringProperty<AddressItem> address2;
-    private final NestedStringProperty<AddressItem> cityName;
-    private final NestedStringProperty<AddressItem> countryName;
-    private final NestedStringProperty<AddressItem> postalCode;
-    private final NestedStringProperty<AddressItem> phone;
-    private final NestedStringProperty<AddressItem> cityZipCountry;
+    private final SimpleObjectProperty<AddressItem<? extends IAddressDAO>> address;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> address1;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> address2;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> cityName;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> countryName;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> postalCode;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> phone;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final SimpleBooleanProperty active;
     private final StringBinding multiLineAddress;
@@ -106,16 +106,16 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public AddressItem getAddress() {
+    public AddressItem<? extends IAddressDAO> getAddress() {
         return address.get();
     }
 
-    public void setAddress(AddressItem value) {
+    public void setAddress(AddressItem<? extends IAddressDAO> value) {
         address.set(value);
     }
 
     @Override
-    public ObjectProperty<AddressItem> addressProperty() {
+    public ObjectProperty<AddressItem<? extends IAddressDAO>> addressProperty() {
         return address;
     }
 
@@ -125,7 +125,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> address1Property() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> address1Property() {
         return address1;
     }
 
@@ -135,7 +135,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> address2Property() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> address2Property() {
         return address2;
     }
 
@@ -145,7 +145,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> cityNameProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> cityNameProperty() {
         return cityName;
     }
 
@@ -155,7 +155,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> countryNameProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> countryNameProperty() {
         return countryName;
     }
 
@@ -165,7 +165,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> postalCodeProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> postalCodeProperty() {
         return postalCode;
     }
 
@@ -175,7 +175,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> phoneProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> phoneProperty() {
         return phone;
     }
 
@@ -199,7 +199,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public NestedStringProperty<AddressItem> cityZipCountryProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> cityZipCountryProperty() {
         return cityZipCountry;
     }
 
@@ -290,17 +290,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             if (name.trim().isEmpty()) {
                 throw new IllegalArgumentException("Customer name empty");
             }
-            AddressItem addressModel = item.address.get();
+            AddressItem<? extends IAddressDAO> addressModel = item.address.get();
             if (null == addressModel) {
                 throw new IllegalArgumentException("No associated address");
             }
-            IAddressDAO addressDAO;
-            if (addressModel instanceof AddressModel) {
-                addressDAO = AddressModel.getFactory().updateDAO((AddressModel) addressModel);
-            } else {
-                addressDAO = (addressModel instanceof AddressDbItem)
-                        ? ((AddressDbItem<? extends IAddressDAO>) addressModel).getDataObject() : (IAddressDAO) addressModel;
-            }
+            IAddressDAO addressDAO = (addressModel instanceof AddressItem)
+                    ? ((AddressItem<? extends IAddressDAO>) addressModel).getDataObject() : (IAddressDAO) addressModel;
             if (ModelHelper.getRowState(addressDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated address has been deleted");
             }

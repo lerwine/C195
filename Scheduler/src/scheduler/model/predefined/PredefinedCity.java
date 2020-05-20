@@ -10,14 +10,14 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import scheduler.dao.CityDbRecord;
-import scheduler.dao.DbRecord;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecord;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.City;
-import scheduler.model.ui.CityItem;
 import scheduler.model.ui.IFxRecordModel;
 import scheduler.observables.NestedStringProperty;
 import scheduler.util.DB;
+import scheduler.model.ui.CityItem;
 
 /**
  * Represents a pre-defined city that is loaded with the application.
@@ -26,7 +26,7 @@ import scheduler.util.DB;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedCity extends PredefinedItem implements IFxRecordModel, CityItem, City {
+public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxRecordModel<CityDbRecord>, CityItem<CityDbRecord>, City {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper resourceKey;

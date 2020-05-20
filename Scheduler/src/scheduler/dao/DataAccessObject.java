@@ -31,7 +31,6 @@ import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
-import scheduler.model.DataRecord;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
@@ -647,8 +646,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Deletes the corresponding {@link DataAccessObject} from the database.
          * <p>
-         * {@link #getDeleteDependencyMessage(DataAccessObject, Connection)} should be called before this method is invoked in
-         * order to check for dependency errors ahead of time and to get a descriptive error message.</p>
+         * {@link #getDeleteDependencyMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
+         * dependency errors ahead of time and to get a descriptive error message.</p>
          *
          * @param dao The {@link DataAccessObject} to delete.
          * @param connection The database connection to use.

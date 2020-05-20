@@ -3,6 +3,7 @@ package scheduler.model.ui;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableBooleanValue;
+import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICustomerDAO;
 import scheduler.model.Customer;
 
@@ -21,14 +22,14 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
     ReadOnlyProperty<String> nameProperty();
 
     @Override
-    public AddressItem getAddress();
+    public AddressItem<? extends IAddressDAO> getAddress();
 
     /**
      * Gets the property that contains the address model associated with the customer.
      *
      * @return The property that contains the address model associated with the customer.
      */
-    ReadOnlyProperty<? extends AddressItem> addressProperty();
+    ReadOnlyProperty<? extends AddressItem<? extends IAddressDAO>> addressProperty();
 
     String getAddressText();
 

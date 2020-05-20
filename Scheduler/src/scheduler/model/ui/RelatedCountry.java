@@ -14,7 +14,7 @@ import scheduler.model.predefined.PredefinedCountry;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryDbItem<ICountryDAO> {
+public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryItem<ICountryDAO> {
 
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyObjectWrapper<PredefinedCountry> predefinedData;

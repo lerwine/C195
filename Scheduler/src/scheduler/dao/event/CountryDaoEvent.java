@@ -11,6 +11,11 @@ import scheduler.dao.CountryDAO;
 public class CountryDaoEvent extends DataObjectEvent<CountryDAO> {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 7785046806532887128L;
+
+    /**
      * Base event type for all {@link CountryDAO} events.
      */
     public static final EventType<CountryDaoEvent> ANY_COUNTRY_EVENT = new EventType<>(ANY_DAO_EVENT, "SCHEDULER_ANY_COUNTRY_EVENT");

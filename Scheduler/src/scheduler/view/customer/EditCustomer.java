@@ -1,6 +1,5 @@
 package scheduler.view.customer;
 
-import scheduler.model.ui.CustomerModel;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -45,13 +44,18 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.fx.AddressPicker;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.predefined.PredefinedData;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.util.MapHelper;
@@ -59,16 +63,15 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
-import scheduler.fx.ErrorDetailControl;
-import scheduler.model.ui.AddressModel;
-import scheduler.fx.AddressPicker;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
-import scheduler.model.ui.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for editing a {@link CustomerModel}.
@@ -83,11 +86,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
-    public static CustomerModel editNew(AddressItem address, Window parentWindow, boolean keepOpen) throws IOException {
+    public static CustomerModel editNew(AddressItem<? extends IAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
         CustomerModel.Factory factory = CustomerModel.getFactory();
         CustomerModel model = factory.createNew(factory.getDaoFactory().createNew());
-        if (null != address)
+        if (null != address) {
             model.setAddress(address);
+        }
         return EditItem.showAndWait(parentWindow, EditCustomer.class, model, keepOpen);
     }
 
@@ -105,15 +109,15 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     private final ObservableList<AppointmentModel> customerAppointments;
 
-    private final ObservableList<CityItem> allCities;
+    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
 
-    private final ObservableList<CityItem> cityOptions;
+    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
 
-    private final ObservableList<CountryItem> allCountries;
+    private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
 
     private final ObservableList<AppointmentFilterItem> filterOptions;
 
-    private final SimpleObjectProperty<AddressItem> selectedAddress;
+    private final SimpleObjectProperty<AddressItem<? extends IAddressDAO>> selectedAddress;
 
     @ModelEditor
     private CustomerModel model;
@@ -161,7 +165,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private Label cityZipCountryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityItem> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityItem<? extends ICityDAO>> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityValidationLabel"
     private Label cityValidationLabel; // Value injected by FXMLLoader
@@ -182,7 +186,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private Label countryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CountryItem> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryItem<? extends ICountryDAO>> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
@@ -234,11 +238,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     void onCountryComboBoxAction(ActionEvent event) {
         cityComboBox.getSelectionModel().clearSelection();
         cityOptions.clear();
-        CountryItem selectedItem = countryComboBox.getValue();
+        CountryItem<? extends ICountryDAO> selectedItem = countryComboBox.getValue();
         if (null != selectedItem) {
             String regionCode = selectedItem.getPredefinedData().getRegionCode();
-            allCities.stream().filter((CityItem t) -> {
-                CountryItem m = t.getCountry();
+            allCities.stream().filter((CityItem<? extends ICityDAO> t) -> {
+                CountryItem<? extends ICountryDAO> m = t.getCountry();
                 return null != m && m.getPredefinedData().getRegionCode().equals(regionCode);
             }).forEach((t) -> cityOptions.add(t));
         }
@@ -350,7 +354,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     public boolean applyChangesToModel() {
         model.setName(nameTextField.getText());
         model.setActive(activeTrueRadioButton.isSelected());
-        AddressItem address = selectedAddress.get();
+        AddressItem<? extends IAddressDAO> address = selectedAddress.get();
         if (null == address) {
             AddressModel addressModel = new AddressModel(AddressDAO.getFactory().createNew());
             addressModel.setAddress1(address1TextField.getText());
@@ -387,7 +391,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         onAddressComponentChanged(address1TextField.getText(), ((StringProperty) observable).get(), cityComboBox.getValue(), countryComboBox.getValue());
     }
 
-    private void onAddressComponentChanged(String addr1, String addr2, CityItem city, CountryItem country) {
+    private void onAddressComponentChanged(String addr1, String addr2, CityItem<? extends ICityDAO> city, CountryItem<? extends ICountryDAO> country) {
         boolean isValid;
         if (addr1.trim().isEmpty() && addr2.trim().isEmpty()) {
             restoreNode(addressValidationLabel);
@@ -412,7 +416,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         valid.set(isValid);
     }
 
-    private void onSelectedAddressChanged(ObservableValue<? extends AddressItem> observable, AddressItem oldValue, AddressItem newValue) {
+    private void onSelectedAddressChanged(ObservableValue<? extends AddressItem<? extends IAddressDAO>> observable, AddressItem<? extends IAddressDAO> oldValue, AddressItem<? extends IAddressDAO> newValue) {
         if (null == newValue) {
             restoreNode(address1TextField);
             restoreNode(address2TextField);

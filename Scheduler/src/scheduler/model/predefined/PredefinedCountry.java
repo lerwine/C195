@@ -12,12 +12,12 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import scheduler.dao.CountryDbRecord;
-import scheduler.dao.DbRecord;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.DbRecord;
 import scheduler.model.Country;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.IFxRecordModel;
 import scheduler.util.DB;
+import scheduler.model.ui.CountryItem;
 
 /**
  * Represents a pre-defined countries that are supported by the application.
@@ -26,7 +26,7 @@ import scheduler.util.DB;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PredefinedCountry extends PredefinedItem implements IFxRecordModel<CountryDbRecord>, CountryItem, Country {
+public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implements IFxRecordModel<CountryDbRecord>, CountryItem<CountryDbRecord>, Country {
 
     private static final Logger LOG = Logger.getLogger(PredefinedCountry.class.getName());
 

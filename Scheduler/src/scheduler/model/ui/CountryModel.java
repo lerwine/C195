@@ -26,7 +26,7 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CountryModel extends FxRecordModel<CountryDAO> implements CountryDbItem<CountryDAO> {
+public final class CountryModel extends FxRecordModel<CountryDAO> implements CountryItem<CountryDAO> {
 
     private static final Factory FACTORY = new Factory();
 
