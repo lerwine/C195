@@ -1,8 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.model.ui.AppointmentModel;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -13,11 +10,11 @@ import java.util.stream.Stream;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
@@ -27,16 +24,18 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
-import scheduler.fx.ErrorDetailControl;
+import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.UserModel;
+import scheduler.util.DbConnector;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.model.ui.CustomerModel;
-import scheduler.view.task.TaskWaiter;
-import scheduler.model.ui.UserModel;
+import scheduler.view.task.WaitBorderPane;
 
 // TODO: Move to /scheduler/fx
 /**
@@ -49,6 +48,9 @@ import scheduler.model.ui.UserModel;
 public class AppointmentConflicts {
 
     private static final Logger LOG = Logger.getLogger(AppointmentConflicts.class.getName());
+
+    // CURRENT: Add WaitBorderPane
+    private WaitBorderPane waitBorderPane;
 
     private EditAppointment parentController;
     private DateRange dateRangeController;
@@ -101,7 +103,7 @@ public class AppointmentConflicts {
     }
 
     private void onCheckConflictsButtonAction(ActionEvent event) {
-        TaskWaiter.startNow(new AppointmentReloadTask());
+        waitBorderPane.startNow(new AppointmentReloadTask());
     }
 
     void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController) {
@@ -288,14 +290,14 @@ public class AppointmentConflicts {
         return !conflictingAppointments.isEmpty();
     }
 
-    private class AppointmentReloadTask extends TaskWaiter<List<AppointmentDAO>> {
+    private class AppointmentReloadTask extends Task<List<AppointmentDAO>> {
 
         private final CustomerDAO customer;
         private final UserDAO user;
 
         private AppointmentReloadTask() {
-            super((Stage) conflictingAppointmentsTableView.getScene().getWindow(), AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB),
-                    AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+            updateTitle(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB));
             CustomerModel sc = parentController.getCustomer();
             UserModel su = parentController.getUser();
             customer = (null == sc) ? null : sc.getDataObject();
@@ -303,28 +305,33 @@ public class AppointmentConflicts {
         }
 
         @Override
-        protected void processResult(List<AppointmentDAO> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            List<AppointmentDAO> result = getValue();
             accept(result);
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), stage, ex);
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
         }
 
         @Override
-        protected List<AppointmentDAO> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
-            if (null != customer && customer.isExisting()) {
-                if (null != user && user.isExisting()) {
-                    return af.load(connection, AppointmentFilter.of(customer, user, null, null));
+        protected List<AppointmentDAO> call() throws Exception {
+            try (DbConnector db = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                if (null != customer && customer.isExisting()) {
+                    if (null != user && user.isExisting()) {
+                        return af.load(db.getConnection(), AppointmentFilter.of(customer, user, null, null));
+                    }
+                    return af.load(db.getConnection(), AppointmentFilter.of(customer, null, null, null));
                 }
-                return af.load(connection, AppointmentFilter.of(customer, null, null, null));
-            }
 
-            if (null != user && user.isExisting()) {
-                return af.load(connection, AppointmentFilter.of(null, user, null, null));
+                if (null != user && user.isExisting()) {
+                    return af.load(db.getConnection(), AppointmentFilter.of(null, user, null, null));
+                }
             }
             return null;
         }

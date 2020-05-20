@@ -179,9 +179,9 @@ public class WaitTitledPane extends TitledPane {
     }
 
     /**
-     * Schedules a {@link TaskWaiter} for execution.
+     * Schedules a {@link Task} for execution.
      *
-     * @param task The {@link TaskWaiter} to startNow after the specified delay.
+     * @param task The {@link Task} to startNow after the specified delay.
      * @param delay The time from now to delay execution.
      * @param unit The time unit of the delay parameter.
      */

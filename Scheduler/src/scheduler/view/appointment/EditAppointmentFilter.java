@@ -1,8 +1,6 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +21,7 @@ import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -58,6 +57,7 @@ import scheduler.dao.filter.TextFilterType;
 import scheduler.model.Address;
 import scheduler.observables.StringBindingProperty;
 import scheduler.util.AlertHelper;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabeled;
@@ -65,7 +65,7 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
-import scheduler.view.task.TaskWaiter;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
@@ -129,6 +129,9 @@ public final class EditAppointmentFilter extends BorderPane {
     private ObservableList<TitleTextSelectionItem> titleTextSearchOptionList;
     private ObservableList<LocationTextSelectionItem> locationTextSearchOptionList;
     private StringBindingProperty dateRangeValidationBinding;
+
+    // TODO: Add WaitBorderPane
+    private WaitBorderPane waitBorderPane;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -242,6 +245,16 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML // fx:id="lookupOptionUsersCheckBox"
     private CheckBox lookupOptionUsersCheckBox; // Value injected by FXMLLoader
+
+    @SuppressWarnings("LeakingThisInConstructor")
+    public EditAppointmentFilter() {
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+    }
 
     @FXML
     private void cancelButtonAction(ActionEvent event) {
@@ -378,8 +391,7 @@ public final class EditAppointmentFilter extends BorderPane {
             includeInactiveCustomers = lookupOptionCustomersCheckBox.isSelected();
             if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
                 includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
-                TaskWaiter.startNow(new ReloadCustomersAndUsersTask((Stage) ((Button) event.getSource()).getScene().getWindow(),
-                        includeInactiveCustomers, includeInactiveUsers));
+                waitBorderPane.startNow(new ReloadCustomersAndUsersTask(includeInactiveCustomers, includeInactiveUsers));
             } else {
                 stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
                 CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
@@ -554,16 +566,6 @@ public final class EditAppointmentFilter extends BorderPane {
     private void titleComboBoxChanged(ActionEvent event) {
         LocationTextSelectionItem opt = locationComboBox.getSelectionModel().getSelectedItem();
         locationTextField.setDisable(null == opt || opt.getValue().equals(TextFilterType.NONE));
-    }
-    
-    @SuppressWarnings("LeakingThisInConstructor")
-    public EditAppointmentFilter() {
-        try {
-            ViewControllerLoader.initializeCustomControl(this);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
-            throw new InternalError("Error loading view", ex);
-        }
     }
 
     private void initializePredefined(FilterOptionState inputState, RangeOptionValue type) {
@@ -831,53 +833,60 @@ public final class EditAppointmentFilter extends BorderPane {
 
     }
 
-    private class ReloadCustomersAndUsersTask extends TaskWaiter<Pair<List<CustomerDAO>, List<UserDAO>>> {
+    private class ReloadCustomersAndUsersTask extends Task<Pair<List<CustomerDAO>, List<UserDAO>>> {
 
         private final boolean includeInactiveCustomers;
         private final boolean includeInactiveUsers;
 
-        public ReloadCustomersAndUsersTask(Stage stage, boolean includeInactiveCustomers, boolean includeInactiveUsers) {
-            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
+        public ReloadCustomersAndUsersTask(boolean includeInactiveCustomers, boolean includeInactiveUsers) {
+            updateTitle(resources.getString(RESOURCEKEY_LOADINGDATA));
             this.includeInactiveCustomers = includeInactiveCustomers;
             this.includeInactiveUsers = includeInactiveUsers;
         }
 
         @Override
-        protected void processResult(Pair<List<CustomerDAO>, List<UserDAO>> result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            Pair<List<CustomerDAO>, List<UserDAO>> result = getValue();
             importCustomers(result.getKey());
             importUsers(result.getValue());
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                    "Error loading reloading customers and  users", ex);
+        protected void failed() {
+            super.failed();
+            AlertHelper.logAndAlertDbError(null, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                    "Error loading reloading customers and  users", getException());
         }
 
         @Override
-        protected Pair<List<CustomerDAO>, List<UserDAO>> getResult(Connection connection) throws SQLException {
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-            CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-            UserDAO.FactoryImpl uf = UserDAO.getFactory();
-            return new Pair<>(
-                    cf.load(connection, (this.includeInactiveCustomers) ? cf.getActiveStatusFilter(true) : cf.getAllItemsFilter()),
-                    uf.load(connection, (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getActiveUsersFilter())
-            );
+        protected Pair<List<CustomerDAO>, List<UserDAO>> call() throws Exception {
+            try (DbConnector db = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                return new Pair<>(
+                        cf.load(db.getConnection(), (this.includeInactiveCustomers) ? cf.getActiveStatusFilter(true) : cf.getAllItemsFilter()),
+                        uf.load(db.getConnection(), (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getActiveUsersFilter())
+                );
+            }
         }
 
     }
 
-    private final class InitializeTask extends TaskWaiter<OptionItems> {
+    private final class InitializeTask extends Task<OptionItems> {
 
         private final FilterOptionState inputState;
 
         private InitializeTask(Stage stage, FilterOptionState filter) {
-            super(stage, resources.getString(RESOURCEKEY_LOADINGDATA), resources.getString(RESOURCEKEY_INITIALIZING));
+            updateTitle(RESOURCEKEY_LOADINGDATA);
             this.inputState = filter;
         }
 
         @Override
-        protected void processResult(OptionItems result, Stage stage) {
+        protected void succeeded() {
+            super.succeeded();
+            OptionItems result = getValue();
             userList.add(new UserSelectionItem(null));
             customerList.add(new CustomerSelectionItem(null));
             filteredCustomerList.add(customerList.get(0));
@@ -961,22 +970,25 @@ public final class EditAppointmentFilter extends BorderPane {
         }
 
         @Override
-        protected void processException(Throwable ex, Stage stage) {
-            AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                    "Error loading appointment filter data", ex);
+        protected void failed() {
+            super.failed();
+            AlertHelper.logAndAlertDbError(null, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
+                    "Error loading appointment filter data", getException());
         }
 
         @Override
-        protected OptionItems getResult(Connection connection) throws SQLException {
+        protected OptionItems call() throws Exception {
             OptionItems result = new OptionItems();
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
-            result.customers = CustomerDAO.getFactory().load(connection, CustomerDAO.getFactory().getActiveStatusFilter(true));
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
-            result.users = UserDAO.getFactory().load(connection, UserDAO.getFactory().getActiveUsersFilter());
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
-            result.cities = CityDAO.getFactory().load(connection, CityDAO.getFactory().getAllItemsFilter());
-            updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
-            result.countries = CountryDAO.getFactory().load(connection, CountryDAO.getFactory().getAllItemsFilter());
+            try (DbConnector db = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
+                result.customers = CustomerDAO.getFactory().load(db.getConnection(), CustomerDAO.getFactory().getActiveStatusFilter(true));
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+                result.users = UserDAO.getFactory().load(db.getConnection(), UserDAO.getFactory().getActiveUsersFilter());
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
+                result.cities = CityDAO.getFactory().load(db.getConnection(), CityDAO.getFactory().getAllItemsFilter());
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
+                result.countries = CountryDAO.getFactory().load(db.getConnection(), CountryDAO.getFactory().getAllItemsFilter());
+            }
             return result;
         }
     }
