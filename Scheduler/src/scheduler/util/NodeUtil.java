@@ -715,7 +715,7 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_ERROR}. This removes the
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#ERROR}. This removes the
      * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "error"} class and sets the
      * {@link javafx.scene.control.Labeled#text} property.
      *
@@ -743,7 +743,7 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_WARNING}. This removes the
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#WARNING}. This removes the
      * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "warning"} class and sets the
      * {@link javafx.scene.control.Labeled#text} property.
      *
@@ -771,7 +771,7 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link #CSS_CLASS_INFO}. This removes the
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#INFO}. This removes the
      * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "information"} class and sets the
      * {@link javafx.scene.control.Labeled#text} property.
      *

@@ -1,4 +1,4 @@
 /**
- * Re-usable observable properties.
+ * Re-usable observable objects.
  */
 package scheduler.observables;

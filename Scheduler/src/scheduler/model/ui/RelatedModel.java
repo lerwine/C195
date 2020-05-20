@@ -6,19 +6,19 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import scheduler.dao.DAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.model.DataRecord;
 import scheduler.observables.RowStateProperty;
 import scheduler.util.IPropertyBindable;
+import scheduler.dao.DbObject;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public abstract class RelatedModel<T extends DAO> implements FxDbModel<T> {
+public abstract class RelatedModel<T extends DbObject> implements FxDbModel<T> {
 
     private final ReadOnlyObjectWrapper<T> dataObject;
     private final ReadOnlyIntegerWrapper primaryKey;
@@ -38,18 +38,18 @@ public abstract class RelatedModel<T extends DAO> implements FxDbModel<T> {
             d.addPropertyChangeListener((evt) -> {
                 String propertyName = evt.getPropertyName();
                 switch (propertyName) {
-                    case DbRecordBase.PROP_CREATEDATE:
-                    case DbRecordBase.PROP_CREATEDBY:
-                    case DbRecordBase.PROP_LASTMODIFIEDBY:
-                    case DbRecordBase.PROP_LASTMODIFIEDDATE:
+                    case DataAccessObject.PROP_CREATEDATE:
+                    case DataAccessObject.PROP_CREATEDBY:
+                    case DataAccessObject.PROP_LASTMODIFIEDBY:
+                    case DataAccessObject.PROP_LASTMODIFIEDDATE:
                         break;
-                    case DbRecordBase.PROP_PRIMARYKEY:
+                    case DataAccessObject.PROP_PRIMARYKEY:
                         Object i = evt.getNewValue();
                         if (null != i && i instanceof Integer) {
                             primaryKey.set((int) i);
                         }
                         break;
-                    case DbRecordBase.PROP_ROWSTATE:
+                    case DataAccessObject.PROP_ROWSTATE:
                         Object rs = evt.getNewValue();
                         if (null != rs && rs instanceof DataRowState) {
                             rowState.set((DataRowState) rs);

@@ -1,13 +1,11 @@
-package scheduler.view.user;
+package scheduler.model.ui;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
-import scheduler.model.ui.RelatedModel;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.UserItem;
 import scheduler.observables.UserStatusProperty;
 
 /**

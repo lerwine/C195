@@ -8,7 +8,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -21,27 +20,19 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.EventDispatchChain;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Modality;
-import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOGGINGIN;
-import static scheduler.util.NodeUtil.bindExtents;
-import static scheduler.util.NodeUtil.unbindExtents;
 import scheduler.dao.UserDAO;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.bindExtents;
+import static scheduler.util.NodeUtil.unbindExtents;
 import scheduler.util.PwHash;
-import scheduler.util.ThrowableConsumer;
-import scheduler.util.ViewControllerLoader;
 import scheduler.util.StageManager;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.Login;
 import scheduler.view.MainController;
 import scheduler.view.Overview;
@@ -50,11 +41,11 @@ import scheduler.view.ViewAndController;
 /**
  * Main Application class for the Scheduler application.
  * <p>
- * Upon startup, a temporary {@link StackPane} is created as the root node a the {@link Scene} of the primary {@link Stage}. The view for
- * {@link MainController} is added, and then the {@link Login} view is added over top of it. To validate credentials, the {@link Login} controller
- * invokes {@link #tryLoginUser(Stage, String, String, Consumer)}. After successful authentication, the current user data object is stored in
- * {@link Scheduler#currentUser}, and the view for {@link MainController} is removed from its temporary parent {@link StackPane} and becomes the root
- * node a new permanent {@link Scene} for the primary {@link Stage}.</p>
+ * Upon startup, {@link MainController} is loaded as the root node a the {@link Scene} of the primary {@link Stage}. It will not be completely
+ * initialized until the user is successfully logged in. The {@link Login} custom control is appended as the last child node of the view for the main
+ * controller, which masks the entire window until the login is successful. To validate credentials, the {@link Login} control invokes
+ * {@link LoginBorderPane#tryLoginUser(LoginBorderPane, String, String)}. After successful authentication, the current user data object is
+ * stored in {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

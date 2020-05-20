@@ -6,18 +6,18 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.LoadingMessageProvider;
 
 /**
  * Data access object filter.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DbRecordBase}.
+ * @param <T> The type of {@link DataAccessObject}.
  */
-public interface DaoFilter<T extends DbRecordBase> extends DaoFilterExpression<T>, LoadingMessageProvider {
+public interface DaoFilter<T extends DataAccessObject> extends DaoFilterExpression<T>, LoadingMessageProvider {
 
-    public static <T extends DbRecordBase> DaoFilter<T> all(String loadingTitle, String loadingMessage) {
+    public static <T extends DataAccessObject> DaoFilter<T> all(String loadingTitle, String loadingMessage) {
         return new DaoFilter<T>() {
             @Override
             public String getLoadingTitle() {
@@ -55,7 +55,7 @@ public interface DaoFilter<T extends DbRecordBase> extends DaoFilterExpression<T
         };
     }
 
-    public static <T extends DbRecordBase> DaoFilter<T> of(String loadingMessage, DaoFilterExpression<T> expr) {
+    public static <T extends DataAccessObject> DaoFilter<T> of(String loadingMessage, DaoFilterExpression<T> expr) {
         return new DaoFilter<T>() {
             private final DaoFilterExpression<T> expression = Objects.requireNonNull(expr);
 

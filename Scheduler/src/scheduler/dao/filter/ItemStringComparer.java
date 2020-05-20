@@ -1,20 +1,20 @@
 package scheduler.dao.filter;
 
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.view.customer.CustomerModel;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.UserModel;
 
 /**
- * Compares {@link DbRecordBase} and {@link FxRecordModel} to string values.
+ * Compares {@link DataAccessObject} and {@link FxRecordModel} to string values.
  *
- * @param <T> The type of {@link DbRecordBase} object.
+ * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link FxRecordModel} object.
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordModel<T>> extends ItemValueComparer<T, U, String> {
+public interface ItemStringComparer<T extends DataAccessObject, U extends FxRecordModel<T>> extends ItemValueComparer<T, U, String> {
 
     public static final ItemStringComparer<CustomerDAO, CustomerModel> CUSTOMER_NAME = new ItemStringComparer<CustomerDAO, CustomerModel>() {
         @Override
@@ -41,12 +41,12 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     };
     
     /**
-     * Compares the value associated with a {@link DbRecordBase} object with another value.
+     * Compares the value associated with a {@link DataAccessObject} object with another value.
      *
-     * @param dao The target {@link DbRecordBase}.
+     * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DbRecordBase} object is equal to {@code value}. If the value associated with a {@link DbRecordBase} object is
-     * less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link DbRecordBase} object is greater than
+     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a {@link DataAccessObject} object is
+     * less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link DataAccessObject} object is greater than
      * {@code value}.
      */
     default int compareTo(T dao, String value) {
@@ -55,7 +55,7 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Compares the value associated with a {@link DbRecordBase} object with another value.
+     * Compares the value associated with a {@link DataAccessObject} object with another value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
@@ -68,11 +68,11 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object is equal to another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object is equal to another value.
      *
-     * @param dao The target {@link DbRecordBase}.
+     * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object is starts with {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object is starts with {@code value}; otherwise, {@code false}.
      */
     default boolean startsWith(T dao, String value) {
         String s = get(dao);
@@ -80,11 +80,11 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object starts with another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object starts with another value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object starts with {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object starts with {@code value}; otherwise, {@code false}.
      */
     default boolean startsWith(U model, String value) {
         String s = get(model);
@@ -92,11 +92,11 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object ends with another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object ends with another value.
      *
-     * @param dao The target {@link DbRecordBase}.
+     * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object ends with {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object ends with {@code value}; otherwise, {@code false}.
      */
     default boolean endsWith(T dao, String value) {
         String s = get(dao);
@@ -104,11 +104,11 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object ends with another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object ends with another value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object ends with {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object ends with {@code value}; otherwise, {@code false}.
      */
     default boolean endsWith(U model, String value) {
         String s = get(model);
@@ -116,11 +116,11 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object contains another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object contains another value.
      *
-     * @param dao The target {@link DbRecordBase}.
+     * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object contains {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object contains {@code value}; otherwise, {@code false}.
      */
     default boolean contains(T dao, String value) {
         String s = get(dao);
@@ -128,11 +128,11 @@ public interface ItemStringComparer<T extends DbRecordBase, U extends FxRecordMo
     }
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object contains another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object contains another value.
      *
      * @param model The target {@link FxRecordModel}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object contains {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object contains {@code value}; otherwise, {@code false}.
      */
     default boolean contains(U model, String value) {
         String s = get(model);

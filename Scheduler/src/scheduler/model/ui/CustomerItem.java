@@ -70,5 +70,5 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
      * @return The property that contains the value that indicates whether the customer is active.
      */
     ObservableBooleanValue activeProperty();
-    
+
 }

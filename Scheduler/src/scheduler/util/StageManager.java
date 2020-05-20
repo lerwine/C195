@@ -5,22 +5,18 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import javafx.collections.ObservableListBase;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-import scheduler.Scheduler;
-import scheduler.view.ViewAndController;
 
 /**
  * Tracks {@link Stage} visibility. This allows the application to get the currently visible stages when needed.
@@ -31,6 +27,7 @@ public final class StageManager extends ObservableListBase<Stage> {
 
     public static final StageManager INSTANCE = new StageManager();
     private static final Object STAGE_PROPERTY_KEY = new Object();
+    public static final StageStyle DEFAULT_STAGE_STYLE = StageStyle.UTILITY;
 
     public static Window getWindow(Node... node) {
         if (null != node) {
@@ -51,8 +48,9 @@ public final class StageManager extends ObservableListBase<Stage> {
 
     private static Stage getCurrentStage() {
         Stage stage = getLast();
-        if (null == stage && null == (stage = INSTANCE.showingStage))
+        if (null == stage && null == (stage = INSTANCE.showingStage)) {
             return INSTANCE.primaryStage;
+        }
         return stage;
     }
 
@@ -82,6 +80,19 @@ public final class StageManager extends ObservableListBase<Stage> {
         return getCurrentStage();
     }
 
+    /**
+     * Opens a new {@link Modality#APPLICATION_MODAL} window.
+     *
+     * @param content The {@link Scene#root} control for the new window.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
+     * {@code StageManager}.
+     * @param style Specifies the style for the new window ({@link Stage}) or {@code null} to use the {@link #DEFAULT_STAGE_STYLE}.
+     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it
+     * is shown.
+     * @throws IOException if the {@code beforeShow} delegate throws an exception.
+     * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
+     * @throws NullPointerException if {@code content} is null.
+     */
     public static void showAndWait(Parent content, Window owner, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
         if (null == owner && (null == (owner = getCurrentStage()))) {
             throw new IllegalStateException();
@@ -89,7 +100,7 @@ public final class StageManager extends ObservableListBase<Stage> {
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(style);
+        stage.initStyle((null == style) ? DEFAULT_STAGE_STYLE : style);
         stage.setScene(new Scene(content));
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
@@ -112,7 +123,17 @@ public final class StageManager extends ObservableListBase<Stage> {
         }
         stage.showAndWait();
     }
-    
+
+    /**
+     * Opens a new {@link Modality#APPLICATION_MODAL} window.
+     *
+     * @param content The {@link Scene#root} control for the new window.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
+     * {@code StageManager}.
+     * @param style Specifies the style for the new window ({@link Stage}) or {@code null} to use the {@link #DEFAULT_STAGE_STYLE}.
+     * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
+     * @throws NullPointerException if {@code content} is null.
+     */
     public static void showAndWait(Parent content, Window owner, StageStyle style) {
         if (null == owner && (null == (owner = getCurrentStage()))) {
             throw new IllegalStateException();
@@ -120,7 +141,7 @@ public final class StageManager extends ObservableListBase<Stage> {
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(style);
+        stage.initStyle((null == style) ? DEFAULT_STAGE_STYLE : style);
         stage.setScene(new Scene(content));
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
@@ -141,47 +162,39 @@ public final class StageManager extends ObservableListBase<Stage> {
         stage.showAndWait();
     }
 
+    /**
+     * Opens a new {@link Modality#APPLICATION_MODAL} {@link StageStyle#UTILITY} window.
+     *
+     * @param content The {@link Scene#root} control for the new window.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
+     * {@code StageManager}.
+     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it
+     * is shown.
+     * @throws IOException if the {@code beforeShow} delegate throws an exception.
+     * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
+     * @throws NullPointerException if {@code content} is null.
+     */
     public static void showAndWait(Parent content, Window owner, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        showAndWait(content, owner, StageStyle.UTILITY, beforeShow);
+        showAndWait(content, owner, DEFAULT_STAGE_STYLE, beforeShow);
     }
 
+    /**
+     * Opens a new {@link Modality#APPLICATION_MODAL} {@link StageStyle#UTILITY} window.
+     *
+     * @param content The {@link Scene#root} control for the new window.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
+     * {@code StageManager}.
+     * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
+     * @throws NullPointerException if {@code content} is null.
+     */
     public static void showAndWait(Parent content, Window owner) {
-        showAndWait(content, owner, StageStyle.UTILITY);
-    }
-
-    public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, Window owner, StageStyle style, Consumer<ViewAndController<U, T>> onBeforeShow) throws IOException {
-        if (null == owner && (null == (owner = getCurrentStage()))) {
-            throw new IllegalStateException();
-        }
-        ViewAndController<U, T> viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
-
-        showAndWait(viewAndController.getView(), owner, style, (null == onBeforeShow) ? null : (stage) -> {
-            onBeforeShow.accept(viewAndController);
-        });
-        return viewAndController.getController();
-    }
-    
-    public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, Window owner, StageStyle style) throws IOException {
-        if (null == owner && (null == (owner = getCurrentStage()))) {
-            throw new IllegalStateException();
-        }
-        ViewAndController<U, T> viewAndController = ViewControllerLoader.loadViewAndController(controllerClass);
-        showAndWait(viewAndController.getView(), owner, style);
-        return viewAndController.getController();
-    }
-
-    public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, Window owner, Consumer<ViewAndController<U, T>> onBeforeShow) throws IOException {
-        return showAndWait(controllerClass, owner, StageStyle.UTILITY, onBeforeShow);
-    }
-
-    public static <T, U extends Parent> T showAndWait(Class<T> controllerClass, Window owner) throws IOException {
-        return showAndWait(controllerClass, owner, StageStyle.UTILITY);
+        showAndWait(content, owner, DEFAULT_STAGE_STYLE);
     }
 
     /**
      * Gets value indicating whether a {@link Stage} will be automatically un-registered with the {@code StageManager} when closed.
      *
-     * @param stage The target {@link stage}.
+     * @param stage The target {@link Stage}.
      * @return An {@link Optional} {@code true} value if the {@link Stage} will be automatically un-registered when closed; An
      * {@link Optional} {@code false} value if the {@link Stage} will remain registered when closed; Otherwise, an {@link Optional#EMPTY} value if the
      * {@link Stage} is not registered with the {@code StageManager}.
@@ -199,7 +212,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     /**
      * Executes a {@link Runnable} if the {@link Stage} is registered with the {@code StageManager}.
      *
-     * @param stage The target {@link stage}.
+     * @param stage The target {@link Stage}.
      * @param runnable The {@link Runnable} to invoke if the {@code stage} is registered with the {@code StageManager}.
      * @return {@code true} if the {@link Stage} was registered with the {@code StageManager}; otherwise {@code false}.
      */
@@ -245,7 +258,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     /**
      * Tests whether a {@link Stage} is registered with the {@code StageManager}.
      *
-     * @param stage The target {@link stage}.
+     * @param stage The target {@link Stage}.
      * @return {@code true} if the {@link Stage} was registered with the {@code StageManager}; otherwise {@code false}.
      */
     public static boolean isRegistered(Stage stage) {
@@ -355,8 +368,9 @@ public final class StageManager extends ObservableListBase<Stage> {
      */
     public static Stage getLast() {
         synchronized (INSTANCE.backingList) {
-            if (!INSTANCE.backingList.isEmpty())
+            if (!INSTANCE.backingList.isEmpty()) {
                 return INSTANCE.backingList.getLast();
+            }
         }
         return INSTANCE.primaryStage;
     }

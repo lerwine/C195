@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import scheduler.model.ui.AppointmentModel;
 import com.sun.javafx.collections.ImmutableObservableList;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -37,7 +38,7 @@ import javafx.scene.control.DatePicker;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalDateStringConverter;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.ui.CustomerItem;
@@ -49,8 +50,8 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.util.TernarySelective;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.customer.CustomerModel;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.UserModel;
 
 /**
  * Binding to validate date and time controls.
@@ -431,7 +432,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
             if (observable instanceof ReadOnlyObjectProperty) {
                 list = conflictingAppointments;
-                FxRecordModel<? extends DbRecordBase> obj = ((ReadOnlyObjectProperty<? extends FxRecordModel<? extends DbRecordBase>>) observable).get();
+                FxRecordModel<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends FxRecordModel<? extends DataAccessObject>>) observable).get();
                 if (null != obj) {
                     if (obj instanceof CustomerModel) {
                         sc = (CustomerModel) obj;

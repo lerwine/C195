@@ -40,7 +40,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.AddressDaoEvent;
 import scheduler.dao.event.AppointmentDaoEvent;
@@ -67,18 +67,18 @@ import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.appointment.AppointmentModel;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
-import scheduler.view.city.CityModel;
+import scheduler.model.ui.CityModel;
 import scheduler.view.city.EditCity;
-import scheduler.view.country.CountryModel;
+import scheduler.model.ui.CountryModel;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.ManageCountries;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.report.AppointmentTypesByMonth;
@@ -87,7 +87,7 @@ import scheduler.view.report.ConsultantSchedule;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.UserModel;
 
 /**
  * FXML Controller class for main application content.
@@ -173,7 +173,7 @@ public final class MainController implements EventTarget {
 
     public MainController() {
         eventHandlerManager = new EventHandlerManager(this);
-        // Add handlers that will fire a separate generic event for each specific DAO event.
+        // Add handlers that will fire a separate generic event for each specificDbObject event.
         eventHandlerManager.addEventHandler(AddressDaoEvent.ANY_ADDRESS_EVENT, this::onAddressDaoEvent);
         eventHandlerManager.addEventHandler(AppointmentDaoEvent.ANY_APPOINTMENT_EVENT, this::onAppointmentDaoEvent);
         eventHandlerManager.addEventHandler(CityDaoEvent.ANY_CITY_EVENT, this::onCityDaoEvent);
@@ -806,7 +806,7 @@ public final class MainController implements EventTarget {
      * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
      * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
      * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DbRecordBase}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
      * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
      * </dl>
      *
@@ -814,7 +814,7 @@ public final class MainController implements EventTarget {
      * @param type The {@link EventType}.
      * @param eventHandler The {@link EventHandler}.
      */
-    public <T extends DataObjectEvent<? extends DbRecordBase>> void addDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
@@ -833,7 +833,7 @@ public final class MainController implements EventTarget {
      * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
      * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
      * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DbRecordBase}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
      * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
      * </dl>
      *
@@ -842,7 +842,7 @@ public final class MainController implements EventTarget {
      * @param type The {@link EventType}.
      * @param eventHandler The {@link EventHandler}.
      */
-    public <T extends DataObjectEvent<? extends DbRecordBase>> void addDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
@@ -861,7 +861,7 @@ public final class MainController implements EventTarget {
      * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
      * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
      * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DbRecordBase}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
      * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
      * </dl>
      *
@@ -869,7 +869,7 @@ public final class MainController implements EventTarget {
      * @param type The {@link EventType}.
      * @param eventHandler The {@link EventHandler}.
      */
-    public <T extends DataObjectEvent<? extends DbRecordBase>> void removeDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
@@ -888,7 +888,7 @@ public final class MainController implements EventTarget {
      * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
      * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
      * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DbRecordBase}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
+     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
      * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
      * </dl>
      *
@@ -896,7 +896,7 @@ public final class MainController implements EventTarget {
      * @param type The {@link EventType}.
      * @param eventHandler The {@link EventHandler}.
      */
-    public <T extends DataObjectEvent<? extends DbRecordBase>> void removeDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
@@ -905,12 +905,12 @@ public final class MainController implements EventTarget {
         return tail.append(eventHandlerManager);
     }
 
-    private class DeleteTask<D extends DbRecordBase, M extends FxRecordModel<D>> extends Task<String> {
+    private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends Task<String> {
 
         private final M model;
         private final Window parentWindow;
         private final Consumer<M> onDeleted;
-        private final DbRecordBase.DaoFactory<D> factory;
+        private final DataAccessObject.DaoFactory<D> factory;
 
         DeleteTask(M model, Window parentWindow, FxRecordModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
             updateTitle(AppResources.getResourceString(RESOURCEKEY_DELETINGRECORD));

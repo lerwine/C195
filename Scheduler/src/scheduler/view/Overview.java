@@ -33,10 +33,10 @@ import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.user.ManageUsers;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.UserModel;
 
 /**
  * FXML Controller class

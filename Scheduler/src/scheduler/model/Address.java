@@ -7,7 +7,7 @@ import java.sql.SQLException;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface Address extends DataModel {
+public interface Address extends DataObject {
 
     public static boolean arePropertiesEqual(Address a, Address b) {
         if (null == a) {

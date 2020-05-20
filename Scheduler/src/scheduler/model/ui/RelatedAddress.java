@@ -10,9 +10,9 @@ import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.ModelHelper;
+import static scheduler.model.ui.AddressModel.calculateAddressLines;
+import static scheduler.model.ui.AddressModel.calculateCityZipCountry;
 import scheduler.observables.CalculatedStringExpression;
-import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
-import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;
 import scheduler.observables.CalculatedStringProperty;
 import scheduler.observables.NestedObjectValueProperty;
 import scheduler.observables.NestedStringProperty;
@@ -21,7 +21,6 @@ import scheduler.observables.ObservableTuple;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
-import scheduler.view.city.RelatedCity;
 
 /**
  *

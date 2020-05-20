@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.function.Function;
 import scheduler.dao.filter.value.StringValueFilter;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.ValueType;
 
@@ -14,9 +14,9 @@ import scheduler.dao.schema.ValueType;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public interface StringColumnValueFilter<T extends DbRecordBase> extends ColumnValueFilter<T, String, StringValueFilter> {
+public interface StringColumnValueFilter<T extends DataAccessObject> extends ColumnValueFilter<T, String, StringValueFilter> {
 
-    public static <T extends DbRecordBase> StringColumnValueFilter<T> of(DbColumn column, StringValueFilter filter,
+    public static <T extends DataAccessObject> StringColumnValueFilter<T> of(DbColumn column, StringValueFilter filter,
             Function<T, String> getColumnValue) {
         if (column.getType().getValueType() != ValueType.STRING) {
             throw new IllegalArgumentException("Column is not a string type");
@@ -69,12 +69,12 @@ public interface StringColumnValueFilter<T extends DbRecordBase> extends ColumnV
         };
     }
 
-    public static <T extends DbRecordBase> StringColumnValueFilter<T> of(DbColumn column, ComparisonOperator operator, String value,
+    public static <T extends DataAccessObject> StringColumnValueFilter<T> of(DbColumn column, ComparisonOperator operator, String value,
             Function<T, String> getColumnValue) {
         return of(column, StringValueFilter.of(value, operator), getColumnValue);
     }
 
-    public static <T extends DbRecordBase> StringColumnValueFilter<T> ofEmptyString(DbColumn column, Function<T, String> getColumnValue) {
+    public static <T extends DataAccessObject> StringColumnValueFilter<T> ofEmptyString(DbColumn column, Function<T, String> getColumnValue) {
         return new StringColumnValueFilter<T>() {
             private final StringValueFilter valueFilter = StringValueFilter.ofEmptyString(false);
 
@@ -138,7 +138,7 @@ public interface StringColumnValueFilter<T extends DbRecordBase> extends ColumnV
         };
     }
 
-    public static <T extends DbRecordBase> StringColumnValueFilter<T> ofNotEmptyString(DbColumn column, Function<T, String> getColumnValue) {
+    public static <T extends DataAccessObject> StringColumnValueFilter<T> ofNotEmptyString(DbColumn column, Function<T, String> getColumnValue) {
         return new StringColumnValueFilter<T>() {
             private final StringValueFilter valueFilter = StringValueFilter.ofEmptyString(true);
 

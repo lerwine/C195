@@ -1,5 +1,6 @@
 package scheduler.view.customer;
 
+import scheduler.model.ui.CustomerModel;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ import scheduler.fx.AddressPicker;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
-import scheduler.view.appointment.AppointmentModel;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;

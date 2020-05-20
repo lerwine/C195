@@ -115,9 +115,7 @@ public class ViewControllerLoader {
      * @param source The event source object for this operation.
      * @param parent The parent {@link Stage}.
      * @param viewAndController The view and controller.
-     * @param loadEventListener An object that can listen for load events. This object can implement
-     * {@link scheduler.view.event.FxmlViewControllerEventListener} or use the {@link scheduler.view.annotations.HandlesFxmlViewEvent} annotation to
-     * handle view/controller life-cycle events.
+     * @param loadEventListener An object that can listen for load events.
      * @return The controller object.
      * @throws IOException If unable to load the view.
      */
@@ -160,9 +158,6 @@ public class ViewControllerLoader {
      * This class definition for this parameter must have the {@link scheduler.view.annotations.FXMLResource} and
      * {@link scheduler.view.annotations.GlobalizationResource} annotations.</p>
      * @param loadEventListener An object that can listen for load events.
-     * <p>
-     * This parameter can implement {@link scheduler.view.event.FxmlViewControllerEventListener} or use the
-     * {@link scheduler.view.annotations.HandlesFxmlViewEvent} annotation to handle view/controller life-cycle events.</p>
      * @return The controller object.
      * @throws IOException If unable to load the view.
      */

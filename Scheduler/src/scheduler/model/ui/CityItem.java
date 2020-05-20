@@ -34,17 +34,17 @@ public interface CityItem extends City, FxModel {
     ReadOnlyObjectProperty<PredefinedCity> predefinedDataProperty();
 
     /**
-     * Gets the backing {@link RelatedRecord} data access object.
+     * Gets the backing {@link ICityDAO} data access object.
      *
-     * @return The backing {@link RelatedRecord} data access object.
+     * @return The backing {@link ICityDAO} data access object.
      */
     @Override
     ICityDAO getDataObject();
 
     /**
-     * Gets the {@link ReadOnlyProperty} that contains the backing {@link RelatedRecord} data access object.
+     * Gets the {@link ReadOnlyProperty} that contains the backing {@link ICityDAO} data access object.
      *
-     * @return The {@link ReadOnlyProperty} that contains the backing {@link RelatedRecord} data access object.
+     * @return The {@link ReadOnlyProperty} that contains the backing {@link ICityDAO} data access object.
      */
     @Override
     ReadOnlyObjectProperty<? extends ICityDAO> dataObjectProperty();

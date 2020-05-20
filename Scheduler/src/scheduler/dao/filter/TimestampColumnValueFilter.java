@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
 import java.util.Objects;
 import java.util.function.Function;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.schema.DbColumn;
 
 /**
@@ -16,10 +16,10 @@ import scheduler.dao.schema.DbColumn;
  * @param <T>
  * @param <U>
  */
-public interface TimestampColumnValueFilter<T extends DbRecordBase, U extends Temporal>
+public interface TimestampColumnValueFilter<T extends DataAccessObject, U extends Temporal>
         extends ColumnValueFilter<T, Timestamp, TimestampValueFilter<U>> {
 
-    public static <T extends DbRecordBase, U extends Temporal> TimestampColumnValueFilter<T, U> of(DbColumn column,
+    public static <T extends DataAccessObject, U extends Temporal> TimestampColumnValueFilter<T, U> of(DbColumn column,
             TimestampValueFilter<U> filter, Function<T, Timestamp> getColumnValue) {
         int h = 0;
         Objects.requireNonNull(column);
@@ -69,17 +69,17 @@ public interface TimestampColumnValueFilter<T extends DbRecordBase, U extends Te
         };
     }
 
-    public static <T extends DbRecordBase> TimestampColumnValueFilter<T, LocalDateTime> of(DbColumn column, ComparisonOperator operator,
+    public static <T extends DataAccessObject> TimestampColumnValueFilter<T, LocalDateTime> of(DbColumn column, ComparisonOperator operator,
             Timestamp value, Function<T, Timestamp> getColumnValue) {
         return of(column, TimestampValueFilter.of(value, operator), getColumnValue);
     }
 
-    public static <T extends DbRecordBase> TimestampColumnValueFilter<T, LocalDateTime> of(DbColumn column, ComparisonOperator operator,
+    public static <T extends DataAccessObject> TimestampColumnValueFilter<T, LocalDateTime> of(DbColumn column, ComparisonOperator operator,
             LocalDateTime value, Function<T, Timestamp> getColumnValue) {
         return of(column, TimestampValueFilter.of(value, operator), getColumnValue);
     }
 
-    public static <T extends DbRecordBase> TimestampColumnValueFilter<T, LocalDate> of(DbColumn column, ComparisonOperator operator,
+    public static <T extends DataAccessObject> TimestampColumnValueFilter<T, LocalDate> of(DbColumn column, ComparisonOperator operator,
             LocalDate value, Function<T, Timestamp> getColumnValue) {
         return of(column, TimestampValueFilter.of(value, operator), getColumnValue);
     }

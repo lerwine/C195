@@ -1,17 +1,14 @@
-package scheduler.view.country;
+package scheduler.model.ui;
 
 import java.time.ZoneId;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.ui.RelatedModel;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.model.ui.CountryDbItem;
 
 /**
  *
@@ -59,7 +56,7 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     }
 
     @Override
-    public  ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
         return zoneId.getReadOnlyProperty();
     }
 

@@ -36,7 +36,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.ADDRESS)
-public final class AddressDAO extends DbRecordBase implements AddressDbRecord {
+public final class AddressDAO extends DataAccessObject implements AddressDbRecord {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -194,9 +194,9 @@ public final class AddressDAO extends DbRecordBase implements AddressDbRecord {
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.AddressRowData} objects.
+     * Factory implementation for {@link AddressDAO} objects.
      */
-    public static final class FactoryImpl extends DbRecordBase.DaoFactory<AddressDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

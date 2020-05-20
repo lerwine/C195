@@ -10,16 +10,16 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.AddressDbRecord;
 import scheduler.dao.DbRecord;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.ui.AddressItem;
+import static scheduler.model.ui.AddressModel.calculateAddressLines;
+import static scheduler.model.ui.AddressModel.calculateCityZipCountry;
+import static scheduler.model.ui.AddressModel.calculateMultiLineAddress;
 import scheduler.model.ui.IFxRecordModel;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.CalculatedStringExpression;
-import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
-import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;
-import static scheduler.observables.CalculatedStringExpression.calculateMultiLineAddress;
 import scheduler.observables.CalculatedStringProperty;
 import scheduler.observables.NestedObjectValueProperty;
 import scheduler.observables.NestedStringProperty;
@@ -55,7 +55,7 @@ public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<
     private final ReadOnlyStringWrapper createdBy;
     private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
     private final ReadOnlyStringWrapper lastModifiedBy;
-//    private DAO dao;
+//    privateDbObject dao;
     private final ReadOnlyObjectWrapper<AddressDbRecord> dataObject;
 
     PredefinedAddress(AddressElement source, PredefinedCity city) {
@@ -123,16 +123,16 @@ public class PredefinedAddress extends PredefinedItem implements IFxRecordModel<
     @Override
     protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
         switch (propertyName) {
-            case DbRecordBase.PROP_CREATEDATE:
+            case DataAccessObject.PROP_CREATEDATE:
                 createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
                 break;
-            case DbRecordBase.PROP_CREATEDBY:
+            case DataAccessObject.PROP_CREATEDBY:
                 createdBy.set(dao.getCreatedBy());
                 break;
-            case DbRecordBase.PROP_LASTMODIFIEDBY:
+            case DataAccessObject.PROP_LASTMODIFIEDBY:
                 lastModifiedBy.set(dao.getLastModifiedBy());
                 break;
-            case DbRecordBase.PROP_LASTMODIFIEDDATE:
+            case DataAccessObject.PROP_LASTMODIFIEDDATE:
                 lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
                 break;
         }

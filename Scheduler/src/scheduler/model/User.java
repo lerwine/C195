@@ -5,7 +5,7 @@ package scheduler.model;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface User extends DataModel {
+public interface User extends DataObject {
 
     public static boolean arePropertiesEqual(User a, User b) {
         if (null == a) {

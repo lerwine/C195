@@ -1,5 +1,6 @@
 package scheduler.view.country;
 
+import scheduler.model.ui.CountryModel;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
-import scheduler.view.city.CityModel;
+import scheduler.model.ui.CityModel;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 

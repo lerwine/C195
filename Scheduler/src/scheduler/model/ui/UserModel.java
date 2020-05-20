@@ -1,4 +1,4 @@
-package scheduler.view.user;
+package scheduler.model.ui;
 
 import java.util.Objects;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -6,16 +6,15 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.UserItem;
 import scheduler.observables.CalculatedBooleanProperty;
 import scheduler.observables.ObservableTriplet;
 import scheduler.observables.UserStatusProperty;
 import scheduler.util.Triplet;
+import scheduler.view.user.UserModelFilter;
 
 /**
  *
@@ -164,8 +163,9 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         // Singleton
         private Factory() {
-            if (null != FACTORY)
+            if (null != FACTORY) {
                 throw new IllegalStateException();
+            }
         }
 
         @Override

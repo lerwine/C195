@@ -7,16 +7,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public interface LogicalFilter<T extends DbRecordBase> extends DaoFilterExpression<T> {
+public interface LogicalFilter<T extends DataAccessObject> extends DaoFilterExpression<T> {
 
-    static <T extends DbRecordBase> boolean areEqual(LogicalFilter<T> a, LogicalFilter<T> b) {
+    static <T extends DataAccessObject> boolean areEqual(LogicalFilter<T> a, LogicalFilter<T> b) {
         if (null == a) {
             return null == b;
         }
@@ -43,12 +43,12 @@ public interface LogicalFilter<T extends DbRecordBase> extends DaoFilterExpressi
         return false;
     }
 
-    public static boolean isLogicalOperator(DaoFilterExpression<? extends DbRecordBase> expr, LogicalOperator op) {
-        return null != expr && expr instanceof LogicalFilter && ((LogicalFilter<? extends DbRecordBase>) expr).getLogicalOperator() == op;
+    public static boolean isLogicalOperator(DaoFilterExpression<? extends DataAccessObject> expr, LogicalOperator op) {
+        return null != expr && expr instanceof LogicalFilter && ((LogicalFilter<? extends DataAccessObject>) expr).getLogicalOperator() == op;
     }
 
     @SafeVarargs
-    public static <T extends DbRecordBase> DaoFilterExpression<T> of(LogicalOperator operator, DaoFilterExpression<T>... expr) {
+    public static <T extends DataAccessObject> DaoFilterExpression<T> of(LogicalOperator operator, DaoFilterExpression<T>... expr) {
         ArrayList<DaoFilterExpression<T>> items = new ArrayList<>();
         Arrays.stream(expr).forEach((t) -> {
             if (null != t && !t.isEmpty() && !items.contains(t)) {

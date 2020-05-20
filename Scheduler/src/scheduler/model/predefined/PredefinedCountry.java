@@ -13,7 +13,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import scheduler.dao.CountryDbRecord;
 import scheduler.dao.DbRecord;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.model.Country;
 import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.IFxRecordModel;
@@ -85,16 +85,16 @@ public class PredefinedCountry extends PredefinedItem implements IFxRecordModel<
     @Override
     protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
         switch (propertyName) {
-            case DbRecordBase.PROP_CREATEDATE:
+            case DataAccessObject.PROP_CREATEDATE:
                 createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
                 break;
-            case DbRecordBase.PROP_CREATEDBY:
+            case DataAccessObject.PROP_CREATEDBY:
                 createdBy.set(dao.getCreatedBy());
                 break;
-            case DbRecordBase.PROP_LASTMODIFIEDBY:
+            case DataAccessObject.PROP_LASTMODIFIEDBY:
                 lastModifiedBy.set(dao.getLastModifiedBy());
                 break;
-            case DbRecordBase.PROP_LASTMODIFIEDDATE:
+            case DataAccessObject.PROP_LASTMODIFIEDDATE:
                 lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
                 break;
         }

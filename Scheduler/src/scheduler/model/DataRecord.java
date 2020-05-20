@@ -4,18 +4,12 @@ import java.io.Serializable;
 import scheduler.dao.DataRowState;
 
 /**
- * Interface for a {@code DataModel} that contains all columns of a data base entity.
- * <p>
- * Extending types:</p>
- * <dl>
- * <dt>{@link scheduler.dao.DataAccessObject}</dt><dd>Abstract data access object implementation.</dd>
- * <dt>{@link scheduler.view.model.ItemModel}</dt><dd>Abstract implementation for Java FX view binding.</dd>
- * </dl>
+ * Interface for a {@code DataObject} that contains all columns of a data base entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of object for date/time values
  */
-public interface DataRecord<T extends Serializable & Comparable<? super T>> extends DataModel {
+public interface DataRecord<T extends Serializable & Comparable<? super T>> extends DataObject {
 
     /**
      * Gets the timestamp when the data row associated with the current data object was inserted into the database.

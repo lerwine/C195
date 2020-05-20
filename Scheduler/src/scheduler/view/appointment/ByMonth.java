@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import scheduler.model.ui.AppointmentModel;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;

@@ -1,4 +1,4 @@
-package scheduler.view.customer;
+package scheduler.model.ui;
 
 import java.util.Objects;
 import javafx.beans.binding.StringBinding;
@@ -10,19 +10,14 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.IAddressDAO;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressDbItem;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.RelatedAddress;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
+import scheduler.view.customer.CustomerModelFilter;
 
 /**
  *
@@ -252,12 +247,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     @Override
     public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.CustomerModel#isValid
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CustomerModel#isValid
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.CustomerModel#validProperty
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CustomerModel#validProperty
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {

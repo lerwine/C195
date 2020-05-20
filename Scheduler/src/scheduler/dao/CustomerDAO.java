@@ -35,7 +35,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CUSTOMER)
-public final class CustomerDAO extends DbRecordBase implements ICustomerDAO, CustomerRecord<Timestamp> {
+public final class CustomerDAO extends DataAccessObject implements ICustomerDAO, CustomerRecord<Timestamp> {
 
     public static final int MAX_LENGTH_NAME = 45;
 
@@ -140,9 +140,9 @@ public final class CustomerDAO extends DbRecordBase implements ICustomerDAO, Cus
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.Customer} objects.
+     * Factory implementation for {@link CustomerDAO} objects.
      */
-    public static final class FactoryImpl extends DbRecordBase.DaoFactory<CustomerDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

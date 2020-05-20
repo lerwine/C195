@@ -11,7 +11,7 @@ import scheduler.util.DB;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface IAppointmentDAO extends DAO, Appointment<Timestamp> {
+public interface IAppointmentDAO extends DbObject, Appointment<Timestamp> {
 
     @Override
     public ICustomerDAO getCustomer();

@@ -57,7 +57,7 @@ import scheduler.view.MainController;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.appointment.AppointmentModel;
+import scheduler.model.ui.AppointmentModel;
 
 /**
  * FXML Controller class

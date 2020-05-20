@@ -8,7 +8,7 @@ import scheduler.model.predefined.PredefinedCity;
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface City extends DataModel {
+public interface City extends DataObject {
 
     public static String toString(City city) {
         if (null != city) {

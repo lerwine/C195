@@ -36,11 +36,11 @@ import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
 
 /**
- * FXML Controller class for editing an {@link AddressModelImpl}.
+ * FXML Controller class for editing an {@link AddressModel}.
  * <p>
  * The associated view is {@code /resources/scheduler/view/address/EditAddress.fxml}.</p>
  *

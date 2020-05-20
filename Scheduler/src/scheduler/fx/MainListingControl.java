@@ -26,7 +26,7 @@ import javafx.scene.layout.StackPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ui.FxRecordModel;
@@ -46,7 +46,7 @@ import scheduler.view.event.ItemActionRequestEvent;
  * @param <T> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DbRecordBase, M extends FxRecordModel<D>, T extends DataObjectEvent<D>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, T extends DataObjectEvent<D>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;

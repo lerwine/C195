@@ -3,7 +3,7 @@ package scheduler.dao.filter;
 import java.util.Objects;
 import java.util.function.Predicate;
 import scheduler.dao.filter.value.BooleanValueFilter;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.schema.DbColumn;
 
 /**
@@ -11,13 +11,13 @@ import scheduler.dao.schema.DbColumn;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public interface BooleanColumnValueFilter<T extends DbRecordBase> extends ColumnValueFilter<T, Boolean, BooleanValueFilter> {
+public interface BooleanColumnValueFilter<T extends DataAccessObject> extends ColumnValueFilter<T, Boolean, BooleanValueFilter> {
     boolean applyAsBoolean(T t);
 
     @Override
     public default Boolean apply(T t) { return applyAsBoolean(t); }
 
-    public static <T extends DbRecordBase> BooleanColumnValueFilter<T> of(DbColumn column, BooleanValueFilter filter, Predicate<T> getColumnValue) {
+    public static <T extends DataAccessObject> BooleanColumnValueFilter<T> of(DbColumn column, BooleanValueFilter filter, Predicate<T> getColumnValue) {
         int h = 0;
         Objects.requireNonNull(column);
         for (DbColumn c : DbColumn.values()) {
@@ -66,19 +66,19 @@ public interface BooleanColumnValueFilter<T extends DbRecordBase> extends Column
         };
     }
 
-    public static <T extends DbRecordBase> BooleanColumnValueFilter<T> ofTrue(DbColumn column, Predicate<T> getColumnValue) {
+    public static <T extends DataAccessObject> BooleanColumnValueFilter<T> ofTrue(DbColumn column, Predicate<T> getColumnValue) {
         return of(column, BooleanValueFilter.ofTrue(), getColumnValue);
     }
     
-    public static <T extends DbRecordBase> BooleanColumnValueFilter<T> ofFalse(DbColumn column, Predicate<T> getColumnValue) {
+    public static <T extends DataAccessObject> BooleanColumnValueFilter<T> ofFalse(DbColumn column, Predicate<T> getColumnValue) {
         return of(column, BooleanValueFilter.ofFalse(), getColumnValue);
     }
     
-    public static <T extends DbRecordBase> BooleanColumnValueFilter<T> of(DbColumn column, boolean value, Predicate<T> getColumnValue) {
+    public static <T extends DataAccessObject> BooleanColumnValueFilter<T> of(DbColumn column, boolean value, Predicate<T> getColumnValue) {
         return of(column, BooleanValueFilter.of(value), getColumnValue);
     }
     
-    public static <T extends DbRecordBase> BooleanColumnValueFilter<T> ofNot(DbColumn column, boolean value, Predicate<T> getColumnValue) {
+    public static <T extends DataAccessObject> BooleanColumnValueFilter<T> ofNot(DbColumn column, boolean value, Predicate<T> getColumnValue) {
         return of(column, BooleanValueFilter.ofNot(value), getColumnValue);
     }
     

@@ -1,4 +1,4 @@
-package scheduler.view.country;
+package scheduler.model.ui;
 
 import java.time.ZoneId;
 import java.util.Objects;
@@ -12,13 +12,11 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.DbRecordBase.DaoFactory;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.model.ui.CountryDbItem;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.CalculatedBooleanProperty;
 import scheduler.observables.NestedObjectValueProperty;
 import scheduler.observables.NestedStringProperty;

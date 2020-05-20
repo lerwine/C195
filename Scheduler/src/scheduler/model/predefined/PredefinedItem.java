@@ -15,7 +15,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DbRecord;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxModel;
 import scheduler.util.DB;
 import scheduler.util.PropertyBindable;
@@ -76,10 +76,10 @@ public abstract class PredefinedItem implements FxModel, IPredefinedItem {
         DbRecord dao = (DbRecord) evt.getSource();
         String propertyName = evt.getPropertyName();
         switch (propertyName) {
-            case DbRecordBase.PROP_PRIMARYKEY:
+            case DataAccessObject.PROP_PRIMARYKEY:
                 primaryKey.set(dao.getPrimaryKey());
                 break;
-            case DbRecordBase.PROP_ROWSTATE:
+            case DataAccessObject.PROP_ROWSTATE:
                 DataRowState rs = dao.getRowState();
                 rowState.set(rs);
                 break;

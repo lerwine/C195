@@ -1,4 +1,4 @@
-package scheduler.view.customer;
+package scheduler.model.ui;
 
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -11,10 +11,6 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICustomerDAO;
-import scheduler.model.ui.RelatedModel;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.RelatedAddress;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringProperty;
 

@@ -12,7 +12,7 @@ import javafx.beans.value.ObservableValue;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.observables.NestedStringExpression}
+ * @param <T>
  */
 public class NestedStringExpression<T> extends CalculatedObjectExpression<String> implements ObservableStringValue {
 
@@ -20,7 +20,7 @@ public class NestedStringExpression<T> extends CalculatedObjectExpression<String
     private ObservableValue<String> target;
     private String value = null;
     private StringExpression stringExpression;
-    
+
     public NestedStringExpression(ObservableValue<T> source, Function<T, ObservableValue<String>> selector) {
         this.selector = selector;
         source.addListener(this::onSourceChange);

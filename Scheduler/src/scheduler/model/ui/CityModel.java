@@ -1,4 +1,4 @@
-package scheduler.view.city;
+package scheduler.model.ui;
 
 import java.time.ZoneId;
 import java.util.Objects;
@@ -12,14 +12,11 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
-import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.model.ui.CityDbItem;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.CalculatedBooleanProperty;
 import scheduler.observables.NestedObjectValueProperty;
 import scheduler.observables.NestedStringProperty;

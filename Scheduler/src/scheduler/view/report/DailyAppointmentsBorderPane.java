@@ -21,12 +21,12 @@ import javafx.scene.layout.BorderPane;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.appointment.AppointmentModel;
+import scheduler.model.ui.AppointmentModel;
 
 /**
  * List item for {@link ConsultantSchedule#appointmentScheduleListView} to display an ordered list of consultant appointments for a single day.
  * <p>
- * {@link scheduler.fx.DailyAppointmentsListCell} will use this object as the graphic for the {@link ListView} items.</p>
+ * {@link scheduler.fx.DailyAppointmentsListCell} will use this object as the graphic for the {@link javafx.scene.control.ListView} items.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

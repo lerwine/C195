@@ -35,7 +35,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.USER)
-public final class UserDAO extends DbRecordBase implements UserDbRecord {
+public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static final int MAX_LENGTH_USERNAME = 50;
 
@@ -142,9 +142,9 @@ public final class UserDAO extends DbRecordBase implements UserDbRecord {
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.UserRowData} objects.
+     * Factory implementation for {@link UserDAO} objects.
      */
-    public static final class FactoryImpl extends DbRecordBase.DaoFactory<UserDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

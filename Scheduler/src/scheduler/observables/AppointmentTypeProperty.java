@@ -11,7 +11,6 @@ import scheduler.model.AppointmentType;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.observables.AppointmentTypeProperty}
  */
 public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentType> {
 

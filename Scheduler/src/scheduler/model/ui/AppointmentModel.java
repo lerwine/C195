@@ -1,4 +1,4 @@
-package scheduler.view.appointment;
+package scheduler.model.ui;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,8 +15,8 @@ import javafx.beans.property.StringProperty;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.model.AppointmentType;
@@ -24,11 +24,6 @@ import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
 import scheduler.model.predefined.PredefinedAddress;
 import scheduler.model.predefined.PredefinedData;
-import scheduler.model.ui.AppointmentItem;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.UserItem;
-import scheduler.observables.AddressTextProperty;
 import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.CalculatedStringExpression;
 import scheduler.observables.CalculatedStringProperty;
@@ -40,8 +35,7 @@ import scheduler.observables.ObservableQuadruplet;
 import scheduler.util.DB;
 import scheduler.util.Quadruplet;
 import scheduler.util.Values;
-import scheduler.view.customer.RelatedCustomer;
-import scheduler.view.user.RelatedUser;
+import scheduler.view.appointment.AppointmentModelFilter;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -51,6 +45,26 @@ import scheduler.view.user.RelatedUser;
 public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implements AppointmentItem<AppointmentDAO> {
 
     private static final Factory FACTORY = new Factory();
+
+    public static String calculateEffectiveLocation(AppointmentType type, String customerAddress, String url, String location) {
+        switch (type) {
+            case CUSTOMER_SITE:
+                return (customerAddress.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER)
+                        : customerAddress;
+            case VIRTUAL:
+                return (url.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
+                        : url;
+            case CORPORATE_LOCATION:
+                PredefinedAddress a = PredefinedData.lookupAddress(location);
+                return (null == a) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE)
+                        : AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(), a.getCityZipCountry(), a.getPhone());
+            case PHONE:
+                return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
+                        : String.format("tel: %s", location);
+            default:
+                return location;
+        }
+    }
 
     public static int compareByDates(AppointmentModel a, AppointmentModel b) {
         if (null == a) {
@@ -109,7 +123,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final NonNullableStringProperty url;
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
-    private final CalculatedStringProperty<Quadruplet<String, String, String, AppointmentType>> effectiveLocation;
+    private final CalculatedStringProperty<Quadruplet<AppointmentType, String, String, String>> effectiveLocation;
 
     public AppointmentModel(AppointmentDAO dao) {
         super(dao);
@@ -139,41 +153,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         start = new SimpleObjectProperty<>(this, "start", DB.toLocalDateTime(dao.getStart()));
         end = new SimpleObjectProperty<>(this, "end", DB.toLocalDateTime(dao.getEnd()));
         effectiveLocation = new CalculatedStringProperty<>(this, "effectiveLocation", new ObservableQuadruplet<>(
+                type,
                 customerAddressText,
-                new CalculatedStringExpression<>(location, Values::asNonNullAndWsNormalized),
                 new CalculatedStringExpression<>(url, Values::asNonNullAndWsNormalized),
-                type
-        ), (t) -> {
-            String s;
-            switch (t.getValue4()) {
-                case CUSTOMER_SITE:
-                    s = t.getValue1();
-                    if (s.isEmpty()) {
-                        return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER);
-                    }
-                    break;
-                case VIRTUAL:
-                    s = t.getValue3();
-                    if (s.isEmpty()) {
-                        return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL);
-                    }
-                case CORPORATE_LOCATION:
-                    s = t.getValue2();
-                    PredefinedAddress a = PredefinedData.lookupAddress(s);
-                    return (null == a) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE) : AddressTextProperty.convertToString(a);
-                case PHONE:
-                    s = t.getValue2();
-                    if (s.isEmpty()) {
-                        return AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE);
-                    }
-                    return String.format("tel: %s", s);
-                default:
-                    s = t.getValue2();
-                    break;
-            }
-            return s;
-        });
+                new CalculatedStringExpression<>(location, Values::asNonNullAndWsNormalized)
+        ), (t) -> AppointmentModel.calculateEffectiveLocation(t.getValue1(), t.getValue2(), t.getValue3(), t.getValue4()));
         // CURRENT: Add validation properties
+
     }
 
     @Override
@@ -559,12 +545,12 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentModel#isValid
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AddressModel#isValid
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.AppointmentModel#validProperty
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AddressModel#validProperty
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {

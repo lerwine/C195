@@ -25,8 +25,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.dao.DbRecordBase;
-import scheduler.dao.DbRecordBase.DaoFactory;
+import scheduler.dao.DataAccessObject;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
@@ -43,18 +43,16 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
 
 /**
- * Wrapper FXML Controller class for editing {@link FxRecordModel} items in a new modal window.
+ * The parent FXML custom control for editing {@link FxRecordModel} items in a new modal window.
  * <p>
  * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
  * values for the {@link FxRecordModel#createdBy}, {@link FxRecordModel#createDate}, {@link FxRecordModel#lastModifiedBy} and
- * {@link FxRecordModel#lastModifiedDate} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a nested view and
- * controller. Controllers for the nested editor views inherit from {@link EditItem.EditController}.</p>
+ * {@link FxRecordModel#lastModifiedDate} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
+ * {@link EditItem.ModelEditor} custom control.</p>
  * <p>
- * The nested editor view can load the {@code EditItem} view and controller, including the nested view and controller using
- * {@link EditItem.EditController#edit(ItemModel, Class, MainController, Stage)} or
- * {@link EditItem.EditController#editNew(Class, MainController, Stage)}.</p>
+ * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method.</p>
  * <p>
- * The view for this controller is {@code /resources/scheduler/view/user/EditUser.fxml}.</p>
+ * The view for this controller is {@code /resources/scheduler/view/EditItem.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data access object that the model represents.
@@ -63,11 +61,24 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DbRecordBase, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
-    public static <T extends DbRecordBase, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
+    /**
+     * Opens a new window for editing an {@link FxRecordModel} item.
+     *
+     * @param <T> The type of data access object.
+     * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
+     * @param <S> The type of {@link ModelEditor} control for editing the model properties.
+     * @param parentWindow The parent window
+     * @param editorType
+     * @param model
+     * @param keepOpen
+     * @return
+     * @throws IOException
+     */
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -195,24 +206,86 @@ public final class EditItem<T extends DbRecordBase, U extends FxRecordModel<T>, 
         getScene().getWindow().hide();
     }
 
-    public interface ModelEditor<T extends DbRecordBase, U extends FxRecordModel<T>> {
+    /**
+     * Base class for editing specific {@link FxRecordModel} items. Derived controls are intended to be instantiated through the
+     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent
+     * {@code EditItem} control.
+     *
+     * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
+     * @param <U> The {@link FxRecordModel} type.
+     */
+    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>> {
 
+        /**
+         * Gets the factory object for managing the current {@link FxRecordModel}.
+         *
+         * @return The factory object for managing the current {@link FxRecordModel}.
+         */
         FxRecordModel.ModelFactory<T, U> modelFactory();
 
+        /**
+         * Gets a value indicating whether the properties of the current {@link FxRecordModel} are valid.
+         *
+         * @return {@code true} if all properties of the current {@link FxRecordModel} are valid; otherwise, {@code false}.
+         */
         boolean isValid();
 
+        /**
+         * Gets the property that indicates whether the properties of the current {@link FxRecordModel} are valid. The inverse value of this property
+         * is bound to the {@link Button#disableProperty()} of the Save button.
+         *
+         * @return The property that indicates whether the properties of the current {@link FxRecordModel} are valid.
+         */
         ReadOnlyBooleanProperty validProperty();
 
+        /**
+         * Gets a value indicating whether any of the properties of the current {@link FxRecordModel} are different than the values of the underlying
+         * {@link DataAccessObject}.
+         *
+         * @return {@code true} if all properties of the current {@link FxRecordModel} are the same as the properties of the underlying
+         * {@link DataAccessObject}; otherwise, {@code false}.
+         */
         boolean isChanged();
 
+        /**
+         * Gets the property that indicates whether any of the properties of the current {@link FxRecordModel} are different than the values of the
+         * underlying {@link DataAccessObject}.
+         *
+         * @return The property that indicates whether any of the properties of the current {@link FxRecordModel} are different than the values of the
+         * underlying {@link DataAccessObject}.
+         */
         ReadOnlyBooleanProperty changedProperty();
 
+        /**
+         * Gets the window title for the current parent {@link Stage}.
+         *
+         * @return The window title for the current parent {@link Stage}.
+         */
         String getWindowTitle();
 
+        /**
+         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()}
+         * of the parent {@link Stage}.
+         *
+         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the
+         * {@link Stage#titleProperty()} of the parent {@link Stage}.
+         */
         ReadOnlyStringProperty windowTitleProperty();
 
+        /**
+         * This gets called to initialize the current control when editing a new {@link FxRecordModel} item. This will only be called one time during
+         * initialization.
+         */
         void onEditNew();
 
+        /**
+         * This gets called to initialize the current control for editing an {@link FxRecordModel} item that already exists in the database. This will
+         * be called once during initialization when editing an existing {@link FxRecordModel}. This will also be called after saving a new new
+         * {@link FxRecordModel} and the edit window is supposed to stay open.
+         *
+         * @param isInitialize {@code true} if this is called during initialization; otherwise, {@code false} if a new {@link FxRecordModel} was just
+         * successfully saved and it is being re-initialized for continued editing.
+         */
         void onEditExisting(boolean isInitialize);
 
     }

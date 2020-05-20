@@ -37,9 +37,9 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.CityModel;
-import scheduler.view.country.CountryModel;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
 
 /**

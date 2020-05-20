@@ -1,5 +1,6 @@
 package scheduler.view.user;
 
+import scheduler.model.ui.UserModel;
 import java.util.function.Predicate;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVEUSERS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLUSERS;

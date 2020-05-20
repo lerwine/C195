@@ -1,23 +1,23 @@
 package scheduler.dao.filter;
 
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
 
 /**
- * Compares {@link DbRecordBase} and {@link FxRecordModel} to generic values.
+ * Compares {@link DataAccessObject} and {@link FxRecordModel} to generic values.
  * 
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of {@link DbRecordBase} object.
+ * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link FxRecordModel} object.
  * @param <S> The type of value being compared.
  */
-public interface ItemValueComparer<T extends DbRecordBase, U extends FxRecordModel<T>, S> {
+public interface ItemValueComparer<T extends DataAccessObject, U extends FxRecordModel<T>, S> {
     
     /**
-     * Gets the integer value associated with the target {@link DbRecordBase}.
+     * Gets the integer value associated with the target {@link DataAccessObject}.
      *
-     * @param dao The target {@link DbRecordBase}.
-     * @return The value associated with the target {@link DbRecordBase}.
+     * @param dao The target {@link DataAccessObject}.
+     * @return The value associated with the target {@link DataAccessObject}.
      */
     S get(T dao);
 
@@ -30,11 +30,11 @@ public interface ItemValueComparer<T extends DbRecordBase, U extends FxRecordMod
     S get(U model);
 
     /**
-     * Tests whether the value associated with a {@link DbRecordBase} object is equal to another value.
+     * Tests whether the value associated with a {@link DataAccessObject} object is equal to another value.
      *
-     * @param dao The target {@link DbRecordBase}.
+     * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link DbRecordBase} object is equal to {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link DataAccessObject} object is equal to {@code value}; otherwise, {@code false}.
      */
     default boolean test(T dao, S value) {
         S s = get(dao);

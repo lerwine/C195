@@ -1,5 +1,6 @@
 package scheduler.view.customer;
 
+import scheduler.model.ui.CustomerModel;
 import java.util.function.Predicate;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVECUSTOMERS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCUSTOMERS;

@@ -15,7 +15,7 @@ import scheduler.view.event.ItemActionRequestEvent;
 
 /**
  *
- * @author Leonard T. Erwine (Student ID 356334) <lerwine@wgu.edu>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
  */
 public class ItemEditTableCell<T> extends TableCell<T, T> {

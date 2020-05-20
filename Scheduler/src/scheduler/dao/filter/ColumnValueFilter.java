@@ -4,7 +4,7 @@ import scheduler.dao.filter.value.ValueFilter;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.function.Function;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.schema.DbColumn;
 
 /**
@@ -14,7 +14,7 @@ import scheduler.dao.schema.DbColumn;
  * @param <U>
  * @param <S>
  */
-public interface ColumnValueFilter<T extends DbRecordBase, U, S extends ValueFilter<U>> extends DaoFilterExpression<T>, Function<T, U> {
+public interface ColumnValueFilter<T extends DataAccessObject, U, S extends ValueFilter<U>> extends DaoFilterExpression<T>, Function<T, U> {
     DbColumn getColumn();
     S getValueFilter();
     

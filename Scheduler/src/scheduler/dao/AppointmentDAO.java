@@ -37,7 +37,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.APPOINTMENT)
-public final class AppointmentDAO extends DbRecordBase implements AppointmentDbRecord {
+public final class AppointmentDAO extends DataAccessObject implements AppointmentDbRecord {
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -321,13 +321,9 @@ public final class AppointmentDAO extends DbRecordBase implements AppointmentDbR
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.Appointment} objects.
-     * <dl>
-     * <dt>{@link scheduler.view.model.ItemModel}</dt>
-     * <dd>{@code ModelHelper} with all data from a database entity.</dd>
-     * </dl>
+     * Factory implementation for {@link AppointmentDAO} objects.
      */
-    public static final class FactoryImpl extends DbRecordBase.DaoFactory<AppointmentDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

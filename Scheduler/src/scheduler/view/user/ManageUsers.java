@@ -1,5 +1,6 @@
 package scheduler.view.user;
 
+import scheduler.model.ui.UserModel;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;

@@ -4,16 +4,16 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import scheduler.dao.DAO;
 import scheduler.dao.DataRowState;
-import scheduler.model.DataModel;
+import scheduler.model.DataObject;
+import scheduler.dao.DbObject;
 
 /**
- * Interface for UI {@code DbDataModel}s with bindable JavaFX properties.
+ * Interface for UI {@code DbDataObject}s with bindable JavaFX properties.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface FxModel extends DataModel {
+public interface FxModel extends DataObject {
 
     ReadOnlyIntegerProperty primaryKeyProperty();
 
@@ -31,14 +31,14 @@ public interface FxModel extends DataModel {
      *
      * @return The backing data access object.
      */
-    DAO getDataObject();
+    DbObject getDataObject();
 
     /**
      * Gets the {@link ReadOnlyProperty} that contains the backing data access object.
      *
      * @return The {@link ReadOnlyProperty} that contains the backing data access object.
      */
-    ReadOnlyObjectProperty<? extends DAO> dataObjectProperty();
+    ReadOnlyObjectProperty<? extends DbObject> dataObjectProperty();
 
     DataRowState getRowState();
 

@@ -34,7 +34,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalDateStringConverter;
-import scheduler.dao.DbRecordBase;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.util.BinaryOptional;
 import scheduler.util.BinarySelective;
@@ -309,9 +309,9 @@ public class BindingHelper {
         }, date, hour, minute);
     }
 
-    public static <R extends DbRecordBase> IntegerBinding primaryKeyBinding(final ObservableValue<R> observable) {
+    public static <R extends DataAccessObject> IntegerBinding primaryKeyBinding(final ObservableValue<R> observable) {
         return Bindings.createIntegerBinding(() -> {
-            DbRecordBase record = observable.getValue();
+            DataAccessObject record = observable.getValue();
             return (record == null || record.getRowState() == DataRowState.NEW) ? Integer.MIN_VALUE : record.getPrimaryKey();
         }, observable);
     }

@@ -32,8 +32,8 @@ import scheduler.fx.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.appointment.AppointmentModel;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.UserModel;
 
 @GlobalizationResource("scheduler/view/report/Reports")
 @FXMLResource("/scheduler/view/report/ConsultantSchedule.fxml")

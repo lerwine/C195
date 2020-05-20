@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import scheduler.model.ui.AppointmentModel;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -63,11 +64,11 @@ import scheduler.model.UserStatus;
 import scheduler.model.predefined.PredefinedAddress;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.model.ui.AddressItem;
+import static scheduler.model.ui.AddressModel.calculateMultiLineAddress;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
-import static scheduler.observables.CalculatedStringExpression.calculateMultiLineAddress;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -84,9 +85,9 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.UserModel;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.

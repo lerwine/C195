@@ -46,7 +46,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 
 /**
- * FXML Controller class for editing the date range for an {@link AppointmentModel}.
+ * FXML Controller class for editing the date range for an {@link scheduler.model.ui.AppointmentModel}.
  * <p>
  * This is loaded by the {@link EditAppointment} controller. The associated view is {@code /resources/scheduler/view/appointment/DateRange.fxml}.</p>
  *

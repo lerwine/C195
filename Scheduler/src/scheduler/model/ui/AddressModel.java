@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
@@ -16,16 +17,14 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.DbRecordBase.DaoFactory;
 import scheduler.dao.DataRowState;
+import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.observables.CalculatedBooleanProperty;
 import scheduler.observables.CalculatedStringExpression;
-import static scheduler.observables.CalculatedStringExpression.calculateAddressLines;
-import static scheduler.observables.CalculatedStringExpression.calculateCityZipCountry;
 import scheduler.observables.CalculatedStringProperty;
 import scheduler.observables.NestedObjectValueExpression;
 import scheduler.observables.NestedObjectValueProperty;
@@ -33,12 +32,13 @@ import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.ObservableTriplet;
 import scheduler.observables.ObservableTuple;
+import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.view.city.CityModel;
-import scheduler.view.city.RelatedCity;
+import scheduler.view.address.EditAddress;
+import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 
 /**
  *
@@ -50,6 +50,72 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     public static final Factory getFactory() {
         return FACTORY;
+    }
+
+    public static String calculateAddressLines(String line1, String line2) {
+        if (line1.isEmpty()) {
+            return line2;
+        }
+        return (line2.isEmpty()) ? line1 : String.format("%s%n%s", line1, line2);
+    }
+
+    public static String calculateCityZipCountry(String city, String country, String postalCode) {
+        if (city.isEmpty()) {
+            return (postalCode.isEmpty()) ? country : ((country.isEmpty()) ? postalCode : String.format("%s, %s", postalCode, country));
+        }
+        if (country.isEmpty()) {
+            return (postalCode.isEmpty()) ? city : String.format("%s %s", city, postalCode);
+        }
+        return (postalCode.isEmpty()) ? String.format("%s, %s", city, country) : String.format("%s %s, %s", city, postalCode, country);
+    }
+
+    public static String calculateMultiLineAddress(String address, String cityZipCountry, String phone) {
+        if (address.isEmpty()) {
+            if (cityZipCountry.isEmpty()) {
+                return (phone.isEmpty()) ? "" : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+            }
+            return (phone.isEmpty()) ? cityZipCountry : String.format("%s%n%s %s", cityZipCountry,
+                    getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+        }
+        if (cityZipCountry.isEmpty()) {
+            return (phone.isEmpty()) ? address
+                    : String.format("%s%n%s %s", address, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+        }
+        return (phone.isEmpty()) ? String.format("%s%n%s", address, cityZipCountry)
+                : String.format("%s%n%s%n%s %s", address, cityZipCountry, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+    }
+
+    public static String calculateSingleLineAddress(String address1, String address2, String cityZipCountry, String phone) {
+        if (address1.isEmpty()) {
+            if (address2.isEmpty()) {
+                return (cityZipCountry.isEmpty()) ? phone : ((phone.isEmpty()) ? cityZipCountry : String.format("%s, %s", cityZipCountry, phone));
+            }
+            if (cityZipCountry.isEmpty()) {
+                return (phone.isEmpty()) ? address2 : String.format("%s, %s", address2, phone);
+            }
+            return (phone.isEmpty()) ? String.format("%s, %s", address2, cityZipCountry) : String.format("%s, %s, %s", address2, cityZipCountry, phone);
+        }
+        if (address2.isEmpty()) {
+            if (cityZipCountry.isEmpty()) {
+                return (phone.isEmpty()) ? address1 : String.format("%s, %s", address1, phone);
+            }
+            return (phone.isEmpty()) ? String.format("%s, %s", address1, cityZipCountry) : String.format("%s, %s, %s", address1, cityZipCountry, phone);
+        }
+        if (cityZipCountry.isEmpty()) {
+            return (phone.isEmpty()) ? String.format("%s, %s", address1, address2) : String.format("%s, %s, %s", address1, address2, phone);
+        }
+        return (phone.isEmpty()) ? String.format("%s, %s, %s", address1, address2, cityZipCountry) : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
+    }
+
+    public static CalculatedStringExpression<Triplet<String, String, String>> cityZipCountryExpression(ObservableValue<String> city, ObservableValue<String> country,
+            ObservableValue<String> postalCodeNormalized) {
+        return new CalculatedStringExpression<>(
+                new ObservableTriplet<>(
+                        new CalculatedStringExpression<>(city, Values::asNonNullAndWsNormalized),
+                        new CalculatedStringExpression<>(country, Values::asNonNullAndWsNormalized),
+                        postalCodeNormalized
+                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        );
     }
 
     private final NonNullableStringProperty address1;

@@ -7,8 +7,6 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.Country;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.view.country.CountryModel;
-import scheduler.view.country.RelatedCountry;
 
 /**
  *

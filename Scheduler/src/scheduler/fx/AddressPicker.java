@@ -34,8 +34,8 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.RelatedCity;
-import scheduler.view.country.RelatedCountry;
+import scheduler.model.ui.RelatedCity;
+import scheduler.model.ui.RelatedCountry;
 import scheduler.view.task.WaitBorderPane;
 
 /**

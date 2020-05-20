@@ -1,4 +1,4 @@
-package scheduler.view.city;
+package scheduler.model.ui;
 
 import java.time.ZoneId;
 import javafx.beans.Observable;
@@ -8,11 +8,8 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.CityDAO;
 import scheduler.dao.ICityDAO;
-import scheduler.model.ui.RelatedModel;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.model.ui.CityDbItem;
-import scheduler.model.ui.CountryItem;
 import scheduler.observables.NestedStringProperty;
 
 /**

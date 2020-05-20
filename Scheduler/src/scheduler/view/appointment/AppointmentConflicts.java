@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import scheduler.model.ui.AppointmentModel;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -33,9 +34,9 @@ import scheduler.fx.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.TaskWaiter;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.UserModel;
 
 // TODO: Move to /scheduler/fx
 /**

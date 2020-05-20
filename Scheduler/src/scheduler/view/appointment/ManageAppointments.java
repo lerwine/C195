@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import scheduler.model.ui.AppointmentModel;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -53,13 +54,7 @@ import scheduler.view.export.TsvDataExporter;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
- * <p>
- * Typically, {@link MainController} invokes {@link #loadInto(MainController, Stage, AppointmentModelFilter)} or
- * {@link #loadInto(MainController, Stage, AppointmentModelFilter, Object)}, which loads the view and instantiates the controller by calling
- * {@link #loadInto(Class, MainController, Stage, scheduler.view.ModelFilter)} or
- * {@link #loadInto(Class, MainController, Stage, scheduler.view.ModelFilter, Object)} on the base class.</p>
- * <p>
- * The associated view is {@code /resources/scheduler/view/appointment/ManageAppointments.fxml}.</p>
+ * <p>The associated view is {@code /resources/scheduler/view/appointment/ManageAppointments.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

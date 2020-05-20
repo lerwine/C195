@@ -3,7 +3,7 @@ package scheduler.fx;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
-import scheduler.view.user.UserModel;
+import scheduler.model.ui.UserModel;
 
 /**
  *

@@ -2,16 +2,16 @@ package scheduler.model.ui;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import scheduler.dao.DAO;
 import scheduler.model.DataRecord;
+import scheduler.dao.DbObject;
 
 /**
- * A UI {@code DataModel} with bindable JavaFX properties and a backing data access object.
+ * A UI {@code DataObject} with bindable JavaFX properties and a backing data access object.
  * <p>
  * Extending types:</p>
  * Abstract {@link DataRecord} implementation:
  * <ul>
- * <li>{@link scheduler.view.model.ItemModel}</li>
+ * <li>{@link FxRecordModel}</li>
  * </ul>
  * Entity-specific extensions:
  * <ul>
@@ -26,7 +26,7 @@ import scheduler.model.DataRecord;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface FxDbModel<T extends DAO> extends FxModel {
+public interface FxDbModel<T extends DbObject> extends FxModel {
 
     /**
      * Gets the backing data access object.

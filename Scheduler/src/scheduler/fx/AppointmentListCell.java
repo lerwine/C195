@@ -11,7 +11,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import scheduler.util.NodeUtil;
 import scheduler.fx.CssClassName;
-import scheduler.view.appointment.AppointmentModel;
+import scheduler.model.ui.AppointmentModel;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 
 /**

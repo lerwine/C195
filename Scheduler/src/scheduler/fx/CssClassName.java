@@ -52,7 +52,7 @@ public enum CssClassName {
      */
     VALIDATIONMSG("validationMessage"),
     /**
-     * The {@code "leftControlLabel"} CSS class for {@link Labeled} nodes aligned to the left of the control they label.
+     * The {@code "leftControlLabel"} CSS class for {@link javafx.scene.control.Labeled} nodes aligned to the left of the control they label.
      */
     LEFTCONTROLLABEL("leftControlLabel"),
     /**
@@ -60,7 +60,7 @@ public enum CssClassName {
      */
     LEFTLABELEDCONTROL("leftLabeledControl"),
     /**
-     * The {@code "h1"} CSS class for larger, bold text representing a sub-heading within a {@link #SECTION_CONTAINER}.
+     * The {@code "h1"} CSS class.
      */
     H1("h1"),
     /**

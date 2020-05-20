@@ -1,5 +1,6 @@
 package scheduler.view.country;
 
+import scheduler.model.ui.CountryModel;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;

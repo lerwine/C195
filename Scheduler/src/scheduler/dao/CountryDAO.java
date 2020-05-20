@@ -35,7 +35,7 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.COUNTRY)
-public final class CountryDAO extends DbRecordBase implements CountryDbRecord {
+public final class CountryDAO extends DataAccessObject implements CountryDbRecord {
 
     public static final int MAX_LENGTH_NAME = 50;
 
@@ -119,9 +119,9 @@ public final class CountryDAO extends DbRecordBase implements CountryDbRecord {
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.CountryRowData} objects.
+     * Factory implementation for {@link CountryDAO} objects.
      */
-    public static final class FactoryImpl extends DbRecordBase.DaoFactory<CountryDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 

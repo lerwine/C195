@@ -5,6 +5,7 @@
  */
 package scheduler.view.appointment;
 
+import scheduler.model.ui.AppointmentModel;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;

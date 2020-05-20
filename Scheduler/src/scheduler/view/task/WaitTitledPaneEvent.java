@@ -7,7 +7,6 @@ import javafx.event.EventType;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.view.task.WaitTitledPaneEvent}
  */
 public class WaitTitledPaneEvent extends Event {
 

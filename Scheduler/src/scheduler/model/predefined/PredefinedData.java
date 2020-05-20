@@ -26,8 +26,8 @@ import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CountryItem;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.city.CityModel;
-import scheduler.view.country.CountryModel;
+import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryModel;
 
 /**
  * Contains static methods for getting pre-defined location and time zone information.

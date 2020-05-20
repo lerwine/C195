@@ -1,5 +1,6 @@
 package scheduler.view.city;
 
+import scheduler.model.ui.CityModel;
 import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;

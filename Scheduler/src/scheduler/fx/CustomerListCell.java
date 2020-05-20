@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.view.customer.CustomerModel;
+import scheduler.model.ui.CustomerModel;
 
 /**
  *

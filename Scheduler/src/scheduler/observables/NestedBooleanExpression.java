@@ -14,7 +14,6 @@ import javafx.beans.value.ObservableValue;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
- * @todo Implement {@code scheduler.observables.NestedBooleanExpression}
  */
 public class NestedBooleanExpression<T> extends CalculatedObjectExpression<Boolean> implements ObservableBooleanValue {
 

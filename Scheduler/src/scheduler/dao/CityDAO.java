@@ -43,7 +43,7 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_DELETEM
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CITY)
-public final class CityDAO extends DbRecordBase implements CityDbRecord {
+public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     public static final int MAX_LENGTH_NAME = 50;
 
@@ -144,9 +144,9 @@ public final class CityDAO extends DbRecordBase implements CityDbRecord {
     }
 
     /**
-     * Factory implementation for {@link scheduler.model.db.City} objects.
+     * Factory implementation for {@link CityDAO} objects.
      */
-    public static final class FactoryImpl extends DbRecordBase.DaoFactory<CityDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
