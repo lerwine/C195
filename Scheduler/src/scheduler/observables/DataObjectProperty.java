@@ -24,7 +24,6 @@ import scheduler.dao.DbObject;
 import scheduler.model.ui.FxDbModel;
 import scheduler.util.DB;
 
-// CURRENT: Add event for DAO property change that can be handled.
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -514,17 +513,17 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
     }
 
     private void onDbPropertyChange(PropertyChangeEvent evt) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement #propertyChange
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement #propertyChange
     }
 
     @Override
     public Object getBean() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.observables.DataObjectProperty#getBean
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.observables.DataObjectProperty#getBean
     }
 
     @Override
     public String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.observables.DataObjectProperty#getName
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.observables.DataObjectProperty#getName
     }
 
     private class PropertyChangeHandler<U> implements Consumer<T> {

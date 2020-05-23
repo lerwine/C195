@@ -30,7 +30,7 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
-import scheduler.model.predefined.PredefinedData;
+import scheduler.model.PredefinedData;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
@@ -196,6 +196,15 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
+    }
+
+    @Override
+    public PredefinedElement getPredefinedData() {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO#getPredefinedElement
+    }
+
+    public void setPredefinedElement(PredefinedElement pd) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO#setPredefinedElement
     }
 
     /**
@@ -421,7 +430,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         public Address ensureSaved(Address requireNonNull, Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.FactoryImpl#ensureSaved
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.FactoryImpl#ensureSaved
         }
 
     }
@@ -484,13 +493,21 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
         }
 
+        @Override
+        public PredefinedElement getPredefinedData() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.Related#getPredefinedElement
+        }
+
     }
-    
+
     @XmlRootElement(name = PredefinedElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class PredefinedElement {
+    public static class PredefinedElement extends PredefinedData.PredefinedAddress {
+
         public static final String ELEMENT_NAME = "address";
-        
+
+        private AddressDAO dataAccessObject = null;
+
         @XmlAttribute
         private boolean mainOffice;
         @XmlAttribute
@@ -503,6 +520,11 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private String postalCode;
         @XmlAttribute
         private String phone;
+
+        @Override
+        public synchronized AddressDAO getDataAccessObject() {
+            return dataAccessObject;
+        }
 
         public boolean isMainOffice() {
             return mainOffice;
@@ -527,6 +549,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         public String getPhone() {
             return phone;
         }
-        
+
     }
 }

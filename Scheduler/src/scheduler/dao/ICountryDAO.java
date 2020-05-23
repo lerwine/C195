@@ -12,7 +12,7 @@ public interface ICountryDAO extends DbObject, Country {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Data access object already deleted");
         }
-        if (null == target.getPredefinedData()) {
+        if (null == target.getPredefinedElement()) {
             throw new IllegalStateException("Invalid country name");
         }
         return target;

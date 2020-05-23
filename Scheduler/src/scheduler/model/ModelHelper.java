@@ -7,7 +7,6 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.predefined.PredefinedItem;
 import scheduler.model.ui.FxRecordModel;
 
 /**
@@ -105,19 +104,6 @@ public class ModelHelper {
             }
         }
         return false;
-    }
-
-    public static DataRowState getRowState(DataObject obj) {
-        if (null == obj) {
-            return DataRowState.DELETED;
-        }
-        if (obj instanceof DataRecord) {
-            return ((DataRecord) obj).getRowState();
-        }
-        if (obj instanceof PredefinedItem) {
-            return DataRowState.NEW;
-        }
-        return DataRowState.UNMODIFIED;
     }
 
     /**

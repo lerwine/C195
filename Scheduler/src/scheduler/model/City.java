@@ -1,14 +1,25 @@
 package scheduler.model;
 
-import scheduler.model.predefined.PredefinedCity;
-
+import java.time.ZoneId;
+import scheduler.dao.CityDAO;
 
 /**
  * Interface for objects that contain either partial or complete information from the {@code city} database entity.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface City extends DataObject {
+
+    public static ZoneId getZoneIdOf(City dao) {
+        if (null != dao) {
+            CityDAO.PredefinedElement predefinedElement = dao.getPredefinedElement();
+            if (null != predefinedElement) {
+                return ZoneId.of(predefinedElement.getZoneId());
+            }
+            return Country.getZoneIdOf(dao.getCountry());
+        }
+        return ZoneId.systemDefault();
+    }
 
     public static String toString(City city) {
         if (null != city) {
@@ -31,18 +42,21 @@ public interface City extends DataObject {
         }
         return null != b && a.getName().equalsIgnoreCase(b.getName()) && ModelHelper.areSameRecord(a.getCountry(), b.getCountry());
     }
-    
+
     public static int compare(City a, City b) {
-        if (null == a)
+        if (null == a) {
             return (null == b) ? 0 : 1;
-        if (null == b)
+        }
+        if (null == b) {
             return -1;
+        }
         int result = Country.compare(a.getCountry(), b.getCountry());
         if (result == 0) {
             String x = a.getName();
             String y = b.getName();
-            if ((result = x.compareToIgnoreCase(y)) == 0)
+            if ((result = x.compareToIgnoreCase(y)) == 0) {
                 return x.compareTo(y);
+            }
         }
         return result;
     }
@@ -60,7 +74,7 @@ public interface City extends DataObject {
      * @return The {@link Country} for the current city.
      */
     Country getCountry();
-    
-    PredefinedCity getPredefinedData();
-    
+
+    CityDAO.PredefinedElement getPredefinedElement();
+
 }

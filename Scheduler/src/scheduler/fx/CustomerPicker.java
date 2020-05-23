@@ -30,6 +30,9 @@ import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.CustomerModel;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
@@ -37,9 +40,6 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.CustomerModel;
 import scheduler.view.task.WaitBorderPane;
 
 /**

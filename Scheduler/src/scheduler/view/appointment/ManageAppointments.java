@@ -36,7 +36,10 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
+import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
@@ -50,9 +53,6 @@ import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
 import scheduler.view.export.TsvDataExporter;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
@@ -452,12 +452,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected String getLoadingTitle() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.ManageAppointments#getLoadingTitle
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.ManageAppointments#getLoadingTitle
     }
 
     @Override
     protected String getFailMessage() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.ManageAppointments#getFailMessage
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.ManageAppointments#getFailMessage
     }
 
     @Override

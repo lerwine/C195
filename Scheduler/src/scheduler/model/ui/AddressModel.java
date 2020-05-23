@@ -16,7 +16,8 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.ModelHelper;
+import scheduler.model.City;
+import scheduler.model.Country;
 import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
@@ -79,6 +80,14 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
                 ? String.format("%s, %s", city, country)
                 : String.format("%s %s, %s", city, postalCode, country);
+    }
+
+    public static String calculateCityZipCountry(City city, String postalCode) {
+        if (null == city) {
+            return calculateCityZipCountry("", "", postalCode);
+        }
+        Country country = city.getCountry();
+        return calculateCityZipCountry(city.getName(), (null == country) ? "" : country.getName(), postalCode);
     }
 
     /**
@@ -352,6 +361,11 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         return false;
     }
 
+    @Override
+    public AddressDAO.PredefinedElement getPredefinedData() {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#getPredefinedData
+    }
+
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {
 
         // Singleton
@@ -381,7 +395,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             String address2 = item.address2.get();
             CityItem<? extends ICityDAO> cityModel = item.city.get();
             ICityDAO cityDAO = cityModel.getDataObject();
-            if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
+            if (null == cityDAO || cityDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");
             }
             item.isNewRow();

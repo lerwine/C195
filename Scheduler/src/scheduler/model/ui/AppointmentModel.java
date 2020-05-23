@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
@@ -18,9 +19,8 @@ import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.AppointmentType;
+import scheduler.model.PredefinedData;
 import scheduler.model.UserStatus;
-import scheduler.model.predefined.PredefinedAddress;
-import scheduler.model.predefined.PredefinedData;
 import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.NestedBooleanProperty;
 import scheduler.observables.NestedObjectProperty;
@@ -52,9 +52,10 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 return (url.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
                         : url;
             case CORPORATE_LOCATION:
-                PredefinedAddress a = PredefinedData.lookupAddress(location);
+                AddressDAO a = PredefinedData.lookupAddress(location);
                 return (null == a) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE)
-                        : AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(), a.getCityZipCountry(), a.getPhone());
+                        : AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
+                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()), a.getPhone());
             case PHONE:
                 return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
                         : String.format("tel: %s", location);
@@ -160,9 +161,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                         switch (t) {
                             case CORPORATE_LOCATION:
                                 if (!l.isEmpty()) {
-                                    PredefinedAddress a = PredefinedData.lookupAddress(l);
+                                    AddressDAO a = PredefinedData.lookupAddress(l);
                                     if (null != a) {
-                                        return AddressModel.calculateMultiLineAddress(a.addressLinesProperty().get(), a.getCityZipCountry(), a.getPhone());
+                                        return AddressModel.calculateMultiLineAddress(
+                                                AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
+                                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
+                                                a.getPhone()
+                                        );
                                     }
                                 }
                                 break;

@@ -32,8 +32,7 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.event.CityDaoEvent;
 import scheduler.fx.ErrorDetailControl;
-import scheduler.model.predefined.PredefinedCountry;
-import scheduler.model.predefined.PredefinedData;
+import scheduler.model.PredefinedData;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
@@ -88,7 +87,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private Label countryNameValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryNameComboBox"
-    private ComboBox<PredefinedCountry> countryNameComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryDAO> countryNameComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
@@ -103,7 +102,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
 
     private ObservableList<CityModel> itemList;
-    private ObservableList<PredefinedCountry> countryList;
+    private ObservableList<CountryDAO> countryList;
 
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper();
@@ -162,15 +161,16 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         itemList = FXCollections.observableArrayList();
         countryList = FXCollections.observableArrayList();
         citiesTableView.setItems(itemList);
-        countryList.addAll(PredefinedData.getCountryMap().values());
+        PredefinedData.getCountryOptions(null).forEach((c) -> countryList.add(c));
         countryNameComboBox.setItems(countryList);
         ObservableObjectDerivitive.ofSelection(countryNameComboBox).addListener((observable, oldValue, newValue) -> {
             valid.set(null != newValue);
         });
-        PredefinedCountry pdc = model.getPredefinedData();
+        CountryDAO.PredefinedElement pdc = model.getPredefinedElement();
         if (null != pdc) {
-            String rc = pdc.getRegionCode();
-            countryList.stream().filter((t) -> t.getRegionCode().equals(rc)).findFirst().ifPresent((t) -> countryNameComboBox.getSelectionModel().select(t));
+            String rc = pdc.getLocale().getCountry();
+            countryList.stream().filter((t) -> t.getPredefinedElement().getLocale().getCountry().equals(rc)).findFirst().ifPresent((t)
+                    -> countryNameComboBox.getSelectionModel().select(t));
         }
         valid.set(null != countryNameComboBox.getSelectionModel().getSelectedItem());
     }

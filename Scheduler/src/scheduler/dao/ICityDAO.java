@@ -1,8 +1,6 @@
 package scheduler.dao;
 
-import java.util.Objects;
 import scheduler.model.City;
-import scheduler.model.predefined.PredefinedCity;
 
 /**
  *
@@ -14,7 +12,7 @@ public interface ICityDAO extends DbObject, City {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Data access object already deleted");
         }
-        PredefinedCity pd = target.getPredefinedData();
+        CityDAO.PredefinedElement pd = target.getPredefinedElement();
         if (null == pd) {
             throw new IllegalStateException("Invalid city name");
         }
@@ -22,7 +20,8 @@ public interface ICityDAO extends DbObject, City {
         if (null == country) {
             throw new IllegalStateException("Country not specified");
         }
-        if (!Objects.equals(pd.getCountry(), ICountryDAO.assertValidCountry(country).getPredefinedData())) {
+
+        if (!ICountryDAO.assertValidCountry(country).getPredefinedElement().getCities().contains(pd)) {
             throw new IllegalStateException("Invalid country association");
         }
         switch (country.getRowState()) {

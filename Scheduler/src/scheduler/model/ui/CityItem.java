@@ -1,7 +1,6 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
-import java.util.Objects;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -9,7 +8,6 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.City;
-import scheduler.model.predefined.PredefinedCity;
 
 /**
  *
@@ -19,15 +17,13 @@ import scheduler.model.predefined.PredefinedCity;
 public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     public static CityItem<? extends ICityDAO> createModel(ICityDAO t) {
-        if (null == t)
+        if (null == t) {
             return null;
-        if (t instanceof CityDAO) {
-            return new CityModel((CityDAO)t);
         }
-        
-        PredefinedCity pc = t.getPredefinedData();
-        if (null != pc && Objects.equals(pc.getDataObject(), t))
-            return pc;
+        if (t instanceof CityDAO) {
+            return new CityModel((CityDAO) t);
+        }
+
         return new RelatedCity(t);
     }
 
@@ -48,7 +44,7 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     ReadOnlyStringProperty languageProperty();
 
-    ReadOnlyObjectProperty<PredefinedCity> predefinedDataProperty();
+    ReadOnlyObjectProperty<CityDAO.PredefinedElement> predefinedDataProperty();
 
     /**
      * Gets the backing {@link ICityDAO} data access object.

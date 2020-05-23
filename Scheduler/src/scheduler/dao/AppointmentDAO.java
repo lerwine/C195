@@ -675,11 +675,11 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
             Customer customer = dao.getCustomer();
-            if (customer instanceof CustomerDAO && (force || ModelHelper.getRowState(customer) != DataRowState.UNMODIFIED)) {
+            if (customer instanceof CustomerDAO && (force || customer.getRowState() != DataRowState.UNMODIFIED)) {
                 CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
             }
             User user = dao.getUser();
-            if (user instanceof UserDAO && (force || ModelHelper.getRowState(user) != DataRowState.UNMODIFIED)) {
+            if (user instanceof UserDAO && (force || user.getRowState() != DataRowState.UNMODIFIED)) {
                 UserDAO.getFactory().save((UserDAO) user, connection, force);
             }
             super.save(dao, connection, force);

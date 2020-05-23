@@ -137,12 +137,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.address.EditAddress#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.address.EditAddress#onEditExisting
     }
 
     private class ItemsLoadTask extends Task<List<CustomerDAO>> {

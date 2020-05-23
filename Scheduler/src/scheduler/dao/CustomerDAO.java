@@ -293,7 +293,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
             Address address = dao.getAddress();
-            if (address instanceof AddressDAO && (force || ModelHelper.getRowState(address) != DataRowState.UNMODIFIED)) {
+            if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
                 AddressDAO.getFactory().save((AddressDAO) address, connection, force);
             }
             super.save(dao, connection, force);

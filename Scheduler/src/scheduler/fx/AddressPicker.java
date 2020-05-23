@@ -201,12 +201,12 @@ public class AddressPicker extends BorderPane {
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
                     ICityDAO city = t.getCity();
-                    String rk = city.getPredefinedData().getResourceKey();
-                    if (!allCities.stream().anyMatch((u) -> u.getPredefinedData().getResourceKey().equals(rk))) {
+                    String rk = city.getPredefinedElement().getKey();
+                    if (!allCities.stream().anyMatch((u) -> u.getPredefinedElement().getKey().equals(rk))) {
                         allCities.add(CityItem.createModel(city));
                         ICountryDAO country = city.getCountry();
-                        String rc = country.getPredefinedData().getRegionCode();
-                        if (!allCountries.stream().anyMatch((u) -> country.getPredefinedData().getRegionCode().equals(rc))) {
+                        String rc = country.getPredefinedElement().getLocale().getCountry();
+                        if (!allCountries.stream().anyMatch((u) -> country.getPredefinedElement().getLocale().getCountry().equals(rc))) {
                             allCountries.add(CountryItem.createModel(country));
                         }
                     }

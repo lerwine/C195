@@ -1,13 +1,11 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
-import java.util.Objects;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.Country;
-import scheduler.model.predefined.PredefinedCountry;
 
 /**
  *
@@ -17,15 +15,13 @@ import scheduler.model.predefined.PredefinedCountry;
 public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T> {
 
     public static CountryItem<? extends ICountryDAO> createModel(ICountryDAO t) {
-        if (null == t)
+        if (null == t) {
             return null;
-        if (t instanceof CountryDAO) {
-            return new CountryModel((CountryDAO)t);
         }
-        
-        PredefinedCountry pc = t.getPredefinedData();
-        if (null != pc && Objects.equals(pc.getDataObject(), t))
-            return pc;
+        if (t instanceof CountryDAO) {
+            return new CountryModel((CountryDAO) t);
+        }
+
         return new RelatedCountry(t);
     }
 
@@ -39,7 +35,7 @@ public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T
 
     ReadOnlyStringProperty languageProperty();
 
-    ReadOnlyObjectProperty<PredefinedCountry> predefinedDataProperty();
+    ReadOnlyObjectProperty<CountryDAO.PredefinedElement> predefinedElementProperty();
 
     @Override
     T getDataObject();

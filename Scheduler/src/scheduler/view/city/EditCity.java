@@ -24,10 +24,9 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.fx.ErrorDetailControl;
-import scheduler.model.predefined.PredefinedCity;
-import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
@@ -82,7 +81,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private Label nameValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameValueComboBox"
-    private ComboBox<PredefinedCity> nameValueComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityDAO> nameValueComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
@@ -91,7 +90,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private Label countryNameValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryNameValueComboBox"
-    private ComboBox<PredefinedCountry> countryNameValueComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryDAO> countryNameValueComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryNameValidationLabel"
     private Label countryNameValidationLabel; // Value injected by FXMLLoader
@@ -159,12 +158,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.city.EditCity#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.city.EditCity#onEditExisting
     }
 
     @Override

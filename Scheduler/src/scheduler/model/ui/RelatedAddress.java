@@ -4,6 +4,7 @@ import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
@@ -168,6 +169,11 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     @Override
     public int hashCode() {
         return getPrimaryKey();
+    }
+
+    @Override
+    public AddressDAO.PredefinedElement getPredefinedData() {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.RelatedAddress#getPredefinedData
     }
 
 }

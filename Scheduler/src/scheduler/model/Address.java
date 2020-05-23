@@ -1,6 +1,7 @@
 package scheduler.model;
 
 import java.sql.SQLException;
+import scheduler.dao.AddressDAO;
 
 /**
  * Interface for objects that contain either partial or complete information from the {@code address} database entity.
@@ -124,4 +125,6 @@ public interface Address extends DataObject {
      */
     String getPhone();
 
+    AddressDAO.PredefinedElement getPredefinedData();
+    
 }

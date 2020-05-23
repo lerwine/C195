@@ -37,18 +37,14 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.fx.AddressPicker;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
 import scheduler.model.Country;
-import scheduler.model.predefined.PredefinedData;
+import scheduler.model.PredefinedData;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
@@ -95,11 +91,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     private final ObservableList<AppointmentModel> customerAppointments;
 
-    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
+    private final ObservableList<CityDAO> allCities;
 
-    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
+    private final ObservableList<CityDAO> cityOptions;
 
-    private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
+    private final ObservableList<CountryDAO> allCountries;
 
     private final ObservableList<AppointmentFilterItem> filterOptions;
 
@@ -149,7 +145,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private Label cityZipCountryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityItem<? extends ICityDAO>> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityDAO> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityValidationLabel"
     private Label cityValidationLabel; // Value injected by FXMLLoader
@@ -170,7 +166,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private Label countryLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CountryItem<? extends ICountryDAO>> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryDAO> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
@@ -331,12 +327,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.customer.EditCustomer#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.customer.EditCustomer#onEditExisting
     }
 
     private class AppointmentFilterItem {
@@ -412,12 +408,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             if (null != cities && !cities.isEmpty()) {
                 PredefinedData.getCityOptions(cities.values()).sorted(City::compare).forEach(allCities::add);
             } else {
-                PredefinedData.getCityMap().values().stream().sorted(City::compare).forEach(allCities::add);
+                PredefinedData.getCityOptions(null).sorted(City::compare).forEach(allCities::add);
             }
             if (null != countries && !countries.isEmpty()) {
                 PredefinedData.getCountryOptions(countries.values()).sorted(Country::compare).forEach(allCountries::add);
             } else {
-                PredefinedData.getCountryMap().values().stream().sorted(Country::compare).forEach(allCountries::add);
+                PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach(allCountries::add);
             }
         }
 

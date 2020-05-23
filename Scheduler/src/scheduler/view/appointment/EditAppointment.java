@@ -39,6 +39,7 @@ import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.IAddressDAO;
@@ -52,10 +53,9 @@ import scheduler.fx.ErrorDetailControl;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
+import scheduler.model.PredefinedData;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.predefined.PredefinedAddress;
-import scheduler.model.predefined.PredefinedData;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityItem;
@@ -146,7 +146,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private CheckBox includeRemoteCheckBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="corporateLocationComboBox"
-    private ComboBox<PredefinedAddress> corporateLocationComboBox; // Value injected by FXMLLoader
+    private ComboBox<AddressDAO> corporateLocationComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="locationValidationLabel"
     private Label locationValidationLabel; // Value injected by FXMLLoader
@@ -200,8 +200,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private ObservableList<CustomerModel> customerModelList;
 
     // Items for the corporateLocationComboBox control.
-    private ObservableList<PredefinedAddress> corporateLocationList;
-    private ObservableList<PredefinedAddress> remoteLocationList;
+    private ObservableList<AddressDAO> corporateLocationList;
+    private ObservableList<AddressDAO> remoteLocationList;
 
     // Items for the userComboBox control.
     private ObservableList<UserModel> userModelList;
@@ -342,22 +342,33 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).sorted((PredefinedAddress o1, PredefinedAddress o2) -> {
-            if (o1.isMainOffice()) {
-                if (!o2.isMainOffice()) {
+        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
+            AddressDAO dao = t.getDataAccessObject();
+            if (null == dao) {
+                (dao = new AddressDAO()).setPredefinedElement(t);
+            }
+            return dao;
+        }).sorted((AddressDAO o1, AddressDAO o2) -> {
+            AddressDAO.PredefinedElement pd1 = o1.getPredefinedData();
+            AddressDAO.PredefinedElement pd2 = o2.getPredefinedData();
+            if (pd1.isMainOffice()) {
+                if (!pd2.isMainOffice()) {
                     return -1;
                 }
-            } else if (o2.isMainOffice()) {
+            } else if (pd2.isMainOffice()) {
                 return 1;
             }
-            int result = o1.getCountryName().compareTo(o2.getCountryName());
-            if (result == 0 && (result = o1.getCityName().compareTo(o2.getCityName())) == 0
-                    && (result = o1.getPostalCode().compareTo(o2.getPostalCode())) == 0) {
-                return o1.addressLinesProperty().getValue().compareTo(o2.addressLinesProperty().getValue());
+            ICityDAO c1 = o1.getCity();
+            ICityDAO c2 = o2.getCity();
+            int result = c1.getCountry().getName().compareTo(c2.getCountry().getName());
+            if (result == 0 && (result = c1.getName().compareTo(c2.getName())) == 0
+                    && (result = o1.getPostalCode().compareTo(o2.getPostalCode())) == 0
+                    && (result = o1.getAddress1().compareTo(o2.getAddress2())) == 0) {
+                return o1.getAddress2().compareTo(o2.getAddress2());
             }
             return result;
         }).forEach((t) -> {
-            if (t.isMainOffice()) {
+            if (t.getPredefinedData().isMainOffice()) {
                 corporateLocationList.add(t);
             } else {
                 remoteLocationList.add(t);
@@ -435,7 +446,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 phoneTextField.setText(model.getLocation());
                 break;
             case CORPORATE_LOCATION:
-                PredefinedAddress a = PredefinedData.lookupAddress(model.getLocation());
+                AddressDAO a = PredefinedData.lookupAddress(model.getLocation());
                 if (null != a) {
                     corporateLocationComboBox.getSelectionModel().select(a);
                 }
@@ -570,12 +581,12 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onEditExisting
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

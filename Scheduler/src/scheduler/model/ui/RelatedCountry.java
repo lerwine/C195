@@ -1,13 +1,13 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
-import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.predefined.PredefinedCountry;
 
 /**
  *
@@ -16,27 +16,31 @@ import scheduler.model.predefined.PredefinedCountry;
 public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryItem<ICountryDAO> {
 
     private final ReadOnlyStringWrapper name;
-    private final ReadOnlyObjectWrapper<PredefinedCountry> predefinedData;
+    private final ReadOnlyObjectWrapper<CountryDAO.PredefinedElement> predefinedData;
     private final ReadOnlyStringWrapper language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
 
     public RelatedCountry(ICountryDAO rowData) {
         super(rowData);
-        PredefinedCountry c = rowData.getPredefinedData();
-        name = new ReadOnlyStringWrapper(this, "name", c.getName());
-        predefinedData = new ReadOnlyObjectWrapper<>(this, "predefinedData", c);
+        name = new ReadOnlyStringWrapper(this, "name");
+        predefinedData = new ReadOnlyObjectWrapper<>(this, "predefinedData", rowData.getPredefinedElement());
         zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId");
         language = new ReadOnlyStringWrapper(this, "language");
         predefinedData.addListener(this::onPredefinedDataChange);
-        onPredefinedDataChange(predefinedData);
+        onPredefinedDataChange(predefinedData, null, predefinedData.get());
     }
 
     @SuppressWarnings("unchecked")
-    private void onPredefinedDataChange(Observable observable) {
-        PredefinedCountry country = ((ReadOnlyObjectWrapper<PredefinedCountry>) observable).get();
-        name.set(country.getName());
-        zoneId.set(country.getZoneId());
-        language.set(country.getLocale().getDisplayLanguage());
+    private void onPredefinedDataChange(ObservableValue<? extends CountryDAO.PredefinedElement> observable, CountryDAO.PredefinedElement oldValue, CountryDAO.PredefinedElement newValue) {
+        if (null != newValue) {
+            name.set(newValue.getLocale().getDisplayCountry());
+            zoneId.set(ZoneId.of(newValue.getDefaultZoneId()));
+            language.set(newValue.getLocale().getDisplayLanguage());
+        } else {
+            name.set("");
+            zoneId.set(ZoneId.systemDefault());
+            language.set("");
+        }
     }
 
     @Override
@@ -70,12 +74,12 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     }
 
     @Override
-    public PredefinedCountry getPredefinedData() {
+    public CountryDAO.PredefinedElement getPredefinedElement() {
         return predefinedData.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<PredefinedCountry> predefinedDataProperty() {
+    public ReadOnlyObjectProperty<CountryDAO.PredefinedElement> predefinedElementProperty() {
         return predefinedData;
     }
 

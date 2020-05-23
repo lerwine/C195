@@ -239,12 +239,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     @Override
     public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CustomerModel#isValid
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#isValid
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CustomerModel#validProperty
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#validProperty
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {
@@ -288,7 +288,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             }
             IAddressDAO addressDAO = (addressModel instanceof AddressItem)
                     ? ((AddressItem<? extends IAddressDAO>) addressModel).getDataObject() : (IAddressDAO) addressModel;
-            if (ModelHelper.getRowState(addressDAO) == DataRowState.DELETED) {
+            if (null == addressDAO || addressDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated address has been deleted");
             }
             dao.setAddress(addressDAO);
