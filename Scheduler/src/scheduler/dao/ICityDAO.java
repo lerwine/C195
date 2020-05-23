@@ -10,9 +10,9 @@ public interface ICityDAO extends DbObject, City {
 
     public static <T extends ICityDAO> T assertValidCity(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
-            throw new IllegalArgumentException("Data access object already deleted");
+            throw new IllegalArgumentException("City has already been deleted");
         }
-        CityDAO.PredefinedElement pd = target.getPredefinedElement();
+        CityDAO.PredefinedCityElement pd = target.getPredefinedElement();
         if (null == pd) {
             throw new IllegalStateException("Invalid city name");
         }
@@ -23,11 +23,6 @@ public interface ICityDAO extends DbObject, City {
 
         if (!ICountryDAO.assertValidCountry(country).getPredefinedElement().getCities().contains(pd)) {
             throw new IllegalStateException("Invalid country association");
-        }
-        switch (country.getRowState()) {
-            case DELETED:
-                throw new IllegalStateException("Country has been deleted");
-            case NEW:
         }
         return target;
     }

@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.concurrent.Task;
 import javafx.event.EventDispatchChain;
@@ -159,50 +158,39 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         return true;
     }
 
-    private PropertyStateInfo getPropertyStateInfo() {
-        return new PropertyStateInfo();
-    }
-
-    private synchronized PropertyStateInfo setChanged() {
-        PropertyStateInfo result = new PropertyStateInfo();
-        UserDAO currentUser = Scheduler.getCurrentUser();
-        lastModifiedBy = (null == currentUser) ? "admin" : currentUser.getUserName();
-        lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
-        switch (rowState) {
-            case DELETED:
-            case MODIFIED:
-                break;
-            case UNMODIFIED:
-                rowState = DataRowState.MODIFIED;
-                break;
-            default:
-                createdBy = lastModifiedBy;
-                createDate = lastModifiedDate;
-                rowState = DataRowState.NEW;
-                break;
-        }
-
-        return result;
-    }
+    private boolean changing = false;
 
     @Override
-    protected void onPropertyChange(PropertyChangeEvent event) {
+    protected void onPropertyChange(PropertyChangeEvent event) throws Exception {
         super.onPropertyChange(event);
-        if (null != event.getPropertyName()) {
-            switch (event.getPropertyName()) {
-                case PROP_CREATEDATE:
-                case PROP_CREATEDBY:
-                case PROP_LASTMODIFIEDBY:
-                case PROP_LASTMODIFIEDDATE:
-                case PROP_PRIMARYKEY:
-                case PROP_ROWSTATE:
-                    return;
+        String propertyName = event.getPropertyName();
+        if ((null == propertyName || propertyChangeModifiesState(propertyName)) && !changing) {
+            UserDAO currentUser = Scheduler.getCurrentUser();
+            String oldModifiedby = lastModifiedBy;
+            Timestamp oldModifiedDate = lastModifiedDate;
+            DataRowState oldRowState = rowState;
+            lastModifiedBy = (null == currentUser) ? "admin" : currentUser.getUserName();
+            lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
+            switch (rowState) {
+                case DELETED:
+                case MODIFIED:
+                    break;
+                case UNMODIFIED:
+                    rowState = DataRowState.MODIFIED;
+                    break;
                 default:
-                    if (propertyChangeModifiesState(event.getPropertyName())) {
-                        setChanged().firePropertyChanges();
-                    }
+                    String oldCreatedby = createdBy;
+                    Timestamp oldCreateDate = createDate;
+                    createdBy = lastModifiedBy;
+                    createDate = lastModifiedDate;
+                    rowState = DataRowState.NEW;
+                    firePropertyChange(PROP_CREATEDBY, oldCreatedby, createdBy);
+                    firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
                     break;
             }
+            firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedby, lastModifiedBy);
+            firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, lastModifiedDate);
+            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
         }
     }
 
@@ -279,7 +267,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
             ArrayList<T> result = new ArrayList<>();
             String sql = sb.toString();
-            LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 if (null != filter && !filter.isEmpty()) {
                     filter.applyWhereParameters(ps, 1);
@@ -330,6 +318,38 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return item;
         }
 
+        protected final void initializeFrom(T target, T other) {
+            DataAccessObject obj = (DataAccessObject) target;
+            boolean wasChanging = obj.changing;
+            obj.changing = true;
+            obj.beginChange();
+            DataRowState oldRowState = obj.rowState;
+            Timestamp oldCreateDate = obj.createDate;
+            String oldCreatedBy = obj.createdBy;
+            Timestamp oldModifiedDate = obj.lastModifiedDate;
+            String oldModifiedBy = obj.lastModifiedBy;
+            try {
+                obj.primaryKey = other.getPrimaryKey();
+                obj.createDate = other.getCreateDate();
+                obj.createdBy = other.getCreatedBy();
+                obj.lastModifiedDate = other.getLastModifiedDate();
+                obj.lastModifiedBy = other.getLastModifiedBy();
+                obj.rowState = other.getRowState();
+                obj.firePropertyChange(PROP_PRIMARYKEY, oldCreateDate, obj.primaryKey);
+                obj.firePropertyChange(PROP_CREATEDATE, oldCreateDate, obj.createDate);
+                obj.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, obj.createdBy);
+                obj.firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, obj.lastModifiedDate);
+                obj.firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedBy, obj.lastModifiedBy);
+                onInitializingFrom(target, other);
+            } finally {
+                obj.endChange();
+                obj.changing = wasChanging;
+                obj.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
+            }
+        }
+
+        protected abstract void onInitializingFrom(T target, T other);
+
         /**
          * Creates a new {@link DataAccessObject} object.
          *
@@ -350,7 +370,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
          * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
-         * implementing classes to set fields directly and defer property change events. This value can be {@code null} if it is not applicable.
+         * implementing classes to set fields directly while property change events are deferred. This value can be {@code null} if it is not
+         * applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
@@ -384,11 +405,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         protected final void initializeFromResultSet(T dao, ResultSet rs) throws SQLException {
             DataAccessObject obj = (DataAccessObject) dao;
 
-            PropertyStateInfo propertyChangeInfo = null;
-            Consumer<PropertyChangeSupport> consumer = null;
+            dao.beginChange();
+            DataRowState oldRowState = obj.rowState;
+            ((DataAccessObject) dao).changing = true;
             try {
+                Consumer<PropertyChangeSupport> consumer;
                 synchronized (dao) {
-                    propertyChangeInfo = obj.getPropertyStateInfo();
                     obj.primaryKey = rs.getInt(getPrimaryKeyColumn().toString());
                     obj.createDate = rs.getTimestamp(DbName.CREATE_DATE.toString());
                     obj.createdBy = rs.getString(DbName.CREATED_BY.toString());
@@ -397,16 +419,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     obj.rowState = DataRowState.UNMODIFIED;
                     consumer = onInitializeFromResultSet(dao, rs);
                 }
-            } finally {
-                try {
-                    if (null != propertyChangeInfo) {
-                        propertyChangeInfo.firePropertyChanges();
-                    }
-                } finally {
-                    if (null != consumer) {
-                        consumer.accept(obj.getPropertyChangeSupport());
-                    }
+                if (null != consumer) {
+                    consumer.accept(obj.getPropertyChangeSupport());
                 }
+            } finally {
+                dao.endChange();
+                ((DataAccessObject) dao).changing = false;
+                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
             }
         }
 
@@ -438,7 +457,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             save(dao, connection, false);
         }
 
-        // FIXME: On overrides, ensure the related item is saved, first
         /**
          * Saves a {@link DataAccessObject} to the database.
          * <p>
@@ -452,14 +470,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          */
         public void save(T dao, Connection connection, boolean force) throws SQLException {
             DataAccessObject dataObj = (DataAccessObject) dao;
-            PropertyStateInfo propertyChangeInfo = null;
+            dao.beginChange();
+            DataRowState oldRowState = dataObj.rowState;
+            ((DataAccessObject) dao).changing = true;
             try {
                 synchronized (dao) {
                     Iterator<DbColumn> iterator;
                     StringBuilder sb;
                     String sql;
                     int index;
-                    propertyChangeInfo = dataObj.getPropertyStateInfo();
                     Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
                     DbColumn[] columns;
                     switch (((DataAccessObject) dao).rowState) {
@@ -486,7 +505,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                 iterator = Arrays.stream(columns).iterator();
                                 do {
                                     DbColumn column = iterator.next();
-                                    LOG.log(Level.INFO, String.format("Setting value for %s at index %d", column.getDbName(), index));
+                                    LOG.fine(String.format("Setting value for %s at index %d", column.getDbName(), index));
                                     if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                                         switch (column.getDbName()) {
                                             case CREATE_DATE:
@@ -512,7 +531,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                         applyColumnValue(dao, column, ps, index++);
                                     }
                                 } while (iterator.hasNext());
-                                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                                 if (ps.executeUpdate() < 1) {
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
@@ -528,7 +547,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             if (!force) {
                                 return;
                             }
-                        // fall through to the next case on purpose
+                        // falling through to the next case on purpose
                         case MODIFIED:
                             sb = new StringBuilder();
                             sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
@@ -536,15 +555,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             iterator = Arrays.stream(columns).iterator();
                             DbName dbName = iterator.next().getDbName();
                             int colNum = 0;
-                            LOG.info(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
+                            LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
                             sb.append(dbName).append("=?");
                             while (iterator.hasNext()) {
                                 dbName = iterator.next().getDbName();
-                                LOG.info(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
                                 sb.append(", ").append(dbName).append("=?");
                             }
                             dbName = getPrimaryKeyColumn().getDbName();
-                            LOG.info(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                            LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
                             sb.append(" WHERE ").append(dbName).append("=?");
                             sql = sb.toString();
                             try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
@@ -552,7 +571,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                 index = 1;
                                 do {
                                     DbColumn column = iterator.next();
-                                    LOG.info(String.format("Setting value SQL for column %s at index %d", column, index));
+                                    LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
                                     if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                                         switch (column.getDbName()) {
                                             case LAST_UPDATE:
@@ -570,9 +589,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                         applyColumnValue(dao, column, ps, index++);
                                     }
                                 } while (iterator.hasNext());
-                                LOG.info(String.format("Setting value primary key at index %d", index));
+                                LOG.fine(String.format("Setting value primary key at index %d", index));
                                 ps.setInt(index, dataObj.primaryKey);
-                                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                                 if (ps.executeUpdate() < 1) {
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
@@ -584,9 +603,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     dataObj.rowState = DataRowState.UNMODIFIED;
                 }
             } finally {
-                if (null != propertyChangeInfo) {
-                    propertyChangeInfo.firePropertyChanges();
-                }
+                dao.endChange();
+                ((DataAccessObject) dao).changing = false;
+                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
             }
         }
 
@@ -634,7 +653,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, pk);
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return Optional.of(fromResultSet(rs));
@@ -658,7 +677,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             Objects.requireNonNull(dao, "Data access object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
             DataAccessObject dataObj = (DataAccessObject) dao;
-            PropertyStateInfo propertyChangeInfo = null;
+            dao.beginChange();
+            DataRowState oldRowState = dataObj.rowState;
+            ((DataAccessObject) dao).changing = true;
             try {
                 synchronized (dao) {
                     if (dao.getRowState() == DataRowState.DELETED) {
@@ -672,18 +693,17 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     String sql = sb.toString();
                     try (PreparedStatement ps = connection.prepareStatement(sql)) {
                         ps.setInt(1, dao.getPrimaryKey());
-                        LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                        LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                         if (ps.executeUpdate() < 1) {
                             throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                         }
                     }
-                    propertyChangeInfo = dataObj.setChanged();
                     dataObj.rowState = DataRowState.DELETED;
                 }
             } finally {
-                if (null != propertyChangeInfo) {
-                    propertyChangeInfo.firePropertyChanges();
-                }
+                dao.endChange();
+                ((DataAccessObject) dao).changing = false;
+                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
             }
         }
 
@@ -719,43 +739,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return null != dao && getDaoClass().isAssignableFrom(dao.getClass());
         }
 
-    }
-
-    private class PropertyStateInfo {
-
-        private int oldPrimaryKey = primaryKey;
-        private Timestamp oldCreateDate = createDate;
-        private String oldCreatedBy = createdBy;
-        private Timestamp oldLastModifiedDate = lastModifiedDate;
-        private String oldLastModifiedBy = lastModifiedBy;
-        private DataRowState oldRowState = rowState;
-
-        protected void firePropertyChanges() {
-            if (oldPrimaryKey != primaryKey) {
-                firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, primaryKey);
-            }
-            oldPrimaryKey = primaryKey;
-            if (!createDate.equals(oldCreateDate)) {
-                firePropertyChange(PROP_LASTMODIFIEDDATE, oldCreateDate, createDate);
-            }
-            oldCreateDate = createDate;
-            if (!createdBy.equals(oldCreatedBy)) {
-                firePropertyChange(PROP_LASTMODIFIEDBY, oldCreatedBy, createdBy);
-            }
-            oldCreatedBy = createdBy;
-            if (!lastModifiedDate.equals(oldLastModifiedDate)) {
-                firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, lastModifiedDate);
-            }
-            oldLastModifiedDate = lastModifiedDate;
-            if (!lastModifiedBy.equals(oldLastModifiedBy)) {
-                firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, lastModifiedBy);
-            }
-            oldLastModifiedBy = lastModifiedBy;
-            if (oldRowState != rowState) {
-                firePropertyChange(PROP_CREATEDBY, oldRowState, rowState);
-            }
-            oldRowState = rowState;
-        }
     }
 
 }

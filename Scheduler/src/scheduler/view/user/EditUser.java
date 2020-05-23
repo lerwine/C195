@@ -283,12 +283,19 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.user.EditUser#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.user.EditUser#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onEditExisting
+    }
+
+    @Override
+    public void updateModel() {
+        model.setUserName(userNameTextField.getText().trim());
+        model.setPassword(passwordField.getText());
+        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
     }
 
     private class AppointmentFilterItem {

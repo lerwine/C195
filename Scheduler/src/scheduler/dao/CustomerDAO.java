@@ -203,6 +203,19 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
+        protected void onInitializingFrom(CustomerDAO target, CustomerDAO other) {
+            String oldName = target.name;
+            IAddressDAO oldAddress = target.address;
+            boolean oldActive = target.active;
+            target.name = other.name;
+            target.address = other.address;
+            target.active = other.active;
+            target.firePropertyChange(PROP_NAME, oldName, target.name);
+            target.firePropertyChange(PROP_ADDRESS, oldAddress, target.address);
+            target.firePropertyChange(PROP_ACTIVE, oldActive, target.active);
+        }
+
+        @Override
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CustomerDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
@@ -242,7 +255,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 String sql = createDmlSelectQueryBuilder().build().append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME).append(")=?").toString();
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setString(1, StringValueFilter.encodeLikeString(value));
-                    LOG.log(Level.INFO, String.format("findByName", "Executing DML query: %s", sql));
+                    LOG.fine(() -> String.format("findByName", "Executing DML query: %s", sql));
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             return Optional.of(fromResultSet(rs));
@@ -258,7 +271,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     + " WHERE " + DbColumn.CUSTOMER_ADDRESS.getDbName() + "=?";
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, addressId);
-                LOG.log(Level.INFO, String.format("countByAddress", "Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("countByAddress", "Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return rs.getInt(1);
@@ -292,7 +305,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
-            Address address = dao.getAddress();
+            Address address = ICustomerDAO.assertValidCustomer(dao).getAddress();
             if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
                 AddressDAO.getFactory().save((AddressDAO) address, connection, force);
             }
@@ -318,7 +331,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 if (dao.getRowState() != DataRowState.NEW) {
                     ps.setInt(1, dao.getPrimaryKey());
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);

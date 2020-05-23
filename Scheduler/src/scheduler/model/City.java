@@ -12,7 +12,7 @@ public interface City extends DataObject {
 
     public static ZoneId getZoneIdOf(City dao) {
         if (null != dao) {
-            CityDAO.PredefinedElement predefinedElement = dao.getPredefinedElement();
+            CityDAO.PredefinedCityElement predefinedElement = dao.getPredefinedElement();
             if (null != predefinedElement) {
                 return ZoneId.of(predefinedElement.getZoneId());
             }
@@ -75,6 +75,6 @@ public interface City extends DataObject {
      */
     Country getCountry();
 
-    CityDAO.PredefinedElement getPredefinedElement();
+    CityDAO.PredefinedCityElement getPredefinedElement();
 
 }

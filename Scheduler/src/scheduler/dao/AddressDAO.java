@@ -6,13 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableMap;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -78,6 +81,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      */
     public static final String PROP_PHONE = "phone";
 
+    public static final String PROP_PREDEFINEDELEMENT = "predefinedElement";
+
     public static FactoryImpl getFactory() {
         return FACTORY;
     }
@@ -87,6 +92,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     private ICityDAO city;
     private String postalCode;
     private String phone;
+    private PredefinedAddressElement predefinedElement;
 
     /**
      * Initializes a {@link DataRowState#NEW} address object.
@@ -108,8 +114,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of address1
      *
      * @param value new value of address1
+     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
-    public void setAddress1(String value) {
+    public synchronized void setAddress1(String value) {
+        if (null != predefinedElement) {
+            throw new IllegalStateException();
+        }
         String oldValue = address1;
         address1 = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_ADDRESS1, oldValue, address1);
@@ -124,8 +134,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of address2
      *
      * @param value new value of address2
+     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
-    public void setAddress2(String value) {
+    public synchronized void setAddress2(String value) {
+        if (null != predefinedElement) {
+            throw new IllegalStateException();
+        }
         String oldValue = address2;
         address1 = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_ADDRESS2, oldValue, address2);
@@ -140,8 +154,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of city
      *
      * @param city new value of city
+     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
-    public void setCity(ICityDAO city) {
+    public synchronized void setCity(ICityDAO city) {
+        if (null != predefinedElement) {
+            throw new IllegalStateException();
+        }
         ICityDAO oldValue = this.city;
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
@@ -156,8 +174,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of postalCode
      *
      * @param value new value of postalCode
+     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
-    public void setPostalCode(String value) {
+    public synchronized void setPostalCode(String value) {
+        if (null != predefinedElement) {
+            throw new IllegalStateException();
+        }
         String oldValue = postalCode;
         postalCode = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_POSTALCODE, oldValue, postalCode);
@@ -172,8 +194,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of phone
      *
      * @param value new value of phone
+     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
-    public void setPhone(String value) {
+    public synchronized void setPhone(String value) {
+        if (null != predefinedElement) {
+            throw new IllegalStateException();
+        }
         String oldValue = phone;
         phone = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_PHONE, oldValue, phone);
@@ -185,11 +211,11 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return this.getPrimaryKey();
         }
         int hash = 7;
-        hash = 79 * hash + Objects.hashCode(this.address1);
-        hash = 79 * hash + Objects.hashCode(this.address2);
-        hash = 79 * hash + Objects.hashCode(this.city);
-        hash = 79 * hash + Objects.hashCode(this.postalCode);
-        hash = 79 * hash + Objects.hashCode(this.phone);
+        hash = 79 * hash + Objects.hashCode(address1);
+        hash = 79 * hash + Objects.hashCode(address2);
+        hash = 79 * hash + Objects.hashCode(city);
+        hash = 79 * hash + Objects.hashCode(postalCode);
+        hash = 79 * hash + Objects.hashCode(phone);
         return hash;
     }
 
@@ -199,12 +225,43 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     @Override
-    public PredefinedElement getPredefinedData() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO#getPredefinedElement
+    public PredefinedAddressElement getPredefinedElement() {
+        return predefinedElement;
     }
 
-    public void setPredefinedElement(PredefinedElement pd) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO#setPredefinedElement
+    // FIXME: When this is changed to another address, it will fail because the dataAccessObject on the predefined object is not changed.
+    public synchronized void setPredefinedElement(PredefinedAddressElement pd) {
+        PredefinedAddressElement oldPredefinedElement = predefinedElement;
+        String oldAddress1 = address1;
+        String oldAddress2 = address2;
+        ICityDAO oldCity = city;
+        String oldPostalCode = postalCode;
+        String oldPhone = phone;
+        try {
+            if (null == pd) {
+                if (null != predefinedElement) {
+                    address1 = "";
+                    address2 = "";
+                    city = null;
+                    postalCode = "";
+                    phone = "";
+                }
+            } else if (!Objects.equals(oldPredefinedElement, pd)) {
+                address1 = pd.getAddress1();
+                address2 = pd.getAddress2();
+                city = PredefinedData.lookupCity(pd.getKey());
+                postalCode = pd.getPostalCode();
+                phone = pd.getPhone();
+            }
+            predefinedElement = pd;
+        } finally {
+            firePropertyChange(PROP_ADDRESS1, oldAddress1, address1);
+            firePropertyChange(PROP_ADDRESS2, oldAddress2, address2);
+            firePropertyChange(PROP_CITY, oldCity, city);
+            firePropertyChange(PROP_POSTALCODE, oldPostalCode, postalCode);
+            firePropertyChange(PROP_PHONE, oldPhone, phone);
+            firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, predefinedElement);
+        }
     }
 
     /**
@@ -275,7 +332,59 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public void save(AddressDAO dao, Connection connection, boolean force) throws SQLException {
-            super.save(dao, connection, force); // CURRENT: Save city if it is has been modified
+            if (dao.getRowState() == DataRowState.NEW && null == dao.predefinedElement) {
+                PredefinedAddressElement pde = PredefinedAddressElement.find(dao.address1, dao.address2, dao.city, dao.postalCode, dao.phone);
+                if (null != pde) {
+                    if (null != pde.dataAccessObject && pde.dataAccessObject.getRowState() != DataRowState.NEW) {
+                        throw new IllegalStateException("Cannot save duplicate copy of predefined address");
+                    }
+                    dao.setPredefinedElement(pde);
+                    pde.dataAccessObject = dao;
+                }
+            }
+            ICityDAO city = IAddressDAO.assertValidAddress(dao).getCity();
+            if (city instanceof CityDAO) {
+                CityDAO.getFactory().save(((CityDAO) city), connection);
+            }
+            super.save(dao, connection, force);
+        }
+
+        @Override
+        protected AddressDAO fromResultSet(ResultSet rs) throws SQLException {
+            AddressDAO result = super.fromResultSet(rs);
+            PredefinedAddressElement pde = result.predefinedElement;
+            if (null != pde) {
+                if (null == pde.dataAccessObject) {
+                    pde.dataAccessObject = result;
+                } else {
+                    result.predefinedElement = pde;
+                    initializeFrom(pde.dataAccessObject, result);
+                    return pde.dataAccessObject;
+                }
+            }
+            return result;
+        }
+
+        @Override
+        protected void onInitializingFrom(AddressDAO target, AddressDAO other) {
+            String oldAddress1 = target.address1;
+            String oldAddress2 = target.address2;
+            ICityDAO oldCity = target.city;
+            String oldPhone = target.phone;
+            String oldPostalCode = target.postalCode;
+            PredefinedAddressElement oldPredefinedElement = target.predefinedElement;
+            target.address1 = other.address1;
+            target.address2 = other.address2;
+            target.city = other.city;
+            target.phone = other.phone;
+            target.postalCode = other.postalCode;
+            target.predefinedElement = other.predefinedElement;
+            target.firePropertyChange(PROP_ADDRESS1, oldAddress1, target.address1);
+            target.firePropertyChange(PROP_ADDRESS2, oldAddress2, target.address2);
+            target.firePropertyChange(PROP_CITY, oldCity, target.city);
+            target.firePropertyChange(PROP_POSTALCODE, oldPostalCode, target.postalCode);
+            target.firePropertyChange(PROP_PHONE, oldPhone, target.phone);
+            target.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, target.predefinedElement);
         }
 
         @Override
@@ -286,24 +395,16 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 private final City oldCity = dao.city;
                 private final String oldPostalCode = dao.postalCode;
                 private final String oldPhone = dao.phone;
+                private final PredefinedAddressElement oldPredefinedElement = dao.predefinedElement;
 
                 @Override
                 public void accept(PropertyChangeSupport t) {
-                    if (!dao.address1.equals(oldAddress2)) {
-                        t.firePropertyChange(PROP_ADDRESS1, oldAddress1, dao.address1);
-                    }
-                    if (!dao.address2.equals(oldAddress2)) {
-                        t.firePropertyChange(PROP_ADDRESS2, oldAddress2, dao.address2);
-                    }
-                    if (!Objects.equals(dao.city, oldCity)) {
-                        t.firePropertyChange(PROP_CITY, oldCity, dao.city);
-                    }
-                    if (!dao.postalCode.equals(oldPostalCode)) {
-                        t.firePropertyChange(PROP_POSTALCODE, oldPostalCode, dao.postalCode);
-                    }
-                    if (!dao.phone.equals(oldPhone)) {
-                        t.firePropertyChange(PROP_POSTALCODE, oldPhone, dao.phone);
-                    }
+                    t.firePropertyChange(PROP_ADDRESS1, oldAddress1, dao.address1);
+                    t.firePropertyChange(PROP_ADDRESS2, oldAddress2, dao.address2);
+                    t.firePropertyChange(PROP_CITY, oldCity, dao.city);
+                    t.firePropertyChange(PROP_POSTALCODE, oldPostalCode, dao.postalCode);
+                    t.firePropertyChange(PROP_POSTALCODE, oldPhone, dao.phone);
+                    t.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, dao.predefinedElement);
                 }
             };
 
@@ -312,6 +413,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             dao.city = CityDAO.getFactory().fromJoinedResultSet(rs);
             dao.postalCode = asNonNullAndTrimmed(rs.getString(DbColumn.POSTAL_CODE.toString()));
             dao.phone = asNonNullAndTrimmed(rs.getString(DbColumn.PHONE.toString()));
+            dao.predefinedElement = PredefinedAddressElement.find(dao.address1, dao.address2, dao.city, dao.postalCode, dao.phone);
             return propertyChanges;
         }
 
@@ -346,6 +448,48 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 default:
                     return String.format("Address is referenced by %d other customers", count);
             }
+        }
+
+        public AddressDAO getPredefinedAddress(PredefinedAddressElement address, Connection connection) throws SQLException {
+            CityDAO.PredefinedCityElement c = address.getCity();
+            CityDAO cityDAO = c.getDataAccessObject();
+            if (null == cityDAO) {
+                cityDAO = CityDAO.getFactory().getPredefinedCity(c, connection);
+            }
+            AddressDAO result = address.dataAccessObject;
+            if (cityDAO.getRowState() != DataRowState.NEW) {
+                String sql = new StringBuffer(createDmlSelectQueryBuilder().toString()).append(" WHERE ")
+                        .append(DbColumn.ADDRESS_CITY).append("=? AND ")
+                        .append(DbColumn.ADDRESS1).append("=? AND ")
+                        .append(DbColumn.ADDRESS2).append("=? AND ")
+                        .append(DbColumn.POSTAL_CODE).append("=? AND ")
+                        .append(DbColumn.PHONE).append("=? AND ").toString();
+                LOG.fine(() -> String.format("getPredefinedAddress", "Executing DML statement: %s", sql));
+                try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                    ps.setInt(1, cityDAO.getPrimaryKey());
+                    ps.setString(2, address.getAddress1());
+                    ps.setString(3, address.getAddress2());
+                    ps.setString(4, address.getPostalCode());
+                    ps.setString(5, address.getPhone());
+                    try (ResultSet rs = ps.getResultSet()) {
+                        if (rs.next()) {
+                            if (null == result) {
+                                address.dataAccessObject = result = fromResultSet(rs);
+                                result.setPredefinedElement(address);
+                                return result;
+                            }
+                            initializeFromResultSet(result, rs);
+                            return result;
+                        }
+                    }
+                }
+            }
+            if (null == result) {
+                result = new AddressDAO();
+                result.setPredefinedElement(address);
+                result.predefinedElement.dataAccessObject = result;
+            }
+            return result;
         }
 
         @Override
@@ -398,7 +542,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 if (dao.getRowState() != DataRowState.NEW) {
                     ps.setInt(index, dao.getPrimaryKey());
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);
@@ -419,7 +563,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     + " WHERE " + DbColumn.ADDRESS_CITY.getDbName() + "=?";
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, primaryKey);
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return rs.getInt(1);
@@ -427,10 +571,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
-        }
-
-        public Address ensureSaved(Address requireNonNull, Connection connection) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.FactoryImpl#ensureSaved
         }
 
     }
@@ -443,6 +583,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private final ICityDAO city;
         private final String postalCode;
         private final String phone;
+        private final PredefinedAddressElement predefinedElement;
 
         Related(int primaryKey, String address1, String address2, ICityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
@@ -451,6 +592,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             this.city = city;
             this.postalCode = postalCode;
             this.phone = phone;
+            predefinedElement = PredefinedAddressElement.find(address1, address2, city, postalCode, phone);
         }
 
         @Override
@@ -494,18 +636,37 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        public PredefinedElement getPredefinedData() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.Related#getPredefinedElement
+        public PredefinedAddressElement getPredefinedElement() {
+            return predefinedElement;
         }
 
     }
 
-    @XmlRootElement(name = PredefinedElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+    @XmlRootElement(name = PredefinedAddressElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+    @XmlType(name = PredefinedAddressElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI, factoryMethod = "createInstanceJAXB")
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class PredefinedElement extends PredefinedData.PredefinedAddress {
+    public static class PredefinedAddressElement extends PredefinedData.PredefinedAddress {
 
         public static final String ELEMENT_NAME = "address";
 
+        private static PredefinedAddressElement find(String address1, String address2, ICityDAO city, String postalCode, String phone) {
+            if (null != city) {
+                CityDAO.PredefinedCityElement pde = city.getPredefinedElement();
+                if (null != pde) {
+                    String k = pde.getKey();
+                    ObservableMap<String, CityDAO.PredefinedCityElement> cityMap = PredefinedData.getCityMap();
+                    if (cityMap.containsKey(k)) {
+                        Optional<PredefinedAddressElement> matching = cityMap.get(k).getAddresses().stream().filter((a)
+                                -> Objects.equals(address1, a.address1) && Objects.equals(address2, a.address2)
+                                && Objects.equals(postalCode, a.postalCode) && Objects.equals(phone, a.phone)).findFirst();
+                        return matching.orElse(null);
+                    }
+                }
+            }
+            return null;
+        }
+
+        @XmlTransient
         private AddressDAO dataAccessObject = null;
 
         @XmlAttribute
@@ -548,6 +709,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         public String getPhone() {
             return phone;
+        }
+
+        private PredefinedAddressElement() {
+
+        }
+
+        private static PredefinedAddressElement createInstanceJAXB() {
+            return new PredefinedAddressElement();
         }
 
     }

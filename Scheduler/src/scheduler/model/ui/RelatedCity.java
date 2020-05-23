@@ -24,16 +24,16 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     private final ReadOnlyStringWrapper name;
     private final NestedStringProperty<CountryItem<? extends ICountryDAO>> countryName;
     private final ReadOnlyObjectWrapper<CountryItem<? extends ICountryDAO>> country;
-    private final ReadOnlyObjectWrapper<CityDAO.PredefinedElement> predefinedElement;
+    private final ReadOnlyObjectWrapper<CityDAO.PredefinedCityElement> predefinedElement;
     private final ReadOnlyStringWrapper language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
 
     public RelatedCity(ICityDAO dao) {
         super(dao);
-        CityDAO.PredefinedElement c = dao.getPredefinedElement();
+        CityDAO.PredefinedCityElement c = dao.getPredefinedElement();
         predefinedElement = new ReadOnlyObjectWrapper<>(this, "predefinedData", c);
         name = new ReadOnlyStringWrapper(this, "name", PredefinedData.getCityDisplayName(c.getKey()));
-        CountryDAO.PredefinedElement n = c.getCountry();
+        CountryDAO.PredefinedCountryElement n = c.getCountry();
         country = new ReadOnlyObjectWrapper<>(this, "country", CountryItem.createModel(dao.getCountry()));
         countryName = new NestedStringProperty<>(this, "countryName", country, (t) -> t.nameProperty());
         zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId", City.getZoneIdOf(dao));
@@ -43,10 +43,10 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     }
 
     @SuppressWarnings("unchecked")
-    private void onPredefinedDataChanged(ObservableValue<? extends CityDAO.PredefinedElement> observable, CityDAO.PredefinedElement oldValue,
-            CityDAO.PredefinedElement newValue) {
+    private void onPredefinedDataChanged(ObservableValue<? extends CityDAO.PredefinedCityElement> observable, CityDAO.PredefinedCityElement oldValue,
+            CityDAO.PredefinedCityElement newValue) {
         if (null != newValue) {
-            CountryDAO.PredefinedElement n = newValue.getCountry();
+            CountryDAO.PredefinedCountryElement n = newValue.getCountry();
             country.set(CountryItem.createModel(PredefinedData.lookupCountry(n.getLocale().getCountry())));
             name.set(PredefinedData.getCityDisplayName(newValue.getKey()));
             zoneId.set(ZoneId.of(newValue.getZoneId()));
@@ -105,12 +105,12 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     }
 
     @Override
-    public CityDAO.PredefinedElement getPredefinedElement() {
+    public CityDAO.PredefinedCityElement getPredefinedElement() {
         return predefinedElement.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityDAO.PredefinedElement> predefinedDataProperty() {
+    public ReadOnlyObjectProperty<CityDAO.PredefinedCityElement> predefinedDataProperty() {
         return predefinedElement.getReadOnlyProperty();
     }
 

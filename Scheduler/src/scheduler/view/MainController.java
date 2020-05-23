@@ -345,32 +345,32 @@ public final class MainController implements EventTarget {
     }
 
     private void onAddressDaoEvent(AddressDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onCityDaoEvent(CityDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onCountryDaoEvent(CountryDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onCustomerDaoEvent(CustomerDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 
     private void onUserDaoEvent(UserDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
     }
 

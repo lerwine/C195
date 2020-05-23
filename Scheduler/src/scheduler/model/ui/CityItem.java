@@ -44,7 +44,7 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     ReadOnlyStringProperty languageProperty();
 
-    ReadOnlyObjectProperty<CityDAO.PredefinedElement> predefinedDataProperty();
+    ReadOnlyObjectProperty<CityDAO.PredefinedCityElement> predefinedDataProperty();
 
     /**
      * Gets the backing {@link ICityDAO} data access object.

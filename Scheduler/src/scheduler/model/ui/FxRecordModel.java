@@ -203,7 +203,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public abstract T updateDAO(U item);
 
         protected abstract void updateItemProperties(U item, T dao);
-        
+
         public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getAllItemsFilter();
 
         public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getDefaultFilter();

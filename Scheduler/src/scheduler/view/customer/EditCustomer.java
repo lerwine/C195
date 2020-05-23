@@ -228,6 +228,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML
     void onExistingAddressButtonAction(ActionEvent event) {
+        // FIXME: Implement picker result
         addressPicker.PickAddress(waitBorderPane, (t) -> {
 //            if (null != t) {
 //                selectedAddress.set(t);
@@ -327,12 +328,20 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.customer.EditCustomer#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.customer.EditCustomer#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditExisting
+    }
+
+    @Override
+    public void updateModel() {
+        model.setName(nameTextField.getText().trim());
+        model.setActive(activeTrueRadioButton.isSelected());
+        // FIXME: Finish implementing EditCustomer#updateMmodel
+        //model.setAddress( );
     }
 
     private class AppointmentFilterItem {

@@ -13,7 +13,7 @@ public interface Country extends DataObject {
 
     public static ZoneId getZoneIdOf(Country dao) {
         if (null != dao) {
-            CountryDAO.PredefinedElement predefinedElement = dao.getPredefinedElement();
+            CountryDAO.PredefinedCountryElement predefinedElement = dao.getPredefinedElement();
             if (null != predefinedElement)
                 return ZoneId.of(predefinedElement.getDefaultZoneId());
         }
@@ -22,7 +22,7 @@ public interface Country extends DataObject {
     
     public static String getLanguageOf(Country dao) {
         if (null != dao) {
-            CountryDAO.PredefinedElement predefinedElement = dao.getPredefinedElement();
+            CountryDAO.PredefinedCountryElement predefinedElement = dao.getPredefinedElement();
             if (null != predefinedElement)
                 return predefinedElement.getLocale().getDisplayLanguage();
         }
@@ -67,6 +67,6 @@ public interface Country extends DataObject {
      */
     String getName();
 
-    CountryDAO.PredefinedElement getPredefinedElement();
+    CountryDAO.PredefinedCountryElement getPredefinedElement();
     
 }

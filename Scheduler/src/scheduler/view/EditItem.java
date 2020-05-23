@@ -46,8 +46,8 @@ import scheduler.view.task.WaitBorderPane;
  * The parent FXML custom control for editing {@link FxRecordModel} items in a new modal window.
  * <p>
  * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link FxRecordModel#createdBy}, {@link FxRecordModel#createDate}, {@link FxRecordModel#lastModifiedBy} and
- * {@link FxRecordModel#lastModifiedDate} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
+ * values for the {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and
+ * {@link FxRecordModel#getLastModifiedDate()} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
  * {@link EditItem.ModelEditor} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method.</p>
@@ -185,6 +185,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
+        editorRegion.updateModel();
         waitBorderPane.startNow(new SaveTask(editorRegion.modelFactory().updateDAO(model)));
     }
 
@@ -238,9 +239,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         ReadOnlyStringProperty windowTitleProperty();
 
         boolean isValid();
-        
+
         ReadOnlyBooleanProperty validProperty();
-        
+
         /**
          * This gets called to initialize the current control when editing a new {@link FxRecordModel} item. This will only be called one time during
          * initialization.
@@ -257,6 +258,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
          */
         void onEditExisting(boolean isInitialize);
 
+        void updateModel();
     }
 
     private class SaveTask extends Task<String> {

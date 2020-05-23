@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -194,6 +195,30 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
+        protected UserDAO fromResultSet(ResultSet rs) throws SQLException {
+            UserDAO result = super.fromResultSet(rs);
+            UserDAO currentUser = Scheduler.getCurrentUser();
+            if (null != currentUser && currentUser.getPrimaryKey() == result.getPrimaryKey()) {
+                UserDAO.getFactory().initializeFrom(currentUser, result);
+                return currentUser;
+            }
+            return result;
+        }
+
+        @Override
+        protected void onInitializingFrom(UserDAO target, UserDAO other) {
+            String oldUserName = target.userName;
+            String oldPassword = target.password;
+            UserStatus oldStatus = target.status;
+            target.userName = other.userName;
+            target.password = other.password;
+            target.status = other.status;
+            target.firePropertyChange(PROP_USERNAME, oldUserName, target.userName);
+            target.firePropertyChange(PROP_PASSWORD, oldPassword, target.password);
+            target.firePropertyChange(PROP_STATUS, oldStatus, target.status);
+        }
+
+        @Override
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(UserDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldUserName = dao.userName;
@@ -235,9 +260,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
          */
         public Optional<UserDAO> findByUserName(Connection connection, String userName) throws SQLException {
             String sql = createDmlSelectQueryBuilder().build().append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?").toString();
-            LOG.log(Level.INFO, String.format("Executing query \"%s\"", sql));
+            LOG.fine(() -> String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                LOG.log(Level.INFO, String.format("Set first parameter to \"%s\"", userName));
+                LOG.fine(() -> String.format("Set first parameter to \"%s\"", userName));
                 ps.setString(1, userName.trim().toLowerCase());
                 //ps.setShort(2, Values.USER_STATUS_INACTIVE);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -261,6 +286,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
+        public void save(UserDAO dao, Connection connection, boolean force) throws SQLException {
+            super.save(IUserDAO.assertValidUser(dao), connection, force);
+        }
+
+        @Override
         public String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Data access object already deleted");
@@ -281,7 +311,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 if (dao.getRowState() != DataRowState.NEW) {
                     ps.setInt(1, dao.getPrimaryKey());
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);

@@ -349,8 +349,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             }
             return dao;
         }).sorted((AddressDAO o1, AddressDAO o2) -> {
-            AddressDAO.PredefinedElement pd1 = o1.getPredefinedData();
-            AddressDAO.PredefinedElement pd2 = o2.getPredefinedData();
+            AddressDAO.PredefinedAddressElement pd1 = o1.getPredefinedElement();
+            AddressDAO.PredefinedAddressElement pd2 = o2.getPredefinedElement();
             if (pd1.isMainOffice()) {
                 if (!pd2.isMainOffice()) {
                     return -1;
@@ -368,7 +368,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             }
             return result;
         }).forEach((t) -> {
-            if (t.getPredefinedData().isMainOffice()) {
+            if (t.getPredefinedElement().isMainOffice()) {
                 corporateLocationList.add(t);
             } else {
                 remoteLocationList.add(t);
@@ -446,10 +446,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 phoneTextField.setText(model.getLocation());
                 break;
             case CORPORATE_LOCATION:
-                AddressDAO a = PredefinedData.lookupAddress(model.getLocation());
-                if (null != a) {
-                    corporateLocationComboBox.getSelectionModel().select(a);
-                }
+                corporateLocationComboBox.getSelectionModel().select(PredefinedData.lookupAddress(model.getLocation()));
                 break;
             default:
                 model.setLocation("");
@@ -459,7 +456,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         descriptionTextArea.setText(model.getDescription());
     }
 
-    // CURRENT: Update model from listeners
     public boolean applyChangesToModel() {
         ZonedAppointmentTimeSpan ts = dateRangeController.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
@@ -581,12 +577,17 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onEditNew
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditNew
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onEditExisting
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditExisting
+    }
+
+    @Override
+    public void updateModel() {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#updateModel
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

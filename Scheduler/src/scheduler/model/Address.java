@@ -125,6 +125,6 @@ public interface Address extends DataObject {
      */
     String getPhone();
 
-    AddressDAO.PredefinedElement getPredefinedData();
-    
+    AddressDAO.PredefinedAddressElement getPredefinedElement();
+
 }

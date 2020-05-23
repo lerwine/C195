@@ -452,12 +452,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected String getLoadingTitle() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.ManageAppointments#getLoadingTitle
+        return getResources().getString(RESOURCEKEY_LOADINGAPPOINTMENTS);
     }
 
     @Override
     protected String getFailMessage() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.ManageAppointments#getFailMessage
+        return getResources().getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTS);
     }
 
     @Override

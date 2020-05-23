@@ -44,10 +44,10 @@ public enum AppointmentType {
      */
     CUSTOMER_SITE("customer", AppointmentLocationSource.CUSTOMER_ADDRESS, RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER),
     /**
-     * Appointment at a {@link scheduler.model.predefined.PredefinedAddress}.
+     * Appointment at a {@link scheduler.dao.AddressDAO.PredefinedElement}.
      * <ul>
      * <li>The string {@code "corporate"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>The value of {@link scheduler.model.predefined.PredefinedAddress#referenceKey} is stored in the
+     * <li>The value of {@link scheduler.dao.AddressDAO.PredefinedElement#key} is stored in the
      * {@link scheduler.dao.AppointmentDAO#location} field.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
      * </ul>

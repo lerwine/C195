@@ -10,9 +10,10 @@ public interface ICountryDAO extends DbObject, Country {
 
     public static <T extends ICountryDAO> T assertValidCountry(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
-            throw new IllegalArgumentException("Data access object already deleted");
+            throw new IllegalArgumentException("Country has already been deleted");
         }
-        if (null == target.getPredefinedElement()) {
+        CountryDAO.PredefinedCountryElement predefinedElement = target.getPredefinedElement();
+        if (null == predefinedElement) {
             throw new IllegalStateException("Invalid country name");
         }
         return target;

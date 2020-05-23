@@ -104,14 +104,14 @@ public class AppointmentAlert extends BorderPane {
         try {
             i = AppResources.getAppointmentAlertLeadTime();
         } catch (ParseException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error getting alert lead time from settings", ex);
+            LOG.log(Level.SEVERE, "Error getting alert lead time from settings", ex);
             i = 15;
         }
         alertLeadtime = i;
         try {
             i = AppResources.getAppointmentCheckFrequency();
         } catch (ParseException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error getting alert lead time from settings", ex);
+            LOG.log(Level.SEVERE, "Error getting alert lead time from settings", ex);
             i = 2;
         }
         checkFrequency = i;
@@ -482,7 +482,7 @@ public class AppointmentAlert extends BorderPane {
                             DB.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
                 });
             } catch (SQLException | ClassNotFoundException ex) {
-                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, "Error checking impending appointments", ex);
+                LOG.log(Level.SEVERE, "Error checking impending appointments", ex);
                 Platform.runLater(() -> onCheckAppointmentsTaskError(ex));
                 return;
             }

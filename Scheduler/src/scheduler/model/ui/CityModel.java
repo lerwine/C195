@@ -37,13 +37,13 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         return FACTORY;
     }
 
-    private final SimpleObjectProperty<CityDAO.PredefinedElement> predefinedData;
+    private final SimpleObjectProperty<CityDAO.PredefinedCityElement> predefinedData;
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyObjectWrapper<CountryItem<? extends ICountryDAO>> country;
     private final NestedStringProperty<CountryItem<? extends ICountryDAO>> countryName;
     private final NestedStringProperty<CountryItem<? extends ICountryDAO>> language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
-    private final DerivedBooleanProperty<CityDAO.PredefinedElement> valid;
+    private final DerivedBooleanProperty<CityDAO.PredefinedCityElement> valid;
 
     public CityModel(CityDAO dao) {
         super(dao);
@@ -54,7 +54,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         language = new NestedStringProperty<>(this, "language", country, (t) -> t.languageProperty());
         zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId", City.getZoneIdOf(dao));
         valid = new DerivedBooleanProperty<>(this, "valid", predefinedData, Objects::nonNull);
-        predefinedData.addListener((ObservableValue<? extends CityDAO.PredefinedElement> observable, CityDAO.PredefinedElement oldValue, CityDAO.PredefinedElement newValue) -> {
+        predefinedData.addListener((ObservableValue<? extends CityDAO.PredefinedCityElement> observable, CityDAO.PredefinedCityElement oldValue, CityDAO.PredefinedCityElement newValue) -> {
             if (null != newValue) {
                 name.set(PredefinedData.getCityDisplayName(newValue.getKey()));
                 country.set(CountryItem.createModel(PredefinedData.lookupCountry(newValue.getCountry().getLocale().getCountry())));
@@ -116,16 +116,16 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     }
 
     @Override
-    public CityDAO.PredefinedElement getPredefinedElement() {
+    public CityDAO.PredefinedCityElement getPredefinedElement() {
         return predefinedData.get();
     }
 
-    public void setPredefinedData(CityDAO.PredefinedElement value) {
+    public void setPredefinedElement(CityDAO.PredefinedCityElement value) {
         predefinedData.set(value);
     }
 
     @Override
-    public ObjectProperty<CityDAO.PredefinedElement> predefinedDataProperty() {
+    public ObjectProperty<CityDAO.PredefinedCityElement> predefinedDataProperty() {
         return predefinedData;
     }
 
@@ -201,7 +201,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         @Override
         protected void updateItemProperties(CityModel item, CityDAO dao) {
-            item.setPredefinedData(dao.getPredefinedElement());
+            item.setPredefinedElement(dao.getPredefinedElement());
         }
 
         @Override

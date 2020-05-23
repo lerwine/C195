@@ -1,7 +1,7 @@
 package scheduler.view.city;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/city/EditCity}.
+ * Defines resource bundle keys for the {@code scheduler/view/city/EditCity} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -103,6 +103,11 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
+     */
+    public static final String RESOURCEKEY_REQUIRED = "required";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Time Zone:"}.
      */
     public static final String RESOURCEKEY_TIMEZONE = "timeZone";
@@ -116,4 +121,5 @@ public interface EditCityResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Updated On"}.
      */
     public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+
 }

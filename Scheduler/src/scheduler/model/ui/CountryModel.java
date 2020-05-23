@@ -34,11 +34,11 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return FACTORY;
     }
 
-    private final ObjectProperty<CountryDAO.PredefinedElement> predefinedElement;
+    private final ObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElement;
     private final ReadOnlyStringWrapper name;
     private final ReadOnlyStringWrapper language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
-    private final DerivedBooleanProperty<CountryDAO.PredefinedElement> valid;
+    private final DerivedBooleanProperty<CountryDAO.PredefinedCountryElement> valid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
@@ -62,16 +62,16 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     }
 
     @Override
-    public CountryDAO.PredefinedElement getPredefinedElement() {
+    public CountryDAO.PredefinedCountryElement getPredefinedElement() {
         return predefinedElement.get();
     }
 
-    public void setPredefinedElement(CountryDAO.PredefinedElement value) {
+    public void setPredefinedElement(CountryDAO.PredefinedCountryElement value) {
         predefinedElement.set(value);
     }
 
     @Override
-    public ObjectProperty<CountryDAO.PredefinedElement> predefinedElementProperty() {
+    public ObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElementProperty() {
         return predefinedElement;
     }
 

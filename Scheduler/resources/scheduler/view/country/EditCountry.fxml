@@ -10,13 +10,15 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import scheduler.fx.CountryListCell?>
+<?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.ItemEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
@@ -26,7 +28,7 @@
         <GridPane>
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="ALWAYS" />
+                <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints vgrow="SOMETIMES" />
@@ -34,7 +36,7 @@
             </rowConstraints>
             <children>
                 <Label styleClass="leftControlLabel" text="%nameFieldLabel" />
-                <StackPane GridPane.columnIndex="1">
+                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.halignment="LEFT">
                     <children>
                         <Label fx:id="countryNameValueLabel">
                             <styleClass>
@@ -42,7 +44,14 @@
                                 <String fx:value="collapsed" />
                             </styleClass>
                         </Label>
-                        <ComboBox fx:id="countryNameComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" />
+                        <ComboBox fx:id="countryNameComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl">
+                            <cellFactory>
+                                <CountryListCellFactory />
+                            </cellFactory>
+                            <buttonCell>
+                                <CountryListCell />
+                            </buttonCell>
+                        </ComboBox>
                     </children>
                 </StackPane>
                 <Label fx:id="nameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -57,10 +66,10 @@
             <VBox.margin>
                 <Insets top="16.0" />
             </VBox.margin>
-         <styleClass>
-            <String fx:value="topControlLabel" />
-            <String fx:value="collapsed" />
-         </styleClass>
+            <styleClass>
+                <String fx:value="topControlLabel" />
+                <String fx:value="collapsed" />
+            </styleClass>
         </Label>
         <TableView fx:id="citiesTableView" minHeight="-Infinity" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
@@ -123,19 +132,11 @@
             <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
             </columnResizePolicy>
-         <styleClass>
-            <String fx:value="content" />
-            <String fx:value="collapsed" />
-         </styleClass>
         </TableView>
         <ButtonBar fx:id="newButtonBar">
             <buttons>
                 <Button mnemonicParsing="false" onAction="#onNewButtonAction" text="New City" />
             </buttons>
-         <styleClass>
-            <String fx:value="footer" />
-            <String fx:value="collapsed" />
-         </styleClass>
         </ButtonBar>
     </children>
 </fx:root>

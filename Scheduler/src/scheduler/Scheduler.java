@@ -44,8 +44,8 @@ import scheduler.view.ViewAndController;
  * Upon startup, {@link MainController} is loaded as the root node a the {@link Scene} of the primary {@link Stage}. It will not be completely
  * initialized until the user is successfully logged in. The {@link Login} custom control is appended as the last child node of the view for the main
  * controller, which masks the entire window until the login is successful. To validate credentials, the {@link Login} control invokes
- * {@link LoginBorderPane#tryLoginUser(LoginBorderPane, String, String)}. After successful authentication, the current user data object is
- * stored in {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
+ * {@link LoginBorderPane#tryLoginUser(LoginBorderPane, String, String)}. After successful authentication, the current user data object is stored in
+ * {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -136,7 +136,7 @@ public final class Scheduler extends Application {
         if (null != currentUser) {
             HostServices services = getHostServices();
             String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
-            LOG.info(String.format("Loggin logout timestamp to %s", logUri));
+            LOG.fine(() -> String.format("Logging logout timestamp to %s", logUri));
             try (FileWriter writer = new FileWriter(new File(new URL(logUri).toURI()), true)) {
                 try (PrintWriter pw = new PrintWriter(writer)) {
                     pw.printf("[%s]: %s logged out.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), currentUser.getUserName());
@@ -213,7 +213,7 @@ public final class Scheduler extends Application {
             } else {
                 HostServices services = currentApp.getHostServices();
                 String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
-                LOG.info(String.format("Loggin login timestamp to %s", logUri));
+                LOG.fine(() -> String.format("Logging login timestamp to %s", logUri));
                 try (FileWriter writer = new FileWriter(new File(new URL(logUri).toURI()), true)) {
                     try (PrintWriter pw = new PrintWriter(writer)) {
                         pw.printf("[%s]: %s logged in.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), user.getUserName());
@@ -241,7 +241,7 @@ public final class Scheduler extends Application {
             Optional<UserDAO> result;
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
-                LOG.log(Level.INFO, String.format("Looking up %s", userName));
+                LOG.fine(() -> String.format("Looking up %s", userName));
                 Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB)));
                 result = UserDAO.getFactory().findByUserName(dbConnector.getConnection(), userName);
                 if (result.isPresent()) {
@@ -250,7 +250,7 @@ public final class Scheduler extends Application {
                     // as the stored password. If the password is correct, then the hash values will match.
                     PwHash hash = new PwHash(result.get().getPassword(), false);
                     if (hash.test(password)) {
-                        LOG.log(Level.INFO, "Password matched");
+                        LOG.fine("Password matched");
                         currentUser = result.get();
                         return result.get();
                     }

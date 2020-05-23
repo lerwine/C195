@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -30,6 +32,8 @@ import scheduler.util.DB;
  * @param <T>
  */
 public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrapper<T> implements ObservableDerivitive<T> {
+
+    private static final Logger LOG = Logger.getLogger(DataObjectProperty.class.getName());
 
     private final HashMap<String, PropertyChangeHandler<?>> propertyMap;
     private final ReadOnlyIntegerProperty primaryKey;
@@ -314,8 +318,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
             private Timestamp currentTs;
 
             {
-                currentTs = getter.apply(DataObjectProperty.this.get());
-                currentValue = apply(currentTs);
+                currentValue = apply(getter.apply(DataObjectProperty.this.get()));
                 propertyChangeHandler = new PropertyChangeHandler<>(currentValue, (t) -> apply(getter.apply(t)), this::onChanged);
                 if (propertyMap.containsKey(name)) {
                     PropertyChangeHandler<?> h = propertyMap.get(name);
@@ -512,18 +515,19 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
         return createReadOnlyNestedModelProperty(name, createReadOnlyObjectProperty(name, getter), factory);
     }
 
+    // We are handling any exceptions on purpose.
+    @SuppressWarnings("UseSpecificCatch")
     private void onDbPropertyChange(PropertyChangeEvent evt) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement #propertyChange
-    }
-
-    @Override
-    public Object getBean() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.observables.DataObjectProperty#getBean
-    }
-
-    @Override
-    public String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.observables.DataObjectProperty#getName
+        String propertyName = evt.getPropertyName();
+        if (propertyMap.containsKey(propertyName)) {
+            try {
+                propertyMap.get(propertyName).accept(get());
+            } catch (Throwable ex) {
+                LOG.log(Level.SEVERE, String.format("Uncaught exception firing %s property change event",
+                        propertyName), ex);
+                Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
+            }
+        }
     }
 
     private class PropertyChangeHandler<U> implements Consumer<T> {

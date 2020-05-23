@@ -16,7 +16,7 @@ import scheduler.dao.ICountryDAO;
 public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryItem<ICountryDAO> {
 
     private final ReadOnlyStringWrapper name;
-    private final ReadOnlyObjectWrapper<CountryDAO.PredefinedElement> predefinedData;
+    private final ReadOnlyObjectWrapper<CountryDAO.PredefinedCountryElement> predefinedData;
     private final ReadOnlyStringWrapper language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
 
@@ -31,7 +31,7 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     }
 
     @SuppressWarnings("unchecked")
-    private void onPredefinedDataChange(ObservableValue<? extends CountryDAO.PredefinedElement> observable, CountryDAO.PredefinedElement oldValue, CountryDAO.PredefinedElement newValue) {
+    private void onPredefinedDataChange(ObservableValue<? extends CountryDAO.PredefinedCountryElement> observable, CountryDAO.PredefinedCountryElement oldValue, CountryDAO.PredefinedCountryElement newValue) {
         if (null != newValue) {
             name.set(newValue.getLocale().getDisplayCountry());
             zoneId.set(ZoneId.of(newValue.getDefaultZoneId()));
@@ -74,12 +74,12 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     }
 
     @Override
-    public CountryDAO.PredefinedElement getPredefinedElement() {
+    public CountryDAO.PredefinedCountryElement getPredefinedElement() {
         return predefinedData.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CountryDAO.PredefinedElement> predefinedElementProperty() {
+    public ReadOnlyObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElementProperty() {
         return predefinedData;
     }
 

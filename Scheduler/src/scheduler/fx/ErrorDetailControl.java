@@ -23,11 +23,13 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.createLabel;
 import scheduler.util.StageManager;
@@ -447,10 +449,13 @@ public class ErrorDetailControl extends GridPane {
             collapseNode(causedByPane);
         } else {
             Throwable c;
+            Region contentNode;
             if (maxDepth == 1 || null == (c = causedBy.getCause())) {
-                causedByPane.setContent(load(causedBy, maxDepth - 1, true, causedBy.getClass().getName()));
+                contentNode = load(causedBy, maxDepth - 1, true, causedBy.getClass().getName());
+                causedByPane.setContent(contentNode);
             } else {
                 Accordion ca = new Accordion();
+                contentNode = ca;
                 causedByPane.setContent(ca);
                 TitledPane cp = new TitledPane();
                 cp.setText(causedBy.getClass().getName());
@@ -466,6 +471,7 @@ public class ErrorDetailControl extends GridPane {
                     }
                 }
             }
+            bindExtents(contentNode, causedByPane);
         }
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);

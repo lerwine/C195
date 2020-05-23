@@ -239,12 +239,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     @Override
     public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#isValid
+        return valid.get();
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#validProperty
+        return valid.getReadOnlyBooleanProperty();
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {

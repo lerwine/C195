@@ -172,8 +172,8 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     }
 
     @Override
-    public AddressDAO.PredefinedElement getPredefinedData() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.RelatedAddress#getPredefinedData
+    public AddressDAO.PredefinedAddressElement getPredefinedElement() {
+        return getDataObject().getPredefinedElement();
     }
 
 }

@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.model.ui.AppointmentModel;
 import com.sun.javafx.collections.ImmutableObservableList;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -41,17 +40,18 @@ import javafx.util.converter.LocalDateStringConverter;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.Customer;
 import scheduler.model.User;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
+import scheduler.model.ui.UserModel;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.TernarySelective;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.UserModel;
 
 /**
  * Binding to validate date and time controls.
@@ -335,18 +335,18 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
     @Override
     protected TernarySelective<ZonedDateTime, Pair<ZonedDateTime, String>, String> computeValue() {
-        LOG.info(String.format("%s invalidated", getClass().getName()));
+        LOG.fine(() -> String.format("%s invalidated", getClass().getName()));
         BinarySelective<Pair<ZonedDateTime, Pair<Integer, Integer>>, String> result = intermediary.get();
         if (result.isPrimary()) {
-            LOG.info(String.format("intermediary.get().isPrimary() = true"));
+            LOG.fine(String.format("intermediary.get().isPrimary() = true"));
             Pair<ZonedDateTime, Pair<Integer, Integer>> primary = result.getPrimary();
-            LOG.info(String.format("primary.getKey()=%s", LogHelper.toLogText(primary.getKey())));
+            LOG.fine(() -> String.format("primary.getKey()=%s", LogHelper.toLogText(primary.getKey())));
             Pair<Integer, Integer> value = primary.getValue();
-            LOG.info(String.format("primary.getValue()=%s", LogHelper.toLogText(value)));
+            LOG.fine(() -> String.format("primary.getValue()=%s", LogHelper.toLogText(value)));
             int c = value.getKey();
-            LOG.info(String.format("value.getKey()=%s", LogHelper.toLogText(c)));
+            LOG.fine(() -> String.format("value.getKey()=%s", LogHelper.toLogText(c)));
             int u = value.getValue();
-            LOG.info(String.format("value.getValue()=%s", LogHelper.toLogText(u)));
+            LOG.fine(() -> String.format("value.getValue()=%s", LogHelper.toLogText(u)));
             switch (c) {
                 case 0:
                     if (u == 1) {
@@ -377,9 +377,9 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
             }
             return TernarySelective.ofPrimary(primary.getKey());
         }
-        LOG.info("intermediary.get().isPrimary() = false");
+        LOG.fine("intermediary.get().isPrimary() = false");
         String rbKey = result.getSecondary();
-        LOG.info(String.format("secondary.get() = %s", LogHelper.toLogText(rbKey)));
+        LOG.fine(() -> String.format("secondary.get() = %s", LogHelper.toLogText(rbKey)));
         return TernarySelective.ofTertiary(rb.getString(rbKey));
     }
 
@@ -492,29 +492,29 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
         @Override
         protected BinarySelective<Pair<ZonedDateTime, Pair<Integer, Integer>>, String> computeValue() {
-            LOG.info(String.format("%s invalidated", getClass().getName()));
+            LOG.fine(() -> String.format("%s invalidated", getClass().getName()));
 
             LocalDate d = selectedDate.get();
-            LOG.info(String.format("selectedDate=%s", LogHelper.toLogText(d)));
+            LOG.fine(() -> String.format("selectedDate=%s", LogHelper.toLogText(d)));
             String t = startDateText.get();
-            LOG.info(String.format("startDateText=%s", LogHelper.toLogText(t)));
+            LOG.fine(() -> String.format("startDateText=%s", LogHelper.toLogText(t)));
             StringConverter<LocalDate> x = converter.get();
-            LOG.info(String.format("converter=%s", LogHelper.toLogText(x)));
+            LOG.fine(String.format("converter=%s", LogHelper.toLogText(x)));
             String ht = hourText.get();
-            LOG.info(String.format("hourText=%s", LogHelper.toLogText(ht)));
+            LOG.fine(() -> String.format("hourText=%s", LogHelper.toLogText(ht)));
             String mt = minuteText.get();
-            LOG.info(String.format("minuteText=%s", LogHelper.toLogText(mt)));
+            LOG.fine(() -> String.format("minuteText=%s", LogHelper.toLogText(mt)));
             TimeZone z = timeZone.get();
-            LOG.info(String.format("timeZone=%s", LogHelper.toLogText(z)));
+            LOG.fine(() -> String.format("timeZone=%s", LogHelper.toLogText(z)));
             Boolean p = isPm.get();
-            LOG.info(String.format("isPm=%s", LogHelper.toLogText(p)));
+            LOG.fine(() -> String.format("isPm=%s", LogHelper.toLogText(p)));
             int c = customerConflicts.get();
-            LOG.info(String.format("customerConflicts=%s", LogHelper.toLogText(c)));
+            LOG.fine(() -> String.format("customerConflicts=%s", LogHelper.toLogText(c)));
             int u = userConflicts.get();
-            LOG.info(String.format("userConflicts=%s", LogHelper.toLogText(u)));
+            LOG.fine(() -> String.format("userConflicts=%s", LogHelper.toLogText(u)));
             if (null == d) {
                 if (null != t && !t.trim().isEmpty()) {
-                    LOG.info("Date control has text, but no date");
+                    LOG.fine("Date control has text, but no date");
                     return BinarySelective.ofSecondary(RESOURCEKEY_INVALIDSTARTDATE);
                 }
                 return BinarySelective.ofSecondary(RESOURCEKEY_STARTDATENOTSPECIFIED);
@@ -523,7 +523,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
                 if (null == x) {
                     x = new LocalDateStringConverter(FormatStyle.SHORT, null, Chronology.from(d));
                 }
-                LOG.info("Parsing date string");
+                LOG.fine("Parsing date string");
                 LocalDate v;
                 try {
                     v = x.fromString(t);
@@ -531,16 +531,16 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
                     LOG.log(Level.FINE, ex, () -> "Caught date parse exception");
                     v = null;
                 }
-                LOG.info(String.format("Parsed date=%s", LogHelper.toLogText(v)));
+                LOG.fine(String.format("Parsed date=%s", LogHelper.toLogText(v)));
                 if (null == v) {
-                    LOG.info("Parsed date not equal to original");
+                    LOG.fine("Parsed date not equal to original");
                     return BinarySelective.ofSecondary(RESOURCEKEY_INVALIDSTARTDATE);
                 }
             }
             if (null == ht || ht.trim().isEmpty()) {
                 return BinarySelective.ofSecondary(RESOURCEKEY_STARTHOURNOTSPECIFIED);
             }
-            LOG.info("Parsing hour string");
+            LOG.fine("Parsing hour string");
             Number n;
             try {
                 n = formatter.parse(ht);
@@ -555,7 +555,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
             if (null == mt || mt.trim().isEmpty()) {
                 return BinarySelective.ofSecondary(RESOURCEKEY_STARTMINUTENOTSPECIFIED);
             }
-            LOG.info("Parsing minute string");
+            LOG.fine("Parsing minute string");
             try {
                 n = formatter.parse(mt);
             } catch (ParseException ex) {

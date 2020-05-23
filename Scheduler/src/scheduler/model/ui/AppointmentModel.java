@@ -53,8 +53,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                         : url;
             case CORPORATE_LOCATION:
                 AddressDAO a = PredefinedData.lookupAddress(location);
-                return (null == a) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CORPORATE)
-                        : AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
+                return AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
                                 AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()), a.getPhone());
             case PHONE:
                 return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
@@ -162,13 +161,11 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                             case CORPORATE_LOCATION:
                                 if (!l.isEmpty()) {
                                     AddressDAO a = PredefinedData.lookupAddress(l);
-                                    if (null != a) {
-                                        return AddressModel.calculateMultiLineAddress(
-                                                AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
-                                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
-                                                a.getPhone()
-                                        );
-                                    }
+                                    return AddressModel.calculateMultiLineAddress(
+                                            AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
+                                            AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
+                                            a.getPhone()
+                                    );
                                 }
                                 break;
                             case CUSTOMER_SITE:

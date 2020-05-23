@@ -84,7 +84,7 @@ public final class DbConnector implements AutoCloseable {
                     ? CONNECTION_CLOSE_DELAY_MILLISECONDS : (int) closeIn);
             // See if we reached the date and time when the connection is supposed to be closed.
             if (delayMilliseconds > 0) {
-                LOG.log(Level.FINE, String.format("Not ready to close. Checking again in %d milliseconds", delayMilliseconds));
+                LOG.fine(() -> String.format("Not ready to close. Checking again in %d milliseconds", delayMilliseconds));
                 scheduleClose(delayMilliseconds); // Check back later to see if we need to close the connection.
                 return false;
             }
@@ -97,7 +97,7 @@ public final class DbConnector implements AutoCloseable {
                 CONNECTION = null;
                 CURRENT_STATE = STATE_NOT_CONNECTED;
             }
-            LOG.log(Level.FINE, String.format("Disconnected from %s", AppResources.getDbServerName()));
+            LOG.fine(() -> String.format("Disconnected from %s", AppResources.getDbServerName()));
         }
         return true;
     }
@@ -135,7 +135,7 @@ public final class DbConnector implements AutoCloseable {
                 if (c != null) {
                     try {
                         c.close();
-                        LOG.log(Level.FINE, String.format("Disconnected from %s", AppResources.getDbServerName()));
+                        LOG.fine(() -> String.format("Disconnected from %s", AppResources.getDbServerName()));
                     } catch (SQLException ex) {
                         LOG.log(Level.SEVERE, String.format("Error closing database connection to %s", AppResources.getDbServerName()), ex);
                     }
@@ -245,13 +245,13 @@ public final class DbConnector implements AutoCloseable {
                 Class.forName(DB_DRIVER);
                 // Make new connection.
                 String url = AppResources.getConnectionUrl();
-                LOG.log(Level.FINE, String.format("Connecting to %s", url));
+                LOG.fine(() -> String.format("Connecting to %s", url));
                 CONNECTION = Objects.requireNonNull(DriverManager.getConnection(url, AppResources.getDbLoginName(), AppResources.getDbLoginPassword()),
                         "DriverManager.getConnection returned null");
-                LOG.log(Level.FINE, String.format("Connected to %s", url));
+                LOG.fine(() -> String.format("Connected to %s", url));
                 CURRENT_STATE = STATE_CONNECTED;
                 String sql = "SET @@session.time_zone = '+00:00'";
-                LOG.log(Level.FINE, String.format("Executing sql statement: %s", sql));
+                LOG.fine(() -> String.format("Executing sql statement: %s", sql));
                 try (PreparedStatement ps = CONNECTION.prepareStatement(sql)) {
                     ps.execute();
                 }

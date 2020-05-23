@@ -35,7 +35,7 @@ public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T
 
     ReadOnlyStringProperty languageProperty();
 
-    ReadOnlyObjectProperty<CountryDAO.PredefinedElement> predefinedElementProperty();
+    ReadOnlyObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElementProperty();
 
     @Override
     T getDataObject();

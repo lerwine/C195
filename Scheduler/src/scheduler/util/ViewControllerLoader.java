@@ -2,6 +2,7 @@ package scheduler.util;
 
 import java.io.IOException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -19,14 +20,14 @@ import scheduler.view.ViewAndController;
  */
 public class ViewControllerLoader {
 
-    private static final Logger LOG = Logger.getLogger(ViewControllerLoader.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINER);
 
     private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
 
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {
         String path = AppResources.getFXMLResourceName(controllerClass);
-        LOG.info(String.format("Loading %s", path));
+        LOG.fine(() -> String.format("Loading %s", path));
         FXMLLoader loader = new FXMLLoader(controllerClass.getResource(path), resourceBundle);
         ViewAndController<T, S> result = new ViewAndController<T, S>() {
             private final T view = loader.load();
@@ -42,7 +43,7 @@ public class ViewControllerLoader {
                 return controller;
             }
         };
-        LOG.info(String.format("%s loaded", path));
+        LOG.fine(() -> String.format("%s loaded", path));
         if (null == result.getController()) {
             throw new InternalException("Controller not instantiated");
         }
@@ -69,12 +70,12 @@ public class ViewControllerLoader {
     public static <T extends Node> T loadView(Object controller, T view, ResourceBundle resourceBundle) throws IOException {
         Class<?> c = controller.getClass();
         String path = AppResources.getFXMLResourceName(c);
-        LOG.info(String.format("Loading %s", path));
+        LOG.fine(() -> String.format("Loading %s", path));
         FXMLLoader loader = new FXMLLoader(c.getResource(path), resourceBundle);
         loader.setController(controller);
         loader.setRoot(view);
         T result = loader.load();
-        LOG.info(String.format("%s loaded", path));
+        LOG.fine(() -> String.format("%s loaded", path));
         return result;
     }
 
@@ -86,13 +87,13 @@ public class ViewControllerLoader {
     public static <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
         Class<T> c = (Class<T>) customControl.getClass();
         String path = AppResources.getFXMLResourceName(c);
-        LOG.info(String.format("Loading %s", path));
+        LOG.fine(() -> String.format("Loading %s", path));
         FXMLLoader loader = new FXMLLoader(c.getResource(path),
                 (null == resources) ? ResourceBundleHelper.getBundle(c) : resources);
         loader.setRoot(customControl);
         loader.setController(customControl);
         loader.load();
-        LOG.info(String.format("%s loaded", path));
+        LOG.fine(() -> String.format("%s loaded", path));
     }
 
     /**

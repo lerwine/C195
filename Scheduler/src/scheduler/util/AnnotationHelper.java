@@ -85,12 +85,12 @@ public class AnnotationHelper {
      */
     public static <T extends Annotation> Stream<Method> getAnnotatedEventHandlerMethods(Class<?> targetClass, Class<T> annotationClass,
             Class<? extends EventObject> eventClass, boolean allowZeroLengthParameters, Predicate<T> filter) {
-        LOG.log(Level.FINE, String.format("Checking methods of %s ", targetClass.getName()));
+        LOG.fine(String.format("Checking methods of %s ", targetClass.getName()));
         Stream.Builder<Method> builder = Stream.builder();
         do {
             for (Method m : targetClass.getDeclaredMethods()) {
                 if (m.isAnnotationPresent(annotationClass)) {
-                    LOG.log(Level.FINE, String.format("Method %s has annotation", m.getName()));
+                    LOG.fine(() -> String.format("Method %s has annotation", m.getName()));
                     if (null == filter || filter.test(m.getAnnotation(annotationClass))) {
                         Class<?>[] parameters = m.getParameterTypes();
                         if ((allowZeroLengthParameters) ? parameters.length > 1 : parameters.length != 1) {

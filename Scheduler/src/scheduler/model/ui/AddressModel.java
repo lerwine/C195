@@ -362,8 +362,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public AddressDAO.PredefinedElement getPredefinedData() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#getPredefinedData
+    public AddressDAO.PredefinedAddressElement getPredefinedElement() {
+        return getDataObject().getPredefinedElement();
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {

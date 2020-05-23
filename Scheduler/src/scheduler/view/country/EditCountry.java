@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -38,6 +39,7 @@ import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.ObservableObjectDerivitive;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -60,10 +62,11 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
 public final class EditCountry extends VBox implements EditItem.ModelEditor<CountryDAO, CountryModel> {
 
-    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 
     public static CountryModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         CountryModel.Factory factory = CountryModel.getFactory();
+
         return EditItem.showAndWait(parentWindow, EditCountry.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
     }
 
@@ -87,7 +90,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private Label countryNameValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryNameComboBox"
-    private ComboBox<CountryDAO> countryNameComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryModel> countryNameComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
@@ -102,7 +105,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
 
     private ObservableList<CityModel> itemList;
-    private ObservableList<CountryDAO> countryList;
+    private ObservableList<CountryModel> countryList;
 
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper();
@@ -161,12 +164,14 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         itemList = FXCollections.observableArrayList();
         countryList = FXCollections.observableArrayList();
         citiesTableView.setItems(itemList);
-        PredefinedData.getCountryOptions(null).forEach((c) -> countryList.add(c));
+        PredefinedData.getCountryOptions(null).forEach((c) -> countryList.add(new CountryModel(c)));
         countryNameComboBox.setItems(countryList);
         ObservableObjectDerivitive.ofSelection(countryNameComboBox).addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("Country selection changed from %s to %s", LogHelper.toLogText(oldValue), LogHelper.toLogText(newValue)));
             valid.set(null != newValue);
         });
-        CountryDAO.PredefinedElement pdc = model.getPredefinedElement();
+        nameValidationLabel.visibleProperty().bind(valid.not());
+        CountryDAO.PredefinedCountryElement pdc = model.getPredefinedElement();
         if (null != pdc) {
             String rc = pdc.getLocale().getCountry();
             countryList.stream().filter((t) -> t.getPredefinedElement().getLocale().getCountry().equals(rc)).findFirst().ifPresent((t)
@@ -231,7 +236,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityAdded(CityDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         CityDAO dao = event.getTarget();
         if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
             itemList.add(new CityModel(dao));
@@ -239,7 +244,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityUpdated(CityDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         CityDAO dao = event.getTarget();
         int pk = dao.getPrimaryKey();
         Optional<CityModel> match = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny();
@@ -256,7 +261,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityDeleted(CityDaoEvent event) {
-        LOG.info(String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         int pk = event.getTarget().getPrimaryKey();
         itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> itemList.remove(t));
     }
@@ -284,6 +289,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @Override
     public FxRecordModel.ModelFactory<CountryDAO, CountryModel> modelFactory() {
         return CountryModel.getFactory();
+    }
+
+    @Override
+    public void updateModel() {
+        model.setPredefinedElement(countryNameComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {

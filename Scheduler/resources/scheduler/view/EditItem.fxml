@@ -47,4 +47,7 @@
         </VBox>
         <WaitBorderPane fx:id="waitBorderPane" styleClass="collapsed" />
     </children>
+   <padding>
+      <Insets top="8.0" />
+   </padding>
 </fx:root>

@@ -128,7 +128,7 @@ public class AppointmentsByRegion extends VBox {
             List<ItemCountResult<String>> result = getValue();
             HashMap<String, Integer> regions = new HashMap<>();
             result.forEach((t) -> regions.put(t.getValue(), t.getCount()));
-            ObservableMap<String, CountryDAO.PredefinedElement> countryMap = PredefinedData.getCountryMap();
+            ObservableMap<String, CountryDAO.PredefinedCountryElement> countryMap = PredefinedData.getCountryMap();
             pieChartData.clear();
             countryMap.keySet().forEach((t) -> {
                 if (regions.containsKey(t)) {

@@ -252,7 +252,7 @@ Labeled.innerLeftControlLabel {
     -fx-border-width: 0px;
     -fx-max-width: infinity;
     -fx-alignment: CENTER;
-    -fx-padding: 4px;
+    -fx-padding: 8px;
 }
 
 .header,

@@ -416,36 +416,16 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
                 @Override
                 public void accept(PropertyChangeSupport t) {
-                    if (!Objects.equals(dao.customer, oldCustomer)) {
-                        t.firePropertyChange(PROP_CUSTOMER, oldCustomer, dao.customer);
-                    }
-                    if (!Objects.equals(dao.user, oldUser)) {
-                        t.firePropertyChange(PROP_USER, oldUser, dao.user);
-                    }
-                    if (!dao.title.equals(oldTitle)) {
-                        t.firePropertyChange(PROP_TITLE, oldTitle, dao.title);
-                    }
-                    if (!dao.description.equals(oldDescription)) {
-                        t.firePropertyChange(PROP_DESCRIPTION, oldDescription, dao.description);
-                    }
-                    if (!dao.location.equals(oldLocation)) {
-                        t.firePropertyChange(PROP_LOCATION, oldLocation, dao.location);
-                    }
-                    if (!dao.contact.equals(oldContact)) {
-                        t.firePropertyChange(PROP_CONTACT, oldContact, dao.contact);
-                    }
-                    if (dao.type == oldType) {
-                        t.firePropertyChange(PROP_TYPE, oldType, (null == dao.type) ? AppointmentType.OTHER : dao.type);
-                    }
-                    if (!dao.url.equals(oldUrl)) {
-                        t.firePropertyChange(PROP_URL, oldUrl, dao.url);
-                    }
-                    if (!dao.start.equals(oldStart)) {
-                        t.firePropertyChange(PROP_START, oldStart, dao.start);
-                    }
-                    if (!dao.end.equals(oldEnd)) {
-                        t.firePropertyChange(PROP_END, oldEnd, dao.end);
-                    }
+                    t.firePropertyChange(PROP_CUSTOMER, oldCustomer, dao.customer);
+                    t.firePropertyChange(PROP_USER, oldUser, dao.user);
+                    t.firePropertyChange(PROP_TITLE, oldTitle, dao.title);
+                    t.firePropertyChange(PROP_DESCRIPTION, oldDescription, dao.description);
+                    t.firePropertyChange(PROP_LOCATION, oldLocation, dao.location);
+                    t.firePropertyChange(PROP_CONTACT, oldContact, dao.contact);
+                    t.firePropertyChange(PROP_TYPE, oldType, (null == dao.type) ? AppointmentType.OTHER : dao.type);
+                    t.firePropertyChange(PROP_URL, oldUrl, dao.url);
+                    t.firePropertyChange(PROP_START, oldStart, dao.start);
+                    t.firePropertyChange(PROP_END, oldEnd, dao.end);
                 }
             };
 
@@ -500,7 +480,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 if (null != end) {
                     ps.setTimestamp(++index, DB.toUtcTimestamp(end));
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return rs.getInt(1);
@@ -533,7 +513,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 if (null != end) {
                     ps.setTimestamp(++index, DB.toUtcTimestamp(end));
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     ArrayList<AppointmentCountByType> result = new ArrayList<>();
                     while (rs.next()) {
@@ -575,7 +555,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 if (null != end) {
                     ps.setTimestamp(++index, DB.toUtcTimestamp(end));
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     ArrayList<ItemCountResult<String>> result = new ArrayList<>();
                     while (rs.next()) {
@@ -616,7 +596,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 if (null != end) {
                     ps.setTimestamp(++index, DB.toUtcTimestamp(end));
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return rs.getInt(1);
@@ -656,7 +636,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 if (null != end) {
                     ps.setTimestamp(++index, DB.toUtcTimestamp(end));
                 }
-                LOG.log(Level.INFO, String.format("Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return rs.getInt(1);
@@ -674,15 +654,49 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
-            Customer customer = dao.getCustomer();
-            if (customer instanceof CustomerDAO && (force || customer.getRowState() != DataRowState.UNMODIFIED)) {
+            Customer customer = IAppointmentDAO.assertValidAppointment(dao).getCustomer();
+            if (customer instanceof CustomerDAO) {
                 CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
             }
             User user = dao.getUser();
-            if (user instanceof UserDAO && (force || user.getRowState() != DataRowState.UNMODIFIED)) {
+            if (user instanceof UserDAO) {
                 UserDAO.getFactory().save((UserDAO) user, connection, force);
             }
             super.save(dao, connection, force);
+        }
+
+        @Override
+        protected void onInitializingFrom(AppointmentDAO target, AppointmentDAO other) {
+            String oldContact = target.contact;
+            ICustomerDAO oldCustomer = target.customer;
+            String oldDescription = target.description;
+            Timestamp oldEnd = target.end;
+            String oldLocation = target.location;
+            Timestamp oldStart = target.start;
+            String oldTitle = target.title;
+            AppointmentType oldType = target.type;
+            String oldUrl = target.url;
+            IUserDAO oldUser = target.user;
+            target.contact = other.contact;
+            target.customer = other.customer;
+            target.description = other.description;
+            target.end = other.end;
+            target.location = other.location;
+            target.start = other.start;
+            target.title = other.title;
+            target.type = other.type;
+            target.url = other.url;
+            target.user = other.user;
+            target.firePropertyChange(PROP_CUSTOMER, oldCustomer, target.customer);
+            target.firePropertyChange(PROP_USER, oldUser, target.user);
+            target.firePropertyChange(PROP_TITLE, oldTitle, target.title);
+            target.firePropertyChange(PROP_DESCRIPTION, oldDescription, target.description);
+            target.firePropertyChange(PROP_LOCATION, oldLocation, target.location);
+            target.firePropertyChange(PROP_CONTACT, oldContact, target.contact);
+            target.firePropertyChange(PROP_TYPE, oldType, (null == target.type) ? AppointmentType.OTHER : target.type);
+            target.firePropertyChange(PROP_URL, oldUrl, target.url);
+            target.firePropertyChange(PROP_START, oldStart, target.start);
+            target.firePropertyChange(PROP_END, oldEnd, target.end);
         }
 
         @Override

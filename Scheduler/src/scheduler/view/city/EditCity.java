@@ -191,6 +191,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return windowTitle.getReadOnlyProperty();
     }
 
+    @Override
+    public void updateModel() {
+        model.setPredefinedElement(nameValueComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
+    }
+
     private class ItemsLoadTask extends Task<List<AddressDAO>> {
 
         private final int pk;
