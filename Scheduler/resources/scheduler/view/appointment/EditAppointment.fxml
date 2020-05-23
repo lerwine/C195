@@ -96,7 +96,7 @@
                         <Insets top="6.0" />
                     </GridPane.margin>
                 </HBox>
-                <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" onAction="#onCustomerComboBoxAction" styleClass="topLabeledControl" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
+                <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
                     <cellFactory>
                         <CustomerListCellFactory />
                     </cellFactory>
@@ -104,7 +104,7 @@
                         <CustomerListCell />
                     </buttonCell>
                 </ComboBox>
-                <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" onAction="#onUserComboBoxAction" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
+                <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
                     <cellFactory>
                         <UserListCellFactory />
                     </cellFactory>
@@ -125,7 +125,7 @@
                         </HBox>
                         <VBox>
                             <children>
-                                <ComboBox fx:id="corporateLocationComboBox" maxWidth="1.7976931348623157E308" onAction="#onCorporateLocationComboBoxAction">
+                                <ComboBox fx:id="corporateLocationComboBox" maxWidth="1.7976931348623157E308">
                                     <styleClass>
                                         <String fx:value="topLabeledControl" />
                                         <String fx:value="collapsed" />
@@ -167,7 +167,7 @@
                         <Insets top="6.0" />
                     </GridPane.margin>
                 </Label>
-                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" onAction="#onTypeComboBoxAction" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="7" GridPane.valignment="TOP">
+                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="7" GridPane.valignment="TOP">
                     <cellFactory>
                         <AppointmentTypeListCellFactory />
                     </cellFactory>

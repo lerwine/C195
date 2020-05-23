@@ -14,13 +14,13 @@ import javafx.beans.value.ObservableValue;
  * @param <T>
  * @param <U>
  */
-public class CalculatedObjectProperty<T, U> extends CalculatedObjectValueExpression<T, U> implements ReadOnlyProperty<U> {
+public class DerivedObjectProperty<T, U> extends DerivedObservableObject<T, U> implements ReadOnlyProperty<U> {
 
     private final Object bean;
     private final String name;
     private ReadOnlyObjectProperty<U> readOnlyObjectProperty = null;
 
-    public CalculatedObjectProperty(Object bean, String name, ObservableValue<T> source, Function<T, U> calculate) {
+    public DerivedObjectProperty(Object bean, String name, ObservableValue<T> source, Function<T, U> calculate) {
         super(source, calculate);
         this.bean = bean;
         this.name = (null == name) ? "" : name;
@@ -44,7 +44,7 @@ public class CalculatedObjectProperty<T, U> extends CalculatedObjectValueExpress
 
                 @Override
                 public U get() {
-                    return CalculatedObjectProperty.this.get();
+                    return DerivedObjectProperty.this.get();
                 }
 
                 @Override
@@ -69,12 +69,12 @@ public class CalculatedObjectProperty<T, U> extends CalculatedObjectValueExpress
 
                 @Override
                 public Object getBean() {
-                    return CalculatedObjectProperty.this.getBean();
+                    return DerivedObjectProperty.this.getBean();
                 }
 
                 @Override
                 public String getName() {
-                    return CalculatedObjectProperty.this.getName();
+                    return DerivedObjectProperty.this.getName();
                 }
 
             };

@@ -1,6 +1,7 @@
 package scheduler.observables;
 
 import com.sun.javafx.binding.ExpressionHelper;
+import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -11,7 +12,7 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of calculated value.
  */
-public abstract class CalculatedObjectExpression<T> implements ObservableValue<T> {
+public abstract class DerivedObservable<T> implements ObservableDerivitive<T> {
 
     private ExpressionHelper<T> helper = null;
 

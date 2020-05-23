@@ -6,7 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +27,6 @@ import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
-import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 
@@ -138,7 +139,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         protected void applyColumnValue(CountryDAO dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException {
             switch (dbColumn) {
                 case COUNTRY_NAME:
-                    ps.setString(index, dao.name);
+                    ps.setString(index, dao.predefinedCountry.getRegionCode());
                     break;
                 default:
                     throw new InternalException(String.format("Unexpected %s column name %s", dbColumn.getTable().getDbName(), dbColumn.getDbName()));
@@ -173,8 +174,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                     }
                 }
             };
-            dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.COUNTRY_NAME.toString()));
-            dao.setPredefinedCountry(PredefinedData.lookupCountry(dao.name));
+            dao.setPredefinedCountry(PredefinedData.lookupCountry(rs.getString(DbColumn.COUNTRY_NAME.toString())));
             return propertyChanges;
         }
 
@@ -205,6 +205,11 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
+        public void save(CountryDAO dao, Connection connection, boolean force) throws SQLException {
+            super.save(ICountryDAO.assertValidCountry(dao), connection, force);
+        }
+
+        @Override
         public String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_COUNTRYALREADYDELETED);
@@ -212,7 +217,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
                     .append(") FROM ").append(DbTable.COUNTRY.getDbName())
-                    .append(" WHERE LOWER(").append(DbColumn.COUNTRY_NAME.getDbName()).append(")=?");
+                    .append(" WHERE ").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
 
             if (dao.getRowState() != DataRowState.NEW) {
                 sb.append(" AND ").append(DbColumn.COUNTRY_ID.getDbName()).append("<>?");
@@ -220,7 +225,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             String sql = sb.toString();
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getName().toLowerCase());
+                ps.setString(1, dao.getPredefinedCountry().getRegionCode());
                 if (dao.getRowState() != DataRowState.NEW) {
                     ps.setInt(1, dao.getPrimaryKey());
                 }
@@ -264,6 +269,21 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return result;
         }
 
+        public CountryDAO getByRegionCode(Connection connection, String rc) throws SQLException {
+            String sql = new StringBuffer(createDmlSelectQueryBuilder().toString()).append(" WHERE ")
+                    .append(DbColumn.COUNTRY_NAME.getDbName()).append("=?").toString();
+            LOG.log(Level.INFO, String.format("getByRegionCode", "Executing DML statement: %s", sql));
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, rc);
+                try (ResultSet rs = ps.getResultSet()) {
+                    if (rs.next()) {
+                        return fromResultSet(rs);
+                    }
+                }
+            }
+            return null;
+        }
+        
     }
 
     private final static class Related extends PropertyBindable implements ICountryDAO {
@@ -304,4 +324,5 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
     }
+    
 }

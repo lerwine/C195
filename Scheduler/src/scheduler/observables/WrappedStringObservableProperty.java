@@ -1,7 +1,6 @@
 package scheduler.observables;
 
 import com.sun.javafx.binding.ExpressionHelper;
-import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -11,18 +10,28 @@ import javafx.beans.value.ObservableValue;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The input value type.
  */
-public class CalculatedStringProperty<T> extends CalculatedStringExpression<T> implements ReadOnlyProperty<String> {
+public class WrappedStringObservableProperty extends DerivedObservable<String> implements ObservableStringDerivitive, ReadOnlyProperty<String> {
 
+    private final ObservableValue<String> source;
     private final Object bean;
     private final String name;
     private ReadOnlyStringProperty readOnlyStringProperty = null;
 
-    public CalculatedStringProperty(Object bean, String name, ObservableValue<T> source, Function<T, String> calculate) {
-        super(source, calculate);
+    public WrappedStringObservableProperty(Object bean, String name, ObservableValue<String> source) {
+        (this.source = source).addListener((observable) -> fireValueChangedEvent());
         this.bean = bean;
         this.name = (null == name) ? "" : name;
+    }
+
+    @Override
+    public String getValue() {
+        return get();
+    }
+
+    @Override
+    public String get() {
+        return source.getValue();
     }
 
     @Override
@@ -43,7 +52,7 @@ public class CalculatedStringProperty<T> extends CalculatedStringExpression<T> i
 
                 @Override
                 public String get() {
-                    return CalculatedStringProperty.this.get();
+                    return WrappedStringObservableProperty.this.get();
                 }
 
                 @Override
@@ -68,12 +77,12 @@ public class CalculatedStringProperty<T> extends CalculatedStringExpression<T> i
 
                 @Override
                 public Object getBean() {
-                    return CalculatedStringProperty.this.getBean();
+                    return WrappedStringObservableProperty.this.getBean();
                 }
 
                 @Override
                 public String getName() {
-                    return CalculatedStringProperty.this.getName();
+                    return WrappedStringObservableProperty.this.getName();
                 }
 
             };

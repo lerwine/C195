@@ -6,23 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -31,7 +25,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -39,7 +32,6 @@ import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -53,15 +45,15 @@ import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.predefined.PredefinedData;
-import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.util.MapHelper;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreLabeled;
-import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -69,9 +61,6 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for editing a {@link CustomerModel}.
@@ -100,9 +89,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     private final ReadOnlyBooleanWrapper valid;
-
-    private final SimpleBooleanProperty addressValid;
-
     private final ReadOnlyStringWrapper windowTitle;
 
     private final ObservableList<String> unavailableNames;
@@ -116,8 +102,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
 
     private final ObservableList<AppointmentFilterItem> filterOptions;
-
-    private final SimpleObjectProperty<AddressItem<? extends IAddressDAO>> selectedAddress;
 
     @ModelEditor
     private CustomerModel model;
@@ -210,12 +194,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private AddressPicker addressPicker;
 
     public EditCustomer() {
-        this.valid = new ReadOnlyBooleanWrapper(false);
-        this.windowTitle = new ReadOnlyStringWrapper();
-        selectedAddress = new SimpleObjectProperty<>(this, "selectedAddress", null);
-        selectedAddress.addListener(this::onSelectedAddressChanged);
-        addressValid = new SimpleBooleanProperty(false);
-        addressValid.addListener(this::onAddressValidChanged);
+        windowTitle = new ReadOnlyStringWrapper();
+        valid = new ReadOnlyBooleanWrapper();
         unavailableNames = FXCollections.observableArrayList();
         customerAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
@@ -232,26 +212,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @FXML
     void onAppointmentFilterComboBoxAction(ActionEvent event) {
         waitBorderPane.startNow(new AppointmentReloadTask());
-    }
-
-    @FXML
-    void onCountryComboBoxAction(ActionEvent event) {
-        cityComboBox.getSelectionModel().clearSelection();
-        cityOptions.clear();
-        CountryItem<? extends ICountryDAO> selectedItem = countryComboBox.getValue();
-        if (null != selectedItem) {
-            String regionCode = selectedItem.getPredefinedData().getRegionCode();
-            allCities.stream().filter((CityItem<? extends ICityDAO> t) -> {
-                CountryItem<? extends ICountryDAO> m = t.getCountry();
-                return null != m && m.getPredefinedData().getRegionCode().equals(regionCode);
-            }).forEach((t) -> cityOptions.add(t));
-        }
-        onAddressComponentChanged(address1TextField.getText(), address1TextField.getText(), cityComboBox.getValue(), countryComboBox.getValue());
-    }
-
-    @FXML
-    void onCityComboBoxAction(ActionEvent event) {
-        onAddressComponentChanged(address1TextField.getText(), address1TextField.getText(), cityComboBox.getValue(), countryComboBox.getValue());
     }
 
     @FXML
@@ -273,15 +233,15 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @FXML
     void onExistingAddressButtonAction(ActionEvent event) {
         addressPicker.PickAddress(waitBorderPane, (t) -> {
-            if (null != t) {
-                selectedAddress.set(t);
-            }
+//            if (null != t) {
+//                selectedAddress.set(t);
+//            }
         });
     }
 
     @FXML
     void onNewAddressButtonAction(ActionEvent event) {
-        selectedAddress.set(null);
+//        selectedAddress.set(null);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -320,7 +280,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         LocalDate today = LocalDate.now();
         CustomerDAO dao = model.getDataObject();
-        if (model.isNewItem()) {
+        if (model.isNewRow()) {
             collapseNode(appointmentsVBox);
             editSplitPane.setDividerPosition(0, 1.0);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
@@ -338,127 +298,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
             appointmentFilterComboBox.getSelectionModel().selectFirst();
             appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-            selectedAddress.set(model.getAddress());
         }
         nameTextField.setText(model.getName());
         activeToggleGroup.selectToggle((model.isActive()) ? activeTrueRadioButton : activeFalseRadioButton);
-        nameTextField.textProperty().addListener(this::onNameChanged);
-        address1TextField.textProperty().addListener(this::onAddress1Changed);
-        address2TextField.textProperty().addListener(this::onAddress2Changed);
         waitBorderPane.startNow(new InitialLoadTask());
-        onSelectedAddressChanged(selectedAddress, null, selectedAddress.get());
-        onNameChanged(nameTextField.textProperty());
-    }
-
-    // CURRENT: Update model from listeners
-    public boolean applyChangesToModel() {
-        model.setName(nameTextField.getText());
-        model.setActive(activeTrueRadioButton.isSelected());
-        AddressItem<? extends IAddressDAO> address = selectedAddress.get();
-        if (null == address) {
-            AddressModel addressModel = new AddressModel(AddressDAO.getFactory().createNew());
-            addressModel.setAddress1(address1TextField.getText());
-            addressModel.setAddress2(address2TextField.getText());
-            addressModel.setCity(cityComboBox.getValue());
-            addressModel.setPostalCode(postalCodeTextField.getText());
-            addressModel.setPhone(phoneNumberTextField.getText());
-            model.setAddress(addressModel);
-        } else {
-            model.setAddress(address);
-        }
-        return true;
-    }
-
-    private void onAddressValidChanged(Observable observable) {
-        valid.set(((SimpleBooleanProperty) observable).get() && !nameTextField.getText().trim().isEmpty());
-    }
-
-    private void onNameChanged(Observable observable) {
-        if (((StringProperty) observable).get().trim().isEmpty()) {
-            valid.set(false);
-            restoreNode(nameValidationLabel);
-        } else {
-            collapseNode(nameValidationLabel);
-            valid.set(addressValid.get());
-        }
-    }
-
-    private void onAddress1Changed(Observable observable) {
-        onAddressComponentChanged(((StringProperty) observable).get(), address2TextField.getText(), cityComboBox.getValue(), countryComboBox.getValue());
-    }
-
-    private void onAddress2Changed(Observable observable) {
-        onAddressComponentChanged(address1TextField.getText(), ((StringProperty) observable).get(), cityComboBox.getValue(), countryComboBox.getValue());
-    }
-
-    private void onAddressComponentChanged(String addr1, String addr2, CityItem<? extends ICityDAO> city, CountryItem<? extends ICountryDAO> country) {
-        boolean isValid;
-        if (addr1.trim().isEmpty() && addr2.trim().isEmpty()) {
-            restoreNode(addressValidationLabel);
-            isValid = false;
-        } else {
-            collapseNode(addressValidationLabel);
-            isValid = true;
-        }
-        if (null == country) {
-            restoreLabeled(cityValidationLabel, resources.getString(RESOURCEKEY_COUNTRYNOTSELECTED));
-            restoreNode(countryValidationLabel);
-            isValid = false;
-        } else {
-            collapseNode(countryValidationLabel);
-            if (null == city) {
-                isValid = false;
-                restoreLabeled(cityValidationLabel, resources.getString(RESOURCEKEY_CITYMUSTBESELECTED));
-            } else {
-                collapseNode(cityValidationLabel);
-            }
-        }
-        valid.set(isValid);
-    }
-
-    private void onSelectedAddressChanged(ObservableValue<? extends AddressItem<? extends IAddressDAO>> observable, AddressItem<? extends IAddressDAO> oldValue, AddressItem<? extends IAddressDAO> newValue) {
-        if (null == newValue) {
-            restoreNode(address1TextField);
-            restoreNode(address2TextField);
-            collapseNode(addressValueLabel);
-            cityLabel.setText(resources.getString(RESOURCEKEY_CITY));
-            restoreNode(cityComboBox);
-            collapseNode(cityZipCountryLabel);
-            GridPane.setMargin(postalCodeLabel, new Insets(16, 0, 0, 0));
-            restoreNode(postalCodeLabel);
-            GridPane.setMargin(postalCodeTextField, new Insets(16, 0, 0, 0));
-            restoreNode(postalCodeTextField);
-            collapseNode(phoneNumberValueLabel);
-            restoreNode(phoneNumberTextField);
-            GridPane.setMargin(countryLabel, new Insets(16, 0, 0, 0));
-            restoreNode(countryLabel);
-            GridPane.setMargin(countryComboBox, new Insets(16, 0, 0, 0));
-            restoreNode(countryComboBox);
-            onAddressComponentChanged(address1TextField.getText(), address2TextField.getText(), cityComboBox.getValue(), countryComboBox.getValue());
-            newAddressButton.setDisable(true);
-        } else {
-            collapseNode(address1TextField);
-            collapseNode(address2TextField);
-            restoreLabeled(addressValueLabel, String.format("%s%n%s", newValue.getAddress1(), newValue.getAddress2()).trim());
-            cityLabel.setText(resources.getString(RESOURCEKEY_CITYZIPCOUNTRY));
-            collapseNode(cityComboBox);
-            restoreLabeled(cityZipCountryLabel, model.getCityZipCountry());
-            GridPane.setMargin(postalCodeLabel, Insets.EMPTY);
-            collapseNode(postalCodeLabel);
-            GridPane.setMargin(postalCodeTextField, Insets.EMPTY);
-            collapseNode(postalCodeTextField);
-            restoreLabeled(phoneNumberValueLabel, newValue.getPhone());
-            collapseNode(phoneNumberTextField);
-            GridPane.setMargin(countryLabel, Insets.EMPTY);
-            collapseNode(countryLabel);
-            GridPane.setMargin(countryComboBox, Insets.EMPTY);
-            collapseNode(countryComboBox);
-            collapseNode(addressValidationLabel);
-            collapseNode(countryValidationLabel);
-            collapseNode(cityValidationLabel);
-            addressValid.set(true);
-            newAddressButton.setDisable(false);
-        }
     }
 
     @Override
@@ -484,16 +327,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @Override
     public FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> modelFactory() {
         return CustomerModel.getFactory();
-    }
-
-    @Override
-    public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#isChanged
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#changedProperty
     }
 
     @Override
@@ -566,7 +399,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         protected void succeeded() {
             List<AppointmentDAO> result = getValue();
             if (null != customers && !customers.isEmpty()) {
-                if (model.isNewItem()) {
+                if (model.isNewRow()) {
                     customers.stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
                 } else {
                     int pk = model.getPrimaryKey();

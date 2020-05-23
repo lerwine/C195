@@ -30,7 +30,9 @@ import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.observables.ObservableObjectDerivitive;
 import scheduler.util.DbConnector;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -38,7 +40,6 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.model.ui.CountryItem;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
@@ -64,11 +65,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return EditItem.showAndWait(parentWindow, EditCity.class, model, keepOpen);
     }
 
-    private ObservableList<AddressModel> itemList;
-
     private final ReadOnlyBooleanWrapper valid;
-
     private final ReadOnlyStringWrapper windowTitle;
+    private ObservableList<AddressModel> itemList;
 
     @ModelEditor
     private CityModel model;
@@ -107,8 +106,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
 
     public EditCity() {
-        this.valid = new ReadOnlyBooleanWrapper(false);
-        this.windowTitle = new ReadOnlyStringWrapper();
+        windowTitle = new ReadOnlyStringWrapper();
+        valid = new ReadOnlyBooleanWrapper();
     }
 
     @FXML
@@ -150,10 +149,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
         itemList = FXCollections.observableArrayList();
         addressesTableView.setItems(itemList);
+        ObservableObjectDerivitive.ofSelection(nameValueComboBox).addListener((observable, oldValue, newValue) -> {
+            valid.set(null != newValue);
+        });
 
         waitBorderPane.startNow(new ItemsLoadTask());
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
-        // CURRENT: Update model from listeners
     }
 
     @Override
@@ -189,16 +190,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @Override
     public ReadOnlyStringProperty windowTitleProperty() {
         return windowTitle.getReadOnlyProperty();
-    }
-
-    @Override
-    public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#isChanged
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#changedProperty
     }
 
     private class ItemsLoadTask extends Task<List<AddressDAO>> {

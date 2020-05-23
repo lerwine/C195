@@ -9,26 +9,15 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.AddressDbRecord;
-import scheduler.dao.DataAccessObject;
-import scheduler.dao.DbRecord;
 import scheduler.dao.ICityDAO;
-import scheduler.model.Address;
-import static scheduler.model.ui.AddressModel.calculateAddressLines;
-import static scheduler.model.ui.AddressModel.calculateCityZipCountry;
-import static scheduler.model.ui.AddressModel.calculateMultiLineAddress;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.IFxRecordModel;
 import scheduler.observables.AddressTextProperty;
-import scheduler.observables.CalculatedStringExpression;
-import scheduler.observables.CalculatedStringProperty;
-import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
-import scheduler.observables.ObservableTriplet;
-import scheduler.observables.ObservableTuple;
-import scheduler.util.DB;
-import scheduler.util.Triplet;
-import scheduler.util.Tuple;
-import scheduler.util.Values;
-import scheduler.model.ui.AddressItem;
+import scheduler.observables.ObservableStringDerivitive;
+import scheduler.observables.WrappedStringObservableProperty;
 
 /**
  * Represents a pre-defined address that is loaded with the application.
@@ -40,102 +29,49 @@ public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implement
     private final ReadOnlyBooleanWrapper mainOffice;
     private final ReadOnlyStringWrapper address1;
     private final ReadOnlyStringWrapper address2;
-    private final CalculatedStringProperty<Tuple<String, String>> addressLines;
+    private final WrappedStringObservableProperty addressLines;
     private final ReadOnlyObjectWrapper<PredefinedCity> city;
     private final NestedStringProperty<PredefinedCity> cityName;
     private final NestedStringProperty<PredefinedCity> countryName;
     private final ReadOnlyStringWrapper postalCode;
     private final ReadOnlyStringWrapper phone;
-    private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
+    private final WrappedStringObservableProperty cityZipCountry;
     private final NestedStringProperty<PredefinedCity> language;
-    private final NestedObjectValueProperty<PredefinedCity, ZoneId> zoneId;
+    private final NestedObjectProperty<PredefinedCity, ZoneId> zoneId;
     private final ReadOnlyStringWrapper referenceKey;
-    private final CalculatedStringProperty<Triplet<String, String, String>> multiLineAddress;
-    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
-    private final ReadOnlyStringWrapper createdBy;
-    private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
-    private final ReadOnlyStringWrapper lastModifiedBy;
-//    privateDbObject dao;
-    private final ReadOnlyObjectWrapper<AddressDbRecord> dataObject;
+    private final WrappedStringObservableProperty multiLineAddress;
+    private final ReadOnlyObjectProperty<LocalDateTime> createDate;
+    private final ReadOnlyStringProperty createdBy;
+    private final ReadOnlyObjectProperty<LocalDateTime> lastModifiedDate;
+    private final ReadOnlyStringProperty lastModifiedBy;
 
     PredefinedAddress(AddressElement source, PredefinedCity city) {
-        PlaceHolderDAO dao = new PlaceHolderDAO();
-        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
+        setDataObject(new PlaceHolderDAO());
+        createDate = createReadOnlyDaoDateTimeProperty("createDate", (t) -> t.getCreateDate());
+        createdBy = createReadOnlyDaoStringProperty("createdBy", (t) -> t.getCreatedBy());
+        lastModifiedDate = createReadOnlyDaoDateTimeProperty("lastModifiedDate", (t) -> t.getLastModifiedDate());
+        lastModifiedBy = createReadOnlyDaoStringProperty("lastModifiedBy", (t) -> t.getLastModifiedBy());
         referenceKey = new ReadOnlyStringWrapper(this, "referenceKey", source.getKey());
         mainOffice = new ReadOnlyBooleanWrapper(this, "mainOffice", source.isMainOffice());
         address1 = new ReadOnlyStringWrapper(this, "address1", source.getAddress1());
         address2 = new ReadOnlyStringWrapper(this, "address2", source.getAddress2());
-        addressLines = new CalculatedStringProperty<>(this, "addressLines",
-                new ObservableTuple<>(
-                        new CalculatedStringExpression<>(address1, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(address2, Values::asNonNullAndWsNormalized)
-                ), (t) -> calculateAddressLines(t.getValue1(), t.getValue2())
+        addressLines = new WrappedStringObservableProperty(this, "addressLines",
+                ObservableStringDerivitive.of(address1, address2, AddressModel::calculateAddressLines)
         );
         this.city = new ReadOnlyObjectWrapper<>(this, "city", city);
         cityName = new NestedStringProperty<>(this, "cityName", this.city, (t) -> t.nameProperty());
         countryName = new NestedStringProperty<>(this, "countryName", this.city, (t) -> t.countryNameProperty());
         postalCode = new ReadOnlyStringWrapper(this, "postalCode", source.getPostalCode());
         phone = new ReadOnlyStringWrapper(this, "phone", source.getPhone());
-        cityZipCountry = new CalculatedStringProperty<>(this, "cityZipCountry",
-                new ObservableTriplet<>(
-                        new CalculatedStringExpression<>(cityName, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(countryName, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(postalCode, Values::asNonNullAndWsNormalized)
-                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        cityZipCountry = new WrappedStringObservableProperty(this, "cityZipCountry",
+                ObservableStringDerivitive.of(cityName, countryName, postalCode, AddressModel::calculateCityZipCountry)
         );
 
-        multiLineAddress = new CalculatedStringProperty<>(this, "cityZipCountry",
-                new ObservableTriplet<>(
-                        addressLines,
-                        cityZipCountry,
-                        new CalculatedStringExpression<>(phone, Values::asNonNullAndWsNormalized)
-                ), (t) -> calculateMultiLineAddress(t.getValue1(), t.getValue2(), t.getValue3())
+        multiLineAddress = new WrappedStringObservableProperty(this, "multiLineAddress",
+                ObservableStringDerivitive.of(addressLines, cityZipCountry, phone, AddressModel::calculateMultiLineAddress)
         );
         language = new NestedStringProperty<>(this, "language", this.city, (t) -> t.languageProperty());
-        zoneId = new NestedObjectValueProperty<>(this, "zoneId", this.city, (t) -> t.zoneIdProperty());
-        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.toLocalDateTime(dao.getCreateDate()));
-        createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
-        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.toLocalDateTime(dao.getLastModifiedDate()));
-        lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
-        dataObject.addListener(this::dataObjectChanged);
-    }
-
-    @Override
-    protected void onDataObjectChanged(DbRecord newValue) {
-        LocalDateTime d = DB.toLocalDateTime(newValue.getCreateDate());
-        if (!d.equals(createDate.get())) {
-            createDate.set(d);
-        }
-        String s = newValue.getCreatedBy();
-        if (!s.equals(createdBy.get())) {
-            createdBy.set(s);
-        }
-        d = DB.toLocalDateTime(newValue.getLastModifiedDate());
-        if (!d.equals(lastModifiedDate.get())) {
-            lastModifiedDate.set(d);
-        }
-        s = newValue.getLastModifiedBy();
-        if (!s.equals(lastModifiedBy.get())) {
-            lastModifiedBy.set(s);
-        }
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
-        switch (propertyName) {
-            case DataAccessObject.PROP_CREATEDATE:
-                createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
-                break;
-            case DataAccessObject.PROP_CREATEDBY:
-                createdBy.set(dao.getCreatedBy());
-                break;
-            case DataAccessObject.PROP_LASTMODIFIEDBY:
-                lastModifiedBy.set(dao.getLastModifiedBy());
-                break;
-            case DataAccessObject.PROP_LASTMODIFIEDDATE:
-                lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
-                break;
-        }
+        zoneId = new NestedObjectProperty<>(this, "zoneId", this.city, (t) -> t.zoneIdProperty());
     }
 
     public String getReferenceKey() {
@@ -270,23 +206,13 @@ public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implement
     }
 
     @Override
-    public AddressDbRecord getDataObject() {
-        return dataObject.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<? extends AddressDbRecord> dataObjectProperty() {
-        return dataObject.getReadOnlyProperty();
-    }
-
-    @Override
     public LocalDateTime getCreateDate() {
         return createDate.get();
     }
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
-        return createDate.getReadOnlyProperty();
+        return createDate;
     }
 
     @Override
@@ -296,7 +222,7 @@ public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implement
 
     @Override
     public ReadOnlyStringProperty createdByProperty() {
-        return createdBy.getReadOnlyProperty();
+        return createdBy;
     }
 
     @Override
@@ -306,7 +232,7 @@ public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implement
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
-        return lastModifiedDate.getReadOnlyProperty();
+        return lastModifiedDate;
     }
 
     @Override
@@ -316,7 +242,7 @@ public class PredefinedAddress extends PredefinedItem<AddressDbRecord> implement
 
     @Override
     public ReadOnlyStringProperty lastModifiedByProperty() {
-        return lastModifiedBy.getReadOnlyProperty();
+        return lastModifiedBy;
     }
 
     class PlaceHolderDAO extends BasePlaceHolderDAO implements AddressDbRecord {

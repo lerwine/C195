@@ -1,15 +1,22 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.ComparisonOperator;
@@ -26,11 +33,11 @@ import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.predefined.PredefinedCity;
+import scheduler.model.predefined.PredefinedCountry;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
-import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
@@ -159,7 +166,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         protected void applyColumnValue(CityDAO dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException {
             switch (dbColumn) {
                 case CITY_NAME:
-                    ps.setString(index, dao.name);
+                    ps.setString(index, dao.predefinedData.getResourceKey());
                     break;
                 case CITY_COUNTRY:
                     ps.setInt(index, dao.country.getPrimaryKey());
@@ -211,8 +218,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 }
             };
 
-            dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.CITY_NAME.toString()));
-            dao.setPredefinedData(PredefinedData.lookupCity(dao.name));
+            dao.setPredefinedData(PredefinedData.lookupCity(rs.getString(DbColumn.CITY_NAME.toString())));
             dao.country = CountryDAO.getFactory().fromJoinedResultSet(rs);
             return propertyChanges;
         }
@@ -245,23 +251,11 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
-            assertValidCity(dao);
+            ICountryDAO c = ICityDAO.assertValidCity(dao).country;
+            if (c.getRowState() == DataRowState.NEW) {
+                dao.country = PredefinedCountry.save(connection, c);
+            }
             super.save(dao, connection, force);
-        }
-
-        public CityDAO assertValidCity(CityDAO target) {
-            if (target.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Data access object already deleted");
-            }
-            Country country = target.getCountry();
-            if (null == country) {
-                throw new IllegalStateException("Country not specified");
-            }
-
-            if (target.predefinedData.getCountry() != country.getPredefinedData()) {
-                throw new IllegalStateException("Invalid country association");
-            }
-            return target;
         }
 
         // CURRENT: Need to re-think this - perhaps tracking primary key in the predefined objects for city and country, and maybe address as well...
@@ -271,7 +265,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYALREADYDELETED);
             }
 
-            Country country = assertValidCity(dao).getCountry();
+            ICountryDAO country = dao.getCountry();
 
             if (country instanceof CountryDAO && ModelHelper.getRowState(country) != DataRowState.UNMODIFIED) {
                 String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO) country, connection);
@@ -297,7 +291,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, dao.getCountry().getPrimaryKey());
-                ps.setString(1, dao.getName().toLowerCase());
+                ps.setString(1, dao.getPredefinedData().getResourceKey());
                 if (dao.getRowState() != DataRowState.NEW) {
                     ps.setInt(1, dao.getPrimaryKey());
                 }
@@ -332,6 +326,26 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 }
             }
             return result;
+        }
+
+        public CityDAO getByResourceKey(Connection connection, String rk) throws SQLException {
+            String sql = new StringBuffer(createDmlSelectQueryBuilder().toString()).append(" WHERE ")
+                    .append(DbColumn.CITY_NAME.getDbName()).append("=?").toString();
+            LOG.log(Level.INFO, String.format("getByResourceKey", "Executing DML statement: %s", sql));
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, rk);
+                try (ResultSet rs = ps.getResultSet()) {
+                    if (rs.next()) {
+                        return fromResultSet(rs);
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public List<CityDAO> load(Connection connection, DaoFilter<CityDAO> filter) throws SQLException {
+            return super.load(connection, filter); // TODO: Implement scheduler.dao.CityDAO.FactoryImpl#load
         }
 
         int countByCountry(int primaryKey, Connection connection) throws SQLException {
@@ -396,4 +410,5 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
     }
+    
 }

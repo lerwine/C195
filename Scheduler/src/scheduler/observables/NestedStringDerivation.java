@@ -6,7 +6,6 @@ import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableStringValue;
 import javafx.beans.value.ObservableValue;
 
 /**
@@ -14,14 +13,14 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class NestedStringExpression<T> extends CalculatedObjectExpression<String> implements ObservableStringValue {
+public class NestedStringDerivation<T> extends DerivedObservable<String> implements ObservableStringDerivitive {
 
     private final Function<T, ObservableValue<String>> selector;
     private ObservableValue<String> target;
     private String value = null;
     private StringExpression stringExpression;
 
-    public NestedStringExpression(ObservableValue<T> source, Function<T, ObservableValue<String>> selector) {
+    public NestedStringDerivation(ObservableValue<T> source, Function<T, ObservableValue<String>> selector) {
         this.selector = selector;
         source.addListener(this::onSourceChange);
         onSourceChange(source, null, source.getValue());
@@ -84,7 +83,7 @@ public class NestedStringExpression<T> extends CalculatedObjectExpression<String
 
                 @Override
                 public String get() {
-                    return NestedStringExpression.this.get();
+                    return NestedStringDerivation.this.get();
                 }
 
                 @Override

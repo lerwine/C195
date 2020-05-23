@@ -76,7 +76,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     }
 
     private final ReadOnlyBooleanWrapper valid;
-
     private final ReadOnlyStringWrapper windowTitle;
 
     @ModelEditor
@@ -133,8 +132,8 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     private ObservableList<AppointmentFilterItem> filterOptions;
 
     public EditUser() {
-        this.valid = new ReadOnlyBooleanWrapper(false);
-        this.windowTitle = new ReadOnlyStringWrapper();
+        windowTitle = new ReadOnlyStringWrapper();
+        valid = new ReadOnlyBooleanWrapper();
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -176,7 +175,7 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         });
 
         activeComboBox.setItems(userActiveStateOptions);
-        if (model.isNewItem()) {
+        if (model.isNewRow()) {
             changePasswordCheckBox.setSelected(true);
             changePasswordCheckBox.setDisable(true);
             appointmentListingVBox.setVisible(false);
@@ -214,7 +213,7 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
             filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         }
         waitBorderPane.startNow(new InitialLoadTask());
-        windowTitle.set(resources.getString((model.isNewItem()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+        windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 
     // CURRENT: Update model from listeners
@@ -280,16 +279,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     @Override
     public FxRecordModel.ModelFactory<UserDAO, UserModel> modelFactory() {
         return UserModel.getFactory();
-    }
-
-    @Override
-    public boolean isChanged() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#isChanged
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty changedProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#changedProperty
     }
 
     @Override
@@ -361,7 +350,7 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
             super.succeeded();
             List<AppointmentDAO> result = getValue();
             if (null != users && !users.isEmpty()) {
-                if (model.isNewItem()) {
+                if (model.isNewRow()) {
                     users.forEach((t) -> unavailableUserNames.add(t.getUserName().toLowerCase()));
                 } else {
                     int pk = model.getPrimaryKey();

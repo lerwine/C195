@@ -8,4 +8,14 @@ import scheduler.model.Country;
  */
 public interface ICountryDAO extends DbObject, Country {
 
+    public static <T extends ICountryDAO> T assertValidCountry(T target) {
+        if (target.getRowState() == DataRowState.DELETED) {
+            throw new IllegalArgumentException("Data access object already deleted");
+        }
+        if (null == target.getPredefinedData()) {
+            throw new IllegalStateException("Invalid country name");
+        }
+        return target;
+    }
+
 }

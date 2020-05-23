@@ -57,6 +57,7 @@ public interface FxDbModel<T extends DbObject> extends DataObject {
 
     ReadOnlyBooleanProperty validProperty();
 
+    @Override
     DataRowState getRowState();
 
     /**

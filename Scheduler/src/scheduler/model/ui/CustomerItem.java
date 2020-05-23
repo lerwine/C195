@@ -1,6 +1,5 @@
 package scheduler.model.ui;
 
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableBooleanValue;
 import scheduler.dao.IAddressDAO;
@@ -55,7 +54,7 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
 
     String getCountryName();
 
-    StringBinding getMultiLineAddress();
+    ReadOnlyProperty<String> getMultiLineAddress();
 
     String getPhone();
 

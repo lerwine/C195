@@ -1,28 +1,37 @@
 package scheduler.observables;
 
 import com.sun.javafx.binding.ExpressionHelper;
-import java.util.function.Function;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.value.ObservableBooleanValue;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The parent object type.
  */
-public class NestedStringProperty<T> extends NestedStringDerivation<T> implements ReadOnlyProperty<String> {
+public class WrappedBooleanObservableProperty extends DerivedObservable<Boolean> implements ObservableBooleanDerivitive, ReadOnlyProperty<Boolean> {
 
+    private final ObservableBooleanValue source;
     private final Object bean;
     private final String name;
-    private ReadOnlyStringProperty readOnlyStringProperty = null;
+    private ReadOnlyBooleanProperty readOnlyBooleanProperty = null;
 
-    public NestedStringProperty(Object bean, String name, ObservableValue<T> source, Function<T, ObservableValue<String>> selector) {
-        super(source, selector);
+    public WrappedBooleanObservableProperty(Object bean, String name, ObservableBooleanValue source) {
+        (this.source = source).addListener((observable) -> fireValueChangedEvent());
         this.bean = bean;
         this.name = (null == name) ? "" : name;
+    }
+
+    @Override
+    public Boolean getValue() {
+        return get();
+    }
+
+    @Override
+    public boolean get() {
+        return source.get();
     }
 
     @Override
@@ -35,24 +44,24 @@ public class NestedStringProperty<T> extends NestedStringDerivation<T> implement
         return name;
     }
 
-    public ReadOnlyStringProperty getReadOnlyStringProperty() {
-        if (null == readOnlyStringProperty) {
-            readOnlyStringProperty = new ReadOnlyStringProperty() {
+    public ReadOnlyBooleanProperty getReadOnlyBooleanProperty() {
+        if (null == readOnlyBooleanProperty) {
+            readOnlyBooleanProperty = new ReadOnlyBooleanProperty() {
 
-                private ExpressionHelper<String> helper = null;
+                private ExpressionHelper<Boolean> helper = null;
 
                 @Override
-                public String get() {
-                    return NestedStringProperty.this.get();
+                public boolean get() {
+                    return WrappedBooleanObservableProperty.this.get();
                 }
 
                 @Override
-                public void addListener(ChangeListener<? super String> listener) {
+                public void addListener(ChangeListener<? super Boolean> listener) {
                     helper = ExpressionHelper.addListener(helper, this, listener);
                 }
 
                 @Override
-                public void removeListener(ChangeListener<? super String> listener) {
+                public void removeListener(ChangeListener<? super Boolean> listener) {
                     helper = ExpressionHelper.removeListener(helper, listener);
                 }
 
@@ -68,17 +77,17 @@ public class NestedStringProperty<T> extends NestedStringDerivation<T> implement
 
                 @Override
                 public Object getBean() {
-                    return NestedStringProperty.this.getBean();
+                    return WrappedBooleanObservableProperty.this.getBean();
                 }
 
                 @Override
                 public String getName() {
-                    return NestedStringProperty.this.getName();
+                    return WrappedBooleanObservableProperty.this.getName();
                 }
 
             };
         }
-        return readOnlyStringProperty;
+        return readOnlyBooleanProperty;
     }
 
 }

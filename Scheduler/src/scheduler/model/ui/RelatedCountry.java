@@ -6,7 +6,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.predefined.PredefinedCountry;
 
@@ -75,15 +74,9 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
         return predefinedData.get();
     }
 
+    @Override
     public ReadOnlyObjectProperty<PredefinedCountry> predefinedDataProperty() {
         return predefinedData;
-    }
-
-    @Override
-    protected void onDataObjectPropertyChanged(ICountryDAO dao, String propertyName) {
-        if (propertyName.equals(CountryDAO.PROP_PREDEFINEDCOUNTRY)) {
-            predefinedData.set(dao.getPredefinedData());
-        }
     }
 
 }

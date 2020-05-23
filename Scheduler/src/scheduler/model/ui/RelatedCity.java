@@ -6,7 +6,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.CityDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.predefined.PredefinedCity;
@@ -48,13 +47,6 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
         name.set(c.getName());
         zoneId.set(c.getZoneId());
         language.set(n.getLanguage());
-    }
-
-    @Override
-    protected void onDataObjectPropertyChanged(ICityDAO dao, String propertyName) {
-        if (propertyName.equals(CityDAO.PROP_PREDEFINEDCITY)) {
-            predefinedData.set(dao.getPredefinedData());
-        }
     }
 
     @Override
@@ -107,6 +99,7 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
         return predefinedData.get();
     }
 
+    @Override
     public ReadOnlyObjectProperty<PredefinedCity> predefinedDataProperty() {
         return predefinedData.getReadOnlyProperty();
     }

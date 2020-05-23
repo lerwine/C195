@@ -1,26 +1,32 @@
 package scheduler.observables;
 
 import com.sun.javafx.binding.ExpressionHelper;
-import java.util.function.Predicate;
+import java.util.function.Function;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T>
+ * @param <T> The input value type.
  */
-public class CalculatedBooleanProperty<T> extends CalculatedBooleanExpression<T> implements ReadOnlyProperty<Boolean> {
+public class DerivedStringProperty<T> extends DerivedObservableString<T> implements ReadOnlyProperty<String> {
 
     private final Object bean;
     private final String name;
-    private ReadOnlyBooleanProperty readOnlyBooleanProperty = null;
+    private ReadOnlyStringProperty readOnlyStringProperty = null;
 
-    public CalculatedBooleanProperty(Object bean, String name, ObservableValue<T> source, Predicate<T> calculate) {
+    public DerivedStringProperty(Object bean, String name, ObservableValue<T> source, Function<T, String> calculate) {
         super(source, calculate);
+        this.bean = bean;
+        this.name = (null == name) ? "" : name;
+    }
+
+    public DerivedStringProperty(Object bean, String name, DerivedObservableString<T> source) {
+        super(source);
         this.bean = bean;
         this.name = (null == name) ? "" : name;
     }
@@ -35,24 +41,24 @@ public class CalculatedBooleanProperty<T> extends CalculatedBooleanExpression<T>
         return name;
     }
 
-    public ReadOnlyBooleanProperty getReadOnlyBooleanProperty() {
-        if (null == readOnlyBooleanProperty) {
-            readOnlyBooleanProperty = new ReadOnlyBooleanProperty() {
+    public ReadOnlyStringProperty getReadOnlyStringProperty() {
+        if (null == readOnlyStringProperty) {
+            readOnlyStringProperty = new ReadOnlyStringProperty() {
 
-                private ExpressionHelper<Boolean> helper = null;
+                private ExpressionHelper<String> helper = null;
 
                 @Override
-                public boolean get() {
-                    return CalculatedBooleanProperty.this.get();
+                public String get() {
+                    return DerivedStringProperty.this.get();
                 }
 
                 @Override
-                public void addListener(ChangeListener<? super Boolean> listener) {
+                public void addListener(ChangeListener<? super String> listener) {
                     helper = ExpressionHelper.addListener(helper, this, listener);
                 }
 
                 @Override
-                public void removeListener(ChangeListener<? super Boolean> listener) {
+                public void removeListener(ChangeListener<? super String> listener) {
                     helper = ExpressionHelper.removeListener(helper, listener);
                 }
 
@@ -68,17 +74,17 @@ public class CalculatedBooleanProperty<T> extends CalculatedBooleanExpression<T>
 
                 @Override
                 public Object getBean() {
-                    return CalculatedBooleanProperty.this.getBean();
+                    return DerivedStringProperty.this.getBean();
                 }
 
                 @Override
                 public String getName() {
-                    return CalculatedBooleanProperty.this.getName();
+                    return DerivedStringProperty.this.getName();
                 }
 
             };
         }
-        return readOnlyBooleanProperty;
+        return readOnlyStringProperty;
     }
 
 }

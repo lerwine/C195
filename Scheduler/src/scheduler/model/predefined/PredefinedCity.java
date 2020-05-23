@@ -10,14 +10,10 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
 import scheduler.dao.CityDbRecord;
-import scheduler.dao.DataAccessObject;
-import scheduler.dao.DbRecord;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.City;
+import scheduler.model.ui.CityItem;
 import scheduler.model.ui.IFxRecordModel;
 import scheduler.observables.NestedStringProperty;
-import scheduler.util.DB;
-import scheduler.model.ui.CityItem;
 
 /**
  * Represents a pre-defined city that is loaded with the application.
@@ -35,15 +31,18 @@ public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxR
     private final ReadOnlyObjectWrapper<PredefinedCountry> country;
     private final ReadOnlyListWrapper<PredefinedAddress> addresses;
     private final NestedStringProperty<PredefinedCountry> countryName;
-    private final ReadOnlyObjectWrapper<CityDbRecord> dataObject;
     private final PredefinedDataProperty<PredefinedCity> predefinedData;
-    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
-    private final ReadOnlyStringWrapper createdBy;
-    private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
-    private final ReadOnlyStringWrapper lastModifiedBy;
+    private final ReadOnlyObjectProperty<LocalDateTime> createDate;
+    private final ReadOnlyStringProperty createdBy;
+    private final ReadOnlyObjectProperty<LocalDateTime> lastModifiedDate;
+    private final ReadOnlyStringProperty lastModifiedBy;
 
     PredefinedCity(CityElement source, PredefinedCountry country, ObservableList<PredefinedAddress> addresses) {
-        PlaceHolderDAO dao = new PlaceHolderDAO();
+        setDataObject(new PlaceHolderDAO());
+        createDate = createReadOnlyDaoDateTimeProperty("createDate", (t) -> t.getCreateDate());
+        createdBy = createReadOnlyDaoStringProperty("createdBy", (t) -> t.getCreatedBy());
+        lastModifiedDate = createReadOnlyDaoDateTimeProperty("lastModifiedDate", (t) -> t.getLastModifiedDate());
+        lastModifiedBy = createReadOnlyDaoStringProperty("lastModifiedBy", (t) -> t.getLastModifiedBy());
         String key = source.getKey();
         name = new ReadOnlyStringWrapper(this, "name", PredefinedData.getCityDisplayName(key));
         resourceKey = new ReadOnlyStringWrapper(this, "resourceKey", key);
@@ -53,50 +52,6 @@ public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxR
         countryName = new NestedStringProperty<>(this, "countryName", this.country, (t) -> t.nameProperty());
         language = new ReadOnlyStringWrapper(this, "language", country.getLanguage());
         predefinedData = new PredefinedDataProperty<>(this);
-        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
-        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.toLocalDateTime(dao.getCreateDate()));
-        createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
-        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.toLocalDateTime(dao.getLastModifiedDate()));
-        lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
-        dataObject.addListener(this::dataObjectChanged);
-    }
-
-    @Override
-    protected void onDataObjectChanged(DbRecord newValue) {
-        LocalDateTime d = DB.toLocalDateTime(newValue.getCreateDate());
-        if (!d.equals(createDate.get())) {
-            createDate.set(d);
-        }
-        String s = newValue.getCreatedBy();
-        if (!s.equals(createdBy.get())) {
-            createdBy.set(s);
-        }
-        d = DB.toLocalDateTime(newValue.getLastModifiedDate());
-        if (!d.equals(lastModifiedDate.get())) {
-            lastModifiedDate.set(d);
-        }
-        s = newValue.getLastModifiedBy();
-        if (!s.equals(lastModifiedBy.get())) {
-            lastModifiedBy.set(s);
-        }
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
-        switch (propertyName) {
-            case DataAccessObject.PROP_CREATEDATE:
-                createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
-                break;
-            case DataAccessObject.PROP_CREATEDBY:
-                createdBy.set(dao.getCreatedBy());
-                break;
-            case DataAccessObject.PROP_LASTMODIFIEDBY:
-                lastModifiedBy.set(dao.getLastModifiedBy());
-                break;
-            case DataAccessObject.PROP_LASTMODIFIEDDATE:
-                lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
-                break;
-        }
     }
 
     @Override
@@ -192,7 +147,7 @@ public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxR
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
-        return createDate.getReadOnlyProperty();
+        return createDate;
     }
 
     @Override
@@ -202,7 +157,7 @@ public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxR
 
     @Override
     public ReadOnlyStringProperty createdByProperty() {
-        return createdBy.getReadOnlyProperty();
+        return createdBy;
     }
 
     @Override
@@ -212,7 +167,7 @@ public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxR
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
-        return lastModifiedDate.getReadOnlyProperty();
+        return lastModifiedDate;
     }
 
     @Override
@@ -222,17 +177,7 @@ public class PredefinedCity extends PredefinedItem<CityDbRecord> implements IFxR
 
     @Override
     public ReadOnlyStringProperty lastModifiedByProperty() {
-        return lastModifiedBy.getReadOnlyProperty();
-    }
-
-    @Override
-    public CityDbRecord getDataObject() {
-        return dataObject.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<? extends CityDbRecord> dataObjectProperty() {
-        return dataObject.getReadOnlyProperty();
+        return lastModifiedBy;
     }
 
     @Override

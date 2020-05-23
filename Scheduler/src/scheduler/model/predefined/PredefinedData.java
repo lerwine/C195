@@ -41,7 +41,7 @@ import scheduler.model.ui.CityItem;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PredefinedData {
 
-    static final String NAMESPACE_URI = "urn:Erwine.Leonard.T:C195:StaticAddresses.xsd";
+    public static final String NAMESPACE_URI = "urn:Erwine.Leonard.T:C195:StaticAddresses.xsd";
     static final String XML_FILE = "scheduler/StaticAddresses.xml";
     private static ObservableMap<String, PredefinedCountry> COUNTRY_MAP;
     private static ObservableMap<String, PredefinedCity> CITY_MAP;

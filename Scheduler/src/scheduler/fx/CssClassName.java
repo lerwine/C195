@@ -60,6 +60,14 @@ public enum CssClassName {
      */
     LEFTLABELEDCONTROL("leftLabeledControl"),
     /**
+     * The {@code "topControlLabel"} CSS class for {@link javafx.scene.control.Labeled} nodes aligned to the left of the control they label.
+     */
+    TOPCONTROLLABEL("topControlLabel"),
+    /**
+     * The {@code "topLabeledControl"} CSS class for nodes aligned to the right their label.
+     */
+    TOPLABELEDCONTROL("topLabeledControl"),
+    /**
      * The {@code "h1"} CSS class.
      */
     H1("h1"),

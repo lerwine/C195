@@ -2,25 +2,16 @@ package scheduler.model.ui;
 
 import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.ModelHelper;
-import static scheduler.model.ui.AddressModel.calculateAddressLines;
-import static scheduler.model.ui.AddressModel.calculateCityZipCountry;
-import scheduler.observables.CalculatedStringExpression;
-import scheduler.observables.CalculatedStringProperty;
-import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
-import scheduler.observables.ObservableTriplet;
-import scheduler.observables.ObservableTuple;
-import scheduler.util.Triplet;
-import scheduler.util.Tuple;
-import scheduler.util.Values;
+import scheduler.observables.ObservableStringDerivitive;
+import scheduler.observables.WrappedStringObservableProperty;
 
 /**
  *
@@ -28,65 +19,36 @@ import scheduler.util.Values;
  */
 public class RelatedAddress extends RelatedModel<IAddressDAO> implements AddressItem<IAddressDAO> {
 
-    private final ReadOnlyStringWrapper address1;
-    private final ReadOnlyStringWrapper address2;
-    private final CalculatedStringProperty<Tuple<String, String>> addressLines;
-    private final ReadOnlyObjectWrapper<CityItem<? extends ICityDAO>> city;
+    private final ReadOnlyStringProperty address1;
+    private final ReadOnlyStringProperty address2;
+    private final WrappedStringObservableProperty addressLines;
+    private final ReadOnlyObjectProperty<CityItem<? extends ICityDAO>> city;
     private final NestedStringProperty<CityItem<? extends ICityDAO>> cityName;
     private final NestedStringProperty<CityItem<? extends ICityDAO>> countryName;
-    private final ReadOnlyStringWrapper postalCode;
-    private final ReadOnlyStringWrapper phone;
-    private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
+    private final ReadOnlyStringProperty postalCode;
+    private final ReadOnlyStringProperty phone;
+    private final WrappedStringObservableProperty cityZipCountry;
     private final NestedStringProperty<CityItem<? extends ICityDAO>> language;
-    private final NestedObjectValueProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
+    private final NestedObjectProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
 
     public RelatedAddress(IAddressDAO rowData) {
         super(rowData);
-        address1 = new ReadOnlyStringWrapper(this, "address1", rowData.getAddress1());
-        address2 = new ReadOnlyStringWrapper(this, "address2", rowData.getAddress2());
-        addressLines = new CalculatedStringProperty<>(this, "addressLines",
-                new ObservableTuple<>(
-                        new CalculatedStringExpression<>(address1, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(address2, Values::asNonNullAndWsNormalized)
-                ), (t) -> calculateAddressLines(t.getValue1(), t.getValue2())
+
+        address1 = createReadOnlyDaoStringProperty("address1", (t) -> t.getAddress1());
+        address2 = createReadOnlyDaoStringProperty("address2", (t) -> t.getAddress2());
+        addressLines = new WrappedStringObservableProperty(this, "addressLines",
+                ObservableStringDerivitive.of(address1, address2, AddressModel::calculateAddressLines)
         );
-        ICityDAO c = rowData.getCity();
-        city = new ReadOnlyObjectWrapper<>(this, "city", (null == c) ? null : new RelatedCity(c));
+        city = createReadOnlyNestedDaoModelProperty("city", (t) -> (null == t) ? null : t.getCity(), CityItem::createModel);
         cityName = new NestedStringProperty<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new NestedStringProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
         postalCode = new ReadOnlyStringWrapper(this, "postalCode", rowData.getPostalCode());
         phone = new ReadOnlyStringWrapper(this, "phone", rowData.getPhone());
-        cityZipCountry = new CalculatedStringProperty<>(this, "cityZipCountry",
-                new ObservableTriplet<>(
-                        new CalculatedStringExpression<>(cityName, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(countryName, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(postalCode, Values::asNonNullAndWsNormalized)
-                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        cityZipCountry = new WrappedStringObservableProperty(this, "cityZipCountry",
+                ObservableStringDerivitive.of(cityName, countryName, postalCode, AddressModel::calculateCityZipCountry)
         );
         language = new NestedStringProperty<>(this, "language", city, (t) -> t.languageProperty());
-        zoneId = new NestedObjectValueProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
-    }
-
-    @Override
-    protected void onDataObjectPropertyChanged(IAddressDAO dao, String propertyName) {
-        switch (propertyName) {
-            case AddressDAO.PROP_ADDRESS1:
-                address1.set(dao.getAddress1());
-                break;
-            case AddressDAO.PROP_ADDRESS2:
-                address2.set(dao.getAddress2());
-                break;
-            case AddressDAO.PROP_CITY:
-                ICityDAO c = dao.getCity();
-                city.set((null == c) ? null : new RelatedCity(c));
-                break;
-            case AddressDAO.PROP_PHONE:
-                phone.set(dao.getPhone());
-                break;
-            case AddressDAO.PROP_POSTALCODE:
-                postalCode.set(dao.getPostalCode());
-                break;
-        }
+        zoneId = new NestedObjectProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
     }
 
     @Override
@@ -96,7 +58,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public ReadOnlyStringProperty address1Property() {
-        return address1.getReadOnlyProperty();
+        return address1;
     }
 
     @Override
@@ -106,7 +68,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public ReadOnlyStringProperty address2Property() {
-        return address2.getReadOnlyProperty();
+        return address2;
     }
 
     public String getAddressLines() {
@@ -145,7 +107,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public ReadOnlyObjectProperty<CityItem<? extends ICityDAO>> cityProperty() {
-        return city.getReadOnlyProperty();
+        return city;
     }
 
     @Override
@@ -155,7 +117,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public ReadOnlyStringProperty postalCodeProperty() {
-        return postalCode.getReadOnlyProperty();
+        return postalCode;
     }
 
     @Override
@@ -165,7 +127,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public ReadOnlyStringProperty phoneProperty() {
-        return phone.getReadOnlyProperty();
+        return phone;
     }
 
     @Override

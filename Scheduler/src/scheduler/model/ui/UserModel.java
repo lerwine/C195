@@ -6,14 +6,13 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import scheduler.dao.DataRowState;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
-import scheduler.observables.CalculatedBooleanProperty;
-import scheduler.observables.ObservableTriplet;
+import scheduler.observables.ObservableDerivitive;
 import scheduler.observables.UserStatusProperty;
-import scheduler.util.Triplet;
+import scheduler.observables.WrappedBooleanObservableProperty;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -31,45 +30,18 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     private final SimpleStringProperty userName;
     private final SimpleStringProperty password;
     private final UserStatusProperty status;
-    private final CalculatedBooleanProperty<Triplet<String, String, UserStatus>> valid;
+    private final WrappedBooleanObservableProperty valid;
 
     public UserModel(UserDAO dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
         password = new SimpleStringProperty(this, "password", dao.getPassword());
         status = new UserStatusProperty(this, "status", dao.getStatus());
-        valid = new CalculatedBooleanProperty<>(this, "valid", new ObservableTriplet<>(userName, password, status), (t) -> {
-            String s = t.getValue1();
-            if (null != s && !s.trim().isEmpty()) {
-                s = t.getValue2();
-                if (null != s && !s.trim().isEmpty()) {
-                    return null != t.getValue2();
-                }
-            }
-            return false;
-        });
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(UserDAO dao, String propertyName) {
-        switch (propertyName) {
-            case UserDAO.PROP_PASSWORD:
-                password.set(dao.getPassword());
-                break;
-            case UserDAO.PROP_STATUS:
-                status.set(dao.getStatus());
-                break;
-            case UserDAO.PROP_USERNAME:
-                userName.set(dao.getUserName());
-                break;
-        }
-    }
-
-    @Override
-    protected void onDataObjectChanged(UserDAO dao) {
-        password.set(dao.getPassword());
-        setUserName(dao.getUserName());
-        setStatus(dao.getStatus());
+        valid = new WrappedBooleanObservableProperty(this, "valid",
+                ObservableDerivitive.isNotNullOrWhiteSpace(userName).and(
+                        ObservableDerivitive.isNotNullOrWhiteSpace(password),
+                        ObservableDerivitive.isNotNull(status)
+                ));
     }
 
     @Override
@@ -124,7 +96,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
     @Override
     public int hashCode() {
-        if (isNewItem()) {
+        if (isNewRow()) {
             int hash = 7;
             hash = 43 * hash + Objects.hashCode(userName.get());
             hash = 43 * hash + Objects.hashCode(password.get());
@@ -141,10 +113,10 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
         if (null != obj && obj instanceof UserModel) {
             final UserModel other = (UserModel) obj;
-            if (isNewItem()) {
+            if (isNewRow()) {
                 return userName.isEqualTo(other.userName).get() && password.isEqualTo(other.password).get() && status.isEqualTo(other.status).get();
             }
-            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
     }
@@ -198,6 +170,13 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
             dao.setPassword(item.password.get());
             dao.setStatus(item.getStatus());
             return dao;
+        }
+
+        @Override
+        protected void updateItemProperties(UserModel item, UserDAO dao) {
+            item.setUserName(dao.getUserName());
+            item.setPassword(dao.getPassword());
+            item.setStatus(dao.getStatus());
         }
 
     }

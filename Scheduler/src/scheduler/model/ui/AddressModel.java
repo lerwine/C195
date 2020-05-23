@@ -1,17 +1,12 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -22,20 +17,16 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
-import scheduler.model.predefined.PredefinedCity;
-import scheduler.observables.CalculatedBooleanProperty;
-import scheduler.observables.CalculatedStringExpression;
-import scheduler.observables.CalculatedStringProperty;
-import scheduler.observables.NestedObjectValueExpression;
-import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.ObservableTriplet;
-import scheduler.observables.ObservableTuple;
+import scheduler.observables.ObservableDerivitive;
+import scheduler.observables.ObservableObjectDerivitive;
+import scheduler.observables.ObservableStringDerivitive;
+import scheduler.observables.WrappedBooleanObservableProperty;
+import scheduler.observables.WrappedStringObservableProperty;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
-import scheduler.util.Triplet;
-import scheduler.util.Tuple;
-import scheduler.util.Values;
+import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
@@ -52,117 +43,148 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         return FACTORY;
     }
 
+    /**
+     * Formats both address lines into a one or two line string.
+     *
+     * @param line1 The first address line.
+     * @param line2 The second address line.
+     * @return A First and second address lines formatted as a 1 or 2 line white-space-normalized string.
+     */
     public static String calculateAddressLines(String line1, String line2) {
-        if (line1.isEmpty()) {
-            return line2;
+        if ((line1 = asNonNullAndWsNormalized(line1)).isEmpty()) {
+            return asNonNullAndWsNormalized(line2);
         }
-        return (line2.isEmpty()) ? line1 : String.format("%s%n%s", line1, line2);
+        return ((line2 = asNonNullAndWsNormalized(line2)).isEmpty()) ? line1 : String.format("%s%n%s", line1, line2);
     }
 
+    /**
+     * Formats city, postal code and country into a single line.
+     *
+     * @param city The name of the city.
+     * @param country The name of the country.
+     * @param postalCode The postal code.
+     * @return The city, postal code and country formated as a single white-space-normalized string.
+     */
     public static String calculateCityZipCountry(String city, String country, String postalCode) {
-        if (city.isEmpty()) {
-            return (postalCode.isEmpty()) ? country : ((country.isEmpty()) ? postalCode : String.format("%s, %s", postalCode, country));
+        if ((city = asNonNullAndWsNormalized(city)).isEmpty()) {
+            return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
+                    ? asNonNullAndWsNormalized(country)
+                    : (((asNonNullAndWsNormalized(country)).isEmpty())
+                    ? postalCode : String.format("%s, %s", postalCode, country));
         }
-        if (country.isEmpty()) {
-            return (postalCode.isEmpty()) ? city : String.format("%s %s", city, postalCode);
+        if ((country = asNonNullAndWsNormalized(country)).isEmpty()) {
+            return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
+                    ? city : String.format("%s %s", city, postalCode);
         }
-        return (postalCode.isEmpty()) ? String.format("%s, %s", city, country) : String.format("%s %s, %s", city, postalCode, country);
+        return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
+                ? String.format("%s, %s", city, country)
+                : String.format("%s %s, %s", city, postalCode, country);
     }
 
+    /**
+     * Formats address as a multi-line string.
+     *
+     * @param address A 1 or 2 line white-space-normalized string, usually formatted using {@link #calculateAddressLines(String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
+     * {@link #calculateCityZipCountry(String, String, String)}.
+     * @param phone The phone number string which will be normalized in this method.
+     * @return A multi-line white-space-normalized address string.
+     */
     public static String calculateMultiLineAddress(String address, String cityZipCountry, String phone) {
         if (address.isEmpty()) {
             if (cityZipCountry.isEmpty()) {
-                return (phone.isEmpty()) ? "" : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? ""
+                        : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
             }
-            return (phone.isEmpty()) ? cityZipCountry : String.format("%s%n%s %s", cityZipCountry,
+            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? cityZipCountry : String.format("%s%n%s %s", cityZipCountry,
                     getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
         }
         if (cityZipCountry.isEmpty()) {
-            return (phone.isEmpty()) ? address
+            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address
                     : String.format("%s%n%s %s", address, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
         }
-        return (phone.isEmpty()) ? String.format("%s%n%s", address, cityZipCountry)
+        return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? String.format("%s%n%s", address, cityZipCountry)
                 : String.format("%s%n%s%n%s %s", address, cityZipCountry, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
     }
 
+    /**
+     * Formats an address as a single line string.
+     *
+     * @param address1 The first line of the street address which will be normalized by this method.
+     * @param address2 The second line of the street address which will be normalized by this method.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
+     * {@link #calculateCityZipCountry(String, String, String)}.
+     * @param phone The phone number string which will be normalized in this method.
+     * @return The address formatted as a single line white-space-normalized string.
+     */
     public static String calculateSingleLineAddress(String address1, String address2, String cityZipCountry, String phone) {
-        if (address1.isEmpty()) {
-            if (address2.isEmpty()) {
-                return (cityZipCountry.isEmpty()) ? phone : ((phone.isEmpty()) ? cityZipCountry : String.format("%s, %s", cityZipCountry, phone));
+        if ((address1 = asNonNullAndWsNormalized(address1)).isEmpty()) {
+            if ((address2 = asNonNullAndWsNormalized(address2)).isEmpty()) {
+                return (cityZipCountry.isEmpty()) ? asNonNullAndWsNormalized(phone)
+                        : (((phone = asNonNullAndWsNormalized(phone)).isEmpty())
+                        ? cityZipCountry : String.format("%s, %s", cityZipCountry, phone));
             }
             if (cityZipCountry.isEmpty()) {
-                return (phone.isEmpty()) ? address2 : String.format("%s, %s", address2, phone);
+                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address2 : String.format("%s, %s", address2, phone);
             }
-            return (phone.isEmpty()) ? String.format("%s, %s", address2, cityZipCountry) : String.format("%s, %s, %s", address2, cityZipCountry, phone);
+            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
+                    ? String.format("%s, %s", address2, cityZipCountry)
+                    : String.format("%s, %s, %s", address2, cityZipCountry, phone);
         }
-        if (address2.isEmpty()) {
+        if ((address2 = asNonNullAndWsNormalized(address2)).isEmpty()) {
             if (cityZipCountry.isEmpty()) {
-                return (phone.isEmpty()) ? address1 : String.format("%s, %s", address1, phone);
+                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address1 : String.format("%s, %s", address1, phone);
             }
-            return (phone.isEmpty()) ? String.format("%s, %s", address1, cityZipCountry) : String.format("%s, %s, %s", address1, cityZipCountry, phone);
+            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
+                    ? String.format("%s, %s", address1, cityZipCountry)
+                    : String.format("%s, %s, %s", address1, cityZipCountry, phone);
         }
         if (cityZipCountry.isEmpty()) {
-            return (phone.isEmpty()) ? String.format("%s, %s", address1, address2) : String.format("%s, %s, %s", address1, address2, phone);
+            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
+                    ? String.format("%s, %s", address1, address2)
+                    : String.format("%s, %s, %s", address1, address2, phone);
         }
-        return (phone.isEmpty()) ? String.format("%s, %s, %s", address1, address2, cityZipCountry) : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
-    }
-
-    public static CalculatedStringExpression<Triplet<String, String, String>> cityZipCountryExpression(ObservableValue<String> city, ObservableValue<String> country,
-            ObservableValue<String> postalCodeNormalized) {
-        return new CalculatedStringExpression<>(
-                new ObservableTriplet<>(
-                        new CalculatedStringExpression<>(city, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(country, Values::asNonNullAndWsNormalized),
-                        postalCodeNormalized
-                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
-        );
+        return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
+                ? String.format("%s, %s, %s", address1, address2, cityZipCountry)
+                : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
     }
 
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
-    private final CalculatedStringProperty<Tuple<String, String>> addressLines;
+    private final WrappedStringObservableProperty addressLines;
     private final SimpleObjectProperty<CityItem<? extends ICityDAO>> city;
     private final NestedStringProperty<CityItem<? extends ICityDAO>> cityName;
     private final NestedStringProperty<CityItem<? extends ICityDAO>> countryName;
     private final NonNullableStringProperty postalCode;
     private final NonNullableStringProperty phone;
-    private final CalculatedStringProperty<Triplet<String, String, String>> cityZipCountry;
+    private final WrappedStringObservableProperty cityZipCountry;
     private final NestedStringProperty<CityItem<? extends ICityDAO>> language;
-    private final NestedObjectValueProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
-    private final CalculatedBooleanProperty<Triplet<String, PredefinedCity, String>> valid;
+    private final NestedObjectProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
+    private final WrappedBooleanObservableProperty valid;
 
     public AddressModel(AddressDAO dao) {
         super(dao);
         address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
         address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
-        addressLines = new CalculatedStringProperty<>(this, "addressLines",
-                new ObservableTuple<>(
-                        new CalculatedStringExpression<>(address1, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(address2, Values::asNonNullAndWsNormalized)
-                ), (t) -> calculateAddressLines(t.getValue1(), t.getValue2())
+        addressLines = new WrappedStringObservableProperty(this, "addressLines",
+                ObservableStringDerivitive.of(address1, address2, AddressModel::calculateAddressLines)
         );
-        ICityDAO c = dao.getCity();
-        city = new SimpleObjectProperty<>(this, "city", (null == c) ? null : new RelatedCity(c));
+        city = new SimpleObjectProperty<>(this, "city", CityItem.createModel(dao.getCity()));
         cityName = new NestedStringProperty<>(this, "cityName", city, (t) -> t.nameProperty());
         countryName = new NestedStringProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
         postalCode = new NonNullableStringProperty(this, "postalCode", dao.getPostalCode());
         phone = new NonNullableStringProperty(this, "phone", dao.getPhone());
-        CalculatedStringExpression<String> zipNormalized = new CalculatedStringExpression<>(postalCode, Values::asNonNullAndWsNormalized);
-        cityZipCountry = new CalculatedStringProperty<>(this, "cityZipCountry",
-                new ObservableTriplet<>(
-                        new CalculatedStringExpression<>(cityName, Values::asNonNullAndWsNormalized),
-                        new CalculatedStringExpression<>(countryName, Values::asNonNullAndWsNormalized),
-                        zipNormalized
-                ), (t) -> calculateCityZipCountry(t.getValue1(), t.getValue2(), t.getValue3())
+        cityZipCountry = new WrappedStringObservableProperty(this, "cityZipCountry",
+                ObservableStringDerivitive.of(cityName, countryName, postalCode, AddressModel::calculateCityZipCountry)
         );
         language = new NestedStringProperty<>(this, "language", city, (t) -> t.languageProperty());
-        zoneId = new NestedObjectValueProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
-        valid = new CalculatedBooleanProperty<>(this, "valid",
-                new ObservableTriplet<>(
-                        addressLines,
-                        new NestedObjectValueExpression<>(city, (CityItem<? extends ICityDAO> u) -> u.predefinedDataProperty()),
-                        zipNormalized
-                ), (t) -> !(t.getValue1().isEmpty() || null == t.getValue2() || t.getValue1().isEmpty())
+        zoneId = new NestedObjectProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
+
+        valid = new WrappedBooleanObservableProperty(this, "valid",
+                ObservableDerivitive.isNotNullOrWhiteSpace(addressLines).and(
+                        ObservableObjectDerivitive.ofNested(city, (u) -> u.predefinedDataProperty()).isNotNull(),
+                        ObservableDerivitive.isNotNullOrEmpty(postalCode)
+                )
         );
     }
 
@@ -321,45 +343,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
         if (null != obj && obj instanceof AddressModel) {
             final AddressModel other = (AddressModel) obj;
-            if (isNewItem()) {
+            if (isNewRow()) {
                 return address1.isEqualTo(other.address1).get() && address2.isEqualTo(other.address2).get() && city.isEqualTo(other.city).get()
                         && postalCode.isEqualTo(other.postalCode).get() && phone.isEqualTo(other.phone).get();
             }
-            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(AddressDAO dao, String propertyName) {
-        switch (propertyName) {
-            case AddressDAO.PROP_ADDRESS1:
-                address1.set(dao.getAddress1());
-                break;
-            case AddressDAO.PROP_ADDRESS2:
-                address2.set(dao.getAddress2());
-                break;
-            case AddressDAO.PROP_CITY:
-                ICityDAO c = dao.getCity();
-                city.set((null == c) ? null : new RelatedCity(c));
-                break;
-            case AddressDAO.PROP_PHONE:
-                phone.set(dao.getPhone());
-                break;
-            case AddressDAO.PROP_POSTALCODE:
-                postalCode.set(dao.getPostalCode());
-                break;
-        }
-    }
-
-    @Override
-    protected void onDataObjectChanged(AddressDAO dao) {
-        address1.set(dao.getAddress1());
-        address2.set(dao.getAddress2());
-        ICityDAO c = dao.getCity();
-        city.set((null == c) ? null : new RelatedCity(c));
-        postalCode.set(dao.getPostalCode());
-        phone.set(dao.getPhone());
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {
@@ -394,13 +384,22 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             if (ModelHelper.getRowState(cityDAO) == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");
             }
-            item.isNewItem();
+            item.isNewRow();
             dao.setCity(cityDAO);
             dao.setAddress1(address1);
             dao.setAddress2(address2);
             dao.setPostalCode(item.getPostalCode());
             dao.setPhone(item.getPhone());
             return dao;
+        }
+
+        @Override
+        protected void updateItemProperties(AddressModel item, AddressDAO dao) {
+            item.setAddress1(dao.getAddress1());
+            item.setAddress2(dao.getAddress2());
+            item.setCity(CityItem.createModel(dao.getCity()));
+            item.setPostalCode(dao.getPostalCode());
+            item.setPhone(dao.getPhone());
         }
 
         @Override
@@ -431,46 +430,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         @Override
         public ModelFilter<AddressDAO, AddressModel, ? extends DaoFilter<AddressDAO>> getDefaultFilter() {
             return getAllItemsFilter();
-        }
-
-    }
-
-    @Deprecated
-    class AddressLinesProperty extends StringBinding implements ReadOnlyProperty<String> {
-
-        AddressLinesProperty() {
-            super.bind(address1, address2);
-        }
-
-        @Override
-        protected String computeValue() {
-            String a1 = Values.asNonNullAndWsNormalized(address1.get());
-            String a2 = Values.asNonNullAndWsNormalized(address2.get());
-            if (a2.isEmpty()) {
-                return a1;
-            }
-            return a1.isEmpty() ? a2 : String.format("%s%n%s", a1, a2);
-        }
-
-        @Override
-        public Object getBean() {
-            return AddressModel.this;
-        }
-
-        @Override
-        public String getName() {
-            return "addressLines";
-        }
-
-        @Override
-        public ObservableList<?> getDependencies() {
-            return FXCollections.observableArrayList(address1, address2);
-        }
-
-        @Override
-        public void dispose() {
-            super.unbind(address1, address2);
-            super.dispose();
         }
 
     }

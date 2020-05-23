@@ -15,7 +15,7 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class NestedBooleanExpression<T> extends CalculatedObjectExpression<Boolean> implements ObservableBooleanValue {
+public class NestedBooleanDerivation<T> extends DerivedObservable<Boolean> implements ObservableBooleanDerivitive {
 
     private final Function<T, ObservableBooleanValue> selector;
     private final Optional<Boolean> defaultValue;
@@ -23,12 +23,20 @@ public class NestedBooleanExpression<T> extends CalculatedObjectExpression<Boole
     private boolean value;
     private BooleanExpression booleanExpression;
 
-    public NestedBooleanExpression(ObservableValue<T> source, Function<T, ObservableBooleanValue> selector, Optional<Boolean> defaultValue) {
+    public NestedBooleanDerivation(ObservableValue<T> source, Function<T, ObservableBooleanValue> selector, Optional<Boolean> defaultValue) {
         this.selector = selector;
         this.defaultValue = (null == defaultValue) ? Optional.empty() : defaultValue;
         value = this.defaultValue.orElse(false);
         source.addListener(this::onSourceChange);
         onSourceChange(source, null, source.getValue());
+    }
+
+    public NestedBooleanDerivation(ObservableValue<T> source, Function<T, ObservableBooleanValue> selector, boolean defaultValue) {
+        this(source, selector, Optional.of(defaultValue));
+    }
+
+    public NestedBooleanDerivation(ObservableValue<T> source, Function<T, ObservableBooleanValue> selector) {
+        this(source, selector, Optional.empty());
     }
 
     private void onSourceChange(ObservableValue<? extends T> observable, T oldValue, T newValue) {
@@ -92,7 +100,7 @@ public class NestedBooleanExpression<T> extends CalculatedObjectExpression<Boole
 
                 @Override
                 public boolean get() {
-                    return NestedBooleanExpression.this.get();
+                    return NestedBooleanDerivation.this.get();
                 }
 
                 @Override

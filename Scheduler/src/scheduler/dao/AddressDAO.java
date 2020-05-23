@@ -9,6 +9,10 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -26,6 +30,7 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
+import scheduler.model.predefined.PredefinedData;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
@@ -479,5 +484,49 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
         }
 
+    }
+    
+    @XmlRootElement(name = PredefinedElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class PredefinedElement {
+        public static final String ELEMENT_NAME = "address";
+        
+        @XmlAttribute
+        private boolean mainOffice;
+        @XmlAttribute
+        private String key;
+        @XmlAttribute
+        private String address1;
+        @XmlAttribute
+        private String address2;
+        @XmlAttribute
+        private String postalCode;
+        @XmlAttribute
+        private String phone;
+
+        public boolean isMainOffice() {
+            return mainOffice;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getAddress1() {
+            return address1;
+        }
+
+        public String getAddress2() {
+            return address2;
+        }
+
+        public String getPostalCode() {
+            return postalCode;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+        
     }
 }

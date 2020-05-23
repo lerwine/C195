@@ -4,7 +4,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import scheduler.dao.IUserDAO;
-import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.observables.UserStatusProperty;
 
@@ -51,18 +50,6 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
     @Override
     public ReadOnlyStringProperty statusDisplayProperty() {
         return status.displayTextProperty();
-    }
-
-    @Override
-    protected void onDataObjectPropertyChanged(IUserDAO dao, String propertyName) {
-        switch (propertyName) {
-            case UserDAO.PROP_USERNAME:
-                userName.set(dao.getUserName());
-                break;
-            case UserDAO.PROP_STATUS:
-                status.set(dao.getStatus());
-                break;
-        }
     }
 
 }

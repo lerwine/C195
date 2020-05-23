@@ -1,11 +1,11 @@
 package scheduler.model.ui;
 
 import java.util.Objects;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -17,6 +17,11 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
+import scheduler.observables.ObservableBooleanDerivitive;
+import scheduler.observables.ObservableDerivitive;
+import scheduler.observables.ObservableStringDerivitive;
+import scheduler.observables.WrappedBooleanObservableProperty;
+import scheduler.observables.WrappedStringObservableProperty;
 import scheduler.view.customer.CustomerModelFilter;
 
 /**
@@ -42,13 +47,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     private final NestedStringProperty<AddressItem<? extends IAddressDAO>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final SimpleBooleanProperty active;
-    private final StringBinding multiLineAddress;
+    private final WrappedStringObservableProperty multiLineAddress;
+    private final WrappedBooleanObservableProperty valid;
 
     public CustomerModel(CustomerDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, "name", dao.getName());
-        IAddressDAO a = dao.getAddress();
-        address = new SimpleObjectProperty<>(this, "address", (null == a) ? null : new RelatedAddress(a));
+        address = new SimpleObjectProperty<>(this, "address", AddressItem.createModel(dao.getAddress()));
         address1 = new NestedStringProperty<>(this, "address1", address, (c) -> c.address1Property());
         address2 = new NestedStringProperty<>(this, "address2", address, (c) -> c.address2Property());
         cityName = new NestedStringProperty<>(this, "cityName", address, (c) -> c.cityNameProperty());
@@ -58,37 +63,24 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         cityZipCountry = new NestedStringProperty<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
         addressText = new AddressTextProperty(this, "addressText", this);
         active = new SimpleBooleanProperty(this, "active", dao.isActive());
-        multiLineAddress = AddressItem.createMultiLineAddressBinding(address1, address2, cityZipCountry, phone);
-        // CURRENT: Add validation properties
+        multiLineAddress = new WrappedStringObservableProperty(this, "multiLineAddress",
+                ObservableStringDerivitive.of(
+                        ObservableStringDerivitive.ofNested(address, (t) -> t.addressLinesProperty()),
+                        cityZipCountry,
+                        phone,
+                        AddressModel::calculateMultiLineAddress)
+        );
+        valid = new WrappedBooleanObservableProperty(this, "valid",
+                ObservableDerivitive.and(
+                        ObservableDerivitive.isNotNullOrWhiteSpace(name),
+                        ObservableBooleanDerivitive.ofNested(address, (u) -> u.validProperty(), false)
+                )
+        );
     }
 
     @Override
-    protected void onDaoPropertyChanged(CustomerDAO dao, String propertyName) {
-        switch (propertyName) {
-            case CustomerDAO.PROP_ACTIVE:
-                setActive(isActive());
-                break;
-            case CustomerDAO.PROP_ADDRESS:
-                IAddressDAO addressDAO = dao.getAddress();
-                setAddress((null == addressDAO) ? null : new RelatedAddress(addressDAO));
-                break;
-            case CustomerDAO.PROP_NAME:
-                setName(dao.getName());
-                break;
-        }
-    }
-
-    @Override
-    protected void onDataObjectChanged(CustomerDAO dao) {
-        setName(dao.getName());
-        setActive(isActive());
-        IAddressDAO addressDAO = dao.getAddress();
-        setAddress((null == addressDAO) ? null : new RelatedAddress(addressDAO));
-    }
-
-    @Override
-    public StringBinding getMultiLineAddress() {
-        return multiLineAddress;
+    public ReadOnlyStringProperty getMultiLineAddress() {
+        return multiLineAddress.getReadOnlyStringProperty();
     }
 
     @Override
@@ -220,7 +212,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     @Override
     public int hashCode() {
-        if (isNewItem()) {
+        if (isNewRow()) {
             int hash = 5;
             hash = 73 * hash + Objects.hashCode(name.get());
             hash = 73 * hash + Objects.hashCode(address.get());
@@ -237,10 +229,10 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
         if (null != obj && obj instanceof CustomerModel) {
             final CustomerModel other = (CustomerModel) obj;
-            if (isNewItem()) {
+            if (isNewRow()) {
                 return name.isEqualTo(other.name).get() && address.isEqualTo(other.address).get() && active.isEqualTo(other.active).get();
             }
-            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
     }
@@ -303,6 +295,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             dao.setName(name);
             dao.setActive(item.isActive());
             return dao;
+        }
+
+        @Override
+        protected void updateItemProperties(CustomerModel item, CustomerDAO dao) {
+            item.setName(dao.getName());
+            item.setActive(dao.isActive());
+            item.setAddress(AddressItem.createModel(dao.getAddress()));
         }
 
     }

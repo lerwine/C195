@@ -11,7 +11,7 @@ import scheduler.util.Tuple;
  * @param <T>
  * @param <U>
  */
-public class ObservableTuple<T, U> extends CalculatedObjectExpression<Tuple<T, U>> implements ObservableObjectValue<Tuple<T, U>> {
+public class ObservableTuple<T, U> extends DerivedObservable<Tuple<T, U>> implements ObservableObjectDerivitive<Tuple<T, U>> {
 
     private Tuple<T, U> value;
 

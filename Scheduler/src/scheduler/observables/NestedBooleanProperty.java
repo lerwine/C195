@@ -15,7 +15,7 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class NestedBooleanProperty<T> extends NestedBooleanExpression<T> implements ReadOnlyProperty<Boolean> {
+public class NestedBooleanProperty<T> extends NestedBooleanDerivation<T> implements ReadOnlyProperty<Boolean> {
 
     private final Object bean;
     private final String name;

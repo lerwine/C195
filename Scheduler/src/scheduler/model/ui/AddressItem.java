@@ -6,6 +6,7 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
@@ -19,6 +20,17 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY
  * @param <T> Type of object for database access.
  */
 public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T> {
+
+    public static AddressItem<? extends IAddressDAO> createModel(IAddressDAO t) {
+        if (null == t) {
+            return null;
+        }
+        if (t instanceof AddressDAO) {
+            return new AddressModel((AddressDAO) t);
+        }
+
+        return new RelatedAddress(t);
+    }
 
     // TODO: Replace this with calculated expressions
     @Deprecated

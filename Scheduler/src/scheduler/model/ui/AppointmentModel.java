@@ -1,11 +1,7 @@
 package scheduler.model.ui;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -15,26 +11,27 @@ import javafx.beans.property.StringProperty;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.DataRowState;
+import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
+import scheduler.dao.UserDAO;
 import scheduler.model.AppointmentType;
-import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
 import scheduler.model.predefined.PredefinedAddress;
 import scheduler.model.predefined.PredefinedData;
 import scheduler.observables.AppointmentTypeProperty;
-import scheduler.observables.CalculatedStringExpression;
-import scheduler.observables.CalculatedStringProperty;
 import scheduler.observables.NestedBooleanProperty;
-import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.ObservableQuadruplet;
+import scheduler.observables.ObservableBooleanDerivitive;
+import scheduler.observables.ObservableDerivitive;
+import scheduler.observables.ObservableStringDerivitive;
+import scheduler.observables.WrappedBooleanObservableProperty;
+import scheduler.observables.WrappedStringObservableProperty;
 import scheduler.util.DB;
-import scheduler.util.Quadruplet;
-import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
 
 /**
@@ -113,7 +110,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final NestedBooleanProperty<CustomerItem<? extends ICustomerDAO>> customerActive;
     private final SimpleObjectProperty<UserItem<? extends IUserDAO>> user;
     private final NestedStringProperty<UserItem<? extends IUserDAO>> userName;
-    private final NestedObjectValueProperty<UserItem<? extends IUserDAO>, UserStatus> userStatus;
+    private final NestedObjectProperty<UserItem<? extends IUserDAO>, UserStatus> userStatus;
     private final NestedStringProperty<UserItem<? extends IUserDAO>> userStatusDisplay;
     private final NonNullableStringProperty title;
     private final NonNullableStringProperty description;
@@ -123,12 +120,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final NonNullableStringProperty url;
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
-    private final CalculatedStringProperty<Quadruplet<AppointmentType, String, String, String>> effectiveLocation;
+    private final WrappedStringObservableProperty effectiveLocation;
+    private final WrappedBooleanObservableProperty valid;
 
     public AppointmentModel(AppointmentDAO dao) {
         super(dao);
-        ICustomerDAO c = dao.getCustomer();
-        customer = new SimpleObjectProperty<>(this, "customer", (null == c) ? null : new RelatedCustomer(c));
+        ICustomerDAO customerDao = dao.getCustomer();
+        customer = new SimpleObjectProperty<>(this, "customer", (null == customerDao) ? null : new RelatedCustomer(customerDao));
         customerName = new NestedStringProperty<>(this, "customerName", customer, (t) -> t.nameProperty());
         customerAddress1 = new NestedStringProperty<>(this, "customerAddress1", customer, (t) -> t.address1Property());
         customerAddress2 = new NestedStringProperty<>(this, "customerAddress2", customer, (t) -> t.address2Property());
@@ -139,81 +137,68 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         customerCityZipCountry = new NestedStringProperty<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
         customerAddressText = new NestedStringProperty<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
         customerActive = new NestedBooleanProperty<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        IUserDAO u = dao.getUser();
-        user = new SimpleObjectProperty<>(this, "user", (null == u) ? null : new RelatedUser(u));
+        IUserDAO userDao = dao.getUser();
+        user = new SimpleObjectProperty<>(this, "user", (null == userDao) ? null : new RelatedUser(userDao));
         userName = new NestedStringProperty<>(this, "userName", user, (t) -> t.userNameProperty());
-        userStatus = new NestedObjectValueProperty<>(this, "userStatus", user, (t) -> t.statusProperty());
+        userStatus = new NestedObjectProperty<>(this, "userStatus", user, (t) -> t.statusProperty());
         userStatusDisplay = new NestedStringProperty<>(this, "userStatusDisplay", user, (t) -> t.statusDisplayProperty());
         title = new NonNullableStringProperty(this, "title", dao.getTitle());
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
         location = new NonNullableStringProperty(this, "location", dao.getLocation());
+        AppointmentType at = dao.getType();
+        type = new AppointmentTypeProperty(this, "type", (null == at) ? AppointmentType.OTHER : at);
         contact = new NonNullableStringProperty(this, "contact", dao.getContact());
-        type = new AppointmentTypeProperty(this, "type", dao.getType());
         url = new NonNullableStringProperty(this, "url", dao.getUrl());
         start = new SimpleObjectProperty<>(this, "start", DB.toLocalDateTime(dao.getStart()));
         end = new SimpleObjectProperty<>(this, "end", DB.toLocalDateTime(dao.getEnd()));
-        effectiveLocation = new CalculatedStringProperty<>(this, "effectiveLocation", new ObservableQuadruplet<>(
-                type,
-                customerAddressText,
-                new CalculatedStringExpression<>(url, Values::asNonNullAndWsNormalized),
-                new CalculatedStringExpression<>(location, Values::asNonNullAndWsNormalized)
-        ), (t) -> AppointmentModel.calculateEffectiveLocation(t.getValue1(), t.getValue2(), t.getValue3(), t.getValue4()));
-        // CURRENT: Add validation properties
 
-    }
+        ObservableStringDerivitive locZ = ObservableDerivitive.wsNormalized(location);
+        effectiveLocation = new WrappedStringObservableProperty(this, "effectiveLocation", ObservableStringDerivitive.of(type, locZ, customerAddressText,
+                ObservableDerivitive.wsNormalized(url),
+                (t, l, c, u) -> {
+                    if (null != t) {
+                        switch (t) {
+                            case CORPORATE_LOCATION:
+                                if (!l.isEmpty()) {
+                                    PredefinedAddress a = PredefinedData.lookupAddress(l);
+                                    if (null != a) {
+                                        return AddressModel.calculateMultiLineAddress(a.addressLinesProperty().get(), a.getCityZipCountry(), a.getPhone());
+                                    }
+                                }
+                                break;
+                            case CUSTOMER_SITE:
+                                return c;
+                            case VIRTUAL:
+                                return u;
+                        }
+                    }
+                    return l;
+                }));
 
-    @Override
-    protected void onDaoPropertyChanged(AppointmentDAO dao, String propertyName) {
-        switch (propertyName) {
-            case AppointmentDAO.PROP_CONTACT:
-                contact.set(dao.getContact());
-                break;
-            case AppointmentDAO.PROP_CUSTOMER:
-                ICustomerDAO c = dao.getCustomer();
-                customer.set((null == c) ? null : new RelatedCustomer(c));
-                break;
-            case AppointmentDAO.PROP_DESCRIPTION:
-                description.set(dao.getDescription());
-                break;
-            case AppointmentDAO.PROP_END:
-                end.set(DB.toLocalDateTime(dao.getEnd()));
-                break;
-            case AppointmentDAO.PROP_LOCATION:
-                location.set(dao.getLocation());
-                break;
-            case AppointmentDAO.PROP_START:
-                start.set(DB.toLocalDateTime(dao.getStart()));
-                break;
-            case AppointmentDAO.PROP_TITLE:
-                title.set(dao.getTitle());
-                break;
-            case AppointmentDAO.PROP_TYPE:
-                type.set(dao.getType());
-                break;
-            case AppointmentDAO.PROP_URL:
-                url.set(dao.getUrl());
-                break;
-            case AppointmentDAO.PROP_USER:
-                IUserDAO u = dao.getUser();
-                user.set((null == u) ? null : new RelatedUser(u));
-                break;
-        }
-    }
-
-    @Override
-    protected void onDataObjectChanged(AppointmentDAO dao) {
-        contact.set(dao.getContact());
-        ICustomerDAO c = dao.getCustomer();
-        customer.set((null == c) ? null : new RelatedCustomer(c));
-        description.set(dao.getDescription());
-        end.set(DB.toLocalDateTime(dao.getEnd()));
-        location.set(dao.getLocation());
-        start.set(DB.toLocalDateTime(dao.getStart()));
-        title.set(dao.getTitle());
-        IUserDAO u = dao.getUser();
-        user.set((null == u) ? null : new RelatedUser(u));
-        type.set(dao.getType());
-        url.set(dao.getUrl());
+        valid = new WrappedBooleanObservableProperty(this, "valid", locZ.isNotNullOrEmpty().and(
+                ObservableBooleanDerivitive.ofNested(customer, (s) -> s.validProperty(), false),
+                ObservableBooleanDerivitive.ofNested(user, (s) -> s.validProperty(), false),
+                ObservableDerivitive.isNotNullOrWhiteSpace(title),
+                ObservableBooleanDerivitive.of(start, end, (s, e) -> null != s && null != e && s.compareTo(e) <= 0),
+                ObservableBooleanDerivitive.of(type, location, contact, url, (AppointmentType t, String l, String c, String u) -> {
+                    if (null == t || l.isEmpty()) {
+                        return false;
+                    }
+                    switch (t) {
+                        case CUSTOMER_SITE:
+                            if (c.isEmpty()) {
+                                return false;
+                            }
+                            break;
+                        case VIRTUAL:
+                            if (u.isEmpty()) {
+                                return false;
+                            }
+                            break;
+                    }
+                    return true;
+                })
+        ));
     }
 
     @Override
@@ -508,7 +493,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public int hashCode() {
-        if (isNewItem()) {
+        if (isNewRow()) {
             int hash = 7;
             hash = 71 * hash + Objects.hashCode(customer.get());
             hash = 71 * hash + Objects.hashCode(user.get());
@@ -532,25 +517,25 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
         if (null != obj && obj instanceof AppointmentModel) {
             final AppointmentModel other = (AppointmentModel) obj;
-            if (isNewItem()) {
+            if (isNewRow()) {
                 return customer.isEqualTo(other.customer).get() && user.isEqualTo(other.user).get() && title.isEqualTo(other.title).get()
                         && description.isEqualTo(other.description).get() && location.isEqualTo(other.location).get()
                         && contact.isEqualTo(other.contact).get() && type.isEqualTo(other.type).get() && url.isEqualTo(other.url).get()
                         && start.isEqualTo(other.start).get() && end.isEqualTo(other.end).get();
             }
-            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
     }
 
     @Override
     public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AddressModel#isValid
+        return valid.get();
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AddressModel#validProperty
+        return valid.getReadOnlyBooleanProperty();
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {
@@ -584,87 +569,37 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Appointment has been deleted");
             }
-            LocalDateTime start = item.start.get();
-            if (null == start) {
-                throw new IllegalArgumentException("Appointment has no start date");
-            }
-            LocalDateTime end = item.end.get();
-            if (null == end) {
-                throw new IllegalArgumentException("Appointment has no end date");
-            }
-            if (start.compareTo(end) > 0) {
-                throw new IllegalArgumentException("Appointment start date is after its end date");
-            }
-            String title = item.title.get();
-            if (null == title || title.trim().isEmpty()) {
-                throw new IllegalArgumentException("Appointment has no title");
-            }
-            AppointmentType type = item.type.get();
-            String location;
-            String url = item.url.get();
-            URI uri;
-            if (url.trim().isEmpty()) {
-                uri = null;
-            } else {
-                try {
-                    uri = new URI(url);
-                } catch (URISyntaxException ex) {
-                    Logger.getLogger(AppointmentModel.class.getName()).log(Level.WARNING, "Invalid URI", ex);
-                    throw new IllegalArgumentException("Invalid URI");
-                }
+            if (!item.isValid()) {
+                throw new IllegalStateException();
             }
 
-            switch (type) {
-                case CORPORATE_LOCATION:
-                case CUSTOMER_SITE:
-                    location = item.getEffectiveLocation();
-                    break;
-                case VIRTUAL:
-                    if (null == uri) {
-                        throw new IllegalArgumentException("Appointment has no URL");
-                    }
-                    location = item.getEffectiveLocation();
-                    break;
-                case PHONE:
-                    location = item.location.get();
-                    if (location.trim().isEmpty()) {
-                        throw new IllegalArgumentException("Appointment has no phone");
-                    }
-                    break;
-                default:
-                    location = item.location.get();
-                    if (location.trim().isEmpty()) {
-                        throw new IllegalArgumentException("Appointment has no location");
-                    }
-                    break;
-            }
-            CustomerItem<? extends ICustomerDAO> customerModel = item.customer.get();
-            if (null == customerModel) {
-                throw new IllegalArgumentException("No associated customer");
-            }
-            UserItem<? extends IUserDAO> userModel = item.user.get();
-            if (null == userModel) {
-                throw new IllegalArgumentException("No associated user");
-            }
-            ICustomerDAO customerDAO = customerModel.getDataObject();
-            if (ModelHelper.getRowState(customerDAO) == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Associated customer has been deleted");
-            }
-            IUserDAO userDAO = userModel.getDataObject();
-            if (ModelHelper.getRowState(userDAO) == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Associated user has been deleted");
-            }
-            dao.setCustomer(customerDAO);
-            dao.setUser(userDAO);
-            dao.setTitle(title);
-            dao.setType(type);
-            dao.setContact(item.getContact());
+            dao.setCustomer(item.getCustomer().getDataObject());
+            dao.setUser(item.getUser().getDataObject());
+            dao.setTitle(item.getTitle());
             dao.setDescription(item.getDescription());
-            dao.setStart(DB.toUtcTimestamp(start));
-            dao.setEnd(DB.toUtcTimestamp(end));
-            dao.setLocation(location);
-            dao.setUrl(url);
+            dao.setContact(item.getContact());
+            dao.setEnd(DB.toUtcTimestamp(item.getEnd()));
+            dao.setLocation(item.getLocation());
+            dao.setStart(DB.toUtcTimestamp(item.getStart()));
+            dao.setType(item.getType());
+            dao.setUrl(item.getUrl());
             return dao;
+        }
+
+        @Override
+        protected void updateItemProperties(AppointmentModel item, AppointmentDAO dao) {
+            ICustomerDAO c = dao.getCustomer();
+            item.setCustomer((null == c) ? null : ((c instanceof CustomerDAO) ? new CustomerModel((CustomerDAO) c) : new RelatedCustomer(c)));
+            IUserDAO u = dao.getUser();
+            item.setUser((null == u) ? null : ((u instanceof UserDAO) ? new UserModel((UserDAO) u) : new RelatedUser(u)));
+            item.setTitle(dao.getTitle());
+            item.setDescription(dao.getDescription());
+            item.setLocation(dao.getLocation());
+            item.setContact(dao.getContact());
+            item.setType(dao.getType());
+            item.setUrl(dao.getUrl());
+            item.setStart(item.getStart());
+            item.setEnd(item.getEnd());
         }
 
     }

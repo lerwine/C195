@@ -16,9 +16,9 @@ import scheduler.model.UserStatus;
 public final class UserStatusProperty extends SimpleObjectProperty<UserStatus> {
 
     private final ReadOnlyPropertyImpl readOnlyProperty;
-    private final CalculatedBooleanProperty<UserStatus> valid;
-    private final CalculatedStringProperty<UserStatus> displayText;
-    private final CalculatedBooleanProperty<UserStatus> active;
+    private final DerivedBooleanProperty<UserStatus> valid;
+    private final DerivedStringProperty<UserStatus> displayText;
+    private final DerivedBooleanProperty<UserStatus> active;
 
     /**
      *
@@ -29,9 +29,9 @@ public final class UserStatusProperty extends SimpleObjectProperty<UserStatus> {
     public UserStatusProperty(Object bean, String name, UserStatus initialValue) {
         super(bean, name, initialValue);
         readOnlyProperty = new ReadOnlyPropertyImpl();
-        valid = new CalculatedBooleanProperty<>(this, "valid", this, Objects::nonNull);
-        displayText = new CalculatedStringProperty<>(this, "active", this, UserStatus::toDisplayValue);
-        active = new CalculatedBooleanProperty<>(this, "active", this, UserStatus::isActive);
+        valid = new DerivedBooleanProperty<>(this, "valid", this, Objects::nonNull);
+        displayText = new DerivedStringProperty<>(this, "active", this, UserStatus::toDisplayValue);
+        active = new DerivedBooleanProperty<>(this, "active", this, UserStatus::isActive);
     }
 
     public UserStatus getSafe() {

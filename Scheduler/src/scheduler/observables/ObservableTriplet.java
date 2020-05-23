@@ -1,7 +1,6 @@
 package scheduler.observables;
 
 import java.util.Objects;
-import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 import scheduler.util.Triplet;
 
@@ -12,7 +11,8 @@ import scheduler.util.Triplet;
  * @param <U>
  * @param <S>
  */
-public class ObservableTriplet<T, U, S> extends CalculatedObjectExpression<Triplet<T, U, S>> implements ObservableObjectValue<Triplet<T, U, S>> {
+public class ObservableTriplet<T, U, S> extends DerivedObservable<Triplet<T, U, S>> implements ObservableObjectDerivitive<Triplet<T, U, S>> {
+
     private Triplet<T, U, S> value;
 
     public ObservableTriplet(ObservableValue<T> source1, ObservableValue<U> source2, ObservableValue<S> source3) {

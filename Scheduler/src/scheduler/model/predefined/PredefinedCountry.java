@@ -1,5 +1,6 @@
 package scheduler.model.predefined;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Locale;
@@ -11,13 +12,11 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ObservableList;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.CountryDbRecord;
-import scheduler.dao.DataAccessObject;
-import scheduler.dao.DbRecord;
-import scheduler.model.Country;
-import scheduler.model.ui.IFxRecordModel;
-import scheduler.util.DB;
+import scheduler.dao.ICountryDAO;
 import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.IFxRecordModel;
 
 /**
  * Represents a pre-defined countries that are supported by the application.
@@ -36,15 +35,18 @@ public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implement
     private final ReadOnlyStringWrapper regionCode;
     private final ReadOnlyStringWrapper language;
     private final ReadOnlyObjectWrapper<ZoneId> zoneId;
-    private final ReadOnlyObjectWrapper<CountryDbRecord> dataObject;
     private final PredefinedDataProperty<PredefinedCountry> predefinedData;
-    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
-    private final ReadOnlyStringWrapper createdBy;
-    private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
-    private final ReadOnlyStringWrapper lastModifiedBy;
+    private final ReadOnlyObjectProperty<LocalDateTime> createDate;
+    private final ReadOnlyStringProperty createdBy;
+    private final ReadOnlyObjectProperty<LocalDateTime> lastModifiedDate;
+    private final ReadOnlyStringProperty lastModifiedBy;
 
     PredefinedCountry(CountryElement source, ObservableList<PredefinedCity> cities) {
-        PlaceHolderDAO dao = new PlaceHolderDAO();
+        setDataObject(new PlaceHolderDAO());
+        createDate = createReadOnlyDaoDateTimeProperty("createDate", (t) -> t.getCreateDate());
+        createdBy = createReadOnlyDaoStringProperty("createdBy", (t) -> t.getCreatedBy());
+        lastModifiedDate = createReadOnlyDaoDateTimeProperty("lastModifiedDate", (t) -> t.getLastModifiedDate());
+        lastModifiedBy = createReadOnlyDaoStringProperty("lastModifiedBy", (t) -> t.getLastModifiedBy());
         LOG.info(String.format("Parsing country %s", source.getLanguageTag()));
         Locale l = Locale.forLanguageTag(source.getLanguageTag());
         name = new ReadOnlyStringWrapper(this, "name", l.getDisplayCountry());
@@ -53,51 +55,7 @@ public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implement
         regionCode = new ReadOnlyStringWrapper(this, "regionCode", l.getCountry());
         this.cities = new ReadOnlyListWrapper<>(this, "cities", cities);
         language = new ReadOnlyStringWrapper(this, "language", l.getDisplayLanguage());
-        dataObject = new ReadOnlyObjectWrapper<>(this, "dataObject", dao);
         predefinedData = new PredefinedDataProperty<>(this);
-        createDate = new ReadOnlyObjectWrapper<>(this, "createDate", DB.toLocalDateTime(dao.getCreateDate()));
-        createdBy = new ReadOnlyStringWrapper(this, "createdBy", dao.getCreatedBy());
-        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, "lastModifiedDate", DB.toLocalDateTime(dao.getLastModifiedDate()));
-        lastModifiedBy = new ReadOnlyStringWrapper(this, "lastModifiedBy", dao.getLastModifiedBy());
-        dataObject.addListener(this::dataObjectChanged);
-    }
-
-    @Override
-    protected void onDataObjectChanged(DbRecord newValue) {
-        LocalDateTime d = DB.toLocalDateTime(newValue.getCreateDate());
-        if (!d.equals(createDate.get())) {
-            createDate.set(d);
-        }
-        String s = newValue.getCreatedBy();
-        if (!s.equals(createdBy.get())) {
-            createdBy.set(s);
-        }
-        d = DB.toLocalDateTime(newValue.getLastModifiedDate());
-        if (!d.equals(lastModifiedDate.get())) {
-            lastModifiedDate.set(d);
-        }
-        s = newValue.getLastModifiedBy();
-        if (!s.equals(lastModifiedBy.get())) {
-            lastModifiedBy.set(s);
-        }
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(DbRecord dao, String propertyName) {
-        switch (propertyName) {
-            case DataAccessObject.PROP_CREATEDATE:
-                createDate.set(DB.toLocalDateTime(dao.getCreateDate()));
-                break;
-            case DataAccessObject.PROP_CREATEDBY:
-                createdBy.set(dao.getCreatedBy());
-                break;
-            case DataAccessObject.PROP_LASTMODIFIEDBY:
-                lastModifiedBy.set(dao.getLastModifiedBy());
-                break;
-            case DataAccessObject.PROP_LASTMODIFIEDDATE:
-                lastModifiedDate.set(DB.toLocalDateTime(dao.getLastModifiedDate()));
-                break;
-        }
     }
 
     @Override
@@ -181,7 +139,7 @@ public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implement
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
-        return createDate.getReadOnlyProperty();
+        return createDate;
     }
 
     @Override
@@ -191,7 +149,7 @@ public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implement
 
     @Override
     public ReadOnlyStringProperty createdByProperty() {
-        return createdBy.getReadOnlyProperty();
+        return createdBy;
     }
 
     @Override
@@ -201,7 +159,7 @@ public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implement
 
     @Override
     public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
-        return lastModifiedDate.getReadOnlyProperty();
+        return lastModifiedDate;
     }
 
     @Override
@@ -211,22 +169,16 @@ public class PredefinedCountry extends PredefinedItem<CountryDbRecord> implement
 
     @Override
     public ReadOnlyStringProperty lastModifiedByProperty() {
-        return lastModifiedBy.getReadOnlyProperty();
-    }
-
-    @Override
-    public CountryDbRecord getDataObject() {
-        return dataObject.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<? extends CountryDbRecord> dataObjectProperty() {
-        return dataObject;
+        return lastModifiedBy;
     }
 
     @Override
     public ReadOnlyObjectProperty<PredefinedCountry> predefinedDataProperty() {
         return predefinedData;
+    }
+
+    public static CountryDAO save(Connection connection, ICountryDAO source) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.model.predefined.PredefinedCountry#save
     }
 
     class PlaceHolderDAO extends BasePlaceHolderDAO implements CountryDbRecord {

@@ -17,8 +17,8 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.observables.CalculatedBooleanProperty;
-import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.DerivedBooleanProperty;
+import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.view.ModelFilter;
 
@@ -37,28 +37,16 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     private final ObjectProperty<PredefinedCountry> predefinedData;
     private final NestedStringProperty<PredefinedCountry> name;
     private final NestedStringProperty<PredefinedCountry> language;
-    private final NestedObjectValueProperty<PredefinedCountry, ZoneId> zoneId;
-    private final CalculatedBooleanProperty<PredefinedCountry> valid;
+    private final NestedObjectProperty<PredefinedCountry, ZoneId> zoneId;
+    private final DerivedBooleanProperty<PredefinedCountry> valid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
         predefinedData = new SimpleObjectProperty<>(this, "predefinedData", dao.getPredefinedData());
         name = new NestedStringProperty<>(this, "name", predefinedData, (t) -> t.nameProperty());
-        zoneId = new NestedObjectValueProperty<>(this, "zoneId", predefinedData, (t) -> t.zoneIdProperty());
+        zoneId = new NestedObjectProperty<>(this, "zoneId", predefinedData, (t) -> t.zoneIdProperty());
         language = new NestedStringProperty<>(this, "language", predefinedData, (t) -> t.languageProperty());
-        valid = new CalculatedBooleanProperty<>(this, "valid", predefinedData, Objects::nonNull);
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(CountryDAO dao, String propertyName) {
-        if (propertyName.equals(CountryDAO.PROP_PREDEFINEDCOUNTRY)) {
-            onDataObjectChanged(dao);
-        }
-    }
-
-    @Override
-    protected void onDataObjectChanged(CountryDAO dao) {
-        predefinedData.set(dao.getPredefinedCountry());
+        valid = new DerivedBooleanProperty<>(this, "valid", predefinedData, Objects::nonNull);
     }
 
     @Override
@@ -106,13 +94,23 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     }
 
     @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyBooleanProperty();
+    }
+
+    @Override
     public String toString() {
         return name.get();
     }
 
     @Override
     public int hashCode() {
-        if (isNewItem()) {
+        if (isNewRow()) {
             return Objects.hashCode(name.get());
         }
         return getPrimaryKey();
@@ -121,16 +119,6 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel> {
@@ -157,6 +145,11 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
             CountryDAO dataObject = item.getDataObject();
             dataObject.setPredefinedCountry(item.predefinedData.get());
             return dataObject;
+        }
+
+        @Override
+        protected void updateItemProperties(CountryModel item, CountryDAO dao) {
+            item.setPredefinedData(dao.getPredefinedData());
         }
 
         @Override

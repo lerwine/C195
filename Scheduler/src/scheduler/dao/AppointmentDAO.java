@@ -94,14 +94,14 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     public static final String PROP_URL = "url";
 
     /**
-     * The name of the 'end' property.
-     */
-    public static final String PROP_END = "end";
-
-    /**
      * The name of the 'start' property.
      */
     public static final String PROP_START = "start";
+
+    /**
+     * The name of the 'end' property.
+     */
+    public static final String PROP_END = "end";
 
     public static FactoryImpl getFactory() {
         return FACTORY;

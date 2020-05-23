@@ -17,8 +17,8 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.predefined.PredefinedCity;
 import scheduler.model.predefined.PredefinedCountry;
-import scheduler.observables.CalculatedBooleanProperty;
-import scheduler.observables.NestedObjectValueProperty;
+import scheduler.observables.DerivedBooleanProperty;
+import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.view.ModelFilter;
 
@@ -36,21 +36,21 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
     private final SimpleObjectProperty<PredefinedCity> predefinedData;
     private final NestedStringProperty<PredefinedCity> name;
-    private final NestedObjectValueProperty<PredefinedCity, PredefinedCountry> country;
+    private final NestedObjectProperty<PredefinedCity, PredefinedCountry> country;
     private final NestedStringProperty<PredefinedCountry> countryName;
     private final NestedStringProperty<PredefinedCountry> language;
-    private final NestedObjectValueProperty<PredefinedCity, ZoneId> zoneId;
-    private final CalculatedBooleanProperty<PredefinedCity> valid;
+    private final NestedObjectProperty<PredefinedCity, ZoneId> zoneId;
+    private final DerivedBooleanProperty<PredefinedCity> valid;
 
     public CityModel(CityDAO dao) {
         super(dao);
         predefinedData = new SimpleObjectProperty<>(this, "predefinedData", dao.getPredefinedData());
         name = new NestedStringProperty<>(this, "name", predefinedData, (t) -> t.nameProperty());
-        country = new NestedObjectValueProperty<>(this, "country", predefinedData, (t) -> t.countryProperty());
+        country = new NestedObjectProperty<>(this, "country", predefinedData, (t) -> t.countryProperty());
         countryName = new NestedStringProperty<>(this, "countryName", country, (t) -> t.nameProperty());
         language = new NestedStringProperty<>(this, "language", country, (t) -> t.languageProperty());
-        zoneId = new NestedObjectValueProperty<>(this, "zoneId", predefinedData, (t) -> t.zoneIdProperty());
-        valid = new CalculatedBooleanProperty<>(this, "valid", predefinedData, Objects::nonNull);
+        zoneId = new NestedObjectProperty<>(this, "zoneId", predefinedData, (t) -> t.zoneIdProperty());
+        valid = new DerivedBooleanProperty<>(this, "valid", predefinedData, Objects::nonNull);
     }
 
     @Override
@@ -133,7 +133,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
     @Override
     public int hashCode() {
-        if (isNewItem()) {
+        if (isNewRow()) {
             int hash = 7;
             hash = 23 * hash + Objects.hashCode(this.name);
             hash = 23 * hash + Objects.hashCode(this.country);
@@ -149,24 +149,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
         if (null != obj && obj instanceof CityModel) {
             final CityModel other = (CityModel) obj;
-            if (isNewItem()) {
+            if (isNewRow()) {
                 return Objects.equals(name.get(), other.name.get()) && Objects.equals(country.get(), other.country.get());
             }
-            return !other.isNewItem() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
-    }
-
-    @Override
-    protected void onDaoPropertyChanged(CityDAO dao, String propertyName) {
-        if (propertyName.equals(CityDAO.PROP_PREDEFINEDCITY)) {
-            onDataObjectChanged(dao);
-        }
-    }
-
-    @Override
-    protected void onDataObjectChanged(CityDAO dao) {
-        predefinedData.set(dao.getPredefinedData());
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel> {
@@ -196,6 +184,11 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
             }
             dao.setPredefinedData(item.getPredefinedData());
             return dao;
+        }
+
+        @Override
+        protected void updateItemProperties(CityModel item, CityDAO dao) {
+            item.setPredefinedData(dao.getPredefinedData());
         }
 
         @Override

@@ -4,13 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -27,18 +24,16 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
-import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for editing an {@link AddressModel}.
@@ -67,12 +62,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private final ReadOnlyBooleanWrapper valid;
-    private final ReadOnlyBooleanWrapper changed;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CustomerModel> itemList;
-    private boolean addressValid;
-    private boolean postalCodeValid;
-    private boolean cityValid;
 
     @ModelEditor
     private AddressModel model;
@@ -108,167 +99,15 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private Label cityError;
 
     public EditAddress() {
-        changed = new ReadOnlyBooleanWrapper(true);
-        this.valid = new ReadOnlyBooleanWrapper(false);
-        addressValid = postalCodeValid = cityValid = false;
-        this.windowTitle = new ReadOnlyStringWrapper();
+        windowTitle = new ReadOnlyStringWrapper();
+        valid = new ReadOnlyBooleanWrapper();
         itemList = FXCollections.observableArrayList();
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         waitBorderPane.startNow(new ItemsLoadTask());
-        if (model.isNewItem()) {
-            address1TextField.textProperty().addListener(this::validateAddress1);
-            address2TextField.textProperty().addListener(this::validateAddress2);
-            postalCodeTextField.textProperty().addListener(this::validatePostalCode);
-            cityComboBox.getSelectionModel().selectedItemProperty().addListener(this::validateCity);
-        } else {
-            address1TextField.textProperty().addListener(this::checkAddress1Changed);
-            address2TextField.textProperty().addListener(this::checkAddress2Changed);
-            postalCodeTextField.textProperty().addListener(this::checkPostalCodeChanged);
-            phoneTextField.textProperty().addListener(this::checkPhoneChanged);
-            cityComboBox.getSelectionModel().selectedItemProperty().addListener(this::checkCityChanged);
-        }
-        // CURRENT: Update model from listeners
-    }
-
-    private void validateAddress1(String address1) {
-        if (address1.trim().isEmpty() || address2TextField.getText().trim().isEmpty()) {
-            if (addressValid) {
-                addressValid = false;
-                valid.set(false);
-                restoreNode(addressError);
-            }
-        } else if (!addressValid) {
-            addressValid = true;
-            collapseNode(addressError);
-            if (postalCodeValid && cityValid) {
-                valid.set(true);
-            }
-        }
-    }
-
-    private void validateAddress1(Observable observable) {
-        validateAddress1(((StringProperty) observable).get());
-    }
-
-    private void checkAddress1Changed(Observable observable) {
-        String s = ((StringProperty) observable).get();
-        validateAddress1(s);
-        if (s.equals(model.getAddress1()) && address2TextField.getText().equals(model.getAddress2())
-                && postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())) {
-            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
-            changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
-        } else {
-            changed.set(true);
-        }
-    }
-
-    private void validateAddress2(String address2) {
-        if (address2.trim().isEmpty() || address1TextField.getText().trim().isEmpty()) {
-            if (addressValid) {
-                addressValid = false;
-                valid.set(false);
-                restoreNode(addressError);
-            }
-        } else if (!addressValid) {
-            addressValid = true;
-            collapseNode(addressError);
-            if (postalCodeValid && cityValid) {
-                valid.set(true);
-            }
-        }
-    }
-
-    private void validateAddress2(Observable observable) {
-        validateAddress2(((StringProperty) observable).get());
-    }
-
-    private void checkAddress2Changed(Observable observable) {
-        String s = ((StringProperty) observable).get();
-        validateAddress2(s);
-        if (s.equals(model.getAddress2()) && address1TextField.getText().equals(model.getAddress1())
-                && postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())) {
-            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
-            changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
-        } else {
-            changed.set(true);
-        }
-    }
-
-    private void validatePostalCode(String postalCode) {
-        if (postalCode.trim().isEmpty()) {
-            if (postalCodeValid) {
-                postalCodeValid = false;
-                valid.set(false);
-                restoreNode(postalCodeError);
-            }
-        } else if (!postalCodeValid) {
-            postalCodeValid = true;
-            collapseNode(postalCodeError);
-            if (addressValid && cityValid) {
-                valid.set(true);
-            }
-        }
-    }
-
-    private void validatePostalCode(Observable observable) {
-        validatePostalCode(((StringProperty) observable).get());
-    }
-
-    private void checkPostalCodeChanged(Observable observable) {
-        String s = ((StringProperty) observable).get();
-        validatePostalCode(s);
-        if (s.equals(model.getPostalCode()) && address1TextField.getText().equals(model.getAddress1())
-                && address2TextField.getText().equals(model.getAddress2()) && phoneTextField.getText().equals(model.getPhone())) {
-            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
-            changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
-        } else {
-            changed.set(true);
-        }
-    }
-
-    private void checkPhoneChanged(Observable observable) {
-        String s = ((StringProperty) observable).get();
-        if (s.equals(model.getPhone()) && address1TextField.getText().equals(model.getAddress1())
-                && address2TextField.getText().equals(model.getAddress2()) && postalCodeTextField.getText().equals(model.getPostalCode())) {
-            CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
-            changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey());
-        } else {
-            changed.set(true);
-        }
-    }
-
-    private void validateCity(CityItem<? extends ICityDAO> city) {
-        if (null == city) {
-            if (cityValid) {
-                cityValid = false;
-                valid.set(false);
-                restoreNode(cityError);
-            }
-        } else if (!cityValid) {
-            cityValid = true;
-            collapseNode(cityError);
-            if (addressValid && postalCodeValid) {
-                valid.set(true);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void validateCity(Observable observable) {
-        validateCity(((ReadOnlyObjectProperty<CityItem<? extends ICityDAO>>) observable).get());
-    }
-
-    @SuppressWarnings("unchecked")
-    private void checkCityChanged(Observable observable) {
-        CityItem<? extends ICityDAO> city = ((ReadOnlyObjectProperty<CityItem<? extends ICityDAO>>) observable).get();
-        validateCity(city);
-        CityItem<? extends ICityDAO> selectedItem = cityComboBox.getSelectionModel().getSelectedItem();
-        changed.set(null == selectedItem || selectedItem.getPrimaryKey() != model.getCity().getPrimaryKey()
-                || !(address1TextField.getText().equals(model.getAddress1()) && address2TextField.getText().equals(model.getAddress2())
-                && postalCodeTextField.getText().equals(model.getPostalCode()) && phoneTextField.getText().equals(model.getPhone())));
+        // CURRENT: Create individual validators
     }
 
     @Override
@@ -284,16 +123,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid.getReadOnlyProperty();
-    }
-
-    @Override
-    public boolean isChanged() {
-        return changed.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty changedProperty() {
-        return changed.getReadOnlyProperty();
     }
 
     @Override
@@ -327,10 +156,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
         @Override
         protected void done() {
-            if (model.isNewItem()) {
+            if (model.isNewRow()) {
                 windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             } else {
-                changed.set(false);
                 windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
             }
             super.done();

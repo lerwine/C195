@@ -95,10 +95,22 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             } catch (IllegalAccessException ex) {
                 throw new IOException("Error injecting fields", ex);
             }
-            t.titleProperty().bind(editorRegion.windowTitleProperty());
             ViewControllerLoader.initializeCustomControl(editorRegion);
+            t.titleProperty().bind(editorRegion.windowTitleProperty());
+            result.saveChangesButton.disableProperty().bind(editorRegion.validProperty().not());
+            if (model.isNewRow()) {
+                result.deleteButton.setDisable(true);
+                collapseNode(result.deleteButton);
+                collapseNode(result.createdLabel);
+                collapseNode(result.createdValue);
+                collapseNode(result.lastUpdateLabel);
+                collapseNode(result.lastUpdateValue);
+                editorRegion.onEditNew();
+            } else {
+                result.onEditExisting(true);
+            }
         });
-        return (result.model.isNewItem() || result.editorRegion.isChanged()) ? null : result.model;
+        return (result.model.isNewRow()) ? null : result.model;
     }
 
     private final S editorRegion;
@@ -155,20 +167,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         parentVBox.getChildren().add(0, editorRegion);
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
         VBox.setMargin(editorRegion, new Insets(8.0));
-        saveChangesButton.disableProperty().bind(editorRegion.validProperty().not());
-
-        if (model.isNewItem()) {
-            deleteButton.setDisable(true);
-            collapseNode(deleteButton);
-            collapseNode(createdLabel);
-            collapseNode(createdValue);
-            collapseNode(lastUpdateLabel);
-            collapseNode(lastUpdateValue);
-            editorRegion.onEditNew();
-        } else {
-            onEditExisting(true);
-        }
-        // CURRENT: Update model from listeners
     }
 
     private void onEditExisting(boolean isInitialize) {
@@ -224,39 +222,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         FxRecordModel.ModelFactory<T, U> modelFactory();
 
         /**
-         * Gets a value indicating whether the properties of the current {@link FxRecordModel} are valid.
-         *
-         * @return {@code true} if all properties of the current {@link FxRecordModel} are valid; otherwise, {@code false}.
-         */
-        boolean isValid();
-
-        /**
-         * Gets the property that indicates whether the properties of the current {@link FxRecordModel} are valid. The inverse value of this property
-         * is bound to the {@link Button#disableProperty()} of the Save button.
-         *
-         * @return The property that indicates whether the properties of the current {@link FxRecordModel} are valid.
-         */
-        ReadOnlyBooleanProperty validProperty();
-
-        /**
-         * Gets a value indicating whether any of the properties of the current {@link FxRecordModel} are different than the values of the underlying
-         * {@link DataAccessObject}.
-         *
-         * @return {@code true} if all properties of the current {@link FxRecordModel} are the same as the properties of the underlying
-         * {@link DataAccessObject}; otherwise, {@code false}.
-         */
-        boolean isChanged();
-
-        /**
-         * Gets the property that indicates whether any of the properties of the current {@link FxRecordModel} are different than the values of the
-         * underlying {@link DataAccessObject}.
-         *
-         * @return The property that indicates whether any of the properties of the current {@link FxRecordModel} are different than the values of the
-         * underlying {@link DataAccessObject}.
-         */
-        ReadOnlyBooleanProperty changedProperty();
-
-        /**
          * Gets the window title for the current parent {@link Stage}.
          *
          * @return The window title for the current parent {@link Stage}.
@@ -272,6 +237,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
          */
         ReadOnlyStringProperty windowTitleProperty();
 
+        boolean isValid();
+        
+        ReadOnlyBooleanProperty validProperty();
+        
         /**
          * This gets called to initialize the current control when editing a new {@link FxRecordModel} item. This will only be called one time during
          * initialization.

@@ -15,8 +15,8 @@ import scheduler.model.AppointmentType;
 public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentType> {
 
     private final ReadOnlyPropertyImpl readOnlyProperty;
-    private final CalculatedStringProperty<AppointmentType> displayText;
-    private final CalculatedBooleanProperty<AppointmentType> valid;
+    private final DerivedStringProperty<AppointmentType> displayText;
+    private final DerivedBooleanProperty<AppointmentType> valid;
 
     /**
      *
@@ -27,8 +27,8 @@ public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentTyp
     public AppointmentTypeProperty(Object bean, String name, AppointmentType initialValue) {
         super(bean, name, initialValue);
         readOnlyProperty = new ReadOnlyPropertyImpl();
-        displayText = new CalculatedStringProperty<>(this, "displayText", this, AppointmentType::toDisplayText);
-        valid = new CalculatedBooleanProperty<>(this, "valid", this, Objects::nonNull);
+        displayText = new DerivedStringProperty<>(this, "displayText", this, AppointmentType::toDisplayText);
+        valid = new DerivedBooleanProperty<>(this, "valid", this, Objects::nonNull);
     }
 
     public AppointmentType getSafe() {

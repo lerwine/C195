@@ -25,17 +25,17 @@ public class CityElement {
     private String zoneId;
     
     @XmlElement(name = AddressElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-    private List<AddressElement> addresses;
+    private final List<AddressElement> addresses;
 
-    String getKey() {
+    public String getKey() {
         return key;
     }
 
-    String getZoneId() {
+    public String getZoneId() {
         return zoneId;
     }
 
-    List<AddressElement> getAddresses() {
+    public List<AddressElement> getAddresses() {
         return addresses;
     }
 

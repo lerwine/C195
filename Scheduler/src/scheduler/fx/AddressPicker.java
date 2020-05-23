@@ -26,8 +26,8 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import static scheduler.fx.AddressPickerResourceKeys.*;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.RelatedCity;
-import scheduler.model.ui.RelatedCountry;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
@@ -36,7 +36,6 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.model.ui.CountryItem;
 
 /**
  * FXML Controller class
@@ -49,8 +48,8 @@ public class AddressPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(AddressPicker.class.getName());
 
-    private final ObservableList<RelatedCity> allCities;
-    private final ObservableList<RelatedCity> cityOptions;
+    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
+    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
     private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
     private final ObservableList<AddressModel> addressOptions;
     private ObservableList<AddressModel> allAddresses;
@@ -66,7 +65,7 @@ public class AddressPicker extends BorderPane {
     private Label countryWarningLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<RelatedCity> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityItem<? extends ICityDAO>> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityWarningLabel"
     private Label cityWarningLabel; // Value injected by FXMLLoader
@@ -113,7 +112,7 @@ public class AddressPicker extends BorderPane {
     private void onCityComboBoxAction(ActionEvent event) {
         addressesTableView.getSelectionModel().clearSelection();
         addressOptions.clear();
-        RelatedCity selectedItem = cityComboBox.getValue();
+        CityItem<? extends ICityDAO> selectedItem = cityComboBox.getValue();
         if (null != selectedItem) {
             int pk = selectedItem.getPrimaryKey();
             allAddresses.stream().filter((t) -> t.getCity().getPrimaryKey() == pk).forEach((t) -> addressOptions.add(t));
@@ -204,11 +203,11 @@ public class AddressPicker extends BorderPane {
                     ICityDAO city = t.getCity();
                     String rk = city.getPredefinedData().getResourceKey();
                     if (!allCities.stream().anyMatch((u) -> u.getPredefinedData().getResourceKey().equals(rk))) {
-                        allCities.add(new RelatedCity(city));
+                        allCities.add(CityItem.createModel(city));
                         ICountryDAO country = city.getCountry();
                         String rc = country.getPredefinedData().getRegionCode();
                         if (!allCountries.stream().anyMatch((u) -> country.getPredefinedData().getRegionCode().equals(rc))) {
-                            allCountries.add(new RelatedCountry(country));
+                            allCountries.add(CountryItem.createModel(country));
                         }
                     }
                     allAddresses.add(new AddressModel(t));

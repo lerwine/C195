@@ -15,7 +15,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -28,13 +27,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
-import static scheduler.AppResourceKeys.*;
 import scheduler.AppResources;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.createLabel;
 import scheduler.util.StageManager;
 import scheduler.util.Values;
 import scheduler.util.ViewControllerLoader;
-import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
@@ -51,42 +49,30 @@ public class ErrorDetailControl extends GridPane {
 
     public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, int maxDepth, String message, boolean ignoreCause,
             ButtonType... buttons) {
-        Parent content = null;
+        ErrorDetailControl content = new ErrorDetailControl();
         try {
-            ViewAndController<? extends Parent, ?> viewAndController = ViewControllerLoader.loadViewAndController(ErrorDetailControl.class);
-            content = viewAndController.getView();
-            ((ErrorDetailControl) viewAndController.getController()).initialize(error, maxDepth, Optional.of(ignoreCause));
+            content.initialize(error, maxDepth, Optional.of(ignoreCause));
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading exception detail", ex);
             if (null == content) {
-
-                VBox view = new VBox();
-                content = view;
-                ObservableList<Node> children = view.getChildren();
-                Label label = new Label(AppResources.getResourceString(RESOURCEKEY_ERRORGETTINGEXCEPTIONDETAILS));
-                label.getStyleClass().add("topControlLabel");
-                children.add(label);
+                ObservableList<Node> children = content.getChildren();
+                children.add(createLabel(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORGETTINGEXCEPTIONDETAILS), CssClassName.TOPCONTROLLABEL));
                 String m = ex.getLocalizedMessage();
                 if (null == m || m.trim().isEmpty()) {
                     m = ex.getMessage();
                 }
                 if (null != m && !m.trim().isEmpty()) {
-                    label = new Label(ex.getMessage());
-                    label.getStyleClass().add("topLabeledControl");
-                    children.add(label);
+                    children.add(createLabel(ex.getMessage(), CssClassName.TOPLABELEDCONTROL));
                 }
                 m = error.getLocalizedMessage();
                 if (null == m || m.trim().isEmpty()) {
                     m = error.getMessage();
                 }
                 if (null != m && !m.trim().isEmpty()) {
-                    label = new Label(AppResources.getResourceString(RESOURCEKEY_ORIGINALERRORMESSAGE));
-                    label.getStyleClass().add("topControlLabel");
+                    Label label = createLabel(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ORIGINALERRORMESSAGE), CssClassName.TOPCONTROLLABEL);
                     VBox.setMargin(label, new Insets(8, 0, 0, 0));
                     children.add(label);
-                    label = new Label(error.getMessage());
-                    label.getStyleClass().add("topLabeledControl");
-                    children.add(label);
+                    children.add(createLabel(error.getMessage(), CssClassName.TOPLABELEDCONTROL));
                 }
             }
         }
@@ -353,6 +339,16 @@ public class ErrorDetailControl extends GridPane {
 
     @FXML // fx:id="causedByPane"
     private TitledPane causedByPane; // Value injected by FXMLLoader
+
+    @SuppressWarnings("LeakingThisInConstructor")
+    public ErrorDetailControl() {
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {

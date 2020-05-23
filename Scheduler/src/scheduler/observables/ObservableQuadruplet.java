@@ -1,8 +1,9 @@
 package scheduler.observables;
 
 import java.util.Objects;
-import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
+import scheduler.util.QuadFunction;
+import scheduler.util.QuadPredicate;
 import scheduler.util.Quadruplet;
 
 /**
@@ -13,8 +14,9 @@ import scheduler.util.Quadruplet;
  * @param <S>
  * @param <V>
  */
-public class ObservableQuadruplet<T, U, S, V> extends CalculatedObjectExpression<Quadruplet<T, U, S, V>>
-        implements ObservableObjectValue<Quadruplet<T, U, S, V>> {
+public class ObservableQuadruplet<T, U, S, V> extends DerivedObservable<Quadruplet<T, U, S, V>>
+        implements ObservableObjectDerivitive<Quadruplet<T, U, S, V>> {
+
     private Quadruplet<T, U, S, V> value;
 
     public ObservableQuadruplet(ObservableValue<T> source1, ObservableValue<U> source2, ObservableValue<S> source3, ObservableValue<V> source4) {
@@ -56,4 +58,12 @@ public class ObservableQuadruplet<T, U, S, V> extends CalculatedObjectExpression
         return value;
     }
 
+    public ObservableBooleanDerivitive asBoolean(QuadPredicate<T, U, S, V> func) {
+        return new DerivedObservableBoolean<>(this, (t) -> func.test(t.getValue1(), t.getValue2(), t.getValue3(), t.getValue4()));
+    }
+    
+    public ObservableStringDerivitive asString(QuadFunction<T, U, S, V, String> func) {
+        return new DerivedObservableString<>(this, (t) -> func.apply(t.getValue1(), t.getValue2(), t.getValue3(), t.getValue4()));
+    }
+    
 }

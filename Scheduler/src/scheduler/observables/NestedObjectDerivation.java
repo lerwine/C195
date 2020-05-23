@@ -6,21 +6,22 @@ import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T>
+ * @param <U>
  */
-public class NestedObjectValueExpression<T, U> extends CalculatedObjectExpression<U> implements ObservableObjectValue<U> {
+public class NestedObjectDerivation<T, U> extends DerivedObservable<U> implements ObservableObjectDerivitive<U> {
 
     private final Function<T, ObservableValue<U>> selector;
     private ObservableValue<U> target;
     private U value = null;
     private ObjectExpression<U> objectExpression;
 
-    public NestedObjectValueExpression(ObservableValue<T> source, Function<T, ObservableValue<U>> selector) {
+    public NestedObjectDerivation(ObservableValue<T> source, Function<T, ObservableValue<U>> selector) {
         this.selector = selector;
         source.addListener(this::onSourceChange);
         onSourceChange(source, null, source.getValue());
@@ -83,7 +84,7 @@ public class NestedObjectValueExpression<T, U> extends CalculatedObjectExpressio
 
                 @Override
                 public U get() {
-                    return NestedObjectValueExpression.this.get();
+                    return NestedObjectDerivation.this.get();
                 }
 
                 @Override

@@ -134,7 +134,6 @@ public final class Scheduler extends Application {
     @Override
     public void stop() throws Exception {
         if (null != currentUser) {
-            // TODO: Call appointmentAlert.stop();
             HostServices services = getHostServices();
             String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
             LOG.info(String.format("Loggin logout timestamp to %s", logUri));

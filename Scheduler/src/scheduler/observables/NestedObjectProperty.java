@@ -1,57 +1,50 @@
 package scheduler.observables;
 
 import com.sun.javafx.binding.ExpressionHelper;
-import java.util.Objects;
 import java.util.function.Function;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.ObjectExpression;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 
 /**
- * Calculates a new value from an {@link ObservableValue}.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The type of source value for the calculation.
- * @param <U> The type of calculated value.
+ * @param <T> The parent object type.
+ * @param <U> The nested binding type.
  */
-public class CalculatedObjectValueExpression<T, U> extends CalculatedObjectExpression<U> implements ObservableObjectValue<U> {
+public class NestedObjectProperty<T, U> extends NestedObjectDerivation<T, U> implements ReadOnlyProperty<U> {
 
-    private U value;
+    private final Object bean;
+    private final String name;
+    private ReadOnlyObjectProperty<U> readOnlyObjectProperty = null;
 
-    private ObjectExpression<U> objectExpression;
-
-    public CalculatedObjectValueExpression(ObservableValue<T> source, Function<T, U> calculate) {
-        source.addListener((observable, oldValue, newValue) -> {
-            U o = calculate.apply(newValue);
-            if (!Objects.equals(value, o)) {
-                value = o;
-                fireValueChangedEvent();
-            }
-        });
-        value = calculate.apply(source.getValue());
+    public NestedObjectProperty(Object bean, String name, ObservableValue<T> source, Function<T, ObservableValue<U>> selector) {
+        super(source, selector);
+        this.bean = bean;
+        this.name = (null == name) ? "" : name;
     }
 
     @Override
-    public U get() {
-        return value;
+    public Object getBean() {
+        return bean;
     }
 
     @Override
-    public U getValue() {
-        return get();
+    public String getName() {
+        return name;
     }
 
-    public ObjectExpression<U> getObjectExpression() {
-        if (null == objectExpression) {
-            objectExpression = new ObjectExpression<U>() {
+    public ReadOnlyObjectProperty<U> getReadOnlyObjectProperty() {
+        if (null == readOnlyObjectProperty) {
+            readOnlyObjectProperty = new ReadOnlyObjectProperty<U>() {
 
                 private ExpressionHelper<U> helper = null;
 
                 @Override
                 public U get() {
-                    return CalculatedObjectValueExpression.this.get();
+                    return NestedObjectProperty.this.get();
                 }
 
                 @Override
@@ -74,9 +67,19 @@ public class CalculatedObjectValueExpression<T, U> extends CalculatedObjectExpre
                     helper = ExpressionHelper.removeListener(helper, listener);
                 }
 
+                @Override
+                public Object getBean() {
+                    return NestedObjectProperty.this.getBean();
+                }
+
+                @Override
+                public String getName() {
+                    return NestedObjectProperty.this.getName();
+                }
+
             };
         }
-        return objectExpression;
+        return readOnlyObjectProperty;
     }
 
 }

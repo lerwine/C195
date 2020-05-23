@@ -1,22 +1,22 @@
 package scheduler.model.predefined;
 
 import com.sun.javafx.binding.ExpressionHelper;
-import java.beans.PropertyChangeEvent;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DbRecord;
 import scheduler.model.ui.FxDbModel;
+import scheduler.observables.DataAccessObjectProperty;
 import scheduler.util.DB;
 import scheduler.util.PropertyBindable;
 
@@ -24,87 +24,82 @@ import scheduler.util.PropertyBindable;
  * Base class for pre-defined items that can also be referenced in the database.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @param <T>
  */
 public abstract class PredefinedItem<T extends DbRecord> implements FxDbModel<T>, IPredefinedItem {
 
-    private final ReadOnlyIntegerWrapper primaryKey;
-    private final ReadOnlyObjectWrapper<DataRowState> rowState;
-    private final ReadOnlyBooleanWrapper existing = new ReadOnlyBooleanWrapper();
+    private final DataAccessObjectProperty<T> dataObject;
     private final ReadOnlyBooleanWrapper valid;
 
-    public PredefinedItem() {
+    protected PredefinedItem() {
         valid = new ReadOnlyBooleanWrapper(true);
-        primaryKey = new ReadOnlyIntegerWrapper(Integer.MIN_VALUE);
-        rowState = new ReadOnlyObjectWrapper<>(DataRowState.NEW);
+        dataObject = new DataAccessObjectProperty<>(this, "dataObject", null);
     }
 
     @Override
-    public int getPrimaryKey() {
-        return primaryKey.get();
+    public final int getPrimaryKey() {
+        return dataObject.getPrimaryKey();
     }
 
     @Override
-    public ReadOnlyIntegerProperty primaryKeyProperty() {
-        return primaryKey.getReadOnlyProperty();
+    public final ReadOnlyIntegerProperty primaryKeyProperty() {
+        return dataObject.primaryKeyProperty();
     }
 
     @Override
-    public DataRowState getRowState() {
-        return rowState.get();
+    public final DataRowState getRowState() {
+        return dataObject.getRowState();
     }
 
     @Override
-    public ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
-        return rowState.getReadOnlyProperty();
-    }
-
-    public ReadOnlyBooleanProperty existingProperty() {
-        return existing.getReadOnlyProperty();
+    public final ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
+        return dataObject.rowStateProperty();
     }
 
     @Override
-    public boolean isValid() {
+    public final boolean isValid() {
         return valid.get();
     }
 
     @Override
-    public ReadOnlyBooleanProperty validProperty() {
+    public final ReadOnlyBooleanProperty validProperty() {
         return valid.getReadOnlyProperty();
     }
 
-    private void onDaoPropertyChange(PropertyChangeEvent evt) {
-        DbRecord dao = (DbRecord) evt.getSource();
-        String propertyName = evt.getPropertyName();
-        switch (propertyName) {
-            case DataAccessObject.PROP_PRIMARYKEY:
-                primaryKey.set(dao.getPrimaryKey());
-                break;
-            case DataAccessObject.PROP_ROWSTATE:
-                DataRowState rs = dao.getRowState();
-                rowState.set(rs);
-                break;
-            default:
-                onDaoPropertyChanged(dao, propertyName);
-                break;
-        }
+    @Override
+    public final T getDataObject() {
+        return dataObject.get();
+    }
+    
+    protected final void setDataObject(T dao) {
+        dataObject.set(dao);
     }
 
-    protected abstract void onDaoPropertyChanged(DbRecord dao, String propertyName);
-
-    protected abstract void onDataObjectChanged(DbRecord dao);
-
-    protected <U extends DbRecord> void dataObjectChanged(ObservableValue<? extends U> observable, U oldValue, U newValue) {
-        if (!(oldValue instanceof PredefinedItem)) {
-            oldValue.removePropertyChangeListener(this::onDaoPropertyChange);
-        }
-        if (!(newValue instanceof PredefinedItem)) {
-            newValue.addPropertyChangeListener(this::onDaoPropertyChange);
-        }
-        primaryKey.set(newValue.getPrimaryKey());
-        rowState.set(newValue.getRowState());
-        onDataObjectChanged(newValue);
+    @Override
+    public final ReadOnlyObjectProperty<? extends T> dataObjectProperty() {
+        return dataObject.getReadOnlyProperty();
     }
 
+    protected final ReadOnlyIntegerProperty createReadOnlyDaoIntegerProperty(String name, ToIntFunction<T> getter) {
+        return dataObject.createReadOnlyIntegerProperty(name, getter);
+    }
+
+    protected final ReadOnlyBooleanProperty createReadOnlyDaoBooleanProperty(String name, Predicate<T> getter) {
+        return dataObject.createReadOnlyBooleanProperty(name, getter);
+    }
+
+    protected final ReadOnlyStringProperty createReadOnlyDaoStringProperty(String name, Function<T, String> getter) {
+        return dataObject.createReadOnlyStringProperty(name, getter);
+    }
+
+    protected final ReadOnlyObjectProperty<LocalDateTime> createReadOnlyDaoDateTimeProperty(String name, Function<T, Timestamp> getter) {
+        return dataObject.createReadOnlyDateTimeProperty(name, getter);
+    }
+
+    protected final <U> ReadOnlyObjectProperty<U> createReadOnlyDaoObjectProperty(String name, Function<T, U> getter) {
+        return dataObject.createReadOnlyObjectProperty(name, getter);
+    }
+    
     protected static class PredefinedDataProperty<T extends PredefinedItem<? extends DbRecord>> extends ReadOnlyObjectProperty<T> {
 
         private ExpressionHelper<T> helper = null;

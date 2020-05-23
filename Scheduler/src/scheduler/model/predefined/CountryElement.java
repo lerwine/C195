@@ -25,7 +25,7 @@ public class CountryElement {
     private String defaultZoneId;
     
     @XmlElement(name = CityElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-    private List<CityElement> cities;
+    private final List<CityElement> cities;
 
     public String getLanguageTag() {
         return languageTag;

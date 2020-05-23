@@ -1,18 +1,17 @@
 package scheduler.model.ui;
 
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICustomerDAO;
 import scheduler.observables.AddressTextProperty;
 import scheduler.observables.NestedStringProperty;
+import scheduler.observables.ObservableStringDerivitive;
+import scheduler.observables.WrappedStringObservableProperty;
 
 /**
  *
@@ -21,23 +20,22 @@ import scheduler.observables.NestedStringProperty;
 public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements CustomerItem<ICustomerDAO> {
 
     private final ReadOnlyStringWrapper name;
-    private final ReadOnlyObjectWrapper<RelatedAddress> address;
-    private final NestedStringProperty<RelatedAddress> address1;
-    private final NestedStringProperty<RelatedAddress> address2;
-    private final NestedStringProperty<RelatedAddress> cityName;
-    private final NestedStringProperty<RelatedAddress> countryName;
-    private final NestedStringProperty<RelatedAddress> postalCode;
-    private final NestedStringProperty<RelatedAddress> phone;
-    private final NestedStringProperty<RelatedAddress> cityZipCountry;
+    private final ReadOnlyObjectProperty<AddressItem<? extends IAddressDAO>> address;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> address1;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> address2;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> cityName;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> countryName;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> postalCode;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> phone;
+    private final NestedStringProperty<AddressItem<? extends IAddressDAO>> cityZipCountry;
     private final AddressTextProperty addressText;
     private final ReadOnlyBooleanWrapper active;
-    private final StringBinding multiLineAddress;
+    private final WrappedStringObservableProperty multiLineAddress;
 
     public RelatedCustomer(ICustomerDAO rowData) {
         super(rowData);
         name = new ReadOnlyStringWrapper(this, "name", rowData.getName());
-        IAddressDAO a = rowData.getAddress();
-        address = new ReadOnlyObjectWrapper<>((null == a) ? null : new RelatedAddress(a));
+        address = createReadOnlyNestedDaoModelProperty("address", (t) -> (null == t) ? null : t.getAddress(), AddressItem::createModel);
         address1 = new NestedStringProperty<>(this, "address1", address, (c) -> c.address1Property());
         address2 = new NestedStringProperty<>(this, "address2", address, (c) -> c.address2Property());
         cityName = new NestedStringProperty<>(this, "cityName", address, (c) -> c.cityNameProperty());
@@ -47,23 +45,13 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
         cityZipCountry = new NestedStringProperty<>(this, "cityZipCountry", address, (t) -> t.cityZipCountryProperty());
         addressText = new AddressTextProperty(this, "addressText", this);
         active = new ReadOnlyBooleanWrapper(this, "active", rowData.isActive());
-        multiLineAddress = AddressItem.createMultiLineAddressBinding(address1, address2, cityZipCountry, phone);
-    }
-
-    @Override
-    protected void onDataObjectPropertyChanged(ICustomerDAO dao, String propertyName) {
-        switch (propertyName) {
-            case CustomerDAO.PROP_ACTIVE:
-                active.set(dao.isActive());
-                break;
-            case CustomerDAO.PROP_ADDRESS:
-                IAddressDAO a = dao.getAddress();
-                address.set((null == a) ? null : new RelatedAddress(a));
-                break;
-            case CustomerDAO.PROP_NAME:
-                name.set(dao.getName());
-                break;
-        }
+        multiLineAddress = new WrappedStringObservableProperty(this, "multiLineAddress",
+                ObservableStringDerivitive.of(
+                        ObservableStringDerivitive.ofNested(address, (t) -> t.addressLinesProperty()),
+                        cityZipCountry,
+                        phone,
+                        AddressModel::calculateMultiLineAddress)
+        );
     }
 
     @Override
@@ -77,13 +65,13 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public RelatedAddress getAddress() {
+    public AddressItem<? extends IAddressDAO> getAddress() {
         return address.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<RelatedAddress> addressProperty() {
-        return address.getReadOnlyProperty();
+    public ReadOnlyObjectProperty<AddressItem<? extends IAddressDAO>> addressProperty() {
+        return address;
     }
 
     @Override
@@ -102,7 +90,7 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> address1Property() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> address1Property() {
         return address1;
     }
 
@@ -112,7 +100,7 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> address2Property() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> address2Property() {
         return address2;
     }
 
@@ -122,7 +110,7 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> cityNameProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> cityNameProperty() {
         return cityName;
     }
 
@@ -132,7 +120,7 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> cityZipCountryProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> cityZipCountryProperty() {
         return cityZipCountry;
     }
 
@@ -142,13 +130,8 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> countryNameProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> countryNameProperty() {
         return countryName;
-    }
-
-    @Override
-    public StringBinding getMultiLineAddress() {
-        return multiLineAddress;
     }
 
     @Override
@@ -157,7 +140,7 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> phoneProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> phoneProperty() {
         return phone;
     }
 
@@ -167,7 +150,7 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public NestedStringProperty<RelatedAddress> postalCodeProperty() {
+    public NestedStringProperty<AddressItem<? extends IAddressDAO>> postalCodeProperty() {
         return postalCode;
     }
 
@@ -179,6 +162,11 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     @Override
     public ReadOnlyBooleanProperty activeProperty() {
         return active.getReadOnlyProperty();
+    }
+
+    @Override
+    public ReadOnlyProperty<String> getMultiLineAddress() {
+        return multiLineAddress;
     }
 
 }

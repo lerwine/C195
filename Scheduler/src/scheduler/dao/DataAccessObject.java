@@ -438,6 +438,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             save(dao, connection, false);
         }
 
+        // FIXME: On overrides, ensure the related item is saved, first
         /**
          * Saves a {@link DataAccessObject} to the database.
          * <p>
