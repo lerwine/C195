@@ -30,12 +30,12 @@ public interface Customer extends DataObject {
     }
 
     public static boolean arePropertiesEqual(Customer a, Customer b) {
-        if (Objects.equals(a, b)) {
-            return true;
+        if (null == a) {
+            return null == b;
         }
-
-        return null != b && null != b && a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
-                && ModelHelper.areSameRecord(a.getAddress(), b.getAddress());
+        
+        return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
+                && ModelHelper.areSameRecord(a.getAddress(), b.getAddress())));
     }
 
     /**

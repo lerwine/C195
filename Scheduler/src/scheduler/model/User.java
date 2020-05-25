@@ -30,11 +30,11 @@ public interface User extends DataObject {
     }
 
     public static boolean arePropertiesEqual(User a, User b) {
-        if (Objects.equals(a, b)) {
-            return true;
+        if (null == a) {
+            return null == b;
         }
-
-        return null != b && null != b && a.getUserName().equalsIgnoreCase(b.getUserName()) && a.getStatus().equals(b.getStatus());
+        
+        return null != b && (a == b || (a.getUserName().equalsIgnoreCase(b.getUserName()) && a.getStatus().equals(b.getStatus())));
     }
 
     /**

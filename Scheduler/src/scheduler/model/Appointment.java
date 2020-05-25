@@ -12,11 +12,11 @@ import java.util.Objects;
 public interface Appointment<T extends Serializable & Comparable<? super T>> extends DataObject {
 
     public static boolean arePropertiesEqual(Appointment<?> a, Appointment<?> b) {
-        if (Objects.equals(a, b)) {
-            return true;
+        if (null == a) {
+            return null == b;
         }
-
-        return null != b && null != b && ModelHelper.areSameRecord(a.getCustomer(), b.getCustomer())
+        
+        return null != b && (a == b || (ModelHelper.areSameRecord(a.getCustomer(), b.getCustomer())
                 && ModelHelper.areSameRecord(a.getUser(), b.getUser())
                 && a.getContact().equalsIgnoreCase(b.getContact())
                 && a.getDescription().equalsIgnoreCase(b.getDescription())
@@ -25,7 +25,7 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
                 && a.getTitle().equalsIgnoreCase(b.getTitle())
                 && a.getUrl().equalsIgnoreCase(b.getUrl())
                 && a.startEquals(b.getStart())
-                && a.endEquals(b.getEnd());
+                && a.endEquals(b.getEnd())));
     }
 
     public static int compare(Appointment<?> a, Appointment<?> b) {

@@ -40,11 +40,11 @@ public interface Country extends DataObject {
     }
 
     public static boolean arePropertiesEqual(Country a, Country b) {
-        if (Objects.equals(a, b)) {
-            return true;
+        if (null == a) {
+            return null == b;
         }
-
-        return null != b && null != b && a.getName().equalsIgnoreCase(b.getName());
+        
+        return null != b && (a == b || a.getName().equalsIgnoreCase(b.getName()));
     }
 
     public static int compare(Country a, Country b) {

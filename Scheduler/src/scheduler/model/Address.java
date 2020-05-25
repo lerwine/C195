@@ -46,13 +46,13 @@ public interface Address extends DataObject {
     }
 
     public static boolean arePropertiesEqual(Address a, Address b) {
-        if (Objects.equals(a, b)) {
-            return true;
+        if (null == a) {
+            return null == b;
         }
-
-        return null != b && null != b && a.getAddress1().equalsIgnoreCase(b.getAddress1()) && a.getAddress2().equalsIgnoreCase(b.getAddress2())
+        
+        return null != b && (a == b || (a.getAddress1().equalsIgnoreCase(b.getAddress1()) && a.getAddress2().equalsIgnoreCase(b.getAddress2())
                 && ModelHelper.areSameRecord(a.getCity(), b.getCity()) && a.getPostalCode().equalsIgnoreCase(b.getPostalCode())
-                && a.getPhone().equalsIgnoreCase(b.getPhone());
+                && a.getPhone().equalsIgnoreCase(b.getPhone())));
     }
 
     public static String toString(Address address) throws SQLException, ClassNotFoundException {
