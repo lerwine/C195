@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
@@ -203,16 +202,16 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected void onInitializingFrom(CustomerDAO target, CustomerDAO other) {
-            String oldName = target.name;
-            IAddressDAO oldAddress = target.address;
-            boolean oldActive = target.active;
-            target.name = other.name;
-            target.address = other.address;
-            target.active = other.active;
-            target.firePropertyChange(PROP_NAME, oldName, target.name);
-            target.firePropertyChange(PROP_ADDRESS, oldAddress, target.address);
-            target.firePropertyChange(PROP_ACTIVE, oldActive, target.active);
+        protected void onCloneProperties(CustomerDAO fromDAO, CustomerDAO toDAO) {
+            String oldName = toDAO.name;
+            IAddressDAO oldAddress = toDAO.address;
+            boolean oldActive = toDAO.active;
+            toDAO.name = fromDAO.name;
+            toDAO.address = fromDAO.address;
+            toDAO.active = fromDAO.active;
+            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
+            toDAO.firePropertyChange(PROP_ADDRESS, oldAddress, toDAO.address);
+            toDAO.firePropertyChange(PROP_ACTIVE, oldActive, toDAO.active);
         }
 
         @Override

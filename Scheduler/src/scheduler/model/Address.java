@@ -1,6 +1,7 @@
 package scheduler.model;
 
 import java.sql.SQLException;
+import java.util.Objects;
 import scheduler.dao.AddressDAO;
 
 /**
@@ -10,14 +11,46 @@ import scheduler.dao.AddressDAO;
  */
 public interface Address extends DataObject {
 
-    public static boolean arePropertiesEqual(Address a, Address b) {
-        if (null == a) {
-            return null == b;
+    public static int compare(Address a, Address b) {
+        if (Objects.equals(a, b)) {
+            return 0;
         }
-        if (a == b) {
+        if (null == a) {
+            return 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+
+        int result = City.compare(a.getCity(), b.getCity());
+        if (result == 0) {
+            String x = a.getAddress1();
+            String y = b.getAddress1();
+            if ((result = x.compareToIgnoreCase(y)) == 0 && (result = x.compareTo(y)) == 0) {
+                x = a.getAddress2();
+                y = b.getAddress2();
+                if ((result = x.compareToIgnoreCase(y)) == 0 && (result = x.compareTo(y)) == 0) {
+                    x = a.getPostalCode();
+                    y = b.getPostalCode();
+                    if ((result = x.compareToIgnoreCase(y)) == 0 && (result = x.compareTo(y)) == 0) {
+                        x = a.getPhone();
+                        y = b.getPhone();
+                        if ((result = x.compareToIgnoreCase(y)) == 0) {
+                            return x.compareTo(y);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public static boolean arePropertiesEqual(Address a, Address b) {
+        if (Objects.equals(a, b)) {
             return true;
         }
-        return null != b && a.getAddress1().equalsIgnoreCase(b.getAddress1()) && a.getAddress2().equalsIgnoreCase(b.getAddress2())
+
+        return null != b && null != b && a.getAddress1().equalsIgnoreCase(b.getAddress1()) && a.getAddress2().equalsIgnoreCase(b.getAddress2())
                 && ModelHelper.areSameRecord(a.getCity(), b.getCity()) && a.getPostalCode().equalsIgnoreCase(b.getPostalCode())
                 && a.getPhone().equalsIgnoreCase(b.getPhone());
     }

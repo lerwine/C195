@@ -42,7 +42,6 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.AddressDaoEvent;
 import scheduler.dao.event.AppointmentDaoEvent;
@@ -52,11 +51,12 @@ import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DbChangeType;
 import scheduler.dao.event.UserDaoEvent;
-import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
 import scheduler.model.Customer;
+import scheduler.model.PredefinedData;
+import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityModel;
@@ -68,6 +68,7 @@ import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.bindExtents;
+import scheduler.util.StageManager;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -88,8 +89,6 @@ import scheduler.view.report.ConsultantSchedule;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CityItem;
 
 /**
  * FXML Controller class for main application content.
@@ -128,7 +127,6 @@ public final class MainController implements EventTarget {
     @FXML // fx:id="contentVBox"
     private VBox contentVBox; // Value injected by FXMLLoader
 
-    // FIXME: Menu not working
     @FXML // fx:id="overviewMenu"
     private Menu overviewMenu; // Value injected by FXMLLoader
 
@@ -185,77 +183,77 @@ public final class MainController implements EventTarget {
     }
 
     @FXML
-    void onAllAppointmentsMenuItemAction(ActionEvent event) {
+    private void onAllAppointmentsMenuItemAction(ActionEvent event) {
         ManageAppointments.loadIntoMainContent(AppointmentModel.getFactory().getAllItemsFilter());
     }
 
     @FXML
-    void onByRegionMenuItemAction(ActionEvent event) {
+    private void onByRegionMenuItemAction(ActionEvent event) {
         replaceContent(new AppointmentsByRegion());
     }
 
     @FXML
-    void onConsultantScheduleMenuItemAction(ActionEvent event) {
+    private void onConsultantScheduleMenuItemAction(ActionEvent event) {
         replaceContent(new ConsultantSchedule());
     }
 
     @FXML
-    void onTypesByMonthMenuItemAction(ActionEvent event) {
+    private void onTypesByMonthMenuItemAction(ActionEvent event) {
         replaceContent(new AppointmentTypesByMonth());
     }
 
     @FXML
-    void onManageCustomersMenuItemAction(ActionEvent event) {
+    private void onManageCustomersMenuItemAction(ActionEvent event) {
         ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
     }
 
     @FXML
-    void onManageUsersMenuItemAction(ActionEvent event) {
+    private void onManageUsersMenuItemAction(ActionEvent event) {
         ManageUsers.loadIntoMainContent(UserModel.getFactory().getDefaultFilter());
     }
 
     @FXML
-    void onNewAddressMenuItem(ActionEvent event) {
+    private void onNewAddressMenuItem(ActionEvent event) {
         addNewAddress(null, contentView.getScene().getWindow(), true);
     }
 
     @FXML
-    void onNewAppointmentMenuItemAction(ActionEvent event) {
+    private void onNewAppointmentMenuItemAction(ActionEvent event) {
         addNewAppointment(null, null, contentView.getScene().getWindow(), false);
     }
 
     @FXML
-    void onNewCustomerMenuItemAction(ActionEvent event) {
+    private void onNewCustomerMenuItemAction(ActionEvent event) {
         addNewCustomer(null, contentView.getScene().getWindow(), true);
     }
 
     @FXML
-    void onNewUserMenuItemAction(ActionEvent event) {
+    private void onNewUserMenuItemAction(ActionEvent event) {
         addNewUser(contentView.getScene().getWindow(), true);
     }
 
     @FXML
-    void onManageAddressesMenuItemAction(ActionEvent event) {
+    private void onManageAddressesMenuItemAction(ActionEvent event) {
         ManageCountries.loadIntoMainContent();
     }
 
     @FXML
-    void onMyCurrentAndFutureAppointmentsMenuItemAction(ActionEvent event) {
+    private void onMyCurrentAndFutureAppointmentsMenuItemAction(ActionEvent event) {
         ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
     }
 
     @FXML
-    void onOverviewMenuItemAction(ActionEvent event) {
+    private void onOverviewMenuItemAction(ActionEvent event) {
         replaceContent(new Overview());
     }
 
     @FXML
-    void onWeeklyCalendarMenuItemAction(ActionEvent event) {
+    private void onWeeklyCalendarMenuItemAction(ActionEvent event) {
         ByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
-    void onMonthlyCalendarMenuItemAction(ActionEvent event) {
+    private void onMonthlyCalendarMenuItemAction(ActionEvent event) {
         ByMonth.loadIntoMainContent(LocalDate.now());
     }
 
@@ -293,60 +291,58 @@ public final class MainController implements EventTarget {
             VBox.setVgrow(newContent, Priority.ALWAYS);
             contentVBox.getChildren().add(newContent);
         }
-
-        onContentReplaced(oldView, contentView);
     }
 
-    private MenuItem getAssociatedMenuItem(Object controller) {
-        if (null != controller) {
-            if (controller instanceof Overview) {
-                return overviewMenu;
-            }
-            if (controller instanceof ByWeek) {
-                return weeklyCalendarMenuItem;
-            }
-            if (controller instanceof ByMonth) {
-                return monthlyCalendarMenuItem;
-            }
-            if (controller instanceof ConsultantSchedule) {
-                return consultantScheduleMenuItem;
-            }
-            if (controller instanceof AppointmentsByRegion) {
-                return byRegionMenuItem;
-            }
-            if (controller instanceof AppointmentTypesByMonth) {
-                return typesByMonthMenuItem;
-            }
-            if (controller instanceof ManageAppointments) {
-                ManageAppointments manageAppointments = (ManageAppointments) controller;
-                ModelFilter<AppointmentDAO, AppointmentModel, ? extends DaoFilter<AppointmentDAO>> filter = manageAppointments.getFilter();
-                if (null != filter) {
-                    DaoFilter<AppointmentDAO> daoFilter = filter.getDaoFilter();
-                    if (daoFilter.equals(AppointmentModelFilter.myCurrentAndFuture().getDaoFilter())) {
-                        return myCurrentAndFutureAppointmentsMenuItem;
-                    }
-                    if (!daoFilter.isEmpty()) {
-                        return null;
-                    }
-                }
-                return allAppointmentsMenuItem;
-            }
-            if (controller instanceof ManageCustomers) {
-                return manageCustomersMenuItem;
-            }
-            if (controller instanceof ManageUsers) {
-                return manageUsersMenuItem;
-            }
-            if (controller instanceof ManageCountries) {
-                return manageAddressesMenuItem;
-            }
-        }
-        return null;
-    }
-
+//    private MenuItem getAssociatedMenuItem(Object controller) {
+//        if (null != controller) {
+//            if (controller instanceof Overview) {
+//                return overviewMenu;
+//            }
+//            if (controller instanceof ByWeek) {
+//                return weeklyCalendarMenuItem;
+//            }
+//            if (controller instanceof ByMonth) {
+//                return monthlyCalendarMenuItem;
+//            }
+//            if (controller instanceof ConsultantSchedule) {
+//                return consultantScheduleMenuItem;
+//            }
+//            if (controller instanceof AppointmentsByRegion) {
+//                return byRegionMenuItem;
+//            }
+//            if (controller instanceof AppointmentTypesByMonth) {
+//                return typesByMonthMenuItem;
+//            }
+//            if (controller instanceof ManageAppointments) {
+//                ManageAppointments manageAppointments = (ManageAppointments) controller;
+//                ModelFilter<AppointmentDAO, AppointmentModel, ? extends DaoFilter<AppointmentDAO>> filter = manageAppointments.getFilter();
+//                if (null != filter) {
+//                    DaoFilter<AppointmentDAO> daoFilter = filter.getDaoFilter();
+//                    if (daoFilter.equals(AppointmentModelFilter.myCurrentAndFuture().getDaoFilter())) {
+//                        return myCurrentAndFutureAppointmentsMenuItem;
+//                    }
+//                    if (!daoFilter.isEmpty()) {
+//                        return null;
+//                    }
+//                }
+//                return allAppointmentsMenuItem;
+//            }
+//            if (controller instanceof ManageCustomers) {
+//                return manageCustomersMenuItem;
+//            }
+//            if (controller instanceof ManageUsers) {
+//                return manageUsersMenuItem;
+//            }
+//            if (controller instanceof ManageCountries) {
+//                return manageAddressesMenuItem;
+//            }
+//        }
+//        return null;
+//    }
     private void onAddressDaoEvent(AddressDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
+        PredefinedData.onAddressDaoEvent(event);
     }
 
     private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
@@ -357,11 +353,13 @@ public final class MainController implements EventTarget {
     private void onCityDaoEvent(CityDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
+        PredefinedData.onCityDaoEvent(event);
     }
 
     private void onCountryDaoEvent(CountryDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
+        PredefinedData.onCountryDaoEvent(event);
     }
 
     private void onCustomerDaoEvent(CustomerDaoEvent event) {
@@ -372,25 +370,6 @@ public final class MainController implements EventTarget {
     private void onUserDaoEvent(UserDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         DataObjectEvent.fireGenericEvent(event);
-    }
-
-    private void onContentReplaced(Node oldNode, Node newNode) {
-        MenuItem menuItem;
-        if (null != oldNode) {
-            if (oldNode instanceof Overview) {
-                overviewMenu.setDisable(false);
-            } else if (null != (menuItem = getAssociatedMenuItem(oldNode))) {
-                menuItem.setDisable(false);
-            }
-
-        }
-        if (null != newNode) {
-            if (newNode instanceof Overview) {
-                overviewMenu.setDisable(true);
-            } else if (null != (menuItem = getAssociatedMenuItem(newNode))) {
-                menuItem.setDisable(true);
-            }
-        }
     }
 
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
@@ -476,13 +455,15 @@ public final class MainController implements EventTarget {
      * Deletes an {@link AppointmentModel} item after confirming with user.
      *
      * @param item The {@link AppointmentModel} to be deleted.
+     * @param waitBorderPane Control for displaying operation status.
      */
-    public void deleteAppointment(AppointmentModel item) {
+    public void deleteAppointment(AppointmentModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AppointmentModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
+                    StageManager.getWindow(waitBorderPane, contentView), AppointmentModel.getFactory(),
                     this::onAppointmentDeleted));
         }
     }
@@ -534,13 +515,15 @@ public final class MainController implements EventTarget {
      * Deletes a {@link CustomerModel} item after confirming with user.
      *
      * @param item The {@link CustomerModel} to be deleted.
+     * @param waitBorderPane Control for displaying operation status.
      */
-    public void deleteCustomer(CustomerModel item) {
+    public void deleteCustomer(CustomerModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CustomerModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
+                    StageManager.getWindow(waitBorderPane, contentView), CustomerModel.getFactory(),
                     (t) -> {
                         CustomerDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -586,13 +569,15 @@ public final class MainController implements EventTarget {
      * Deletes a {@link CountryModel} item after confirming with user.
      *
      * @param item The {@link CountryModel} to be deleted.
+     * @param waitBorderPane Control for displaying operation status.
      */
-    public void deleteCountry(CountryModel item) {
+    public void deleteCountry(CountryModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CountryModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
+                    StageManager.getWindow(waitBorderPane, contentView), CountryModel.getFactory(),
                     (t) -> {
                         CountryDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -624,14 +609,15 @@ public final class MainController implements EventTarget {
      * Deletes a {@link CityModel} item after confirming with user.
      *
      * @param item The {@link CityModel} to be deleted.
-     * @param waitBorderPane Control for displaying data loading status.
+     * @param waitBorderPane Control for displaying operation status.
      */
     public void deleteCity(CityModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), CityModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
+                    StageManager.getWindow(waitBorderPane, contentView), CityModel.getFactory(),
                     (t) -> {
                         CityDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -642,12 +628,12 @@ public final class MainController implements EventTarget {
     /**
      * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
      *
-     * @param city The initial {@link CityItem}.
+     * @param city The initial {@link CityModel}.
      * @param parentWindow The parent {@link Window}.
      * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
      * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
      */
-    public AddressModel addNewAddress(CityItem<? extends ICityDAO> city, Window parentWindow, boolean keepOpen) {
+    public AddressModel addNewAddress(CityModel city, Window parentWindow, boolean keepOpen) {
         AddressModel result;
         try {
             result = EditAddress.editNew(city, parentWindow, keepOpen);
@@ -701,13 +687,15 @@ public final class MainController implements EventTarget {
      * Deletes an {@link AddressModel} item after confirming with user.
      *
      * @param item The {@link AddressModel} to be deleted.
+     * @param waitBorderPane Control for displaying operation status.
      */
-    public void deleteAddress(AddressModel item) {
+    public void deleteAddress(AddressModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), AddressModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
+                    StageManager.getWindow(waitBorderPane, contentView), AddressModel.getFactory(),
                     (t) -> {
                         AddressDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -761,13 +749,15 @@ public final class MainController implements EventTarget {
      * Deletes a {@link UserModel} item after confirming with user.
      *
      * @param item The {@link UserModel} to be deleted.
+     * @param waitBorderPane Control for displaying operation status.
      */
-    public void deleteUser(UserModel item) {
+    public void deleteUser(UserModel item, WaitBorderPane waitBorderPane) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new DeleteTask<>(item, (Stage) contentView.getScene().getWindow(), UserModel.getFactory(),
+            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
+                    StageManager.getWindow(waitBorderPane, contentView), UserModel.getFactory(),
                     (t) -> {
                         UserDAO dataObject = t.getDataObject();
                         Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.DELETED, dataObject));
@@ -904,7 +894,7 @@ public final class MainController implements EventTarget {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return tail.append(eventHandlerManager);
+        return rootStackPane.buildEventDispatchChain(tail.prepend(eventHandlerManager));
     }
 
     private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends Task<String> {

@@ -13,7 +13,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -67,6 +66,16 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return FACTORY;
     }
 
+    public static CityDAO getPredefinedDAO(PredefinedCityElement predefinedElement) {
+        CityDAO result = predefinedElement.getDataAccessObject();
+        if (null == result) {
+            result = new CityDAO();
+            result.name = PredefinedData.getCityDisplayName(predefinedElement.getKey());
+            result.country = predefinedElement.getCountry().getDataAccessObject();
+        }
+        return result;
+    }
+
     private String name;
     private ICountryDAO country;
     private PredefinedCityElement predefinedElement;
@@ -100,7 +109,24 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return predefinedElement;
     }
 
-    // FIXME: When this is changed to another city, it will fail because the dataAccessObject on the predefined object is not changed.
+    private synchronized void checkPredefinedElementChange(PredefinedCityElement city) {
+        if (null == city) {
+            if (null != predefinedElement) {
+                if (Objects.equals(this, predefinedElement.getDataAccessObject())) {
+                    throw new IllegalStateException("Cannot change pre-defined country for the data access object of a pre-defined element");
+                }
+                name = "";
+            }
+        } else if (!Objects.equals(predefinedElement, city)) {
+            if (null != predefinedElement && Objects.equals(this, predefinedElement.getDataAccessObject())) {
+                throw new IllegalStateException("Cannot change pre-defined country for the data access object of a pre-defined element");
+            }
+            name = PredefinedData.getCityDisplayName(city.getKey());
+            country = city.getDataAccessObject().getCountry();
+        }
+        predefinedElement = city;
+    }
+
     /**
      * Set the value of predefinedData
      *
@@ -111,15 +137,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         String oldName = name;
         PredefinedCityElement oldPredefinedCity = predefinedElement;
         try {
-            if (null == city) {
-                if (null != oldPredefinedCity) {
-                    name = "";
-                }
-            } else if (!Objects.equals(oldPredefinedCity, city)) {
-                name = PredefinedData.getCityDisplayName(city.getKey());
-                country = PredefinedData.lookupCountry(city.getCountry().getLocale().getCountry());
-            }
-            predefinedElement = city;
+            checkPredefinedElementChange(city);
         } finally {
             firePropertyChange(PROP_NAME, oldName, name);
             firePropertyChange(PROP_COUNTRY, oldCountry, country);
@@ -194,27 +212,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                             (CityDAO t) -> ModelHelper.getPrimaryKey(t.getCountry())));
         }
 
-        @Override
-        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
-            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
-                private final String oldName = dao.name;
-                private final PredefinedCityElement oldPredefinedElement = dao.predefinedElement;
-                private final Country oldCountry = dao.country;
-
-                @Override
-                public void accept(PropertyChangeSupport t) {
-                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
-                    t.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, dao.predefinedElement);
-                    t.firePropertyChange(PROP_COUNTRY, oldCountry, dao.country);
-                }
-            };
-
-            dao.setPredefinedElement(PredefinedData.getCityMap().get(rs.getString(DbColumn.CITY_NAME.toString())));
-            dao.predefinedElement.dataAccessObject = dao;
-            dao.country = CountryDAO.getFactory().fromJoinedResultSet(rs);
-            return propertyChanges;
-        }
-
         ICityDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), rs.getString(DbColumn.CITY_NAME.toString()),
                     CountryDAO.getFactory().fromJoinedResultSet(rs));
@@ -241,33 +238,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             }
         }
 
-        public CityDAO getPredefinedCity(PredefinedCityElement city, Connection connection) throws SQLException {
-            CountryDAO.PredefinedCountryElement c = city.getCountry();
-            CountryDAO countryDao = c.getDataAccessObject();
-            if (null == countryDao) {
-                countryDao = CountryDAO.getFactory().getPredefinedCountry(c, connection);
-            }
-            if (countryDao.getRowState() != DataRowState.NEW) {
-                String sql = new StringBuffer(createDmlSelectQueryBuilder().toString()).append(" WHERE ")
-                        .append(DbColumn.CITY_COUNTRY).append("=? AND ")
-                        .append(DbColumn.CITY_NAME).append("=?").toString();
-                LOG.fine(() -> String.format("getPredefinedCity", "Executing DML statement: %s", sql));
-                try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                    ps.setInt(1, countryDao.getPrimaryKey());
-                    ps.setString(2, city.getKey());
-                    try (ResultSet rs = ps.getResultSet()) {
-                        if (rs.next()) {
-                            return fromResultSet(rs);
-                        }
-                    }
-                }
-            }
-            CityDAO result = new CityDAO();
-            result.setPredefinedElement(city);
-            result.predefinedElement.dataAccessObject = result;
-            return result;
-        }
-
         @Override
         public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
             ICountryDAO country = ICityDAO.assertValidCity(dao).country;
@@ -275,37 +245,62 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 CountryDAO.getFactory().save((CountryDAO) country, connection, force);
             }
             super.save(dao, connection, force);
-            dao.predefinedElement.dataAccessObject = dao;
         }
 
         @Override
         protected CityDAO fromResultSet(ResultSet rs) throws SQLException {
             CityDAO result = super.fromResultSet(rs);
-            PredefinedCityElement pde = result.predefinedElement;
-            if (null != pde) {
-                if (null == pde.dataAccessObject) {
-                    pde.dataAccessObject = result;
-                } else {
-                    result.predefinedElement = pde;
-                    initializeFrom(pde.dataAccessObject, result);
-                    return pde.dataAccessObject;
-                }
+            CityDAO dao = result.predefinedElement.getDataAccessObject();
+            if (null != dao) {
+                cloneProperties(result, result.predefinedElement.getDataAccessObject());
             }
             return result;
         }
 
         @Override
-        protected void onInitializingFrom(CityDAO target, CityDAO other) {
-            String oldName = target.name;
-            ICountryDAO oldCountry = target.country;
-            PredefinedCityElement oldPredefinedElement = target.predefinedElement;
-            target.name = other.name;
-            target.predefinedElement = other.predefinedElement;
-            target.firePropertyChange(PROP_NAME, oldName, target.name);
-            target.firePropertyChange(PROP_COUNTRY, oldCountry, target.country);
-            target.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, target.predefinedElement);
+        protected void onCloneProperties(CityDAO fromDAO, CityDAO toDAO) {
+            String oldName = toDAO.name;
+            ICountryDAO oldCountry = toDAO.country;
+            PredefinedCityElement oldPredefinedElement = toDAO.predefinedElement;
+            toDAO.name = fromDAO.name;
+            toDAO.country = fromDAO.country;
+            toDAO.predefinedElement = fromDAO.predefinedElement;
+            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
+            toDAO.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, toDAO.predefinedElement);
+            toDAO.firePropertyChange(PROP_COUNTRY, oldCountry, toDAO.country);
         }
 
+        @Override
+        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
+            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
+                private final String oldName = dao.name;
+                private final PredefinedCityElement oldPredefinedElement = dao.predefinedElement;
+                private final Country oldCountry = dao.country;
+
+                @Override
+                public void accept(PropertyChangeSupport t) {
+                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
+                    t.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, dao.predefinedElement);
+                    t.firePropertyChange(PROP_COUNTRY, oldCountry, dao.country);
+                }
+            };
+
+            dao.setPredefinedElement(PredefinedData.getCityMap().get(rs.getString(DbColumn.CITY_NAME.toString())));
+            dao.country = CountryDAO.getFactory().fromJoinedResultSet(rs);
+            return propertyChanges;
+        }
+
+//        @Override
+//        protected void onInitializingFrom(CityDAO target, CityDAO other) {
+//            String oldName = target.name;
+//            ICountryDAO oldCountry = target.country;
+//            PredefinedCityElement oldPredefinedElement = target.predefinedElement;
+//            target.name = other.name;
+//            target.predefinedElement = other.predefinedElement;
+//            target.firePropertyChange(PROP_NAME, oldName, target.name);
+//            target.firePropertyChange(PROP_COUNTRY, oldCountry, target.country);
+//            target.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, target.predefinedElement);
+//        }
         // CURRENT: Need to re-think this - perhaps tracking primary key in the predefined objects for city and country, and maybe address as well...
         @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
@@ -461,9 +456,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         public static final String ELEMENT_NAME = "city";
 
-        @XmlTransient
-        private CityDAO dataAccessObject = null;
-
         @XmlAttribute
         private String key;
 
@@ -476,11 +468,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         public String getZoneId() {
             return zoneId;
-        }
-
-        @Override
-        public synchronized CityDAO getDataAccessObject() {
-            return dataAccessObject;
         }
 
         private PredefinedCityElement() {

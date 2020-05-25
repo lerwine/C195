@@ -4,10 +4,10 @@ import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.observables.DerivedObjectProperty;
+import scheduler.observables.DerivedStringProperty;
 
 /**
  *
@@ -15,32 +15,19 @@ import scheduler.dao.ICountryDAO;
  */
 public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryItem<ICountryDAO> {
 
-    private final ReadOnlyStringWrapper name;
-    private final ReadOnlyObjectWrapper<CountryDAO.PredefinedCountryElement> predefinedData;
-    private final ReadOnlyStringWrapper language;
-    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
+    private final ReadOnlyObjectWrapper<CountryDAO.PredefinedCountryElement> predefinedElement;
+    private final DerivedStringProperty<CountryDAO.PredefinedCountryElement> name;
+    private final DerivedStringProperty<CountryDAO.PredefinedCountryElement> language;
+    private final DerivedObjectProperty<CountryDAO.PredefinedCountryElement, ZoneId> zoneId;
+    private final DerivedStringProperty<ZoneId> defaultTimeZoneDisplay;
 
     public RelatedCountry(ICountryDAO rowData) {
         super(rowData);
-        name = new ReadOnlyStringWrapper(this, "name");
-        predefinedData = new ReadOnlyObjectWrapper<>(this, "predefinedData", rowData.getPredefinedElement());
-        zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId");
-        language = new ReadOnlyStringWrapper(this, "language");
-        predefinedData.addListener(this::onPredefinedDataChange);
-        onPredefinedDataChange(predefinedData, null, predefinedData.get());
-    }
-
-    @SuppressWarnings("unchecked")
-    private void onPredefinedDataChange(ObservableValue<? extends CountryDAO.PredefinedCountryElement> observable, CountryDAO.PredefinedCountryElement oldValue, CountryDAO.PredefinedCountryElement newValue) {
-        if (null != newValue) {
-            name.set(newValue.getLocale().getDisplayCountry());
-            zoneId.set(ZoneId.of(newValue.getDefaultZoneId()));
-            language.set(newValue.getLocale().getDisplayLanguage());
-        } else {
-            name.set("");
-            zoneId.set(ZoneId.systemDefault());
-            language.set("");
-        }
+        predefinedElement = new ReadOnlyObjectWrapper<>(this, "predefinedElement", rowData.getPredefinedElement());
+        name = new DerivedStringProperty<>(this, "name", predefinedElement, CountryModel::toCountryName);
+        zoneId = new DerivedObjectProperty<>(this, "zoneId", predefinedElement, CountryModel::toZoneId);
+        language = new DerivedStringProperty<>(this, "language", predefinedElement, CountryModel::toLanguage);
+        defaultTimeZoneDisplay = new DerivedStringProperty<>(this, "defaultTimeZoneDisplay", zoneId, CountryModel::toTimeZoneDisplay);
     }
 
     @Override
@@ -50,7 +37,7 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
 
     @Override
     public ReadOnlyStringProperty nameProperty() {
-        return name.getReadOnlyProperty();
+        return name.getReadOnlyStringProperty();
     }
 
     @Override
@@ -60,7 +47,17 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
 
     @Override
     public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId.getReadOnlyProperty();
+        return zoneId.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getDefaultTimeZoneDisplay() {
+        return defaultTimeZoneDisplay.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty defaultTimeZoneDisplayProperty() {
+        return defaultTimeZoneDisplay.getReadOnlyStringProperty();
     }
 
     @Override
@@ -70,17 +67,17 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
 
     @Override
     public ReadOnlyStringProperty languageProperty() {
-        return language.getReadOnlyProperty();
+        return language.getReadOnlyStringProperty();
     }
 
     @Override
     public CountryDAO.PredefinedCountryElement getPredefinedElement() {
-        return predefinedData.get();
+        return predefinedElement.get();
     }
 
     @Override
     public ReadOnlyObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElementProperty() {
-        return predefinedData;
+        return predefinedElement;
     }
 
 }

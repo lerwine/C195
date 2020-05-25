@@ -2,6 +2,7 @@ package scheduler.fx;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -119,7 +120,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
         });
 
-    
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -229,7 +229,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
             FxRecordModel.ModelFactory<D, M> factory = getModelFactory();
-            daoItems.stream().forEach((D t) -> items.add(factory.createNew(t)));
+            daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
 
@@ -270,6 +270,8 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
             getModelFactory().find(items, event.getTarget()).ifPresent((t) -> items.remove(t));
         }
     }
+
+    protected abstract Comparator<? super D> getComparator();
 
     protected abstract FxRecordModel.ModelFactory<D, M> getModelFactory();
 

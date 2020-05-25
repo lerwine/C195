@@ -13,7 +13,7 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_ADD = "add";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "\u000d\u000a                            LOG.info(\"Scene is not null\");"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add New Country"}.
      */
     public static final String RESOURCEKEY_ADDNEWCOUNTRY = "addNewCountry";
 
@@ -43,6 +43,11 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_CREATEDON = "createdOn";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Default Time Zone"}.
+     */
+    public static final String RESOURCEKEY_DEFAULTTIMEZONE = "defaultTimeZone";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Delete"}.
      */
     public static final String RESOURCEKEY_DELETE = "delete";
@@ -68,7 +73,7 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_EDITCOUNTRY = "editCountry";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Language"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Language:"}.
      */
     public static final String RESOURCEKEY_LANGUAGE = "language";
 

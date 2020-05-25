@@ -72,20 +72,14 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
      * @param parentWindow The parent window
-     * @param editorType
+     * @param editorRegion
      * @param model
      * @param keepOpen
      * @return
      * @throws IOException
      */
     public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
-            U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
-        S editorRegion;
-        try {
-            editorRegion = editorType.newInstance();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            throw new IOException("Error creating editor region", ex);
-        }
+            U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
         StageManager.showAndWait(result, parentWindow, (t) -> {
             ViewControllerLoader.initializeCustomControl(result);
@@ -111,6 +105,30 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             }
         });
         return (result.model.isNewRow()) ? null : result.model;
+    }
+
+    /**
+     * Opens a new window for editing an {@link FxRecordModel} item.
+     *
+     * @param <T> The type of data access object.
+     * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
+     * @param <S> The type of {@link ModelEditor} control for editing the model properties.
+     * @param parentWindow The parent window
+     * @param editorType
+     * @param model
+     * @param keepOpen
+     * @return
+     * @throws IOException
+     */
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
+            U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
+        S editorRegion;
+        try {
+            editorRegion = editorType.newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new IOException("Error creating editor region", ex);
+        }
+        return showAndWait(parentWindow, editorRegion, model, keepOpen);
     }
 
     private final S editorRegion;

@@ -1,6 +1,7 @@
 package scheduler.model;
 
 import java.time.ZoneId;
+import java.util.Objects;
 import scheduler.dao.CityDAO;
 
 /**
@@ -34,22 +35,24 @@ public interface City extends DataObject {
     }
 
     public static boolean arePropertiesEqual(City a, City b) {
-        if (null == a) {
-            return null == b;
-        }
-        if (a == b) {
+        if (Objects.equals(a, b)) {
             return true;
         }
-        return null != b && a.getName().equalsIgnoreCase(b.getName()) && ModelHelper.areSameRecord(a.getCountry(), b.getCountry());
+
+        return null != b && null != b && a.getName().equalsIgnoreCase(b.getName()) && ModelHelper.areSameRecord(a.getCountry(), b.getCountry());
     }
 
     public static int compare(City a, City b) {
+        if (Objects.equals(a, b)) {
+            return 0;
+        }
         if (null == a) {
-            return (null == b) ? 0 : 1;
+            return 1;
         }
         if (null == b) {
             return -1;
         }
+
         int result = Country.compare(a.getCountry(), b.getCountry());
         if (result == 0) {
             String x = a.getName();

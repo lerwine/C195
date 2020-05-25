@@ -1,5 +1,7 @@
 package scheduler.model;
 
+import java.util.Objects;
+
 /**
  * Interface for objects that contain either partial or complete information from the {@code customer} database entity.
  *
@@ -7,14 +9,32 @@ package scheduler.model;
  */
 public interface Customer extends DataObject {
 
-    public static boolean arePropertiesEqual(Customer a, Customer b) {
-        if (null == a) {
-            return null == b;
+    public static int compare(Customer a, Customer b) {
+        if (Objects.equals(a, b)) {
+            return 0;
         }
-        if (a == b) {
+        if (null == a) {
+            return 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+
+        String x = a.getName();
+        String y = b.getName();
+        int result = x.compareToIgnoreCase(y);
+        if (result == 0) {
+            return x.compareTo(y);
+        }
+        return result;
+    }
+
+    public static boolean arePropertiesEqual(Customer a, Customer b) {
+        if (Objects.equals(a, b)) {
             return true;
         }
-        return null != b && a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
+
+        return null != b && null != b && a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
                 && ModelHelper.areSameRecord(a.getAddress(), b.getAddress());
     }
 

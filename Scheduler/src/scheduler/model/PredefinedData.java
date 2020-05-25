@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,9 +26,14 @@ import javax.xml.bind.annotation.XmlTransient;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.event.AddressDaoEvent;
+import scheduler.dao.event.CityDaoEvent;
+import scheduler.dao.event.CountryDaoEvent;
+import scheduler.dao.event.DbChangeType;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.GlobalizationResource;
 
+// TODO: Add a listener method that updates associated DAO objects when they're updated.
 /**
  * Contains static methods for getting pre-defined location and time zone information.
  *
@@ -64,23 +70,29 @@ public class PredefinedData {
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                 PredefinedData result = (PredefinedData) unmarshaller.unmarshal(stream);
                 result.countries.forEach((t) -> {
-                    PredefinedCountry pdc = (PredefinedCountry) t;
-                    countryMap.put((pdc.locale = Locale.forLanguageTag(t.getLanguageTag())).getCountry(), t);
+                    PredefinedCountry predefinedCountry = (PredefinedCountry) t;
+                    predefinedCountry.locale = Locale.forLanguageTag(t.getLanguageTag());
+                    String countryMapKey = predefinedCountry.locale.getCountry();
+                    countryMap.put(countryMapKey, t);
+                    predefinedCountry.dataAccessObject = CountryDAO.getPredefinedDAO(t);
                     List<CityDAO.PredefinedCityElement> cities = t.getCities();
                     if (null == cities) {
-                        pdc.cities = Collections.emptyList();
+                        predefinedCountry.cities = Collections.emptyList();
                     } else if (!cities.isEmpty()) {
                         cities.forEach((u) -> {
-                            PredefinedCity pd = (PredefinedCity) u;
-                            pd.country = t;
+                            PredefinedCity predefinedCity = (PredefinedCity) u;
+                            predefinedCity.country = t;
                             cityMap.put(u.getKey(), u);
+                            predefinedCity.dataAccessObject = CityDAO.getPredefinedDAO(u);
                             List<AddressDAO.PredefinedAddressElement> addresses = u.getAddresses();
                             if (null == addresses) {
-                                pd.addresses = Collections.emptyList();
+                                predefinedCity.addresses = Collections.emptyList();
                             } else if (!addresses.isEmpty()) {
                                 addresses.forEach((s) -> {
-                                    ((PredefinedAddress) s).city = u;
+                                    PredefinedAddress a = (PredefinedAddress) s;
+                                    a.city = u;
                                     addressMap.put(s.getKey(), s);
+                                    a.dataAccessObject = AddressDAO.getPredefinedDAO(s);
                                 });
                             }
                         });
@@ -99,7 +111,7 @@ public class PredefinedData {
         }
         return null;
     }
-    
+
     public static CountryDAO lookupCountry(String regionCode) {
         CheckLoad();
         if (null != regionCode && COUNTRY_MAP.containsKey(regionCode)) {
@@ -242,6 +254,48 @@ public class PredefinedData {
         });
     }
 
+    public static void onCountryDaoEvent(CountryDaoEvent event) {
+        CountryDAO target = event.getTarget();
+        CountryDAO.PredefinedCountryElement pde = target.getPredefinedElement();
+        if (null != pde) {
+            CountryDAO dao = pde.getDataAccessObject();
+            if (event.getChangeType() == DbChangeType.DELETED) {
+                dao.resetRowState();
+            }
+            if (!Objects.equals(dao, target)) {
+                CountryDAO.getFactory().synchronize(target, dao);
+            }
+        }
+    }
+
+    public static void onCityDaoEvent(CityDaoEvent event) {
+        CityDAO target = event.getTarget();
+        CityDAO.PredefinedCityElement pde = target.getPredefinedElement();
+        if (null != pde) {
+            CityDAO dao = pde.getDataAccessObject();
+            if (event.getChangeType() == DbChangeType.DELETED) {
+                dao.resetRowState();
+            }
+            if (!Objects.equals(dao, target)) {
+                CityDAO.getFactory().synchronize(target, dao);
+            }
+        }
+    }
+
+    public static void onAddressDaoEvent(AddressDaoEvent event) {
+        AddressDAO target = event.getTarget();
+        AddressDAO.PredefinedAddressElement pde = target.getPredefinedElement();
+        if (null != pde) {
+            AddressDAO dao = pde.getDataAccessObject();
+            if (event.getChangeType() == DbChangeType.DELETED) {
+                dao.resetRowState();
+            }
+            if (!Objects.equals(dao, target)) {
+                AddressDAO.getFactory().synchronize(target, dao);
+            }
+        }
+    }
+
     @XmlElement(name = CountryDAO.PredefinedCountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
     private List<CountryDAO.PredefinedCountryElement> countries;
 
@@ -253,6 +307,9 @@ public class PredefinedData {
     }
 
     public static abstract class PredefinedCountry {
+
+        @XmlTransient
+        private CountryDAO dataAccessObject;
 
         @XmlElement(name = CityDAO.PredefinedCityElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
         private List<CityDAO.PredefinedCityElement> cities;
@@ -272,10 +329,16 @@ public class PredefinedData {
             return cities;
         }
 
-        public abstract CountryDAO getDataAccessObject();
+        public synchronized CountryDAO getDataAccessObject() {
+            return dataAccessObject;
+        }
+
     }
 
     public static abstract class PredefinedCity {
+
+        @XmlTransient
+        private CityDAO dataAccessObject;
 
         @XmlElement(name = AddressDAO.PredefinedAddressElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
         private List<AddressDAO.PredefinedAddressElement> addresses;
@@ -287,7 +350,9 @@ public class PredefinedData {
             return country;
         }
 
-        public abstract CityDAO getDataAccessObject();
+        public CityDAO getDataAccessObject() {
+            return dataAccessObject;
+        }
 
         public List<AddressDAO.PredefinedAddressElement> getAddresses() {
             return addresses;
@@ -298,13 +363,18 @@ public class PredefinedData {
     public static abstract class PredefinedAddress {
 
         @XmlTransient
+        private AddressDAO dataAccessObject;
+
+        @XmlTransient
         private CityDAO.PredefinedCityElement city;
 
         public CityDAO.PredefinedCityElement getCity() {
             return city;
         }
 
-        public abstract AddressDAO getDataAccessObject();
+        public synchronized AddressDAO getDataAccessObject() {
+            return dataAccessObject;
+        }
 
     }
 }

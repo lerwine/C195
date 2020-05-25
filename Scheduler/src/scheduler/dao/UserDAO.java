@@ -199,23 +199,23 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             UserDAO result = super.fromResultSet(rs);
             UserDAO currentUser = Scheduler.getCurrentUser();
             if (null != currentUser && currentUser.getPrimaryKey() == result.getPrimaryKey()) {
-                UserDAO.getFactory().initializeFrom(currentUser, result);
+                UserDAO.getFactory().cloneProperties(currentUser, result);
                 return currentUser;
             }
             return result;
         }
 
         @Override
-        protected void onInitializingFrom(UserDAO target, UserDAO other) {
-            String oldUserName = target.userName;
-            String oldPassword = target.password;
-            UserStatus oldStatus = target.status;
-            target.userName = other.userName;
-            target.password = other.password;
-            target.status = other.status;
-            target.firePropertyChange(PROP_USERNAME, oldUserName, target.userName);
-            target.firePropertyChange(PROP_PASSWORD, oldPassword, target.password);
-            target.firePropertyChange(PROP_STATUS, oldStatus, target.status);
+        protected void onCloneProperties(UserDAO fromDAO, UserDAO toDAO) {
+            String oldUserName = toDAO.userName;
+            String oldPassword = toDAO.password;
+            UserStatus oldStatus = toDAO.status;
+            toDAO.userName = fromDAO.userName;
+            toDAO.password = fromDAO.password;
+            toDAO.status = fromDAO.status;
+            toDAO.firePropertyChange(PROP_USERNAME, oldUserName, toDAO.userName);
+            toDAO.firePropertyChange(PROP_PASSWORD, oldPassword, toDAO.password);
+            toDAO.firePropertyChange(PROP_STATUS, oldStatus, toDAO.status);
         }
 
         @Override
@@ -320,7 +320,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                     }
                 }
             }
-            // PENDING: Internationalize this
+            // PENDING: Internationalize this message
             if (count > 0) {
                 return "Another user has the same name";
             }
@@ -332,8 +332,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
+
+            // PENDING: Internationalize messages
+            if (dao.getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey()) {
+                return "Cannot delete the currently signed on user.";
+            }
             int count = AppointmentDAO.getFactory().countByUser(connection, dao.getPrimaryKey(), null, null);
-            // PENDING: Internationalize these
             switch (count) {
                 case 0:
                     return "";

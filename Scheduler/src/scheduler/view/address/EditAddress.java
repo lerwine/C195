@@ -25,6 +25,7 @@ import scheduler.dao.ICityDAO;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
@@ -48,13 +49,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
 
-    public static AddressModel editNew(CityItem<? extends ICityDAO> city, Window parentWindow, boolean keepOpen) throws IOException {
+    public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
         AddressModel.Factory factory = AddressModel.getFactory();
-        AddressModel model = factory.createNew(factory.getDaoFactory().createNew());
-        if (null != city) {
-            model.setCity(city);
-        }
-        return EditItem.showAndWait(parentWindow, EditAddress.class, model, keepOpen);
+        EditAddress control = new EditAddress();
+        control.initialCity = city;
+        return EditItem.showAndWait(parentWindow, EditAddress.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
     }
 
     public static AddressModel edit(AddressModel model, Window parentWindow) throws IOException {
@@ -64,6 +63,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CustomerModel> itemList;
+    private CityModel initialCity;
 
     @ModelEditor
     private AddressModel model;

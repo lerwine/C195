@@ -1,18 +1,15 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
+import java.util.Objects;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.City;
-import scheduler.model.Country;
-import scheduler.model.PredefinedData;
+import scheduler.observables.DerivedObjectProperty;
+import scheduler.observables.DerivedStringProperty;
 import scheduler.observables.NestedStringProperty;
 
 /**
@@ -21,42 +18,32 @@ import scheduler.observables.NestedStringProperty;
  */
 public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICityDAO> {
 
-    private final ReadOnlyStringWrapper name;
-    private final NestedStringProperty<CountryItem<? extends ICountryDAO>> countryName;
-    private final ReadOnlyObjectWrapper<CountryItem<? extends ICountryDAO>> country;
     private final ReadOnlyObjectWrapper<CityDAO.PredefinedCityElement> predefinedElement;
-    private final ReadOnlyStringWrapper language;
-    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
+    private final DerivedStringProperty<CityDAO.PredefinedCityElement> name;
+    private final DerivedObjectProperty<CityDAO.PredefinedCityElement, CountryItem<? extends ICountryDAO>> country;
+    private final NestedStringProperty<CountryItem<? extends ICountryDAO>> countryName;
+    private final NestedStringProperty<CountryItem<? extends ICountryDAO>> language;
+    private final DerivedObjectProperty<CityDAO.PredefinedCityElement, ZoneId> zoneId;
+    private final DerivedStringProperty<ZoneId> timeZoneDisplay;
+    private final CountryItem<? extends ICountryDAO> originalCountryModel;
 
     public RelatedCity(ICityDAO dao) {
         super(dao);
-        CityDAO.PredefinedCityElement c = dao.getPredefinedElement();
-        predefinedElement = new ReadOnlyObjectWrapper<>(this, "predefinedData", c);
-        name = new ReadOnlyStringWrapper(this, "name", PredefinedData.getCityDisplayName(c.getKey()));
-        CountryDAO.PredefinedCountryElement n = c.getCountry();
-        country = new ReadOnlyObjectWrapper<>(this, "country", CountryItem.createModel(dao.getCountry()));
+        originalCountryModel = CountryItem.createModel(dao.getCountry());
+        predefinedElement = new ReadOnlyObjectWrapper<>(this, "predefinedElement", dao.getPredefinedElement());
+        name = new DerivedStringProperty<>(this, "name", predefinedElement, CityModel::toCityName);
+        country = new DerivedObjectProperty<>(this, "country", predefinedElement, this::toCountryModel);
         countryName = new NestedStringProperty<>(this, "countryName", country, (t) -> t.nameProperty());
-        zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId", City.getZoneIdOf(dao));
-        language = new ReadOnlyStringWrapper(this, "language", Country.getLanguageOf(dao.getCountry()));
-        predefinedElement.addListener(this::onPredefinedDataChanged);
-        onPredefinedDataChanged(predefinedElement, null, predefinedElement.get());
+        language = new NestedStringProperty<>(this, "language", country, (t) -> t.languageProperty());
+        zoneId = new DerivedObjectProperty<>(this, "zoneId", predefinedElement, CityModel::toZoneId);
+        timeZoneDisplay = new DerivedStringProperty<>(this, "timeZoneDisplay", zoneId, CountryModel::toTimeZoneDisplay);
     }
 
-    @SuppressWarnings("unchecked")
-    private void onPredefinedDataChanged(ObservableValue<? extends CityDAO.PredefinedCityElement> observable, CityDAO.PredefinedCityElement oldValue,
-            CityDAO.PredefinedCityElement newValue) {
-        if (null != newValue) {
-            CountryDAO.PredefinedCountryElement n = newValue.getCountry();
-            country.set(CountryItem.createModel(PredefinedData.lookupCountry(n.getLocale().getCountry())));
-            name.set(PredefinedData.getCityDisplayName(newValue.getKey()));
-            zoneId.set(ZoneId.of(newValue.getZoneId()));
-            language.set(n.getLocale().getDisplayLanguage());
-        } else {
-            country.set(null);
-            name.set("");
-            zoneId.set(ZoneId.systemDefault());
-            language.set("");
+    private CountryItem<? extends ICountryDAO> toCountryModel(CityDAO.PredefinedCityElement element) {
+        if (null != element && !Objects.equals(originalCountryModel.getPredefinedElement(), element.getCountry())) {
+            return CountryItem.createModel(element.getCountry().getDataAccessObject());
         }
+        return originalCountryModel;
     }
 
     @Override
@@ -66,7 +53,7 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
 
     @Override
     public ReadOnlyStringProperty nameProperty() {
-        return name.getReadOnlyProperty();
+        return name.getReadOnlyStringProperty();
     }
 
     @Override
@@ -76,7 +63,12 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
 
     @Override
     public ReadOnlyObjectProperty<CountryItem<? extends ICountryDAO>> countryProperty() {
-        return country.getReadOnlyProperty();
+        return country.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getCountryName() {
+        return countryNameProperty().get();
     }
 
     @Override
@@ -91,7 +83,17 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
 
     @Override
     public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId;
+        return zoneId.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getTimeZoneDisplay() {
+        return timeZoneDisplay.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty timeZoneDisplayProperty() {
+        return timeZoneDisplay.getReadOnlyStringProperty();
     }
 
     @Override
@@ -101,7 +103,7 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
 
     @Override
     public ReadOnlyStringProperty languageProperty() {
-        return language.getReadOnlyProperty();
+        return language.getReadOnlyStringProperty();
     }
 
     @Override
@@ -110,7 +112,7 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityDAO.PredefinedCityElement> predefinedDataProperty() {
+    public ReadOnlyObjectProperty<CityDAO.PredefinedCityElement> predefinedElementProperty() {
         return predefinedElement.getReadOnlyProperty();
     }
 

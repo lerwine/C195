@@ -1,6 +1,6 @@
 package scheduler.view.user;
 
-import scheduler.model.ui.UserModel;
+import java.util.Comparator;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -12,6 +12,8 @@ import static scheduler.Scheduler.getMainController;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.fx.MainListingControl;
+import scheduler.model.User;
+import scheduler.model.ui.UserModel;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.annotations.FXMLResource;
@@ -99,6 +101,11 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     }
 
     @Override
+    protected Comparator<? super UserDAO> getComparator() {
+        return User::compare;
+    }
+
+    @Override
     protected UserModel.Factory getModelFactory() {
         return UserModel.getFactory();
     }
@@ -125,7 +132,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected void onDeleteItem(UserModel item) {
-        getMainController().deleteUser(item);
+        getMainController().deleteUser(item, null);
     }
 
     @Override

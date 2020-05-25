@@ -83,6 +83,11 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No addresses to show."}.
+     */
+    public static final String RESOURCEKEY_NOADDRESSESTOSHOW = "noAddressesToShow";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Open"}.
      */
     public static final String RESOURCEKEY_OPEN = "open";
@@ -106,6 +111,11 @@ public interface EditCityResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
      */
     public static final String RESOURCEKEY_REQUIRED = "required";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Street Address"}.
+     */
+    public static final String RESOURCEKEY_STREETADDRESS = "streetAddress";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Time Zone:"}.

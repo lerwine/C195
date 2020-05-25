@@ -1,6 +1,6 @@
 package scheduler.view.customer;
 
-import scheduler.model.ui.CustomerModel;
+import java.util.Comparator;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -12,6 +12,8 @@ import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.fx.MainListingControl;
+import scheduler.model.Customer;
+import scheduler.model.ui.CustomerModel;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -102,6 +104,11 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @Override
+    protected Comparator<? super CustomerDAO> getComparator() {
+        return Customer::compare;
+    }
+
+    @Override
     protected CustomerModel.Factory getModelFactory() {
         return CustomerModel.getFactory();
     }
@@ -128,7 +135,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected void onDeleteItem(CustomerModel item) {
-        getMainController().deleteCustomer(item);
+        getMainController().deleteCustomer(item, null);
     }
 
     @Override

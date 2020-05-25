@@ -10,6 +10,7 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +36,7 @@ import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.fx.MainListingControl;
+import scheduler.model.Appointment;
 import scheduler.model.Customer;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
@@ -446,6 +448,11 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
+    protected Comparator<? super AppointmentDAO> getComparator() {
+        return Appointment::compare;
+    }
+
+    @Override
     protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
         return AppointmentModel.getFactory();
     }
@@ -472,7 +479,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected void onDeleteItem(AppointmentModel item) {
-        getMainController().deleteAppointment(item);
+        getMainController().deleteAppointment(item, null);
     }
 
     @Override

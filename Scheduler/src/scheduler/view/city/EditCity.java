@@ -2,6 +2,7 @@ package scheduler.view.city;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -13,6 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -22,22 +24,31 @@ import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.fx.ErrorDetailControl;
+import scheduler.model.City;
+import scheduler.model.Country;
+import scheduler.model.PredefinedData;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.ObservableObjectDerivitive;
+import scheduler.observables.ObservableStringDerivitive;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
+import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -57,16 +68,23 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
     }
 
-    public static CityModel editNew(CountryItem<? extends ICountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
+    public static CityModel editNew(CountryModel country, Window parentWindow, boolean keepOpen) throws IOException {
         CityModel.Factory factory = CityModel.getFactory();
         CityModel model = factory.createNew(factory.getDaoFactory().createNew());
+        EditCity control = new EditCity();
+        control.targetCountry = country;
         // TODO: Select country in view
-        return EditItem.showAndWait(parentWindow, EditCity.class, model, keepOpen);
+        return EditItem.showAndWait(parentWindow, control, model, keepOpen);
     }
 
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyStringWrapper windowTitle;
-    private ObservableList<AddressModel> itemList;
+    private final ObservableList<CountryModel> countryOptionList;
+    private final ObservableList<CityModel> cityOptionList;
+    private final ObservableList<AddressModel> addressItemList;
+    private ObservableObjectDerivitive<CityModel> selectedCity;
+    private ObservableObjectDerivitive<CountryModel> selectedCountry;
+    private CountryModel targetCountry;
 
     @ModelEditor
     private CityModel model;
@@ -81,7 +99,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private Label nameValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameValueComboBox"
-    private ComboBox<CityDAO> nameValueComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityModel> nameValueComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
@@ -90,7 +108,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private Label countryNameValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryNameValueComboBox"
-    private ComboBox<CountryDAO> countryNameValueComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryModel> countryNameValueComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryNameValidationLabel"
     private Label countryNameValidationLabel; // Value injected by FXMLLoader
@@ -101,37 +119,57 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // fx:id="timeZoneLabel"
     private Label timeZoneLabel; // Value injected by FXMLLoader
 
+    @FXML // fx:id="addressesLabel"
+    private Label addressesLabel; // Value injected by FXMLLoader
+
     @FXML // fx:id="addressesTableView"
     private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
+
+    @FXML // fx:id="addCityButtonBar"
+    private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
 
     public EditCity() {
         windowTitle = new ReadOnlyStringWrapper();
         valid = new ReadOnlyBooleanWrapper();
+        addressItemList = FXCollections.observableArrayList();
+        countryOptionList = FXCollections.observableArrayList();
+        cityOptionList = FXCollections.observableArrayList();
+    }
+
+    private void deleteAddress(AddressModel item) {
+        if (null != item) {
+            getMainController().deleteAddress(item, waitBorderPane);
+        }
+    }
+
+    private void editAddress(AddressModel item) {
+        if (null != item) {
+            getMainController().editAddress(item, getScene().getWindow());
+        }
     }
 
     @FXML
-    void onAddAddressButtonAction(ActionEvent event) {
-
+    private void onAddAddressButtonAction(ActionEvent event) {
+        getMainController().addNewAddress(model, getScene().getWindow(), true);
     }
 
     @FXML
-    void onAddressDeleteMenuItemAction(ActionEvent event) {
-
+    private void onAddressDeleteMenuItemAction(ActionEvent event) {
+        deleteAddress(addressesTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void onAddressEditMenuItemAction(ActionEvent event) {
-
+    private void onAddressEditMenuItemAction(ActionEvent event) {
+        editAddress(addressesTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void onItemActionRequest(ActionEvent event) {
-
-    }
-
-    @FXML
-    void onOpenCountryButtonAction(ActionEvent event) {
-
+    private void onItemActionRequest(ItemActionRequestEvent<AddressModel> event) {
+        if (event.isDelete()) {
+            deleteAddress(event.getItem());
+        } else {
+            editAddress(event.getItem());
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -144,26 +182,92 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         assert countryNameValidationLabel != null : "fx:id=\"countryNameValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert languageLabel != null : "fx:id=\"languageLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert timeZoneLabel != null : "fx:id=\"timeZoneLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert addressesLabel != null : "fx:id=\"addressesLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert addressesTableView != null : "fx:id=\"addressesTableView\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert addCityButtonBar != null : "fx:id=\"addCityButtonBar\" was not injected: check your FXML file 'EditCity.fxml'.";
 
-        itemList = FXCollections.observableArrayList();
-        addressesTableView.setItems(itemList);
-        ObservableObjectDerivitive.ofSelection(nameValueComboBox).addListener((observable, oldValue, newValue) -> {
-            valid.set(null != newValue);
-        });
-
-        waitBorderPane.startNow(new ItemsLoadTask());
-        windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
     }
 
     @Override
     public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.city.EditCity#onEditNew
+        selectedCountry = ObservableObjectDerivitive.ofSelection(countryNameValueComboBox);
+        selectedCity = ObservableObjectDerivitive.ofSelection(nameValueComboBox);
+
+        countryNameValueComboBox.setItems(countryOptionList);
+        if (null != targetCountry) {
+            CountryDAO.PredefinedCountryElement predefinedElement = targetCountry.getPredefinedElement();
+            PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t) ->
+                    countryOptionList.add((Objects.equals(t.getPredefinedElement(), predefinedElement)) ? targetCountry : new CountryModel(t)));
+        } else {
+            PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t) -> countryOptionList.add(new CountryModel(t)));
+        }
+        nameValueComboBox.setItems(cityOptionList);
+        selectedCountry.addListener((observable, oldValue, newValue) -> {
+            nameValueComboBox.getSelectionModel().clearSelection();
+            cityOptionList.clear();
+            if (null == newValue) {
+                restoreNode(countryNameValidationLabel);
+            }
+            // TODO: Filter out existing items (since we won't be able to add duplicate-named cities, anyway)
+            newValue.getPredefinedElement().getCities().stream().map((t) -> t.getDataAccessObject()).sorted(City::compare).forEach((t) -> {
+                cityOptionList.add(new CityModel(t));
+            });
+        });
+        countryNameValidationLabel.visibleProperty().bind(selectedCountry.isNull());
+        valid.bind(selectedCity.isNotNull());
+        nameValidationLabel.textProperty().bind(ObservableStringDerivitive.of(selectedCountry, selectedCity, (t, u) -> {
+            if (null == t) {
+                return "Country must be selected";
+            }
+            return (null == u) ? "* Required" : "";
+        }));
+        nameValidationLabel.visibleProperty().bind(selectedCity.isNull());
+        languageLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCity, (t) -> t.languageProperty()));
+        timeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCity, (t) -> t.timeZoneDisplayProperty()));
+        if (null != targetCountry) {
+            countryNameValueComboBox.getSelectionModel().select(targetCountry);
+        } else {
+            CityDAO.PredefinedCityElement predefinedElement = model.getPredefinedElement();
+            if (null != predefinedElement) {
+                CityDAO cityDao = predefinedElement.getDataAccessObject();
+                ICountryDAO countryDao = cityDao.getCountry();
+                countryOptionList.stream().filter((t) -> Objects.equals(t.getDataObject(), countryDao)).findFirst().ifPresent((t) -> {
+                    countryNameValueComboBox.getSelectionModel().select(t);
+                    cityOptionList.stream().filter((u) -> Objects.equals(u.getDataObject(), cityDao)).findFirst().ifPresent((u) -> {
+                        nameValueComboBox.getSelectionModel().select(u);
+                    });
+                });
+            }
+        }
     }
 
     @Override
     public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.city.EditCity#onEditExisting
+        if (!isInitialize) {
+            valid.unbind();
+            countryNameValidationLabel.visibleProperty().unbind();
+            nameValidationLabel.textProperty().unbind();
+            nameValidationLabel.visibleProperty().unbind();
+            languageLabel.textProperty().unbind();
+            timeZoneLabel.textProperty().unbind();
+        }
+        valid.set(true);
+        countryNameValidationLabel.setVisible(false);
+        nameValidationLabel.setVisible(false);
+        collapseNode(nameValueComboBox);
+        restoreNode(nameValueLabel);
+        collapseNode(countryNameValueComboBox);
+        restoreNode(countryNameValueLabel);
+        restoreNode(addressesLabel);
+        restoreNode(addressesTableView);
+        restoreNode(addCityButtonBar);
+        windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
+        addressesTableView.setItems(addressItemList);
+        waitBorderPane.startNow(new ItemsLoadTask());
+        nameValueLabel.setText(model.getName());
+        countryNameValueLabel.setText(model.getCountryName());
+        languageLabel.setText(model.getLanguage());
+        timeZoneLabel.setText(model.getTimeZoneDisplay());
     }
 
     @Override
@@ -212,7 +316,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             if (null != result && !result.isEmpty()) {
                 AddressModel.Factory factory = AddressModel.getFactory();
                 result.forEach((t) -> {
-                    itemList.add(factory.createNew(t));
+                    addressItemList.add(factory.createNew(t));
                 });
             }
         }

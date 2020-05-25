@@ -16,7 +16,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -57,6 +56,16 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         return FACTORY;
     }
 
+    public static CountryDAO getPredefinedDAO(PredefinedCountryElement predefinedElement) {
+        CountryDAO result = predefinedElement.getDataAccessObject();
+        if (null == result) {
+            result = new CountryDAO();
+            result.name = predefinedElement.getLocale().getDisplayCountry();
+            result.predefinedElement = predefinedElement;
+        }
+        return result;
+    }
+
     private PredefinedCountryElement predefinedElement;
 
     private String name;
@@ -83,24 +92,34 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         return predefinedElement;
     }
 
-    // FIXME: When this is changed to another country, it will fail because the dataAccessObject on the predefined object is not changed.
+    private synchronized void checkPredefinedElementChange(PredefinedCountryElement country) {
+        if (null != predefinedElement && Objects.equals(this, predefinedElement.getDataAccessObject())) {
+            if (Objects.equals(predefinedElement, country)) {
+                return;
+            }
+            throw new IllegalStateException("Cannot change pre-defined country for the data access object of a pre-defined element");
+        }
+
+        if (null == country) {
+            if (null != predefinedElement) {
+                name = "";
+            }
+        } else if (!Objects.equals(predefinedElement, country)) {
+            name = country.getLocale().getDisplayCountry();
+        }
+        predefinedElement = country;
+    }
+
     /**
      * Set the value of predefinedCountry
      *
      * @param country new value of predefinedCountry
      */
-    public void setPredefinedElement(CountryDAO.PredefinedCountryElement country) {
-        CountryDAO.PredefinedCountryElement oldPredefinedCountry = predefinedElement;
+    public void setPredefinedElement(PredefinedCountryElement country) {
+        PredefinedCountryElement oldPredefinedCountry = predefinedElement;
         String oldName = name;
         try {
-            if (null == country) {
-                if (null != oldPredefinedCountry) {
-                    name = "";
-                }
-            } else if (!Objects.equals(oldPredefinedCountry, country)) {
-                name = country.getLocale().getDisplayCountry();
-            }
-            predefinedElement = country;
+            checkPredefinedElementChange(country);
         } finally {
             firePropertyChange(PROP_NAME, oldName, name);
             firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedCountry, country);
@@ -163,23 +182,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
-        @Override
-        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CountryDAO dao, ResultSet rs) throws SQLException {
-            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
-                private final String oldName = dao.name;
-                private final PredefinedCountryElement oldPredefinedElement = dao.predefinedElement;
-
-                @Override
-                public void accept(PropertyChangeSupport t) {
-                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
-                    t.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, dao.predefinedElement);
-                }
-            };
-            dao.setPredefinedElement(PredefinedData.getCountryMap().get(rs.getString(DbColumn.COUNTRY_NAME.toString())));
-            dao.predefinedElement.dataAccessObject = dao;
-            return propertyChanges;
-        }
-
         ICountryDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), rs.getString(DbColumn.COUNTRY_NAME.toString()));
         }
@@ -209,35 +211,54 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         public void save(CountryDAO dao, Connection connection, boolean force) throws SQLException {
             super.save(ICountryDAO.assertValidCountry(dao), connection, force);
-            dao.predefinedElement.dataAccessObject = dao;
         }
 
         @Override
         protected CountryDAO fromResultSet(ResultSet rs) throws SQLException {
             CountryDAO result = super.fromResultSet(rs);
-            PredefinedCountryElement pde = result.predefinedElement;
-            if (null != pde) {
-                if (null == pde.dataAccessObject) {
-                    pde.dataAccessObject = result;
-                } else {
-                    result.predefinedElement = pde;
-                    initializeFrom(pde.dataAccessObject, result);
-                    return pde.dataAccessObject;
-                }
+            CountryDAO dao = result.predefinedElement.getDataAccessObject();
+            if (null != dao) {
+                cloneProperties(result, result.predefinedElement.getDataAccessObject());
             }
             return result;
         }
 
         @Override
-        protected void onInitializingFrom(CountryDAO target, CountryDAO other) {
-            String oldName = target.name;
-            PredefinedCountryElement oldPredefinedElement = target.predefinedElement;
-            target.name = other.name;
-            target.predefinedElement = other.predefinedElement;
-            target.firePropertyChange(PROP_NAME, oldName, target.name);
-            target.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, target.predefinedElement);
+        protected void onCloneProperties(CountryDAO fromDAO, CountryDAO toDAO) {
+            String oldName = toDAO.name;
+            PredefinedCountryElement oldPredefinedElement = toDAO.predefinedElement;
+            toDAO.name = fromDAO.name;
+            toDAO.predefinedElement = fromDAO.predefinedElement;
+            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
+            toDAO.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, toDAO.predefinedElement);
         }
 
+        @Override
+        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CountryDAO dao, ResultSet rs) throws SQLException {
+            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
+                private final String oldName = dao.name;
+                private final PredefinedCountryElement oldPredefinedElement = dao.predefinedElement;
+
+                @Override
+                public void accept(PropertyChangeSupport t) {
+                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
+                    t.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, dao.predefinedElement);
+                }
+            };
+
+            dao.setPredefinedElement(PredefinedData.getCountryMap().get(rs.getString(DbColumn.COUNTRY_NAME.toString())));
+            return propertyChanges;
+        }
+
+//        @Override
+//        protected void onInitializingFrom(CountryDAO target, CountryDAO other) {
+//            String oldName = target.name;
+//            PredefinedCountryElement oldPredefinedElement = target.predefinedElement;
+//            target.name = other.name;
+//            target.predefinedElement = other.predefinedElement;
+//            target.firePropertyChange(PROP_NAME, oldName, target.name);
+//            target.firePropertyChange(PROP_PREDEFINEDELEMENT, oldPredefinedElement, target.predefinedElement);
+//        }
         @Override
         public String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
@@ -310,10 +331,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                     }
                 }
             }
-            if (null == element.dataAccessObject) {
-                (element.dataAccessObject = new CountryDAO()).setPredefinedElement(element);
-            }
-            return element.dataAccessObject;
+            return element.getDataAccessObject();
         }
 
         public CountryDAO getByRegionCode(Connection connection, String rc) throws SQLException {
@@ -373,14 +391,11 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     }
 
     @XmlRootElement(name = PredefinedCountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-    @XmlType(name = PredefinedCountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI, factoryMethod="createInstanceJAXB")
+    @XmlType(name = PredefinedCountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI, factoryMethod = "createInstanceJAXB")
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class PredefinedCountryElement extends PredefinedData.PredefinedCountry {
 
         public static final String ELEMENT_NAME = "country";
-
-        @XmlTransient
-        private CountryDAO dataAccessObject = null;
 
         @XmlAttribute
         private String languageTag;
@@ -398,18 +413,13 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return defaultZoneId;
         }
 
-        @Override
-        public synchronized CountryDAO getDataAccessObject() {
-            return dataAccessObject;
+        private PredefinedCountryElement() {
+
         }
 
-        private PredefinedCountryElement() {
-            
-        }
-        
         private static PredefinedCountryElement createInstanceJAXB() {
             return new PredefinedCountryElement();
         }
-        
+
     }
 }

@@ -31,6 +31,10 @@ public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T
 
     ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
 
+    String getDefaultTimeZoneDisplay();
+    
+    ReadOnlyStringProperty defaultTimeZoneDisplayProperty();
+    
     String getLanguage();
 
     ReadOnlyStringProperty languageProperty();

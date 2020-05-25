@@ -191,7 +191,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         valid = new WrappedBooleanObservableProperty(this, "valid",
                 ObservableDerivitive.isNotNullOrWhiteSpace(addressLines).and(
-                        ObservableObjectDerivitive.ofNested(city, (u) -> u.predefinedDataProperty()).isNotNull(),
+                        ObservableObjectDerivitive.ofNested(city, (u) -> u.predefinedElementProperty()).isNotNull(),
                         ObservableDerivitive.isNotNullOrEmpty(postalCode)
                 )
         );

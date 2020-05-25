@@ -214,7 +214,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            getMainController().deleteAppointment(item);
+            getMainController().deleteAppointment(item, waitBorderPane);
         }
     }
 

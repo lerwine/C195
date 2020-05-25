@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
@@ -666,37 +665,37 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected void onInitializingFrom(AppointmentDAO target, AppointmentDAO other) {
-            String oldContact = target.contact;
-            ICustomerDAO oldCustomer = target.customer;
-            String oldDescription = target.description;
-            Timestamp oldEnd = target.end;
-            String oldLocation = target.location;
-            Timestamp oldStart = target.start;
-            String oldTitle = target.title;
-            AppointmentType oldType = target.type;
-            String oldUrl = target.url;
-            IUserDAO oldUser = target.user;
-            target.contact = other.contact;
-            target.customer = other.customer;
-            target.description = other.description;
-            target.end = other.end;
-            target.location = other.location;
-            target.start = other.start;
-            target.title = other.title;
-            target.type = other.type;
-            target.url = other.url;
-            target.user = other.user;
-            target.firePropertyChange(PROP_CUSTOMER, oldCustomer, target.customer);
-            target.firePropertyChange(PROP_USER, oldUser, target.user);
-            target.firePropertyChange(PROP_TITLE, oldTitle, target.title);
-            target.firePropertyChange(PROP_DESCRIPTION, oldDescription, target.description);
-            target.firePropertyChange(PROP_LOCATION, oldLocation, target.location);
-            target.firePropertyChange(PROP_CONTACT, oldContact, target.contact);
-            target.firePropertyChange(PROP_TYPE, oldType, (null == target.type) ? AppointmentType.OTHER : target.type);
-            target.firePropertyChange(PROP_URL, oldUrl, target.url);
-            target.firePropertyChange(PROP_START, oldStart, target.start);
-            target.firePropertyChange(PROP_END, oldEnd, target.end);
+        protected void onCloneProperties(AppointmentDAO fromDAO, AppointmentDAO toDAO) {
+            String oldContact = toDAO.contact;
+            ICustomerDAO oldCustomer = toDAO.customer;
+            String oldDescription = toDAO.description;
+            Timestamp oldEnd = toDAO.end;
+            String oldLocation = toDAO.location;
+            Timestamp oldStart = toDAO.start;
+            String oldTitle = toDAO.title;
+            AppointmentType oldType = toDAO.type;
+            String oldUrl = toDAO.url;
+            IUserDAO oldUser = toDAO.user;
+            toDAO.contact = fromDAO.contact;
+            toDAO.customer = fromDAO.customer;
+            toDAO.description = fromDAO.description;
+            toDAO.end = fromDAO.end;
+            toDAO.location = fromDAO.location;
+            toDAO.start = fromDAO.start;
+            toDAO.title = fromDAO.title;
+            toDAO.type = fromDAO.type;
+            toDAO.url = fromDAO.url;
+            toDAO.user = fromDAO.user;
+            toDAO.firePropertyChange(PROP_CUSTOMER, oldCustomer, toDAO.customer);
+            toDAO.firePropertyChange(PROP_USER, oldUser, toDAO.user);
+            toDAO.firePropertyChange(PROP_TITLE, oldTitle, toDAO.title);
+            toDAO.firePropertyChange(PROP_DESCRIPTION, oldDescription, toDAO.description);
+            toDAO.firePropertyChange(PROP_LOCATION, oldLocation, toDAO.location);
+            toDAO.firePropertyChange(PROP_CONTACT, oldContact, toDAO.contact);
+            toDAO.firePropertyChange(PROP_TYPE, oldType, (null == toDAO.type) ? AppointmentType.OTHER : toDAO.type);
+            toDAO.firePropertyChange(PROP_URL, oldUrl, toDAO.url);
+            toDAO.firePropertyChange(PROP_START, oldStart, toDAO.start);
+            toDAO.firePropertyChange(PROP_END, oldEnd, toDAO.end);
         }
 
         @Override

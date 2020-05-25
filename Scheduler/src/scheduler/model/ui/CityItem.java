@@ -34,17 +34,23 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     ReadOnlyProperty<? extends CountryItem<? extends ICountryDAO>> countryProperty();
 
+    String getCountryName();
+    
     ReadOnlyStringProperty countryNameProperty();
 
     ZoneId getZoneId();
 
     ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
 
+    String getTimeZoneDisplay();
+    
+    ReadOnlyStringProperty timeZoneDisplayProperty();
+
     String getLanguage();
 
     ReadOnlyStringProperty languageProperty();
 
-    ReadOnlyObjectProperty<CityDAO.PredefinedCityElement> predefinedDataProperty();
+    ReadOnlyObjectProperty<CityDAO.PredefinedCityElement> predefinedElementProperty();
 
     /**
      * Gets the backing {@link ICityDAO} data access object.

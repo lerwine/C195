@@ -66,7 +66,7 @@ if ($null -ne $TargetInfo) {
                     Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::hi) }
                 }) | Out-GridView -Title 'Select items' -OutputMode Multiple);
                 while ($Items.Count -gt 0) {
-                    $ChoiceIndex = $Host.UI.PromptForChoice('Modify items', 'Select action', $RootChoices, 2);
+                    $ChoiceIndex = $Host.UI.PromptForChoice('Modify items', 'Select action', $EditChoices, 2);
                     if ($null -ne $ChoiceIndex) {
                         switch ($ChoiceIndex) {
                             0 {
@@ -134,7 +134,7 @@ if ($null -ne $TargetInfo) {
                         Write-Warning -Message 'Property already defined';
                     } else {
                         $EnValue = Read-Host -Prompt 'English (blank to copy from clipboard)';
-                        if ([string]::IsNullOrEmpty($Value)) {
+                        if ([string]::IsNullOrEmpty($EnValue)) {
                             $EnValue = [System.Windows.Forms.Clipboard]::GetText();
                         } else {
                             [System.Windows.Forms.Clipboard]::SetText($EnValue);
@@ -150,7 +150,7 @@ if ($null -ne $TargetInfo) {
                         }
                         [System.Windows.Forms.Clipboard]::SetText($EnValue);
                         $HiValue = Read-Host -Prompt 'Hindi (blank to copy from clipboard)';
-                        if ([string]::IsNullOrEmpty($EsValue)) {
+                        if ([string]::IsNullOrEmpty($HiValue)) {
                             $HiValue = [System.Windows.Forms.Clipboard]::GetText();
                         }
                         $TargetBundle.Set($Key, $EnValue, [ResourceHelper.LanguageCode]::en);
@@ -169,16 +169,16 @@ if ($null -ne $TargetInfo) {
                         Expression = { $_ }
                     }, @{
                         Label = 'en';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::en) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::en) }
                     }, @{
                         Label = 'de';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::de) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::de) }
                     }, @{
                         Label = 'es';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::es) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::es) }
                     }, @{
                         Label = 'hi';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::hi) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::hi) }
                     }) | Out-GridView -Title 'Select items to copy' -OutputMode Multiple);
                     if ($Items.Count -gt 0) {
                         $Existing = @($Items | ForEach-Object { $_.Name } | Where-Object { $TargetBundle.ContainsKey($_); } );
@@ -214,16 +214,16 @@ if ($null -ne $TargetInfo) {
                         Expression = { $_ }
                     }, @{
                         Label = 'en';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::en) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::en) }
                     }, @{
                         Label = 'de';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::de) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::de) }
                     }, @{
                         Label = 'es';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::es) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::es) }
                     }, @{
                         Label = 'hi';
-                        Expression = { $TargetBundle.Get($_, [ResourceHelper.LanguageCode]::hi) }
+                        Expression = { $SourceBundle.Get($_, [ResourceHelper.LanguageCode]::hi) }
                     }) | Out-GridView -Title 'Select items to move' -OutputMode Multiple);
                     if ($Items.Count -gt 0) {
                         $Existing = @($Items | ForEach-Object { $_.Name } | Where-Object { $TargetBundle.ContainsKey($_); } );

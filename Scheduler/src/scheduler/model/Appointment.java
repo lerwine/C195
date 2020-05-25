@@ -1,6 +1,7 @@
 package scheduler.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Interface for objects that contain either partial or complete information from the {@code appointment} database entity.
@@ -11,13 +12,11 @@ import java.io.Serializable;
 public interface Appointment<T extends Serializable & Comparable<? super T>> extends DataObject {
 
     public static boolean arePropertiesEqual(Appointment<?> a, Appointment<?> b) {
-        if (null == a) {
-            return null == b;
-        }
-        if (a == b) {
+        if (Objects.equals(a, b)) {
             return true;
         }
-        return null != b && ModelHelper.areSameRecord(a.getCustomer(), b.getCustomer())
+
+        return null != b && null != b && ModelHelper.areSameRecord(a.getCustomer(), b.getCustomer())
                 && ModelHelper.areSameRecord(a.getUser(), b.getUser())
                 && a.getContact().equalsIgnoreCase(b.getContact())
                 && a.getDescription().equalsIgnoreCase(b.getDescription())
@@ -29,9 +28,30 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
                 && a.endEquals(b.getEnd());
     }
 
-    public static int compareByDates(Appointment<?> a, Appointment<?> b) {
+    public static int compare(Appointment<?> a, Appointment<?> b) {
+        if (Objects.equals(a, b)) {
+            return 0;
+        }
         if (null == a) {
-            return (null == b) ? 0 : 1;
+            return 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+
+        int result = a.compareStart(b.getStart());
+        if (result == 0 && (result = a.compareEnd(b.getEnd())) == 0 && (result = Customer.compare(a.getCustomer(), b.getCustomer())) == 0) {
+            return User.compare(a.getUser(), b.getUser());
+        }
+        return result;
+    }
+
+    public static int compareByDates(Appointment<?> a, Appointment<?> b) {
+        if (Objects.equals(a, b)) {
+            return 0;
+        }
+        if (null == a) {
+            return 1;
         }
         if (null == b) {
             return -1;

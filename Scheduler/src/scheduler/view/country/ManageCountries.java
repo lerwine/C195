@@ -1,5 +1,6 @@
 package scheduler.view.country;
 
+import java.util.Comparator;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -10,6 +11,7 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.MainListingControl;
+import scheduler.model.Country;
 import scheduler.model.ui.CountryModel;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -63,6 +65,11 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     }
 
     @Override
+    protected Comparator<? super CountryDAO> getComparator() {
+        return Country::compare;
+    }
+
+    @Override
     protected CountryModel.Factory getModelFactory() {
         return CountryModel.getFactory();
     }
@@ -89,7 +96,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected void onDeleteItem(CountryModel item) {
-        getMainController().deleteCountry(item);
+        getMainController().deleteCountry(item, null);
     }
 
     @Override

@@ -1,14 +1,13 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
+import java.time.format.TextStyle;
 import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
@@ -20,6 +19,8 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.observables.DerivedBooleanProperty;
+import scheduler.observables.DerivedObjectProperty;
+import scheduler.observables.DerivedStringProperty;
 import scheduler.view.ModelFilter;
 
 /**
@@ -34,31 +35,37 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return FACTORY;
     }
 
+    public static String toCountryName(CountryDAO.PredefinedCountryElement element) {
+        return (null == element) ? "" : element.getLocale().getDisplayCountry();
+    }
+
+    public static String toLanguage(CountryDAO.PredefinedCountryElement element) {
+        return (null == element) ? "" : element.getLocale().getDisplayLanguage();
+    }
+
+    public static ZoneId toZoneId(CountryDAO.PredefinedCountryElement element) {
+        return (null == element) ? null : ZoneId.of(element.getDefaultZoneId());
+    }
+
+    public static String toTimeZoneDisplay(ZoneId zoneId) {
+        return (null == zoneId) ? "" : zoneId.getDisplayName(TextStyle.FULL, Locale.getDefault(Locale.Category.DISPLAY));
+    }
+
     private final ObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElement;
-    private final ReadOnlyStringWrapper name;
-    private final ReadOnlyStringWrapper language;
-    private final ReadOnlyObjectWrapper<ZoneId> zoneId;
+    private final DerivedStringProperty<CountryDAO.PredefinedCountryElement> name;
+    private final DerivedStringProperty<CountryDAO.PredefinedCountryElement> language;
+    private final DerivedObjectProperty<CountryDAO.PredefinedCountryElement, ZoneId> zoneId;
+    private final DerivedStringProperty<ZoneId> defaultTimeZoneDisplay;
     private final DerivedBooleanProperty<CountryDAO.PredefinedCountryElement> valid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        predefinedElement = new SimpleObjectProperty<>(this, "predefinedData", dao.getPredefinedElement());
-        name = new ReadOnlyStringWrapper(this, "name", dao.getName());
-        zoneId = new ReadOnlyObjectWrapper<>(this, "zoneId", Country.getZoneIdOf(dao));
-        language = new ReadOnlyStringWrapper(this, "language", Country.getLanguageOf(dao));
+        predefinedElement = new SimpleObjectProperty<>(this, "predefinedElement", dao.getPredefinedElement());
+        name = new DerivedStringProperty<>(this, "name", predefinedElement, CountryModel::toCountryName);
+        zoneId = new DerivedObjectProperty<>(this, "zoneId", predefinedElement, CountryModel::toZoneId);
+        language = new DerivedStringProperty<>(this, "language", predefinedElement, CountryModel::toLanguage);
+        defaultTimeZoneDisplay = new DerivedStringProperty<>(this, "defaultTimeZoneDisplay", zoneId, CountryModel::toTimeZoneDisplay);
         valid = new DerivedBooleanProperty<>(this, "valid", predefinedElement, Objects::nonNull);
-        predefinedElement.addListener((observable, oldValue, newValue) -> {
-            if (null != newValue) {
-                Locale locale = newValue.getLocale();
-                name.set(locale.getDisplayCountry());
-                language.set(locale.getDisplayLanguage());
-                zoneId.set(ZoneId.of(newValue.getDefaultZoneId()));
-            } else {
-                name.set("");
-                language.set("");
-                zoneId.set(ZoneId.systemDefault());
-            }
-        });
     }
 
     @Override
@@ -82,7 +89,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     @Override
     public ReadOnlyStringProperty nameProperty() {
-        return name.getReadOnlyProperty();
+        return name.getReadOnlyStringProperty();
     }
 
     @Override
@@ -92,7 +99,17 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     @Override
     public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId.getReadOnlyProperty();
+        return zoneId.getReadOnlyObjectProperty();
+    }
+
+    @Override
+    public String getDefaultTimeZoneDisplay() {
+        return defaultTimeZoneDisplay.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty defaultTimeZoneDisplayProperty() {
+        return defaultTimeZoneDisplay.getReadOnlyStringProperty();
     }
 
     @Override
@@ -102,7 +119,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     @Override
     public ReadOnlyStringProperty languageProperty() {
-        return language.getReadOnlyProperty();
+        return language.getReadOnlyStringProperty();
     }
 
     @Override

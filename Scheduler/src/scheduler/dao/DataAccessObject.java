@@ -82,6 +82,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
     private DataRowState rowState;
+    private boolean changing = false;
 
     /**
      * Initializes a {@link DataRowState#NEW} data access object.
@@ -158,8 +159,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         return true;
     }
 
-    private boolean changing = false;
-
     @Override
     protected void onPropertyChange(PropertyChangeEvent event) throws Exception {
         super.onPropertyChange(event);
@@ -197,6 +196,18 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         return Scheduler.buildMainControllerEventDispatchChain(tail);
+    }
+
+    /**
+     * Resets {@link #rowState} to {@link DataRowState#NEW} if the current state is {@link DataRowState#DELETED}; otherwise, this has no effect.
+     */
+    public synchronized void resetRowState() {
+        if (rowState == DataRowState.DELETED) {
+            primaryKey = Integer.MIN_VALUE;
+            lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+            lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
+            rowState = DataRowState.NEW;
+        }
     }
 
     private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
@@ -305,6 +316,66 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return task;
         }
 
+        public final T createClone(T source, boolean asNew) {
+            T result = createNew();
+            if (asNew) {
+                onCloneProperties(source, result);
+            } else {
+                cloneProperties(source, result);
+            }
+            return result;
+        }
+
+        /**
+         * Synchronizes the properties of 2 data access objects.
+         *
+         * @param source The source data access object.
+         * @param target The data access object to be updated.
+         * @throws IllegalStateException if the two objects represent different records.
+         */
+        public final void synchronize(T source, T target) {
+            if (target.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW || target.getPrimaryKey() != source.getPrimaryKey())) {
+                throw new IllegalStateException();
+            }
+            cloneProperties(source, target);
+        }
+
+        protected final void cloneProperties(T fromDAO, T toDAO) {
+            if (Objects.equals(fromDAO, toDAO)) {
+                return;
+            }
+            DataAccessObject d1 = (DataAccessObject) fromDAO;
+            DataAccessObject d2 = (DataAccessObject) toDAO;
+            d2.beginChange();
+            d2.changing = true;
+            try {
+                Timestamp oldCreateDate = d2.createDate;
+                String oldCreatedBy = d2.createdBy;
+                Timestamp oldLastModifiedDate = d2.lastModifiedDate;
+                String oldLastModifiedBy = d2.lastModifiedBy;
+                int oldPrimaryKey = d2.primaryKey;
+                DataRowState oldRowState = d2.rowState;
+                d2.createDate = d1.createDate;
+                d2.createdBy = d1.createdBy;
+                d2.lastModifiedDate = d1.lastModifiedDate;
+                d2.lastModifiedBy = d1.lastModifiedBy;
+                d2.primaryKey = d1.primaryKey;
+                d2.rowState = d1.rowState;
+                onCloneProperties(fromDAO, toDAO);
+                d2.firePropertyChange(PROP_CREATEDATE, oldCreateDate, d2.createDate);
+                d2.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, d2.createdBy);
+                d2.firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, d2.lastModifiedDate);
+                d2.firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, d2.lastModifiedBy);
+                d2.firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, d2.primaryKey);
+                d2.firePropertyChange(PROP_ROWSTATE, oldRowState, d2.rowState);
+            } finally {
+                d2.endChange();
+                d2.changing = false;
+            }
+        }
+
+        protected abstract void onCloneProperties(T fromDAO, T toDAO);
+
         /**
          * Creates a new data access object from database query results.
          *
@@ -318,38 +389,40 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return item;
         }
 
-        protected final void initializeFrom(T target, T other) {
-            DataAccessObject obj = (DataAccessObject) target;
-            boolean wasChanging = obj.changing;
-            obj.changing = true;
-            obj.beginChange();
-            DataRowState oldRowState = obj.rowState;
-            Timestamp oldCreateDate = obj.createDate;
-            String oldCreatedBy = obj.createdBy;
-            Timestamp oldModifiedDate = obj.lastModifiedDate;
-            String oldModifiedBy = obj.lastModifiedBy;
-            try {
-                obj.primaryKey = other.getPrimaryKey();
-                obj.createDate = other.getCreateDate();
-                obj.createdBy = other.getCreatedBy();
-                obj.lastModifiedDate = other.getLastModifiedDate();
-                obj.lastModifiedBy = other.getLastModifiedBy();
-                obj.rowState = other.getRowState();
-                obj.firePropertyChange(PROP_PRIMARYKEY, oldCreateDate, obj.primaryKey);
-                obj.firePropertyChange(PROP_CREATEDATE, oldCreateDate, obj.createDate);
-                obj.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, obj.createdBy);
-                obj.firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, obj.lastModifiedDate);
-                obj.firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedBy, obj.lastModifiedBy);
-                onInitializingFrom(target, other);
-            } finally {
-                obj.endChange();
-                obj.changing = wasChanging;
-                obj.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
-            }
-        }
-
-        protected abstract void onInitializingFrom(T target, T other);
-
+//        protected final void initializeFrom(T target, T other) {
+//            if (Objects.equals(target, other)) {
+//                return;
+//            }
+//            DataAccessObject obj = (DataAccessObject) target;
+//            boolean wasChanging = obj.changing;
+//            obj.changing = true;
+//            obj.beginChange();
+//            DataRowState oldRowState = obj.rowState;
+//            Timestamp oldCreateDate = obj.createDate;
+//            String oldCreatedBy = obj.createdBy;
+//            Timestamp oldModifiedDate = obj.lastModifiedDate;
+//            String oldModifiedBy = obj.lastModifiedBy;
+//            try {
+//                obj.primaryKey = other.getPrimaryKey();
+//                obj.createDate = other.getCreateDate();
+//                obj.createdBy = other.getCreatedBy();
+//                obj.lastModifiedDate = other.getLastModifiedDate();
+//                obj.lastModifiedBy = other.getLastModifiedBy();
+//                obj.rowState = other.getRowState();
+//                obj.firePropertyChange(PROP_PRIMARYKEY, oldCreateDate, obj.primaryKey);
+//                obj.firePropertyChange(PROP_CREATEDATE, oldCreateDate, obj.createDate);
+//                obj.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, obj.createdBy);
+//                obj.firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, obj.lastModifiedDate);
+//                obj.firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedBy, obj.lastModifiedBy);
+//                onInitializingFrom(target, other);
+//            } finally {
+//                obj.endChange();
+//                obj.changing = wasChanging;
+//                obj.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
+//            }
+//        }
+//
+//        protected abstract void onInitializingFrom(T target, T other);
         /**
          * Creates a new {@link DataAccessObject} object.
          *

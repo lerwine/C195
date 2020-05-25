@@ -36,14 +36,24 @@
                         <String fx:value="collapsed" />
                     </styleClass>
                 </Label>
-                <TableView fx:id="listingTableView" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                <TableView fx:id="listingTableView" prefHeight="50.0" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%name">
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%name">
                             <cellValueFactory>
                                 <PropertyValueFactory property="name" />
                             </cellValueFactory>
                         </TableColumn>
-                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%createdOn">
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="125.0" text="%language">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="language" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="125.0" prefWidth="125.0" text="%defaultTimeZone">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="defaultTimeZone" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" minWidth="75.0" prefWidth="-1.0" text="%createdOn" visible="false">
                             <cellValueFactory>
                                 <PropertyValueFactory property="createDate" />
                             </cellValueFactory>
@@ -51,12 +61,12 @@
                                 <DateTimeTableCellFactory />
                             </cellFactory>
                         </TableColumn>
-                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%createdBy">
+                        <TableColumn editable="false" minWidth="75.0" prefWidth="-1.0" text="%createdBy" visible="false">
                             <cellValueFactory>
                                 <PropertyValueFactory property="createdBy" />
                             </cellValueFactory>
                         </TableColumn>
-                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%updatedOn">
+                        <TableColumn editable="false" minWidth="92.0" prefWidth="-1.0" text="%updatedOn" visible="false">
                             <cellValueFactory>
                                 <PropertyValueFactory property="lastModifiedDate" />
                             </cellValueFactory>
@@ -64,7 +74,7 @@
                                 <DateTimeTableCellFactory />
                             </cellFactory>
                         </TableColumn>
-                        <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%updatedBy">
+                        <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%updatedBy" visible="false">
                             <cellValueFactory>
                                 <PropertyValueFactory property="lastModifiedBy" />
                             </cellValueFactory>
