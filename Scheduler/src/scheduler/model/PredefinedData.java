@@ -30,10 +30,10 @@ import scheduler.dao.event.AddressDaoEvent;
 import scheduler.dao.event.CityDaoEvent;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.event.DbChangeType;
+import scheduler.util.LogHelper;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.GlobalizationResource;
 
-// TODO: Add a listener method that updates associated DAO objects when they're updated.
 /**
  * Contains static methods for getting pre-defined location and time zone information.
  *
@@ -43,6 +43,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @XmlRootElement(name = "definitions", namespace = PredefinedData.NAMESPACE_URI)
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PredefinedData {
+
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(PredefinedData.class.getName()), Level.FINER);
 
     public static final String NAMESPACE_URI = "urn:Erwine.Leonard.T:C195:StaticAddresses.xsd";
     static final String XML_FILE = "scheduler/StaticAddresses.xml";
@@ -64,7 +66,7 @@ public class PredefinedData {
         resources = ResourceBundleHelper.getBundle(PredefinedData.class);
         try (InputStream stream = PredefinedData.class.getClassLoader().getResourceAsStream(XML_FILE)) {
             if (stream == null) {
-                Logger.getLogger(PredefinedData.class.getName()).log(Level.SEVERE, String.format("File \"%s\" not found.", XML_FILE));
+                LOG.log(Level.SEVERE, String.format("File \"%s\" not found.", XML_FILE));
             } else {
                 JAXBContext jaxbContext = JAXBContext.newInstance(PredefinedData.class);
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -100,7 +102,7 @@ public class PredefinedData {
                 });
             }
         } catch (IOException | JAXBException ex) {
-            Logger.getLogger(PredefinedData.class.getName()).log(Level.SEVERE, String.format("Error loading resource \"%s\"", XML_FILE), ex);
+            LOG.log(Level.SEVERE, String.format("Error loading resource \"%s\"", XML_FILE), ex);
         }
     }
 
@@ -259,11 +261,13 @@ public class PredefinedData {
         CountryDAO.PredefinedCountryElement pde = changedDao.getPredefinedElement();
         if (null != pde) {
             CountryDAO dao = pde.getDataAccessObject();
-            if (event.getChangeType() == DbChangeType.DELETED) {
-                dao.resetRowState();
-            }
             if (!Objects.equals(dao, changedDao)) {
+                LOG.fine(() -> String.format("Detected %s change from another instance. Synchronizing row state.", dao));
                 CountryDAO.getFactory().synchronize(changedDao, dao);
+            }
+            if (event.getChangeType() == DbChangeType.DELETED) {
+                LOG.fine(() -> String.format("Detected %s deleted. Resetting row state.", dao));
+                dao.resetRowState();
             }
         }
     }
@@ -273,11 +277,13 @@ public class PredefinedData {
         CityDAO.PredefinedCityElement pde = changedDao.getPredefinedElement();
         if (null != pde) {
             CityDAO dao = pde.getDataAccessObject();
-            if (event.getChangeType() == DbChangeType.DELETED) {
-                dao.resetRowState();
-            }
             if (!Objects.equals(dao, changedDao)) {
+                LOG.fine(() -> String.format("Detected %s change from another instance. Synchronizing row state.", dao));
                 CityDAO.getFactory().synchronize(changedDao, dao);
+            }
+            if (event.getChangeType() == DbChangeType.DELETED) {
+                LOG.fine(() -> String.format("Detected %s deleted. Resetting row state.", dao));
+                dao.resetRowState();
             }
         }
     }
@@ -287,11 +293,13 @@ public class PredefinedData {
         AddressDAO.PredefinedAddressElement pde = changedDao.getPredefinedElement();
         if (null != pde) {
             AddressDAO dao = pde.getDataAccessObject();
-            if (event.getChangeType() == DbChangeType.DELETED) {
-                dao.resetRowState();
-            }
             if (!Objects.equals(dao, changedDao)) {
+                LOG.fine(() -> String.format("Detected %s change from another instance. Synchronizing row state.", dao));
                 AddressDAO.getFactory().synchronize(changedDao, dao);
+            }
+            if (event.getChangeType() == DbChangeType.DELETED) {
+                LOG.fine(() -> String.format("Detected %s deleted. Resetting row state.", dao));
+                dao.resetRowState();
             }
         }
     }
