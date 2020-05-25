@@ -215,7 +215,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             countryList.stream().filter((t) -> t.getPredefinedElement().getLocale().getCountry().equals(rc)).findFirst().ifPresent((t)
                     -> countryNameComboBox.getSelectionModel().select(t));
         }
-        valid.set(null != countryNameComboBox.getSelectionModel().getSelectedItem());
     }
 
     @Override
