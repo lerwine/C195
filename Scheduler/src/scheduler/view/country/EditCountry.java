@@ -27,8 +27,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CityDAO;
@@ -43,6 +41,7 @@ import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.ObservableObjectDerivitive;
+import scheduler.observables.ObservableStringDerivitive;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -206,8 +205,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         countryNameComboBox.setItems(countryList);
         selectedCountryName = ObservableObjectDerivitive.ofSelection(countryNameComboBox);
         valid.bind(selectedCountryName.isNotNull());
-        languageLabel.textProperty().bind(model.languageProperty());
-        defaultTimeZoneLabel.textProperty().bind(model.defaultTimeZoneDisplayProperty());
+        languageLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.languageProperty()));
+        defaultTimeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.defaultTimeZoneDisplayProperty()));
         nameValidationLabel.visibleProperty().bind(selectedCountryName.isNull());
         CountryDAO.PredefinedCountryElement pdc = model.getPredefinedElement();
         if (null != pdc) {
@@ -357,7 +356,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         protected List<CityDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CityDAO.FactoryImpl cf = CityDAO.getFactory();
                 return cf.load(dbConnector.getConnection(), cf.getByCountryFilter(pk));
             }
