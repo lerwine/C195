@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -18,6 +20,7 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -31,11 +34,11 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.fx.AddressPicker;
@@ -47,6 +50,7 @@ import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.MapHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -55,6 +59,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
+import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 
@@ -202,7 +207,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML
     void onAddButtonAction(ActionEvent event) {
-        getMainController().addNewAppointment(model, null, getScene().getWindow(), false);
+        try {
+            EditAppointment.editNew(model, null, getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML
@@ -214,7 +223,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            getMainController().deleteAppointment(item, waitBorderPane);
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
+            }
         }
     }
 
@@ -222,7 +236,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     void onEditAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            getMainController().editAppointment(item, getScene().getWindow());
+            try {
+                EditAppointment.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
         }
     }
 
@@ -495,6 +513,53 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             }
         }
 
+    }
+
+    private class DeleteTask extends Task<String> {
+
+        private final AppointmentModel model;
+        private final Window parentWindow;
+        private final AppointmentDAO dao;
+
+        DeleteTask(AppointmentModel model, Window parentWindow) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            dao = model.getDataObject();
+            this.model = model;
+            this.parentWindow = parentWindow;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
+            if (null != message && !message.trim().isEmpty()) {
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            }
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
+        }
+
+        @Override
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
+                AppointmentDAO.getFactory().delete(dao, connector.getConnection());
+                if (dao.getRowState() == DataRowState.DELETED) {
+                    AppointmentModel.getFactory().updateItem(model, dao);
+                }
+            }
+            return null;
+        }
     }
 
 }

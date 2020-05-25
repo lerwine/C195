@@ -12,29 +12,36 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
 import scheduler.Scheduler;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
@@ -45,8 +52,11 @@ import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
+import scheduler.util.AlertHelper;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -469,17 +479,30 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewAppointment(null, null, getScene().getWindow(), true);
+        try {
+            EditAppointment.editNew(null, null, getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @Override
     protected void onEditItem(AppointmentModel item) {
-        getMainController().editAppointment(item, getScene().getWindow());
+        try {
+            EditAppointment.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @Override
     protected void onDeleteItem(AppointmentModel item) {
-        getMainController().deleteAppointment(item, null);
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            MainController.startBusyTaskNow(new DeleteTask(item, getScene().getWindow()));
+        }
     }
 
     @Override
@@ -495,6 +518,53 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected EventType<AppointmentDaoEvent> getDeletedEventType() {
         return AppointmentDaoEvent.APPOINTMENT_DAO_DELETE;
+    }
+
+    private class DeleteTask extends Task<String> {
+
+        private final AppointmentModel model;
+        private final Window parentWindow;
+        private final AppointmentDAO dao;
+
+        DeleteTask(AppointmentModel model, Window parentWindow) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            dao = model.getDataObject();
+            this.model = model;
+            this.parentWindow = parentWindow;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
+            if (null != message && !message.trim().isEmpty()) {
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            }
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
+        }
+
+        @Override
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
+                AppointmentDAO.getFactory().delete(dao, connector.getConnection());
+                if (dao.getRowState() == DataRowState.DELETED) {
+                    AppointmentModel.getFactory().updateItem(model, dao);
+                }
+            }
+            return null;
+        }
     }
 
 }

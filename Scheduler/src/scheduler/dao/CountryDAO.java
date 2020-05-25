@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -19,6 +20,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.dao.event.CountryDaoEvent;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DatabaseTable;
 import scheduler.dao.schema.DbColumn;
@@ -347,6 +351,13 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 }
             }
             return null;
+        }
+
+        @Override
+        protected void fireEvent(Object source, DbChangeType changeAction, CountryDAO target) {
+            CountryDaoEvent event = new CountryDaoEvent(this, changeAction, target);
+            Event.fireEvent(target, event);
+            DataObjectEvent.fireGenericEvent(event);
         }
 
     }

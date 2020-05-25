@@ -20,9 +20,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
 import scheduler.fx.ErrorDetailControl;
+import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.UserModel;
 import scheduler.util.DbConnector;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.OverviewResourceKeys.*;
@@ -31,12 +32,11 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
+import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
-import scheduler.model.ui.CustomerModel;
 import scheduler.view.customer.ManageCustomers;
 import scheduler.view.user.ManageUsers;
-import scheduler.model.ui.UserModel;
 
 /**
  * FXML Controller class
@@ -100,7 +100,11 @@ public class Overview extends VBox {
 
     @FXML
     void onNewAppointmentHyperlinkAction(ActionEvent event) {
-        getMainController().addNewAppointment(null, null, getScene().getWindow(), true);
+        try {
+            EditAppointment.editNew(null, null, getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML

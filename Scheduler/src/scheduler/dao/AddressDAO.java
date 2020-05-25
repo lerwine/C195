@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.collections.ObservableMap;
+import javafx.event.Event;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -19,6 +20,9 @@ import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
+import scheduler.dao.event.AddressDaoEvent;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.IntColumnValueFilter;
@@ -534,6 +538,13 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
+        }
+
+        @Override
+        protected void fireEvent(Object source, DbChangeType changeAction, AddressDAO target) {
+            AddressDaoEvent event = new AddressDaoEvent(this, changeAction, target);
+            Event.fireEvent(target, event);
+            DataObjectEvent.fireGenericEvent(event);
         }
 
     }

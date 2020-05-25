@@ -1,20 +1,34 @@
 package scheduler.view.country;
 
+import java.io.IOException;
 import java.util.Comparator;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
 import scheduler.Scheduler;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Country;
 import scheduler.model.ui.CountryModel;
+import scheduler.util.AlertHelper;
+import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -32,6 +46,8 @@ import static scheduler.view.country.MangageCountriesResourceKeys.*;
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
 public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryDaoEvent> {
+
+    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
 
     public static ManageCountries loadIntoMainContent(ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter) {
         ManageCountries newContent = new ManageCountries();
@@ -86,17 +102,30 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected void onNewItem() {
-        getMainController().addNewCountry(getScene().getWindow(), true);
+        try {
+            EditCountry.editNew(getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @Override
     protected void onEditItem(CountryModel item) {
-        getMainController().openCountry(item, getScene().getWindow());
+        try {
+            EditCountry.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @Override
     protected void onDeleteItem(CountryModel item) {
-        getMainController().deleteCountry(item, null);
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            MainController.startBusyTaskNow(new DeleteTask(item, getScene().getWindow()));
+        }
     }
 
     @Override
@@ -112,6 +141,53 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     @Override
     protected EventType<CountryDaoEvent> getDeletedEventType() {
         return CountryDaoEvent.COUNTRY_DAO_DELETE;
+    }
+
+    private class DeleteTask extends Task<String> {
+
+        private final CountryModel model;
+        private final Window parentWindow;
+        private final CountryDAO dao;
+
+        DeleteTask(CountryModel model, Window parentWindow) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            dao = model.getDataObject();
+            this.model = model;
+            this.parentWindow = parentWindow;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
+            if (null != message && !message.trim().isEmpty()) {
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            }
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
+        }
+
+        @Override
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = CountryDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
+                CountryDAO.getFactory().delete(dao, connector.getConnection());
+                if (dao.getRowState() == DataRowState.DELETED) {
+                    CountryModel.getFactory().updateItem(model, dao);
+                }
+            }
+            return null;
+        }
     }
 
 }

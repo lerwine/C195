@@ -11,7 +11,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import scheduler.Scheduler;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DbChangeType;
+import scheduler.dao.event.UserDaoEvent;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -346,6 +350,13 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 default:
                     return String.format("User is referenced by %d other appointments", count);
             }
+        }
+
+        @Override
+        protected void fireEvent(Object source, DbChangeType changeAction, UserDAO target) {
+            UserDaoEvent event = new UserDaoEvent(this, changeAction, target);
+            Event.fireEvent(target, event);
+            DataObjectEvent.fireGenericEvent(event);
         }
 
     }

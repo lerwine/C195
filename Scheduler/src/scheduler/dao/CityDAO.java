@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -16,6 +17,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.dao.event.CityDaoEvent;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.IntColumnValueFilter;
@@ -399,6 +403,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
+        }
+
+        @Override
+        protected void fireEvent(Object source, DbChangeType changeAction, CityDAO target) {
+            CityDaoEvent event = new CityDaoEvent(this, changeAction, target);
+            Event.fireEvent(target, event);
+            DataObjectEvent.fireGenericEvent(event);
         }
 
     }

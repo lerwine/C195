@@ -19,10 +19,12 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
@@ -31,6 +33,7 @@ import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.event.CityDaoEvent;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
@@ -40,6 +43,7 @@ import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.ObservableObjectDerivitive;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -49,6 +53,7 @@ import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
+import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
@@ -127,13 +132,22 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void deleteCity(CityModel item) {
         if (null != item) {
-            getMainController().deleteCity(item, waitBorderPane);
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
+            }
         }
     }
 
     private void openCity(CityModel item) {
         if (null != item) {
-            getMainController().openCity(item, getScene().getWindow());
+            try {
+                EditCity.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
         }
     }
 
@@ -158,7 +172,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML
     void onNewButtonAction(ActionEvent event) {
-        getMainController().addNewCity(model, getScene().getWindow(), true);
+        try {
+            EditCity.editNew(model, getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -352,6 +370,53 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             }
         }
 
+    }
+
+    private class DeleteTask extends Task<String> {
+
+        private final CityModel model;
+        private final Window parentWindow;
+        private final CityDAO dao;
+
+        DeleteTask(CityModel model, Window parentWindow) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            dao = model.getDataObject();
+            this.model = model;
+            this.parentWindow = parentWindow;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
+            if (null != message && !message.trim().isEmpty()) {
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            }
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
+        }
+
+        @Override
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = CityDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
+                CityDAO.getFactory().delete(dao, connector.getConnection());
+                if (dao.getRowState() == DataRowState.DELETED) {
+                    CityModel.getFactory().updateItem(model, dao);
+                }
+            }
+            return null;
+        }
     }
 
 }

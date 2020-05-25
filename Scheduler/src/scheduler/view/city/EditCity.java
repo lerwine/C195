@@ -3,7 +3,9 @@ package scheduler.view.city;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -15,19 +17,21 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
@@ -35,15 +39,16 @@ import scheduler.model.Country;
 import scheduler.model.PredefinedData;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.ObservableObjectDerivitive;
 import scheduler.observables.ObservableStringDerivitive;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
+import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
@@ -138,19 +143,32 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private void deleteAddress(AddressModel item) {
         if (null != item) {
-            getMainController().deleteAddress(item, waitBorderPane);
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
+            }
         }
     }
 
     private void editAddress(AddressModel item) {
         if (null != item) {
-            getMainController().editAddress(item, getScene().getWindow());
+            try {
+                EditAddress.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
         }
     }
 
     @FXML
     private void onAddAddressButtonAction(ActionEvent event) {
-        getMainController().addNewAddress(model, getScene().getWindow(), true);
+        try {
+            EditAddress.editNew(model, getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML
@@ -196,8 +214,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         countryNameValueComboBox.setItems(countryOptionList);
         if (null != targetCountry) {
             CountryDAO.PredefinedCountryElement predefinedElement = targetCountry.getPredefinedElement();
-            PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t) ->
-                    countryOptionList.add((Objects.equals(t.getPredefinedElement(), predefinedElement)) ? targetCountry : new CountryModel(t)));
+            PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t)
+                    -> countryOptionList.add((Objects.equals(t.getPredefinedElement(), predefinedElement)) ? targetCountry : new CountryModel(t)));
         } else {
             PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t) -> countryOptionList.add(new CountryModel(t)));
         }
@@ -337,6 +355,53 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             }
         }
 
+    }
+
+    private class DeleteTask extends Task<String> {
+
+        private final AddressModel model;
+        private final Window parentWindow;
+        private final AddressDAO dao;
+
+        DeleteTask(AddressModel model, Window parentWindow) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            dao = model.getDataObject();
+            this.model = model;
+            this.parentWindow = parentWindow;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
+            if (null != message && !message.trim().isEmpty()) {
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            }
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
+        }
+
+        @Override
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = AddressDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
+                AddressDAO.getFactory().delete(dao, connector.getConnection());
+                if (dao.getRowState() == DataRowState.DELETED) {
+                    AddressModel.getFactory().updateItem(model, dao);
+                }
+            }
+            return null;
+        }
     }
 
 }

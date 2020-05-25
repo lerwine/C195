@@ -319,4 +319,5 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
     }
+
 }

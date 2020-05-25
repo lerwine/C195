@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.event.Event;
+import scheduler.dao.event.AppointmentDaoEvent;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -705,6 +709,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             }
             // Nothing needs to be unique.
             return "";
+        }
+
+        @Override
+        protected void fireEvent(Object source, DbChangeType changeAction, AppointmentDAO target) {
+            AppointmentDaoEvent event = new AppointmentDaoEvent(this, changeAction, target);
+            Event.fireEvent(target, event);
+            DataObjectEvent.fireGenericEvent(event);
         }
 
     }

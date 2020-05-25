@@ -3,10 +3,10 @@ package scheduler.view;
 import com.sun.javafx.event.EventHandlerManager;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.concurrent.Task;
@@ -18,16 +18,13 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DELETEFAILURE;
@@ -41,7 +38,6 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.IAddressDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.AddressDaoEvent;
 import scheduler.dao.event.AppointmentDaoEvent;
@@ -49,26 +45,18 @@ import scheduler.dao.event.CityDaoEvent;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
-import scheduler.model.Customer;
 import scheduler.model.PredefinedData;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.bindExtents;
-import scheduler.util.StageManager;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -78,8 +66,6 @@ import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
-import scheduler.view.city.EditCity;
-import scheduler.view.country.EditCountry;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
@@ -178,8 +164,6 @@ public final class MainController implements EventTarget {
         eventHandlerManager.addEventHandler(AppointmentDaoEvent.ANY_APPOINTMENT_EVENT, this::onAppointmentDaoEvent);
         eventHandlerManager.addEventHandler(CityDaoEvent.ANY_CITY_EVENT, this::onCityDaoEvent);
         eventHandlerManager.addEventHandler(CountryDaoEvent.ANY_COUNTRY_EVENT, this::onCountryDaoEvent);
-        eventHandlerManager.addEventHandler(CustomerDaoEvent.ANY_CUSTOMER_EVENT, this::onCustomerDaoEvent);
-        eventHandlerManager.addEventHandler(UserDaoEvent.ANY_USER_EVENT, this::onUserDaoEvent);
     }
 
     @FXML
@@ -214,22 +198,38 @@ public final class MainController implements EventTarget {
 
     @FXML
     private void onNewAddressMenuItem(ActionEvent event) {
-        addNewAddress(null, contentView.getScene().getWindow(), true);
+        try {
+            EditAddress.editNew(null, contentView.getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML
     private void onNewAppointmentMenuItemAction(ActionEvent event) {
-        addNewAppointment(null, null, contentView.getScene().getWindow(), false);
+        try {
+            EditAppointment.editNew(null, null, contentView.getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML
     private void onNewCustomerMenuItemAction(ActionEvent event) {
-        addNewCustomer(null, contentView.getScene().getWindow(), true);
+        try {
+            EditCustomer.editNew(null, contentView.getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML
     private void onNewUserMenuItemAction(ActionEvent event) {
-        addNewUser(contentView.getScene().getWindow(), true);
+        try {
+            EditUser.editNew(contentView.getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
     }
 
     @FXML
@@ -293,83 +293,24 @@ public final class MainController implements EventTarget {
         }
     }
 
-//    private MenuItem getAssociatedMenuItem(Object controller) {
-//        if (null != controller) {
-//            if (controller instanceof Overview) {
-//                return overviewMenu;
-//            }
-//            if (controller instanceof ByWeek) {
-//                return weeklyCalendarMenuItem;
-//            }
-//            if (controller instanceof ByMonth) {
-//                return monthlyCalendarMenuItem;
-//            }
-//            if (controller instanceof ConsultantSchedule) {
-//                return consultantScheduleMenuItem;
-//            }
-//            if (controller instanceof AppointmentsByRegion) {
-//                return byRegionMenuItem;
-//            }
-//            if (controller instanceof AppointmentTypesByMonth) {
-//                return typesByMonthMenuItem;
-//            }
-//            if (controller instanceof ManageAppointments) {
-//                ManageAppointments manageAppointments = (ManageAppointments) controller;
-//                ModelFilter<AppointmentDAO, AppointmentModel, ? extends DaoFilter<AppointmentDAO>> filter = manageAppointments.getFilter();
-//                if (null != filter) {
-//                    DaoFilter<AppointmentDAO> daoFilter = filter.getDaoFilter();
-//                    if (daoFilter.equals(AppointmentModelFilter.myCurrentAndFuture().getDaoFilter())) {
-//                        return myCurrentAndFutureAppointmentsMenuItem;
-//                    }
-//                    if (!daoFilter.isEmpty()) {
-//                        return null;
-//                    }
-//                }
-//                return allAppointmentsMenuItem;
-//            }
-//            if (controller instanceof ManageCustomers) {
-//                return manageCustomersMenuItem;
-//            }
-//            if (controller instanceof ManageUsers) {
-//                return manageUsersMenuItem;
-//            }
-//            if (controller instanceof ManageCountries) {
-//                return manageAddressesMenuItem;
-//            }
-//        }
-//        return null;
-//    }
     private void onAddressDaoEvent(AddressDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        DataObjectEvent.fireGenericEvent(event);
         PredefinedData.onAddressDaoEvent(event);
     }
 
     private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        DataObjectEvent.fireGenericEvent(event);
+        // TODO: Add handler for AppointmentAlert
     }
 
     private void onCityDaoEvent(CityDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        DataObjectEvent.fireGenericEvent(event);
         PredefinedData.onCityDaoEvent(event);
     }
 
     private void onCountryDaoEvent(CountryDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        DataObjectEvent.fireGenericEvent(event);
         PredefinedData.onCountryDaoEvent(event);
-    }
-
-    private void onCustomerDaoEvent(CustomerDaoEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        DataObjectEvent.fireGenericEvent(event);
-    }
-
-    private void onUserDaoEvent(UserDaoEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        DataObjectEvent.fireGenericEvent(event);
     }
 
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
@@ -407,380 +348,6 @@ public final class MainController implements EventTarget {
 
     public void hideHelp() {
         helpContent.hide();
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a new {@link AppointmentModel}.
-     *
-     * @param customer The customer to initially select or {@code null} for no initial selection.
-     * @param user The user to initially select or {@code null} for no initial selection.
-     * @param parentWindow The parent {@link Window}.
-     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
-     * @return The newly added {@link AppointmentModel} or {@code null} if the operation was canceled.
-     */
-    public AppointmentModel addNewAppointment(CustomerItem<? extends Customer> customer, UserDAO user, Window parentWindow, boolean keepOpen) {
-        AppointmentModel result;
-        try {
-            result = EditAppointment.editNew(customer, (null == user) ? null : UserModel.getFactory().createNew(user), parentWindow, keepOpen);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW), ex);
-            return null;
-        }
-        if (null != result) {
-            onAppointmentCreated(result);
-        }
-        return result;
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit an {@link AppointmentModel}.
-     *
-     * @param item The {@link AppointmentModel} to be edited.
-     * @param parentWindow The parent {@link Window}.
-     */
-    public void editAppointment(AppointmentModel item, Window parentWindow) {
-        AppointmentModel result;
-        try {
-            result = EditAppointment.edit(item, parentWindow);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            onAppointmentUpdated(result);
-        }
-    }
-
-    /**
-     * Deletes an {@link AppointmentModel} item after confirming with user.
-     *
-     * @param item The {@link AppointmentModel} to be deleted.
-     * @param waitBorderPane Control for displaying operation status.
-     */
-    public void deleteAppointment(AppointmentModel item, WaitBorderPane waitBorderPane) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
-                    StageManager.getWindow(waitBorderPane, contentView), AppointmentModel.getFactory(),
-                    this::onAppointmentDeleted));
-        }
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a new {@link CustomerModel}.
-     *
-     * @param address The initial {@link AddressItem}.
-     * @param parentWindow The parent {@link Window}.
-     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
-     * @return The newly added {@link CustomerModel} or {@code null} if the operation was canceled.
-     */
-    public CustomerModel addNewCustomer(AddressItem<? extends IAddressDAO> address, Window parentWindow, boolean keepOpen) {
-        CustomerModel result;
-        try {
-            result = EditCustomer.editNew(address, parentWindow, keepOpen);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW), ex);
-            return null;
-        }
-        if (null != result) {
-            CustomerDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.CREATED, dataObject));
-        }
-        return result;
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a {@link CustomerModel}.
-     *
-     * @param item The {@link CustomerModel} to be edited.
-     * @param parentWindow The parent {@link Window}.
-     */
-    public void editCustomer(CustomerModel item, Window parentWindow) {
-        CustomerModel result;
-        try {
-            result = EditCustomer.edit(item, parentWindow);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            CustomerDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        }
-    }
-
-    /**
-     * Deletes a {@link CustomerModel} item after confirming with user.
-     *
-     * @param item The {@link CustomerModel} to be deleted.
-     * @param waitBorderPane Control for displaying operation status.
-     */
-    public void deleteCustomer(CustomerModel item, WaitBorderPane waitBorderPane) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
-                    StageManager.getWindow(waitBorderPane, contentView), CustomerModel.getFactory(),
-                    (t) -> {
-                        CustomerDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new CustomerDaoEvent(this, DbChangeType.DELETED, dataObject));
-                    }));
-        }
-    }
-
-    public void addNewCountry(Window parentWindow, boolean keepOpen) {
-        CountryModel result;
-        try {
-            result = EditCountry.editNew(parentWindow, keepOpen);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            CountryDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        }
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a {@link CountryModel}.
-     *
-     * @param item The {@link CountryModel} to be edited.
-     * @param parentWindow The parent {@link Window}.
-     */
-    public void openCountry(CountryModel item, Window parentWindow) {
-        CountryModel result;
-        try {
-            result = EditCountry.edit(item, parentWindow);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            CountryDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        }
-    }
-
-    /**
-     * Deletes a {@link CountryModel} item after confirming with user.
-     *
-     * @param item The {@link CountryModel} to be deleted.
-     * @param waitBorderPane Control for displaying operation status.
-     */
-    public void deleteCountry(CountryModel item, WaitBorderPane waitBorderPane) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
-                    StageManager.getWindow(waitBorderPane, contentView), CountryModel.getFactory(),
-                    (t) -> {
-                        CountryDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new CountryDaoEvent(this, DbChangeType.DELETED, dataObject));
-                    }));
-        }
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a {@link CityModel}.
-     *
-     * @param item The {@link CityModel} to be edited.
-     * @param parentWindow The parent {@link Window}.
-     */
-    public void openCity(CityModel item, Window parentWindow) {
-        CityModel result;
-        try {
-            result = EditCity.edit(item, parentWindow);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            CityDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        }
-    }
-
-    /**
-     * Deletes a {@link CityModel} item after confirming with user.
-     *
-     * @param item The {@link CityModel} to be deleted.
-     * @param waitBorderPane Control for displaying operation status.
-     */
-    public void deleteCity(CityModel item, WaitBorderPane waitBorderPane) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
-                    StageManager.getWindow(waitBorderPane, contentView), CityModel.getFactory(),
-                    (t) -> {
-                        CityDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.DELETED, dataObject));
-                    }));
-        }
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a new {@link AddressModel}.
-     *
-     * @param city The initial {@link CityModel}.
-     * @param parentWindow The parent {@link Window}.
-     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
-     * @return The newly added {@link AddressModel} or {@code null} if the operation was canceled.
-     */
-    public AddressModel addNewAddress(CityModel city, Window parentWindow, boolean keepOpen) {
-        AddressModel result;
-        try {
-            result = EditAddress.editNew(city, parentWindow, keepOpen);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), ex);
-            return null;
-        }
-        if (null != result) {
-            AddressDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.CREATED, dataObject));
-        }
-        return result;
-    }
-
-    public CityModel addNewCity(CountryModel country, Window parentWindow, boolean keepOpen) {
-        CityModel result;
-        try {
-            result = EditCity.editNew(country, parentWindow, keepOpen);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW), ex);
-            return null;
-        }
-        if (null != result) {
-            CityDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new CityDaoEvent(this, DbChangeType.CREATED, dataObject));
-        }
-        return result;
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit an {@link AddressModel}.
-     *
-     * @param item The {@link AddressModel} to be edited.
-     * @param parentWindow The parent {@link Window}.
-     */
-    public void editAddress(AddressModel item, Window parentWindow) {
-        AddressModel result;
-        try {
-            result = EditAddress.edit(item, parentWindow);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            AddressDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        }
-    }
-
-    /**
-     * Deletes an {@link AddressModel} item after confirming with user.
-     *
-     * @param item The {@link AddressModel} to be deleted.
-     * @param waitBorderPane Control for displaying operation status.
-     */
-    public void deleteAddress(AddressModel item, WaitBorderPane waitBorderPane) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
-                    StageManager.getWindow(waitBorderPane, contentView), AddressModel.getFactory(),
-                    (t) -> {
-                        AddressDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new AddressDaoEvent(this, DbChangeType.DELETED, dataObject));
-                    }));
-        }
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a new {@link UserModel}.
-     *
-     * @param parentWindow The parent {@link Window}.
-     * @param keepOpen {@code true} to keep window open after saving; otherwise {@code false} to close after saving.
-     * @return The newly added {@link UserModel} or {@code null} if the operation was canceled.
-     */
-    public UserModel addNewUser(Window parentWindow, boolean keepOpen) {
-        UserModel result;
-        try {
-            result = EditUser.editNew(parentWindow, keepOpen);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW), ex);
-            return null;
-        }
-        if (null != result) {
-            UserDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.CREATED, dataObject));
-        }
-        return result;
-    }
-
-    /**
-     * Opens an {@link EditItem} window to edit a {@link UserModel}.
-     *
-     * @param item The {@link UserModel} to be edited.
-     * @param parentWindow The parent {@link Window}.
-     */
-    public void editUser(UserModel item, Window parentWindow) {
-        UserModel result;
-        try {
-            result = EditUser.edit(item, parentWindow);
-        } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, resources.getString(RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW), ex);
-            return;
-        }
-        if (null != result) {
-            UserDAO dataObject = result.getDataObject();
-            Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        }
-    }
-
-    /**
-     * Deletes a {@link UserModel} item after confirming with user.
-     *
-     * @param item The {@link UserModel} to be deleted.
-     * @param waitBorderPane Control for displaying operation status.
-     */
-    public void deleteUser(UserModel item, WaitBorderPane waitBorderPane) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) contentView.getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            ((null == waitBorderPane) ? this.waitBorderPane : waitBorderPane).startNow(new DeleteTask<>(item,
-                    StageManager.getWindow(waitBorderPane, contentView), UserModel.getFactory(),
-                    (t) -> {
-                        UserDAO dataObject = t.getDataObject();
-                        Event.fireEvent(dataObject, new UserDaoEvent(this, DbChangeType.DELETED, dataObject));
-                    }));
-        }
-    }
-
-    private void onAppointmentCreated(AppointmentModel item) {
-        AppointmentDAO dataObject = item.getDataObject();
-        // TODO: Notify AppointmentAlert?
-        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DbChangeType.CREATED, dataObject));
-    }
-
-    private void onAppointmentUpdated(AppointmentModel item) {
-        AppointmentDAO dataObject = item.getDataObject();
-        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DbChangeType.UPDATED, dataObject));
-        // TODO: Notify AppointmentAlert?
-    }
-
-    private void onAppointmentDeleted(AppointmentModel item) {
-        AppointmentDAO dataObject = item.getDataObject();
-        Event.fireEvent(dataObject, new AppointmentDaoEvent(this, DbChangeType.DELETED, dataObject));
-        // TODO: Notify AppointmentAlert
     }
 
     /**

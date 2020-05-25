@@ -10,6 +10,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.event.Event;
+import scheduler.dao.event.CustomerDaoEvent;
+import scheduler.dao.event.DataObjectEvent;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -345,6 +349,13 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             }
             // CURRENT: Get address conflict message if it is has been modified
             return "";
+        }
+
+        @Override
+        protected void fireEvent(Object source, DbChangeType changeAction, CustomerDAO target) {
+            CustomerDaoEvent event = new CustomerDaoEvent(this, changeAction, target);
+            Event.fireEvent(target, event);
+            DataObjectEvent.fireGenericEvent(event);
         }
 
     }

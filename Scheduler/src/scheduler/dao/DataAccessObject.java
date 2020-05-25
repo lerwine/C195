@@ -23,6 +23,7 @@ import javafx.event.EventTarget;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
+import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.ColumnCategory;
 import scheduler.dao.schema.DbColumn;
@@ -376,6 +377,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         protected abstract void onCloneProperties(T fromDAO, T toDAO);
 
+        protected abstract void fireEvent(Object source, DbChangeType changeAction, T target);
+
         /**
          * Creates a new data access object from database query results.
          *
@@ -530,6 +533,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             save(dao, connection, false);
         }
 
+        // CURRENT: Fire update and insert events on DAO
         /**
          * Saves a {@link DataAccessObject} to the database.
          * <p>
@@ -546,6 +550,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             dao.beginChange();
             DataRowState oldRowState = dataObj.rowState;
             ((DataAccessObject) dao).changing = true;
+            DbChangeType changeType = null;
             try {
                 synchronized (dao) {
                     Iterator<DbColumn> iterator;
@@ -613,6 +618,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                         throw new SQLException("No primary key returned");
                                     }
                                     dataObj.primaryKey = rs.getInt(1);
+                                    changeType = DbChangeType.CREATED;
                                 }
                             }
                             break;
@@ -668,6 +674,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                 if (ps.executeUpdate() < 1) {
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
+                                changeType = DbChangeType.UPDATED;
                             }
                             break;
                         default:
@@ -679,6 +686,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 dao.endChange();
                 ((DataAccessObject) dao).changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+                if (null != changeType) {
+                    fireEvent(this, changeType, dao);
+                }
             }
         }
 
@@ -736,6 +746,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return Optional.empty();
         }
 
+        // CURRENT: Fire delete event on DAO
         /**
          * Deletes the corresponding {@link DataAccessObject} from the database.
          * <p>
@@ -753,6 +764,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             dao.beginChange();
             DataRowState oldRowState = dataObj.rowState;
             ((DataAccessObject) dao).changing = true;
+            boolean success = false;
             try {
                 synchronized (dao) {
                     if (dao.getRowState() == DataRowState.DELETED) {
@@ -770,6 +782,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         if (ps.executeUpdate() < 1) {
                             throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                         }
+                        success = true;
                     }
                     dataObj.rowState = DataRowState.DELETED;
                 }
@@ -777,6 +790,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 dao.endChange();
                 ((DataAccessObject) dao).changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+                if (success) {
+                    fireEvent(success, DbChangeType.DELETED, dao);
+                }
             }
         }
 
