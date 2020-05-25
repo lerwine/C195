@@ -37,8 +37,8 @@ public interface ObservableObjectDerivitive<R> extends ObservableDerivitive<R>, 
         return new DerivedObservableObject<>(source, calculate);
     }
 
-    public static <T, U> ObservableObjectDerivitive<T> ofNested(ObservableValue<T> source, Function<T, ObservableValue<U>> selector) {
-        return new NestedObjectDerivation(source, selector);
+    public static <T, R> ObservableObjectDerivitive<R> ofNested(ObservableValue<T> source, Function<T, ObservableValue<R>> selector) {
+        return new NestedObjectDerivation<>(source, selector);
     }
 
     public static <T> ObservableObjectDerivitive<T> ofSelection(ObservableValue<? extends SelectionModel<T>> selectionModel) {

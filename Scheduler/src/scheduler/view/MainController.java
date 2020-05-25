@@ -161,10 +161,10 @@ public final class MainController implements EventTarget {
     public MainController() {
         eventHandlerManager = new EventHandlerManager(this);
         // Add handlers that will fire a separate generic event for each specificDbObject event.
-        eventHandlerManager.addEventHandler(AddressDaoEvent.ANY_ADDRESS_EVENT, this::onAddressDaoEvent);
-        eventHandlerManager.addEventHandler(AppointmentDaoEvent.ANY_APPOINTMENT_EVENT, this::onAppointmentDaoEvent);
-        eventHandlerManager.addEventHandler(CityDaoEvent.ANY_CITY_EVENT, this::onCityDaoEvent);
-        eventHandlerManager.addEventHandler(CountryDaoEvent.ANY_COUNTRY_EVENT, this::onCountryDaoEvent);
+        eventHandlerManager.addEventFilter(AddressDaoEvent.ANY_ADDRESS_EVENT, this::onAddressDaoEvent);
+        eventHandlerManager.addEventFilter(AppointmentDaoEvent.ANY_APPOINTMENT_EVENT, this::onAppointmentDaoEvent);
+        eventHandlerManager.addEventFilter(CityDaoEvent.ANY_CITY_EVENT, this::onCityDaoEvent);
+        eventHandlerManager.addEventFilter(CountryDaoEvent.ANY_COUNTRY_EVENT, this::onCountryDaoEvent);
     }
 
     @FXML
@@ -314,6 +314,11 @@ public final class MainController implements EventTarget {
         PredefinedData.onCountryDaoEvent(event);
     }
 
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        return (null != contentView) ? contentView.buildEventDispatchChain(tail) : rootStackPane.buildEventDispatchChain(tail);
+    }
+
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
         return helpContent.show((null == title || title.trim().isEmpty()) ? resources.getString(RESOURCEKEY_SCHEDULERHELP) : title, fxmlResourceName,
                 bundleBaseName);
@@ -397,7 +402,6 @@ public final class MainController implements EventTarget {
      * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
      * </dl>
      *
-     *
      * @param <T> The type of {@link Event}.
      * @param type The {@link EventType}.
      * @param eventHandler The {@link EventHandler}.
@@ -460,11 +464,6 @@ public final class MainController implements EventTarget {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
-    @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return rootStackPane.buildEventDispatchChain(tail.prepend(eventHandlerManager));
-    }
-
     private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends Task<String> {
 
         private final M model;
@@ -489,13 +488,6 @@ public final class MainController implements EventTarget {
             } else if (null != onDeleted) {
                 onDeleted.accept(model);
             }
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
-                    AppResources.getResourceString(RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override

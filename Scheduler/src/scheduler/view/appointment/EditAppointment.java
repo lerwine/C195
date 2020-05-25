@@ -624,12 +624,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
-            super.failed();
-        }
-
-        @Override
         protected List<CustomerDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -675,12 +669,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 }
             }
             super.succeeded();
-        }
-
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
-            super.failed();
         }
 
         @Override
@@ -747,14 +735,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             if (null != result && !result.isEmpty()) {
                 appointments.addAll(result);
             }
-            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this);
+            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this, EditAppointment.this.waitBorderPane);
             super.succeeded();
-        }
-
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
-            super.failed();
         }
 
         @Override

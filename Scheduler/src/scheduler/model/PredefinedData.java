@@ -255,43 +255,43 @@ public class PredefinedData {
     }
 
     public static void onCountryDaoEvent(CountryDaoEvent event) {
-        CountryDAO target = event.getTarget();
-        CountryDAO.PredefinedCountryElement pde = target.getPredefinedElement();
+        CountryDAO changedDao = event.getTarget();
+        CountryDAO.PredefinedCountryElement pde = changedDao.getPredefinedElement();
         if (null != pde) {
             CountryDAO dao = pde.getDataAccessObject();
             if (event.getChangeType() == DbChangeType.DELETED) {
                 dao.resetRowState();
             }
-            if (!Objects.equals(dao, target)) {
-                CountryDAO.getFactory().synchronize(target, dao);
+            if (!Objects.equals(dao, changedDao)) {
+                CountryDAO.getFactory().synchronize(changedDao, dao);
             }
         }
     }
 
     public static void onCityDaoEvent(CityDaoEvent event) {
-        CityDAO target = event.getTarget();
-        CityDAO.PredefinedCityElement pde = target.getPredefinedElement();
+        CityDAO changedDao = event.getTarget();
+        CityDAO.PredefinedCityElement pde = changedDao.getPredefinedElement();
         if (null != pde) {
             CityDAO dao = pde.getDataAccessObject();
             if (event.getChangeType() == DbChangeType.DELETED) {
                 dao.resetRowState();
             }
-            if (!Objects.equals(dao, target)) {
-                CityDAO.getFactory().synchronize(target, dao);
+            if (!Objects.equals(dao, changedDao)) {
+                CityDAO.getFactory().synchronize(changedDao, dao);
             }
         }
     }
 
     public static void onAddressDaoEvent(AddressDaoEvent event) {
-        AddressDAO target = event.getTarget();
-        AddressDAO.PredefinedAddressElement pde = target.getPredefinedElement();
+        AddressDAO changedDao = event.getTarget();
+        AddressDAO.PredefinedAddressElement pde = changedDao.getPredefinedElement();
         if (null != pde) {
             AddressDAO dao = pde.getDataAccessObject();
             if (event.getChangeType() == DbChangeType.DELETED) {
                 dao.resetRowState();
             }
-            if (!Objects.equals(dao, target)) {
-                AddressDAO.getFactory().synchronize(target, dao);
+            if (!Objects.equals(dao, changedDao)) {
+                AddressDAO.getFactory().synchronize(changedDao, dao);
             }
         }
     }

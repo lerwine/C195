@@ -188,12 +188,6 @@ public class Overview extends VBox {
             appointmentsNextMonthLabel.setText(nf.format(appointmentsNextMonth));
         }
 
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
-            super.failed();
-        }
 
         @Override
         protected Integer call() throws Exception {

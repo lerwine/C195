@@ -99,183 +99,26 @@ public class ErrorDetailControl extends GridPane {
         return alert.showAndWait();
     }
 
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, int maxDepth, String message,
-            ButtonType... buttons) {
-        return showAndWait(title, owner, error, maxDepth, message, false, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, int maxDepth, boolean ignoreCause,
-            ButtonType... buttons) {
-        return showAndWait(title, owner, error, maxDepth, null, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, String message, boolean ignoreCause,
-            ButtonType... buttons) {
-        return showAndWait(title, owner, error, 32, message, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, int maxDepth, String message, boolean ignoreCause,
-            ButtonType... buttons) {
-        return showAndWait(title, null, error, maxDepth, message, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, int maxDepth, ButtonType... buttons) {
-        return showAndWait(title, owner, error, maxDepth, false, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, String message, ButtonType... buttons) {
-        return showAndWait(title, owner, error, message, false, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, boolean ignoreCause, ButtonType... buttons) {
-        return showAndWait(title, owner, error, (String) null, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, int maxDepth, String message, ButtonType... buttons) {
-        return showAndWait(title, error, maxDepth, message, false, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, int maxDepth, boolean ignoreCause, ButtonType... buttons) {
-        return showAndWait(title, null, error, maxDepth, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, String message, boolean ignoreCause, ButtonType... buttons) {
-        return showAndWait(title, null, error, message, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Window owner, Throwable error, ButtonType... buttons) {
-        return showAndWait(title, owner, error, false, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, int maxDepth, ButtonType... buttons) {
-        return showAndWait(title, null, error, maxDepth, buttons);
-    }
-
     public static Optional<ButtonType> showAndWait(String title, Throwable error, String message, ButtonType... buttons) {
-        return showAndWait(title, null, error, message, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, boolean ignoreCause, ButtonType... buttons) {
-        return showAndWait(title, null, error, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> showAndWait(String title, Throwable error, ButtonType... buttons) {
-        return showAndWait(title, null, error, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, String userMessage, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        if (null != log) {
-            log.log(Level.SEVERE, (null == logMessage || logMessage.trim().isEmpty()) ? userMessage : logMessage, error);
-        }
-        return showAndWait(title, owner, error, maxDepth, userMessage, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, String userMessage, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, maxDepth, userMessage, ignoreCause, null, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, String userMessage, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, maxDepth, userMessage, false, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, maxDepth, null, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, String userMessage, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, 32, userMessage, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, String userMessage, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, userMessage, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, String userMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, maxDepth, userMessage, false, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, maxDepth, null, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, String userMessage, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, userMessage, ignoreCause, null, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, String userMessage, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, userMessage, false, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, null, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, String userMessage, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, userMessage, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, String userMessage, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, userMessage, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, String userMessage, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, userMessage, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, int maxDepth, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, maxDepth, false, buttons);
+        return showAndWait(title, null, error, 32, message, false, buttons);
     }
 
     public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, String userMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, userMessage, false, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, ignoreCause, null, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, String userMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, userMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, String userMessage, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, userMessage, ignoreCause, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, String userMessage, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, userMessage, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, boolean ignoreCause, String logMessage, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, ignoreCause, logMessage, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Window owner, Throwable error, ButtonType... buttons) {
-        return logShowAndWait(log, title, owner, error, false, buttons);
-    }
-
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, int maxDepth, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, maxDepth, buttons);
+        if (null != log) {
+            log.log(Level.SEVERE, userMessage, error);
+        }
+        return showAndWait(title, owner, error, 32, userMessage, false, buttons);
     }
 
     public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, String userMessage, ButtonType... buttons) {
         return logShowAndWait(log, title, null, error, userMessage, buttons);
     }
 
-    public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, boolean ignoreCause, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, ignoreCause, buttons);
-    }
-
     public static Optional<ButtonType> logShowAndWait(Logger log, String title, Throwable error, ButtonType... buttons) {
-        return logShowAndWait(log, title, null, error, buttons);
+        if (null != log) {
+            log.log(Level.SEVERE, null, error);
+        }
+        return showAndWait(title, null, error, 32, null, false, buttons);
     }
 
     private static GridPane load(Throwable error, int maxDepth, boolean ignoreCause, String message) throws IOException {

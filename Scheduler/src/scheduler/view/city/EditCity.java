@@ -340,12 +340,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
-            super.failed();
-        }
-
-        @Override
         protected List<AddressDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -377,13 +371,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             if (null != message && !message.trim().isEmpty()) {
                 AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
             }
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override

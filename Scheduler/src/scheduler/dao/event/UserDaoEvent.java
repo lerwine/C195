@@ -47,10 +47,10 @@ public class UserDaoEvent extends DataObjectEvent<UserDAO> {
      * Initializes a new {@link UserDAO} event.
      *
      * @param source The object which sent the {@code UserDaoEvent}.
+     * @param dataObject The {@link UserDAO} that changed.
      * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
-     * @param dataObject The target {@link UserDAO}.
      */
-    public UserDaoEvent(Object source, DbChangeType changeAction, UserDAO dataObject) {
+    public UserDaoEvent(Object source, UserDAO dataObject, DbChangeType changeAction) {
         super(source, dataObject, changeAction, toEventType(changeAction));
     }
 

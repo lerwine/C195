@@ -182,12 +182,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBREADERROR), getException());
-            super.failed();
-        }
-
-        @Override
         protected List<CustomerDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {

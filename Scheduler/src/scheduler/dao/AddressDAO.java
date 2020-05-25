@@ -11,7 +11,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableMap;
-import javafx.event.Event;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -554,11 +553,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected void fireEvent(Object source, DbChangeType changeAction, AddressDAO target) {
-            AddressDaoEvent event = new AddressDaoEvent(this, changeAction, target);
-            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
-            Event.fireEvent(target, event);
-            DataObjectEvent.fireGenericEvent(event);
+        protected DataObjectEvent<? extends AddressDAO> createDataObjectEvent(Object source, AddressDAO dataAccessObject, DbChangeType changeAction) {
+            return new AddressDaoEvent(source, dataAccessObject, changeAction);
         }
 
     }

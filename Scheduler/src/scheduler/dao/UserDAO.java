@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.Scheduler;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DbChangeType;
@@ -362,11 +361,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected void fireEvent(Object source, DbChangeType changeAction, UserDAO target) {
-            UserDaoEvent event = new UserDaoEvent(this, changeAction, target);
-            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
-            Event.fireEvent(target, event);
-            DataObjectEvent.fireGenericEvent(event);
+        protected DataObjectEvent<? extends UserDAO> createDataObjectEvent(Object source, UserDAO dataAccessObject, DbChangeType changeAction) {
+            return new UserDaoEvent(source, dataAccessObject, changeAction);
         }
 
     }

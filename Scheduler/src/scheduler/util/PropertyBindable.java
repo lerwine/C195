@@ -116,9 +116,9 @@ public class PropertyBindable implements IPropertyBindable {
         private static final long serialVersionUID = -5190875010028850398L;
 
         private int changing = 0;
-        private final ArrayList<PropertyChangeEvent> orderedDeferredChanges = new ArrayList();
+        private final ArrayList<PropertyChangeEvent> orderedDeferredChanges = new ArrayList<>();
         private final HashMap<String, Integer> deferredChangeMap = new HashMap<>();
-        private final HashMap<String, HashMap<Integer, Integer>> deferredIndexedChangeMap = new HashMap();
+        private final HashMap<String, HashMap<Integer, Integer>> deferredIndexedChangeMap = new HashMap<>();
         private int noNameChange = -1;
         private final HashMap<Integer, Integer> noNameIndexedChange = new HashMap<>();
 

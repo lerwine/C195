@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -417,11 +416,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected void fireEvent(Object source, DbChangeType changeAction, CityDAO target) {
-            CityDaoEvent event = new CityDaoEvent(this, changeAction, target);
-            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
-            Event.fireEvent(target, event);
-            DataObjectEvent.fireGenericEvent(event);
+        protected DataObjectEvent<? extends CityDAO> createDataObjectEvent(Object source, CityDAO dataAccessObject, DbChangeType changeAction) {
+            return new CityDaoEvent(source, dataAccessObject, changeAction);
         }
 
     }

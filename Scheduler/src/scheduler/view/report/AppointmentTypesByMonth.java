@@ -164,12 +164,6 @@ public class AppointmentTypesByMonth extends VBox {
         }
 
         @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
-        }
-
-        @Override
         protected List<AppointmentCountByType> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {

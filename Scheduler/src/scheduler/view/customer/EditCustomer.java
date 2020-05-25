@@ -358,7 +358,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     public void updateModel() {
         model.setName(nameTextField.getText().trim());
         model.setActive(activeTrueRadioButton.isSelected());
-        // FIXME: Finish implementing EditCustomer#updateMmodel
+        // CURRENT: Finish implementing EditCustomer#updateMmodel
         //model.setAddress( );
     }
 
@@ -445,13 +445,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
-                    getException());
-            getScene().getWindow().hide();
-        }
-
-        @Override
         protected List<AppointmentDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -497,13 +490,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
-                    getException());
-            getScene().getWindow().hide();
-        }
-
-        @Override
         protected List<AppointmentDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -535,13 +521,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             if (null != message && !message.trim().isEmpty()) {
                 AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
             }
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override

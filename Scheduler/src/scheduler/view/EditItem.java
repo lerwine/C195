@@ -293,13 +293,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVEFAILURE), getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORSAVINGCHANGES));
-            super.failed();
-        }
-
-        @Override
         protected void succeeded() {
             String message = getValue();
             if (null == message) {
@@ -357,13 +350,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
             }
             super.succeeded();
-        }
-
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
-            super.failed();
         }
 
         @Override

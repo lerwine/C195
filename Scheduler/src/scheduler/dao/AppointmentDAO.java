@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DbChangeType;
@@ -730,11 +729,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected void fireEvent(Object source, DbChangeType changeAction, AppointmentDAO target) {
-            AppointmentDaoEvent event = new AppointmentDaoEvent(this, changeAction, target);
-            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
-            Event.fireEvent(target, event);
-            DataObjectEvent.fireGenericEvent(event);
+        protected DataObjectEvent<? extends AppointmentDAO> createDataObjectEvent(Object source, AppointmentDAO dataAccessObject, DbChangeType changeAction) {
+            return new AppointmentDaoEvent(source, dataAccessObject, changeAction);
         }
 
     }

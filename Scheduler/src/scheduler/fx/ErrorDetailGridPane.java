@@ -17,6 +17,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
+import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import scheduler.util.Values;
 import scheduler.util.ViewControllerLoader;
@@ -89,19 +90,25 @@ public class ErrorDetailGridPane extends GridPane {
             } else {
                 SQLException n;
                 if (maxDepth == 1 || null == (n = ex.getNextException())) {
-                    result.relatedExceptionsPane.setContent(of(ex, maxDepth - 1, false));
+                    ErrorDetailGridPane gp = of(ex, maxDepth - 1, false);
+                    result.relatedExceptionsPane.setContent(gp);
+                    bindExtents(gp, result.relatedExceptionsPane);
                 } else {
                     Accordion ra = new Accordion();
                     result.relatedExceptionsPane.setContent(ra);
                     TitledPane rp = new TitledPane();
                     rp.setText(ex.getClass().getName());
                     ra.getPanes().add(rp);
-                    rp.setContent(of(ex, maxDepth - 1, false));
+                    ErrorDetailGridPane gp = of(ex, maxDepth - 1, false);
+                    rp.setContent(gp);
+                    bindExtents(gp, rp);
                     for (int i = maxDepth - 2; i >= 0; i--) {
                         rp = new TitledPane();
                         rp.setText(n.getClass().getName());
                         ra.getPanes().add(rp);
-                        rp.setContent(of(n, i, false));
+                        gp = of(n, i, false);
+                        rp.setContent(gp);
+                        bindExtents(gp, rp);
                         if (null == (n = n.getNextException())) {
                             break;
                         }
@@ -123,12 +130,16 @@ public class ErrorDetailGridPane extends GridPane {
                 TitledPane cp = new TitledPane();
                 cp.setText(causedBy.getClass().getName());
                 ca.getPanes().add(cp);
-                cp.setContent(of(causedBy, maxDepth - 1, true));
+                ErrorDetailGridPane gp = of(causedBy, maxDepth - 1, true);
+                cp.setContent(gp);
+                bindExtents(gp, cp);
                 for (int i = maxDepth - 2; i >= 0; i--) {
                     cp = new TitledPane();
                     cp.setText(c.getClass().getName());
                     ca.getPanes().add(cp);
-                    cp.setContent(of(c, i, true));
+                    gp = of(c, i, true);
+                    cp.setContent(gp);
+                    bindExtents(gp, cp);
                     if (null == (c = c.getCause())) {
                         break;
                     }

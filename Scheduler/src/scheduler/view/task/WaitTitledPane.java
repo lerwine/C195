@@ -34,6 +34,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_PLEASEWAIT;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ErrorDetailGridPane;
 import static scheduler.util.NodeUtil.addCssClass;
+import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
@@ -163,6 +164,7 @@ public class WaitTitledPane extends TitledPane {
             LOG.log(Level.SEVERE, "Background task failed", ex);
             errorDetail = ErrorDetailGridPane.of(ex);
             getChildren().add(errorDetail);
+            bindExtents(errorDetail, this);
             cancelButton.setText(resources.getString(RESOURCEKEY_CLOSE));
             addCssClass(this, CssClassName.ERROR);
             removeCssClass(this, CssClassName.PROGRESS);

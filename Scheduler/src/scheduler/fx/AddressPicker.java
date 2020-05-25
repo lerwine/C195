@@ -215,13 +215,6 @@ public class AddressPicker extends BorderPane {
             }
         }
 
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), (Stage) getScene().getWindow(),
-                    getException());
-            getScene().getWindow().hide();
-        }
-
     }
 
 }

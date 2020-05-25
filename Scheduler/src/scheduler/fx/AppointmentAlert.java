@@ -116,9 +116,9 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, this::onAppointmentInserted);
-        addEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, this::onAppointmentUpdated);
-        addEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, this::onAppointmentDeleted);
+        addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, this::onAppointmentInserted);
+        addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, this::onAppointmentUpdated);
+        addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, this::onAppointmentDeleted);
     }
 
     private synchronized void onAppointmentInserted(AppointmentDaoEvent event) {
@@ -145,7 +145,7 @@ public class AppointmentAlert extends BorderPane {
             }
         }
     }
-    
+
     private synchronized void onAppointmentUpdated(AppointmentDaoEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         AppointmentDAO dao = event.getTarget();
@@ -154,9 +154,9 @@ public class AppointmentAlert extends BorderPane {
         ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
         LocalDateTime start = LocalDateTime.now();
         AppointmentModel item;
-        if (null == view)
+        if (null == view) {
             item = new AppointmentModel(dao);
-        else {
+        } else {
             item = (AppointmentModel) view.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL);
             if (!Objects.equals(item.getDataObject(), dao)) {
                 AppointmentModel.getFactory().updateItem(item, dao);
@@ -197,7 +197,7 @@ public class AppointmentAlert extends BorderPane {
             }
         }
     }
-    
+
     private synchronized void onAppointmentDeleted(AppointmentDaoEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         AppointmentDAO dao = event.getTarget();
@@ -215,9 +215,9 @@ public class AppointmentAlert extends BorderPane {
                 }
             }
         }
-        
+
     }
-    
+
     @FXML
     private void onDismissAllAppointmentAlerts(ActionEvent event) {
         dismissAll();

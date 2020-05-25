@@ -1,5 +1,6 @@
 package scheduler.dao;
 
+import com.sun.javafx.event.EventHandlerManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
@@ -18,11 +19,15 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.concurrent.Task;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
+import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.ColumnCategory;
@@ -77,6 +82,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      */
     public static final String PROP_ROWSTATE = "rowState";
 
+    private final EventHandlerManager eventHandlerManager;
     private int primaryKey;
     private Timestamp createDate;
     private String createdBy;
@@ -89,6 +95,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * Initializes a {@link DataRowState#NEW} data access object.
      */
     protected DataAccessObject() {
+        eventHandlerManager = new EventHandlerManager(this);
         primaryKey = Integer.MIN_VALUE;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
@@ -196,7 +203,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return Scheduler.buildMainControllerEventDispatchChain(tail);
+        return Scheduler.buildMainControllerEventDispatchChain(tail.append(eventHandlerManager));
     }
 
     /**
@@ -258,6 +265,54 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     public static abstract class DaoFactory<T extends DataAccessObject> {
 
         private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
+
+        /**
+         * Registers a {@link DataObjectEvent} handler in the {@code EventHandlerManager} for a {@link DataAccessObject}.
+         *
+         * @param <U> The type of {@link Event}.
+         * @param dao The source {@link DataAccessObject}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <U extends DataObjectEvent<T>> void addEventHandler(T dao, EventType<U> type, EventHandler<U> eventHandler) {
+            ((DataAccessObject) dao).eventHandlerManager.addEventHandler(type, eventHandler);
+        }
+
+        /**
+         * Registers a {@link DataObjectEvent} filter in the {@code EventHandlerManager} for a {@link DataAccessObject}.
+         *
+         * @param <U> The type of {@link Event}.
+         * @param dao The source {@link DataAccessObject}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <U extends DataObjectEvent<T>> void addEventFilter(T dao, EventType<U> type, EventHandler<U> eventHandler) {
+            ((DataAccessObject) dao).eventHandlerManager.addEventFilter(type, eventHandler);
+        }
+
+        /**
+         * Unregisters a {@link DataObjectEvent} handler in the {@code EventHandlerManager} for a {@link DataAccessObject}.
+         *
+         * @param <U> The type of {@link Event}.
+         * @param dao The source {@link DataAccessObject}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <U extends DataObjectEvent<T>> void removeEventHandler(T dao, EventType<U> type, EventHandler<U> eventHandler) {
+            ((DataAccessObject) dao).eventHandlerManager.removeEventHandler(type, eventHandler);
+        }
+
+        /**
+         * Unregisters a {@link DataObjectEvent} filter in the {@code EventHandlerManager} for a {@link DataAccessObject}.
+         *
+         * @param <U> The type of {@link Event}.
+         * @param dao The source {@link DataAccessObject}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <U extends DataObjectEvent<T>> void removeEventFilter(T dao, EventType<U> type, EventHandler<U> eventHandler) {
+            ((DataAccessObject) dao).eventHandlerManager.removeEventFilter(type, eventHandler);
+        }
 
         /**
          * Loads items from the database.
@@ -377,7 +432,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         protected abstract void onCloneProperties(T fromDAO, T toDAO);
 
-        protected abstract void fireEvent(Object source, DbChangeType changeAction, T target);
+        /**
+         * Creates a {@link DataObjectEvent}.
+         *
+         * @param source The object which sent the {@code DataObjectEvent}.
+         * @param dataAccessObject The {@link DataAcessObject} that changed.
+         * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
+         * @return The new {@link DataObjectEvent}.
+         */
+        protected abstract DataObjectEvent<? extends T> createDataObjectEvent(Object source, T dataAccessObject, DbChangeType changeAction);
 
         /**
          * Creates a new data access object from database query results.
@@ -533,7 +596,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             save(dao, connection, false);
         }
 
-        // CURRENT: Fire update and insert events on DAO
         /**
          * Saves a {@link DataAccessObject} to the database.
          * <p>
@@ -687,7 +749,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 ((DataAccessObject) dao).changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
                 if (null != changeType) {
-                    fireEvent(this, changeType, dao);
+                    DataObjectEvent<? extends T> event = createDataObjectEvent(this, dao, changeType);
+                    Event.fireEvent(dao, event);
+                    DataObjectEvent.fireGenericEvent(dao, event);
                 }
             }
         }
@@ -746,7 +810,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return Optional.empty();
         }
 
-        // CURRENT: Fire delete event on DAO
         /**
          * Deletes the corresponding {@link DataAccessObject} from the database.
          * <p>
@@ -791,7 +854,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 ((DataAccessObject) dao).changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
                 if (success) {
-                    fireEvent(success, DbChangeType.DELETED, dao);
+                    DataObjectEvent<? extends T> event = createDataObjectEvent(this, dao, DbChangeType.DELETED);
+                    Event.fireEvent(dao, event);
+                    DataObjectEvent.fireGenericEvent(dao, event);
                 }
             }
         }

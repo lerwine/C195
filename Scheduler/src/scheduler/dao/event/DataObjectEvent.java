@@ -2,6 +2,7 @@ package scheduler.dao.event;
 
 import java.util.Objects;
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 
@@ -21,45 +22,44 @@ public class DataObjectEvent<T extends DataAccessObject> extends Event {
     public static final EventType<DataObjectEvent<? extends DataAccessObject>> ANY_DAO_EVENT = new EventType<>(ANY, "SCHEDULER_ANY_DAO_EVENT");
 
     /**
-     * Generic event type for all {@link DataAccessObject} {@link DbChangeType#CREATED} events. This a generic super-type and does not use
+     * Generic {@link EventType} for all {@link DataAccessObject} {@link DbChangeType#CREATED} events. This a generic super-type and does not use
      * {@link #ANY_DAO_EVENT} as the super-type, because that would cause handlers for {@link #ANY_DAO_EVENT} to get invoked twice.
      */
     public static final EventType<DataObjectEvent<DataAccessObject>> ANY_DAO_INSERT = new EventType<>(ANY, "SCHEDULER_ANY_DAO_INSERT");
 
     /**
-     * Generic event type for all {@link DataAccessObject} {@link DbChangeType#UPDATED} events. This a generic super-type and does not use
+     * Generic {@link EventType} for all {@link DataAccessObject} {@link DbChangeType#UPDATED} events. This a generic super-type and does not use
      * {@link #ANY_DAO_EVENT} as the super-type, because that would cause handlers for {@link #ANY_DAO_EVENT} to get invoked twice.
      */
     public static final EventType<DataObjectEvent<DataAccessObject>> ANY_DAO_UPDATE = new EventType<>(ANY, "SCHEDULER_ANY_DAO_UPDATE");
 
     /**
-     * Generic event type for all {@link DataAccessObject} {@link DbChangeType#DELETED} events. This a generic super-type and does not use
+     * Generic {@link EventType} for all {@link DataAccessObject} {@link DbChangeType#DELETED} events. This a generic super-type and does not use
      * {@link #ANY_DAO_EVENT} as the super-type, because that would cause handlers for {@link #ANY_DAO_EVENT} to get invoked twice.
      */
     public static final EventType<DataObjectEvent<DataAccessObject>> ANY_DAO_DELETE = new EventType<>(ANY, "SCHEDULER_ANY_DAO_DELETE");
 
-    public static void fireGenericEvent(AddressDaoEvent event) {
-        Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
-    }
-
-    public static void fireGenericEvent(AppointmentDaoEvent event) {
-        Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
-    }
-
-    public static void fireGenericEvent(CityDaoEvent event) {
-        Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
-    }
-
-    public static void fireGenericEvent(CountryDaoEvent event) {
-        Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
-    }
-
-    public static void fireGenericEvent(CustomerDaoEvent event) {
-        Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
-    }
-
-    public static void fireGenericEvent(UserDaoEvent event) {
-        Event.fireEvent(event.getTarget(), new DataObjectEvent<>(event));
+    /**
+     * Fires a generic {@code DataObjectEvent} from a {@link AddressDaoEvent}.
+     * <p>
+     * Following is the mapping from the {@link DbChangeType}s to the generic {@link EventType}:</p>
+     * <dl>
+     * <dt>{@link DbChangeType#CREATED}</dt><dd>{@link #ANY_DAO_INSERT}</dd>
+     * <dt>{@link DbChangeType#UPDATED}</dt><dd>{@link #ANY_DAO_UPDATE}</dd>
+     * <dt>{@link DbChangeType#DELETED}</dt><dd>{@link #ANY_DAO_DELETE}</dd>
+     * </dl>
+     *
+     * @param eventTarget The target for the event.
+     * @param sourceEvent The source event to use for building the generic event.
+     * @throws IllegalArgumentException {@code sourceEvent} is a generic event.
+     */
+    public static void fireGenericEvent(EventTarget eventTarget, DataObjectEvent<? extends DataAccessObject> sourceEvent) {
+        DbChangeType c = sourceEvent.getChangeType();
+        EventType<? extends DataObjectEvent<? extends DataAccessObject>> t = c.getEventType();
+        if (sourceEvent.getEventType().getName().equals(t.getName())) {
+            throw new IllegalArgumentException();
+        }
+        Event.fireEvent(sourceEvent.getTarget(), new DataObjectEvent<>(sourceEvent.getSource(), (DataAccessObject)sourceEvent.getTarget(), c, t));
     }
 
     private final DbChangeType changeType;
@@ -68,11 +68,12 @@ public class DataObjectEvent<T extends DataAccessObject> extends Event {
      * Initializes a new {@link DataAccessObject} event.
      *
      * @param source The object which sent the {@code DataObjectEvent}.
-     * @param dataObject The target {@link DataAccessObject}.
+     * @param dataObject The {@link DataAccessObject} that changed.
      * @param changeType The {@link DbChangeType} value indicating the type of change event that occurred.
      * @param eventType The event type.
      */
-    protected DataObjectEvent(Object source, T dataObject, DbChangeType changeType, EventType<? extends DataObjectEvent<? extends T>> eventType) {
+    protected DataObjectEvent(Object source, T dataObject, DbChangeType changeType,
+            EventType<? extends DataObjectEvent<? extends T>> eventType) {
         super(source, Objects.requireNonNull(dataObject), eventType);
         this.changeType = Objects.requireNonNull(changeType);
     }
@@ -99,7 +100,7 @@ public class DataObjectEvent<T extends DataAccessObject> extends Event {
     @Override
     @SuppressWarnings("unchecked")
     public T getTarget() {
-        return (T) super.getTarget();
+        return (T)super.getTarget();
     }
 
     @Override

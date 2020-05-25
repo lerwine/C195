@@ -354,12 +354,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
-            super.failed();
-        }
-
-        @Override
         protected List<CityDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -391,13 +385,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             if (null != message && !message.trim().isEmpty()) {
                 AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
             }
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), parentWindow, getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB));
         }
 
         @Override

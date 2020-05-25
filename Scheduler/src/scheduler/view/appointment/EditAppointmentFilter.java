@@ -393,19 +393,10 @@ public final class EditAppointmentFilter extends BorderPane {
                 includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
                 waitBorderPane.startNow(new ReloadCustomersAndUsersTask(includeInactiveCustomers, includeInactiveUsers));
             } else {
-                stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-                cf.loadAsync((this.includeInactiveCustomers) ? cf.getAllItemsFilter() : cf.getActiveStatusFilter(true),
-                        (t) -> importCustomers(t), (t) -> AlertHelper.logAndAlertDbError(stage, LOG,
-                                resources.getString(RESOURCEKEY_ERRORLOADINGDATA), "Error loading reloading customers", t));
+                waitBorderPane.startNow(new ReloadCustomersTask(includeInactiveCustomers));
             }
         } else if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
-            includeInactiveUsers = lookupOptionUsersCheckBox.isSelected();
-            stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-            UserDAO.FactoryImpl uf = UserDAO.getFactory();
-            uf.loadAsync((this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getAllItemsFilter(), (t) -> importUsers(t),
-                    (t) -> AlertHelper.logAndAlertDbError(stage, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                            "Error loading reloading users", t));
+            waitBorderPane.startNow(new ReloadUsersTask(includeInactiveUsers));
         }
         lookupOptionsBorderPane.setVisible(false);
     }
@@ -833,6 +824,58 @@ public final class EditAppointmentFilter extends BorderPane {
 
     }
 
+    private class ReloadCustomersTask extends Task<List<CustomerDAO>> {
+
+        private final boolean includeInactiveCustomers;
+
+        public ReloadCustomersTask(boolean includeInactiveCustomers) {
+            updateTitle(resources.getString(RESOURCEKEY_LOADINGDATA));
+            this.includeInactiveCustomers = includeInactiveCustomers;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            importCustomers(getValue());
+        }
+
+        @Override
+        protected List<CustomerDAO> call() throws Exception {
+            try (DbConnector db = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                return cf.load(db.getConnection(), (this.includeInactiveCustomers) ? cf.getActiveStatusFilter(true) : cf.getAllItemsFilter());
+            }
+        }
+
+    }
+
+    private class ReloadUsersTask extends Task<List<UserDAO>> {
+
+        private final boolean includeInactiveUsers;
+
+        public ReloadUsersTask(boolean includeInactiveUsers) {
+            updateTitle(resources.getString(RESOURCEKEY_LOADINGDATA));
+            this.includeInactiveUsers = includeInactiveUsers;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            importUsers(getValue());
+        }
+
+        @Override
+        protected List<UserDAO> call() throws Exception {
+            try (DbConnector db = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                return uf.load(db.getConnection(), (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getActiveUsersFilter());
+            }
+        }
+
+    }
+
     private class ReloadCustomersAndUsersTask extends Task<Pair<List<CustomerDAO>, List<UserDAO>>> {
 
         private final boolean includeInactiveCustomers;
@@ -850,13 +893,6 @@ public final class EditAppointmentFilter extends BorderPane {
             Pair<List<CustomerDAO>, List<UserDAO>> result = getValue();
             importCustomers(result.getKey());
             importUsers(result.getValue());
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            AlertHelper.logAndAlertDbError(null, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                    "Error loading reloading customers and  users", getException());
         }
 
         @Override
@@ -967,13 +1003,6 @@ public final class EditAppointmentFilter extends BorderPane {
                         break;
                 }
             }
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            AlertHelper.logAndAlertDbError(null, LOG, resources.getString(RESOURCEKEY_ERRORLOADINGDATA),
-                    "Error loading appointment filter data", getException());
         }
 
         @Override

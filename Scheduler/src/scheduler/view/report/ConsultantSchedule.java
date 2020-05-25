@@ -161,12 +161,6 @@ public class ConsultantSchedule extends VBox {
         }
 
         @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
-        }
-
-        @Override
         protected List<UserDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -197,12 +191,6 @@ public class ConsultantSchedule extends VBox {
         protected void succeeded() {
             super.succeeded();
             accept(getValue());
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
         }
 
         @Override

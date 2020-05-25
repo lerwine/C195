@@ -10,9 +10,6 @@ import scheduler.dao.CountryDAO;
  */
 public class CountryDaoEvent extends DataObjectEvent<CountryDAO> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 7785046806532887128L;
 
     /**
@@ -50,10 +47,10 @@ public class CountryDaoEvent extends DataObjectEvent<CountryDAO> {
      * Initializes a new {@link CountryDAO} event.
      *
      * @param source The object which sent the {@code CountryDaoEvent}.
+     * @param dataObject The {@link CountryDAO} that changed.
      * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
-     * @param dataObject The target {@link CountryDAO}.
      */
-    public CountryDaoEvent(Object source, DbChangeType changeAction, CountryDAO dataObject) {
+    public CountryDaoEvent(Object source, CountryDAO dataObject, DbChangeType changeAction) {
         super(source, dataObject, changeAction, toEventType(changeAction));
     }
 

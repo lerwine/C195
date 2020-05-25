@@ -10,9 +10,6 @@ import scheduler.dao.AppointmentDAO;
  */
 public class AppointmentDaoEvent extends DataObjectEvent<AppointmentDAO> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -275981984109138306L;
 
     /**
@@ -50,10 +47,10 @@ public class AppointmentDaoEvent extends DataObjectEvent<AppointmentDAO> {
      * Initializes a new {@link AppointmentDAO} event.
      *
      * @param source The object which sent the {@code AppointmentDaoEvent}.
+     * @param dataObject The {@link AppointmentDAO} that changed.
      * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
-     * @param dataObject The target {@link AppointmentDAO}.
      */
-    public AppointmentDaoEvent(Object source, DbChangeType changeAction, AppointmentDAO dataObject) {
+    public AppointmentDaoEvent(Object source, AppointmentDAO dataObject, DbChangeType changeAction) {
         super(source, dataObject, changeAction, toEventType(changeAction));
     }
 

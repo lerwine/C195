@@ -116,7 +116,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
     public final synchronized ReadOnlyIntegerProperty createReadOnlyIntegerProperty(String name, ToIntFunction<T> getter) {
         ReadOnlyIntegerProperty result = new ReadOnlyIntegerProperty() {
             private final PropertyChangeHandler<Integer> propertyChangeHandler;
-            private ExpressionHelper helper = null;
+            private ExpressionHelper<Number> helper = null;
 
             {
                 propertyChangeHandler = new PropertyChangeHandler<>(getter.applyAsInt(DataObjectProperty.this.get()),
@@ -182,7 +182,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
     public final synchronized ReadOnlyBooleanProperty createReadOnlyBooleanProperty(String name, Predicate<T> getter) {
         ReadOnlyBooleanProperty result = new ReadOnlyBooleanProperty() {
             private final PropertyChangeHandler<Boolean> propertyChangeHandler;
-            private ExpressionHelper helper = null;
+            private ExpressionHelper<Boolean> helper = null;
 
             {
                 propertyChangeHandler = new PropertyChangeHandler<>(getter.test(DataObjectProperty.this.get()),
@@ -248,7 +248,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
     public final synchronized ReadOnlyStringProperty createReadOnlyStringProperty(String name, Function<T, String> getter) {
         ReadOnlyStringProperty result = new ReadOnlyStringProperty() {
             private final PropertyChangeHandler<String> propertyChangeHandler;
-            private ExpressionHelper helper = null;
+            private ExpressionHelper<String> helper = null;
 
             {
                 propertyChangeHandler = new PropertyChangeHandler<>(getter.apply(DataObjectProperty.this.get()), getter, this::onChanged);
@@ -313,7 +313,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
     public final synchronized ReadOnlyObjectProperty<LocalDateTime> createReadOnlyDateTimeProperty(String name, Function<T, Timestamp> getter) {
         ReadOnlyObjectProperty<LocalDateTime> result = new ReadOnlyObjectProperty<LocalDateTime>() {
             private final PropertyChangeHandler<LocalDateTime> propertyChangeHandler;
-            private ExpressionHelper helper = null;
+            private ExpressionHelper<LocalDateTime> helper = null;
             private LocalDateTime currentValue;
             private Timestamp currentTs;
 
@@ -389,7 +389,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
     public final synchronized <U> ReadOnlyObjectProperty<U> createReadOnlyObjectProperty(String name, Function<T, U> getter) {
         ReadOnlyObjectProperty<U> result = new ReadOnlyObjectProperty<U>() {
             private final PropertyChangeHandler<U> propertyChangeHandler;
-            private ExpressionHelper helper = null;
+            private ExpressionHelper<U> helper = null;
 
             {
                 propertyChangeHandler = new PropertyChangeHandler<>(getter.apply(DataObjectProperty.this.get()), getter, this::onChanged);
@@ -455,7 +455,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
             final ReadOnlyObjectProperty<U> daoProperty, final Function<U, S> factory) {
         ReadOnlyObjectProperty<S> result = new ReadOnlyObjectProperty<S>() {
             private S model = factory.apply(daoProperty.get());
-            private ExpressionHelper helper = null;
+            private ExpressionHelper<S> helper = null;
 
             {
                 daoProperty.addListener(this::onDaoChanged);

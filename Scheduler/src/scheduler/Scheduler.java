@@ -22,6 +22,7 @@ import javafx.event.EventDispatchChain;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
@@ -52,7 +53,6 @@ import scheduler.view.ViewAndController;
 public final class Scheduler extends Application {
 
     private static final Logger LOG = Logger.getLogger(Scheduler.class.getName());
-    private static final String PROPERTY_MAINCONTROLLER = "scheduler.view.MainController";
     private static Scheduler currentApp = null;
     private static UserDAO currentUser = null;
 
@@ -71,22 +71,20 @@ public final class Scheduler extends Application {
     }
 
     public static MainController getMainController() {
+
         Scheduler app = currentApp;
-        if (null != app) {
-            ViewAndController<StackPane, MainController> viewAndController = app.mainViewAndController;
-            if (null != viewAndController) {
-                return viewAndController.getController();
-            }
+        if (null != app && null != app.mainController) {
+            return app.mainController;
         }
         throw new IllegalStateException();
     }
 
     public static EventDispatchChain buildMainControllerEventDispatchChain(EventDispatchChain tail) {
+        tail = AppointmentAlertManager.INSTANCE.buildEventDispatchChain(tail);
         Scheduler app = currentApp;
         if (null != app) {
-            ViewAndController<StackPane, MainController> viewAndController = app.mainViewAndController;
-            if (null != viewAndController) {
-                return viewAndController.getController().buildEventDispatchChain(tail);
+            if (null != app.mainController) {
+                return app.mainController.buildEventDispatchChain(tail);
             }
         }
         return tail;
@@ -101,7 +99,7 @@ public final class Scheduler extends Application {
         launch(args);
     }
 
-    private ViewAndController<StackPane, MainController> mainViewAndController;
+    private MainController mainController;
 
     @Override
     public void init() throws Exception {
@@ -114,9 +112,9 @@ public final class Scheduler extends Application {
         StageManager.setPrimaryStage(stage);
         stage.setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
         // Load main view and controller
-        mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+        ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
         StackPane mainView = mainViewAndController.getView();
-        MainController mainController = mainViewAndController.getController();
+        mainController = mainViewAndController.getController();
 
         Login login = new Login();
         // Bind extents of login view to main view extents.
@@ -124,7 +122,6 @@ public final class Scheduler extends Application {
         login.setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
 
         stage.setScene(new Scene(mainView));
-        mainView.getProperties().put(PROPERTY_MAINCONTROLLER, mainController);
         ObservableList<Node> children = mainView.getChildren();
         children.add(1, login);
         bindExtents(login, mainView);
@@ -190,8 +187,6 @@ public final class Scheduler extends Application {
 
         private final String userName, password;
         private final Consumer<Throwable> onNotSucceeded;
-        private final MainController mainController;
-        private final StackPane mainPane;
         private final BorderPane loginView;
 
         LoginTask(LoginBorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
@@ -200,8 +195,6 @@ public final class Scheduler extends Application {
             this.userName = Objects.requireNonNull(userName);
             this.password = Objects.requireNonNull(password);
             this.onNotSucceeded = Objects.requireNonNull(onNotSucceeded);
-            mainPane = (StackPane) loginView.getScene().getRoot();
-            mainController = (MainController) (mainPane.getProperties().get(PROPERTY_MAINCONTROLLER));
         }
 
         @Override
@@ -225,8 +218,8 @@ public final class Scheduler extends Application {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
                 unbindExtents(loginView);
-                mainPane.getChildren().remove(loginView);
-                mainController.replaceContent(new Overview());
+                ((Pane) loginView.getParent()).getChildren().remove(loginView);
+                getMainController().replaceContent(new Overview());
             }
         }
 

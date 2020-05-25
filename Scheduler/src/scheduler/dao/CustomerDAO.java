@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DbChangeType;
@@ -365,11 +364,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected void fireEvent(Object source, DbChangeType changeAction, CustomerDAO target) {
-            CustomerDaoEvent event = new CustomerDaoEvent(this, changeAction, target);
-            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
-            Event.fireEvent(target, event);
-            DataObjectEvent.fireGenericEvent(event);
+        protected DataObjectEvent<? extends CustomerDAO> createDataObjectEvent(Object source, CustomerDAO dataAccessObject,
+                DbChangeType changeAction) {
+            return new CustomerDaoEvent(source, dataAccessObject, changeAction);
         }
 
     }

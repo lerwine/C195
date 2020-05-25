@@ -9,11 +9,8 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableObjectValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -26,7 +23,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.Scheduler;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
@@ -83,43 +79,48 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert subHeadingLabel != null : "fx:id=\"subHeadingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
+        addEventFilter(getInsertedEventType(), this::onInsertedEvent);
+        addEventFilter(getUpdatedEventType(), this::onUpdatedEvent);
+        addEventFilter(getDeletedEventType(), this::onDeletedEvent);
 
         listingTableView.setItems(items);
 
-        sceneProperty().addListener(new InvalidationListener() {
-            private boolean isListening = false;
-
-            {
-                onChange(null != getScene());
-            }
-
-            private void onChange(boolean hasParent) {
-                if (hasParent) {
-                    LOG.info("Scene is not null");
-                    if (!isListening) {
-                        Scheduler.getMainController().addDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                        Scheduler.getMainController().addDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                        Scheduler.getMainController().addDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                        isListening = true;
-                    }
-                } else {
-                    LOG.info("Scene is null");
-                    if (isListening) {
-                        Scheduler.getMainController().removeDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                        Scheduler.getMainController().removeDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                        Scheduler.getMainController().removeDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                        isListening = false;
-                    }
-                }
-            }
-
-            @Override
-            public void invalidated(Observable observable) {
-                onChange(null != ((ObservableObjectValue<?>) observable).get());
-            }
-
-        });
-
+//        sceneProperty().addListener(new InvalidationListener() {
+//            private boolean isListening = false;
+//
+//            {
+//                onChange(null != getScene());
+//            }
+//
+//            private void onChange(boolean hasParent) {
+//                if (hasParent) {
+//                    LOG.info("Scene is not null");
+//                    if (!isListening) {
+////                        Scheduler.getMainController().addDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+////                        Scheduler.getMainController().addDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+////                        Scheduler.getMainController().addDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+//                        isListening = true;
+//                    }
+//                } else {
+//                    LOG.info("Scene is null");
+//                    if (isListening) {
+//                        addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+//                        addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+//                        addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+////                        Scheduler.getMainController().removeDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+////                        Scheduler.getMainController().removeDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+////                        Scheduler.getMainController().removeDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+//                        isListening = false;
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void invalidated(Observable observable) {
+//                onChange(null != ((ObservableObjectValue<?>) observable).get());
+//            }
+//
+//        });
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -238,16 +239,18 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     protected void onInsertedEvent(T event) {
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
             D dao = event.getTarget();
             if (f.getDaoFilter().test(dao)) {
-                getItems().add(getModelFactory().createNew(dao));
+                items.add(getModelFactory().createNew(dao));
             }
         }
     }
 
     protected void onUpdatedEvent(T event) {
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         D dao = event.getTarget();
         FxRecordModel.ModelFactory<D, M> mf = getModelFactory();
         if (null != mf) {
@@ -266,6 +269,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     protected void onDeletedEvent(T event) {
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (!items.isEmpty()) {
             getModelFactory().find(items, event.getTarget()).ifPresent((t) -> items.remove(t));
         }

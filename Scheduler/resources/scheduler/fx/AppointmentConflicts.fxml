@@ -13,7 +13,7 @@
 <?import javafx.scene.text.Font?>
 
 
-<BorderPane fx:id="rootBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.AppointmentConflicts">
+<BorderPane fx:id="rootBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.AppointmentConflicts">
     <center>
         <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
             <top>

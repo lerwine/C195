@@ -406,13 +406,6 @@ public class CustomerPicker extends BorderPane {
         }
 
         @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
-            super.failed();
-        }
-
-        @Override
         protected ArrayList<CityDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
@@ -437,13 +430,6 @@ public class CustomerPicker extends BorderPane {
                 countries.add(new CountryModel(item));
             });
             waitBorderPane.startNow(new LoadCustomersTask(null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
-        }
-
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
-            super.failed();
         }
 
         @Override
@@ -495,13 +481,6 @@ public class CustomerPicker extends BorderPane {
                 selectedCustomer = (matching.isPresent()) ? matching.get() : null;
             }
             filterCustomers();
-        }
-
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORHEADING), getException(),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORDETAILS));
-            super.failed();
         }
 
         @Override

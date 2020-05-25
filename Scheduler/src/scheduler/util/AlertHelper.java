@@ -69,23 +69,6 @@ public class AlertHelper {
     }
 
     /**
-     * Logs a database-related exception and displays an application-modal {@link Alert}.
-     *
-     * @param parent The parent {@link Window} for the displayed {@link Alert}.
-     * @param logger The {@link Logger} to log the error to.
-     * @param userMessage The message to display to the user.
-     * @param logMessage The message to be written to the log.
-     * @param error The error that was thrown.
-     * @param buttons Dialog buttons to be displayed.
-     * @return An {@link Optional} {@link ButtonType} indicating which button the user clicked to close the {@link Alert} dialog.
-     */
-    public static Optional<ButtonType> logAndAlertDbError(Window parent, Logger logger, String userMessage, String logMessage, Throwable error,
-            ButtonType... buttons) {
-        logger.log(Level.SEVERE, logMessage, error);
-        return ErrorDetailControl.showAndWait(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DBACCESSERROR), error, userMessage, buttons);
-    }
-
-    /**
      * Shows a {@link Alert.AlertType#WARNING} {@link Alert} dialog.
      *
      * @param parent The parent {@link Window} for the displayed {@link Alert}. This should only be {@code null} if you are not able to determine a

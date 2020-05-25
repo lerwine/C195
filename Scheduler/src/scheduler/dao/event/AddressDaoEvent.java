@@ -10,9 +10,6 @@ import scheduler.dao.AddressDAO;
  */
 public class AddressDaoEvent extends DataObjectEvent<AddressDAO> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 4454831542623353266L;
 
     /**
@@ -50,10 +47,10 @@ public class AddressDaoEvent extends DataObjectEvent<AddressDAO> {
      * Initializes a new {@link AddressDAO} event.
      *
      * @param source The object which sent the {@code AddressDaoEvent}.
+     * @param dataObject The {@link AddressDAO} that was changed.
      * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
-     * @param dataObject The target {@link AddressDAO}.
      */
-    public AddressDaoEvent(Object source, DbChangeType changeAction, AddressDAO dataObject) {
+    public AddressDaoEvent(Object source, AddressDAO dataObject, DbChangeType changeAction) {
         super(source, dataObject, changeAction, toEventType(changeAction));
     }
 

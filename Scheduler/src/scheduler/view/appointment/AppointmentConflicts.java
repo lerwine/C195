@@ -17,14 +17,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTINGTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
@@ -49,9 +47,7 @@ public class AppointmentConflicts {
 
     private static final Logger LOG = Logger.getLogger(AppointmentConflicts.class.getName());
 
-    // CURRENT: Add WaitBorderPane
     private WaitBorderPane waitBorderPane;
-
     private EditAppointment parentController;
     private DateRange dateRangeController;
     private ObservableList<AppointmentModel> allAppointments;
@@ -106,10 +102,11 @@ public class AppointmentConflicts {
         waitBorderPane.startNow(new AppointmentReloadTask());
     }
 
-    void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController) {
+    void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController, WaitBorderPane waitBorderPane) {
         if (null != this.parentController) {
             throw new IllegalStateException();
         }
+        this.waitBorderPane = waitBorderPane;
         this.parentController = parentController;
         dateRangeController = parentController.getDateRangeController();
         currentCustomer = parentController.getCustomer();
@@ -309,12 +306,6 @@ public class AppointmentConflicts {
             super.succeeded();
             List<AppointmentDAO> result = getValue();
             accept(result);
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), getException());
         }
 
         @Override

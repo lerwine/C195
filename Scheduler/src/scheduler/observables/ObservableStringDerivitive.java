@@ -34,7 +34,7 @@ public interface ObservableStringDerivitive extends ObservableDerivitive<String>
     }
     
     public static <T> ObservableStringDerivitive ofNested(ObservableValue<T> source, Function<T, ObservableValue<String>> selector) {
-        return new NestedStringDerivation(source, selector);
+        return new NestedStringDerivation<>(source, selector);
     }
 
     default DerivedObservableBoolean isNull() {

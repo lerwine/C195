@@ -10,9 +10,6 @@ import scheduler.dao.CustomerDAO;
  */
 public class CustomerDaoEvent extends DataObjectEvent<CustomerDAO> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 456933879493635488L;
 
     /**
@@ -50,10 +47,10 @@ public class CustomerDaoEvent extends DataObjectEvent<CustomerDAO> {
      * Initializes a new {@link CustomerDAO} event.
      *
      * @param source The object which sent the {@code CustomerDaoEvent}.
+     * @param dataObject The {@link CustomerDAO} that changed.
      * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
-     * @param dataObject The target {@link CustomerDAO}.
      */
-    public CustomerDaoEvent(Object source, DbChangeType changeAction, CustomerDAO dataObject) {
+    public CustomerDaoEvent(Object source, CustomerDAO dataObject, DbChangeType changeAction) {
         super(source, dataObject, changeAction, toEventType(changeAction));
     }
 

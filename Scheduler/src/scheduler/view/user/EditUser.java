@@ -216,7 +216,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 
-    // CURRENT: Update model from listeners
     public boolean applyChangesToModel() {
         model.setUserName(userNameTextField.getText());
         model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
@@ -373,12 +372,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
                     userAppointments.add(new AppointmentModel(t));
                 });
             }
-        }
-
-        @Override
-        protected void failed() {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBACCESSERROR), getException());
-            super.failed();
         }
 
         @Override

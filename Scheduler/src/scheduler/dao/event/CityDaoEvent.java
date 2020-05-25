@@ -10,9 +10,6 @@ import scheduler.dao.CityDAO;
  */
 public class CityDaoEvent extends DataObjectEvent<CityDAO> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -6045915909630349308L;
 
     /**
@@ -50,18 +47,17 @@ public class CityDaoEvent extends DataObjectEvent<CityDAO> {
      * Initializes a new {@link CityDAO} event.
      *
      * @param source The object which sent the {@code CityDaoEvent}.
+     * @param dataObject The {@link CityDAO} that changed.
      * @param changeAction The {@link DbChangeType} value indicating the type of change event that occurred.
-     * @param dataObject The target {@link CityDAO}.
      */
-    public CityDaoEvent(Object source, DbChangeType changeAction, CityDAO dataObject) {
+    public CityDaoEvent(Object source, CityDAO dataObject, DbChangeType changeAction) {
         super(source, dataObject, changeAction, toEventType(changeAction));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public EventType<CityDaoEvent> getEventType() {
-        return (EventType<CityDaoEvent>)super.getEventType();
+        return (EventType<CityDaoEvent>) super.getEventType();
     }
-
 
 }
