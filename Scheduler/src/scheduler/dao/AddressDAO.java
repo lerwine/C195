@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableMap;
 import javafx.event.Event;
@@ -38,6 +39,7 @@ import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.PredefinedData;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
@@ -240,6 +242,17 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
     }
 
+    @Override
+    public String toString() {
+        ICityDAO c = city;
+        if (getRowState() == DataRowState.NEW) {
+            return String.format("AddressDAO{address1=%s, address2=%s, city=%s, postalCode=%s, phone=%s}", address1, address2,
+                    (null == c) ? "null" : c.toString(), postalCode, phone);
+        }
+        return String.format("AddressDAO{primaryKey=%d, address1=%s, address2=%s, city=%s, postalCode=%s, phone=%s}", getPrimaryKey(), address1,
+                address2, (null == c) ? "null" : c.toString(), postalCode, phone);
+    }
+
     private synchronized void checkPredefinedElementChange(PredefinedAddressElement address) {
         if (null == address) {
             if (null != predefinedElement) {
@@ -294,7 +307,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
 
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -543,6 +556,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         @Override
         protected void fireEvent(Object source, DbChangeType changeAction, AddressDAO target) {
             AddressDaoEvent event = new AddressDaoEvent(this, changeAction, target);
+            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
             Event.fireEvent(target, event);
             DataObjectEvent.fireGenericEvent(event);
         }

@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import scheduler.dao.event.CustomerDaoEvent;
@@ -29,6 +30,7 @@ import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
@@ -142,12 +144,23 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         return null != obj && obj instanceof Customer && ModelHelper.areSameRecord(this, (Customer) obj);
     }
 
+    @Override
+    public String toString() {
+        IAddressDAO a = address;
+        if (getRowState() == DataRowState.NEW) {
+            return String.format("CustomerDAO{name=%s, address=%s, active=%s}", name, (null == a) ? "null" : a.toString(),
+                    (active) ? "true}" : "false}");
+        }
+        return String.format("CustomerDAO{primaryKey=%d, name=%s, address=%s, active=%s}", getPrimaryKey(), name, (null == a) ? "null" : a.toString(),
+                (active) ? "true}" : "false}");
+    }
+
     /**
      * Factory implementation for {@link CustomerDAO} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
 
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -354,6 +367,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         protected void fireEvent(Object source, DbChangeType changeAction, CustomerDAO target) {
             CustomerDaoEvent event = new CustomerDaoEvent(this, changeAction, target);
+            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
             Event.fireEvent(target, event);
             DataObjectEvent.fireGenericEvent(event);
         }

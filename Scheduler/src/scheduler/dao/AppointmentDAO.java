@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import scheduler.dao.event.AppointmentDaoEvent;
@@ -32,6 +33,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -323,12 +325,28 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         return null != obj && obj instanceof Appointment && ModelHelper.areSameRecord(this, (Appointment) obj);
     }
 
+    @Override
+    public String toString() {
+        ICustomerDAO c = customer;
+        IUserDAO u = user;
+        Timestamp s = start;
+        Timestamp e = end;
+        if (getRowState() == DataRowState.NEW) {
+            return String.format("AppointmentDAO{customer=%s, user=%s, title=%s, description=%s, location=%s, contact=%s, type=%s, url=%s, start=%s, end=%s}",
+                    (null == c) ? "null" : c.toString(), (null == u) ? "null" : u.toString(), title, description, location, contact, type.name(), url,
+                    (null == s) ? "null" : s.toLocalDateTime().toString(), (null == e) ? "null" : e.toLocalDateTime().toString());
+        }
+        return String.format("AppointmentDAO{primaryKey=%d, customer=%s, user=%s, title=%s, description=%s, location=%s, contact=%s, type=%s, url=%s, start=%s, end=%s}",
+                (null == c) ? "null" : c.toString(), (null == u) ? "null" : u.toString(), getPrimaryKey(), title, description, location, contact,
+                type.name(), url, (null == s) ? "null" : s.toLocalDateTime().toString(), (null == e) ? "null" : e.toLocalDateTime().toString());
+    }
+
     /**
      * Factory implementation for {@link AppointmentDAO} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
 
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -714,6 +732,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         protected void fireEvent(Object source, DbChangeType changeAction, AppointmentDAO target) {
             AppointmentDaoEvent event = new AppointmentDaoEvent(this, changeAction, target);
+            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
             Event.fireEvent(target, event);
             DataObjectEvent.fireGenericEvent(event);
         }

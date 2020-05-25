@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -35,6 +36,7 @@ import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.PredefinedData;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.city.EditCity;
@@ -165,12 +167,21 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
     }
 
+    @Override
+    public String toString() {
+        ICountryDAO c = country;
+        if (getRowState() == DataRowState.NEW) {
+            return String.format("CityDAO{name=%s, country=%s}", name, (null == c) ? "null" : c.toString());
+        }
+        return String.format("CityDAO{primaryKey=%d, name=%s, country=%s}", getPrimaryKey(), name, (null == c) ? "null" : c.toString());
+    }
+
     /**
      * Factory implementation for {@link CityDAO} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 
         @Override
         public boolean isCompoundSelect() {
@@ -408,6 +419,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         protected void fireEvent(Object source, DbChangeType changeAction, CityDAO target) {
             CityDaoEvent event = new CityDaoEvent(this, changeAction, target);
+            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
             Event.fireEvent(target, event);
             DataObjectEvent.fireGenericEvent(event);
         }

@@ -29,6 +29,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
@@ -146,12 +147,20 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         return null != obj && obj instanceof User && ModelHelper.areSameRecord(this, (User) obj);
     }
 
+    @Override
+    public String toString() {
+        if (getRowState() == DataRowState.NEW) {
+            return String.format("UserDAO{userName=%s, status=%s}", userName, status.name());
+        }
+        return String.format("UserDAO{primaryKey=%d, userName=%s, status=%s}", getPrimaryKey(), userName, status.name());
+    }
+
     /**
      * Factory implementation for {@link UserDAO} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
 
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -355,6 +364,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         protected void fireEvent(Object source, DbChangeType changeAction, UserDAO target) {
             UserDaoEvent event = new UserDaoEvent(this, changeAction, target);
+            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
             Event.fireEvent(target, event);
             DataObjectEvent.fireGenericEvent(event);
         }

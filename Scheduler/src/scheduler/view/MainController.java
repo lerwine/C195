@@ -56,6 +56,7 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.address.EditAddress;
@@ -92,7 +93,7 @@ import scheduler.view.user.ManageUsers;
 @FXMLResource("/scheduler/view/MainView.fxml")
 public final class MainController implements EventTarget {
 
-    private static final Logger LOG = Logger.getLogger(MainController.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainController.class.getName()), Level.FINER);
 
     public static void startBusyTaskNow(Task<?> task) {
         Scheduler.getMainController().waitBorderPane.startNow(task);
@@ -294,22 +295,22 @@ public final class MainController implements EventTarget {
     }
 
     private void onAddressDaoEvent(AddressDaoEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         PredefinedData.onAddressDaoEvent(event);
     }
 
     private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         // TODO: Add handler for AppointmentAlert
     }
 
     private void onCityDaoEvent(CityDaoEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         PredefinedData.onCityDaoEvent(event);
     }
 
     private void onCountryDaoEvent(CountryDaoEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         PredefinedData.onCountryDaoEvent(event);
     }
 

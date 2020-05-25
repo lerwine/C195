@@ -33,6 +33,7 @@ import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.PredefinedData;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.country.EditCountry;
@@ -143,12 +144,20 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
     }
 
+    @Override
+    public String toString() {
+        if (getRowState() == DataRowState.NEW) {
+            return String.format("CountryDAO{name=%s}", name);
+        }
+        return String.format("CountryDAO{primaryKey=%d, name=%s}", getPrimaryKey(), name);
+    }
+
     /**
      * Factory implementation for {@link CountryDAO} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
 
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -356,6 +365,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         protected void fireEvent(Object source, DbChangeType changeAction, CountryDAO target) {
             CountryDaoEvent event = new CountryDaoEvent(this, changeAction, target);
+            LOG.fine(() -> String.format("Firing %s %s event for %s", event.getEventType(), changeAction, target));
             Event.fireEvent(target, event);
             DataObjectEvent.fireGenericEvent(event);
         }
