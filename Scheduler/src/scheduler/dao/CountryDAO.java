@@ -290,7 +290,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, dao.predefinedElement.getLocale().getCountry());
                 if (dao.getRowState() != DataRowState.NEW) {
-                    ps.setInt(1, dao.getPrimaryKey());
+                    ps.setInt(2, dao.getPrimaryKey());
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
