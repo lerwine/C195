@@ -79,7 +79,7 @@ public final class Scheduler extends Application {
         throw new IllegalStateException();
     }
 
-    public static EventDispatchChain buildMainControllerEventDispatchChain(EventDispatchChain tail) {
+    public static EventDispatchChain buildDataObjectEventDispatchChain(EventDispatchChain tail) {
         tail = AppointmentAlertManager.INSTANCE.buildEventDispatchChain(tail);
         Scheduler app = currentApp;
         if (null != app) {

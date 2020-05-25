@@ -203,7 +203,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return Scheduler.buildMainControllerEventDispatchChain(tail.append(eventHandlerManager));
+        return Scheduler.buildDataObjectEventDispatchChain(tail.append(eventHandlerManager));
     }
 
     /**

@@ -87,7 +87,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return Scheduler.buildMainControllerEventDispatchChain(tail.append(eventHandlerManager));
+        return tail.append(eventHandlerManager);
     }
 
     private AppointmentModel getModel(int key) {

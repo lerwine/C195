@@ -316,7 +316,8 @@ public final class MainController implements EventTarget {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return (null != contentView) ? contentView.buildEventDispatchChain(tail) : rootStackPane.buildEventDispatchChain(tail);
+        tail = tail.append(eventHandlerManager);
+        return (null != contentView) ? contentView.buildEventDispatchChain(tail) : tail;
     }
 
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
