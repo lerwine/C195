@@ -20,7 +20,6 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Country;
 import scheduler.model.ui.CountryModel;
@@ -32,10 +31,8 @@ import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import static scheduler.view.country.MangageCountriesResourceKeys.*;
+import static scheduler.view.country.ManageCountriesResourceKeys.*;
 
-// TODO: Need to add headings for main content screens and leave window title alone for non-popups.
-// Nothing happens when hitting enter
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
  * <p>
@@ -103,7 +100,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     @Override
     protected void onNewItem() {
         try {
-            EditCountry.editNew(getScene().getWindow(), false);
+            EditCountry.editNew(getScene().getWindow(), true);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }

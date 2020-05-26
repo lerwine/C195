@@ -33,7 +33,6 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.CityDaoEvent;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.PredefinedData;
@@ -172,7 +171,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @FXML
     void onNewButtonAction(ActionEvent event) {
         try {
-            EditCity.editNew(model, getScene().getWindow(), false);
+            EditCity.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }

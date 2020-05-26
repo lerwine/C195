@@ -26,14 +26,12 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.PredefinedData;
@@ -165,7 +163,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML
     private void onAddAddressButtonAction(ActionEvent event) {
         try {
-            EditAddress.editNew(model, getScene().getWindow(), false);
+            EditAddress.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
