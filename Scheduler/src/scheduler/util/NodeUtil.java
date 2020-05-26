@@ -17,8 +17,8 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
@@ -40,7 +40,6 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.stage.Window;
 import javafx.util.Callback;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ValidationStatus;
@@ -467,6 +466,29 @@ public class NodeUtil {
         return createSymbolButton(value, null);
     }
 
+    public static Button createButton(String text, EventHandler<ActionEvent> onAction, CssClassName... className) {
+        Button button = setCssClass(new Button(text), className);
+        if (null != onAction) {
+            button.setOnAction(onAction);
+        }
+        return button;
+    }
+
+    public static Button createButton(String text, CssClassName... className) {
+        return createButton(text, (EventHandler<ActionEvent>) null, className);
+    }
+
+    public static ButtonBar createButtonBar(Button... buttons) {
+        ButtonBar result = new ButtonBar();
+        if (null != buttons && buttons.length > 0) {
+            ObservableList<Node> btnList = result.getButtons();
+            for (Button b : buttons) {
+                btnList.add(b);
+            }
+        }
+        return result;
+    }
+
     public static <T extends Node> T setBorderedNode(T node) {
         return addCssClass(node, CssClassName.BORDERED);
     }
@@ -742,8 +764,8 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#WARNING}. This removes the
-     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "warning"} class and sets the
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#WARNING}. This removes
+     * the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "warning"} class and sets the
      * {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
