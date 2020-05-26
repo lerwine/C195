@@ -43,20 +43,14 @@ public class AlertHelper {
     }
 
     public static Optional<ButtonType> showErrorAlert(Window parent, String title, String content, ButtonType... buttons) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, content);
+        Alert alert = new Alert(Alert.AlertType.ERROR, content, buttons);
         alert.initStyle(StageStyle.UTILITY);
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle(title);
         if (null != parent) {
             alert.initOwner(parent);
         }
-        if (null != buttons && buttons.length > 0) {
-            for (ButtonType btnType : buttons) {
-                alert.getButtonTypes().addAll(btnType);
-            }
-        } else {
-            alert.getButtonTypes().add(ButtonType.OK);
-        }
+        
         return alert.showAndWait();
     }
 
