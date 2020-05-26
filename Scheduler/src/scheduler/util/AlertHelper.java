@@ -11,7 +11,6 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.fx.ErrorDetailControl;
 
 /**
  * Utility class for alerts and logging.

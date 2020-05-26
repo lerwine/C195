@@ -1,6 +1,5 @@
 package scheduler.view;
 
-import scheduler.fx.ErrorDetailControl;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -97,6 +96,10 @@ public final class Login extends Scheduler.LoginBorderPane {
     private StringBinding userNameValidationMessageBinding;
     private StringBinding passwordValidationMessageBinding;
 
+    public Login() {
+        super();
+    }
+
     @FXML
     void onExitButtonAction(ActionEvent event) {
         ((Button) event.getSource()).getScene().getWindow().hide();
@@ -121,11 +124,7 @@ public final class Login extends Scheduler.LoginBorderPane {
         Stage stage = (Stage) userNameTextField.getScene().getWindow();
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
     }
-    
-    public Login() {
-        super();
-    }
-    
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'Login.fxml'.";

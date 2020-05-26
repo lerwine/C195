@@ -23,8 +23,8 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.Tuple;
@@ -216,7 +216,9 @@ public class AppointmentAlertManager implements EventTarget {
     private void onCheckAppointmentsTaskError(Throwable ex) {
         if (stop(false)) {
             try {
-                ErrorDetailControl.showAndWait("Error loading appointments", ex, "Database error while checking for upcoming appointments");
+                LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
+                AlertHelper.showErrorAlert("Error loading appointments",
+                        String.format("An unexpected error occurred while checking for upcoming appointments: %s", ex));
             } finally {
                 start(false);
             }
@@ -250,8 +252,9 @@ public class AppointmentAlertManager implements EventTarget {
         if (alertingList.isEmpty()) {
             return !wasEmpty;
         }
-        if (alertingList.size() > 1)
+        if (alertingList.size() > 1) {
             alertingList.sort(AppointmentModel::compareByDates);
+        }
         return wasEmpty;
     }
 

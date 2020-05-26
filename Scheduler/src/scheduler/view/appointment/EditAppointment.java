@@ -49,7 +49,6 @@ import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
@@ -406,7 +405,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             bp.prefWidthProperty().bind(widthProperty());
             bp.minWidthProperty().bind(widthProperty());
         } catch (IOException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT), ex);
+            LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
+            AlertHelper.showErrorAlert(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORTITLE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
         windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
         SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
@@ -470,7 +471,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             busStart = apptStart.toLocalDate().atTime(AppResources.getBusinessHoursStart());
             busEnd = busStart.plusHours(AppResources.getBusinessHoursDuration());
         } catch (ParseException ex) {
-            ErrorDetailControl.logShowAndWait(LOG, "Error getting application-configured business hours", ex);
+            LOG.log(Level.SEVERE, "Error getting application-configured business hours", ex);
+            AlertHelper.showErrorAlert(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORTITLE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SETTINGSLOADERROR));
             return false;
         }
         Optional<ButtonType> response;

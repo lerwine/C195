@@ -93,7 +93,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL = "appointmentType_virtual";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "This action cannot be undone!\u000a\u000aAre you sure you want to delete this item?"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "This action cannot be undone!\u000a\u000aAre you sure you want to delete this item?"}.
      */
     public static final String RESOURCEKEY_AREYOUSUREDELETE = "areYouSureDelete";
 
@@ -153,7 +154,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_CORPORATEOFFICE = "corporateOffice";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Created by %s on %tm %<te, %<tY"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Created by %s on %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_CREATEDBYON = "createdByOn";
 
@@ -163,7 +165,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error reading data from database. See logs for details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error reading data from database. See logs for details."}.
      */
     public static final String RESOURCEKEY_DBREADERROR = "dbReadError";
 
@@ -173,7 +176,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_DELETE = "delete";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Unable to delete the record from the database.\u000aMost likely, someone else has modified another record that depends upon this one."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Unable to delete the record from the database.\u000aMost likely, someone else has modified another record that depends upon this one."}.
      */
     public static final String RESOURCEKEY_DELETEDEPENDENCYERROR = "deleteDependencyError";
 
@@ -183,12 +187,14 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_DELETEFAILURE = "deleteFailure";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "There are %d cities that reference this country."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "There are %d cities that reference this country."}.
      */
     public static final String RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY = "deleteMsgMultipleCountry";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "There is one city that references this country."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "There is one city that references this country."}.
      */
     public static final String RESOURCEKEY_DELETEMSGSINGLECOUNTRY = "deleteMsgSingleCountry";
 
@@ -208,32 +214,38 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_ERRORCODE = "errorCode";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error deleting record from database.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error deleting record from database.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORDELETINGFROMDB = "errorDeletingFromDb";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Unexpected error getting original exception details:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Unexpected error getting original exception details:"}.
      */
     public static final String RESOURCEKEY_ERRORGETTINGEXCEPTIONDETAILS = "errorGettingExceptionDetails";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "There was an error loading appointments.\u000aSee application logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "There was an error loading appointments.\u000aSee application logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading edit window content"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading edit window content"}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGEDITWINDOWCONTENT = "errorLoadingEditWindowContent";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Unexpected error loading items from database."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Unexpected error loading items from database."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGITEMSFROMDB = "errorLoadingItemsFromDb";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "A database access error occurred while trying to save changes to the database.\u000aSee system logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "A database access error occurred while trying to save changes to the database.\u000aSee system logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORSAVINGCHANGES = "errorSavingChanges";
 
@@ -243,7 +255,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_FILENOTFOUND = "fileNotFound";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading login scene content.\u000aSee logs for details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading login scene content.\u000aSee logs for details."}.
      */
     public static final String RESOURCEKEY_FXMLLOADERERRORMESSAGE = "fxmlLoaderErrorMessage";
 
@@ -273,7 +286,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_INITIALIZING = "initializing";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Unexpected error trying to load child window.\u000aSee logs for details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Unexpected error trying to load child window.\u000aSee logs for details."}.
      */
     public static final String RESOURCEKEY_LOADERRORMESSAGE = "loadErrorMessage";
 
@@ -293,22 +307,26 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_LOADINGAPPOINTMENTS = "loadingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading cities, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Loading cities, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading countries, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Loading countries, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading customers, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Loading customers, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading users, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Loading users, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
 
@@ -328,7 +346,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_MESSAGE = "message";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Modified by %s on %tm %<te, %<tY"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Modified by %s on %tm %<te, %<tY"}.
      */
     public static final String RESOURCEKEY_MODIFIEDBYON = "modifiedByOn";
 
@@ -383,7 +402,8 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_SATELLITEOFFICE = "satelliteOffice";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Unable to save the record to the database.\u000aMost likely, someone else has deleted or modified a record that is related to this one."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Unable to save the record to the database.\u000aMost likely, someone else has deleted or modified a record that is related to this one."}.
      */
     public static final String RESOURCEKEY_SAVEDEPENDENCYERROR = "saveDependencyError";
 
@@ -396,6 +416,12 @@ public interface AppResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Saving Changes"}.
      */
     public static final String RESOURCEKEY_SAVINGCHANGES = "savingChanges";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Unexpected error trying to load application settings.\u000d\u000aSee logs for details."}.
+     */
+    public static final String RESOURCEKEY_SETTINGSLOADERROR = "settingsLoadError";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Stack Trace:"}.
@@ -413,12 +439,14 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_TYPE = "type";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "See application logs for technical details."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "See application logs for technical details."}.
      */
     public static final String RESOURCEKEY_UNEXPECTEDERRORDETAILS = "unexpectedErrorDetails";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "An unexpected error has occurred."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "An unexpected error has occurred."}.
      */
     public static final String RESOURCEKEY_UNEXPECTEDERRORHEADING = "unexpectedErrorHeading";
 

@@ -47,6 +47,7 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -458,7 +459,8 @@ public class AppointmentAlert extends BorderPane {
     private void onCheckAppointmentsTaskError(Throwable ex) {
         if (AppointmentAlert.this.stop(false)) {
             try {
-                ErrorDetailControl.showAndWait(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR), ex,
+                LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
+                AlertHelper.showErrorAlert(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR),
                         resources.getString(RESOURCEKEY_ERRORCHECKINGIMPENDINGAPPOINTMENTS));
             } finally {
                 start(false);
