@@ -38,7 +38,7 @@
                         <String fx:value="collapsed" />
                     </styleClass>
                 </Label>
-                <TableView fx:id="listingTableView" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                <TableView fx:id="listingTableView" onKeyReleased="#onListingTableViewKeyReleased" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="titleTableColumn" editable="false" minWidth="-1.0" prefWidth="-1.0" text="%title">
                             <cellValueFactory>

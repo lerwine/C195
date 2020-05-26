@@ -28,7 +28,7 @@
             <children>
                 <StackPane styleClass="header">
                     <children>
-                        <Label fx:id="headingLabel" styleClass="h1" text="%manageCountries" />
+                        <Label fx:id="headingLabel" styleClass="h1" text="%manageUsers" />
                         <Button mnemonicParsing="false" onAction="#onHelpButtonAction" styleClass="symbol-button" text="❓" StackPane.alignment="CENTER_RIGHT" />
                     </children>
                 </StackPane>
@@ -39,7 +39,7 @@
                         <String fx:value="collapsed" />
                     </styleClass>
                 </Label>
-                <TableView fx:id="listingTableView" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                <TableView fx:id="listingTableView" onKeyReleased="#onListingTableViewKeyReleased" styleClass="content" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%name">
                             <cellValueFactory>
