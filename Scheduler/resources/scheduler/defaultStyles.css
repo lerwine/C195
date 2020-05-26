@@ -139,20 +139,23 @@ Labeled.innerLeftControlLabel {
 
 .error,
 .bordered-section.error .validationMessage,
-.bordered-section.error > .validationMessage {
+.bordered-section.error > .validationMessage,
+TitledPane.error .message {
     -fx-text-fill: -scheduler-error-color;
     -fx-fill: -scheduler-error-color;
 }
 
 .warning,
 .bordered-section.warning .validationMessage,
-.bordered-section.warning > .validationMessage {
+.bordered-section.warning > .validationMessage,
+TitledPane.warning .message {
     -fx-text-fill: -scheduler-warning-color-dark;
     -fx-fill: -scheduler-warning-color-dark;
 }
 
 .information,
-.bordered-section.information .validationMessage {
+.bordered-section.information .validationMessage,
+TitledPane.information .message {
     -fx-text-fill: -scheduler-info-color;
     -fx-fill: -scheduler-info-color;
 }
@@ -208,15 +211,18 @@ Labeled.innerLeftControlLabel {
     -fx-border-radius: 8px;
 }
 
-.bordered-section.error {
+.bordered-section.error,
+TitledPane.error .content {
     -fx-border-color: -scheduler-error-color;
 }
 
-.bordered-section.warning {
+.bordered-section.warning,
+TitledPane.warning .content {
     -fx-border-color: -scheduler-warning-color;
 }
 
-.bordered-section.information {
+.bordered-section.information,
+TitledPane.information .content {
     -fx-border-color: -scheduler-info-color;
 }
 
@@ -273,12 +279,18 @@ Labeled.innerLeftControlLabel {
 }
 
 .bordered-section > .header,
-.bordered-section > .title {
+.bordered-section > .title,
+TitledPane .title {
     -fx-background-radius: 8px 8px 0px 0px;
 }
 
-.bordered-section > .footer {
+.bordered-section > .footer,
+TitledPane .content {
     -fx-background-radius: 0px 0px 8px 8px;
+}
+
+TitledPane .content {
+    -fx-border-radius: 0px 0px 8px 8px;
 }
 
 .casts-shadow,
@@ -286,7 +298,11 @@ Labeled.innerLeftControlLabel {
     -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 15.0, 0.5, 7.0, 7.0);
 }
 
-.validationMessage {
+.validationMessage,
+Label.leftLabeledControl,
+CheckBox.leftLabeledControl,
+RadioButton.leftLabeledControl,
+TitledPane .message {
     -fx-wrap-text: true;
 }
 
@@ -294,7 +310,8 @@ Labeled.innerLeftControlLabel {
 .footer.error,
 .bordered-section.error > .title,
 .bordered-section.error > .header,
-.bordered-section.error > .footer {
+.bordered-section.error > .footer,
+TitledPane.error .title {
     -fx-background-color: -scheduler-error-gradient;
 }
 
@@ -303,20 +320,29 @@ Labeled.innerLeftControlLabel {
 .bordered-section.error > .title,
 .bordered-section.error > .header,
 .bordered-section.error > .footer,
+TitledPane.error .title,
 .header.error .text,
 .footer.error .text,
 .bordered-section.error > .title .text,
 .bordered-section.error > .header .text,
-.bordered-section.error > .footer .text {
+.bordered-section.error > .footer .text,
+TitledPane.error .title .text {
     -fx-text-fill: -scheduler-text-color-light;
     -fx-fill: -scheduler-text-color-light;
+}
+
+TitledPane.error .title .arrow-button .arrow,
+TitledPane.warning .title .arrow-button .arrow,
+TitledPane.information .title .arrow-button .arrow {
+    -fx-background-color: -scheduler-text-color-light, white;
 }
 
 .header.warning,
 .footer.warning,
 .bordered-section.warning > .title,
 .bordered-section.warning > .header,
-.bordered-section.warning > .footer {
+.bordered-section.warning > .footer,
+TitledPane.warning .title {
     -fx-background-color: -scheduler-warning-gradient;
 }
 
@@ -325,11 +351,13 @@ Labeled.innerLeftControlLabel {
 .bordered-section.warning > .title,
 .bordered-section.warning > .header,
 .bordered-section.warning > .footer,
+TitledPane.warning .title,
 .header.warning .text,
 .footer.warning .text,
 .bordered-section.warning > .title .text,
 .bordered-section.warning > .header .text,
-.bordered-section.warning > .footer .text {
+.bordered-section.warning > .footer .text,
+TitledPane.warning .title .text {
     -fx-text-fill: white;
     -fx-fill: white;
 }
@@ -338,7 +366,8 @@ Labeled.innerLeftControlLabel {
 .footer.information,
 .bordered-section.information > .title,
 .bordered-section.information > .header,
-.bordered-section.information > .footer {
+.bordered-section.information > .footer,
+TitledPane.information .title {
     -fx-background-color: -scheduler-info-gradient;
 }
 
@@ -347,11 +376,13 @@ Labeled.innerLeftControlLabel {
 .bordered-section.information > .title,
 .bordered-section.information > .header,
 .bordered-section.information > .footer,
+TitledPane.information .title,
 .header.information .text,
 .footer.information .text,
 .bordered-section.information > .title .text,
 .bordered-section.information > .header .text,
-.bordered-section.information > .footer .text {
+.bordered-section.information > .footer .text,
+TitledPane.information .title .text {
     -fx-text-fill: -scheduler-text-color-lighter;
     -fx-fill: -scheduler-text-color-lighter;
 }
