@@ -7,6 +7,7 @@ package scheduler.view;
  */
 public enum SymbolText {
     EDIT(""),
+    COPY(""),
     DELETE(""),
     HYPHEN_POINT("‧"),
     FILTER(""),

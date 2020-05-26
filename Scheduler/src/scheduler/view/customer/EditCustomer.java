@@ -42,7 +42,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.fx.AddressPicker;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.PredefinedData;
@@ -62,6 +61,7 @@ import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CustomerModel}.
@@ -316,7 +316,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
         nameTextField.setText(model.getName());
         activeToggleGroup.selectToggle((model.isActive()) ? activeTrueRadioButton : activeFalseRadioButton);
-        waitBorderPane.startNow(new InitialLoadTask());
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new InitialLoadTask());
     }
 
     @Override

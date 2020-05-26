@@ -1,7 +1,6 @@
 package scheduler.view.task;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,6 +10,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
+import scheduler.fx.CssClassName;
+import scheduler.fx.ErrorDetailTitledPane;
+import scheduler.util.NodeUtil;
+import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
@@ -24,7 +27,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/App")
 @FXMLResource("/scheduler/view/task/WaitBorderPane.fxml")
-public class WaitBorderPane extends BorderPane {
+public final class WaitBorderPane extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(WaitBorderPane.class.getName());
 
@@ -53,44 +56,103 @@ public class WaitBorderPane extends BorderPane {
         pane.setExpanded(true);
     }
 
-    private void onFinished(WaitTitledPaneEvent event) {
+    private void removeEventHandlers(WaitTitledPane pane) {
+        pane.removeEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
+        pane.removeEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
+        pane.removeEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);
+        pane.removeEventHandler(WaitTitledPaneEvent.SUCCEEDED, this::onSucceeded);
+    }
+
+    private void removePane(TitledPane pane) {
         ObservableList<TitledPane> panes = waitAccordion.getPanes();
-        panes.remove(event.getTarget());
+        panes.remove(pane);
         if (panes.isEmpty()) {
             collapseNode(this);
             return;
         }
-        Optional<TitledPane> f = panes.stream().filter((t) -> ((WaitTitledPane) t).isExpanded()).findFirst();
-        if (!f.isPresent()) {
-            f = panes.stream().filter((t) -> ((WaitTitledPane) t).isFaulted()).findFirst();
-            if (f.isPresent()) {
-                f.get().setExpanded(true);
-            } else {
-                panes.get(panes.size() - 1).setExpanded(true);
-            }
+
+        if (!panes.stream().anyMatch((t) -> ((TitledPane) t).isExpanded())) {
+            panes.stream().filter((t) -> (t instanceof ErrorDetailTitledPane)).findFirst().orElseGet(() -> panes.get(panes.size() - 1)).setExpanded(true);
         }
-        restoreNode(this);
+    }
+
+    private void onSucceeded(WaitTitledPaneEvent event) {
+        WaitTitledPane pane = event.getTarget();
+        removeEventHandlers(pane);
+        removePane(pane);
+    }
+
+    private void onCanceled(WaitTitledPaneEvent event) {
+        ObservableList<TitledPane> panes = waitAccordion.getPanes();
+        WaitTitledPane oldPane = event.getTarget();
+        removeEventHandlers(oldPane);
+        TitledPane newPane = addCssClass(new TitledPane(), CssClassName.WARNING);
+        newPane.setText(oldPane.getText());
+        newPane.setContent(NodeUtil.createCompactVBox(NodeUtil.createLabel("Operation canceled."),
+                NodeUtil.createButtonBar(NodeUtil.createButton("OK", (e) -> {
+                    removePane(newPane);
+                    oldPane.fireEvent(new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.CANCEL_ACK));
+                }))));
+        panes.set(panes.indexOf(oldPane), newPane);
+        newPane.setExpanded(true);
+    }
+
+    private void onFailed(WaitTitledPaneEvent event) {
+        ObservableList<TitledPane> panes = waitAccordion.getPanes();
+        WaitTitledPane oldPane = event.getTarget();
+        removeEventHandlers(oldPane);
+        ErrorDetailTitledPane newPane;
+        try {
+            newPane = ErrorDetailTitledPane.of(oldPane.getText(), "An unexpected error has occurred", event.getTask().getException());
+        } catch (IOException ex) {
+            Logger.getLogger(WaitBorderPane.class.getName()).log(Level.SEVERE, "Error creating detail pane", ex);
+            removePane(oldPane);
+            oldPane.fireEvent(new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK));
+            return;
+        }
+        newPane.setOnAction((e) -> {
+            removePane(newPane);
+            oldPane.fireEvent(new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK));
+        });
+        panes.set(panes.indexOf(oldPane), newPane);
+        newPane.setExpanded(true);
     }
 
     /**
-     * Schedules a {@link Task} for execution.
+     * Schedules a {@link Task} for execution and displays a {@link WaitTitledPane} while the task is active.
      *
+     * @param pane The {@link WaitTitledPane} to use for displaying status.
      * @param task The {@link Task} to startNow after the specified delay.
      * @param delay The time from now to delay execution.
      * @param unit The time unit of the delay parameter.
      */
-    public void schedule(Task<?> task, long delay, TimeUnit unit) {
-        WaitTitledPane pane = new WaitTitledPane();
-        pane.setOnTaskRunning(this::onRunning);
-        pane.setOnTaskDone(this::onFinished);
+    public void schedule(WaitTitledPane pane, Task<?> task, long delay, TimeUnit unit) {
+        pane.addEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
+        pane.addEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
+        pane.addEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);
+        pane.addEventHandler(WaitTitledPaneEvent.SUCCEEDED, this::onSucceeded);
         pane.schedule(task, delay, unit);
     }
 
-    public synchronized void startNow(Task<?> task) {
-        WaitTitledPane pane = new WaitTitledPane();
-        pane.setOnTaskRunning(this::onRunning);
-        pane.setOnTaskDone(this::onFinished);
+    public void schedule(Task<?> task, long delay, TimeUnit unit) {
+        schedule(new WaitTitledPane(), task, delay, unit);
+    }
+
+    /**
+     * Starts a {@link Task} immediately and displays a {@link WaitTitledPane} while the task is active.
+     *
+     * @param pane
+     * @param task
+     */
+    public synchronized void startNow(WaitTitledPane pane, Task<?> task) {
+        pane.addEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
+        pane.addEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
+        pane.addEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);
+        pane.addEventHandler(WaitTitledPaneEvent.SUCCEEDED, this::onSucceeded);
         pane.startNow(task);
     }
 
+    public void startNow(Task<?> task) {
+        startNow(new WaitTitledPane(), task);
+    }
 }

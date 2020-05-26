@@ -21,7 +21,6 @@ import javafx.scene.text.TextFlow;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DbConnector;
@@ -187,7 +186,6 @@ public class Overview extends VBox {
             appointmentsThisMonthLabel.setText(nf.format(appointmentsThisMonth));
             appointmentsNextMonthLabel.setText(nf.format(appointmentsNextMonth));
         }
-
 
         @Override
         protected Integer call() throws Exception {

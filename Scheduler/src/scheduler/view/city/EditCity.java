@@ -13,6 +13,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,11 +22,11 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
@@ -53,6 +54,7 @@ import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
@@ -65,6 +67,7 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
 public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel> {
 
+    private static final Object TARGET_COUNTRY_KEY = new Object();
     private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
     public static CityModel edit(CityModel model, Window parentWindow) throws IOException {
@@ -75,8 +78,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         CityModel.Factory factory = CityModel.getFactory();
         CityModel model = factory.createNew(factory.getDaoFactory().createNew());
         EditCity control = new EditCity();
-        control.targetCountry = country;
-        // TODO: Select country in view
+        if (null != country) {
+            control.getProperties().put(TARGET_COUNTRY_KEY, country);
+        }
         return EditItem.showAndWait(parentWindow, control, model, keepOpen);
     }
 
@@ -87,7 +91,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private final ObservableList<AddressModel> addressItemList;
     private ObservableObjectDerivitive<CityModel> selectedCity;
     private ObservableObjectDerivitive<CountryModel> selectedCountry;
-    private CountryModel targetCountry;
 
     @ModelEditor
     private CityModel model;
@@ -180,6 +183,27 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
+    private void onAddressesTableViewKeyReleased(KeyEvent event) {
+        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
+            AddressModel item;
+            switch (event.getCode()) {
+                case DELETE:
+                    item = addressesTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        deleteAddress(item);
+                    }
+                    break;
+                case ENTER:
+                    item = addressesTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        editAddress(item);
+                    }
+                    break;
+            }
+        }
+    }
+
+    @FXML
     private void onItemActionRequest(ItemActionRequestEvent<AddressModel> event) {
         if (event.isDelete()) {
             deleteAddress(event.getItem());
@@ -210,11 +234,15 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         selectedCity = ObservableObjectDerivitive.ofSelection(nameValueComboBox);
 
         countryNameValueComboBox.setItems(countryOptionList);
-        if (null != targetCountry) {
+        ObservableMap<Object, Object> properties = getProperties();
+        CountryModel targetCountry;
+        if (properties.containsKey(TARGET_COUNTRY_KEY)) {
+            targetCountry = (CountryModel) properties.get(TARGET_COUNTRY_KEY);
             CountryDAO.PredefinedCountryElement predefinedElement = targetCountry.getPredefinedElement();
             PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t)
                     -> countryOptionList.add((Objects.equals(t.getPredefinedElement(), predefinedElement)) ? targetCountry : new CountryModel(t)));
         } else {
+            targetCountry = null;
             PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t) -> countryOptionList.add(new CountryModel(t)));
         }
         nameValueComboBox.setItems(cityOptionList);
@@ -279,7 +307,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         restoreNode(addCityButtonBar);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCITY), model.getName()));
         addressesTableView.setItems(addressItemList);
-        waitBorderPane.startNow(new ItemsLoadTask());
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new ItemsLoadTask());
         nameValueLabel.setText(model.getName());
         countryNameValueLabel.setText(model.getCountryName());
         languageLabel.setText(model.getLanguage());
@@ -341,7 +372,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         protected List<AddressDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 AddressDAO.FactoryImpl cf = AddressDAO.getFactory();
                 return cf.load(dbConnector.getConnection(), cf.getByCityFilter(pk));
             }

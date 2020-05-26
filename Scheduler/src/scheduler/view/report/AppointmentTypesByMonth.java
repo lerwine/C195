@@ -27,16 +27,15 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentCountByType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.AppointmentType;
 import scheduler.util.DbConnector;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.task.WaitTitledPane;
 
 @GlobalizationResource("scheduler/view/report/Reports")
 @FXMLResource("/scheduler/view/report/AppointmentTypesByMonth.fxml")
@@ -131,7 +130,12 @@ public class AppointmentTypesByMonth extends VBox {
         yearSpinner.valueProperty().addListener((observable) -> {
             onDateChanged(((ReadOnlyObjectProperty<Integer>) observable).get());
         });
-        MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
+        WaitTitledPane pane = new WaitTitledPane();
+        MainController.startBusyTaskNow(
+                pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                        .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide()),
+                new CountLoadTask(date, monthComboBox.getValue())
+        );
     }
 
     private class CountLoadTask extends Task<List<AppointmentCountByType>> {

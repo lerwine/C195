@@ -22,7 +22,6 @@ import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.ICityDAO;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
@@ -35,6 +34,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing an {@link AddressModel}.
@@ -106,7 +106,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
-        waitBorderPane.startNow(new ItemsLoadTask());
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new ItemsLoadTask());
         // CURRENT: Create individual validators
     }
 

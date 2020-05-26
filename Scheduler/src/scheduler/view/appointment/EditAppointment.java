@@ -75,6 +75,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
@@ -436,7 +437,10 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 duration = null;
             }
             dateRangeController.setDateRange(start, duration, TimeZone.getTimeZone(z));
-            waitBorderPane.startNow(new ItemsLoadTask());
+            WaitTitledPane pane = new WaitTitledPane();
+            pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                    .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+            waitBorderPane.startNow(pane, new ItemsLoadTask());
         }
         switch (typeSelectionModel.getSelectedItem()) {
             case OTHER:

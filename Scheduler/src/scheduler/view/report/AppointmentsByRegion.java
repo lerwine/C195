@@ -22,17 +22,16 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ItemCountResult;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.PredefinedData;
 import scheduler.util.DbConnector;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.task.WaitTitledPane;
 
 @GlobalizationResource("scheduler/view/report/Reports")
 @FXMLResource("/scheduler/view/report/AppointmentsByRegion.fxml")
@@ -108,7 +107,10 @@ public class AppointmentsByRegion extends VBox {
             onDateChanged(((ReadOnlyObjectProperty<Integer>) observable).get());
         });
 
-        MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        MainController.startBusyTaskNow(pane, new CountLoadTask(date, monthComboBox.getValue()));
     }
 
     private class CountLoadTask extends Task<List<ItemCountResult<String>>> {

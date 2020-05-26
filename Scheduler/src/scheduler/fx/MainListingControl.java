@@ -85,42 +85,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
         listingTableView.setItems(items);
 
-//        sceneProperty().addListener(new InvalidationListener() {
-//            private boolean isListening = false;
-//
-//            {
-//                onChange(null != getScene());
-//            }
-//
-//            private void onChange(boolean hasParent) {
-//                if (hasParent) {
-//                    LOG.info("Scene is not null");
-//                    if (!isListening) {
-////                        Scheduler.getMainController().addDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-////                        Scheduler.getMainController().addDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-////                        Scheduler.getMainController().addDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-//                        isListening = true;
-//                    }
-//                } else {
-//                    LOG.info("Scene is null");
-//                    if (isListening) {
-//                        addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-//                        addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-//                        addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-////                        Scheduler.getMainController().removeDaoEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-////                        Scheduler.getMainController().removeDaoEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-////                        Scheduler.getMainController().removeDaoEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-//                        isListening = false;
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void invalidated(Observable observable) {
-//                onChange(null != ((ObservableObjectValue<?>) observable).get());
-//            }
-//
-//        });
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());

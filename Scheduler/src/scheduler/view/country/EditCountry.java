@@ -23,6 +23,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -55,6 +56,7 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CountryModel}.
@@ -145,6 +147,27 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 EditCity.edit(item, getScene().getWindow());
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        }
+    }
+
+    @FXML
+    void onCitiesTableViewKeyReleased(KeyEvent event) {
+        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
+            CityModel item;
+            switch (event.getCode()) {
+                case DELETE:
+                    item = citiesTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        deleteCity(item);
+                    }
+                    break;
+                case ENTER:
+                    item = citiesTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        openCity(item);
+                    }
+                    break;
             }
         }
     }
@@ -266,7 +289,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 onChange(null != ((ObservableObjectValue<?>) observable).get());
             }
         });
-        waitBorderPane.startNow(new ItemsLoadTask());
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new ItemsLoadTask());
     }
 
     private void onCityAdded(CityDaoEvent event) {

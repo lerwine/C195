@@ -27,7 +27,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataAccessObject.DaoFactory;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;

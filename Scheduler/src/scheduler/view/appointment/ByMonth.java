@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.model.ui.AppointmentModel;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;
@@ -22,9 +21,10 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.fx.ErrorDetailControl;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.util.DB;
 import scheduler.util.ViewControllerLoader;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 

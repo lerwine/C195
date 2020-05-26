@@ -29,7 +29,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DELETEFAILURE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_DELETINGRECORD;
-import static scheduler.AppResourceKeys.RESOURCEKEY_ERRORDELETINGFROMDB;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AddressDAO;
@@ -47,7 +46,6 @@ import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.fx.AppointmentAlert;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.HelpContent;
 import scheduler.model.PredefinedData;
 import scheduler.model.ui.AppointmentModel;
@@ -74,6 +72,7 @@ import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 import scheduler.view.user.EditUser;
 import scheduler.view.user.ManageUsers;
 
@@ -95,8 +94,16 @@ public final class MainController implements EventTarget {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainController.class.getName()), Level.FINER);
 
+    public static void startBusyTaskNow(WaitTitledPane waitTitledPane, Task<?> task) {
+        Scheduler.getMainController().waitBorderPane.startNow(waitTitledPane, task);
+    }
+
     public static void startBusyTaskNow(Task<?> task) {
         Scheduler.getMainController().waitBorderPane.startNow(task);
+    }
+
+    public static void scheduleBusyTask(WaitTitledPane waitTitledPane, Task<?> task, long delay, TimeUnit unit) {
+        Scheduler.getMainController().waitBorderPane.schedule(waitTitledPane, task, delay, unit);
     }
 
     public static void scheduleBusyTask(Task<?> task, long delay, TimeUnit unit) {

@@ -20,20 +20,19 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBREADERROR;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.UserModel;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.UserModel;
+import scheduler.view.task.WaitTitledPane;
 
 @GlobalizationResource("scheduler/view/report/Reports")
 @FXMLResource("/scheduler/view/report/ConsultantSchedule.fxml")
@@ -111,7 +110,10 @@ public class ConsultantSchedule extends VBox {
         consultantList = FXCollections.observableArrayList();
         consultantsComboBox.setItems(consultantList);
         appointmentScheduleListView.setItems(appointmentsByDay);
-        MainController.startBusyTaskNow(new InitializeTask());
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        MainController.startBusyTaskNow(pane, new InitializeTask());
     }
 
     public void accept(List<? extends AppointmentDAO> appointments) {

@@ -73,7 +73,7 @@
             </VBox.margin>
         </GridPane>
         <Label fx:id="addressesLabel" styleClass="topControlLabel" text="%addresses" />
-        <TableView fx:id="addressesTableView" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+        <TableView fx:id="addressesTableView" onKeyReleased="#onAddressesTableViewKeyReleased" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="%streetAddress">
                     <cellValueFactory>

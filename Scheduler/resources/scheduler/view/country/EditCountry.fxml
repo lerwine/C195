@@ -77,7 +77,7 @@
                 <String fx:value="collapsed" />
             </styleClass>
         </Label>
-        <TableView fx:id="citiesTableView" maxHeight="1.7976931348623157E308" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+        <TableView fx:id="citiesTableView" maxHeight="1.7976931348623157E308" onKeyReleased="#onCitiesTableViewKeyReleased" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="%nameColumnHeading">
                     <cellValueFactory>

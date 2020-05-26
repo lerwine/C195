@@ -18,7 +18,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
@@ -36,6 +35,7 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class
@@ -157,6 +157,13 @@ public class AddressPicker extends BorderPane {
         return c;
     }
 
+    private WaitTitledPane createCriticalWaitTitledPane() {
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        return pane;
+    }
+
     public synchronized void PickAddress(WaitBorderPane waitBorderPane, Consumer<AddressModel> onClosed) {
         if (null != this.onClosed) {
             Consumer<AddressModel> c = this.onClosed;
@@ -168,7 +175,7 @@ public class AddressPicker extends BorderPane {
             this.onClosed = onClosed;
             if (null == allAddresses) {
                 allAddresses = FXCollections.observableArrayList();
-                waitBorderPane.startNow(new InitialLoadTask());
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new InitialLoadTask());
             } else {
                 addressesTableView.getSelectionModel().clearSelection();
                 cityComboBox.getSelectionModel().clearSelection();

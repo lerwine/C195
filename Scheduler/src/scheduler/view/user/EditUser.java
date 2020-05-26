@@ -29,13 +29,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DBACCESSERROR;
 import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
@@ -51,6 +49,7 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
 
 /**
@@ -212,7 +211,10 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
                     AppointmentModelFilter.of(null, today, dao)));
             filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         }
-        waitBorderPane.startNow(new InitialLoadTask());
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new InitialLoadTask());
         windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
     }
 

@@ -84,7 +84,11 @@ public enum CssClassName {
     /**
      * The {@code "boldText"} CSS class for bold text.
      */
-    BOLD_TEXT("boldText");
+    BOLD_TEXT("boldText"),
+    /**
+     * The {@code "message"} CSS class for bold text.
+     */
+    MESSAGE("message");
 
     public static final List<CssClassName> VALIDATION_CSS_CLASSES = Collections.unmodifiableList(Arrays.asList(CssClassName.INFO, CssClassName.WARNING, CssClassName.ERROR));
     public static final CssClassName VALIDATION_MESSAGE_CSS_CLASS = CssClassName.VALIDATIONMSG;

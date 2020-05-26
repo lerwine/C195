@@ -41,7 +41,6 @@ import scheduler.dao.ICountryDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;

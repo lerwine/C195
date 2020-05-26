@@ -41,6 +41,7 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for picking a {@link CustomerModel}.
@@ -200,7 +201,7 @@ public class CustomerPicker extends BorderPane {
         createdLabel.setText(ResourceBundleHelper.formatCreatedByOn(customer.getCreatedBy(), customer.getCreateDate()));
         modifiedLabel.setText(ResourceBundleHelper.formatModifiedByOn(customer.getLastModifiedBy(), customer.getLastModifiedDate()));
         selectCustomerButton.setDisable(false);
-        waitBorderPane.startNow(new LoadCountriesTask());
+        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCountriesTask());
     }
 
     @FXML
@@ -250,7 +251,7 @@ public class CustomerPicker extends BorderPane {
             countryComboBox.setDisable(false);
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                waitBorderPane.startNow(new LoadCitiesTask(country.getDataObject(),
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCitiesTask(country.getDataObject(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
             }
         } else {
@@ -260,7 +261,7 @@ public class CustomerPicker extends BorderPane {
             cityFilterCheckBox.setDisable(true);
             countryComboBox.setDisable(true);
             cityComboBox.setDisable(true);
-            waitBorderPane.startNow(new LoadCustomersTask(null, null,
+            waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(null, null,
                     statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
         }
@@ -271,7 +272,7 @@ public class CustomerPicker extends BorderPane {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                waitBorderPane.startNow(new LoadCitiesTask(country.getDataObject(),
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCitiesTask(country.getDataObject(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
             }
         }
@@ -285,12 +286,12 @@ public class CustomerPicker extends BorderPane {
                 if (cityFilterCheckBox.isSelected()) {
                     CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
+                        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                     }
                 } else {
-                    waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
+                    waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
                             null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                             (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 }
@@ -306,7 +307,7 @@ public class CustomerPicker extends BorderPane {
             if (null != country) {
                 CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                 if (null != city) {
-                    waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
+                    waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
                             city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                             (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 }
@@ -322,21 +323,28 @@ public class CustomerPicker extends BorderPane {
                 if (cityFilterCheckBox.isSelected()) {
                     CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
+                        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
                                 city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                         return;
                     }
                 }
-                waitBorderPane.startNow(new LoadCustomersTask(country.getDataObject(),
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
                         null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                         (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
                 return;
             }
         }
-        waitBorderPane.startNow(new LoadCustomersTask(null, null,
+        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(null, null,
                 statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                 (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+    }
+
+    private WaitTitledPane createCriticalWaitTitledPane() {
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        return pane;
     }
 
     public static class StatusOption {
@@ -401,7 +409,7 @@ public class CustomerPicker extends BorderPane {
             result.forEach((item) -> {
                 cities.add(new CityModel(item));
             });
-            waitBorderPane.startNow(new LoadCustomersTask(country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
+            waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     customer));
         }
 
@@ -429,7 +437,7 @@ public class CustomerPicker extends BorderPane {
             result.stream().forEach((item) -> {
                 countries.add(new CountryModel(item));
             });
-            waitBorderPane.startNow(new LoadCustomersTask(null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
+            waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
         }
 
         @Override

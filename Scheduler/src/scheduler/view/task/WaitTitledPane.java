@@ -11,12 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.Observable;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
@@ -31,12 +27,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CANCELLING;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CLOSE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_NOFN;
 import static scheduler.AppResourceKeys.RESOURCEKEY_PLEASEWAIT;
-import scheduler.fx.CssClassName;
-import scheduler.fx.ErrorDetailGridPane;
-import static scheduler.util.NodeUtil.addCssClass;
-import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
@@ -49,15 +40,11 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/App")
 @FXMLResource("/scheduler/view/task/WaitTitledPane.fxml")
-public class WaitTitledPane extends TitledPane {
+public final class WaitTitledPane extends TitledPane {
 
     private static final Logger LOG = Logger.getLogger(WaitTitledPane.class.getName());
 
-    private final ReadOnlyBooleanWrapper faulted;
-    private final ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskRunning;
-    private final ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskDone;
     private Task<?> currentTask;
-    private ErrorDetailGridPane errorDetail;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -73,25 +60,6 @@ public class WaitTitledPane extends TitledPane {
 
     @SuppressWarnings("LeakingThisInConstructor")
     public WaitTitledPane() {
-        this.faulted = new ReadOnlyBooleanWrapper(false);
-        onTaskRunning = new SimpleObjectProperty<>();
-        onTaskRunning.addListener((observable, oldValue, newValue) -> {
-            if (null != oldValue) {
-                removeEventHandler(WaitTitledPaneEvent.RUNNING, oldValue);
-            }
-            if (null != newValue) {
-                addEventHandler(WaitTitledPaneEvent.RUNNING, newValue);
-            }
-        });
-        onTaskDone = new SimpleObjectProperty<>();
-        onTaskDone.addListener((observable, oldValue, newValue) -> {
-            if (null != oldValue) {
-                removeEventHandler(WaitTitledPaneEvent.DONE, oldValue);
-            }
-            if (null != newValue) {
-                addEventHandler(WaitTitledPaneEvent.DONE, newValue);
-            }
-        });
         try {
             ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
@@ -102,13 +70,14 @@ public class WaitTitledPane extends TitledPane {
 
     @FXML
     private synchronized void onCancelButtonAction(ActionEvent event) {
-        Task<?> task = removeTaskEventHandlers();
-        if (null != task && !task.isDone()) {
+        cancelButton.setDisable(true);
+        if (null == currentTask) {
+            return;
+        }
+        if (!currentTask.isDone()) {
             messageLabel.setText(resources.getString(RESOURCEKEY_CANCELLING));
             cancelButton.setText(resources.getString(RESOURCEKEY_CLOSE));
-            task.cancel(true);
-        } else {
-            fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.DONE));
+            currentTask.cancel(true);
         }
     }
 
@@ -120,64 +89,101 @@ public class WaitTitledPane extends TitledPane {
 
     }
 
-    public boolean isFaulted() {
-        return faulted.get();
-    }
-
-    public ReadOnlyBooleanProperty faultedProperty() {
-        return faulted.getReadOnlyProperty();
-    }
-
-    public EventHandler<? extends WaitTitledPaneEvent> getOnTaskRunning() {
-        return onTaskRunning.get();
-    }
-
-    public void setOnTaskRunning(EventHandler<WaitTitledPaneEvent> value) {
-        onTaskRunning.set(value);
-    }
-
-    public ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskRunningProperty() {
-        return onTaskRunning;
-    }
-
-    public EventHandler<? extends WaitTitledPaneEvent> getOnTaskDone() {
-        return onTaskDone.get();
-    }
-
-    public void setOnTaskDone(EventHandler<WaitTitledPaneEvent> value) {
-        onTaskDone.set(value);
-    }
-
-    public ObjectProperty<EventHandler<WaitTitledPaneEvent>> onTaskDoneProperty() {
-        return onTaskDone;
-    }
-
     private void onRunning(WorkerStateEvent event) {
-        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, currentTask, WaitTitledPaneEvent.RUNNING));
+        Task<?> task = (Task<?>)event.getSource();
+        LOG.finer(() -> String.format("%s task started", task.getTitle()));
+        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING));
     }
 
     private void onFailed(WorkerStateEvent event) {
-        Task<?> task = removeTaskEventHandlers();
-        if (null != task) {
-            progressIndicator.setVisible(false);
-            Throwable ex = task.getException();
-            LOG.log(Level.SEVERE, "Background task failed", ex);
-            errorDetail = ErrorDetailGridPane.of(ex);
-            getChildren().add(errorDetail);
-            bindExtents(errorDetail, this);
-            cancelButton.setText(resources.getString(RESOURCEKEY_CLOSE));
-            addCssClass(this, CssClassName.ERROR);
-            removeCssClass(this, CssClassName.PROGRESS);
-            this.setExpanded(true);
-            faulted.set(true);
-        }
+        removeTaskEventHandlers();
+        Task<?> task = (Task<?>)event.getSource();
+        LOG.log(Level.SEVERE, String.format("Background task %s failed", task.getTitle()), task.getException());
+        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, (Task<?>)event.getSource(), WaitTitledPaneEvent.FAILED));
     }
 
-    private void onFinished(WorkerStateEvent event) {
-        Task<?> task = removeTaskEventHandlers();
-        if (null != task) {
-            fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.DONE));
-        }
+    private void onSucceeded(WorkerStateEvent event) {
+        removeTaskEventHandlers();
+        Task<?> task = (Task<?>)event.getSource();
+        LOG.finer(() -> String.format("%s task succeeded", task.getTitle()));
+        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.SUCCEEDED));
+    }
+
+    private void onCanceled(WorkerStateEvent event) {
+        removeTaskEventHandlers();
+        Task<?> task = (Task<?>)event.getSource();
+        LOG.warning(() -> String.format("%s task canceled", task.getTitle()));
+        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.CANCELED));
+    }
+
+    public WaitTitledPane addOnDone(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.DONE, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnDone(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.DONE, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane addOnRunning(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.RUNNING, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnRunning(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.RUNNING, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane addOnSucceeded(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.SUCCEEDED, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnSucceeded(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.SUCCEEDED, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane addOnCanceled(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.CANCELED, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnCanceled(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.CANCELED, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane addOnCancelAcknowledged(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.CANCEL_ACK, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnCancelAcknowledged(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.CANCEL_ACK, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane addOnFailed(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.FAILED, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnFailed(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.FAILED, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane addOnFailAcknowledged(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        addEventHandler(WaitTitledPaneEvent.FAIL_ACK, eventHandler);
+        return this;
+    }
+
+    public WaitTitledPane removeOnFailAcknowledged(EventHandler<WaitTitledPaneEvent> eventHandler) {
+        removeEventHandler(WaitTitledPaneEvent.FAIL_ACK, eventHandler);
+        return this;
     }
 
     /**
@@ -277,19 +283,11 @@ public class WaitTitledPane extends TitledPane {
         if (null != currentTask || task.getState() != Worker.State.READY) {
             throw new IllegalStateException();
         }
-        if (faulted.get()) {
-            getChildren().remove(errorDetail);
-            errorDetail = null;
-            progressIndicator.setVisible(true);
-            addCssClass(this, CssClassName.PROGRESS);
-            removeCssClass(this, CssClassName.ERROR);
-            faulted.set(false);
-        }
         currentTask = task;
         task.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, this::onRunning);
         task.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, this::onFailed);
-        task.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, this::onFinished);
-        task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, this::onFinished);
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, this::onCanceled);
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, this::onSucceeded);
         task.titleProperty().addListener(this::onTitleChanged);
         task.messageProperty().addListener(this::onMessageChanged);
         task.totalWorkProperty().addListener(this::onTotalWorkChanged);
@@ -305,8 +303,8 @@ public class WaitTitledPane extends TitledPane {
         if (null != task) {
             task.removeEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, this::onRunning);
             task.removeEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, this::onFailed);
-            task.removeEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, this::onFinished);
-            task.removeEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, this::onFinished);
+            task.removeEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, this::onCanceled);
+            task.removeEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, this::onSucceeded);
             task.titleProperty().removeListener(this::onTitleChanged);
             task.messageProperty().removeListener(this::onMessageChanged);
             task.totalWorkProperty().removeListener(this::onTotalWorkChanged);

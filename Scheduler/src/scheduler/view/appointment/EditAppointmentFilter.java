@@ -56,7 +56,6 @@ import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
 import scheduler.model.Address;
 import scheduler.observables.StringBindingProperty;
-import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;

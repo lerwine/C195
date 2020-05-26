@@ -21,7 +21,6 @@ import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.CustomerDaoEvent;
-import scheduler.fx.ErrorDetailControl;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
 import scheduler.model.ui.CustomerModel;
