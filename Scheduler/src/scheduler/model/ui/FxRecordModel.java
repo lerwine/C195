@@ -256,6 +256,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
                 }
             }, onFail);
         }
+        
+        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess) {
+            loadAsync(waitBorderPane, filter, target, onSuccess, null);
+        }
 
         public final void loadAsync(DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
                 Consumer<Throwable> onFail) {
@@ -286,6 +290,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }, onFail);
         }
 
+        public final void loadAsync(DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess) {
+            loadAsync(filter, target, onSuccess, null);
+        }
+        
         public final Optional<U> find(Iterator<U> source, T dao) {
             if (null != source) {
                 while (source.hasNext()) {

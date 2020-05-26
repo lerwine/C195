@@ -196,14 +196,9 @@ public final class Login extends Scheduler.LoginBorderPane {
     }
 
     @Override
-    protected void onLoginFailure(Throwable reason) {
+    protected void onLoginFailure() {
         ResourceBundle rb = resourceBundle.get();
-        if (reason == null) {
-            AlertHelper.showErrorAlert(RESOURCEKEY_EXIT, loginButton);
-        } else {
-            ErrorDetailControl.logShowAndWait(LOG, rb.getString(RESOURCEKEY_LOGINERROR), reason,
-                    rb.getString(RESOURCEKEY_VALIDATIONERROR));
-        }
+        AlertHelper.showErrorAlert(getScene().getWindow(), rb.getString(RESOURCEKEY_LOGINERROR), rb.getString(RESOURCEKEY_INVALIDCREDENTIALS));
     }
 
 }

@@ -59,11 +59,13 @@ public final class ErrorDetailTitledPane extends TitledPane {
         result.setText((Values.isNullWhiteSpaceOrEmpty(heading)) ? error.getClass().getSimpleName() : heading);
         ObservableList<Node> children = result.contentVBox.getChildren();
         if (!Values.isNullWhiteSpaceOrEmpty(message)) {
-            children.add(0, NodeUtil.createCompactHBox(NodeUtil.createLabel(message, CssClassName.MESSAGE), NodeUtil.createSymbolButton(SymbolText.COPY, (event) -> {
+            Button button = NodeUtil.createSymbolButton(SymbolText.COPY, (event) -> {
                 final ClipboardContent clipboardContent = new ClipboardContent();
                 clipboardContent.putString(message);
                 Clipboard.getSystemClipboard().setContent(clipboardContent);
-            })));
+            });
+            button.setMinWidth(USE_PREF_SIZE);
+            children.add(0, NodeUtil.createCompactHBox(NodeUtil.createLabel(message, CssClassName.MESSAGE), button));
         }
         result.intialize(error, maxDepth, new LinkedList<>());
         result.okButton = NodeUtil.createButton("OK");
@@ -353,6 +355,9 @@ public final class ErrorDetailTitledPane extends TitledPane {
                         property1HeadingLabel.setText("Error Code:");
                         property1TextLabel.setText(message);
                     }
+                } else {
+                    collapseNode(property1HeadingLabel);
+                    collapseNode(property1HBox);
                 }
                 collapseNode(property2HeadingLabel);
                 collapseNode(property2HBox);

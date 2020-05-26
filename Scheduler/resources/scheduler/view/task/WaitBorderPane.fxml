@@ -5,6 +5,6 @@
 
 <fx:root minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
-        <Accordion fx:id="waitAccordion" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="128.0" minWidth="128.0" styleClass="bordered-section" BorderPane.alignment="CENTER" />
+        <Accordion fx:id="waitAccordion" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="128.0" minWidth="128.0" BorderPane.alignment="CENTER" />
     </center>
 </fx:root>

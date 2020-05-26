@@ -112,8 +112,6 @@ public class ByMonth extends StackPane {
                 DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
             allAppointments.clear();
             allAppointments.addAll(t);
-        }, (Throwable t) -> {
-            ErrorDetailControl.logShowAndWait(LOG, AppResources.getResourceString(RESOURCEKEY_DBREADERROR), t);
         });
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
@@ -11,83 +12,73 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root styleClass="error" stylesheets="@../defaultStyles.css" text="Unexpected Error" type="TitledPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxWidth="900.0" stylesheets="@../defaultStyles.css" text="Unexpected Error" type="TitledPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <content>
         <VBox fx:id="contentVBox" spacing="8.0">
             <children>
-                <HBox fx:id="errorOverviewHBox">
-                    <children>
-                        <Label fx:id="errorOverviewLabel" styleClass="message" />
-                        <Button mnemonicParsing="false" onAction="#onCopyOverviewAction" styleClass="symbol-button" text="">
-                            <HBox.margin>
-                                <Insets left="8.0" />
-                            </HBox.margin>
-                        </Button>
-                    </children>
-                </HBox>
                 <GridPane>
                     <columnConstraints>
-                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
+                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
                         <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints vgrow="SOMETIMES" />
-                        <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-                        <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-                        <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-                        <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
-                        <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="-Infinity" valignment="TOP" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="-Infinity" valignment="TOP" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="-Infinity" valignment="TOP" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="-Infinity" valignment="TOP" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="-Infinity" valignment="TOP" vgrow="SOMETIMES" />
                     </rowConstraints>
                     <children>
-                        <Label fx:id="errorMessageHeadingLabel" styleClass="leftControlLabel" text="Error Message:" GridPane.rowIndex="1" />
-                        <HBox fx:id="errorMessageHBox" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label fx:id="errorMessageHeadingLabel" minWidth="-Infinity" styleClass="leftControlLabel" text="Error Message:" GridPane.rowIndex="1" />
+                        <HBox fx:id="errorMessageHBox" minHeight="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1">
                             <children>
-                                <Label fx:id="errorMessageTextLabel" styleClass="leftLabeledControl" />
-                                <Button mnemonicParsing="false" onAction="#onCopyErrorMessageAction" styleClass="symbol-button" text="">
+                                <Label fx:id="errorMessageTextLabel" minHeight="-Infinity" styleClass="leftLabeledControl" text="You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'asdf' at line 1" />
+                                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#onCopyErrorMessageAction" styleClass="symbol-button" text="">
                                     <HBox.margin>
                                         <Insets left="8.0" />
                                     </HBox.margin>
                                 </Button>
                             </children>
                         </HBox>
-                        <Label styleClass="leftControlLabel" text="Error Type:" GridPane.rowIndex="2" />
-                        <HBox fx:id="errorTypeHBox" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <Label minWidth="-Infinity" styleClass="leftControlLabel" text="Error Type:" GridPane.rowIndex="2" />
+                        <HBox fx:id="errorTypeHBox" minHeight="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2">
                             <children>
-                                <Label fx:id="errorTypeLabel" styleClass="leftLabeledControl" />
-                                <Button mnemonicParsing="false" onAction="#onCopyErrorTypeAction" styleClass="symbol-button" text="">
+                                <Label fx:id="errorTypeLabel" minHeight="-Infinity" styleClass="leftLabeledControl" />
+                                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#onCopyErrorTypeAction" styleClass="symbol-button" text="">
                                     <HBox.margin>
                                         <Insets left="8.0" />
                                     </HBox.margin>
                                 </Button>
                             </children>
                         </HBox>
-                        <Label fx:id="property1HeadingLabel" styleClass="leftControlLabel" text="Index:" GridPane.rowIndex="3" />
-                        <HBox fx:id="property1HBox" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                        <Label fx:id="property1HeadingLabel" minWidth="-Infinity" styleClass="leftControlLabel" text="Index:" GridPane.rowIndex="3" />
+                        <HBox fx:id="property1HBox" minHeight="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="3">
                             <children>
-                                <Label fx:id="property1TextLabel" styleClass="leftLabeledControl" />
-                                <Button mnemonicParsing="false" onAction="#onCopyProperty1Action" styleClass="symbol-button" text="">
+                                <Label fx:id="property1TextLabel" minHeight="-Infinity" styleClass="leftLabeledControl" />
+                                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#onCopyProperty1Action" styleClass="symbol-button" text="">
                                     <HBox.margin>
                                         <Insets left="8.0" />
                                     </HBox.margin>
                                 </Button>
                             </children>
                         </HBox>
-                        <Label fx:id="property2HeadingLabel" styleClass="leftControlLabel" text="Input:" GridPane.rowIndex="4" />
-                        <HBox fx:id="property2HBox" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                        <Label fx:id="property2HeadingLabel" minWidth="-Infinity" styleClass="leftControlLabel" text="Input:" GridPane.rowIndex="4" />
+                        <HBox fx:id="property2HBox" minHeight="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="4">
                             <children>
-                                <Label fx:id="property2TextLabel" styleClass="leftLabeledControl" />
-                                <Button mnemonicParsing="false" onAction="#onCopyProperty2Action" styleClass="symbol-button" text="">
+                                <Label fx:id="property2TextLabel" minHeight="-Infinity" styleClass="leftLabeledControl" />
+                                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#onCopyProperty2Action" styleClass="symbol-button" text="">
                                     <HBox.margin>
                                         <Insets left="8.0" />
                                     </HBox.margin>
                                 </Button>
                             </children>
                         </HBox>
-                        <Label fx:id="property3HeadingLabel" styleClass="leftControlLabel" text="Reason:" GridPane.rowIndex="5" />
-                        <HBox fx:id="property3HBox" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                        <Label fx:id="property3HeadingLabel" minWidth="-Infinity" styleClass="leftControlLabel" text="Reason:" GridPane.rowIndex="5" />
+                        <HBox fx:id="property3HBox" minHeight="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="5">
                             <children>
-                                <Label fx:id="property3TextLabel" styleClass="leftLabeledControl" />
-                                <Button mnemonicParsing="false" onAction="#onCopyProperty3Action" styleClass="symbol-button" text="">
+                                <Label fx:id="property3TextLabel" minHeight="-Infinity" styleClass="leftLabeledControl" />
+                                <Button minWidth="-Infinity" mnemonicParsing="false" onAction="#onCopyProperty3Action" styleClass="symbol-button" text="">
                                     <HBox.margin>
                                         <Insets left="8.0" />
                                     </HBox.margin>
@@ -100,4 +91,8 @@
             </children>
         </VBox>
     </content>
+   <styleClass>
+      <String fx:value="bordered-section" />
+      <String fx:value="error" />
+   </styleClass>
 </fx:root>

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -178,18 +179,18 @@ public final class Scheduler extends Application {
         /**
          * This gets called when a login has failed.
          *
-         * @param reason The reason for login failure. If this is {@code null}, then the login name was not found or the password hash did not match.
+         * @param message The reason for login failure.
          */
-        protected abstract void onLoginFailure(Throwable reason);
+        protected abstract void onLoginFailure();
     }
 
     private static class LoginTask extends Task<UserDAO> {
 
         private final String userName, password;
-        private final Consumer<Throwable> onNotSucceeded;
+        private final Runnable onNotSucceeded;
         private final BorderPane loginView;
 
-        LoginTask(LoginBorderPane loginView, String userName, String password, Consumer<Throwable> onNotSucceeded) {
+        LoginTask(LoginBorderPane loginView, String userName, String password, Runnable onNotSucceeded) {
             updateTitle(AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
             this.loginView = Objects.requireNonNull(loginView);
             this.userName = Objects.requireNonNull(userName);
@@ -202,7 +203,7 @@ public final class Scheduler extends Application {
             super.succeeded();
             UserDAO user = getValue();
             if (null == user) {
-                onNotSucceeded.accept(null);
+                onNotSucceeded.run();
             } else {
                 HostServices services = currentApp.getHostServices();
                 String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
@@ -221,12 +222,6 @@ public final class Scheduler extends Application {
                 ((Pane) loginView.getParent()).getChildren().remove(loginView);
                 getMainController().replaceContent(new Overview());
             }
-        }
-
-        @Override
-        protected void failed() {
-            super.failed();
-            onNotSucceeded.accept(getException());
         }
 
         @Override

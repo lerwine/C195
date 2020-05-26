@@ -139,23 +139,20 @@ Labeled.innerLeftControlLabel {
 
 .error,
 .bordered-section.error .validationMessage,
-.bordered-section.error > .validationMessage,
-TitledPane.error .message {
+.bordered-section.error > .validationMessage {
     -fx-text-fill: -scheduler-error-color;
     -fx-fill: -scheduler-error-color;
 }
 
 .warning,
 .bordered-section.warning .validationMessage,
-.bordered-section.warning > .validationMessage,
-TitledPane.warning .message {
+.bordered-section.warning > .validationMessage {
     -fx-text-fill: -scheduler-warning-color-dark;
     -fx-fill: -scheduler-warning-color-dark;
 }
 
 .information,
-.bordered-section.information .validationMessage,
-TitledPane.information .message {
+.bordered-section.information .validationMessage {
     -fx-text-fill: -scheduler-info-color;
     -fx-fill: -scheduler-info-color;
 }
@@ -211,18 +208,15 @@ TitledPane.information .message {
     -fx-border-radius: 8px;
 }
 
-.bordered-section.error,
-TitledPane.error .content {
+.bordered-section.error {
     -fx-border-color: -scheduler-error-color;
 }
 
-.bordered-section.warning,
-TitledPane.warning .content {
+.bordered-section.warning {
     -fx-border-color: -scheduler-warning-color;
 }
 
-.bordered-section.information,
-TitledPane.information .content {
+.bordered-section.information {
     -fx-border-color: -scheduler-info-color;
 }
 
@@ -279,18 +273,12 @@ TitledPane.information .content {
 }
 
 .bordered-section > .header,
-.bordered-section > .title,
-TitledPane .title {
+.bordered-section > .title {
     -fx-background-radius: 8px 8px 0px 0px;
 }
 
-.bordered-section > .footer,
-TitledPane .content {
+.bordered-section > .footer {
     -fx-background-radius: 0px 0px 8px 8px;
-}
-
-TitledPane .content {
-    -fx-border-radius: 0px 0px 8px 8px;
 }
 
 .casts-shadow,
@@ -302,7 +290,7 @@ TitledPane .content {
 Label.leftLabeledControl,
 CheckBox.leftLabeledControl,
 RadioButton.leftLabeledControl,
-TitledPane .message {
+.bordered-section .message {
     -fx-wrap-text: true;
 }
 
@@ -310,8 +298,7 @@ TitledPane .message {
 .footer.error,
 .bordered-section.error > .title,
 .bordered-section.error > .header,
-.bordered-section.error > .footer,
-TitledPane.error .title {
+.bordered-section.error > .footer {
     -fx-background-color: -scheduler-error-gradient;
 }
 
@@ -320,29 +307,20 @@ TitledPane.error .title {
 .bordered-section.error > .title,
 .bordered-section.error > .header,
 .bordered-section.error > .footer,
-TitledPane.error .title,
 .header.error .text,
 .footer.error .text,
 .bordered-section.error > .title .text,
 .bordered-section.error > .header .text,
-.bordered-section.error > .footer .text,
-TitledPane.error .title .text {
+.bordered-section.error > .footer .text {
     -fx-text-fill: -scheduler-text-color-light;
     -fx-fill: -scheduler-text-color-light;
-}
-
-TitledPane.error .title .arrow-button .arrow,
-TitledPane.warning .title .arrow-button .arrow,
-TitledPane.information .title .arrow-button .arrow {
-    -fx-background-color: -scheduler-text-color-light, white;
 }
 
 .header.warning,
 .footer.warning,
 .bordered-section.warning > .title,
 .bordered-section.warning > .header,
-.bordered-section.warning > .footer,
-TitledPane.warning .title {
+.bordered-section.warning > .footer {
     -fx-background-color: -scheduler-warning-gradient;
 }
 
@@ -351,13 +329,11 @@ TitledPane.warning .title {
 .bordered-section.warning > .title,
 .bordered-section.warning > .header,
 .bordered-section.warning > .footer,
-TitledPane.warning .title,
 .header.warning .text,
 .footer.warning .text,
 .bordered-section.warning > .title .text,
 .bordered-section.warning > .header .text,
-.bordered-section.warning > .footer .text,
-TitledPane.warning .title .text {
+.bordered-section.warning > .footer .text {
     -fx-text-fill: white;
     -fx-fill: white;
 }
@@ -366,8 +342,7 @@ TitledPane.warning .title .text {
 .footer.information,
 .bordered-section.information > .title,
 .bordered-section.information > .header,
-.bordered-section.information > .footer,
-TitledPane.information .title {
+.bordered-section.information > .footer {
     -fx-background-color: -scheduler-info-gradient;
 }
 
@@ -376,13 +351,11 @@ TitledPane.information .title {
 .bordered-section.information > .title,
 .bordered-section.information > .header,
 .bordered-section.information > .footer,
-TitledPane.information .title,
 .header.information .text,
 .footer.information .text,
 .bordered-section.information > .title .text,
 .bordered-section.information > .header .text,
-.bordered-section.information > .footer .text,
-TitledPane.information .title .text {
+.bordered-section.information > .footer .text {
     -fx-text-fill: -scheduler-text-color-lighter;
     -fx-fill: -scheduler-text-color-lighter;
 }
