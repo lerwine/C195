@@ -276,6 +276,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         void onEditExisting(boolean isInitialize);
 
         void updateModel();
+        
     }
 
     private class SaveTask extends Task<String> {

@@ -4,18 +4,15 @@ import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.binding.ObjectBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -23,8 +20,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.SupportedLocale;
 import scheduler.util.AlertHelper;
-import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.NodeUtil;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -54,10 +50,8 @@ public final class Login extends Scheduler.LoginBorderPane {
     public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
 
-    private ReadOnlyObjectWrapper<ResourceBundle> resourceBundle;
-
-    private SingleSelectionModel<SupportedLocale> languageSelectionModel;
-    private BooleanBinding loginFormInvalid;
+    // Currently selected resource bundle
+    private ObjectBinding<ResourceBundle> resourceBundle;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -89,40 +83,88 @@ public final class Login extends Scheduler.LoginBorderPane {
     @FXML // fx:id="exitButton"
     private Button exitButton; // Value injected by FXMLLoader
 
-    private StringBinding userNameTextBinding;
-    private StringBinding passwordTextBinding;
-    private StringBinding loginTextBinding;
-    private StringBinding exitTextBinding;
-    private StringBinding userNameValidationMessageBinding;
-    private StringBinding passwordValidationMessageBinding;
-
     public Login() {
         super();
     }
 
     @FXML
     void onExitButtonAction(ActionEvent event) {
-        ((Button) event.getSource()).getScene().getWindow().hide();
-    }
-
-    @FXML
-    void onLanguageComboBoxAction(ActionEvent event) {
-        SupportedLocale supportedLocale = languageComboBox.getValue();
-        ResourceBundle rb = ResourceBundleHelper.getBundle(Login.class, supportedLocale.getLocale());
-        resourceBundle.set(rb);
-        Scene scene = languageComboBox.getScene();
-        if (null != scene) {
-            Window window = (Stage) scene.getWindow();
-            if (null != window && window instanceof Stage) {
-                ((Stage) window).setTitle(rb.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-            }
-        }
+        getScene().getWindow().hide();
     }
 
     @FXML
     void onLoginButtonAction(ActionEvent event) {
-        Stage stage = (Stage) userNameTextField.getScene().getWindow();
+        Stage stage = (Stage) getScene().getWindow();
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
+    }
+
+    private ObjectBinding<SupportedLocale> initializeLanguageBindings() {
+        ObjectBinding<SupportedLocale> selectedLanguage = Bindings.select(languageComboBox.selectionModelProperty(), "selectedItem");
+        // Create binding which returns a resource bundle for the selected language, or the resource bundle loaded with the controller if no language
+        // is selected in the languageComboBox.
+        resourceBundle = Bindings.createObjectBinding(() -> {
+            LOG.fine("Calculating resourceBundle");
+            // The dependent binding (selectedLanguage) returns the currently selected item from languageComboBox.
+            SupportedLocale l = selectedLanguage.get();
+            if (null == l) {
+                // If nothing is selected in the languageComboBox, then we'll return the ResourceBundle that was loaded with the current
+                // custom control (Login).
+                return resources;
+            }
+            // Load the resource bundle for the selected locale.
+            return ResourceBundleHelper.getBundle(Login.class, l.getLocale());
+        }, selectedLanguage);
+
+        // Create bindings for the current Stage so we can update the titleProperty when the language changes.
+        // Use low-level API to create a nested property binding to the window property of the scene property for the current custom control (Login).
+        // The class used by the BindingUtil.ofNestedObject method re-binds to the new nested window property when the scene property changes.
+        ObjectBinding<Window> currentWindow = Bindings.select(sceneProperty(), "window");
+        // Create an object binding which returns the nested windowProperty as a Stage object.
+        ObjectBinding<Stage> currentStage = Bindings.createObjectBinding(() -> {
+            LOG.fine("Calculating currentStage");
+            Window w = currentWindow.get();
+            // return window as a Stage object only if it's not null and it is actually a Stage object.
+            return (null != w && w instanceof Stage) ? (Stage) w : null;
+        }, currentWindow);
+
+        // Add a listener so the Stage title gets updated right away when the control gets added to a Scene and Stage.
+        currentStage.addListener((observable, oldValue, newValue) -> {
+            LOG.fine("currentStage changed");
+            if (null != newValue) {
+                LOG.fine("Setting stage title");
+                newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            }
+        });
+
+        // Add a listener so we can update the Stage title right away when the language changes.
+        resourceBundle.addListener((observable, oldValue, newValue) -> {
+            LOG.fine("Resource bundle changed");
+            Stage stage = currentStage.get();
+            if (null != stage) {
+                LOG.fine("Setting stage title");
+                stage.setTitle(newValue.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            }
+        });
+
+        // Bind the text property of userNameLabel to a StringBinding that returns the label text in the currently selected language.
+        userNameLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+            LOG.fine("Calculating text for userNameLabel");
+            return resourceBundle.get().getString(RESOURCEKEY_USERNAME);
+        }, resourceBundle));
+        passwordLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+            LOG.fine("Calculating text for passwordLabel");
+            return resourceBundle.get().getString(RESOURCEKEY_PASSWORD);
+        }, resourceBundle));
+        loginButton.textProperty().bind(Bindings.createStringBinding(() -> {
+            LOG.fine("Calculating text for loginButton");
+            return resourceBundle.get().getString(RESOURCEKEY_LOGIN);
+        }, resourceBundle));
+        exitButton.textProperty().bind(Bindings.createStringBinding(() -> {
+            LOG.fine("Calculating text for exitButton");
+            return resourceBundle.get().getString(RESOURCEKEY_EXIT);
+        }, resourceBundle));
+
+        return selectedLanguage;
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -137,61 +179,39 @@ public final class Login extends Scheduler.LoginBorderPane {
         assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'Login.fxml'.";
         assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'Login.fxml'.";
 
-        languageSelectionModel = languageComboBox.getSelectionModel();
-        resourceBundle = new ReadOnlyObjectWrapper<>(resources);
-
         ObservableList<SupportedLocale> languages = FXCollections.observableArrayList(SupportedLocale.values());
         languageComboBox.setItems(languages);
-        languageSelectionModel.select(AppResources.getCurrentLocale());
-        userNameTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_USERNAME), resourceBundle);
-        userNameLabel.textProperty().bind(userNameTextBinding);
+        languageComboBox.getSelectionModel().select(AppResources.getCurrentLocale());
 
-        passwordTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_PASSWORD), resourceBundle);
-        passwordLabel.textProperty().bind(passwordTextBinding);
+        ObjectBinding<SupportedLocale> selectedLanguage = initializeLanguageBindings();
 
-        loginTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_LOGIN), resourceBundle);
-        loginButton.textProperty().bind(loginTextBinding);
+        BooleanBinding userNameValid = Bindings.createBooleanBinding(() -> {
+            LOG.fine("Calculating userNameValid");
+            String s = userNameTextField.getText();
+            return null != s && !s.trim().isEmpty();
+        }, userNameTextField.textProperty());
 
-        exitTextBinding = Bindings.createStringBinding(() -> resourceBundle.get().getString(RESOURCEKEY_EXIT), resourceBundle);
-        exitButton.textProperty().bind(exitTextBinding);
+        userNameValidationLabel.textProperty().bind(Bindings.when(userNameValid).then("").otherwise(Bindings.createStringBinding(() -> {
+            LOG.fine("Calculating text for userNameValidationLabel");
+            return resourceBundle.get().getString(RESOURCEKEY_EMPTYUSERNAME);
+        }, resourceBundle)));
 
-        userNameValidationMessageBinding = Bindings.createStringBinding(() -> {
-            ResourceBundle rb = resourceBundle.get();
-            String text = userNameTextField.getText();
-            if (null == text || text.trim().isEmpty()) {
-                return rb.getString(RESOURCEKEY_EMPTYUSERNAME);
-            }
-            return "";
-        }, resourceBundle, userNameTextField.textProperty());
-        userNameValidationLabel.textProperty().bind(userNameValidationMessageBinding);
-        userNameValidationMessageBinding.addListener((observable, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
-                collapseNode(userNameValidationLabel);
-            } else {
-                restoreNode(userNameValidationLabel);
-            }
-        });
+        NodeUtil.bindCssCollapse(userNameValidationLabel, userNameValid);
 
-        passwordValidationMessageBinding = Bindings.createStringBinding(() -> {
-            ResourceBundle rb = resourceBundle.get();
-            String text = passwordField.getText();
-            if (null == text || text.trim().isEmpty()) {
-                return rb.getString(RESOURCEKEY_EMPTYPASSWORD);
-            }
-            return "";
-        }, resourceBundle, passwordField.textProperty());
-        passwordValidationLabel.textProperty().bind(passwordValidationMessageBinding);
-        passwordValidationMessageBinding.addListener((observable, oldValue, newValue) -> {
-            if (newValue.isEmpty()) {
-                collapseNode(passwordValidationLabel);
-            } else {
-                restoreNode(passwordValidationLabel);
-            }
-        });
-        loginFormInvalid = userNameValidationMessageBinding.isNotEmpty().or(passwordValidationMessageBinding.isNotEmpty())
-                .or(languageSelectionModel.selectedItemProperty().isNull());
-        loginButton.disableProperty().bind(loginFormInvalid);
-        resourceBundle.set(ResourceBundleHelper.getBundle(Login.class));
+        BooleanBinding passwordValid = Bindings.createBooleanBinding(() -> {
+            LOG.fine("Calculating passwordValid");
+            String s = passwordField.getText();
+            return null != s && !s.trim().isEmpty();
+        }, passwordField.textProperty());
+
+        passwordValidationLabel.textProperty().bind(Bindings.when(passwordValid).then("").otherwise(Bindings.createStringBinding(() -> {
+            LOG.fine("Calculating text for passwordValidationLabel");
+            return resourceBundle.get().getString(RESOURCEKEY_EMPTYPASSWORD);
+        }, resourceBundle)));
+
+        NodeUtil.bindCssCollapse(passwordValidationLabel, passwordValid);
+
+        loginButton.disableProperty().bind(userNameValid.and(passwordValid).not().or(selectedLanguage.isNull()));
     }
 
     @Override

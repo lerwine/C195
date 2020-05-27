@@ -123,6 +123,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final WrappedStringObservableProperty effectiveLocation;
     private final WrappedBooleanObservableProperty valid;
 
+    @SuppressWarnings("incomplete-switch")
     public AppointmentModel(AppointmentDAO dao) {
         super(dao);
         ICustomerDAO customerDao = dao.getCustomer();

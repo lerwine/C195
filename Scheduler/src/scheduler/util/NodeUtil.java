@@ -8,7 +8,9 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.Styleable;
 import javafx.event.ActionEvent;
@@ -77,7 +79,7 @@ public class NodeUtil {
      * Adds CSS class names.
      *
      * @param <T> The {@link Styleable} type.
-     * @param stylable The target {@link Styleable} node.
+     * @param stylable  The target {@link Styleable} node.
      * @param classNames The {@link CssClassName} values representing CSS class names to be added.
      * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
      */
@@ -616,7 +618,6 @@ public class NodeUtil {
     /**
      * @deprecated Doesn't work
      */
-    @SuppressWarnings("unchecked")
     public static void bindCssClassSwitch(Node node, BooleanBinding observable, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse) {
         ArrayList<String> addIfTrue = new ArrayList<>();
         ArrayList<String> removeIfTrue = new ArrayList<>();
@@ -668,22 +669,92 @@ public class NodeUtil {
         );
     }
 
-    /**
-     *
-     * @param node
-     * @param isCollapsed
-     * @deprecated Doesn't work
-     */
-    @SuppressWarnings("unchecked")
-    public static void bindCssCollapse(Node node, BooleanExpression isCollapsed) {
-        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList<>();
-        boundClassNames.addAll(node.getStyleClass());
-        Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
-        boundClassNames.mutationProperty().bind(Bindings.when(isCollapsed)
-                .then(MutationBindableObservableList.createAddOperationBinding(CssClassName.COLLAPSED.toString()))
-                .otherwise(MutationBindableObservableList.createRemoveOperationBinding(CssClassName.COLLAPSED.toString())));
+    public static void bindCssCollapse(Styleable target, BooleanBinding predicate) {
+        final ObservableList<String> css = target.getStyleClass();
+        final ObservableList<String> whenFalse = FXCollections.observableArrayList(css);
+        final String n = CssClassName.COLLAPSED.toString();
+        whenFalse.remove(n);
+        if (whenFalse.isEmpty()) {
+            predicate.addListener((observable, oldValue, newValue) -> {
+                    css.clear();
+                if (newValue) {
+                    css.add(n);
+                }
+            });
+        } else {
+            predicate.addListener((observable, oldValue, newValue) -> {
+                    css.clear();
+                if (newValue) {
+                    css.add(n);
+                } else {
+                    css.addAll(whenFalse);
+                }
+            });
+        }
     }
-
+    
+    public static void bindCssCollapse(Styleable target, BooleanBinding predicate, CssClassName ...whenFalse) {
+        final ObservableList<String> targetCss = target.getStyleClass();
+        final ObservableList<String> removed = FXCollections.observableArrayList(targetCss);
+        final String n = CssClassName.COLLAPSED.toString();
+        ChangeListener<Boolean> listener;
+        if (null == whenFalse || whenFalse.length == 0) {
+            listener = (observable, oldValue, newValue) -> {
+                if (newValue) {
+                    targetCss.forEach((t) -> {
+                        if (!removed.contains(t)) {
+                            removed.add(t);
+                        }
+                    });
+                    targetCss.clear();
+                    targetCss.add(n);
+                } else {
+                    targetCss.remove(n);
+                    removed.forEach((t) -> {
+                        if (!targetCss.contains(t)) {
+                            targetCss.add(t);
+                        }
+                    });
+                    removed.clear();
+                }
+            };
+        } else {
+            final ObservableList<String> css = FXCollections.observableArrayList();
+            for (CssClassName c : whenFalse) {
+                String s = c.toString();
+                if (!css.contains(s))
+                css.add(s);
+            }
+             listener = (observable, oldValue, newValue) -> {
+                if (newValue) {
+                    targetCss.forEach((t) -> {
+                        if (!removed.contains(t)) {
+                            removed.add(t);
+                        }
+                    });
+                    targetCss.clear();
+                    targetCss.add(n);
+                } else {
+                    targetCss.remove(n);
+                    removed.forEach((t) -> {
+                        if (!targetCss.contains(t)) {
+                            targetCss.add(t);
+                        }
+                    });
+                    removed.clear();
+                    css.forEach((t) -> {
+                        if (!targetCss.contains(t)) {
+                            targetCss.add(t);
+                        }
+                    });
+                }
+            };
+        }
+        predicate.addListener(listener);
+        boolean b = predicate.get();
+        listener.changed(predicate, !b, b);
+    }
+    
     /**
      * Restores the visibility and dimensions of a JavaFX scene graph {@link javafx.scene.Node}. This removes the CSS class "collapsed" from the
      * {@link javafx.scene.Node#styleClass} list.

@@ -182,6 +182,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         editAddress(addressesTableView.getSelectionModel().getSelectedItem());
     }
 
+    @SuppressWarnings("incomplete-switch")
     @FXML
     private void onAddressesTableViewKeyReleased(KeyEvent event) {
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {

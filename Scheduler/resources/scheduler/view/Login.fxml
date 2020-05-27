@@ -41,7 +41,7 @@
                         <RowConstraints />
                     </rowConstraints>
                     <Label maxWidth="1.7976931348623157E308" styleClass="leftControlLabel" text="Language / Lengua / Sprache / भाषा:" />
-                    <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache / भाषा" minWidth="240.0" onAction="#onLanguageComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1">
+                    <ComboBox fx:id="languageComboBox" accessibleText="Language / Lengua / Sprache / भाषा" minWidth="240.0" styleClass="leftLabeledControl" GridPane.columnIndex="1">
                         <cellFactory>
                             <LocaleLanguageListCellFactory />
                         </cellFactory>

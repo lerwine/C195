@@ -151,6 +151,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
+    @SuppressWarnings("incomplete-switch")
     @FXML
     void onCitiesTableViewKeyReleased(KeyEvent event) {
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
@@ -200,7 +201,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    @SuppressWarnings("unchecked")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
         assert countryNameValueLabel != null : "fx:id=\"countryNameValueLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
@@ -211,6 +211,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         assert citiesLabel != null : "fx:id=\"citiesLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesTableView != null : "fx:id=\"citiesTableView\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert newButtonBar != null : "fx:id=\"newButtonBar\" was not injected: check your FXML file 'EditCountry.fxml'.";
+
     }
 
     @Override

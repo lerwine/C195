@@ -150,7 +150,6 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         // TODO: Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
     }
 
-    @SuppressWarnings("unchecked")
     @FXML
     void onExportButtonAction(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
