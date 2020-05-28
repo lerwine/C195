@@ -34,9 +34,7 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.CityDaoEvent;
-import scheduler.model.City;
-import scheduler.model.Country;
-import scheduler.model.PredefinedData;
+import scheduler.model.CustomerCity;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
@@ -224,19 +222,19 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         restoreNode(nameValidationLabel);
         windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
         // TODO: Filter out existing items (since we won't be able to add duplicate-named countries, anyway)
-        PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((c) -> countryList.add(new CountryModel(c)));
+//        PredefinedData.getCountryOptions(null).sorted(CustomerCountry::compare).forEach((c) -> countryList.add(new CountryModel(c)));
         countryNameComboBox.setItems(countryList);
         selectedCountryName = ObservableObjectDerivitive.ofSelection(countryNameComboBox);
         valid.bind(selectedCountryName.isNotNull());
         languageLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.languageProperty()));
         defaultTimeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.defaultTimeZoneDisplayProperty()));
         nameValidationLabel.visibleProperty().bind(selectedCountryName.isNull());
-        CountryDAO.PredefinedCountryElement pdc = model.getPredefinedElement();
-        if (null != pdc) {
-            String rc = pdc.getLocale().getCountry();
-            countryList.stream().filter((t) -> t.getPredefinedElement().getLocale().getCountry().equals(rc)).findFirst().ifPresent((t)
-                    -> countryNameComboBox.getSelectionModel().select(t));
-        }
+//        CountryDAO.PredefinedCountryElement pdc = model.getPredefinedElement();
+//        if (null != pdc) {
+//            String rc = pdc.getLocale().getCountry();
+//            countryList.stream().filter((t) -> t.getPredefinedElement().getLocale().getCountry().equals(rc)).findFirst().ifPresent((t)
+//                    -> countryNameComboBox.getSelectionModel().select(t));
+//        }
     }
 
     @Override
@@ -354,7 +352,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @Override
     public void updateModel() {
-        model.setPredefinedElement(countryNameComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
+//        model.setPredefinedElement(countryNameComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {
@@ -372,7 +370,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 CityModel.Factory factory = CityModel.getFactory();
-                result.stream().sorted(City::compare).forEach((t) -> {
+                result.stream().sorted(CustomerCity::compare).forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });
             }

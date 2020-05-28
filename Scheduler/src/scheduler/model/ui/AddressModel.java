@@ -16,13 +16,11 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.City;
-import scheduler.model.Country;
+import scheduler.model.CustomerCity;
+import scheduler.model.CustomerCountry;
 import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.ObservableDerivitive;
-import scheduler.observables.ObservableObjectDerivitive;
 import scheduler.observables.ObservableStringDerivitive;
 import scheduler.observables.WrappedBooleanObservableProperty;
 import scheduler.observables.WrappedStringObservableProperty;
@@ -82,11 +80,11 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 : String.format("%s %s, %s", city, postalCode, country);
     }
 
-    public static String calculateCityZipCountry(City city, String postalCode) {
+    public static String calculateCityZipCountry(CustomerCity city, String postalCode) {
         if (null == city) {
             return calculateCityZipCountry("", "", postalCode);
         }
-        Country country = city.getCountry();
+        CustomerCountry country = city.getCountry();
         return calculateCityZipCountry(city.getName(), (null == country) ? "" : country.getName(), postalCode);
     }
 
@@ -188,13 +186,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         );
         language = new NestedStringProperty<>(this, "language", city, (t) -> t.languageProperty());
         zoneId = new NestedObjectProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
-
-        valid = new WrappedBooleanObservableProperty(this, "valid",
-                ObservableDerivitive.isNotNullOrWhiteSpace(addressLines).and(
-                        ObservableObjectDerivitive.ofNested(city, (u) -> u.predefinedElementProperty()).isNotNull(),
-                        ObservableDerivitive.isNotNullOrEmpty(postalCode)
-                )
-        );
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+//        valid = new WrappedBooleanObservableProperty(this, "valid",
+//                ObservableDerivitive.isNotNullOrWhiteSpace(addressLines).and(
+//                        ObservableObjectDerivitive.ofNested(city, (u) -> u.predefinedElementProperty()).isNotNull(),
+//                        ObservableDerivitive.isNotNullOrEmpty(postalCode)
+//                )
+//        );
     }
 
     @Override
@@ -359,11 +357,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
-    }
-
-    @Override
-    public AddressDAO.PredefinedAddressElement getPredefinedElement() {
-        return getDataObject().getPredefinedElement();
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {

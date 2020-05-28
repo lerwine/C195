@@ -87,16 +87,16 @@ public class ModelHelper {
                 return b instanceof Customer && Customer.arePropertiesEqual((Customer) a, (Customer) b);
             }
 
-            if (a instanceof Address) {
-                return b instanceof Address && Address.arePropertiesEqual((Address) a, (Address) b);
+            if (a instanceof CustomerAddress) {
+                return b instanceof CustomerAddress && CustomerAddress.arePropertiesEqual((CustomerAddress) a, (CustomerAddress) b);
             }
 
-            if (a instanceof City) {
-                return b instanceof City && City.arePropertiesEqual((City) a, (City) b);
+            if (a instanceof CustomerCity) {
+                return b instanceof CustomerCity && CustomerCity.arePropertiesEqual((CustomerCity) a, (CustomerCity) b);
             }
 
-            if (a instanceof Country) {
-                return b instanceof Country && Country.arePropertiesEqual((Country) a, (Country) b);
+            if (a instanceof CustomerCountry) {
+                return b instanceof CustomerCountry && CustomerCountry.arePropertiesEqual((CustomerCountry) a, (CustomerCountry) b);
             }
 
             if (a instanceof User) {

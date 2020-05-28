@@ -1,7 +1,6 @@
 package scheduler.dao;
 
 import scheduler.model.User;
-import scheduler.util.Values;
 
 /**
  *
@@ -13,11 +12,21 @@ public interface IUserDAO extends DbObject, User {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Customer has already been deleted");
         }
-        if (Values.isNullWhiteSpaceOrEmpty(target.getUserName())) {
+        String userName = target.getUserName();
+        if (userName.isEmpty()) {
             throw new IllegalStateException("User name not defined");
         }
-        if (target instanceof UserDAO && Values.isNullWhiteSpaceOrEmpty(((UserDAO)target).getPassword())) {
-            throw new IllegalStateException("Password not defined");
+        if (userName.length() > UserDAO.MAX_LENGTH_USERNAME) {
+            throw new IllegalStateException("User name too long");
+        }
+        if (target instanceof UserDAO) {
+            String password = ((UserDAO) target).getPassword();
+            if (password.isEmpty()) {
+                throw new IllegalStateException("Password not defined");
+            }
+            if (password.length() > UserDAO.MAX_LENGTH_PASSWORD) {
+                throw new IllegalStateException("Password length too long");
+            }
         }
         return target;
     }

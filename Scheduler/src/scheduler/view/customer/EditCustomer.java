@@ -42,9 +42,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.fx.AddressPicker;
-import scheduler.model.City;
-import scheduler.model.Country;
-import scheduler.model.PredefinedData;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
@@ -435,16 +432,16 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             if (null != result && !result.isEmpty()) {
                 result.stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
             }
-            if (null != cities && !cities.isEmpty()) {
-                PredefinedData.getCityOptions(cities.values()).sorted(City::compare).forEach(allCities::add);
-            } else {
-                PredefinedData.getCityOptions(null).sorted(City::compare).forEach(allCities::add);
-            }
-            if (null != countries && !countries.isEmpty()) {
-                PredefinedData.getCountryOptions(countries.values()).sorted(Country::compare).forEach(allCountries::add);
-            } else {
-                PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach(allCountries::add);
-            }
+//            if (null != cities && !cities.isEmpty()) {
+//                PredefinedData.getCityOptions(cities.values()).sorted(CustomerCity::compare).forEach(allCities::add);
+//            } else {
+//                PredefinedData.getCityOptions(null).sorted(CustomerCity::compare).forEach(allCities::add);
+//            }
+//            if (null != countries && !countries.isEmpty()) {
+//                PredefinedData.getCountryOptions(countries.values()).sorted(CustomerCountry::compare).forEach(allCountries::add);
+//            } else {
+//                PredefinedData.getCountryOptions(null).sorted(CustomerCountry::compare).forEach(allCountries::add);
+//            }
         }
 
         @Override

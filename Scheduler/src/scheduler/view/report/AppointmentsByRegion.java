@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,9 +23,7 @@ import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.ItemCountResult;
-import scheduler.model.PredefinedData;
 import scheduler.util.DbConnector;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
@@ -130,16 +127,16 @@ public class AppointmentsByRegion extends VBox {
             List<ItemCountResult<String>> result = getValue();
             HashMap<String, Integer> regions = new HashMap<>();
             result.forEach((t) -> regions.put(t.getValue(), t.getCount()));
-            ObservableMap<String, CountryDAO.PredefinedCountryElement> countryMap = PredefinedData.getCountryMap();
-            pieChartData.clear();
-            countryMap.keySet().forEach((t) -> {
-                if (regions.containsKey(t)) {
-                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), regions.get(t)));
-                } else {
-                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), 0));
-                }
-            });
-            reportPieChart.setTitle(String.format(resources.getString("appointmentRegionsForS"), monthName));
+//            ObservableMap<String, CountryDAO.PredefinedCountryElement> countryMap = PredefinedData.getCountryMap();
+//            pieChartData.clear();
+//            countryMap.keySet().forEach((t) -> {
+//                if (regions.containsKey(t)) {
+//                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), regions.get(t)));
+//                } else {
+//                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), 0));
+//                }
+//            });
+//            reportPieChart.setTitle(String.format(resources.getString("appointmentRegionsForS"), monthName));
         }
 
         @Override

@@ -4,10 +4,9 @@ import java.time.ZoneId;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
-import scheduler.model.Address;
+import scheduler.model.CustomerAddress;
 import scheduler.model.ModelHelper;
 import scheduler.observables.NestedObjectProperty;
 import scheduler.observables.NestedStringProperty;
@@ -163,17 +162,12 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
+        return null != obj && obj instanceof CustomerAddress && ModelHelper.areSameRecord(this, (CustomerAddress) obj);
     }
 
     @Override
     public int hashCode() {
         return getPrimaryKey();
-    }
-
-    @Override
-    public AddressDAO.PredefinedAddressElement getPredefinedElement() {
-        return getDataObject().getPredefinedElement();
     }
 
 }

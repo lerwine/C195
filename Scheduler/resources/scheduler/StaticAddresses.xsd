@@ -7,7 +7,7 @@
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="addressType">
-        <xs:attribute name="key" type="xs:string" use="required" />
+        <xs:attribute name="name" type="xs:string" use="required" />
         <xs:attribute name="address1" type="xs:string" use="required" />
         <xs:attribute name="address2" type="xs:string" use="required" />
         <xs:attribute name="postalCode" type="xs:string" use="required" />
@@ -15,7 +15,7 @@
         <xs:attribute name="mainOffice" use="required" type="xs:boolean" use="required" />
     </xs:complexType>
     <xs:complexType name="cityType">
-        <xs:attribute name="key" type="xs_string" use="required">
+        <xs:attribute name="name" type="xs_string" use="required">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
                     <xs:pattern value="^[^a-z]$" />
@@ -35,7 +35,6 @@
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="defaultZoneId" type="a:ZoneId" use="required" />
         <xs:sequence>
             <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded" />
         </xs:sequence>

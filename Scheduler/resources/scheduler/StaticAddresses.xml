@@ -1,77 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <a:definitions xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:a='urn:Erwine.Leonard.T:C195:StaticAddresses.xsd'
                xsi:schemaLocation='urn:Erwine.Leonard.T:C195:StaticAddresses.xsd StaticAddresses.xsd'>
-    <a:country languageTag="en-US" defaultZoneId="US/Eastern">
-        <a:city key="las_vegas" zoneId="US/Pacific" />
-        <a:city key="los_angeles" zoneId="US/Pacific" />
-        <a:city key="san_francisco" zoneId="US/Pacific" />
-        <a:city key="san_jose" zoneId="US/Pacific" />
-        <a:city key="seattle" zoneId="US/Pacific" />
-        <a:city key="denver" zoneId="US/Mountain" />
-        <a:city key="phoenix" zoneId="US/Mountain">
-            <a:address key="phoenixMainOffice" address1="127 N 2nd St" address2="" postalCode="85004" phone="(602) 440-1132" mainOffice="true" />
+    <a:country languageTag="en-US">
+        <a:city name="Phoenix" zoneId="US/Mountain">
+            <a:address name="Phoenix Main Office" address1="127 N 2nd St" address2="" postalCode="85004" phone="(602) 440-1132" mainOffice="true" />
         </a:city>
-        <a:city key="salt_lake_city" zoneId="US/Mountain" />
-        <a:city key="chicago" zoneId="US/Central" />
-        <a:city key="new_orleans" zoneId="US/Central" />
-        <a:city key="houston" zoneId="US/Central" />
-        <a:city key="dallas" zoneId="US/Central" />
-        <a:city key="oklahoma_city" zoneId="US/Central" />
-        <a:city key="kansas_city" zoneId="US/Central" />
-        <a:city key="minneapolis" zoneId="US/Central" />
-        <a:city key="miami" zoneId="US/Eastern" />
-        <a:city key="atlanta" zoneId="US/Eastern" />
-        <a:city key="washington_dc" zoneId="US/Eastern" />
-        <a:city key="bathesda_md" zoneId="US/Eastern" />
-        <a:city key="philadelphia" zoneId="US/Eastern" />
-        <a:city key="new_york" zoneId="US/Eastern">
-            <a:address key="newYorkMainOffice" address1="405 Lexington Ave" address2="MS 4428" postalCode="10174" phone="(212) 447-1836" mainOffice="true" />
-        </a:city>
-        <a:city key="boston" zoneId="US/Eastern" />
-        <a:city key="detroit" zoneId="US/Eastern" />
-        <a:city key="indianapolis" zoneId="US/Eastern" />
-    </a:country>
-    <a:country languageTag="es-EC" defaultZoneId="America/Guayaquil">
-        <a:city key="quito" zoneId="America/Guayaquil" />
-    </a:country>
-    <a:country languageTag="es-GT" defaultZoneId="America/Guatemala">
-        <a:city key="guatemala_city" zoneId="America/Guatemala">
-            <a:address key="guatemalaSatelliteOffice" address1="15 Calle" address2="" postalCode="" phone="+502 6854 2872" mainOffice="false" />
+        <a:city name="New York" zoneId="US/Eastern">
+            <a:address name="New York Main Office" address1="405 Lexington Ave" address2="MS 4428" postalCode="10174" phone="(212) 447-1836" mainOffice="true" />
         </a:city>
     </a:country>
-    <a:country languageTag="es-HN" defaultZoneId="America/Tegucigalpa">
-        <a:city key="tegucigalpa" zoneId="America/Tegucigalpa" />
-    </a:country>
-    <a:country languageTag="es-PR" defaultZoneId="America/Puerto_Rico">
-        <a:city key="vieques" zoneId="America/Puerto_Rico" />
-        <a:city key="san_juan" zoneId="America/Puerto_Rico" />
-    </a:country>
-    <a:country languageTag="en-AU" defaultZoneId="Australia/ACT">
-        <a:city key="canberra" zoneId="Australia/ACT" />
-        <a:city key="perth" zoneId="Australia/West" />
-    </a:country>
-    <a:country languageTag="de-CH" defaultZoneId="CET">
-        <a:city key="zurich" zoneId="CET" />
-    </a:country>
-    <a:country region="GB" languageTag="en-GB" defaultZoneId="GB">
-        <a:city key="london" zoneId="GB">
-            <a:address key="londonMainOffice" address1="10 Upper Bank Street" address2="Suite 3210" postalCode="E14 5NP" phone="+44 7825 278103" mainOffice="true" />
+    <a:country languageTag="es-GT">
+        <a:city name="Guatemala City" zoneId="America/Guatemala">
+            <a:address name="Guatemala Satellite Office" address1="15 Calle" address2="" postalCode="" phone="+502 6854 2872" mainOffice="false" />
         </a:city>
     </a:country>
-    <a:country languageTag="de-DE" defaultZoneId="CET">
-        <a:city key="berlin" zoneId="CET">
-            <a:address key="berlinSatelliteOffice" address1="Alexanderpl. 5-7" address2="" postalCode="10178" phone="+49 30 13572462" mainOffice="false" />
+    <a:country region="GB" languageTag="en-GB">
+        <a:city name="London" zoneId="GB">
+            <a:address name="London Main Office" address1="10 Upper Bank Street" address2="Suite 3210" postalCode="E14 5NP" phone="+44 7825 278103" mainOffice="true" />
         </a:city>
-        <a:city key="armstedt" zoneId="CET" />
-        <a:city key="frankfurt" zoneId="CET" />
     </a:country>
-    <a:country languageTag="hi-IN" defaultZoneId="Asia/Kolkata">
-        <a:city key="new_delhi" zoneId="Asia/Kolkata" />
-        <a:city key="bangalore" zoneId="Asia/Kolkata" />
-        <a:city key="mumbai" zoneId="Asia/Kolkata">
-            <a:address key="mumbaiSatelliteOffice" address1="Road No.28b Sion East" address2="Sion Mumbai" postalCode="400022" phone="+91 22 2502 2348" mainOffice="false" />
+    <a:country languageTag="de-DE">
+        <a:city name="Berlin" zoneId="CET">
+            <a:address name="Berlin Satellite Office" address1="Alexanderpl. 5-7" address2="" postalCode="10178" phone="+49 30 13572462" mainOffice="false" />
         </a:city>
-        <a:city key="kolkata" zoneId="Asia/Kolkata" />
-        <a:city key="chennai" zoneId="Asia/Kolkata" />
+    </a:country>
+    <a:country languageTag="hi-IN">
+        <a:city name="Mumbai" zoneId="Asia/Kolkata">
+            <a:address name="Mumbai Satellite Office" address1="Road No.28b Sion East" address2="Sion Mumbai" postalCode="400022" phone="+91 22 2502 2348" mainOffice="false" />
+        </a:city>
     </a:country>
 </a:definitions>

@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.adapter.JavaBeanStringPropertyBuilder;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -16,12 +17,12 @@ import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.observables.DerivedBooleanProperty;
 import scheduler.observables.DerivedObjectProperty;
 import scheduler.observables.DerivedStringProperty;
 import scheduler.view.ModelFilter;
+import scheduler.model.CustomerCountry;
 
 /**
  *
@@ -35,119 +36,64 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return FACTORY;
     }
 
-    public static String toCountryName(CountryDAO.PredefinedCountryElement element) {
-        return (null == element) ? "" : element.getLocale().getDisplayCountry();
-    }
-
-    public static String toLanguage(CountryDAO.PredefinedCountryElement element) {
-        return (null == element) ? "" : element.getLocale().getDisplayLanguage();
-    }
-
-    public static ZoneId toZoneId(CountryDAO.PredefinedCountryElement element) {
-        return (null == element) ? null : ZoneId.of(element.getDefaultZoneId());
-    }
-
-    public static String toTimeZoneDisplay(ZoneId zoneId) {
-        return (null == zoneId) ? "" : zoneId.getDisplayName(TextStyle.FULL, Locale.getDefault(Locale.Category.DISPLAY));
-    }
-
-    private final ObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElement;
-    private final DerivedStringProperty<CountryDAO.PredefinedCountryElement> name;
-    private final DerivedStringProperty<CountryDAO.PredefinedCountryElement> language;
-    private final DerivedObjectProperty<CountryDAO.PredefinedCountryElement, ZoneId> zoneId;
-    private final DerivedStringProperty<ZoneId> defaultTimeZoneDisplay;
-    private final DerivedBooleanProperty<CountryDAO.PredefinedCountryElement> valid;
-
     public CountryModel(CountryDAO dao) {
         super(dao);
-        predefinedElement = new SimpleObjectProperty<>(this, "predefinedElement", dao.getPredefinedElement());
-        name = new DerivedStringProperty<>(this, "name", predefinedElement, CountryModel::toCountryName);
-        zoneId = new DerivedObjectProperty<>(this, "zoneId", predefinedElement, CountryModel::toZoneId);
-        language = new DerivedStringProperty<>(this, "language", predefinedElement, CountryModel::toLanguage);
-        defaultTimeZoneDisplay = new DerivedStringProperty<>(this, "defaultTimeZoneDisplay", zoneId, CountryModel::toTimeZoneDisplay);
-        valid = new DerivedBooleanProperty<>(this, "valid", predefinedElement, Objects::nonNull);
-    }
-
-    @Override
-    public CountryDAO.PredefinedCountryElement getPredefinedElement() {
-        return predefinedElement.get();
-    }
-
-    public void setPredefinedElement(CountryDAO.PredefinedCountryElement value) {
-        predefinedElement.set(value);
-    }
-
-    @Override
-    public ObjectProperty<CountryDAO.PredefinedCountryElement> predefinedElementProperty() {
-        return predefinedElement;
-    }
-
-    @Override
-    public String getName() {
-        return name.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty nameProperty() {
-        return name.getReadOnlyStringProperty();
-    }
-
-    @Override
-    public ZoneId getZoneId() {
-        return zoneId.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId.getReadOnlyObjectProperty();
-    }
-
-    @Override
-    public String getDefaultTimeZoneDisplay() {
-        return defaultTimeZoneDisplay.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty defaultTimeZoneDisplayProperty() {
-        return defaultTimeZoneDisplay.getReadOnlyStringProperty();
-    }
-
-    @Override
-    public String getLanguage() {
-        return language.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty languageProperty() {
-        return language.getReadOnlyStringProperty();
+        
     }
 
     @Override
     public boolean isValid() {
-        return valid.get();
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#validProperty
     }
 
     @Override
-    public String toString() {
-        return name.get();
+    public ReadOnlyStringProperty nameProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#nameProperty
     }
 
     @Override
-    public int hashCode() {
-        if (isNewRow()) {
-            return Objects.hashCode(name.get());
-        }
-        return getPrimaryKey();
+    public ZoneId getZoneId() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getZoneId
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#zoneIdProperty
+    }
+
+    @Override
+    public String getDefaultTimeZoneDisplay() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getDefaultTimeZoneDisplay
+    }
+
+    @Override
+    public ReadOnlyStringProperty defaultTimeZoneDisplayProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#defaultTimeZoneDisplayProperty
+    }
+
+    @Override
+    public String getLanguage() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getLanguage
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#languageProperty
+    }
+
+    @Override
+    public String getName() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getName
+    }
+
+    @Override
+    public Locale getLocale() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getLocale
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel> {
@@ -172,13 +118,12 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         @Override
         public CountryDAO updateDAO(CountryModel item) {
             CountryDAO dataObject = item.getDataObject();
-            dataObject.setPredefinedElement(item.predefinedElement.get());
-            return dataObject;
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
         }
 
         @Override
         protected void updateItemProperties(CountryModel item, CountryDAO dao) {
-            item.setPredefinedElement(dao.getPredefinedElement());
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
         }
 
         @Override

@@ -1,12 +1,10 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
-import java.util.Objects;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -16,11 +14,6 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.PredefinedData;
-import scheduler.observables.DerivedBooleanProperty;
-import scheduler.observables.DerivedObjectProperty;
-import scheduler.observables.DerivedStringProperty;
-import scheduler.observables.NestedStringProperty;
 import scheduler.view.ModelFilter;
 
 /**
@@ -35,158 +28,79 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         return FACTORY;
     }
 
-    public static String toCityName(CityDAO.PredefinedCityElement element) {
-        return (null == element) ? "" : PredefinedData.getCityDisplayName(element.getKey());
-    }
-
-    public static ZoneId toZoneId(CityDAO.PredefinedCityElement element) {
-        return (null == element) ? null : ZoneId.of(element.getZoneId());
-    }
-
-    private final SimpleObjectProperty<CityDAO.PredefinedCityElement> predefinedElement;
-    private final DerivedStringProperty<CityDAO.PredefinedCityElement> name;
-    private final DerivedObjectProperty<CityDAO.PredefinedCityElement, CountryItem<? extends ICountryDAO>> country;
-    private final NestedStringProperty<CountryItem<? extends ICountryDAO>> countryName;
-    private final NestedStringProperty<CountryItem<? extends ICountryDAO>> language;
-    private final DerivedObjectProperty<CityDAO.PredefinedCityElement, ZoneId> zoneId;
-    private final DerivedStringProperty<ZoneId> timeZoneDisplay;
-    private final CountryItem<? extends ICountryDAO> originalCountryModel;
-    private final DerivedBooleanProperty<CityDAO.PredefinedCityElement> valid;
-
     public CityModel(CityDAO dao) {
         super(dao);
 
-        originalCountryModel = CountryItem.createModel(dao.getCountry());
-        predefinedElement = new SimpleObjectProperty<>(this, "predefinedElement", dao.getPredefinedElement());
-        name = new DerivedStringProperty<>(this, "name", predefinedElement, CityModel::toCityName);
-        country = new DerivedObjectProperty<>(this, "country", predefinedElement, this::toCountryModel);
-        countryName = new NestedStringProperty<>(this, "countryName", country, (t) -> t.nameProperty());
-        language = new NestedStringProperty<>(this, "language", country, (t) -> t.languageProperty());
-        zoneId = new DerivedObjectProperty<>(this, "zoneId", predefinedElement, CityModel::toZoneId);
-        timeZoneDisplay = new DerivedStringProperty<>(this, "timeZoneDisplay", zoneId, CountryModel::toTimeZoneDisplay);
-        valid = new DerivedBooleanProperty<>(this, "valid", predefinedElement, Objects::nonNull);
-    }
-
-    private CountryItem<? extends ICountryDAO> toCountryModel(CityDAO.PredefinedCityElement element) {
-        if (null != element && !Objects.equals(originalCountryModel.getPredefinedElement(), element.getCountry())) {
-            return CountryItem.createModel(element.getCountry().getDataAccessObject());
-        }
-        return originalCountryModel;
-    }
-
-    @Override
-    public String getName() {
-        return nameProperty().get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty nameProperty() {
-        return name.getReadOnlyStringProperty();
-    }
-
-    @Override
-    public CountryItem<? extends ICountryDAO> getCountry() {
-        return country.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<CountryItem<? extends ICountryDAO>> countryProperty() {
-        return country.getReadOnlyObjectProperty();
-    }
-
-    @Override
-    public String getCountryName() {
-        return countryNameProperty().get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty countryNameProperty() {
-        return countryName.getReadOnlyStringProperty();
-    }
-
-    @Override
-    public ZoneId getZoneId() {
-        return zoneId.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId.getReadOnlyObjectProperty();
-    }
-
-    @Override
-    public String getTimeZoneDisplay() {
-        return timeZoneDisplay.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty timeZoneDisplayProperty() {
-        return timeZoneDisplay.getReadOnlyStringProperty();
-    }
-
-    @Override
-    public String getLanguage() {
-        return language.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty languageProperty() {
-        return language.getReadOnlyStringProperty();
-    }
-
-    @Override
-    public CityDAO.PredefinedCityElement getPredefinedElement() {
-        return predefinedElement.get();
-    }
-
-    public void setPredefinedElement(CityDAO.PredefinedCityElement value) {
-        predefinedElement.set(value);
-    }
-
-    @Override
-    public ObjectProperty<CityDAO.PredefinedCityElement> predefinedElementProperty() {
-        return predefinedElement;
     }
 
     @Override
     public boolean isValid() {
-        return valid.get();
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#isValid
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#validProperty
     }
 
     @Override
-    public String toString() {
-        return name.get();
+    public ReadOnlyStringProperty nameProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#nameProperty
     }
 
     @Override
-    public int hashCode() {
-        if (isNewRow()) {
-            int hash = 7;
-            hash = 23 * hash + Objects.hashCode(this.name);
-            hash = 23 * hash + Objects.hashCode(this.country);
-            return hash;
-        }
-        return getPrimaryKey();
+    public CountryItem<? extends ICountryDAO> getCountry() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#getCountry
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (null != obj && obj instanceof CityModel) {
-            final CityModel other = (CityModel) obj;
-            if (isNewRow()) {
-                return Objects.equals(name.get(), other.name.get()) && Objects.equals(country.get(), other.country.get());
-            }
-            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
-        }
-        return false;
+    public ReadOnlyProperty<? extends CountryItem<? extends ICountryDAO>> countryProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#countryProperty
+    }
+
+    @Override
+    public String getCountryName() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#getCountryName
+    }
+
+    @Override
+    public ReadOnlyStringProperty countryNameProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#countryNameProperty
+    }
+
+    @Override
+    public ZoneId getZoneId() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#getZoneId
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#zoneIdProperty
+    }
+
+    @Override
+    public String getTimeZoneDisplay() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#getTimeZoneDisplay
+    }
+
+    @Override
+    public ReadOnlyStringProperty timeZoneDisplayProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#timeZoneDisplayProperty
+    }
+
+    @Override
+    public String getLanguage() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#getLanguage
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#languageProperty
+    }
+
+    @Override
+    public String getName() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CityModel#getName
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel> {
@@ -214,13 +128,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("City has been deleted");
             }
-            dao.setPredefinedElement(item.getPredefinedElement());
-            return dao;
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
         }
 
         @Override
         protected void updateItemProperties(CityModel item, CityDAO dao) {
-            item.setPredefinedElement(dao.getPredefinedElement());
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
         }
 
         @Override

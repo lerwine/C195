@@ -54,7 +54,6 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
-import scheduler.model.Address;
 import scheduler.observables.StringBindingProperty;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.clearAndSelect;
@@ -65,6 +64,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.model.CustomerAddress;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
@@ -1343,7 +1343,7 @@ public final class EditAppointmentFilter extends BorderPane {
                 countryId = new ReadOnlyIntegerWrapper(-1);
             } else {
                 text = new ReadOnlyStringWrapper(customer.getName());
-                Address addr = customer.getAddress();
+                CustomerAddress addr = customer.getAddress();
                 cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
                 countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
             }

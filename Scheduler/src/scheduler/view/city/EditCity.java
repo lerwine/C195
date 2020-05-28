@@ -2,7 +2,6 @@ package scheduler.view.city;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -30,12 +29,7 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.ICountryDAO;
-import scheduler.model.City;
-import scheduler.model.Country;
-import scheduler.model.PredefinedData;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
@@ -237,27 +231,27 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         countryNameValueComboBox.setItems(countryOptionList);
         ObservableMap<Object, Object> properties = getProperties();
         CountryModel targetCountry;
-        if (properties.containsKey(TARGET_COUNTRY_KEY)) {
-            targetCountry = (CountryModel) properties.get(TARGET_COUNTRY_KEY);
-            CountryDAO.PredefinedCountryElement predefinedElement = targetCountry.getPredefinedElement();
-            PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t)
-                    -> countryOptionList.add((Objects.equals(t.getPredefinedElement(), predefinedElement)) ? targetCountry : new CountryModel(t)));
-        } else {
-            targetCountry = null;
-            PredefinedData.getCountryOptions(null).sorted(Country::compare).forEach((t) -> countryOptionList.add(new CountryModel(t)));
-        }
+//        if (properties.containsKey(TARGET_COUNTRY_KEY)) {
+//            targetCountry = (CountryModel) properties.get(TARGET_COUNTRY_KEY);
+//            CountryDAO.PredefinedCountryElement predefinedElement = targetCountry.getPredefinedElement();
+//            PredefinedData.getCountryOptions(null).sorted(CustomerCountry::compare).forEach((t)
+//                    -> countryOptionList.add((Objects.equals(t.getPredefinedElement(), predefinedElement)) ? targetCountry : new CountryModel(t)));
+//        } else {
+//            targetCountry = null;
+//            PredefinedData.getCountryOptions(null).sorted(CustomerCountry::compare).forEach((t) -> countryOptionList.add(new CountryModel(t)));
+//        }
         nameValueComboBox.setItems(cityOptionList);
-        selectedCountry.addListener((observable, oldValue, newValue) -> {
-            nameValueComboBox.getSelectionModel().clearSelection();
-            cityOptionList.clear();
-            if (null == newValue) {
-                restoreNode(countryNameValidationLabel);
-            }
-            // TODO: Filter out existing items (since we won't be able to add duplicate-named cities, anyway)
-            newValue.getPredefinedElement().getCities().stream().map((t) -> t.getDataAccessObject()).sorted(City::compare).forEach((t) -> {
-                cityOptionList.add(new CityModel(t));
-            });
-        });
+//        selectedCountry.addListener((observable, oldValue, newValue) -> {
+//            nameValueComboBox.getSelectionModel().clearSelection();
+//            cityOptionList.clear();
+//            if (null == newValue) {
+//                restoreNode(countryNameValidationLabel);
+//            }
+//            // TODO: Filter out existing items (since we won't be able to add duplicate-named cities, anyway)
+//            newValue.getPredefinedElement().getCities().stream().map((t) -> t.getDataAccessObject()).sorted(CustomerCity::compare).forEach((t) -> {
+//                cityOptionList.add(new CityModel(t));
+//            });
+//        });
         countryNameValidationLabel.visibleProperty().bind(selectedCountry.isNull());
         valid.bind(selectedCity.isNotNull());
         nameValidationLabel.textProperty().bind(ObservableStringDerivitive.of(selectedCountry, selectedCity, (t, u) -> {
@@ -269,21 +263,21 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         nameValidationLabel.visibleProperty().bind(selectedCity.isNull());
         languageLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCity, (t) -> t.languageProperty()));
         timeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCity, (t) -> t.timeZoneDisplayProperty()));
-        if (null != targetCountry) {
-            countryNameValueComboBox.getSelectionModel().select(targetCountry);
-        } else {
-            CityDAO.PredefinedCityElement predefinedElement = model.getPredefinedElement();
-            if (null != predefinedElement) {
-                CityDAO cityDao = predefinedElement.getDataAccessObject();
-                ICountryDAO countryDao = cityDao.getCountry();
-                countryOptionList.stream().filter((t) -> Objects.equals(t.getDataObject(), countryDao)).findFirst().ifPresent((t) -> {
-                    countryNameValueComboBox.getSelectionModel().select(t);
-                    cityOptionList.stream().filter((u) -> Objects.equals(u.getDataObject(), cityDao)).findFirst().ifPresent((u) -> {
-                        nameValueComboBox.getSelectionModel().select(u);
-                    });
-                });
-            }
-        }
+//        if (null != targetCountry) {
+//            countryNameValueComboBox.getSelectionModel().select(targetCountry);
+//        } else {
+//            CityDAO.PredefinedCityElement predefinedElement = model.getPredefinedElement();
+//            if (null != predefinedElement) {
+//                CityDAO cityDao = predefinedElement.getDataAccessObject();
+//                ICountryDAO countryDao = cityDao.getCountry();
+//                countryOptionList.stream().filter((t) -> Objects.equals(t.getDataObject(), countryDao)).findFirst().ifPresent((t) -> {
+//                    countryNameValueComboBox.getSelectionModel().select(t);
+//                    cityOptionList.stream().filter((u) -> Objects.equals(u.getDataObject(), cityDao)).findFirst().ifPresent((u) -> {
+//                        nameValueComboBox.getSelectionModel().select(u);
+//                    });
+//                });
+//            }
+//        }
     }
 
     @Override
@@ -345,7 +339,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @Override
     public void updateModel() {
-        model.setPredefinedElement(nameValueComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
+//        model.setPredefinedElement(nameValueComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
     }
 
     private class ItemsLoadTask extends Task<List<AddressDAO>> {

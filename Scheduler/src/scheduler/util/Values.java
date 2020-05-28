@@ -1,10 +1,10 @@
 package scheduler.util;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-// TODO: Rename to ObjectHelper
 /**
  * Utility class for validating and normalizing values.
  *
@@ -14,13 +14,43 @@ public class Values {
 
     public static final Pattern REGEX_NON_NORMAL_WHITESPACES = Pattern.compile(" \\s+|(?! )\\s+");
 
+    public static ArrayList<String> splitByChar(String source, char delimiter) {
+        ArrayList<String> result = new ArrayList<>();
+        if (null == source) {
+            return result;
+        }
+        // ab_cd
+        int b = source.indexOf(delimiter);
+        if (b < 0) {
+            result.add(source);
+        } else {
+            if (b == 0)
+                result.add("");
+            else
+                result.add(source.substring(0, b));
+            int e;
+            while ((e = source.indexOf(delimiter, b + 1)) > 0) {
+                if (e == b)
+                    result.add("");
+                else
+                    result.add(source.substring(b, e));
+                b = e + 1;
+            }
+            if (b < source.length())
+                result.add(source.substring(b + 1));
+            else
+                result.add("");
+        }
+        return result;
+    }
+    
     /**
      * Ensures a {@link String} value is not null.
      *
      * @param value The source {@link String} value.
      * @return The {@code value} if not null; otherwise, an empty {@link String}.
      */
-    public static String asNonNull(String value) {
+    public static String emptyIfNull(String value) {
         return (null == value) ? "" : value;
     }
 
@@ -30,7 +60,7 @@ public class Values {
      * @param valueSupplier The source {@link Supplier}.
      * @return A non-null {@link String} value derived from the source {@code valueSupplier}.
      */
-    public static Supplier<String> asNonNull(Supplier<String> valueSupplier) {
+    public static Supplier<String> ifNull(Supplier<String> valueSupplier) {
         if (Objects.requireNonNull(valueSupplier) instanceof NonNullStringSupplier) {
             return valueSupplier;
         }
@@ -238,7 +268,7 @@ public class Values {
 
         @Override
         public String get() {
-            return asNonNull(baseSupplier.get());
+            return Values.emptyIfNull(baseSupplier.get());
         }
     }
 

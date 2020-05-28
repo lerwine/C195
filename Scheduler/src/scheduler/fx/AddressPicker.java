@@ -207,16 +207,16 @@ public class AddressPicker extends BorderPane {
             List<AddressDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    ICityDAO city = t.getCity();
-                    String rk = city.getPredefinedElement().getKey();
-                    if (!allCities.stream().anyMatch((u) -> u.getPredefinedElement().getKey().equals(rk))) {
-                        allCities.add(CityItem.createModel(city));
-                        ICountryDAO country = city.getCountry();
-                        String rc = country.getPredefinedElement().getLocale().getCountry();
-                        if (!allCountries.stream().anyMatch((u) -> country.getPredefinedElement().getLocale().getCountry().equals(rc))) {
-                            allCountries.add(CountryItem.createModel(country));
-                        }
-                    }
+//                    ICityDAO city = t.getCity();
+//                    String rk = city.getPredefinedElement().getKey();
+//                    if (!allCities.stream().anyMatch((u) -> u.getPredefinedElement().getKey().equals(rk))) {
+//                        allCities.add(CityItem.createModel(city));
+//                        ICountryDAO country = city.getCountry();
+//                        String rc = country.getPredefinedElement().getLocale().getCountry();
+//                        if (!allCountries.stream().anyMatch((u) -> country.getPredefinedElement().getLocale().getCountry().equals(rc))) {
+//                            allCountries.add(CountryItem.createModel(country));
+//                        }
+//                    }
                     allAddresses.add(new AddressModel(t));
                 });
             }

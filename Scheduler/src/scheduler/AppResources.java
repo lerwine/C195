@@ -22,7 +22,7 @@ import scheduler.view.annotations.GlobalizationResource;
 
 // TODO: Test alert for scheduling overlapping appointments
 /**
- * Gets settings from the {@code /resources/scheduler/config.properties} file.
+ * Gets data from resources intended to be used throughout the application. settings from the {@code /resources/scheduler/config.properties} file.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

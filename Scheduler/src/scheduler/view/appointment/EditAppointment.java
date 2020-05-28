@@ -52,7 +52,6 @@ import scheduler.dao.filter.UserFilter;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.PredefinedData;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AddressItem;
@@ -342,38 +341,39 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
-            AddressDAO dao = t.getDataAccessObject();
-            if (null == dao) {
-                (dao = new AddressDAO()).setPredefinedElement(t);
-            }
-            return dao;
-        }).sorted((AddressDAO o1, AddressDAO o2) -> {
-            AddressDAO.PredefinedAddressElement pd1 = o1.getPredefinedElement();
-            AddressDAO.PredefinedAddressElement pd2 = o2.getPredefinedElement();
-            if (pd1.isMainOffice()) {
-                if (!pd2.isMainOffice()) {
-                    return -1;
-                }
-            } else if (pd2.isMainOffice()) {
-                return 1;
-            }
-            ICityDAO c1 = o1.getCity();
-            ICityDAO c2 = o2.getCity();
-            int result = c1.getCountry().getName().compareTo(c2.getCountry().getName());
-            if (result == 0 && (result = c1.getName().compareTo(c2.getName())) == 0
-                    && (result = o1.getPostalCode().compareTo(o2.getPostalCode())) == 0
-                    && (result = o1.getAddress1().compareTo(o2.getAddress2())) == 0) {
-                return o1.getAddress2().compareTo(o2.getAddress2());
-            }
-            return result;
-        }).forEach((t) -> {
-            if (t.getPredefinedElement().isMainOffice()) {
-                corporateLocationList.add(t);
-            } else {
-                remoteLocationList.add(t);
-            }
-        });
+        // TODO: Reimplement
+//        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
+//            AddressDAO dao = t.getDataAccessObject();
+//            if (null == dao) {
+//                (dao = new AddressDAO()).setPredefinedElement(t);
+//            }
+//            return dao;
+//        }).sorted((AddressDAO o1, AddressDAO o2) -> {
+//            AddressDAO.PredefinedAddressElement pd1 = o1.getPredefinedElement();
+//            AddressDAO.PredefinedAddressElement pd2 = o2.getPredefinedElement();
+//            if (pd1.isMainOffice()) {
+//                if (!pd2.isMainOffice()) {
+//                    return -1;
+//                }
+//            } else if (pd2.isMainOffice()) {
+//                return 1;
+//            }
+//            ICityDAO c1 = o1.getCity();
+//            ICityDAO c2 = o2.getCity();
+//            int result = c1.getCountry().getName().compareTo(c2.getCountry().getName());
+//            if (result == 0 && (result = c1.getName().compareTo(c2.getName())) == 0
+//                    && (result = o1.getPostalCode().compareTo(o2.getPostalCode())) == 0
+//                    && (result = o1.getAddress1().compareTo(o2.getAddress2())) == 0) {
+//                return o1.getAddress2().compareTo(o2.getAddress2());
+//            }
+//            return result;
+//        }).forEach((t) -> {
+//            if (t.getPredefinedElement().isMainOffice()) {
+//                corporateLocationList.add(t);
+//            } else {
+//                remoteLocationList.add(t);
+//            }
+//        });
 
         invalidControlIds.add(titleTextField.getId());
         invalidControlIds.add(customerComboBox.getId());
@@ -451,7 +451,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 phoneTextField.setText(model.getLocation());
                 break;
             case CORPORATE_LOCATION:
-                corporateLocationComboBox.getSelectionModel().select(PredefinedData.lookupAddress(model.getLocation()));
+//                corporateLocationComboBox.getSelectionModel().select(PredefinedData.lookupAddress(model.getLocation()));
                 break;
             default:
                 model.setLocation("");

@@ -2,99 +2,130 @@ package scheduler.model;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import scheduler.dao.AddressDAO;
-import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
-import scheduler.dao.event.AddressDaoEvent;
-import scheduler.dao.event.CityDaoEvent;
-import scheduler.dao.event.CountryDaoEvent;
-import scheduler.dao.event.DbChangeType;
+import javax.xml.bind.annotation.XmlType;
 import scheduler.util.LogHelper;
-import scheduler.util.ResourceBundleHelper;
-import scheduler.view.annotations.GlobalizationResource;
 
 /**
  * Contains static methods for getting pre-defined location and time zone information.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-@GlobalizationResource("scheduler/cityNames")
-@XmlRootElement(name = "definitions", namespace = PredefinedData.NAMESPACE_URI)
+@XmlRootElement(name = PredefinedData.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+@XmlType(name = PredefinedData.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI, factoryMethod = "createInstanceJAXB")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PredefinedData {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(PredefinedData.class.getName()), Level.FINER);
 
+    public static final String ELEMENT_NAME = "definitions";
     public static final String NAMESPACE_URI = "urn:Erwine.Leonard.T:C195:StaticAddresses.xsd";
-    static final String XML_FILE = "scheduler/StaticAddresses.xml";
-    private static ObservableMap<String, CountryDAO.PredefinedCountryElement> COUNTRY_MAP;
-    private static ObservableMap<String, CityDAO.PredefinedCityElement> CITY_MAP;
-    private static ObservableMap<String, AddressDAO.PredefinedAddressElement> ADDRESS_MAP;
-    private static ResourceBundle resources;
+    static final String ADDRESSES_XML_FILE = "scheduler/StaticAddresses.xml";
 
-    private static void CheckLoad() {
+    private static Map<String, CorporateCountry> COUNTRY_MAP;
+    private static Map<String, CorporateAddress> ADDRESS_MAP;
+
+    private static Map<String, String> LOCALE_DISPLAY_MAP;
+
+    /**
+     * Gets a {@link Map} that maps language tags to country-first display values.
+     *
+     * @return A {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
+     */
+    public static Map<String, String> getLocaleDisplayMap() {
+        if (null == LOCALE_DISPLAY_MAP) {
+            HashMap<String, String> map = new HashMap<>();
+            LOCALE_DISPLAY_MAP = Collections.unmodifiableMap(map);
+            HashMap<String, ArrayList<Locale>> localeMap = new HashMap<>();
+            for (Locale locale : Locale.getAvailableLocales()) {
+                String displayCountry = locale.getDisplayCountry();
+                if (!displayCountry.isEmpty()) {
+                    if (localeMap.containsKey(displayCountry)) {
+                        localeMap.get(displayCountry).add(locale);
+                    } else {
+                        ArrayList<Locale> list = new ArrayList<>();
+                        list.add(locale);
+                        localeMap.put(displayCountry, list);
+                    }
+                }
+            }
+            localeMap.keySet().forEach((t) -> {
+                ArrayList<Locale> locales = localeMap.get(t);
+                if (locales.size() > 1) {
+                    locales.forEach((u) -> {
+                        String v = u.getDisplayVariant();
+                        if (v.isEmpty()) {
+                            v = u.getDisplayScript();
+                        }
+                        if (v.isEmpty()) {
+                            map.put(u.toLanguageTag(), String.format("%s (%s)", u.getDisplayCountry(), u.getDisplayLanguage()));
+                        } else {
+                            map.put(u.toLanguageTag(), String.format("%s (%s, %s)", u.getDisplayCountry(), u.getDisplayLanguage(), v));
+                        }
+                    });
+                } else {
+                    Locale l = locales.get(0);
+                    map.put(l.toLanguageTag(), l.getDisplayCountry());
+                }
+            });
+        }
+        return LOCALE_DISPLAY_MAP;
+    }
+
+    private static void CheckLoadAddresses() {
         if (null != COUNTRY_MAP) {
             return;
         }
-        ObservableMap<String, CountryDAO.PredefinedCountryElement> countryMap = FXCollections.observableHashMap();
-        ObservableMap<String, CityDAO.PredefinedCityElement> cityMap = FXCollections.observableHashMap();
-        ObservableMap<String, AddressDAO.PredefinedAddressElement> addressMap = FXCollections.observableHashMap();
-        COUNTRY_MAP = FXCollections.unmodifiableObservableMap(countryMap);
-        CITY_MAP = FXCollections.unmodifiableObservableMap(cityMap);
-        ADDRESS_MAP = FXCollections.unmodifiableObservableMap(addressMap);
-        resources = ResourceBundleHelper.getBundle(PredefinedData.class);
-        try (InputStream stream = PredefinedData.class.getClassLoader().getResourceAsStream(XML_FILE)) {
+        HashMap<String, CorporateCountry> countryMap = new HashMap<>();
+        HashMap<String, CorporateAddress> addressMap = new HashMap<>();
+        COUNTRY_MAP = Collections.unmodifiableMap(countryMap);
+        ADDRESS_MAP = Collections.unmodifiableMap(addressMap);
+        Map<String, String> displayMap = getLocaleDisplayMap();
+        try (InputStream stream = PredefinedData.class.getClassLoader().getResourceAsStream(ADDRESSES_XML_FILE)) {
             if (stream == null) {
-                LOG.log(Level.SEVERE, String.format("File \"%s\" not found.", XML_FILE));
+                LOG.log(Level.SEVERE, String.format("File \"%s\" not found.", ADDRESSES_XML_FILE));
             } else {
                 JAXBContext jaxbContext = JAXBContext.newInstance(PredefinedData.class);
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                 PredefinedData result = (PredefinedData) unmarshaller.unmarshal(stream);
                 result.countries.forEach((t) -> {
                     PredefinedCountry predefinedCountry = (PredefinedCountry) t;
-                    predefinedCountry.locale = Locale.forLanguageTag(t.getLanguageTag());
+                    predefinedCountry.locale = Locale.forLanguageTag(predefinedCountry.languageTag);
+                    predefinedCountry.name = displayMap.get(predefinedCountry.languageTag);
                     String countryMapKey = predefinedCountry.locale.getCountry();
                     countryMap.put(countryMapKey, t);
-                    predefinedCountry.dataAccessObject = CountryDAO.getPredefinedDAO(t);
-                    List<CityDAO.PredefinedCityElement> cities = t.getCities();
+                    List<CorporateCity> cities = t.getCities();
                     if (null == cities) {
                         predefinedCountry.cities = Collections.emptyList();
                     } else if (!cities.isEmpty()) {
                         cities.forEach((u) -> {
                             PredefinedCity predefinedCity = (PredefinedCity) u;
                             predefinedCity.country = t;
-                            cityMap.put(u.getKey(), u);
-                            predefinedCity.dataAccessObject = CityDAO.getPredefinedDAO(u);
-                            List<AddressDAO.PredefinedAddressElement> addresses = u.getAddresses();
+                            predefinedCity.zoneId = ZoneId.of(predefinedCity.zoneIdText);
+                            List<CorporateAddress> addresses = u.getAddresses();
                             if (null == addresses) {
                                 predefinedCity.addresses = Collections.emptyList();
                             } else if (!addresses.isEmpty()) {
                                 addresses.forEach((s) -> {
-                                    PredefinedAddress a = (PredefinedAddress) s;
-                                    a.city = u;
-                                    addressMap.put(s.getKey(), s);
-                                    a.dataAccessObject = AddressDAO.getPredefinedDAO(s);
+                                    ((PredefinedAddress) s).city = u;
+                                    addressMap.put(s.getName(), s);
                                 });
                             }
                         });
@@ -102,287 +133,155 @@ public class PredefinedData {
                 });
             }
         } catch (IOException | JAXBException ex) {
-            LOG.log(Level.SEVERE, String.format("Error loading resource \"%s\"", XML_FILE), ex);
+            LOG.log(Level.SEVERE, String.format("Error loading resource \"%s\"", ADDRESSES_XML_FILE), ex);
         }
     }
 
-    public static CountryDAO tryGetCountry(String regionCode) {
-        CheckLoad();
+    /**
+     * Looks up a {@link CorporateCountry} by its country/region code.
+     *
+     * @param regionCode The county/region code to look up.
+     * @return The {@link CorporateCountry} with the specified {@code regionCode} or {@code null} if none was found
+     */
+    public static CorporateCountry getCorporateCountry(String regionCode) {
+        CheckLoadAddresses();
         if (null != regionCode && COUNTRY_MAP.containsKey(regionCode)) {
-            return COUNTRY_MAP.get(regionCode).getDataAccessObject();
+            return COUNTRY_MAP.get(regionCode);
         }
         return null;
     }
 
-    public static CountryDAO lookupCountry(String regionCode) {
-        CheckLoad();
-        if (null != regionCode && COUNTRY_MAP.containsKey(regionCode)) {
-            CountryDAO.PredefinedCountryElement pd = COUNTRY_MAP.get(regionCode);
-            CountryDAO dataAccessObject = pd.getDataAccessObject();
-            if (null == dataAccessObject) {
-                (dataAccessObject = new CountryDAO()).setPredefinedElement(pd);
-            }
-            return dataAccessObject;
-        }
-        throw new IllegalArgumentException("Unknown region code");
-    }
-
-    public static CityDAO tryGetCity(String key) {
-        CheckLoad();
-        if (null != key && CITY_MAP.containsKey(key)) {
-            return CITY_MAP.get(key).getDataAccessObject();
-        }
-        return null;
-    }
-
-    public static CityDAO lookupCity(String key) {
-        CheckLoad();
-        if (null != key && CITY_MAP.containsKey(key)) {
-            CityDAO.PredefinedCityElement pd = CITY_MAP.get(key);
-            CityDAO dataAccessObject = pd.getDataAccessObject();
-            if (null == dataAccessObject) {
-                (dataAccessObject = new CityDAO()).setPredefinedElement(pd);
-            }
-            return dataAccessObject;
-        }
-        throw new IllegalArgumentException("Unknown city resource key");
-    }
-
-    public static AddressDAO tryGetAddress(String key) {
-        CheckLoad();
-        if (null != key && ADDRESS_MAP.containsKey(key)) {
-            return ADDRESS_MAP.get(key).getDataAccessObject();
-        }
-        return null;
-    }
-
-    public static AddressDAO lookupAddress(String key) {
-        CheckLoad();
-        if (null != key && ADDRESS_MAP.containsKey(key)) {
-            AddressDAO.PredefinedAddressElement pd = ADDRESS_MAP.get(key);
-            AddressDAO dataAccessObject = pd.getDataAccessObject();
-            if (null == dataAccessObject) {
-                (dataAccessObject = new AddressDAO()).setPredefinedElement(pd);
-            }
-            return dataAccessObject;
-        }
-        throw new IllegalArgumentException("Unknown address resource key");
-    }
-
-    public static ObservableMap<String, AddressDAO.PredefinedAddressElement> getAddressMap() {
-        CheckLoad();
-        return ADDRESS_MAP;
-    }
-
-    public static ObservableMap<String, CountryDAO.PredefinedCountryElement> getCountryMap() {
-        CheckLoad();
+    /**
+     * Gets a {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
+     *
+     * @return A {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
+     */
+    public static Map<String, CorporateCountry> getCorporateCountryMap() {
+        CheckLoadAddresses();
         return COUNTRY_MAP;
     }
 
-    public static ObservableMap<String, CityDAO.PredefinedCityElement> getCityMap() {
-        CheckLoad();
-        return CITY_MAP;
-    }
-
-    public static String getCityDisplayName(String key) {
-        CheckLoad();
-        if (resources.containsKey(key)) {
-            return resources.getString(key);
+    /**
+     * Looks up a {@link CorporateAddress} by its friendly name.
+     *
+     * @param name The name of the {@link CorporateAddress} to look up.
+     * @return The {@link CorporateAddress} with the specified {@code name} or {@code null} if none was found
+     */
+    public static CorporateAddress getCorporateAddress(String name) {
+        CheckLoadAddresses();
+        if (null != name && ADDRESS_MAP.containsKey(name)) {
+            return ADDRESS_MAP.get(name);
         }
         return null;
     }
 
-    public static Stream<CityDAO> getCityOptions(Collection<CityDAO> values) {
-        if (null != values && !values.isEmpty()) {
-            HashMap<String, CityDAO> map = new HashMap<>();
-            values.forEach((t) -> {
-                CityDAO.PredefinedCityElement pd = t.getPredefinedElement();
-                if (null != pd) {
-                    map.put(pd.getKey(), t);
-                }
-            });
-            if (!map.isEmpty()) {
-                return CITY_MAP.values().stream().map((CityDAO.PredefinedCityElement t) -> {
-                    String key = t.getKey();
-                    if (map.containsKey(key)) {
-                        return map.get(key);
-                    }
-                    CityDAO dataAccessObject = t.getDataAccessObject();
-                    if (null == dataAccessObject) {
-                        (dataAccessObject = new CityDAO()).setPredefinedElement(t);
-                    }
-                    return dataAccessObject;
-                });
-            }
-        }
-        return CITY_MAP.values().stream().map((CityDAO.PredefinedCityElement t) -> {
-            CityDAO dataAccessObject = t.getDataAccessObject();
-            if (null == dataAccessObject) {
-                (dataAccessObject = new CityDAO()).setPredefinedElement(t);
-            }
-            return dataAccessObject;
-        });
-    }
-
-    public static Stream<CountryDAO> getCountryOptions(Collection<CountryDAO> values) {
-        if (null != values && !values.isEmpty()) {
-            HashMap<String, CountryDAO> map = new HashMap<>();
-            values.forEach((t) -> {
-                CountryDAO.PredefinedCountryElement pd = t.getPredefinedElement();
-                if (null != pd) {
-                    map.put(pd.getLocale().getCountry(), t);
-                }
-            });
-            if (!map.isEmpty()) {
-                return COUNTRY_MAP.values().stream().map((CountryDAO.PredefinedCountryElement t) -> {
-                    String key = t.getLocale().getCountry();
-                    if (map.containsKey(key)) {
-                        return map.get(key);
-                    }
-                    CountryDAO dataAccessObject = t.getDataAccessObject();
-                    if (null == dataAccessObject) {
-                        (dataAccessObject = new CountryDAO()).setPredefinedElement(t);
-                    }
-                    return dataAccessObject;
-                });
-            }
-        }
-        return COUNTRY_MAP.values().stream().map((CountryDAO.PredefinedCountryElement t) -> {
-            CountryDAO dataAccessObject = t.getDataAccessObject();
-            if (null == dataAccessObject) {
-                (dataAccessObject = new CountryDAO()).setPredefinedElement(t);
-            }
-            return dataAccessObject;
-        });
-    }
-
-    public static void onCountryDaoEvent(CountryDaoEvent event) {
-        CountryDAO changedDao = event.getTarget();
-        CountryDAO.PredefinedCountryElement pde = changedDao.getPredefinedElement();
-        if (null != pde) {
-            CountryDAO dao = pde.getDataAccessObject();
-            if (!Objects.equals(dao, changedDao)) {
-                LOG.fine(() -> String.format("Detected %s change from another instance. Synchronizing row state.", dao));
-                CountryDAO.getFactory().synchronize(changedDao, dao);
-            }
-            if (event.getChangeType() == DbChangeType.DELETED) {
-                LOG.fine(() -> String.format("Detected %s deleted. Resetting row state.", dao));
-                dao.resetRowState();
-            }
-        }
-    }
-
-    public static void onCityDaoEvent(CityDaoEvent event) {
-        CityDAO changedDao = event.getTarget();
-        CityDAO.PredefinedCityElement pde = changedDao.getPredefinedElement();
-        if (null != pde) {
-            CityDAO dao = pde.getDataAccessObject();
-            if (!Objects.equals(dao, changedDao)) {
-                LOG.fine(() -> String.format("Detected %s change from another instance. Synchronizing row state.", dao));
-                CityDAO.getFactory().synchronize(changedDao, dao);
-            }
-            if (event.getChangeType() == DbChangeType.DELETED) {
-                LOG.fine(() -> String.format("Detected %s deleted. Resetting row state.", dao));
-                dao.resetRowState();
-            }
-        }
-    }
-
-    public static void onAddressDaoEvent(AddressDaoEvent event) {
-        AddressDAO changedDao = event.getTarget();
-        AddressDAO.PredefinedAddressElement pde = changedDao.getPredefinedElement();
-        if (null != pde) {
-            AddressDAO dao = pde.getDataAccessObject();
-            if (!Objects.equals(dao, changedDao)) {
-                LOG.fine(() -> String.format("Detected %s change from another instance. Synchronizing row state.", dao));
-                AddressDAO.getFactory().synchronize(changedDao, dao);
-            }
-            if (event.getChangeType() == DbChangeType.DELETED) {
-                LOG.fine(() -> String.format("Detected %s deleted. Resetting row state.", dao));
-                dao.resetRowState();
-            }
-        }
-    }
-
-    @XmlElement(name = CountryDAO.PredefinedCountryElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-    private List<CountryDAO.PredefinedCountryElement> countries;
-
     /**
-     * Internal: not intended to be instantiated directly.
+     * Gets a {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
+     *
+     * @return A {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
      */
-    public PredefinedData() {
+    public static Map<String, CorporateAddress> getCorporateAddressMap() {
+        CheckLoadAddresses();
+        return ADDRESS_MAP;
+    }
+
+    private static PredefinedData createInstanceJAXB() {
+        return new PredefinedData();
+    }
+    @XmlElement(name = CorporateCountry.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+    private List<CorporateCountry> countries;
+
+    private PredefinedData() {
         countries = new ArrayList<>();
     }
 
-    public static abstract class PredefinedCountry {
+    public static abstract class PredefinedCountry implements Country {
+
+        @XmlAttribute
+        private String languageTag;
 
         @XmlTransient
-        private CountryDAO dataAccessObject;
-
-        @XmlElement(name = CityDAO.PredefinedCityElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-        private List<CityDAO.PredefinedCityElement> cities;
+        private String name;
 
         @XmlTransient
         private Locale locale;
 
+        @XmlElement(name = CorporateCity.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+        private List<CorporateCity> cities;
+
+        protected PredefinedCountry() {
+
+        }
+
+        protected PredefinedCountry(Locale locale) {
+            languageTag = (this.locale = locale).toLanguageTag();
+            this.cities = Collections.emptyList();
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
         public Locale getLocale() {
             return locale;
         }
 
-        public abstract String getLanguageTag();
-
-        public abstract String getDefaultZoneId();
-
-        public List<CityDAO.PredefinedCityElement> getCities() {
+        public List<CorporateCity> getCities() {
             return cities;
-        }
-
-        public synchronized CountryDAO getDataAccessObject() {
-            return dataAccessObject;
         }
 
     }
 
-    public static abstract class PredefinedCity {
+    public static abstract class PredefinedCity implements City {
+
+        @XmlAttribute(name = "zoneId")
+        private String zoneIdText;
 
         @XmlTransient
-        private CityDAO dataAccessObject;
+        private ZoneId zoneId;
 
-        @XmlElement(name = AddressDAO.PredefinedAddressElement.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-        private List<AddressDAO.PredefinedAddressElement> addresses;
+        @XmlElement(name = CorporateAddress.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+        private List<CorporateAddress> addresses;
 
         @XmlTransient
-        private CountryDAO.PredefinedCountryElement country;
+        private CorporateCountry country;
 
-        public CountryDAO.PredefinedCountryElement getCountry() {
+        protected PredefinedCity() {
+
+        }
+
+        @Override
+        public ZoneId getZoneId() {
+            return zoneId;
+        }
+
+        @Override
+        public CorporateCountry getCountry() {
             return country;
         }
 
-        public CityDAO getDataAccessObject() {
-            return dataAccessObject;
-        }
-
-        public List<AddressDAO.PredefinedAddressElement> getAddresses() {
+        public List<CorporateAddress> getAddresses() {
             return addresses;
         }
 
     }
 
-    public static abstract class PredefinedAddress {
+    public static abstract class PredefinedAddress implements Address {
 
         @XmlTransient
-        private AddressDAO dataAccessObject;
+        private CorporateCity city;
 
-        @XmlTransient
-        private CityDAO.PredefinedCityElement city;
+        protected PredefinedAddress() {
 
-        public CityDAO.PredefinedCityElement getCity() {
+        }
+
+        @Override
+        public CorporateCity getCity() {
             return city;
         }
 
-        public synchronized AddressDAO getDataAccessObject() {
-            return dataAccessObject;
-        }
-
     }
+
 }

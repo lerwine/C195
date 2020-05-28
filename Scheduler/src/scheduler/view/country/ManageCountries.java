@@ -21,7 +21,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.MainListingControl;
-import scheduler.model.Country;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -32,6 +31,7 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.country.ManageCountriesResourceKeys.*;
+import scheduler.model.CustomerCountry;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
@@ -79,7 +79,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected Comparator<? super CountryDAO> getComparator() {
-        return Country::compare;
+        return CustomerCountry::compare;
     }
 
     @Override

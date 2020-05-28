@@ -47,7 +47,6 @@ import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.UserDaoEvent;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
-import scheduler.model.PredefinedData;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
@@ -303,7 +302,7 @@ public final class MainController implements EventTarget {
 
     private void onAddressDaoEvent(AddressDaoEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        PredefinedData.onAddressDaoEvent(event);
+//        PredefinedData.onAddressDaoEvent(event);
     }
 
     private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
@@ -313,12 +312,12 @@ public final class MainController implements EventTarget {
 
     private void onCityDaoEvent(CityDaoEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        PredefinedData.onCityDaoEvent(event);
+//        PredefinedData.onCityDaoEvent(event);
     }
 
     private void onCountryDaoEvent(CountryDaoEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        PredefinedData.onCountryDaoEvent(event);
+//        PredefinedData.onCountryDaoEvent(event);
     }
 
     @Override

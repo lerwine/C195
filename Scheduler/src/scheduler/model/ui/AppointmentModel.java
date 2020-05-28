@@ -52,9 +52,10 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 return (url.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
                         : url;
             case CORPORATE_LOCATION:
-                AddressDAO a = PredefinedData.lookupAddress(location);
-                return AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
-                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()), a.getPhone());
+//                AddressDAO a = PredefinedData.lookupAddress(location);
+//                return AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
+//                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()), a.getPhone());
+                throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
             case PHONE:
                 return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
                         : String.format("tel: %s", location);
@@ -161,12 +162,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                         switch (t) {
                             case CORPORATE_LOCATION:
                                 if (!l.isEmpty()) {
-                                    AddressDAO a = PredefinedData.lookupAddress(l);
-                                    return AddressModel.calculateMultiLineAddress(
-                                            AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
-                                            AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
-                                            a.getPhone()
-                                    );
+//                                    AddressDAO a = PredefinedData.lookupAddress(l);
+//                                    return AddressModel.calculateMultiLineAddress(
+//                                            AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
+//                                            AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
+//                                            a.getPhone()
+//                                    );
+                                    throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
                                 }
                                 break;
                             case CUSTOMER_SITE:

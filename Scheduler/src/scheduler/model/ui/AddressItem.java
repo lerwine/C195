@@ -9,17 +9,17 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
-import scheduler.model.Address;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
+import scheduler.model.CustomerAddress;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T> {
+public interface AddressItem<T extends IAddressDAO> extends CustomerAddress, FxDbModel<T> {
 
     public static AddressItem<? extends IAddressDAO> createModel(IAddressDAO t) {
         if (null == t) {
