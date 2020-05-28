@@ -3,41 +3,75 @@
            xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" >
     <xs:simpleType name="ZoneId">
         <xs:restriction base="xs:string">
-            <xs:pattern value="^[^/\s]+(/[^/\s]+)?$" />
+            <xs:pattern value="[^/\s]+(/[^/\s]+)?" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="normalizedString">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(\S+( \S+)*)?" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="nonEmptyNormalizedString">
+        <xs:restriction base="a:normalizedString">
+            <xs:minLength value="1" />
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="addressType">
-        <xs:attribute name="name" type="xs:string" use="required" />
-        <xs:attribute name="address1" type="xs:string" use="required" />
-        <xs:attribute name="address2" type="xs:string" use="required" />
-        <xs:attribute name="postalCode" type="xs:string" use="required" />
-        <xs:attribute name="phone" type="xs:string" use="required" />
-        <xs:attribute name="mainOffice" use="required" type="xs:boolean" use="required" />
+        <xs:attribute name="name" type="a:nonEmptyNormalizedString" use="required" />
+        <xs:attribute name="address1" use="required">
+            <xs:simpleType>
+                <xs:restriction base="a:nonEmptyNormalizedString">
+                    <xs:maxLength value="50" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="address2" use="required">
+            <xs:simpleType>
+                <xs:restriction base="a:normalizedString">
+                    <xs:maxLength value="50" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="postalCode" use="required">
+            <xs:simpleType>
+                <xs:restriction base="a:normalizedString">
+                    <xs:maxLength value="10" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="phone" use="required">
+            <xs:simpleType>
+                <xs:restriction base="a:normalizedString">
+                    <xs:maxLength value="20" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="mainOffice" use="required" type="xs:boolean" />
     </xs:complexType>
     <xs:complexType name="cityType">
-        <xs:attribute name="name" type="xs_string" use="required">
+        <xs:sequence>
+            <xs:element name="address" type="a:addressType" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="name" use="required">
             <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:pattern value="^[^a-z]$" />
+                <xs:restriction base="a:nonEmptyNormalizedString">
+                    <xs:maxLength value="50" />
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
         <xs:attribute name="zoneId" type="a:ZoneId" use="required" />
-        <xs:sequence>
-            <xs:element name="address" type="a:addressType" minOccurs="0" maxOccurs="unbounded" />
-        </xs:sequence>
     </xs:complexType>
     <xs:complexType name="countryType">
-        <xs:attribute name="languageTag" use="required">
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:pattern value="^(e[ns]|de|hi)-[A-Z]{2}$" />
-                </xs:restriction>
-            </xs:simpleType>
-        </xs:attribute>
         <xs:sequence>
             <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded" />
         </xs:sequence>
+        <xs:attribute name="languageTag" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(e[ns]|de|hi)-[A-Z]{2}" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
     </xs:complexType>
     <xs:element name="definitions">
         <xs:complexType>

@@ -14,7 +14,7 @@
             <a:address name="Guatemala Satellite Office" address1="15 Calle" address2="" postalCode="" phone="+502 6854 2872" mainOffice="false" />
         </a:city>
     </a:country>
-    <a:country region="GB" languageTag="en-GB">
+    <a:country languageTag="en-GB">
         <a:city name="London" zoneId="GB">
             <a:address name="London Main Office" address1="10 Upper Bank Street" address2="Suite 3210" postalCode="E14 5NP" phone="+44 7825 278103" mainOffice="true" />
         </a:city>
