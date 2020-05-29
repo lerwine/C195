@@ -336,7 +336,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         DeleteTask(Stage stage) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
-            dataAccessobject = model.getDataObject();
+            dataAccessobject = model.dataObject();
         }
 
         @Override

@@ -45,7 +45,7 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends FxRecordM
 
             @Override
             public int get(U model) {
-                return model.getDataObject().getPrimaryKey();
+                return model.dataObject().getPrimaryKey();
             }
         };
     }

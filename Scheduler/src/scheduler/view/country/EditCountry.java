@@ -227,7 +227,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         selectedCountryName = ObservableObjectDerivitive.ofSelection(countryNameComboBox);
         valid.bind(selectedCountryName.isNotNull());
         languageLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.languageProperty()));
-        defaultTimeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.defaultTimeZoneDisplayProperty()));
+        //defaultTimeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.defaultTimeZoneDisplayProperty()));
         nameValidationLabel.visibleProperty().bind(selectedCountryName.isNull());
 //        CountryDAO.PredefinedCountryElement pdc = model.getPredefinedElement();
 //        if (null != pdc) {
@@ -253,7 +253,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         collapseNode(countryNameComboBox);
         restoreNode(newButtonBar);
         languageLabel.setText(model.getLanguage());
-        defaultTimeZoneLabel.setText(model.getDefaultTimeZoneDisplay());
+        //defaultTimeZoneLabel.setText(model.getDefaultTimeZoneDisplay());
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
         sceneProperty().addListener(new InvalidationListener() {
@@ -396,7 +396,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
         DeleteTask(CityModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.getDataObject();
+            dao = model.dataObject();
             this.model = model;
             this.parentWindow = parentWindow;
         }
@@ -414,7 +414,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CityDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                String message = CityDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

@@ -1,18 +1,21 @@
 package scheduler.model.ui;
 
 import java.util.Objects;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
-import scheduler.observables.ObservableDerivitive;
-import scheduler.observables.UserStatusProperty;
-import scheduler.observables.WrappedBooleanObservableProperty;
+import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
+import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.Values;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -29,19 +32,18 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
     private final SimpleStringProperty userName;
     private final SimpleStringProperty password;
-    private final UserStatusProperty status;
-    private final WrappedBooleanObservableProperty valid;
+    private final SimpleObjectProperty<UserStatus> status;
+    private final ReadOnlyStringBindingProperty statusDisplay;
+    private final ReadOnlyBooleanBindingProperty valid;
 
     public UserModel(UserDAO dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
         password = new SimpleStringProperty(this, "password", dao.getPassword());
-        status = new UserStatusProperty(this, "status", dao.getStatus());
-        valid = new WrappedBooleanObservableProperty(this, "valid",
-                ObservableDerivitive.isNotNullOrWhiteSpace(userName).and(
-                        ObservableDerivitive.isNotNullOrWhiteSpace(password),
-                        ObservableDerivitive.isNotNull(status)
-                ));
+        status = new SimpleObjectProperty<>(this, "status", dao.getStatus());
+        statusDisplay = new ReadOnlyStringBindingProperty(this, "statusDisplay", () -> UserStatus.toDisplayValue(status.get()), status);
+        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(userName.get()), userName).and(status.isNull()));
     }
 
     @Override
@@ -80,18 +82,18 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     }
 
     @Override
-    public UserStatusProperty statusProperty() {
+    public ObjectProperty<UserStatus> statusProperty() {
         return status;
     }
 
     @Override
     public String getStatusDisplay() {
-        return status.getDisplayText();
+        return statusDisplay.get();
     }
 
     @Override
     public ReadOnlyStringProperty statusDisplayProperty() {
-        return status.displayTextProperty();
+        return statusDisplay;
     }
 
     @Override
@@ -128,7 +130,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
+        return valid;
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<UserDAO, UserModel> {
@@ -162,7 +164,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         @Override
         public UserDAO updateDAO(UserModel item) {
-            UserDAO dao = item.getDataObject();
+            UserDAO dao = item.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("User has been deleted");
             }

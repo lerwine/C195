@@ -186,7 +186,7 @@ public class ConsultantSchedule extends VBox {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             start = rangeStartDatePicker.getValue();
             end = rangeEndDatePicker.getValue();
-            user = consultantsComboBox.getValue().getDataObject();
+            user = consultantsComboBox.getValue().dataObject();
         }
 
         @Override

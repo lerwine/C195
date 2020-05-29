@@ -2,6 +2,7 @@ package scheduler.model.ui;
 
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableBooleanValue;
+import scheduler.dao.CustomerDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICustomerDAO;
 import scheduler.model.Customer;
@@ -12,6 +13,17 @@ import scheduler.model.Customer;
  * @param <T> Type of object for database access.
  */
 public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbModel<T> {
+
+    public static CustomerItem<? extends ICustomerDAO> createModel(ICustomerDAO t) {
+        if (null == t) {
+            return null;
+        }
+        if (t instanceof CustomerDAO) {
+            return new CustomerModel((CustomerDAO) t);
+        }
+
+        return new RelatedCustomer(t);
+    }
 
     /**
      * Gets the property that contains the name of the customer.

@@ -1,15 +1,13 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
-import java.time.format.TextStyle;
 import java.util.Locale;
-import java.util.Objects;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.adapter.JavaBeanStringPropertyBuilder;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -17,12 +15,10 @@ import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.ModelHelper;
-import scheduler.observables.DerivedBooleanProperty;
-import scheduler.observables.DerivedObjectProperty;
-import scheduler.observables.DerivedStringProperty;
+import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
+import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.model.CustomerCountry;
 
 /**
  *
@@ -36,64 +32,72 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return FACTORY;
     }
 
+    private final StringProperty name;
+    private final ReadOnlyStringProperty language;
+    private final ObjectProperty<Locale> locale;
+    private final ReadOnlyBooleanProperty valid;
+
     public CountryModel(CountryDAO dao) {
         super(dao);
-        
+        name = new SimpleStringProperty(this, "name");
+        locale = new SimpleObjectProperty<>(this, "locale");
+        language = new ReadOnlyStringBindingProperty(this, "language", () -> {
+            Locale l = locale.get();
+            return (null == l) ? "" : l.getDisplayLanguage();
+        }, locale);
+        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
+                .and(language.isNotEmpty()));
+        name.set(dao.getName());
+        locale.set(dao.getLocale());
     }
 
     @Override
     public boolean isValid() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+        return valid.get();
     }
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#validProperty
-    }
-
-    @Override
-    public ReadOnlyStringProperty nameProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#nameProperty
-    }
-
-    @Override
-    public ZoneId getZoneId() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getZoneId
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#zoneIdProperty
-    }
-
-    @Override
-    public String getDefaultTimeZoneDisplay() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getDefaultTimeZoneDisplay
-    }
-
-    @Override
-    public ReadOnlyStringProperty defaultTimeZoneDisplayProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#defaultTimeZoneDisplayProperty
-    }
-
-    @Override
-    public String getLanguage() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getLanguage
-    }
-
-    @Override
-    public ReadOnlyStringProperty languageProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#languageProperty
+        return valid;
     }
 
     @Override
     public String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getName
+        return name.get();
+    }
+
+    public void setName(String value) {
+        name.set(value);
+    }
+
+    @Override
+    public StringProperty nameProperty() {
+        return name;
+    }
+
+    @Override
+    public String getLanguage() {
+        return language.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        return language;
     }
 
     @Override
     public Locale getLocale() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#getLocale
+        return locale.get();
+    }
+
+    public void setLocale(Locale value) {
+        locale.set(value);
+    }
+
+    @Override
+    public ObjectProperty<Locale> localeProperty() {
+        return locale;
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel> {
@@ -117,13 +121,16 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         @Override
         public CountryDAO updateDAO(CountryModel item) {
-            CountryDAO dataObject = item.getDataObject();
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+            CountryDAO dataObject = item.dataObject();
+            dataObject.setName(item.getName());
+            dataObject.setLocale(item.getLocale());
+            return dataObject;
         }
 
         @Override
         protected void updateItemProperties(CountryModel item, CountryDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+            item.name.set(dao.getName());
+            item.locale.set(dao.getLocale());
         }
 
         @Override

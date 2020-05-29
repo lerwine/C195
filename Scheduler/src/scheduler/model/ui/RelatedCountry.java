@@ -1,15 +1,21 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.adapter.JavaBeanStringProperty;
-import javafx.beans.property.adapter.JavaBeanStringPropertyBuilder;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
+import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.Values;
 
 /**
  *
@@ -19,60 +25,66 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
 
     private static final Logger LOG = Logger.getLogger(RelatedCountry.class.getName());
 
-    private final JavaBeanStringProperty rawName;
+    private final ReadOnlyJavaBeanStringProperty name;
+    private final ReadOnlyStringProperty language;
+    private final ReadOnlyJavaBeanObjectProperty<Locale> locale;
+    private final ReadOnlyBooleanProperty valid;
 
     public RelatedCountry(ICountryDAO rowData) {
         super(rowData);
         try {
-            rawName = JavaBeanStringPropertyBuilder.create().bean(rowData).name("rawName").name(CountryDAO.PROP_NAME).build();
+            name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(CountryDAO.PROP_NAME).build();
+            locale = ReadOnlyJavaBeanObjectPropertyBuilder.<Locale>create().bean(rowData).name(CountryDAO.PROP_LOCALE).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-    }
-
-    @Override
-    public ReadOnlyStringProperty nameProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#nameProperty
-    }
-
-    @Override
-    public ZoneId getZoneId() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#getZoneId
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#zoneIdProperty
-    }
-
-    @Override
-    public String getDefaultTimeZoneDisplay() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#getDefaultTimeZoneDisplay
-    }
-
-    @Override
-    public ReadOnlyStringProperty defaultTimeZoneDisplayProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#defaultTimeZoneDisplayProperty
-    }
-
-    @Override
-    public String getLanguage() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#getLanguage
-    }
-
-    @Override
-    public ReadOnlyStringProperty languageProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#languageProperty
+        language = new ReadOnlyStringBindingProperty(this, "language", () -> {
+            Locale l = locale.get();
+            return (null == l) ? "" : l.getDisplayLanguage();
+        }, locale);
+        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
+                        .and(language.isNotEmpty()));
     }
 
     @Override
     public String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#getName
+        return name.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty nameProperty() {
+        return name;
+    }
+
+    @Override
+    public String getLanguage() {
+        return language.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        return language;
     }
 
     @Override
     public Locale getLocale() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.RelatedCountry#getLocale
+        return locale.get();
+    }
+
+    @Override
+    public ReadOnlyObjectProperty<Locale> localeProperty() {
+        return locale;
+    }
+
+    @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid;
     }
 }

@@ -159,7 +159,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
         private ItemsLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
-            dao = model.getDataObject();
+            dao = model.dataObject();
         }
 
         @Override

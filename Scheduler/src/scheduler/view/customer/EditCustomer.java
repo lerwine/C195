@@ -291,7 +291,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         appointmentFilterComboBox.setItems(filterOptions);
 
         LocalDate today = LocalDate.now();
-        CustomerDAO dao = model.getDataObject();
+        CustomerDAO dao = model.dataObject();
         if (model.isNewRow()) {
             collapseNode(appointmentsVBox);
             editSplitPane.setDividerPosition(0, 1.0);
@@ -509,7 +509,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         DeleteTask(AppointmentModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.getDataObject();
+            dao = model.dataObject();
             this.model = model;
             this.parentWindow = parentWindow;
         }
@@ -527,7 +527,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

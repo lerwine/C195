@@ -526,7 +526,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
         DeleteTask(AppointmentModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.getDataObject();
+            dao = model.dataObject();
             this.model = model;
             this.parentWindow = parentWindow;
         }
@@ -544,7 +544,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

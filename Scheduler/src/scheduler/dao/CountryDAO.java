@@ -51,6 +51,10 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
      * The name of the 'name' property.
      */
     public static final String PROP_NAME = "name";
+    
+    /**
+     * The name of the 'locale' property.
+     */
     public static final String PROP_LOCALE = "locale";
 
     private static final FactoryImpl FACTORY = new FactoryImpl();
@@ -63,7 +67,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     private Locale locale;
 
     /**
-     * Initializes a {@link DataRowState#NEW} country object.
+     * Initializes a {@link DataRowState#NEW} country data access object.
      */
     public CountryDAO() {
         super();

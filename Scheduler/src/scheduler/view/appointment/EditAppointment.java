@@ -711,9 +711,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             customerDaoList = null;
             userDaoList = null;
             CustomerItem<? extends Customer> customer = model.getCustomer();
-            appointmentCustomer = (null == customer) ? null : customer.getDataObject();
+            appointmentCustomer = (null == customer) ? null : customer.dataObject();
             UserItem<? extends User> user = model.getUser();
-            appointmentUser = (null == user) ? null : user.getDataObject();
+            appointmentUser = (null == user) ? null : user.dataObject();
             customerLoadOption = showActiveCustomers;
             userLoadOption = showActiveUsers;
         }

@@ -3,6 +3,7 @@ package scheduler.util;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -99,14 +100,20 @@ public class Values {
      * @return The {@code value} with white space normalized if not null; otherwise, an empty {@link String}.
      */
     public static String asNonNullAndWsNormalized(String value) {
-        if (value == null) {
+        if (null == value || (value = value.trim()).isEmpty()) {
             return "";
         }
-        String[] ws;
-        if ((value = value.trim()).isEmpty() || (ws = REGEX_NON_NORMAL_WHITESPACES.split(value)).length == 1) {
-            return value;
+
+        StringBuffer sb = new StringBuffer();
+        Matcher matcher = REGEX_NON_NORMAL_WHITESPACES.matcher(value);
+        if (matcher.find()) {
+            do {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(" "));
+            } while (matcher.find());
+            matcher.appendTail(sb);
+            return sb.toString();
         }
-        return String.join(" ", ws);
+        return value;
     }
 
     /**

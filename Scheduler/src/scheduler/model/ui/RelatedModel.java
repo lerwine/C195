@@ -1,18 +1,16 @@
 package scheduler.model.ui;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
-import javafx.beans.property.ReadOnlyBooleanProperty;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerProperty;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerPropertyBuilder;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
+import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DbObject;
-import scheduler.observables.DataObjectProperty;
-import scheduler.observables.DerivedBooleanProperty;
 
 /**
  *
@@ -21,82 +19,46 @@ import scheduler.observables.DerivedBooleanProperty;
  */
 public abstract class RelatedModel<T extends DbObject> implements FxDbModel<T> {
 
-    private final DataObjectProperty<T> dataObject;
-    private final DerivedBooleanProperty<DataRowState> valid;
+    private static final Logger LOG = Logger.getLogger(RelatedModel.class.getName());
+
+    private final T dataObject;
+    private ReadOnlyJavaBeanIntegerProperty primaryKey;
+    private ReadOnlyJavaBeanObjectProperty<DataRowState> rowState;
 
     protected RelatedModel(T dao) {
-        dataObject = new DataObjectProperty<>(this, "dataObject", dao);
-        valid = new DerivedBooleanProperty<>(this, "valid", dataObject.rowStateProperty(), (t) -> null != t && t != DataRowState.DELETED);
+        dataObject = dao;
+        try {
+            primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(DataAccessObject.PROP_PRIMARYKEY).build();
+            rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(DataAccessObject.PROP_ROWSTATE).build();
+        } catch (NoSuchMethodException ex) {
+            LOG.log(Level.SEVERE, "Error creating property", ex);
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
-    public T getDataObject() {
-        return dataObject.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<T> dataObjectProperty() {
-        return dataObject.getReadOnlyProperty();
+    public T dataObject() {
+        return dataObject;
     }
 
     @Override
     public int getPrimaryKey() {
-        return dataObject.getPrimaryKey();
+        return primaryKey.get();
     }
 
     @Override
     public ReadOnlyIntegerProperty primaryKeyProperty() {
-        return dataObject.primaryKeyProperty();
+        return primaryKey;
     }
 
     @Override
     public DataRowState getRowState() {
-        return dataObject.getRowState();
+        return rowState.get();
     }
 
     @Override
     public ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
-        return dataObject.rowStateProperty();
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
-    }
-
-    protected final ReadOnlyIntegerProperty createReadOnlyDaoIntegerProperty(String name, ToIntFunction<T> getter) {
-        return dataObject.createReadOnlyIntegerProperty(name, getter);
-    }
-
-    protected final ReadOnlyBooleanProperty createReadOnlyDaoBooleanProperty(String name, Predicate<T> getter) {
-        return dataObject.createReadOnlyBooleanProperty(name, getter);
-    }
-
-    protected final ReadOnlyStringProperty createReadOnlyDaoStringProperty(String name, Function<T, String> getter) {
-        return dataObject.createReadOnlyStringProperty(name, getter);
-    }
-
-    protected final ReadOnlyObjectProperty<LocalDateTime> createReadOnlyDaoDateTimeProperty(String name, Function<T, Timestamp> getter) {
-        return dataObject.createReadOnlyDateTimeProperty(name, getter);
-    }
-
-    protected final <U> ReadOnlyObjectProperty<U> createReadOnlyDaoObjectProperty(String name, Function<T, U> getter) {
-        return dataObject.createReadOnlyObjectProperty(name, getter);
-    }
-
-    protected final <U extends DbObject, S extends FxDbModel<? extends U>> ReadOnlyObjectProperty<S> createReadOnlyNestedDaoModelProperty(String name,
-            ReadOnlyObjectProperty<U> daoProperty, Function<U, S> factory) {
-        return dataObject.createReadOnlyNestedModelProperty(name, daoProperty, factory);
-    }
-
-    protected final <U extends DbObject, S extends FxDbModel<? extends U>> ReadOnlyObjectProperty<S> createReadOnlyNestedDaoModelProperty(String name,
-            Function<T, U> getter, Function<U, S> factory) {
-        return dataObject.createReadOnlyNestedModelProperty(name, getter, factory);
+        return rowState;
     }
 
 }

@@ -297,8 +297,8 @@ public class AppointmentConflicts {
             updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB));
             CustomerModel sc = parentController.getCustomer();
             UserModel su = parentController.getUser();
-            customer = (null == sc) ? null : sc.getDataObject();
-            user = (null == su) ? null : su.getDataObject();
+            customer = (null == sc) ? null : sc.dataObject();
+            user = (null == su) ? null : su.dataObject();
         }
 
         @Override

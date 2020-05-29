@@ -270,9 +270,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 //            if (null != predefinedElement) {
 //                CityDAO cityDao = predefinedElement.getDataAccessObject();
 //                ICountryDAO countryDao = cityDao.getCountry();
-//                countryOptionList.stream().filter((t) -> Objects.equals(t.getDataObject(), countryDao)).findFirst().ifPresent((t) -> {
+//                countryOptionList.stream().filter((t) -> Objects.equals(t.dataObject(), countryDao)).findFirst().ifPresent((t) -> {
 //                    countryNameValueComboBox.getSelectionModel().select(t);
-//                    cityOptionList.stream().filter((u) -> Objects.equals(u.getDataObject(), cityDao)).findFirst().ifPresent((u) -> {
+//                    cityOptionList.stream().filter((u) -> Objects.equals(u.dataObject(), cityDao)).findFirst().ifPresent((u) -> {
 //                        nameValueComboBox.getSelectionModel().select(u);
 //                    });
 //                });
@@ -383,7 +383,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
         DeleteTask(AddressModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.getDataObject();
+            dao = model.dataObject();
             this.model = model;
             this.parentWindow = parentWindow;
         }
@@ -401,7 +401,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AddressDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                String message = AddressDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

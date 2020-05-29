@@ -251,8 +251,8 @@ public class CustomerPicker extends BorderPane {
             countryComboBox.setDisable(false);
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCitiesTask(country.getDataObject(),
-                        (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCitiesTask(country.dataObject(),
+                        (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
             }
         } else {
             if (cityFilterCheckBox.isSelected()) {
@@ -263,7 +263,7 @@ public class CustomerPicker extends BorderPane {
             cityComboBox.setDisable(true);
             waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(null, null,
                     statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                    (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                    (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
         }
     }
 
@@ -272,8 +272,8 @@ public class CustomerPicker extends BorderPane {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
-                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCitiesTask(country.getDataObject(),
-                        (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCitiesTask(country.dataObject(),
+                        (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
             }
         }
     }
@@ -286,14 +286,14 @@ public class CustomerPicker extends BorderPane {
                 if (cityFilterCheckBox.isSelected()) {
                     CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
-                                city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                                (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.dataObject(),
+                                city.dataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
+                                (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
                     }
                 } else {
-                    waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
+                    waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.dataObject(),
                             null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                            (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                            (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
                 }
             }
             cityComboBox.setDisable(!cityFilterCheckBox.isSelected());
@@ -307,9 +307,9 @@ public class CustomerPicker extends BorderPane {
             if (null != country) {
                 CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                 if (null != city) {
-                    waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
-                            city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                            (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                    waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.dataObject(),
+                            city.dataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
+                            (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
                 }
             }
         }
@@ -323,21 +323,21 @@ public class CustomerPicker extends BorderPane {
                 if (cityFilterCheckBox.isSelected()) {
                     CityModel city = cityComboBox.getSelectionModel().getSelectedItem();
                     if (null != city) {
-                        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
-                                city.getDataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                                (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                        waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.dataObject(),
+                                city.dataObject(), statusComboBox.getSelectionModel().getSelectedItem().status.get(),
+                                (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
                         return;
                     }
                 }
-                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.getDataObject(),
+                waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country.dataObject(),
                         null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                        (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                        (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
                 return;
             }
         }
         waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(null, null,
                 statusComboBox.getSelectionModel().getSelectedItem().status.get(),
-                (null == selectedCustomer) ? null : selectedCustomer.getDataObject()));
+                (null == selectedCustomer) ? null : selectedCustomer.dataObject()));
     }
 
     private WaitTitledPane createCriticalWaitTitledPane() {

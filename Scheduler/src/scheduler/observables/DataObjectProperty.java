@@ -462,7 +462,7 @@ public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrappe
             }
 
             private synchronized void onDaoChanged(ObservableValue<? extends U> observable, U oldValue, U newValue) {
-                if (!Objects.equals((null == model) ? null : model.getDataObject(), newValue)) {
+                if (!Objects.equals((null == model) ? null : model.dataObject(), newValue)) {
                     S m = factory.apply(newValue);
                     if (!Objects.equals(m, model)) {
                         model = m;

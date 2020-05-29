@@ -186,7 +186,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
         DeleteTask(UserModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.getDataObject();
+            dao = model.dataObject();
             this.model = model;
             this.parentWindow = parentWindow;
         }
@@ -204,7 +204,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = UserDAO.getFactory().getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                String message = UserDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

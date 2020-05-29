@@ -501,12 +501,12 @@ public final class MainController implements EventTarget {
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = factory.getDeleteDependencyMessage(model.getDataObject(), connector.getConnection());
+                String message = factory.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_COMPLETINGOPERATION));
-                factory.delete(model.getDataObject(), connector.getConnection());
+                factory.delete(model.dataObject(), connector.getConnection());
             }
             return null;
         }

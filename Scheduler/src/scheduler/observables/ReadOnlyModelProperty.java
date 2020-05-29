@@ -21,7 +21,7 @@ public class ReadOnlyModelProperty<M extends scheduler.model.ui.FxRecordModel<?>
         return Bindings.createBooleanBinding(() -> {
             M value = get();
             if (null != value) {
-                DataAccessObject dao = value.getDataObject();
+                DataAccessObject dao = value.dataObject();
                 return null != dao && dao.getRowState() == DataRowState.NEW;
             }
             return false;
@@ -32,7 +32,7 @@ public class ReadOnlyModelProperty<M extends scheduler.model.ui.FxRecordModel<?>
         return Bindings.createBooleanBinding(() -> {
             M value = get();
             if (null != value) {
-                DataAccessObject dao = value.getDataObject();
+                DataAccessObject dao = value.dataObject();
                 return null != dao && dao.getRowState() == DataRowState.NEW;
             }
             return false;
@@ -43,7 +43,7 @@ public class ReadOnlyModelProperty<M extends scheduler.model.ui.FxRecordModel<?>
         return Bindings.createBooleanBinding(() -> {
             M value = get();
             if (null != value) {
-                DataAccessObject dao = value.getDataObject();
+                DataAccessObject dao = value.dataObject();
                 return null != dao && dao.getRowState() == DataRowState.MODIFIED;
             }
             return false;
@@ -54,7 +54,7 @@ public class ReadOnlyModelProperty<M extends scheduler.model.ui.FxRecordModel<?>
         return Bindings.createBooleanBinding(() -> {
             M value = get();
             if (null != value) {
-                DataAccessObject dao = value.getDataObject();
+                DataAccessObject dao = value.dataObject();
                 return null != dao && dao.getRowState() == DataRowState.UNMODIFIED;
             }
             return false;

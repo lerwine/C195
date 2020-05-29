@@ -137,9 +137,6 @@ public interface AddressItem<T extends IAddressDAO> extends CustomerAddress, FxD
     ReadOnlyStringProperty languageProperty();
 
     @Override
-    T getDataObject();
-
-    @Override
-    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
+    T dataObject();
 
 }

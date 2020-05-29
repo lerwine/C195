@@ -34,4 +34,7 @@ public enum DataRowState {
         }
     }
     
+    public static boolean isNewRow(DataRowState status) {
+        return null != status && status == NEW;
+    }
 }

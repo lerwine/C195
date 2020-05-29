@@ -3,7 +3,6 @@ package scheduler.model.ui;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyProperty;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DbObject;
 import scheduler.model.DataObject;
@@ -37,14 +36,7 @@ public interface FxDbModel<T extends DbObject> extends DataObject {
      *
      * @return The backing data access object.
      */
-    T getDataObject();
-
-    /**
-     * Gets the {@link ReadOnlyProperty} that contains the backing data access object.
-     *
-     * @return The {@link ReadOnlyProperty} that contains the backing data access object.
-     */
-    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
+    T dataObject();
 
     ReadOnlyIntegerProperty primaryKeyProperty();
 

@@ -1,6 +1,6 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
+import java.util.Locale;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CountryDAO;
@@ -27,22 +27,13 @@ public interface CountryItem<T extends ICountryDAO> extends CustomerCountry, FxD
 
     ReadOnlyStringProperty nameProperty();
 
-    ZoneId getZoneId();
-
-    ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
-
-    String getDefaultTimeZoneDisplay();
-    
-    ReadOnlyStringProperty defaultTimeZoneDisplayProperty();
-    
     String getLanguage();
 
     ReadOnlyStringProperty languageProperty();
 
+    ReadOnlyObjectProperty<Locale> localeProperty();
+    
     @Override
-    T getDataObject();
-
-    @Override
-    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
+    T dataObject();
 
 }

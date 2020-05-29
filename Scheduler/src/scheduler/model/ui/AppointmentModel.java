@@ -2,6 +2,8 @@ package scheduler.model.ui;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -10,7 +12,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
@@ -19,19 +20,14 @@ import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.AppointmentType;
-import scheduler.model.PredefinedData;
 import scheduler.model.UserStatus;
 import scheduler.observables.AppointmentTypeProperty;
-import scheduler.observables.NestedBooleanProperty;
-import scheduler.observables.NestedObjectProperty;
-import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.ObservableBooleanDerivitive;
-import scheduler.observables.ObservableDerivitive;
-import scheduler.observables.ObservableStringDerivitive;
-import scheduler.observables.WrappedBooleanObservableProperty;
-import scheduler.observables.WrappedStringObservableProperty;
+import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
+import scheduler.observables.property.ReadOnlyObjectBindingProperty;
+import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.DB;
+import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
 
 /**
@@ -99,20 +95,20 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     private final SimpleObjectProperty<CustomerItem<? extends ICustomerDAO>> customer;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerName;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerAddress1;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerAddress2;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerCityName;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerCountryName;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerPostalCode;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerPhone;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerAddressText;
-    private final NestedStringProperty<CustomerItem<? extends ICustomerDAO>> customerCityZipCountry;
-    private final NestedBooleanProperty<CustomerItem<? extends ICustomerDAO>> customerActive;
+    private final ReadOnlyStringBindingProperty customerName;
+    private final ReadOnlyStringBindingProperty customerAddress1;
+    private final ReadOnlyStringBindingProperty customerAddress2;
+    private final ReadOnlyStringBindingProperty customerCityName;
+    private final ReadOnlyStringBindingProperty customerCountryName;
+    private final ReadOnlyStringBindingProperty customerPostalCode;
+    private final ReadOnlyStringBindingProperty customerPhone;
+    private final ReadOnlyStringBindingProperty customerAddressText;
+    private final ReadOnlyStringBindingProperty customerCityZipCountry;
+    private final ReadOnlyBooleanBindingProperty customerActive;
     private final SimpleObjectProperty<UserItem<? extends IUserDAO>> user;
-    private final NestedStringProperty<UserItem<? extends IUserDAO>> userName;
-    private final NestedObjectProperty<UserItem<? extends IUserDAO>, UserStatus> userStatus;
-    private final NestedStringProperty<UserItem<? extends IUserDAO>> userStatusDisplay;
+    private final ReadOnlyStringBindingProperty userName;
+    private final ReadOnlyObjectBindingProperty<UserStatus> userStatus;
+    private final ReadOnlyStringBindingProperty userStatusDisplay;
     private final NonNullableStringProperty title;
     private final NonNullableStringProperty description;
     private final NonNullableStringProperty location;
@@ -121,89 +117,107 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final NonNullableStringProperty url;
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
-    private final WrappedStringObservableProperty effectiveLocation;
-    private final WrappedBooleanObservableProperty valid;
+    private final ReadOnlyStringBindingProperty effectiveLocation;
+    private final ReadOnlyBooleanBindingProperty valid;
 
     @SuppressWarnings("incomplete-switch")
     public AppointmentModel(AppointmentDAO dao) {
         super(dao);
-        ICustomerDAO customerDao = dao.getCustomer();
-        customer = new SimpleObjectProperty<>(this, "customer", (null == customerDao) ? null : new RelatedCustomer(customerDao));
-        customerName = new NestedStringProperty<>(this, "customerName", customer, (t) -> t.nameProperty());
-        customerAddress1 = new NestedStringProperty<>(this, "customerAddress1", customer, (t) -> t.address1Property());
-        customerAddress2 = new NestedStringProperty<>(this, "customerAddress2", customer, (t) -> t.address2Property());
-        customerCityName = new NestedStringProperty<>(this, "customerCityName", customer, (t) -> t.cityNameProperty());
-        customerCountryName = new NestedStringProperty<>(this, "customerCountryName", customer, (t) -> t.countryNameProperty());
-        customerPostalCode = new NestedStringProperty<>(this, "customerPostalCode", customer, (t) -> t.postalCodeProperty());
-        customerPhone = new NestedStringProperty<>(this, "customerPhone", customer, (t) -> t.phoneProperty());
-        customerCityZipCountry = new NestedStringProperty<>(this, "customerCityZipCountry", customer, (t) -> t.cityZipCountryProperty());
-        customerAddressText = new NestedStringProperty<>(this, "customerAddressText", customer, (t) -> t.addressTextProperty());
-        customerActive = new NestedBooleanProperty<>(this, "customerActive", customer, (t) -> t.activeProperty());
-        IUserDAO userDao = dao.getUser();
-        user = new SimpleObjectProperty<>(this, "user", (null == userDao) ? null : new RelatedUser(userDao));
-        userName = new NestedStringProperty<>(this, "userName", user, (t) -> t.userNameProperty());
-        userStatus = new NestedObjectProperty<>(this, "userStatus", user, (t) -> t.statusProperty());
-        userStatusDisplay = new NestedStringProperty<>(this, "userStatusDisplay", user, (t) -> t.statusDisplayProperty());
+        customer = new SimpleObjectProperty<>(this, "customer");
+        customerName = new ReadOnlyStringBindingProperty(this, "customerName", Bindings.selectString(customer, "name"));
+        customerAddress1 = new ReadOnlyStringBindingProperty(this, "customerName", Bindings.selectString(customer, "address1"));
+        customerAddress2 = new ReadOnlyStringBindingProperty(this, "customerAddress2", Bindings.selectString(customer, "address2"));
+        customerCityName = new ReadOnlyStringBindingProperty(this, "customerCityName", Bindings.selectString(customer, "cityName"));
+        customerCountryName = new ReadOnlyStringBindingProperty(this, "customerCountryName", Bindings.selectString(customer, "countryName"));
+        customerPostalCode = new ReadOnlyStringBindingProperty(this, "customerPostalCode", Bindings.selectString(customer, "postalCode"));
+        customerPhone = new ReadOnlyStringBindingProperty(this, "customerPhone", Bindings.selectString(customer, "phone"));
+        customerCityZipCountry = new ReadOnlyStringBindingProperty(this, "customerCityZipCountry", Bindings.selectString(customer, "cityZipCountry"));
+        customerAddressText = new ReadOnlyStringBindingProperty(this, "customerAddressText", Bindings.selectString(customer, "addressText"));
+        customerActive = new ReadOnlyBooleanBindingProperty(this, "customerActive", Bindings.selectBoolean(customer, "active"));
+        user = new SimpleObjectProperty<>(this, "user");
+        userName = new ReadOnlyStringBindingProperty(this, "userName", Bindings.selectString(user, "userName"));
+        userStatus = new ReadOnlyObjectBindingProperty<>(this, "userStatus", Bindings.select(user, "status"));
+        userStatusDisplay = new ReadOnlyStringBindingProperty(this, "userStatusDisplay", Bindings.selectString(user, "statusDisplay"));
         title = new NonNullableStringProperty(this, "title", dao.getTitle());
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
         location = new NonNullableStringProperty(this, "location", dao.getLocation());
         AppointmentType at = dao.getType();
         type = new AppointmentTypeProperty(this, "type", (null == at) ? AppointmentType.OTHER : at);
-        contact = new NonNullableStringProperty(this, "contact", dao.getContact());
-        url = new NonNullableStringProperty(this, "url", dao.getUrl());
-        start = new SimpleObjectProperty<>(this, "start", DB.toLocalDateTime(dao.getStart()));
-        end = new SimpleObjectProperty<>(this, "end", DB.toLocalDateTime(dao.getEnd()));
+        contact = new NonNullableStringProperty(this, "contact");
+        url = new NonNullableStringProperty(this, "url");
+        start = new SimpleObjectProperty<>(this, "start");
+        end = new SimpleObjectProperty<>(this, "end");
 
-        ObservableStringDerivitive locZ = ObservableDerivitive.wsNormalized(location);
-        effectiveLocation = new WrappedStringObservableProperty(this, "effectiveLocation", ObservableStringDerivitive.of(type, locZ, customerAddressText,
-                ObservableDerivitive.wsNormalized(url),
-                (t, l, c, u) -> {
-                    if (null != t) {
-                        switch (t) {
-                            case CORPORATE_LOCATION:
-                                if (!l.isEmpty()) {
+        StringBinding wsNormalizedLocation = Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalized(location.get()), location);
+        StringBinding wsNormalizedUrl = Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalized(url.get()), url);
+        effectiveLocation = new ReadOnlyStringBindingProperty(this, "effectiveLocation", () -> {
+            AppointmentType t = type.get();
+            String l = wsNormalizedLocation.get();
+            String c = customerAddressText.get();
+            String u = wsNormalizedUrl.get();
+            if (null != t) {
+                switch (t) {
+                    case CORPORATE_LOCATION:
+                        if (!l.isEmpty()) {
 //                                    AddressDAO a = PredefinedData.lookupAddress(l);
 //                                    return AddressModel.calculateMultiLineAddress(
 //                                            AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
 //                                            AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
 //                                            a.getPhone()
 //                                    );
-                                    throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
-                                }
-                                break;
-                            case CUSTOMER_SITE:
-                                return c;
-                            case VIRTUAL:
-                                return u;
+                            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
                         }
-                    }
-                    return l;
-                }));
+                        break;
+                    case CUSTOMER_SITE:
+                        return c;
+                    case VIRTUAL:
+                        return u;
+                }
+            }
+            return l;
+        }, type, wsNormalizedLocation, customerAddressText, wsNormalizedUrl);
 
-        valid = new WrappedBooleanObservableProperty(this, "valid", locZ.isNotNullOrEmpty().and(
-                ObservableBooleanDerivitive.ofNested(customer, (s) -> s.validProperty(), false),
-                ObservableBooleanDerivitive.ofNested(user, (s) -> s.validProperty(), false),
-                ObservableDerivitive.isNotNullOrWhiteSpace(title),
-                ObservableBooleanDerivitive.of(start, end, (s, e) -> null != s && null != e && s.compareTo(e) <= 0),
-                ObservableBooleanDerivitive.of(type, location, contact, url, (AppointmentType t, String l, String c, String u) -> {
-                    if (null == t || l.isEmpty()) {
-                        return false;
-                    }
-                    switch (t) {
-                        case CUSTOMER_SITE:
-                            if (c.isEmpty()) {
+        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(title.get()), title)
+                        .and(Bindings.selectBoolean(customer, "valid"))
+                        .and(Bindings.selectBoolean(user, "valid"))
+                        .and(Bindings.createBooleanBinding(() -> {
+                            LocalDateTime s = start.get();
+                            LocalDateTime e = end.get();
+                            return null != s && null != e && s.compareTo(e) <= 0;
+                        }, start, end))
+                        .and(Bindings.createBooleanBinding(() -> {
+                            AppointmentType t = type.get();
+                            String l = location.get();
+                            String c = contact.get();
+                            String u = url.get();
+                            if (null == t || l.isEmpty()) {
                                 return false;
                             }
-                            break;
-                        case VIRTUAL:
-                            if (u.isEmpty()) {
-                                return false;
+                            switch (t) {
+                                case CUSTOMER_SITE:
+                                    if (c.isEmpty()) {
+                                        return false;
+                                    }
+                                    break;
+                                case VIRTUAL:
+                                    if (u.isEmpty()) {
+                                        return false;
+                                    }
+                                    break;
                             }
-                            break;
-                    }
-                    return true;
-                })
-        ));
+                            return true;
+                        }, type, location, contact, url))
+        );
+        customer.set(CustomerItem.createModel(dao.getCustomer()));
+        user.set(UserItem.createModel(dao.getUser()));
+        title.set(dao.getTitle());
+        description.set(dao.getDescription());
+        location.set(dao.getLocation());
+        contact.set(dao.getContact());
+        url.set(dao.getUrl());
+        start.set(DB.toLocalDateTime(dao.getStart()));
+        end.set(DB.toLocalDateTime(dao.getEnd()));
     }
 
     @Override
@@ -227,7 +241,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerNameProperty() {
-        return customerName.getReadOnlyStringProperty();
+        return customerName;
     }
 
     @Override
@@ -237,7 +251,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerAddress1Property() {
-        return customerAddress1.getReadOnlyStringProperty();
+        return customerAddress1;
     }
 
     @Override
@@ -247,7 +261,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerAddress2Property() {
-        return customerAddress2.getReadOnlyStringProperty();
+        return customerAddress2;
     }
 
     @Override
@@ -257,7 +271,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerCityNameProperty() {
-        return customerCityName.getReadOnlyStringProperty();
+        return customerCityName;
     }
 
     @Override
@@ -267,7 +281,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerCountryNameProperty() {
-        return customerCountryName.getReadOnlyStringProperty();
+        return customerCountryName;
     }
 
     @Override
@@ -277,7 +291,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerPostalCodeProperty() {
-        return customerPostalCode.getReadOnlyStringProperty();
+        return customerPostalCode;
     }
 
     @Override
@@ -287,7 +301,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerPhoneProperty() {
-        return customerPhone.getReadOnlyStringProperty();
+        return customerPhone;
     }
 
     @Override
@@ -297,7 +311,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerCityZipCountryProperty() {
-        return customerCityZipCountry.getReadOnlyStringProperty();
+        return customerCityZipCountry;
     }
 
     @Override
@@ -307,7 +321,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty customerAddressTextProperty() {
-        return customerAddressText.getReadOnlyStringProperty();
+        return customerAddressText;
     }
 
     @Override
@@ -317,7 +331,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyBooleanProperty customerActiveProperty() {
-        return customerActive.getReadOnlyBooleanProperty();
+        return customerActive;
     }
 
     @Override
@@ -341,7 +355,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty userNameProperty() {
-        return userName.getReadOnlyStringProperty();
+        return userName;
     }
 
     @Override
@@ -351,7 +365,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyObjectProperty<UserStatus> userStatusProperty() {
-        return userStatus.getReadOnlyObjectProperty();
+        return userStatus;
     }
 
     @Override
@@ -361,7 +375,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty userStatusDisplayProperty() {
-        return userStatusDisplay.getReadOnlyStringProperty();
+        return userStatusDisplay;
     }
 
     @Override
@@ -413,7 +427,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyStringProperty effectiveLocationProperty() {
-        return effectiveLocation.getReadOnlyStringProperty();
+        return effectiveLocation;
     }
 
     @Override
@@ -540,7 +554,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
+        return valid;
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {
@@ -570,7 +584,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
         @Override
         public AppointmentDAO updateDAO(AppointmentModel item) {
-            AppointmentDAO dao = item.getDataObject();
+            AppointmentDAO dao = item.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Appointment has been deleted");
             }
@@ -578,8 +592,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 throw new IllegalStateException();
             }
 
-            dao.setCustomer(item.getCustomer().getDataObject());
-            dao.setUser(item.getUser().getDataObject());
+            dao.setCustomer(item.getCustomer().dataObject());
+            dao.setUser(item.getUser().dataObject());
             dao.setTitle(item.getTitle());
             dao.setDescription(item.getDescription());
             dao.setContact(item.getContact());

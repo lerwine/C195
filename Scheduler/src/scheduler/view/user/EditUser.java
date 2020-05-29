@@ -201,7 +201,7 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         bindCssCollapse(passwordErrorMessageLabel, getPasswordValidationMessage().isEmpty());
 
         LocalDate today = LocalDate.now();
-        UserDAO dao = model.getDataObject();
+        UserDAO dao = model.dataObject();
         if (dao.isExisting()) {
             filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
                     AppointmentModelFilter.of(today, null, dao)));

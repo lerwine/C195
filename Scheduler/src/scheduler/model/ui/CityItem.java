@@ -38,8 +38,6 @@ public interface CityItem<T extends ICityDAO> extends CustomerCity, FxDbModel<T>
 
     ReadOnlyStringProperty countryNameProperty();
 
-    ZoneId getZoneId();
-
     ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
 
     String getTimeZoneDisplay();
@@ -56,14 +54,6 @@ public interface CityItem<T extends ICityDAO> extends CustomerCity, FxDbModel<T>
      * @return The backing {@link ICityDAO} data access object.
      */
     @Override
-    T getDataObject();
-
-    /**
-     * Gets the {@link ReadOnlyProperty} that contains the backing {@link ICityDAO} data access object.
-     *
-     * @return The {@link ReadOnlyProperty} that contains the backing {@link ICityDAO} data access object.
-     */
-    @Override
-    ReadOnlyObjectProperty<? extends T> dataObjectProperty();
+    T dataObject();
 
 }

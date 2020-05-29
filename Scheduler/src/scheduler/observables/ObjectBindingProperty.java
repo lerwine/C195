@@ -45,22 +45,16 @@ public abstract class ObjectBindingProperty<T> extends ObjectBinding<T> implemen
 
     protected void addDependency(Observable ...observable) {
         if (null != observable && observable.length > 0) {
-            for (final Observable dep : dependencies) {
-                if (!dependencies.contains(dep)) {
-                    super.bind(dep);
-                    dependencies.add(dep);
-                }
-            }
+            dependencies.stream().filter((dep) -> (!dependencies.contains(dep))).map((dep) -> {
+                super.bind(dep);
+                return dep;
+            }).forEach(dependencies::add);
         }
     }
 
     protected void removeDependency(Observable ...observable) {
         if (null != observable && observable.length > 0) {
-            for (final Observable dep : dependencies) {
-                if (dependencies.remove(dep)) {
-                    super.unbind(dep);
-                }
-            }
+            dependencies.stream().filter((dep) -> (dependencies.remove(dep))).forEach((t) -> super.unbind(t));
         }
     }
 

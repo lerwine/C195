@@ -33,7 +33,7 @@ public enum StringNormalizeOption {
         Matcher matcher = NORMALIZE_WS_PATTERN.matcher(value);
         if (matcher.find()) {
             do {
-                matcher.appendReplacement(sb, " ");
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(" "));
             } while (matcher.find());
             matcher.appendTail(sb);
             return sb.toString();

@@ -159,7 +159,7 @@ public class AppointmentAlert extends BorderPane {
             item = new AppointmentModel(dao);
         } else {
             item = (AppointmentModel) view.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL);
-            if (!Objects.equals(item.getDataObject(), dao)) {
+            if (!Objects.equals(item.dataObject(), dao)) {
                 AppointmentModel.getFactory().updateItem(item, dao);
             }
         }

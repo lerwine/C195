@@ -1,6 +1,7 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -18,13 +19,12 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.CustomerCity;
 import scheduler.model.CustomerCountry;
-import scheduler.observables.NestedObjectProperty;
-import scheduler.observables.NestedStringProperty;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.ObservableStringDerivitive;
-import scheduler.observables.WrappedBooleanObservableProperty;
-import scheduler.observables.WrappedStringObservableProperty;
+import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
+import scheduler.observables.property.ReadOnlyObjectBindingProperty;
+import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
@@ -158,41 +158,37 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
-    private final WrappedStringObservableProperty addressLines;
+    private final ReadOnlyStringBindingProperty addressLines;
     private final SimpleObjectProperty<CityItem<? extends ICityDAO>> city;
-    private final NestedStringProperty<CityItem<? extends ICityDAO>> cityName;
-    private final NestedStringProperty<CityItem<? extends ICityDAO>> countryName;
+    private final ReadOnlyStringBindingProperty cityName;
+    private final ReadOnlyStringBindingProperty countryName;
     private final NonNullableStringProperty postalCode;
     private final NonNullableStringProperty phone;
-    private final WrappedStringObservableProperty cityZipCountry;
-    private final NestedStringProperty<CityItem<? extends ICityDAO>> language;
-    private final NestedObjectProperty<CityItem<? extends ICityDAO>, ZoneId> zoneId;
-    private final WrappedBooleanObservableProperty valid;
+    private final ReadOnlyStringBindingProperty cityZipCountry;
+    private final ReadOnlyStringBindingProperty language;
+    private final ReadOnlyObjectBindingProperty<ZoneId> zoneId;
+    private final ReadOnlyBooleanBindingProperty valid;
 
     public AddressModel(AddressDAO dao) {
         super(dao);
         address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
         address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
-        addressLines = new WrappedStringObservableProperty(this, "addressLines",
-                ObservableStringDerivitive.of(address1, address2, AddressModel::calculateAddressLines)
-        );
+        addressLines = new ReadOnlyStringBindingProperty(this, "addressLines",
+                () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
         city = new SimpleObjectProperty<>(this, "city", CityItem.createModel(dao.getCity()));
-        cityName = new NestedStringProperty<>(this, "cityName", city, (t) -> t.nameProperty());
-        countryName = new NestedStringProperty<>(this, "countryName", city, (t) -> t.countryNameProperty());
+        cityName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(city, "name"));
+        countryName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(city, "countryName"));
         postalCode = new NonNullableStringProperty(this, "postalCode", dao.getPostalCode());
         phone = new NonNullableStringProperty(this, "phone", dao.getPhone());
-        cityZipCountry = new WrappedStringObservableProperty(this, "cityZipCountry",
-                ObservableStringDerivitive.of(cityName, countryName, postalCode, AddressModel::calculateCityZipCountry)
-        );
-        language = new NestedStringProperty<>(this, "language", city, (t) -> t.languageProperty());
-        zoneId = new NestedObjectProperty<>(this, "zoneId", city, (t) -> t.zoneIdProperty());
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
-//        valid = new WrappedBooleanObservableProperty(this, "valid",
-//                ObservableDerivitive.isNotNullOrWhiteSpace(addressLines).and(
-//                        ObservableObjectDerivitive.ofNested(city, (u) -> u.predefinedElementProperty()).isNotNull(),
-//                        ObservableDerivitive.isNotNullOrEmpty(postalCode)
-//                )
-//        );
+        cityZipCountry = new ReadOnlyStringBindingProperty(this, "cityZipCountry",
+                () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
+                cityName, countryName, postalCode);
+        language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(city, "language"));
+        zoneId = new ReadOnlyObjectBindingProperty<>(this, "zoneId", Bindings.select(city, "zoneId"));
+        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address1.get()), address1)
+                .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
+                .and(Bindings.selectBoolean(city, "valid")).and(Bindings.select(city, "rowState").isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -229,7 +225,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyStringProperty addressLinesProperty() {
-        return addressLines.getReadOnlyStringProperty();
+        return addressLines;
     }
 
     @Override
@@ -253,7 +249,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyStringProperty cityNameProperty() {
-        return cityName.getReadOnlyStringProperty();
+        return cityName;
     }
 
     @Override
@@ -263,7 +259,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyStringProperty countryNameProperty() {
-        return countryName.getReadOnlyStringProperty();
+        return countryName;
     }
 
     @Override
@@ -301,7 +297,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyStringProperty cityZipCountryProperty() {
-        return cityZipCountry.getReadOnlyStringProperty();
+        return cityZipCountry;
     }
 
     @Override
@@ -311,7 +307,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId.getReadOnlyObjectProperty();
+        return zoneId;
     }
 
     @Override
@@ -321,7 +317,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyStringProperty languageProperty() {
-        return language.getReadOnlyStringProperty();
+        return language;
     }
 
     @Override
@@ -331,7 +327,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     @Override
     public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
+        return valid;
     }
 
     @Override
@@ -380,14 +376,14 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         @Override
         public AddressDAO updateDAO(AddressModel item) {
-            AddressDAO dao = item.getDataObject();
+            AddressDAO dao = item.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Address has been deleted");
             }
             String address1 = item.address1.get();
             String address2 = item.address2.get();
             CityItem<? extends ICityDAO> cityModel = item.city.get();
-            ICityDAO cityDAO = cityModel.getDataObject();
+            ICityDAO cityDAO = cityModel.dataObject();
             if (null == cityDAO || cityDAO.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Associated city has been deleted");
             }
